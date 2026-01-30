@@ -1,0 +1,145 @@
+/* Global Vars for Theme */
+:root {
+    --sidebar-width: 260px;
+    --header-height: 60px;
+    --admin-primary: #3b82f6;
+    --admin-bg: #f3f4f6;
+    --sidebar-bg: #1e293b;
+    --sidebar-text: #e2e8f0;
+}
+
+body {
+    background-color: var(--admin-bg);
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+}
+
+/* 
+  SIDEBAR WRAPPER 
+  - Fixed on desktop
+  - Off-canvas on mobile
+*/
+.admin-sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    overflow-y: auto;
+    z-index: 1050;
+    /* Above header */
+    transition: transform 0.3s ease-in-out;
+}
+
+/* 
+  MAIN WRAPPER 
+  - Shifts content on desktop to accommodate sidebar
+  - Full width on mobile
+*/
+.admin-main-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin-left: var(--sidebar-width);
+    /* Default for desktop */
+    width: calc(100% - var(--sidebar-width));
+    transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* HEADER sticky top */
+.admin-header {
+    height: var(--header-height);
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 1040;
+    padding: 0 1.5rem;
+}
+
+/* CONTENT AREA */
+.admin-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+/* 
+  RESPONSIVE RULES (Media Queries)
+  Bootstrap Breakpoint: lg is 992px
+*/
+@media (max-width: 991.98px) {
+
+    /* Hide sidebar off-screen by default on mobile/tablet */
+    .admin-sidebar-wrapper {
+        transform: translateX(-100%);
+    }
+
+    /* When 'show' class is added, slide it in */
+    .admin-sidebar-wrapper.show {
+        transform: translateX(0);
+    }
+
+    /* Main content takes full width on mobile/tablet */
+    .admin-main-wrapper {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* Overlay for mobile when sidebar is open */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1045;
+    /* Below sidebar, above header */
+    display: none;
+}
+
+.sidebar-overlay.show {
+    display: block;
+}
+
+/* Sidebar Nav Styling Improvements */
+/* Sidebar Nav Styling Improvements */
+.sidebar-nav .nav-link {
+    padding: 0.75rem 1rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    border: none;
+    /* Removed border-left logic */
+    margin: 0.25rem 0.75rem;
+    /* Add spacing for rounded look */
+    border-radius: 8px;
+    /* Rounded corners */
+    transition: all 0.2s;
+}
+
+.sidebar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.sidebar-nav .nav-link.active {
+    background-color: #8B5CF6;
+    /* Purple color */
+    color: white;
+    font-weight: 500;
+}
+
+.sidebar-brand {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    font-weight: bold;
+    font-size: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
