@@ -99,10 +99,8 @@ export const adminSidebarMenu = [
         title: 'Notifications',
         icon: 'Bell',
         submenu: [
-            { title: 'Push Notifications', path: '/admin/notifications/push' },
-            { title: 'Email Notifications', path: '/admin/notifications/email' },
-            { title: 'SMS Notifications', path: '/admin/notifications/sms' },
-        ],
+            { title: 'Push Notification', path: '/admin/notifications/push' }
+        ]
     },
     {
         title: 'Support Desk',
@@ -130,15 +128,6 @@ export const adminSidebarMenu = [
             { title: 'POS Analytics', path: '/admin/analytics/pos' },
             { title: 'Vendor Earnings', path: '/admin/analytics/earnings' },
             { title: 'Tax & GST Reports', path: '/admin/analytics/tax' },
-        ],
-    },
-    {
-        title: 'Content',
-        icon: 'FileCode',
-        submenu: [
-            { title: 'Pages', path: '/admin/content/pages' },
-            { title: 'Blogs / Articles', path: '/admin/content/blogs' },
-            { title: 'Media Library', path: '/admin/content/media' },
         ],
     },
     {
