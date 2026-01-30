@@ -25,7 +25,9 @@ import AddVendor from '../pages/vendors/AddVendor';
 import VendorProducts from '../pages/vendors/VendorProducts';
 import VendorPayouts from '../pages/vendors/VendorPayouts';
 import Branches from '../pages/locations/Branches';
+import AddBranch from '../pages/locations/AddBranch';
 import Warehouses from '../pages/locations/Warehouses';
+import AddWarehouse from '../pages/locations/AddWarehouse';
 
 // Placeholder components for the demo to work without 50 separate files initially
 // Placeholder components for the demo
@@ -90,7 +92,9 @@ const AdminRoutes = () => {
 
                 {/* Locations */}
                 <Route path="locations/branches" element={<Branches />} />
+                <Route path="locations/branches/add" element={<AddBranch />} />
                 <Route path="locations/warehouses" element={<Warehouses />} />
+                <Route path="locations/warehouses/add" element={<AddWarehouse />} />
 
                 {/* Fallback for all other sub-routes defined in sidebar */}
                 <Route path="*" element={<PlaceholderPage title="Page Not Found / Under Construction" />} />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
 import { Search, Plus, MapPin, Package, Archive } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const WAREHOUSES_MOCK = [
     { id: '1', name: 'Central Distribution Center', location: 'Industrial Park, Zone A', capacity: '10,000 sqft', stockLevel: '85%', status: 'Active' },
@@ -30,9 +31,9 @@ const Warehouses = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Button variant="primary" className="d-flex align-items-center gap-2">
+                        <Link to="/admin/locations/warehouses/add" className="btn btn-primary d-flex align-items-center gap-2">
                             <Plus size={18} /> Add Warehouse
-                        </Button>
+                        </Link>
                     </div>
                 </Card.Body>
             </Card>

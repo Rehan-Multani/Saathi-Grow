@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
 import { Search, Plus, MapPin, Phone, Clock, Store } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const BRANCHES_MOCK = [
     { id: '1', name: 'Main Store - Downtown', address: '123 Market St, Downtown', phone: '+1 555-0100', manager: 'Sarah Connor', status: 'Active' },
@@ -31,9 +32,9 @@ const Branches = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Button variant="primary" className="d-flex align-items-center gap-2">
+                        <Link to="/admin/locations/branches/add" className="btn btn-primary d-flex align-items-center gap-2">
                             <Plus size={18} /> Add Branch
-                        </Button>
+                        </Link>
                     </div>
                 </Card.Body>
             </Card>
