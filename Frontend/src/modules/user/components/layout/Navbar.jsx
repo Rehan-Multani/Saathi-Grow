@@ -1,17 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Search, User, LogOut, ChevronDown, MapPin } from 'lucide-react';
+import { ShoppingCart, Search, User, LogOut, ChevronDown, MapPin, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../context/LocationContext';
 import { useSearch } from '../../context/SearchContext';
+import { products } from '../../data/products';
 
 const Navbar = () => {
   const { cartCount, cartTotal, toggleCart } = useCart();
   const { user, logout } = useAuth();
   const { location } = useLocation();
   const { searchQuery, setSearchQuery } = useSearch();
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      const filtered = products.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category.includes(searchQuery.toLowerCase())
+      ).slice(0, 6);
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]);
+    }
+  }, [searchQuery]);
+
+  const handleSuggestionClick = () => {
+    setSearchQuery('');
+    setSuggestions([]);
+    setIsMobileSearchOpen(false);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
@@ -44,17 +64,47 @@ const Navbar = () => {
           </div>
 
           {/* Search Bar - Desktop */}
-          <div className="flex-1 max-w-2xl relative hidden md:block">
-            <div className="relative">
+          <div className="flex-1 max-w-2xl relative hidden md:block group text-left">
+            <div className="relative z-50">
               <input
                 type="text"
                 placeholder="Search for 'milk', 'vegetables'..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--saathi-green)]/20 focus:border-[var(--saathi-green)] transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] transition-all text-sm font-medium focus:bg-white focus:shadow-md"
               />
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                  <X size={16} />
+                </button>
+              )}
             </div>
+
+            {/* Search Suggestions Dropdown */}
+            {suggestions.length > 0 && searchQuery && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[60]">
+                {suggestions.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/product/${item.id}`}
+                    onClick={handleSuggestionClick}
+                    className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                  >
+                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 bg-white flex-shrink-0">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                      <span className="text-[10px] text-gray-500">{item.category}</span>
+                    </div>
+                  </Link>
+                ))}
+                <Link to="/category" className="block p-3 text-center text-xs font-bold text-[var(--saathi-green)] bg-green-50/50 hover:bg-green-50 transition-colors">
+                  See all results for "{searchQuery}"
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
@@ -125,6 +175,31 @@ const Navbar = () => {
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--saathi-green)]/20 focus:border-[var(--saathi-green)] transition-all shadow-inner"
               />
               <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+
+              {/* Mobile Suggestions */}
+              {suggestions.length > 0 && searchQuery && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[60]">
+                  {suggestions.map((item) => (
+                    <Link
+                      key={item.id}
+                      to={`/product/${item.id}`}
+                      onClick={handleSuggestionClick}
+                      className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 bg-white flex-shrink-0">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                        <span className="text-[10px] text-gray-500">{item.category}</span>
+                      </div>
+                    </Link>
+                  ))}
+                  <Link to="/category" className="block p-3 text-center text-xs font-bold text-[var(--saathi-green)] bg-green-50/50 hover:bg-green-50 transition-colors">
+                    See all results for "{searchQuery}"
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

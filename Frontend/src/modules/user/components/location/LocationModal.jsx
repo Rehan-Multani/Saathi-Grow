@@ -61,60 +61,84 @@ const LocationModal = () => {
                 </button>
 
                 <div className="p-6">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">Change Location</h2>
+                    <h2 className="text-lg font-bold text-gray-900 mb-6">Change Location</h2>
 
-                    {/* Detect Location Button */}
-                    <button
-                        onClick={handleDetectLocation}
-                        className="w-full flex items-center gap-3 p-4 bg-green-50 border border-green-100 rounded-xl hover:bg-green-100 transition-colors mb-6 group"
-                    >
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[var(--saathi-green)] shadow-sm group-hover:scale-110 transition-transform">
-                            <Navigation size={20} className={detecting ? "animate-spin" : ""} />
-                        </div>
-                        <div className="text-left">
-                            <span className="block text-sm font-bold text-[var(--saathi-green)]">
-                                {detecting ? 'Detecting...' : 'Detect my location'}
-                            </span>
-                            <span className="block text-xs text-gray-500">Using GPS</span>
-                        </div>
-                    </button>
+                    {/* blinkit-style input row */}
+                    <div className="flex flex-row items-center gap-4 mb-6">
+                        {/* Detect Location Button */}
+                        <button
+                            onClick={handleDetectLocation}
+                            className="flex-none bg-[#0c831f] text-white px-6 py-2.5 rounded-[6px] hover:bg-[#0b721b] transition-colors font-semibold text-sm h-[42px] whitespace-nowrap"
+                        >
+                            Detect my location
+                        </button>
 
-                    {/* Search Input */}
-                    <div className="relative mb-4">
-                        <Search className="absolute left-4 top-3.5 text-gray-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search for area, street name..."
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--saathi-green)]/20 focus:border-[var(--saathi-green)] transition-all"
-                        />
+                        {/* OR Divider */}
+                        <div className="flex-none flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center">
+                                <span className="text-[10px] text-gray-400 font-bold">OR</span>
+                            </div>
+                        </div>
+
+                        {/* Search Input */}
+                        <div className="flex-grow relative h-[42px]">
+                            <input
+                                type="text"
+                                placeholder="search delivery location"
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
+                                className="w-full h-full pl-4 pr-10 border border-gray-300 rounded-[6px] focus:outline-none focus:border-[#0c831f] transition-colors placeholder:text-gray-400 text-gray-700 text-sm"
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <Search size={16} />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Suggestions */}
-                    <div className="max-h-48 overflow-y-auto">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Saved Addresses & Suggestions</h3>
-                        {/* Always show what user is typing as an option if it has length */}
-                        {searchText.trim().length > 0 && !suggestions.includes(searchText) && (
-                            <button
-                                onClick={() => handleManualSelect(searchText)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
-                            >
-                                <MapPin size={18} className="text-[#0c831f]" />
-                                <span className="text-sm text-gray-700 font-medium">Use "{searchText}"</span>
-                            </button>
-                        )}
-                        {suggestions.map((city) => (
-                            <button
-                                key={city}
-                                onClick={() => handleManualSelect(city)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
-                            >
-                                <MapPin size={18} className="text-gray-400" />
-                                <span className="text-sm text-gray-700 font-medium">{city}</span>
-                            </button>
-                        ))}
-                    </div>
+                    {/* Suggestions Area */}
+                    {(searchText.length > 0 || suggestions.length > 0) && (
+                        <div className="max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                            {searchText.length === 0 && (
+                                <h3 className="text-xs font-semibold text-gray-400 uppercase mb-3 text-left">Popular Cities</h3>
+                            )}
+
+                            {/* "Use Current Input" Option */}
+                            {searchText.trim().length > 0 && !suggestions.map(s => s.toLowerCase()).includes(searchText.toLowerCase()) && (
+                                <button
+                                    onClick={() => handleManualSelect(searchText)}
+                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors group mb-1"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                                        <MapPin size={16} className="text-gray-500 group-hover:text-[var(--saathi-green)]" />
+                                    </div>
+                                    <div className="flex-grow text-left">
+                                        <span className="block text-sm font-medium text-[var(--saathi-green)]">Enable "{searchText}"</span>
+                                        <span className="block text-xs text-gray-400">Use this as your address</span>
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* Suggestions List */}
+                            {suggestions.map((city) => (
+                                <button
+                                    key={city}
+                                    onClick={() => handleManualSelect(city)}
+                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors group border-b border-gray-50 last:border-0"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                                        <MapPin size={16} className="text-gray-400 group-hover:text-gray-600" />
+                                    </div>
+                                    <span className="text-sm md:text-base text-gray-700 font-medium">{city}</span>
+                                </button>
+                            ))}
+
+                            {suggestions.length === 0 && searchText.length > 0 && (
+                                <div className="text-center py-6">
+                                    <p className="text-sm text-gray-400">No matching locations found.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

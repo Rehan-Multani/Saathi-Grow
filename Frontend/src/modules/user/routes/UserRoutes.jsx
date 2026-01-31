@@ -12,10 +12,12 @@ import RegisterPage from '../pages/auth/RegisterPage';
 
 import AddressPage from '../pages/location/AddressPage';
 import CartSidebar from '../components/cart/CartSidebar';
+import ScrollToTop from '../components/layout/ScrollToTop';
 
 const UserLayout = () => {
     return (
         <>
+            <ScrollToTop />
             <Navbar />
             <CartSidebar />
             <div className="min-h-screen">

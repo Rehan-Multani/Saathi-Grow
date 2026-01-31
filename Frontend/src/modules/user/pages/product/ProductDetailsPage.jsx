@@ -30,74 +30,100 @@ const ProductDetailsPage = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
+                <div className="bg-white rounded-none border-0 md:rounded-2xl md:shadow-sm md:border md:border-gray-100 overflow-hidden min-h-[600px]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-12 h-full">
 
-                        {/* Image */}
-                        <div className="p-8 bg-white flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100">
-                            <div className="relative aspect-square w-full max-w-sm">
-                                <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
+                        {/* Left: Image Section */}
+                        <div className="p-4 md:p-8 flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-gray-100">
+                            <div className="flex-grow flex items-center justify-center w-full relative">
+                                <img src={product.image} alt={product.name} className="max-h-[400px] object-contain transition-transform hover:scale-105 duration-300" />
+                            </div>
+
+                            {/* Thumbnails (Mock) */}
+                            <div className="flex gap-4 mt-8 overflow-x-auto pb-2 w-full justify-center">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className={`w-16 h-16 border rounded-lg p-1 cursor-pointer hover:border-[var(--saathi-green)] ${i === 1 ? 'border-[var(--saathi-green)]' : 'border-gray-200'}`}>
+                                        <img src={product.image} alt="thumbnail" className="w-full h-full object-contain" />
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Details */}
-                        <div className="p-6 md:p-10 flex flex-col justify-center">
-                            <div className="mb-2">
-                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest bg-gray-100 px-2 py-1 rounded">{product.weight}</span>
-                            </div>
-                            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">{product.name}</h1>
-                            <p className="text-sm text-gray-500 mb-6">Imported and fresh. Quality checked.</p>
-
-                            {/* Product Description */}
-                            <div className="mb-6">
-                                <h3 className="text-sm font-bold text-gray-800 mb-1">Description</h3>
-                                <p className="text-sm text-gray-600 leading-relaxed">{product.description || 'No description available.'}</p>
+                        {/* Right: Details Section */}
+                        <div className="p-6 md:p-10 flex flex-col text-left">
+                            {/* Breadcrumbs */}
+                            <div className="text-xs text-gray-500 mb-4 flex items-center gap-1">
+                                <Link to="/" className="hover:text-gray-800">Home</Link> /
+                                <Link to={`/category/${product.category}`} className="hover:text-gray-800 capitalize"> {product.category.replace(/-/g, ' ')}</Link> /
+                                <span className="text-gray-400 truncate max-w-[200px]">{product.name}</span>
                             </div>
 
-                            <div className="flex items-center gap-4 mb-8">
-                                <span className="text-xl text-gray-400 line-through">₹{product.originalPrice}</span>
-                                <span className="text-3xl font-bold text-gray-900">₹{product.price}</span>
-                                <span className="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold uppercase">
-                                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
-                                </span>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">{product.name}</h1>
+
+                            {/* Weight / Timer if needed */}
+                            <div className="mb-4">
+                                <span className="text-sm font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded">{product.weight}</span>
                             </div>
 
-                            <div className="flex gap-4 mb-8">
+                            {/* Price Section */}
+                            <div className="mb-8">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xl font-bold text-gray-900">₹{product.price}</span>
+                                    {product.originalPrice > product.price && (
+                                        <span className="text-sm text-gray-400 line-through">₹{product.originalPrice}</span>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-gray-400">(Inclusive of all taxes)</p>
+                            </div>
+
+                            {/* Add to Cart Button */}
+                            <div className="mb-12">
                                 {quantity === 0 ? (
                                     <button
                                         onClick={() => addToCart(product)}
-                                        className="flex-1 bg-[var(--saathi-green)] text-white font-bold py-4 px-8 rounded-xl hover:bg-green-700 transition flex items-center justify-center gap-2 shadow-lg shadow-green-200"
+                                        className="bg-[#0c831f] text-white font-bold py-2.5 px-8 rounded-md hover:bg-[#0b721b] transition shadow-sm text-sm"
                                     >
-                                        <ShoppingCart size={20} />
-                                        Add to Cart
+                                        Add to cart
                                     </button>
                                 ) : (
-                                    <div className="flex-1 flex items-center gap-4 bg-[var(--saathi-green)] text-white rounded-xl p-2 w-fit max-w-[200px] shadow-lg shadow-green-200">
-                                        <button onClick={() => removeFromCart(product.id)} className="p-3 hover:bg-green-800 rounded-lg transition"><Minus /></button>
-                                        <span className="flex-1 text-center font-bold text-xl">{quantity}</span>
-                                        <button onClick={() => addToCart(product)} className="p-3 hover:bg-green-800 rounded-lg transition"><Plus /></button>
+                                    <div className="flex items-center gap-4 bg-[#0c831f] text-white rounded-md px-3 py-1.5 w-fit shadow-sm">
+                                        <button onClick={() => removeFromCart(product.id)} className="p-1 hover:bg-[#0b721b] rounded transition"><Minus size={16} /></button>
+                                        <span className="text-sm font-bold min-w-[20px] text-center">{quantity}</span>
+                                        <button onClick={() => addToCart(product)} className="p-1 hover:bg-[#0b721b] rounded transition"><Plus size={16} /></button>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Trust Badges */}
-                            <div className="grid grid-cols-2 gap-4 mt-auto">
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                                    <div className="w-10 h-10 rounded-full bg-[var(--saathi-green)]/10 flex items-center justify-center text-[var(--saathi-green)]">
-                                        <Clock size={20} />
+                            {/* Why Shop section */}
+                            <div>
+                                <h3 className="font-bold text-gray-900 text-sm mb-4">Why shop from SaathiGro?</h3>
+                                <div className="space-y-6">
+                                    <div className="flex gap-4 items-start">
+                                        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-yellow-50 flex items-center justify-center">
+                                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-fast-delivery-icon-download-in-svg-png-gif-file-formats--truck-vehicle-logistics-services-pack-business-icons-1536254.png" alt="delivery" className="w-6 h-6 object-contain opacity-80" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-800">10 Minute Delivery</p>
+                                            <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Get items delivered to your doorstep from dark stores near you, whenever you need them.</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-sm text-gray-800">10 Mins Delivery</p>
-                                        <p className="text-xs text-gray-500">Super fast delivery</p>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-yellow-50 flex items-center justify-center">
+                                            <img src="https://cdn-icons-png.flaticon.com/512/2529/2529396.png" alt="offer" className="w-6 h-6 object-contain opacity-80" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-800">Best Prices & Offers</p>
+                                            <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Best price destination with offers directly from the manufacturers.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                                    <div className="w-10 h-10 rounded-full bg-[var(--saathi-green)]/10 flex items-center justify-center text-[var(--saathi-green)]">
-                                        <ShieldCheck size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm text-gray-800">Best Quality</p>
-                                        <p className="text-xs text-gray-500">Direct from farm</p>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-yellow-50 flex items-center justify-center">
+                                            <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" alt="assortment" className="w-6 h-6 object-contain opacity-80" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-800">Wide Assortment</p>
+                                            <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Choose from 5000+ products across food, personal care, household & other categories.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

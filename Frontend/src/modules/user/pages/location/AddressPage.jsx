@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Navigation, Search, ArrowLeft } from 'lucide-react';
+import { MapPin, Navigation, Search, ArrowLeft, X } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
 
 const AddressPage = () => {
@@ -61,68 +61,66 @@ const AddressPage = () => {
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative z-10 animate-in zoom-in-95 duration-300 my-auto">
-                <div className="p-4 border-b border-gray-100 flex items-center">
-                    <button onClick={() => navigate(-1)} className="p-2 mr-2 rounded-full hover:bg-gray-100">
-                        <ArrowLeft size={20} className="text-gray-600" />
+            <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 my-auto p-6 md:p-8">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-800">Change Location</h1>
+                    <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-gray-100 transition-colors">
+                        <X size={24} className="text-gray-600" />
                     </button>
-                    <h1 className="text-xl font-bold text-gray-900">Select Location</h1>
                 </div>
 
-                <div className="p-4 md:p-6">
-                    {/* Detect Location Button */}
+                <div className="flex flex-col md:flex-row items-center gap-4 relative">
+                    {/* Detect Button */}
                     <button
                         onClick={handleDetectLocation}
-                        className="w-full flex items-center gap-3 p-3 md:p-4 bg-green-50 border border-green-100 rounded-xl mb-4 md:mb-6 group cursor-pointer hover:bg-green-100 transition-colors"
+                        className="w-full md:w-auto bg-[#0c831f] text-white px-6 py-3.5 rounded-md font-bold text-sm md:text-base hover:bg-green-700 transition-colors whitespace-nowrap z-10 shadow-sm flex items-center justify-center gap-2"
                     >
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[var(--saathi-green)] shadow-sm group-hover:scale-110 transition-transform">
-                            <Navigation size={20} className={detecting ? "animate-spin" : ""} />
-                        </div>
-                        <div className="text-left">
-                            <span className="block text-sm font-bold text-[var(--saathi-green)]">
-                                {detecting ? 'Detecting...' : 'Detect my location'}
-                            </span>
-                            <span className="block text-xs text-gray-500">Using GPS</span>
-                        </div>
+                        {detecting ? (
+                            <>
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Detecting...
+                            </>
+                        ) : (
+                            "Detect my location"
+                        )}
                     </button>
 
-                    {/* Search Input */}
-                    <div className="relative mb-4">
-                        <Search className="absolute left-4 top-3.5 text-gray-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search for area, street name..."
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--saathi-green)]/20 focus:border-[var(--saathi-green)] transition-all"
-                        />
+                    {/* OR Divider */}
+                    <div className="flex items-center justify-center gap-3 w-full md:w-auto">
+                        <div className="h-[1px] bg-gray-200 w-full md:w-6 hidden md:block"></div>
+                        <div className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-[10px] md:text-xs text-gray-400 font-bold shrink-0 z-10">
+                            OR
+                        </div>
+                        <div className="h-[1px] bg-gray-200 w-full md:w-6 hidden md:block"></div>
                     </div>
 
-                    {/* Suggestions */}
-                    <div className="max-h-96 overflow-y-auto">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Saved Addresses & Suggestions</h3>
+                    {/* Search Input */}
+                    <div className="relative flex-1 w-full">
+                        <input
+                            type="text"
+                            placeholder="search delivery location"
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            className="w-full pl-4 pr-10 py-3.5 border border-gray-200 rounded-md focus:outline-none focus:border-[#0c831f] text-gray-700 placeholder-gray-400 transition-colors shadow-sm"
+                        />
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
 
-                        {/* Always show what user is typing as an option if it has length */}
-                        {searchText.trim().length > 0 && !suggestions.includes(searchText) && (
-                            <button
-                                onClick={() => handleManualSelect(searchText)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0 text-left"
-                            >
-                                <MapPin size={18} className="text-[#0c831f]" />
-                                <span className="text-sm text-gray-700 font-medium">Use "{searchText}"</span>
-                            </button>
+                        {/* Search Results Dropdown (Minimal) */}
+                        {searchText.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 bg-white border border-gray-100 shadow-lg rounded-b-md mt-1 z-50 max-h-60 overflow-y-auto">
+                                {suggestions.map((city) => (
+                                    <button
+                                        key={city}
+                                        onClick={() => handleManualSelect(city)}
+                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 border-b border-gray-50 last:border-0 flex items-center gap-2"
+                                    >
+                                        <MapPin size={14} className="text-gray-400" />
+                                        {city}
+                                    </button>
+                                ))}
+                            </div>
                         )}
-
-                        {suggestions.map((city) => (
-                            <button
-                                key={city}
-                                onClick={() => handleManualSelect(city)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors border-b border-gray-50 last:border-0 text-left"
-                            >
-                                <MapPin size={18} className="text-gray-400" />
-                                <span className="text-sm text-gray-700 font-medium">{city}</span>
-                            </button>
-                        ))}
                     </div>
                 </div>
             </div>
