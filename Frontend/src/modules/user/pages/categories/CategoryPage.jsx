@@ -42,6 +42,7 @@ const CategoryPage = () => {
                                     <Link
                                         key={cat.id}
                                         to={`/category/${cat.slug}`}
+                                        replace
                                         className={`block px-4 py-3 text-sm hover:bg-[#0c831f] hover:text-white transition-colors ${slug === cat.slug ? 'bg-[#0c831f] text-white font-semibold border-l-4 border-[var(--saathi-yellow)]' : 'text-gray-600'}`}
                                     >
                                         {cat.name}

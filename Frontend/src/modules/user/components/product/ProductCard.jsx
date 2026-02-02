@@ -39,7 +39,7 @@ const ProductCard = ({ product }) => {
 
           <button
             onClick={handleAddToCart}
-            className="px-4 py-1 bg-white text-[#0c831f] border-[1.5px] border-[#0c831f] hover:!bg-[#0c831f] hover:!text-white text-[11px] font-bold rounded-lg transition-colors uppercase tracking-wide"
+            className="px-4 py-1 bg-white text-[#0c831f] border-[1.5px] border-[#0c831f] hover:!bg-[#0a6b19] active:!bg-[#0a6b19] hover:!text-white active:!text-white hover:!border-[#0a6b19] active:!border-[#0a6b19] text-[11px] font-bold rounded-lg transition-colors uppercase tracking-wide"
           >
             ADD
           </button>
