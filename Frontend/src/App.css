@@ -1,1 +1,3 @@
-/* Cleared default Vite styles to prevent layout interference */
+.product_button {
+    border-radius: 8px !important;
+}

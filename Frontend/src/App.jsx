@@ -9,6 +9,8 @@ import StaffRoutes from './modules/staff/routes/StaffRoutes';
 import AdminRoutes from './modules/admin/routes/AdminRoutes';
 import LoginModal from './modules/user/components/auth/LoginModal';
 import LocationModal from './modules/user/components/location/LocationModal';
+import "./App.css";
+import "./App.css"
 
 function App() {
     return (
