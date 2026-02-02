@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
-import { Search, Plus, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Search, Plus, MessageCircle, MoreHorizontal, Edit, Trash2, Info } from 'lucide-react';
 
 const TICKETS_MOCK = [
     { id: '#T-1001', subject: 'Refund Request for Order #123', user: 'John Doe', priority: 'High', status: 'Open', date: '2 hours ago' },
@@ -19,20 +19,22 @@ const SupportTickets = () => {
     return (
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h5 className="mb-0 fw-bold">Support Tickets</h5>
-                    <div className="d-flex gap-2 w-100 justify-content-md-end">
-                        <InputGroup style={{ maxWidth: '300px' }}>
+                    <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-sm-end">
+                        <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Search Ticket ID or Subject..."
-                                className="border-start-0 ps-0 shadow-none"
+                                placeholder="Search Tickets..."
+                                className="border-start-0 ps-0 shadow-none font-small"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Button variant="primary" className="d-flex align-items-center gap-2">
-                            <Plus size={18} /> Create Ticket
+                        <Button variant="primary" className="d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
+                            <Plus size={18} />
+                            <span className="d-none d-sm-inline">Create Ticket</span>
+                            <span className="d-inline d-sm-none">Create</span>
                         </Button>
                     </div>
                 </Card.Body>
@@ -77,7 +79,17 @@ const SupportTickets = () => {
                                     </td>
                                     <td className="text-muted small">{t.date}</td>
                                     <td className="text-end pe-4">
-                                        <Button variant="link" className="text-muted p-0"><MoreHorizontal size={20} /></Button>
+                                        <div className="d-flex justify-content-end gap-2">
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-info">
+                                                <Info size={16} />
+                                            </Button>
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-primary">
+                                                <Edit size={16} />
+                                            </Button>
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-danger">
+                                                <Trash2 size={16} />
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

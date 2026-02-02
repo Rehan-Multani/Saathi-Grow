@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ShoppingCart, Package, Users, IndianRupee, TrendingUp, TrendingDown, Activity, CreditCard, Eye } from 'lucide-react';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -56,6 +57,9 @@ const Dashboard = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
+    const [dateFilterType, setDateFilterType] = useState('daily');
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
@@ -79,23 +83,50 @@ const Dashboard = () => {
     };
 
     const handleGenerateReport = () => {
-        alert("Generating report... (This is a demo feature)");
+        alert(`Generating ${dateFilterType} report for ${selectedDate}... (This is a demo feature)`);
     };
 
     return (
         <div className="p-4 md:p-6 space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <h3 className="font-bold text-dark text-2xl mb-1 text-gray-800">Dashboard Overview</h3>
                     <p className="text-gray-500 text-sm mb-0">Live analytics and performance metrics.</p>
                 </div>
-                <button
-                    onClick={handleGenerateReport}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors font-medium">
-                    <Activity size={18} />
-                    <span>Generate Report</span>
-                </button>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    {/* Date Type Selector */}
+                    <select
+                        value={dateFilterType}
+                        onChange={(e) => setDateFilterType(e.target.value)}
+                        className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                    >
+                        <option value="daily">Daily</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+
+                    {/* Dynamic Date Input */}
+                    <div className="relative">
+                        <input
+                            type={dateFilterType === 'daily' ? 'date' : dateFilterType === 'monthly' ? 'month' : 'number'}
+                            min={dateFilterType === 'yearly' ? "2000" : undefined}
+                            max={dateFilterType === 'yearly' ? "2100" : undefined}
+                            placeholder={dateFilterType === 'yearly' ? "YYYY" : undefined}
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
+                        />
+                    </div>
+
+                    <button
+                        onClick={handleGenerateReport}
+                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors font-medium whitespace-nowrap">
+                        <Activity size={18} />
+                        <span>Generate Report</span>
+                    </button>
+                </div>
             </div>
 
             {/* Stats Grid */}
@@ -213,7 +244,7 @@ const Dashboard = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
                     <h5 className="font-bold text-gray-800 text-lg">Recent Transactions</h5>
-                    <button className="text-blue-600 hover:text-blue-700 font-semibold text-sm hover:underline">View All</button>
+                    <Link to="/admin/orders" className="text-blue-600 hover:text-blue-700 font-semibold text-sm hover:underline">View All</Link>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">

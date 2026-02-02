@@ -19,6 +19,7 @@ import CustomerOrders from '../pages/customers/CustomerOrders';
 import StockOverview from '../pages/stock/StockOverview';
 import BranchStock from '../pages/stock/BranchStock';
 import StockAdjustments from '../pages/stock/StockAdjustments';
+import AddStockAdjustment from '../pages/stock/AddStockAdjustment';
 import LowStockAlerts from '../pages/stock/LowStockAlerts';
 import DeliveryPartners from '../pages/delivery/DeliveryPartners';
 import AddDeliveryPartner from '../pages/delivery/AddDeliveryPartner';
@@ -59,6 +60,7 @@ import RolesAndPermissions from '../pages/settings/RolesAndPermissions';
 import BillingSettings from '../pages/settings/BillingSettings';
 import AppSettings from '../pages/settings/AppSettings';
 import SocialProfile from '../pages/settings/SocialProfile';
+import AllStaff from '../pages/staff/AllStaff';
 
 // Placeholder components for the demo
 const PlaceholderPage = ({ title }) => (
@@ -118,11 +120,17 @@ const AdminRoutes = () => {
                         <Route path="customers" element={<AllCustomers />} />
                         <Route path="customers/orders" element={<CustomerOrders />} />
 
+                        {/* Staff */}
+                        <Route path="staff" element={<AllStaff />} />
+                        <Route path="staff/add" element={<PlaceholderPage title="Add Staff" />} />
+
                         {/* Stock Management */}
                         <Route path="stock" element={<StockOverview />} />
                         <Route path="stock/branches" element={<BranchStock />} />
                         <Route path="stock/adjustments" element={<StockAdjustments />} />
+                        <Route path="stock/adjustments/add" element={<AddStockAdjustment />} />
                         <Route path="stock/alerts" element={<LowStockAlerts />} />
+
 
                         {/* Delivery Management */}
                         <Route path="delivery/partners" element={<DeliveryPartners />} />

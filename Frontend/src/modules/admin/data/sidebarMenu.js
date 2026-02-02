@@ -20,11 +20,10 @@ export const adminSidebarMenu = [
         submenu: [
             { title: 'All Products', path: '/admin/products' },
             { title: 'Add Product', path: '/admin/products/add' },
-            { title: 'Categories', path: '/admin/products/categories' },
         ],
     },
     {
-        title: 'Post & Brands',
+        title: 'Categories & Brands',
         icon: 'Tag',
         submenu: [
             { title: 'All Categories', path: '/admin/categories' },
@@ -39,6 +38,14 @@ export const adminSidebarMenu = [
         submenu: [
             { title: 'All Customers', path: '/admin/customers' },
             { title: 'Customer Orders', path: '/admin/customers/orders' },
+        ],
+    },
+    {
+        title: 'Staff Management',
+        icon: 'Briefcase',
+        submenu: [
+            { title: 'All Staff', path: '/admin/staff' },
+            { title: 'Add Staff', path: '/admin/staff/add' },
         ],
     },
     {
@@ -75,6 +82,7 @@ export const adminSidebarMenu = [
         icon: 'MapPin',
         submenu: [
             { title: 'Branches', path: '/admin/locations/branches' },
+            { title: 'Add Branch', path: '/admin/locations/branches/add' },
             { title: 'Warehouses', path: '/admin/locations/warehouses' },
         ],
     },

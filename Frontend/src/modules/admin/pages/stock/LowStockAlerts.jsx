@@ -1,11 +1,11 @@
 import React from 'react';
 import { Card, Table, Button, ProgressBar } from 'react-bootstrap';
-import { AlertTriangle, ShoppingCart } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 const LOW_STOCK_MOCK = [
-    { product: 'Mechanical Keyboard', sku: 'ELEC-KEY-002', current: 12, minLevel: 20, status: 'Critical' },
-    { product: 'Wireless Mouse', sku: 'ELEC-MOU-001', current: 10, minLevel: 15, status: 'Warning' },
-    { product: 'USB-C Cable (1m)', sku: 'ACC-CAB-005', current: 5, minLevel: 50, status: 'Critical' },
+    { product: 'Mechanical Keyboard', sku: 'ELEC-KEY-002', branch: 'Main Branch', current: 12, minLevel: 20, status: 'Critical' },
+    { product: 'Wireless Mouse', sku: 'ELEC-MOU-001', branch: 'Downtown Store', current: 10, minLevel: 15, status: 'Warning' },
+    { product: 'USB-C Cable (1m)', sku: 'ACC-CAB-005', branch: 'Warehouse A', current: 5, minLevel: 50, status: 'Critical' },
 ];
 
 const LowStockAlerts = () => {
@@ -32,6 +32,7 @@ const LowStockAlerts = () => {
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
                                 <th className="ps-4 border-0 py-3">Product Info</th>
+                                <th className="border-0 py-3">Branch</th>
                                 <th className="border-0 py-3">Stock Level</th>
                                 <th className="border-0 py-3 text-end pe-4">Action</th>
                             </tr>
@@ -43,6 +44,7 @@ const LowStockAlerts = () => {
                                         <div className="fw-bold text-dark">{item.product}</div>
                                         <div className="small text-muted text-monospace">{item.sku}</div>
                                     </td>
+                                    <td className="text-muted">{item.branch}</td>
                                     <td style={{ minWidth: '200px' }}>
                                         <div className="d-flex justify-content-between mb-1 small">
                                             <span className="fw-bold text-danger">{item.current} items left</span>
@@ -56,8 +58,8 @@ const LowStockAlerts = () => {
                                         />
                                     </td>
                                     <td className="text-end pe-4">
-                                        <Button size="sm" variant="primary" className="d-flex align-items-center justify-content-center gap-2 ms-auto responsive-btn shadow-sm text-nowrap">
-                                            <ShoppingCart size={14} /> <span>Reorder<span className="d-none d-sm-inline"> Now</span></span>
+                                        <Button size="sm" variant="success" className="d-flex align-items-center justify-content-center gap-2 ms-auto responsive-btn shadow-sm text-nowrap">
+                                            <RefreshCw size={14} /> <span>Restock</span>
                                         </Button>
                                     </td>
                                 </tr>

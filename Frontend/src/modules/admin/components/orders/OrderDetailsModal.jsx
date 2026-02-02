@@ -44,7 +44,7 @@ const OrderDetailsModal = ({ show, onHide, order }) => {
             ></div>
 
             {/* Modal Content */}
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-xl shadow-2xl w-[95%] sm:w-full max-w-3xl z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 m-4">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100">
                     <h5 className="text-xl font-bold text-gray-800">
                         Order Details: <span className="text-blue-600">{order.id}</span>

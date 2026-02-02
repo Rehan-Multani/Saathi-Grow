@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Search, Eye, Filter, Download } from 'lucide-react';
+import { Search, Eye, Filter, Download, Store, Upload } from 'lucide-react';
 import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
 
 const MOCK_ORDERS = [
-    { id: 'ORD-1001', customer: 'John Doe', date: '2023-10-25', status: 'Delivered', total: '₹120.00', items: 3, payment: 'Paid' },
-    { id: 'ORD-1002', customer: 'Jane Smith', date: '2023-10-26', status: 'Pending', total: '₹85.50', items: 1, payment: 'Pending' },
-    { id: 'ORD-1003', customer: 'Bob Wilson', date: '2023-10-26', status: 'Processing', total: '₹210.00', items: 5, payment: 'Paid' },
-    { id: 'ORD-1004', customer: 'Alice Brown', date: '2023-10-27', status: 'Cancelled', total: '₹45.00', items: 2, payment: 'Refunded' },
-    { id: 'ORD-1005', customer: 'Charlie Day', date: '2023-10-27', status: 'Delivered', total: '₹340.00', items: 8, payment: 'Paid' },
+    { id: 'ORD-1001', customer: 'John Doe', vendor: 'TechWorld', date: '2023-10-25', status: 'Delivered', total: '₹120.00', items: 3, payment: 'Paid' },
+    { id: 'ORD-1002', customer: 'Jane Smith', vendor: 'FashionHub', date: '2023-10-26', status: 'Pending', total: '₹85.50', items: 1, payment: 'Pending' },
+    { id: 'ORD-1003', customer: 'Bob Wilson', vendor: 'GrocerMart', date: '2023-10-26', status: 'Processing', total: '₹210.00', items: 5, payment: 'Paid' },
+    { id: 'ORD-1004', customer: 'Alice Brown', vendor: 'TechWorld', date: '2023-10-27', status: 'Cancelled', total: '₹45.00', items: 2, payment: 'Refunded' },
+    { id: 'ORD-1005', customer: 'Charlie Day', vendor: 'ElectroCity', date: '2023-10-27', status: 'Delivered', total: '₹340.00', items: 8, payment: 'Paid' },
 ];
 
 const OrderStatusBadge = ({ status }) => {
@@ -31,7 +31,8 @@ const AllOrders = () => {
 
     const filteredOrders = MOCK_ORDERS.filter(order =>
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer.toLowerCase().includes(searchTerm.toLowerCase())
+        order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.vendor.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleShowDetails = (order) => {
@@ -43,7 +44,7 @@ const AllOrders = () => {
         <div className="p-6">
             {/* Action Toolbar */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex flex-col md:flex-row justify-between gap-4">
                     <div className="w-full md:max-w-xs">
                         <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
                             <div className="pl-3 text-gray-400">
@@ -52,20 +53,24 @@ const AllOrders = () => {
                             <input
                                 type="text"
                                 className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400"
-                                placeholder="Search by Order ID or Customer..."
+                                placeholder="Search Order..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                     </div>
 
-                    <div className="flex w-full md:w-auto gap-3">
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                            <Filter size={18} />
+                    <div className="grid grid-cols-3 md:flex w-full md:w-auto gap-3">
+                        <button className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                            <Filter size={20} className="text-gray-600" />
                             <span className="hidden sm:inline">Filter</span>
                         </button>
-                        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
-                            <Download size={18} />
+                        <button className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-green-600 text-green-600 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors shadow-sm">
+                            <Upload size={20} />
+                            <span className="hidden sm:inline">Import</span>
+                        </button>
+                        <button className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors shadow-sm">
+                            <Download size={20} />
                             <span className="hidden sm:inline">Export</span>
                         </button>
                     </div>
@@ -80,6 +85,7 @@ const AllOrders = () => {
                             <tr>
                                 <th className="px-6 py-4">Order ID</th>
                                 <th className="px-6 py-4">Customer</th>
+                                <th className="px-6 py-4">Vendor</th>
                                 <th className="px-6 py-4">Date</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Payment</th>
@@ -93,6 +99,12 @@ const AllOrders = () => {
                                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 font-medium text-blue-600">{order.id}</td>
                                     <td className="px-6 py-4 font-medium text-gray-800">{order.customer}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
+                                            <Store size={14} className="text-gray-400" />
+                                            {order.vendor}
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 text-gray-500 text-sm">{order.date}</td>
                                     <td className="px-6 py-4"><OrderStatusBadge status={order.status} /></td>
                                     <td className="px-6 py-4">

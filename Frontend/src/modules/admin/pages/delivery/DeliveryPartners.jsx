@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
-import { Search, Plus, Phone, Star, MoreHorizontal, Truck } from 'lucide-react';
+import { Search, Plus, Phone, Star, MoreHorizontal, Truck, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const PARTNERS_MOCK = [
@@ -84,7 +84,14 @@ const DeliveryPartners = () => {
                                         </Badge>
                                     </td>
                                     <td className="text-end pe-4">
-                                        <Button variant="link" className="text-muted p-0"><MoreHorizontal size={20} /></Button>
+                                        <div className="d-flex justify-content-end gap-2">
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-primary">
+                                                <Edit size={16} />
+                                            </Button>
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-danger">
+                                                <Trash2 size={16} />
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

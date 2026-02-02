@@ -11,24 +11,25 @@ const REVENUE_DATA = [
 const RevenueAnalytics = () => {
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0">Revenue Analytics</h4>
-                <div className="d-flex gap-2">
-                    <Form.Select size="sm" style={{ width: '150px' }}>
+                <div className="d-flex gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                    <Form.Select size="sm" style={{ width: '140px' }} className="shadow-none">
                         <option>Current Week</option>
                         <option>Current Month</option>
                         <option>Last Month</option>
                         <option>Year to Date</option>
                     </Form.Select>
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2">
-                        <Download size={16} /> Export
+                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
+                        <Download size={16} /> <span className="d-none d-sm-inline">Export</span>
+                        <span className="d-inline d-sm-none">Export</span>
                     </Button>
                 </div>
             </div>
 
             {/* Overview Cards */}
             <Row className="g-3 mb-4">
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm bg-primary text-white h-100">
                         <Card.Body>
                             <div className="text-white-50 small text-uppercase fw-bold mb-2">Total Net Sales</div>
@@ -39,7 +40,7 @@ const RevenueAnalytics = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Body>
                             <div className="text-muted small text-uppercase fw-bold mb-2">Total Refunds</div>
@@ -50,7 +51,7 @@ const RevenueAnalytics = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Body>
                             <div className="text-muted small text-uppercase fw-bold mb-2">Vendor Payouts</div>
@@ -59,7 +60,7 @@ const RevenueAnalytics = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Body>
                             <div className="text-muted small text-uppercase fw-bold mb-2">Net Profit</div>

@@ -5,6 +5,7 @@ import { LocationProvider } from './modules/user/context/LocationContext';
 import { SearchProvider } from './modules/user/context/SearchContext';
 import UserRoutes from './modules/user/routes/UserRoutes';
 import VendorRoutes from './modules/vendor/routes/VendorRoutes';
+import StaffRoutes from './modules/staff/routes/StaffRoutes';
 import AdminRoutes from './modules/admin/routes/AdminRoutes';
 import LoginModal from './modules/user/components/auth/LoginModal';
 import LocationModal from './modules/user/components/location/LocationModal';
@@ -17,6 +18,7 @@ function App() {
                     <CartProvider>
                         <BrowserRouter>
                             <Routes>
+                                <Route path="/staff/*" element={<StaffRoutes />} />
                                 <Route path="/admin/*" element={<AdminRoutes />} />
                                 <Route path="/vendor/*" element={<VendorRoutes />} />
                                 <Route path="/*" element={<UserRoutes />} />

@@ -12,25 +12,26 @@ const INVENTORY_DATA = [
 const InventoryReports = () => {
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0">Inventory Reports</h4>
-                <div className="d-flex gap-2">
-                    <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2">
-                        <AlertTriangle size={16} /> Low Stock Alerts (14)
+                <div className="d-flex gap-2 w-100  justify-content-between justify-content-sm-end">
+                    <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center">
+                        <AlertTriangle size={16} /> <span className="text-nowrap">Low Stock (14)</span>
                     </Button>
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2">
-                        <Download size={16} /> Export Stock List
+                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center">
+                        <Download size={16} /> <span className="d-none d-sm-inline">Export Stock List</span>
+                        <span className="d-inline d-sm-none">Export</span>
                     </Button>
                 </div>
             </div>
 
             {/* Inventory Table */}
             <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <Card.Header className="bg-white py-3 border-0 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h6 className="mb-0 fw-bold">Current Stock Levels</h6>
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-2 w-100 w-sm-auto border rounded px-2 bg-light">
                         <Search size={16} className="text-muted" />
-                        <Form.Control size="sm" type="search" placeholder="Search Product..." className="border-0 bg-light" style={{ width: '200px' }} />
+                        <Form.Control size="sm" type="search" placeholder="Search Product..." className="border-0 bg-transparent shadow-none" style={{ minWidth: '200px' }} />
                     </div>
                 </Card.Header>
                 <Card.Body className="p-0">
