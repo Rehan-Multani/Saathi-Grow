@@ -2,26 +2,38 @@ import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Image } from 'react-bootstrap';
 import { Save, X, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 
 const AddBrand = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
+        category: '',
         status: 'Active',
         website: '',
         description: ''
     });
+
     const [logoPreview, setLogoPreview] = useState(null);
+    const [showCropper, setShowCropper] = useState(false);
+    const [tempLogo, setTempLogo] = useState(null);
 
     const handleLogoChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setLogoPreview(reader.result);
+                setTempLogo(reader.result);
+                setShowCropper(true);
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleCropComplete = (croppedImage) => {
+        setLogoPreview(croppedImage);
+        setShowCropper(false);
+        setTempLogo(null);
     };
 
     const handleChange = (e) => {
@@ -51,6 +63,17 @@ const AddBrand = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                 />
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label>Category</Form.Label>
+                                <Form.Select name="category" value={formData.category} onChange={handleChange}>
+                                    <option value="">Select Category</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Groceries">Groceries</option>
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Home & Kitchen">Home & Kitchen</option>
+                                </Form.Select>
                             </Form.Group>
 
                             <Form.Group className="mb-3">
@@ -107,6 +130,13 @@ const AddBrand = () => {
                                     onChange={handleLogoChange}
                                     accept="image/*"
                                     disabled={!!logoPreview}
+                                />
+                                <ImageCropperModal
+                                    show={showCropper}
+                                    imageSrc={tempLogo}
+                                    onCancel={() => { setShowCropper(false); setTempLogo(null); }}
+                                    onCropComplete={handleCropComplete}
+                                    aspect={1}
                                 />
                             </div>
                         </Card.Body>

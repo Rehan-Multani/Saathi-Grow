@@ -35,8 +35,8 @@ const ReturnDetailsModal = ({ show, onHide, request }) => {
             ></div>
 
             {/* Modal Content */}
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center p-6 border-b border-gray-100">
+            <div className="bg-white rounded-xl shadow-2xl w-[95%] sm:w-full max-w-3xl z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 m-4">
+                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-100">
                     <h5 className="text-xl font-bold text-gray-800">
                         Return Request: <span className="text-red-500">{request.id}</span>
                     </h5>
@@ -48,7 +48,7 @@ const ReturnDetailsModal = ({ show, onHide, request }) => {
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto">
+                <div className="p-4 sm:p-6 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
                             <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${getStatusColor(request.status)}`}>
@@ -87,14 +87,14 @@ const ReturnDetailsModal = ({ show, onHide, request }) => {
                         <table className="w-full text-left">
                             <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-200">
                                 <tr>
-                                    <th className="px-5 py-3 pl-6">Product Name</th>
-                                    <th className="px-5 py-3 text-center">Status</th>
+                                    <th className="px-3 sm:px-5 py-3 pl-4 sm:pl-6">Product Name</th>
+                                    <th className="px-3 sm:px-5 py-3 text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 <tr>
-                                    <td className="px-5 py-3 pl-6 font-medium text-gray-800">{request.product}</td>
-                                    <td className="px-5 py-3 text-center">
+                                    <td className="px-3 sm:px-5 py-3 pl-4 sm:pl-6 font-medium text-gray-800">{request.product}</td>
+                                    <td className="px-3 sm:px-5 py-3 text-center">
                                         <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Partially Refunded</span>
                                     </td>
                                 </tr>
@@ -103,18 +103,18 @@ const ReturnDetailsModal = ({ show, onHide, request }) => {
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <div className="flex gap-3">
-                        <button className="px-4 py-2 border border-green-600 text-green-700 rounded-lg hover:bg-green-50 font-medium transition-colors">
+                <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div className="grid grid-cols-2 gap-3 w-full sm:w-auto order-2 sm:order-1">
+                        <button className="px-4 py-2 border border-green-600 text-green-700 rounded-lg hover:bg-green-50 font-medium transition-colors text-center">
                             Approve
                         </button>
-                        <button className="px-4 py-2 border border-red-600 text-red-700 rounded-lg hover:bg-red-50 font-medium transition-colors">
+                        <button className="px-4 py-2 border border-red-600 text-red-700 rounded-lg hover:bg-red-50 font-medium transition-colors text-center">
                             Reject
                         </button>
                     </div>
                     <button
                         onClick={onHide}
-                        className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+                        className="w-full sm:w-auto px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors order-1 sm:order-2"
                     >
                         Close
                     </button>

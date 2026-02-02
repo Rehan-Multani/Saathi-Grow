@@ -12,24 +12,25 @@ const SALES_DATA = [
 const SalesReports = () => {
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0">Sales Reports</h4>
-                <div className="d-flex gap-2">
-                    <Form.Select size="sm" style={{ width: '150px' }}>
+                <div className="d-flex gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                    <Form.Select size="sm" style={{ width: '140px' }} className="shadow-none">
                         <option>Last 30 Days</option>
                         <option>This Month</option>
                         <option>Last Month</option>
                         <option>This Year</option>
                     </Form.Select>
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2">
-                        <Download size={16} /> Export CSV
+                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
+                        <Download size={16} /> <span className="d-none d-sm-inline">Export CSV</span>
+                        <span className="d-inline d-sm-none">Export</span>
                     </Button>
                 </div>
             </div>
 
             {/* Stats Cards */}
             <Row className="g-3 mb-4">
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-3 mb-2">
@@ -43,7 +44,7 @@ const SalesReports = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-3 mb-2">
@@ -57,7 +58,7 @@ const SalesReports = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-3 mb-2">
@@ -71,7 +72,7 @@ const SalesReports = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col xs={12} sm={6} md={3}>
                     <Card className="border-0 shadow-sm">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-3 mb-2">

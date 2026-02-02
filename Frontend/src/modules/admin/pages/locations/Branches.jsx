@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
-import { Search, Plus, MapPin, Phone, Clock, Store } from 'lucide-react';
+import { Search, Plus, MapPin, Store, Edit, Trash2, Info, Upload, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import BranchDetailsModal from '../../components/locations/BranchDetailsModal';
 
 const BRANCHES_MOCK = [
     { id: '1', name: 'Main Store - Downtown', address: '123 Market St, Downtown', phone: '+1 555-0100', manager: 'Sarah Connor', status: 'Active' },
@@ -11,11 +12,18 @@ const BRANCHES_MOCK = [
 
 const Branches = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedBranch, setSelectedBranch] = useState(null);
 
     const filtered = BRANCHES_MOCK.filter(b =>
         b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         b.address.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleShowDetails = (branch) => {
+        setSelectedBranch(branch);
+        setShowDetailsModal(true);
+    };
 
     return (
         <div className="p-3">
@@ -32,9 +40,19 @@ const Branches = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Link to="/admin/locations/branches/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
-                            <Plus size={18} /> Add Branch
-                        </Link>
+                        <div className="d-flex gap-2">
+                            <Button variant="outline-success" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Upload size={18} /> <span className="d-none d-sm-inline">Import</span>
+                            </Button>
+                            <Button variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Download size={18} /> <span className="d-none d-sm-inline">Export</span>
+                            </Button>
+                            <Link to="/admin/locations/branches/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
+                                <Plus size={18} />
+                                <span className="d-none d-sm-inline">Add Branch</span>
+                                <span className="d-inline d-sm-none">Add</span>
+                            </Link>
+                        </div>
                     </div>
                 </Card.Body>
             </Card>
@@ -76,7 +94,22 @@ const Branches = () => {
                                         </Badge>
                                     </td>
                                     <td className="text-end pe-4">
-                                        <Button variant="link" className="text-decoration-none">Details</Button>
+                                        <div className="d-flex justify-content-end gap-2">
+                                            <Button
+                                                variant="light"
+                                                size="sm"
+                                                className="btn-icon-soft text-info"
+                                                onClick={() => handleShowDetails(b)}
+                                            >
+                                                <Info size={16} />
+                                            </Button>
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-primary">
+                                                <Edit size={16} />
+                                            </Button>
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-danger">
+                                                <Trash2 size={16} />
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -84,6 +117,12 @@ const Branches = () => {
                     </Table>
                 </Card.Body>
             </Card>
+
+            <BranchDetailsModal
+                show={showDetailsModal}
+                onHide={() => setShowDetailsModal(false)}
+                branch={selectedBranch}
+            />
         </div>
     );
 };

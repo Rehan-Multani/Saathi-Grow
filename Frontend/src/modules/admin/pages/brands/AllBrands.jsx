@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
-import { Search, Plus, Edit, Trash2, Tag } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Tag, Upload, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const BRANDS_MOCK = [
@@ -21,10 +21,10 @@ const AllBrands = () => {
     return (
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h5 className="mb-0 fw-bold">Brands</h5>
-                    <div className="d-flex gap-2 w-100 justify-content-md-end">
-                        <InputGroup style={{ maxWidth: '300px' }}>
+                    <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-sm-end">
+                        <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                             <Form.Control
                                 placeholder="Search Brands..."
@@ -33,9 +33,19 @@ const AllBrands = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Link to="/admin/brands/add" className="btn btn-primary d-flex align-items-center gap-2">
-                            <Plus size={18} /> Add Brand
-                        </Link>
+                        <div className="d-flex gap-2">
+                            <Button variant="outline-success" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Upload size={18} /> <span className="d-none d-sm-inline">Import</span>
+                            </Button>
+                            <Button variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Download size={18} /> <span className="d-none d-sm-inline">Export</span>
+                            </Button>
+                            <Link to="/admin/brands/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                                <Plus size={18} />
+                                <span className="d-none d-sm-inline">Add Brand</span>
+                                <span className="d-inline d-sm-none">Add</span>
+                            </Link>
+                        </div>
                     </div>
                 </Card.Body>
             </Card>

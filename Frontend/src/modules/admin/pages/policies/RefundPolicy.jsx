@@ -22,14 +22,16 @@ If your refund is approved, we will initiate a refund to your credit card (or or
 
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0">Refund Policy</h4>
-                <div className="d-flex gap-2">
-                    <Button variant="outline-dark" size="sm" className="d-flex align-items-center gap-2">
-                        <Eye size={16} /> Preview
+                <div className="d-flex gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                    <Button variant="outline-dark" size="sm" className="d-flex align-items-center gap-2 flex-grow-1 flex-sm-grow-0 justify-content-center">
+                        <Eye size={16} /> <span className="d-none d-sm-inline">Preview</span>
+                        <span className="d-inline d-sm-none">View</span>
                     </Button>
-                    <Button variant="primary" size="sm" className="d-flex align-items-center gap-2">
-                        <Save size={16} /> Save Changes
+                    <Button variant="primary" size="sm" className="d-flex align-items-center gap-2 flex-grow-1 flex-sm-grow-0 justify-content-center">
+                        <Save size={16} /> <span className="d-none d-sm-inline">Save Changes</span>
+                        <span className="d-inline d-sm-none">Save</span>
                     </Button>
                 </div>
             </div>

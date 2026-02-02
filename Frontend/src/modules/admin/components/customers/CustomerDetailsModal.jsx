@@ -25,7 +25,7 @@ const CustomerDetailsModal = ({ show, onHide, customer }) => {
             ></div>
 
             {/* Modal Content */}
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-xl shadow-2xl w-[95%] sm:w-full max-w-2xl z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 m-4">
 
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
@@ -50,17 +50,17 @@ const CustomerDetailsModal = ({ show, onHide, customer }) => {
                 <div className="p-6 overflow-y-auto">
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                        <div className="p-4 bg-green-50 rounded-xl text-center border border-green-100">
-                            <span className="block text-2xl font-bold text-green-700">{customer.orders}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+                        <div className="p-3 sm:p-4 bg-green-50 rounded-xl text-center border border-green-100 flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
+                            <span className="block text-xl sm:text-2xl font-bold text-green-700">{customer.orders}</span>
                             <span className="text-xs font-semibold text-green-600 uppercase">Total Orders</span>
                         </div>
-                        <div className="p-4 bg-blue-50 rounded-xl text-center border border-blue-100">
-                            <span className="block text-2xl font-bold text-blue-700">{customer.spent}</span>
+                        <div className="p-3 sm:p-4 bg-blue-50 rounded-xl text-center border border-blue-100 flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
+                            <span className="block text-xl sm:text-2xl font-bold text-blue-700">{customer.spent}</span>
                             <span className="text-xs font-semibold text-blue-600 uppercase">Total Spent</span>
                         </div>
-                        <div className="p-4 bg-amber-50 rounded-xl text-center border border-amber-100">
-                            <span className="block text-2xl font-bold text-amber-700">{customer.points}</span>
+                        <div className="p-3 sm:p-4 bg-amber-50 rounded-xl text-center border border-amber-100 flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
+                            <span className="block text-xl sm:text-2xl font-bold text-amber-700">{customer.points}</span>
                             <span className="text-xs font-semibold text-amber-600 uppercase">Reward Points</span>
                         </div>
                     </div>

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
-import { Search, Plus, Edit, Trash2, Folder, Image as ImageIcon } from 'lucide-react';
+import { Card, Table, Button, Form, InputGroup, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Search, Plus, Edit, Trash2, Folder, Image as ImageIcon, Info, Upload, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const CATEGORIES_MOCK = [
-    { id: '1', name: 'Electronics', slug: 'electronics', parent: 'None', status: 'Active', image: null },
-    { id: '2', name: 'Smartphones', slug: 'smartphones', parent: 'Electronics', status: 'Active', image: null },
-    { id: '3', name: 'Groceries', slug: 'groceries', parent: 'None', status: 'Active', image: null },
-    { id: '4', name: 'Mens Wear', slug: 'mens-wear', parent: 'Clothing', status: 'Inactive', image: null },
+    { id: '1', name: 'Electronics', slug: 'electronics', parent: 'None', status: 'Active', image: null, description: 'Devices like phones, laptops, and accessories.' },
+    { id: '2', name: 'Smartphones', slug: 'smartphones', parent: 'Electronics', status: 'Active', image: null, description: 'Latest mobile phones from top brands.' },
+    { id: '3', name: 'Groceries', slug: 'groceries', parent: 'None', status: 'Active', image: null, description: 'Daily essentials and fresh produce.' },
+    { id: '4', name: 'Mens Wear', slug: 'mens-wear', parent: 'Clothing', status: 'Inactive', image: null, description: 'Apparel and fashion for men.' },
 ];
 
 const AllCategories = () => {
@@ -32,9 +32,19 @@ const AllCategories = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Link to="/admin/categories/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
-                            <Plus size={18} /> Add Category
-                        </Link>
+                        <div className="d-flex gap-2">
+                            <Button variant="outline-success" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Upload size={18} /> <span className="d-none d-sm-inline">Import</span>
+                            </Button>
+                            <Button variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Download size={18} /> <span className="d-none d-sm-inline">Export</span>
+                            </Button>
+                            <Link to="/admin/categories/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
+                                <Plus size={18} />
+                                <span className="d-none d-sm-inline">Add Category</span>
+                                <span className="d-inline d-sm-none">Add</span>
+                            </Link>
+                        </div>
                     </div>
                 </Card.Body>
             </Card>
@@ -60,7 +70,17 @@ const AllCategories = () => {
                                                 <ImageIcon size={20} className="text-secondary opacity-50" />
                                             </div>
                                             <div>
-                                                <div className="fw-bold text-dark">{c.name}</div>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <div className="fw-bold text-dark">{c.name}</div>
+                                                    {c.description && (
+                                                        <OverlayTrigger
+                                                            placement="top"
+                                                            overlay={<Tooltip id={`tooltip-${c.id}`}>{c.description}</Tooltip>}
+                                                        >
+                                                            <Info size={14} className="text-muted cursor-pointer" />
+                                                        </OverlayTrigger>
+                                                    )}
+                                                </div>
                                                 <div className="small text-muted">ID: {c.id}</div>
                                             </div>
                                         </div>

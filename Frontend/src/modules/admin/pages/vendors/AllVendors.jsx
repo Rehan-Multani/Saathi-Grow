@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown } from 'react-bootstrap';
-import { Search, Plus, MoreHorizontal, Store, Mail, Phone, CheckCircle, Ban } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Store, Mail, Phone, CheckCircle, Ban, Upload, Download, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import VendorDetailsModal from '../../components/vendors/VendorDetailsModal';
 
 const VENDORS_MOCK = [
     { id: 'VND-001', name: 'Fresh Farms Ltd', owner: 'Robert Fox', email: 'robert@freshfarms.com', phone: '+1 555-0123', products: 45, status: 'Active', rating: 4.8 },
@@ -11,11 +12,18 @@ const VENDORS_MOCK = [
 
 const AllVendors = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedVendor, setSelectedVendor] = useState(null);
 
     const filtered = VENDORS_MOCK.filter(v =>
         v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         v.owner.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleViewDetails = (vendor) => {
+        setSelectedVendor(vendor);
+        setShowDetailsModal(true);
+    };
 
     return (
         <div className="p-3">
@@ -35,9 +43,19 @@ const AllVendors = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Link to="/admin/vendors/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
-                            <Plus size={18} /> Add Vendor
-                        </Link>
+                        <div className="d-flex gap-2">
+                            <Button variant="outline-success" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Upload size={18} /> <span className="d-none d-sm-inline">Import</span>
+                            </Button>
+                            <Button variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm">
+                                <Download size={18} /> <span className="d-none d-sm-inline">Export</span>
+                            </Button>
+                            <Link to="/admin/vendors/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
+                                <Plus size={18} />
+                                <span className="d-none d-sm-inline">Add Vendor</span>
+                                <span className="d-inline d-sm-none">Add</span>
+                            </Link>
+                        </div>
                     </div>
                 </Card.Body>
             </Card>
@@ -92,21 +110,29 @@ const AllVendors = () => {
                                         </Badge>
                                     </td>
                                     <td className="text-end pe-4">
-                                        <Dropdown align="end">
-                                            <Dropdown.Toggle variant="link" className="text-muted p-0 shadow-none no-caret">
-                                                <MoreHorizontal size={20} />
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu className="border-0 shadow-sm">
-                                                <Dropdown.Item href="#">View Details</Dropdown.Item>
-                                                <Dropdown.Divider />
-                                                {v.status !== 'Active' && (
-                                                    <Dropdown.Item href="#" className="text-success"><CheckCircle size={16} className="me-2" /> Approve</Dropdown.Item>
-                                                )}
-                                                {v.status !== 'Blocked' && (
-                                                    <Dropdown.Item href="#" className="text-danger"><Ban size={16} className="me-2" /> Block</Dropdown.Item>
-                                                )}
-                                            </Dropdown.Menu>
-                                        </Dropdown>
+                                        <div className="d-flex justify-content-end gap-2">
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-primary">
+                                                <Edit size={16} />
+                                            </Button>
+                                            <Button variant="light" size="sm" className="btn-icon-soft text-danger">
+                                                <Trash2 size={16} />
+                                            </Button>
+                                            <Dropdown align="end">
+                                                <Dropdown.Toggle variant="link" className="text-muted p-0 shadow-none no-caret btn-icon-soft">
+                                                    <MoreHorizontal size={20} />
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="border-0 shadow-sm">
+                                                    <Dropdown.Item onClick={() => handleViewDetails(v)}>View Details</Dropdown.Item>
+                                                    <Dropdown.Divider />
+                                                    {v.status !== 'Active' && (
+                                                        <Dropdown.Item href="#" className="text-success"><CheckCircle size={16} className="me-2" /> Approve</Dropdown.Item>
+                                                    )}
+                                                    {v.status !== 'Blocked' && (
+                                                        <Dropdown.Item href="#" className="text-danger"><Ban size={16} className="me-2" /> Block</Dropdown.Item>
+                                                    )}
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -114,6 +140,12 @@ const AllVendors = () => {
                     </Table>
                 </Card.Body>
             </Card>
+
+            <VendorDetailsModal
+                show={showDetailsModal}
+                onHide={() => setShowDetailsModal(false)}
+                vendor={selectedVendor}
+            />
         </div>
     );
 };

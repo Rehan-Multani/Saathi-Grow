@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Badge } from 'react-bootstrap';
 import { Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ADJUSTMENTS_MOCK = [
-    { id: 'ADJ-001', date: '2023-11-01', product: 'Wireless Mouse', type: 'Addition', quantity: 50, reason: 'New Stock Arrival', user: 'Admin' },
-    { id: 'ADJ-002', date: '2023-10-31', product: 'Keyboard', type: 'Deduction', quantity: 2, reason: 'Damaged Goods', user: 'Admin' },
-    { id: 'ADJ-003', date: '2023-10-30', product: 'USB Cable', type: 'Deduction', quantity: 5, reason: 'Inventory Correction', user: 'Manager' },
+    { id: 'ADJ-001', date: '2023-11-01', product: 'Wireless Mouse', type: 'Addition', quantity: 50, finalStock: 150, reason: 'New Stock Arrival', user: 'Admin' },
+    { id: 'ADJ-002', date: '2023-10-31', product: 'Keyboard', type: 'Deduction', quantity: 2, finalStock: 48, reason: 'Damaged Goods', user: 'Admin' },
+    { id: 'ADJ-003', date: '2023-10-30', product: 'USB Cable', type: 'Deduction', quantity: 5, finalStock: 95, reason: 'Inventory Correction', user: 'Manager' },
 ];
 
 const StockAdjustments = () => {
@@ -14,9 +15,9 @@ const StockAdjustments = () => {
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h5 className="mb-0 fw-bold">Stock Adjustments History</h5>
-                    <Button variant="primary" className="d-flex align-items-center justify-content-center gap-2 responsive-btn">
+                    <Link to="/admin/stock/adjustments/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn">
                         <Plus size={18} /> New Adjustment
-                    </Button>
+                    </Link>
                 </Card.Body>
             </Card>
 
@@ -29,6 +30,7 @@ const StockAdjustments = () => {
                                 <th className="border-0 py-3">Date</th>
                                 <th className="border-0 py-3">Product</th>
                                 <th className="border-0 py-3">Type</th>
+                                <th className="border-0 py-3">Changed</th>
                                 <th className="border-0 py-3">Quantity</th>
                                 <th className="border-0 py-3">Reason</th>
                                 <th className="border-0 py-3 text-end pe-4">User</th>
@@ -49,6 +51,7 @@ const StockAdjustments = () => {
                                     <td className={`fw-bold ${adj.type === 'Addition' ? 'text-success' : 'text-danger'}`}>
                                         {adj.type === 'Addition' ? '+' : '-'}{adj.quantity}
                                     </td>
+                                    <td className="fw-bold">{adj.finalStock}</td>
                                     <td>{adj.reason}</td>
                                     <td className="text-end pe-4 text-muted small">{adj.user}</td>
                                 </tr>

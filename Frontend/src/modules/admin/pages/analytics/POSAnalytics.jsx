@@ -11,23 +11,24 @@ const POS_DATA = [
 const POSAnalytics = () => {
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0">POS Analytics</h4>
-                <div className="d-flex gap-2">
-                    <Form.Select size="sm" style={{ width: '200px' }}>
+                <div className="d-flex gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                    <Form.Select size="sm" style={{ width: '180px' }} className="shadow-none flex-grow-1 flex-sm-grow-0">
                         <option>All Branches</option>
                         <option>Main Store - Downtown</option>
                         <option>West Mall Kiosk</option>
                     </Form.Select>
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2">
-                        <Download size={16} /> Report
+                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
+                        <Download size={16} /> <span className="d-none d-sm-inline">Report</span>
+                        <span className="d-inline d-sm-none">Report</span>
                     </Button>
                 </div>
             </div>
 
             {/* Live Stats */}
             <Row className="g-3 mb-4">
-                <Col md={4}>
+                <Col xs={12} md={4}>
                     <Card className="border-0 shadow-sm bg-success text-white">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-2 mb-2">
@@ -39,7 +40,7 @@ const POSAnalytics = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={4}>
+                <Col xs={12} md={4}>
                     <Card className="border-0 shadow-sm">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-2 mb-2 text-muted">
@@ -51,7 +52,7 @@ const POSAnalytics = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={4}>
+                <Col xs={12} md={4}>
                     <Card className="border-0 shadow-sm">
                         <Card.Body>
                             <div className="d-flex align-items-center gap-2 mb-2 text-muted">
@@ -67,12 +68,12 @@ const POSAnalytics = () => {
 
             {/* Live Transactions Feed */}
             <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <Card.Header className="bg-white py-3 border-0 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
                         <span className="spinner-grow spinner-grow-sm text-success" role="status" aria-hidden="true"></span>
                         Live Transaction Feed
                     </h6>
-                    <Button variant="link" size="sm" className="text-muted text-decoration-none">View All History</Button>
+                    <Button variant="link" size="sm" className="text-muted text-decoration-none align-self-end align-self-sm-auto p-0">View All History</Button>
                 </Card.Header>
                 <Card.Body className="p-0">
                     <Table responsive className="mb-0 align-middle">

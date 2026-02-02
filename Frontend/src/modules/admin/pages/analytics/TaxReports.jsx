@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, Row, Col, Alert } from 'react-bootstrap';
 import { Download, FileText, Printer, Calculator, AlertTriangle } from 'lucide-react';
+import TaxDocModal from './TaxDocModal';
 
 const TAX_DATA = [
     { id: 'GST-1001', period: 'Nov 2023', taxable: '₹25,000.00', gst: '₹1,250.00', status: 'Filed' },
@@ -9,20 +10,29 @@ const TAX_DATA = [
 ];
 
 const TaxReports = () => {
+    const [showModal, setShowModal] = useState(false);
+    const [selectedDoc, setSelectedDoc] = useState(null);
+
+    const handleViewDoc = (doc) => {
+        setSelectedDoc(doc);
+        setShowModal(true);
+    };
+
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0">Tax & GST Reports</h4>
-                <div className="d-flex gap-2">
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2">
-                        <Download size={16} /> Download 1099-K
+                <div className="w-100 w-sm-auto d-flex justify-content-end">
+                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
+                        <Download size={16} /> <span className="d-none d-sm-inline">Download 1099-K</span>
+                        <span className="d-inline d-sm-none">Download</span>
                     </Button>
                 </div>
             </div>
 
-            <Row className="mb-4">
-                <Col md={8}>
-                    <Card className="border-0 shadow-sm">
+            <Row className="mb-4 g-3">
+                <Col xs={12} lg={8}>
+                    <Card className="border-0 shadow-sm h-100">
                         <Card.Header className="bg-white py-3 border-0">
                             <h6 className="mb-0 fw-bold">Tax Filing History</h6>
                         </Card.Header>
@@ -51,7 +61,13 @@ const TaxReports = () => {
                                                 </span>
                                             </td>
                                             <td className="text-end pe-4">
-                                                <Button variant="light" size="sm" className="btn-icon-soft text-secondary" title="View PDF">
+                                                <Button
+                                                    variant="light"
+                                                    size="sm"
+                                                    className="btn-icon-soft text-secondary"
+                                                    title="View PDF"
+                                                    onClick={() => handleViewDoc(t)}
+                                                >
                                                     <FileText size={16} />
                                                 </Button>
                                             </td>
@@ -62,7 +78,7 @@ const TaxReports = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={4}>
+                <Col xs={12} lg={4}>
                     <Card className="border-0 shadow-sm bg-light mb-3">
                         <Card.Body>
                             <div className="d-flex align-items-center mb-3">
@@ -91,6 +107,12 @@ const TaxReports = () => {
                     </Alert>
                 </Col>
             </Row>
+
+            <TaxDocModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                doc={selectedDoc}
+            />
         </div>
     );
 };

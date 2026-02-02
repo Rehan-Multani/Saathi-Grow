@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, Badge } from 'react-bootstrap';
 import { Star, Download, TrendingUp, Users } from 'lucide-react';
+import VendorPerformanceModal from './VendorPerformanceModal';
 
 const VENDOR_DATA = [
     { id: 'VEN-2023001', name: 'Fresh Farms & Co.', products: 45, sales: '₹15,430', rating: 4.8, status: 'Active' },
@@ -9,22 +10,33 @@ const VENDOR_DATA = [
 ];
 
 const VendorReports = () => {
+    const [showModal, setShowModal] = useState(false);
+    const [selectedVendor, setSelectedVendor] = useState(null);
+
+    const handleShowDetails = (vendor) => {
+        setSelectedVendor(vendor);
+        setShowModal(true);
+    };
+
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0">Vendor Performance Reports</h4>
-                <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2">
-                    <Download size={16} /> Export Report
-                </Button>
+                <div className="w-100 w-sm-auto d-flex justify-content-end">
+                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
+                        <Download size={16} /> <span className="d-none d-sm-inline">Export Report</span>
+                        <span className="d-inline d-sm-none">Export</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Vendor Stats Table */}
             <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <Card.Header className="bg-white py-3 border-0 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h6 className="mb-0 fw-bold">Top Performing Vendors</h6>
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-2 w-100 w-sm-auto border rounded px-2 bg-light">
                         <Users size={16} className="text-muted" />
-                        <Form.Control size="sm" type="search" placeholder="Search Vendor..." className="border-0 bg-light" style={{ width: '200px' }} />
+                        <Form.Control size="sm" type="search" placeholder="Search Vendor..." className="border-0 bg-transparent shadow-none" style={{ minWidth: '200px' }} />
                     </div>
                 </Card.Header>
                 <Card.Body className="p-0">
@@ -66,7 +78,13 @@ const VendorReports = () => {
                                         </Badge>
                                     </td>
                                     <td className="text-end pe-4">
-                                        <Button variant="link" size="sm">Details</Button>
+                                        <Button
+                                            variant="link"
+                                            size="sm"
+                                            onClick={() => handleShowDetails(vendor)}
+                                        >
+                                            Details
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -74,6 +92,12 @@ const VendorReports = () => {
                     </Table>
                 </Card.Body>
             </Card>
+
+            <VendorPerformanceModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                vendor={selectedVendor}
+            />
         </div>
     );
 };

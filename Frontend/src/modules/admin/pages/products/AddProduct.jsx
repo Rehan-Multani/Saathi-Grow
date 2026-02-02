@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Form, Button, InputGroup, Image } from 'react-bootstrap';
-import { Upload, X, Save, RefreshCw } from 'lucide-react';
+import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 
 const AddProduct = () => {
     const [formData, setFormData] = useState({
         name: '',
         category: '',
+        brand: '',
         price: '',
         stock: '',
+        location: '',
         description: '',
+        branchMode: 'All',
+        selectedBranches: [],
         sku: '' // Will be auto-generated
     });
 
     const [imagePreview, setImagePreview] = useState(null);
+    const [showCropper, setShowCropper] = useState(false);
+    const [tempImage, setTempImage] = useState(null);
 
     // Categories mapping for SKU prefix
     const CATEGORIES = [
@@ -20,6 +24,26 @@ const AddProduct = () => {
         { id: '2', name: 'Groceries', prefix: 'GROC' },
         { id: '3', name: 'Clothing', prefix: 'CLOTH' },
         { id: '4', name: 'Home & Kitchen', prefix: 'HOME' },
+    ];
+
+    // Branch Mock Data
+    const BRANCHES = [
+        { id: '1', name: 'Main Branch' },
+        { id: '2', name: 'Downtown Store' },
+        { id: '3', name: 'Warehouse A' },
+        { id: '4', name: 'North City Outlet' },
+    ];
+
+    // Brands Mock Data
+    const BRANDS = [
+        { id: '1', name: 'Samsung' },
+        { id: '2', name: 'Nike' },
+        { id: '3', name: 'Apple' },
+        { id: '4', name: 'Sony' },
+        { id: '5', name: 'Adidas' },
+        { id: '6', name: 'Puma' },
+        { id: '7', name: 'Nestle' },
+        { id: '8', name: 'Amul' },
     ];
 
     // SKU Generation Logic: [PREFIX]-[NAME_EXTRACT]-[UID]
@@ -48,10 +72,17 @@ const AddProduct = () => {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreview(reader.result);
+                setTempImage(reader.result);
+                setShowCropper(true);
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleCropComplete = (croppedImage) => {
+        setImagePreview(croppedImage);
+        setShowCropper(false);
+        setTempImage(null);
     };
 
     const handleChange = (e) => {
@@ -102,7 +133,7 @@ const AddProduct = () => {
 
                                 <h6 className="mb-3 fw-bold mt-4">Pricing & Inventory</h6>
                                 <Row>
-                                    <Col md={6}>
+                                    <Col md={4}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Base Price (₹)</Form.Label>
                                             <Form.Control
@@ -114,7 +145,7 @@ const AddProduct = () => {
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={6}>
+                                    <Col md={4}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Stock Quantity</Form.Label>
                                             <Form.Control
@@ -122,6 +153,18 @@ const AddProduct = () => {
                                                 placeholder="0"
                                                 name="stock"
                                                 value={formData.stock}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Physical Location</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="e.g. L1-F1"
+                                                name="location"
+                                                value={formData.location}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
@@ -144,6 +187,58 @@ const AddProduct = () => {
                                             <option key={c.id} value={c.name}>{c.name}</option>
                                         )}
                                     </Form.Select>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Brand Name</Form.Label>
+                                    <Form.Select name="brand" value={formData.brand} onChange={handleChange}>
+                                        <option value="">Select Brand...</option>
+                                        {BRANDS.map(b =>
+                                            <option key={b.id} value={b.name}>{b.name}</option>
+                                        )}
+                                    </Form.Select>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Available at Branches</Form.Label>
+                                    <div className="d-flex gap-3 mb-2">
+                                        <Form.Check
+                                            type="radio"
+                                            label="All Branches"
+                                            name="branchMode"
+                                            id="branchModeAll"
+                                            checked={formData.branchMode === 'All'}
+                                            onChange={() => setFormData({ ...formData, branchMode: 'All' })}
+                                        />
+                                        <Form.Check
+                                            type="radio"
+                                            label="Specific"
+                                            name="branchMode"
+                                            id="branchModeSpecific"
+                                            checked={formData.branchMode === 'Specific'}
+                                            onChange={() => setFormData({ ...formData, branchMode: 'Specific' })}
+                                        />
+                                    </div>
+
+                                    {formData.branchMode === 'Specific' && (
+                                        <div className="border rounded p-2 bg-light custom-scrollbar" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                                            {BRANCHES.map(b => (
+                                                <Form.Check
+                                                    key={b.id}
+                                                    type="checkbox"
+                                                    label={b.name}
+                                                    className="mb-1"
+                                                    checked={formData.selectedBranches.includes(b.id)}
+                                                    onChange={(e) => {
+                                                        const newSelection = e.target.checked
+                                                            ? [...formData.selectedBranches, b.id]
+                                                            : formData.selectedBranches.filter(id => id !== b.id);
+                                                        setFormData({ ...formData, selectedBranches: newSelection });
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
@@ -195,6 +290,13 @@ const AddProduct = () => {
                                         disabled={!!imagePreview}
                                     />
                                 </div>
+                                <ImageCropperModal
+                                    show={showCropper}
+                                    imageSrc={tempImage}
+                                    onCancel={() => { setShowCropper(false); setTempImage(null); }}
+                                    onCropComplete={handleCropComplete}
+                                    aspect={1} // Square crop for products
+                                />
                             </Card.Body>
                         </Card>
                     </Col>

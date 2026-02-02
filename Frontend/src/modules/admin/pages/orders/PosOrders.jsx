@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Form, Button, Table, Badge } from 'react-bootstrap';
-import { ShoppingCart, Search, Plus, Trash2 } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Trash2, Printer, Package } from 'lucide-react';
 
 const PRODUCT_DATABASE = [
     { sku: 'PRD-001', name: 'Wireless Mouse', price: 25.00, stock: 45 },
@@ -28,6 +28,10 @@ const PosOrders = () => {
 
     const calculateTotal = () => {
         return cart.reduce((acc, item) => acc + (item.price * item.qty), 0).toFixed(2);
+    };
+
+    const handlePrint = () => {
+        window.print();
     };
 
     return (
@@ -127,6 +131,14 @@ const PosOrders = () => {
                                     <span>Total</span>
                                     <span>₹{(calculateTotal() * 1.1).toFixed(2)}</span>
                                 </div>
+                                <Button
+                                    variant="outline-secondary"
+                                    className="w-100 py-2 mb-2 fw-bold text-uppercase d-flex align-items-center justify-content-center gap-2"
+                                    disabled={cart.length === 0}
+                                    onClick={handlePrint}
+                                >
+                                    <Printer size={18} /> Print Bill
+                                </Button>
                                 <Button variant="success" className="w-100 py-2 fw-bold text-uppercase d-flex align-items-center justify-content-center gap-2" disabled={cart.length === 0}>
                                     Complete Order
                                 </Button>
@@ -139,8 +151,6 @@ const PosOrders = () => {
     );
 };
 
-// Start Quick fix for missing icon import
-import { Package } from 'lucide-react';
-// End Quick fix
+// End of component
 
 export default PosOrders;
