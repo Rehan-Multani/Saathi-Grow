@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import AdminSidebar from './components/AdminSidebar';
-import { Bell, Search, Menu } from 'lucide-react';
-import { Container, Button, Dropdown } from 'react-bootstrap';
+import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react';
 import { adminSidebarMenu } from './data/sidebarMenu';
-import './styles/admin.css';
 
 const AdminLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
     const location = useLocation();
 
     // Helper to find current page title
@@ -23,71 +22,85 @@ const AdminLayout = () => {
     };
 
     return (
-        <div className="admin-body">
+        <div className="min-h-screen bg-gray-50 flex">
             <AdminSidebar
                 showMobile={showMobileSidebar}
                 onClose={() => setShowMobileSidebar(false)}
             />
 
-            <div className="admin-main-wrapper">
-                <header className="admin-header d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center gap-3">
-                        <Button
-                            variant="link"
-                            className="text-dark p-0 d-lg-none"
+            <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 lg:ml-[260px] w-full`}>
+                <header className="h-[60px] bg-white border-b border-gray-200 sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <button
+                            className="lg:hidden p-1 rounded-md text-gray-600 hover:bg-gray-100"
                             onClick={() => setShowMobileSidebar(true)}
                         >
                             <Menu size={24} />
-                        </Button>
-                        <h5 className="mb-0 fw-bold text-dark d-none d-sm-block">{getCurrentTitle()}</h5>
+                        </button>
+                        <h5 className="mb-0 font-bold text-gray-800 hidden sm:block text-lg">{getCurrentTitle()}</h5>
                     </div>
 
-                    <div className="d-flex align-items-center gap-3">
-                        <div className="d-none d-md-block position-relative">
+                    <div className="flex items-center gap-4">
+                        <div className="hidden md:block relative">
                             <input
                                 type="text"
-                                className="form-control bg-light border ps-5 rounded-pill"
+                                className="w-[280px] pl-10 pr-4 py-2 bg-gray-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
                                 placeholder="Search anything..."
-                                style={{ width: '280px', fontSize: '0.9rem' }}
                             />
-                            <Search size={16} className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
+                            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                         </div>
 
-                        <Button variant="light" className="rounded-circle p-2 position-relative border">
-                            <Bell size={20} className="text-secondary" />
-                            <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                                <span className="visually-hidden">New alerts</span>
-                            </span>
-                        </Button>
+                        <button className="relative p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors">
+                            <Bell size={20} className="text-gray-600" />
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                        </button>
 
-                        <div className="vr mx-1 text-secondary opacity-25" style={{ height: '24px' }}></div>
+                        <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
-                        <Dropdown align="end">
-                            <Dropdown.Toggle variant="link" id="dropdown-profile" className="text-decoration-none p-0 d-flex align-items-center gap-2 shadow-none">
-                                <div className="text-end d-none d-sm-block lh-1">
-                                    <div className="fw-bold small text-dark">Admin User</div>
-                                    <div className="text-muted" style={{ fontSize: '0.7rem' }}>Super Admin</div>
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                className="flex items-center gap-2 hover:bg-gray-50 rounded-full pr-2 transition-colors focus:outline-none"
+                            >
+                                <div className="text-right hidden sm:block">
+                                    <div className="font-bold text-sm text-gray-800 leading-none">Admin User</div>
+                                    <div className="text-[11px] text-gray-500 leading-none mt-1">Super Admin</div>
                                 </div>
-                                <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style={{ width: 38, height: 38 }}>
+                                <div className="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm">
                                     A
                                 </div>
-                            </Dropdown.Toggle>
+                            </button>
 
-                            <Dropdown.Menu className="border-0 shadow-lg mt-3 p-2 rounded-3" style={{ width: '200px' }}>
-                                <Dropdown.Header className="fw-bold text-uppercase small text-muted">Account</Dropdown.Header>
-                                <Dropdown.Item href="#" className="rounded-2 py-2 small">Profile</Dropdown.Item>
-                                <Dropdown.Item href="#" className="rounded-2 py-2 small">Settings</Dropdown.Item>
-                                <Dropdown.Divider />
-                                <Dropdown.Item href="#" className="text-danger rounded-2 py-2 small">Logout</Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
+                            {/* Dropdown Menu */}
+                            {showProfileMenu && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setShowProfileMenu(false)}
+                                    ></div>
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                        <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
+                                        </div>
+                                        <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                                            <User size={16} className="mr-2" /> Profile
+                                        </a>
+                                        <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                                            <Settings size={16} className="mr-2" /> Settings
+                                        </a>
+                                        <div className="my-1 border-t border-gray-50"></div>
+                                        <a href="#" className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                            <LogOut size={16} className="mr-2" /> Logout
+                                        </a>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </header>
 
-                <main className="admin-content">
-                    <Container fluid className="p-0">
-                        <Outlet />
-                    </Container>
+                <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+                    <Outlet />
                 </main>
             </div>
         </div>

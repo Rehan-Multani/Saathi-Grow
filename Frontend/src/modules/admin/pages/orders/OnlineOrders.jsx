@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Table, Badge, Button, Form, InputGroup } from 'react-bootstrap';
 import { Search, Eye, Truck, CreditCard } from 'lucide-react';
+import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
 
 const ONLINE_ORDERS_MOCK = [
     { id: 'ORD-2001', customer: 'Sarah Connor', date: '2023-10-28', status: 'Processing', total: '₹150.00', items: 4, paymentValues: { method: 'Stripe', status: 'Paid' }, delivery: 'FedEx' },
@@ -10,95 +10,126 @@ const ONLINE_ORDERS_MOCK = [
 
 const OrderStatusBadge = ({ status }) => {
     const variants = {
-        Delivered: 'success',
-        Pending: 'warning',
-        Processing: 'info',
-        Cancelled: 'danger',
-        Shipped: 'primary'
+        Delivered: 'bg-green-100 text-green-700',
+        Pending: 'bg-amber-100 text-amber-700',
+        Processing: 'bg-blue-100 text-blue-700',
+        Cancelled: 'bg-red-100 text-red-700',
+        Shipped: 'bg-indigo-100 text-indigo-700'
     };
-    return <Badge bg={variants[status] || 'secondary'} className="px-3 rounded-pill fw-normal">{status}</Badge>;
+    return (
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${variants[status] || 'bg-gray-100 text-gray-600'}`}>
+            {status}
+        </span>
+    );
 };
 
 const OnlineOrders = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     const filteredOrders = ONLINE_ORDERS_MOCK.filter(order =>
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customer.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleShowDetails = (order) => {
+        const modalOrder = {
+            ...order,
+            payment: order.paymentValues.status // Adapt structure for the modal
+        };
+        setSelectedOrder(modalOrder);
+        setShowModal(true);
+    };
+
     return (
-        <div className="p-3">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center gap-3">
-                        <h5 className="mb-0 fw-bold">Online Orders</h5>
-                        <Badge bg="primary" pill>{filteredOrders.length}</Badge>
+        <div className="p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <h5 className="mb-0 font-bold text-gray-800 text-lg">Online Orders</h5>
+                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                            {filteredOrders.length}
+                        </span>
                     </div>
-                    <InputGroup style={{ maxWidth: '250px' }}>
-                        <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
-                        <Form.Control
+                    <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden w-full max-w-[250px] focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                        <div className="pl-3 text-gray-400">
+                            <Search size={18} />
+                        </div>
+                        <input
+                            type="text"
                             placeholder="Search..."
-                            className="border-start-0 ps-0 shadow-none"
+                            className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                    </InputGroup>
-                </Card.Body>
-            </Card>
+                    </div>
+                </div>
+            </div>
 
-            <Card className="border-0 shadow-sm">
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Order ID</th>
-                                <th className="border-0 py-3">Customer</th>
-                                <th className="border-0 py-3">Date</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3">Payment</th>
-                                <th className="border-0 py-3">Delivery</th>
-                                <th className="border-0 py-3 text-end pe-4">Total</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                <th className="px-6 py-4">Order ID</th>
+                                <th className="px-6 py-4">Customer</th>
+                                <th className="px-6 py-4">Date</th>
+                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4">Payment</th>
+                                <th className="px-6 py-4">Delivery</th>
+                                <th className="px-6 py-4 text-right">Total</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-100">
                             {filteredOrders.map((order, idx) => (
-                                <tr key={idx}>
-                                    <td className="ps-4 fw-bold text-primary">{order.id}</td>
-                                    <td>
-                                        <div className="d-flex flex-column">
-                                            <span className="fw-medium">{order.customer}</span>
-                                            <span className="text-muted small" style={{ fontSize: '0.75rem' }}>Online Customer</span>
+                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-blue-600">{order.id}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-gray-800">{order.customer}</span>
+                                            <span className="text-xs text-gray-500">Online Customer</span>
                                         </div>
                                     </td>
-                                    <td className="text-muted small">{order.date}</td>
-                                    <td><OrderStatusBadge status={order.status} /></td>
-                                    <td>
-                                        <div className="d-flex align-items-center gap-1">
-                                            <CreditCard size={14} className="text-muted" />
-                                            <span className="small">{order.paymentValues.method}</span>
-                                            <Badge bg={order.paymentValues.status === 'Paid' ? 'success' : 'warning'} className="ms-1" style={{ fontSize: '0.6rem' }}>
+                                    <td className="px-6 py-4 text-gray-500 text-sm">{order.date}</td>
+                                    <td className="px-6 py-4"><OrderStatusBadge status={order.status} /></td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <CreditCard size={14} className="text-gray-400" />
+                                            <span className="text-sm text-gray-600">{order.paymentValues.method}</span>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${order.paymentValues.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                                                 {order.paymentValues.status}
-                                            </Badge>
+                                            </span>
                                         </div>
                                     </td>
-                                    <td>
-                                        <div className="d-flex align-items-center gap-1 text-muted small">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2 text-gray-500 text-sm">
                                             <Truck size={14} />
                                             <span>{order.delivery}</span>
                                         </div>
                                     </td>
-                                    <td className="text-end pe-4 fw-bold">{order.total}</td>
-                                    <td className="text-end pe-4">
-                                        <Button variant="link" className="p-0 text-dark"><Eye size={18} /></Button>
+                                    <td className="px-6 py-4 text-right font-bold text-gray-800">{order.total}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button
+                                            className="p-1 text-gray-800 hover:text-blue-600 transition-colors"
+                                            onClick={() => handleShowDetails(order)}
+                                        >
+                                            <Eye size={18} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                    </Table>
-                </Card.Body>
-            </Card>
+                    </table>
+                </div>
+            </div>
+
+            <OrderDetailsModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                order={selectedOrder}
+            />
         </div>
     );
 };

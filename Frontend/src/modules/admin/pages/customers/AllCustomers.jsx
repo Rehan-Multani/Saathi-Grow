@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown } from 'react-bootstrap';
 import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle } from 'lucide-react';
+import CustomerDetailsModal from '../../components/customers/CustomerDetailsModal';
 
 const CUSTOMERS_MOCK = [
     { id: 'CUST-001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+1 555-0101', city: 'New York', orders: 24, spent: '₹1,240.50', status: 'Active', points: 450 },
@@ -11,12 +12,19 @@ const CUSTOMERS_MOCK = [
 
 const AllCustomers = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
 
     const filtered = CUSTOMERS_MOCK.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.phone.includes(searchTerm)
     );
+
+    const handleViewProfile = (customer) => {
+        setSelectedCustomer(customer);
+        setShowModal(true);
+    };
 
     return (
         <div className="p-3">
@@ -100,7 +108,7 @@ const AllCustomers = () => {
                                                 <MoreHorizontal size={20} />
                                             </Dropdown.Toggle>
                                             <Dropdown.Menu className="border-0 shadow-sm">
-                                                <Dropdown.Item href="#"><Eye size={16} className="me-2 text-primary" /> View Profile</Dropdown.Item>
+                                                <Dropdown.Item onClick={() => handleViewProfile(c)}><Eye size={16} className="me-2 text-primary" /> View Profile</Dropdown.Item>
                                                 <Dropdown.Item href="#"><Mail size={16} className="me-2 text-info" /> Send Email</Dropdown.Item>
                                                 <Dropdown.Divider />
                                                 {c.status === 'Active' ? (
@@ -117,6 +125,12 @@ const AllCustomers = () => {
                     </Table>
                 </Card.Body>
             </Card>
+
+            <CustomerDetailsModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                customer={selectedCustomer}
+            />
         </div>
     );
 };

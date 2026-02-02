@@ -69,3 +69,14 @@ a {
     overflow: hidden;
   }
 }
+
+/* Utility to remove Bootstrap Dropdown Toggle Caret */
+.no-caret::after {
+  display: none !important;
+}
+
+/* Fix for Dropdown Items Alignment */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+}
