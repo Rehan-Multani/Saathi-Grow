@@ -13,28 +13,28 @@ const Footer = () => {
             <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4 md:mb-6">Useful Links</h3>
             <div className="grid grid-cols-3 gap-2 md:gap-4">
               <ul className="space-y-2 md:space-y-3">
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">About</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Careers</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Blog</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Press</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Lead</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Value</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">About</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Careers</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Blog</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Press</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Lead</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Value</Link></li>
               </ul>
               <ul className="space-y-2 md:space-y-3">
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Privacy</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Terms</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">FAQs</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Security</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Mobile</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Contact</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Privacy</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Terms</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">FAQs</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Security</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Mobile</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Contact</Link></li>
               </ul>
               <ul className="space-y-2 md:space-y-3">
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Partner</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Express</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Seller</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Warehouse</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Deliver</Link></li>
-                <li><Link to="#" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm">Resources</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Partner</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Express</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Seller</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Warehouse</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Deliver</Link></li>
+                <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Resources</Link></li>
               </ul>
             </div>
           </div>
@@ -43,27 +43,27 @@ const Footer = () => {
           <div className="lg:w-2/3">
             <div className="flex items-center gap-4 mb-4 md:mb-6">
               <h3 className="text-base md:text-lg font-bold text-gray-900">Categories</h3>
-              <Link to="/category" className="text-[var(--saathi-green)] text-sm md:text-base font-normal">see all</Link>
+              <Link to="/category" className="!text-[#0c831f] text-sm md:text-base font-normal">see all</Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-2 gap-y-2 md:gap-x-4 md:gap-y-3">
-              <Link to="/category/vegetables-fruits" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Vegetables & Fruits</Link>
-              <Link to="/category/dairy-breakfast" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Dairy & Breakfast</Link>
-              <Link to="/category/munchies" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Munchies</Link>
-              <Link to="/category/cold-drinks-juices" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Cold Drinks & Juices</Link>
-              <Link to="/category/instant-frozen-food" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Instant & Frozen Food</Link>
-              <Link to="/category/tea-coffee-health-drinks" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Tea, Coffee & Health Drinks</Link>
-              <Link to="/category/bakery-biscuits" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Bakery & Biscuits</Link>
-              <Link to="/category/atta-rice-dal" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Atta, Rice & Dal</Link>
-              <Link to="/category/cleaning-household" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Cleaning Essentials</Link>
-              <Link to="/category/personal-care" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Personal Care</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Sauces & Spreads</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Chicken, Meat & Fish</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Paan Corner</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Baby Care</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Pharma & Wellness</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Home Furnishing & Decor</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Pet Care</Link>
-              <Link to="/category" className="text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Beauty & Cosmetics</Link>
+              <Link to="/category/vegetables-fruits" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Vegetables & Fruits</Link>
+              <Link to="/category/dairy-breakfast" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Dairy & Breakfast</Link>
+              <Link to="/category/munchies" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Munchies</Link>
+              <Link to="/category/cold-drinks-juices" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Cold Drinks & Juices</Link>
+              <Link to="/category/instant-frozen-food" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Instant & Frozen Food</Link>
+              <Link to="/category/tea-coffee-health-drinks" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Tea, Coffee & Health Drinks</Link>
+              <Link to="/category/bakery-biscuits" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Bakery & Biscuits</Link>
+              <Link to="/category/atta-rice-dal" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Atta, Rice & Dal</Link>
+              <Link to="/category/cleaning-household" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Cleaning Essentials</Link>
+              <Link to="/category/personal-care" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Personal Care</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Sauces & Spreads</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Chicken, Meat & Fish</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Paan Corner</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Baby Care</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Pharma & Wellness</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Home Furnishing & Decor</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Pet Care</Link>
+              <Link to="/category" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Beauty & Cosmetics</Link>
             </div>
           </div>
         </div>

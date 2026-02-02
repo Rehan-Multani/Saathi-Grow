@@ -4,8 +4,8 @@ import { Store, ArrowRight, CheckCircle } from 'lucide-react';
 
 const VendorLogin = () => {
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('vendor@saathigro.com');
+    const [password, setPassword] = useState('123456');
 
     const handleLogin = (e) => {
         e.preventDefault();

@@ -28,11 +28,11 @@ const CartSidebar = () => {
             ></div>
 
             {/* Sidebar Content */}
-            <div className="relative w-full max-w-md bg-[#f3f4f6] h-full shadow-2xl flex flex-col transform transition-transform animate-in slide-in-from-right duration-300">
+            <div className="relative w-full max-w-[400px] bg-[#f3f4f6] h-full shadow-2xl flex flex-col transform transition-transform animate-in slide-in-from-right duration-300">
 
                 {/* Header */}
                 <div className="px-5 py-4 bg-white flex items-center justify-between sticky top-0 z-10 border-b border-gray-100">
-                    <h2 className="text-[16px] font-bold text-gray-900">My Basket</h2>
+                    <h2 className="text-xs font-bold text-gray-900">My Basket</h2>
                     <button
                         onClick={() => setIsCartOpen(false)}
                         className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -76,8 +76,8 @@ const CartSidebar = () => {
                                         <Clock size={16} className="text-[#16a34a]" strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 text-[13px] leading-tight">Delivery in 8 minutes</h3>
-                                        <p className="text-[10px] text-gray-500 mt-0.5">Shipment of {cartCount} item{cartCount !== 1 ? 's' : ''}</p>
+                                        <h3 className="font-bold text-gray-900 !text-[15px] leading-tight">Delivery in 8 minutes</h3>
+                                        <p className="!text-[12px] text-gray-500 mt-0.5">Shipment of {cartCount} item{cartCount !== 1 ? 's' : ''}</p>
                                     </div>
                                 </div>
 
@@ -92,12 +92,12 @@ const CartSidebar = () => {
                                             {/* Product Details */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start mb-0.5">
-                                                    <h4 className="text-[9px] font-normal text-gray-900 leading-tight line-clamp-2 pr-2">{item.name}</h4>
+                                                    <h4 className="!text-[14px] font-normal text-gray-900 leading-tight line-clamp-2 pr-2">{item.name}</h4>
                                                 </div>
-                                                <p className="text-[8px] text-gray-500 mb-1.5">{item.weight}</p>
+                                                <p className="!text-[11px] text-gray-500 mb-1.5">{item.weight}</p>
 
                                                 <div className="flex justify-between items-center">
-                                                    <span className="font-bold text-gray-900 text-[11px]">₹{item.price * item.quantity}</span>
+                                                    <span className="font-bold text-gray-900 !text-[14px]">₹{item.price * item.quantity}</span>
 
                                                     {/* Qty Control */}
                                                     <div className="flex items-center gap-2 bg-[#16a34a] rounded px-1.5 py-0.5 shadow-sm h-7 min-w-[55px] justify-between">
