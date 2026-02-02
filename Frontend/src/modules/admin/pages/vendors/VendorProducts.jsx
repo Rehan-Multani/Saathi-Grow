@@ -3,10 +3,10 @@ import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
 import { Search, Filter, ExternalLink } from 'lucide-react';
 
 const VENDOR_PRODUCTS_MOCK = [
-    { id: 'VP-101', vendor: 'Fresh Farms Ltd', product: 'Organic Bananas', category: 'Groceries', price: '$4.50', stock: 120, status: 'Active' },
-    { id: 'VP-102', vendor: 'Fresh Farms Ltd', product: 'Strawberries', category: 'Groceries', price: '$6.00', stock: 50, status: 'Active' },
-    { id: 'VP-103', vendor: 'Tech World', product: 'Wireless Mouse', category: 'Electronics', price: '$25.00', stock: 10, status: 'Low Stock' },
-    { id: 'VP-104', vendor: 'Urban Styles', product: 'Cotton T-Shirt', category: 'Clothing', price: '$15.00', stock: 0, status: 'Out of Stock' },
+    { id: 'VP-101', vendor: 'Fresh Farms Ltd', product: 'Organic Bananas', category: 'Groceries', price: '₹4.50', stock: 120, status: 'Active' },
+    { id: 'VP-102', vendor: 'Fresh Farms Ltd', product: 'Strawberries', category: 'Groceries', price: '₹6.00', stock: 50, status: 'Active' },
+    { id: 'VP-103', vendor: 'Tech World', product: 'Wireless Mouse', category: 'Electronics', price: '₹25.00', stock: 10, status: 'Low Stock' },
+    { id: 'VP-104', vendor: 'Urban Styles', product: 'Cotton T-Shirt', category: 'Clothing', price: '₹15.00', stock: 0, status: 'Out of Stock' },
 ];
 
 const VendorProducts = () => {

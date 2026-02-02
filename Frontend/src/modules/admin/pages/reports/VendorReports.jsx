@@ -3,9 +3,9 @@ import { Card, Table, Button, Form, Badge } from 'react-bootstrap';
 import { Star, Download, TrendingUp, Users } from 'lucide-react';
 
 const VENDOR_DATA = [
-    { id: 'VEN-2023001', name: 'Fresh Farms & Co.', products: 45, sales: '$15,430', rating: 4.8, status: 'Active' },
-    { id: 'VEN-2023002', name: 'Organic Spices Ltd.', products: 120, sales: '$8,200', rating: 4.2, status: 'Active' },
-    { id: 'VEN-2023005', name: 'City Snacks Wholesale', products: 8, sales: '$1,500', rating: 3.5, status: 'Probation' },
+    { id: 'VEN-2023001', name: 'Fresh Farms & Co.', products: 45, sales: '₹15,430', rating: 4.8, status: 'Active' },
+    { id: 'VEN-2023002', name: 'Organic Spices Ltd.', products: 120, sales: '₹8,200', rating: 4.2, status: 'Active' },
+    { id: 'VEN-2023005', name: 'City Snacks Wholesale', products: 8, sales: '₹1,500', rating: 3.5, status: 'Probation' },
 ];
 
 const VendorReports = () => {

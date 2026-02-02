@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Form, Button, Row, Col,Badge, Image } from 'react-bootstrap';
+import { Card, Form, Button, Row, Col, Badge, Image } from 'react-bootstrap';
 import { Save, Globe, Smartphone, Mail, Layout, Palette, Upload } from 'lucide-react';
 
 const AppSettings = () => {
@@ -60,9 +60,9 @@ const AppSettings = () => {
                                 <Row className="mb-4">
                                     <Col md={6}>
                                         <Form.Label className="fw-bold small d-block">Default Currency</Form.Label>
-                                        <Form.Select className="w-100">
-                                            <option>USD ($)</option>
+                                        <Form.Select className="w-100" defaultValue="INR (₹)">
                                             <option>INR (₹)</option>
+                                            <option>USD ($)</option>
                                             <option>EUR (€)</option>
                                         </Form.Select>
                                     </Col>

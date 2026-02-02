@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, ProgressBar, Badge } from 'react-bootstrap';
-import { Download, Calendar, DollarSign, Wallet, TrendingUp } from 'lucide-react';
+import { Download, Calendar, IndianRupee, Wallet, TrendingUp } from 'lucide-react';
 
 const EARNINGS_DATA = [
-    { id: 'PAY-1001', vendor: 'Fresh Farms & Co.', period: 'Oct 2023', sales: '$15,000', comm: '$1,500', payout: '$13,500', status: 'Paid' },
-    { id: 'PAY-1002', vendor: 'Organic Spices Ltd.', period: 'Oct 2023', sales: '$5,000', comm: '$500', payout: '$4,500', status: 'Pending' },
-    { id: 'PAY-1003', vendor: 'City Snacks Wholesale', period: 'Oct 2023', sales: '$2,000', comm: '$200', payout: '$1,800', status: 'Paid' },
+    { id: 'PAY-1001', vendor: 'Fresh Farms & Co.', period: 'Oct 2023', sales: '₹15,000', comm: '₹1,500', payout: '₹13,500', status: 'Paid' },
+    { id: 'PAY-1002', vendor: 'Organic Spices Ltd.', period: 'Oct 2023', sales: '₹5,000', comm: '₹500', payout: '₹4,500', status: 'Pending' },
+    { id: 'PAY-1003', vendor: 'City Snacks Wholesale', period: 'Oct 2023', sales: '₹2,000', comm: '₹200', payout: '₹1,800', status: 'Paid' },
 ];
 
 const VendorEarnings = () => {
@@ -30,11 +30,11 @@ const VendorEarnings = () => {
                 <Card className="border-0 shadow-sm flex-fill">
                     <Card.Body className="d-flex align-items-center gap-3">
                         <div className="bg-primary bg-opacity-10 rounded-circle p-3 text-primary">
-                            <DollarSign size={24} />
+                            <IndianRupee size={24} />
                         </div>
                         <div>
                             <div className="text-uppercase small fw-bold text-muted">Total Paid Out</div>
-                            <h3 className="fw-bold mb-0">$245,600</h3>
+                            <h3 className="fw-bold mb-0">₹245,600</h3>
                         </div>
                     </Card.Body>
                 </Card>
@@ -45,7 +45,7 @@ const VendorEarnings = () => {
                         </div>
                         <div>
                             <div className="text-uppercase small fw-bold text-muted">Pending Due</div>
-                            <h3 className="fw-bold mb-0">$12,450</h3>
+                            <h3 className="fw-bold mb-0">₹12,450</h3>
                         </div>
                     </Card.Body>
                 </Card>
@@ -56,7 +56,7 @@ const VendorEarnings = () => {
                         </div>
                         <div>
                             <div className="text-uppercase small fw-bold text-muted">Commission Earned</div>
-                            <h3 className="fw-bold mb-0">$35,800</h3>
+                            <h3 className="fw-bold mb-0">₹35,800</h3>
                         </div>
                     </Card.Body>
                 </Card>

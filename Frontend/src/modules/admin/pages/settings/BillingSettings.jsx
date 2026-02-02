@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Alert, Table } from 'react-bootstrap';
-import { CreditCard, DollarSign, Receipt, Info, Plus } from 'lucide-react';
+import { CreditCard, IndianRupee, Receipt, Info, Plus } from 'lucide-react';
 
 const BillingSettings = () => {
     return (
@@ -110,11 +110,11 @@ const BillingSettings = () => {
                         <Card.Body className="p-4">
                             <div className="d-flex align-items-center gap-3 mb-4">
                                 <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-                                    <DollarSign size={24} />
+                                    <IndianRupee size={24} />
                                 </div>
                                 <div>
                                     <h6 className="fw-bold mb-0">Platform Wallet Balance</h6>
-                                    <h3 className="fw-bold mb-0 text-primary">$45,280.50</h3>
+                                    <h3 className="fw-bold mb-0 text-primary">₹45,280.50</h3>
                                 </div>
                             </div>
                             <Button variant="primary" className="w-100 py-2 mb-2">Withdraw to Bank</Button>
@@ -140,14 +140,14 @@ const BillingSettings = () => {
                                 <div className="list-group-item d-flex justify-content-between align-items-center px-4 py-3 border-0">
                                     <div>
                                         <div className="fw-bold">INV-9821</div>
-                                        <div className="text-muted">John Doe - $120.00</div>
+                                        <div className="text-muted">John Doe - ₹120.00</div>
                                     </div>
                                     <Button variant="outline-dark" size="sm">PDF</Button>
                                 </div>
                                 <div className="list-group-item d-flex justify-content-between align-items-center px-4 py-3 border-0">
                                     <div>
                                         <div className="fw-bold">INV-9820</div>
-                                        <div className="text-muted">Sarah Smith - $45.00</div>
+                                        <div className="text-muted">Sarah Smith - ₹45.00</div>
                                     </div>
                                     <Button variant="outline-dark" size="sm">PDF</Button>
                                 </div>

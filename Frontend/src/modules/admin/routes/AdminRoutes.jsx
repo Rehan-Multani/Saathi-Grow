@@ -1,4 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { AdminAuthProvider, useAdminAuth } from '../context/AdminAuthContext';
+import AdminLogin from '../pages/auth/AdminLogin';
 import AdminLayout from '../AdminLayout';
 import Dashboard from '../pages/Dashboard';
 import AllOrders from '../pages/orders/AllOrders';
@@ -58,7 +60,6 @@ import BillingSettings from '../pages/settings/BillingSettings';
 import AppSettings from '../pages/settings/AppSettings';
 import SocialProfile from '../pages/settings/SocialProfile';
 
-// Placeholder components for the demo to work without 50 separate files initially
 // Placeholder components for the demo
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
@@ -74,106 +75,122 @@ const PlaceholderPage = ({ title }) => (
     </div>
 );
 
+const ProtectedAdminRoute = () => {
+    const { adminUser } = useAdminAuth();
+    if (!adminUser) {
+        return <Navigate to="/admin/login" replace />;
+    }
+    return <Outlet />;
+};
+
 const AdminRoutes = () => {
     return (
-        <Routes>
-            <Route element={<AdminLayout />}>
-                <Route path="/" element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
+        <AdminAuthProvider>
+            <Routes>
+                {/* Public Admin Routes */}
+                <Route path="login" element={<AdminLogin />} />
 
-                {/* Orders */}
-                <Route path="orders" element={<AllOrders />} />
-                <Route path="orders/pos" element={<PosOrders />} />
-                <Route path="orders/online" element={<OnlineOrders />} />
-                <Route path="orders/returns" element={<ReturnRequests />} />
+                {/* Protected Admin Routes */}
+                <Route element={<ProtectedAdminRoute />}>
+                    <Route element={<AdminLayout />}>
+                        <Route path="/" element={<Navigate to="dashboard" replace />} />
+                        <Route path="dashboard" element={<Dashboard />} />
 
-                <Route path="products" element={<AllProducts />} />
-                <Route path="products/add" element={<AddProduct />} />
-                <Route path="products/categories" element={<ProductCategories />} />
+                        {/* Orders */}
+                        <Route path="orders" element={<AllOrders />} />
+                        <Route path="orders/pos" element={<PosOrders />} />
+                        <Route path="orders/online" element={<OnlineOrders />} />
+                        <Route path="orders/returns" element={<ReturnRequests />} />
 
-                {/* Categories */}
-                <Route path="categories" element={<AllCategories />} />
-                <Route path="categories/add" element={<AddCategory />} />
+                        <Route path="products" element={<AllProducts />} />
+                        <Route path="products/add" element={<AddProduct />} />
+                        <Route path="products/categories" element={<ProductCategories />} />
 
-                {/* Brands */}
-                <Route path="brands" element={<AllBrands />} />
-                <Route path="brands/add" element={<AddBrand />} />
+                        {/* Categories */}
+                        <Route path="categories" element={<AllCategories />} />
+                        <Route path="categories/add" element={<AddCategory />} />
 
-                {/* Customers */}
-                <Route path="customers" element={<AllCustomers />} />
-                <Route path="customers/orders" element={<CustomerOrders />} />
+                        {/* Brands */}
+                        <Route path="brands" element={<AllBrands />} />
+                        <Route path="brands/add" element={<AddBrand />} />
 
-                {/* Stock Management */}
-                <Route path="stock" element={<StockOverview />} />
-                <Route path="stock/branches" element={<BranchStock />} />
-                <Route path="stock/adjustments" element={<StockAdjustments />} />
-                <Route path="stock/alerts" element={<LowStockAlerts />} />
+                        {/* Customers */}
+                        <Route path="customers" element={<AllCustomers />} />
+                        <Route path="customers/orders" element={<CustomerOrders />} />
 
-                {/* Delivery Management */}
-                <Route path="delivery/partners" element={<DeliveryPartners />} />
-                <Route path="delivery/partners/add" element={<AddDeliveryPartner />} />
-                <Route path="delivery/assign" element={<AssignDeliveries />} />
-                <Route path="delivery/tracking" element={<DeliveryTracking />} />
+                        {/* Stock Management */}
+                        <Route path="stock" element={<StockOverview />} />
+                        <Route path="stock/branches" element={<BranchStock />} />
+                        <Route path="stock/adjustments" element={<StockAdjustments />} />
+                        <Route path="stock/alerts" element={<LowStockAlerts />} />
 
-                {/* Vendors */}
-                <Route path="vendors" element={<AllVendors />} />
-                <Route path="vendors/add" element={<AddVendor />} />
-                <Route path="vendors/products" element={<VendorProducts />} />
-                <Route path="vendors/payouts" element={<VendorPayouts />} />
+                        {/* Delivery Management */}
+                        <Route path="delivery/partners" element={<DeliveryPartners />} />
+                        <Route path="delivery/partners/add" element={<AddDeliveryPartner />} />
+                        <Route path="delivery/assign" element={<AssignDeliveries />} />
+                        <Route path="delivery/tracking" element={<DeliveryTracking />} />
 
-                {/* Locations */}
-                <Route path="locations/branches" element={<Branches />} />
-                <Route path="locations/branches/add" element={<AddBranch />} />
-                <Route path="locations/warehouses" element={<Warehouses />} />
-                <Route path="locations/warehouses/add" element={<AddWarehouse />} />
+                        {/* Vendors */}
+                        <Route path="vendors" element={<AllVendors />} />
+                        <Route path="vendors/add" element={<AddVendor />} />
+                        <Route path="vendors/products" element={<VendorProducts />} />
+                        <Route path="vendors/payouts" element={<VendorPayouts />} />
 
-                {/* Offers & Sliders */}
-                <Route path="offers" element={<Offers />} />
-                <Route path="offers/create" element={<CreateOffer />} />
-                <Route path="sliders" element={<Sliders />} />
-                <Route path="sliders/add" element={<AddSlider />} />
-                <Route path="banners" element={<Banners />} />
-                <Route path="banners/add" element={<AddBanner />} />
+                        {/* Locations */}
+                        <Route path="locations/branches" element={<Branches />} />
+                        <Route path="locations/branches/add" element={<AddBranch />} />
+                        <Route path="locations/warehouses" element={<Warehouses />} />
+                        <Route path="locations/warehouses/add" element={<AddWarehouse />} />
 
-                {/* Promo Codes */}
-                <Route path="promocodes" element={<AllPromoCodes />} />
-                <Route path="promocodes/create" element={<CreatePromoCode />} />
+                        {/* Offers & Sliders */}
+                        <Route path="offers" element={<Offers />} />
+                        <Route path="offers/create" element={<CreateOffer />} />
+                        <Route path="sliders" element={<Sliders />} />
+                        <Route path="sliders/add" element={<AddSlider />} />
+                        <Route path="banners" element={<Banners />} />
+                        <Route path="banners/add" element={<AddBanner />} />
 
-                {/* Notifications */}
-                <Route path="notifications/push" element={<PushNotifications />} />
+                        {/* Promo Codes */}
+                        <Route path="promocodes" element={<AllPromoCodes />} />
+                        <Route path="promocodes/create" element={<CreatePromoCode />} />
 
-                {/* Support Desk */}
-                <Route path="support/tickets" element={<SupportTickets />} />
-                <Route path="support/chat" element={<LiveChat />} />
-                <Route path="support/faqs" element={<FAQs />} />
+                        {/* Notifications */}
+                        <Route path="notifications/push" element={<PushNotifications />} />
 
-                {/* Reports */}
-                <Route path="reports/sales" element={<SalesReports />} />
-                <Route path="reports/inventory" element={<InventoryReports />} />
-                <Route path="reports/vendors" element={<VendorReports />} />
+                        {/* Support Desk */}
+                        <Route path="support/tickets" element={<SupportTickets />} />
+                        <Route path="support/chat" element={<LiveChat />} />
+                        <Route path="support/faqs" element={<FAQs />} />
 
-                {/* Analytics & Finance */}
-                <Route path="analytics/revenue" element={<RevenueAnalytics />} />
-                <Route path="analytics/pos" element={<POSAnalytics />} />
-                <Route path="analytics/earnings" element={<VendorEarnings />} />
-                <Route path="analytics/tax" element={<TaxReports />} />
+                        {/* Reports */}
+                        <Route path="reports/sales" element={<SalesReports />} />
+                        <Route path="reports/inventory" element={<InventoryReports />} />
+                        <Route path="reports/vendors" element={<VendorReports />} />
 
-                {/* Policies */}
-                <Route path="policies/privacy" element={<PrivacyPolicy />} />
-                <Route path="policies/refund" element={<RefundPolicy />} />
-                <Route path="policies/terms" element={<TermsConditions />} />
+                        {/* Analytics & Finance */}
+                        <Route path="analytics/revenue" element={<RevenueAnalytics />} />
+                        <Route path="analytics/pos" element={<POSAnalytics />} />
+                        <Route path="analytics/earnings" element={<VendorEarnings />} />
+                        <Route path="analytics/tax" element={<TaxReports />} />
 
-                {/* Settings */}
-                <Route path="settings/profile" element={<AdminProfile />} />
-                <Route path="settings/roles" element={<RolesAndPermissions />} />
-                <Route path="settings/billing" element={<BillingSettings />} />
-                <Route path="settings/app" element={<AppSettings />} />
-                <Route path="settings/social" element={<SocialProfile />} />
+                        {/* Policies */}
+                        <Route path="policies/privacy" element={<PrivacyPolicy />} />
+                        <Route path="policies/refund" element={<RefundPolicy />} />
+                        <Route path="policies/terms" element={<TermsConditions />} />
 
-                {/* Fallback for all other sub-routes defined in sidebar */}
-                <Route path="*" element={<PlaceholderPage title="Page Not Found / Under Construction" />} />
-            </Route>
-        </Routes>
+                        {/* Settings */}
+                        <Route path="settings/profile" element={<AdminProfile />} />
+                        <Route path="settings/roles" element={<RolesAndPermissions />} />
+                        <Route path="settings/billing" element={<BillingSettings />} />
+                        <Route path="settings/app" element={<AppSettings />} />
+                        <Route path="settings/social" element={<SocialProfile />} />
+
+                        {/* Fallback for all other sub-routes defined in sidebar */}
+                        <Route path="*" element={<PlaceholderPage title="Page Not Found / Under Construction" />} />
+                    </Route>
+                </Route>
+            </Routes>
+        </AdminAuthProvider>
     );
 };
 

@@ -62,7 +62,7 @@ const CreatePromoCode = () => {
                                         <Form.Label>Discount Type</Form.Label>
                                         <Form.Select name="type" value={formData.type} onChange={handleChange}>
                                             <option value="Percentage">Percentage (%)</option>
-                                            <option value="Fixed">Fixed Amount ($)</option>
+                                            <option value="Fixed">Fixed Amount (₹)</option>
                                             <option value="Free Shipping">Free Shipping</option>
                                         </Form.Select>
                                     </Form.Group>

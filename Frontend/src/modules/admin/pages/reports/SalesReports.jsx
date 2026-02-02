@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Card, Table, Row, Col, Form, Button } from 'react-bootstrap';
-import { Download, Calendar, DollarSign, TrendingUp, ShoppingBag } from 'lucide-react';
+import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag } from 'lucide-react';
 
 const SALES_DATA = [
-    { id: 'ORD-5001', date: '2023-11-01', customer: 'John Doe', items: 3, total: '$120.00', status: 'Completed', payment: 'Credit Card' },
-    { id: 'ORD-5002', date: '2023-11-01', customer: 'Jane Smith', items: 1, total: '$45.50', status: 'Completed', payment: 'PayPal' },
-    { id: 'ORD-5003', date: '2023-10-31', customer: 'Michael Brown', items: 5, total: '$210.00', status: 'Refunded', payment: 'Credit Card' },
-    { id: 'ORD-5004', date: '2023-10-31', customer: 'Sarah Wilson', items: 2, total: '$85.00', status: 'Completed', payment: 'COD' },
+    { id: 'ORD-5001', date: '2023-11-01', customer: 'John Doe', items: 3, total: '₹120.00', status: 'Completed', payment: 'Credit Card' },
+    { id: 'ORD-5002', date: '2023-11-01', customer: 'Jane Smith', items: 1, total: '₹45.50', status: 'Completed', payment: 'PayPal' },
+    { id: 'ORD-5003', date: '2023-10-31', customer: 'Michael Brown', items: 5, total: '₹210.00', status: 'Refunded', payment: 'Credit Card' },
+    { id: 'ORD-5004', date: '2023-10-31', customer: 'Sarah Wilson', items: 2, total: '₹85.00', status: 'Completed', payment: 'COD' },
 ];
 
 const SalesReports = () => {
@@ -34,11 +34,11 @@ const SalesReports = () => {
                         <Card.Body>
                             <div className="d-flex align-items-center gap-3 mb-2">
                                 <div className="bg-success bg-opacity-10 p-2 rounded text-success">
-                                    <DollarSign size={20} />
+                                    <IndianRupee size={20} />
                                 </div>
                                 <span className="text-muted small text-uppercase fw-bold">Total Revenue</span>
                             </div>
-                            <h4 className="fw-bold mb-0">$12,450.00</h4>
+                            <h4 className="fw-bold mb-0">₹12,450.00</h4>
                             <small className="text-success fw-bold">+15% from last month</small>
                         </Card.Body>
                     </Card>
@@ -66,7 +66,7 @@ const SalesReports = () => {
                                 </div>
                                 <span className="text-muted small text-uppercase fw-bold">Avg Order Value</span>
                             </div>
-                            <h4 className="fw-bold mb-0">$48.50</h4>
+                            <h4 className="fw-bold mb-0">₹48.50</h4>
                             <small className="text-danger fw-bold">-2% from last month</small>
                         </Card.Body>
                     </Card>
@@ -80,7 +80,7 @@ const SalesReports = () => {
                                 </div>
                                 <span className="text-muted small text-uppercase fw-bold">Period Sales</span>
                             </div>
-                            <h4 className="fw-bold mb-0">$3,200.00</h4>
+                            <h4 className="fw-bold mb-0">₹3,200.00</h4>
                             <small className="text-muted">Currently viewing Nov</small>
                         </Card.Body>
                     </Card>

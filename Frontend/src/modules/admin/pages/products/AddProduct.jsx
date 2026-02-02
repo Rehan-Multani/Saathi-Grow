@@ -104,7 +104,7 @@ const AddProduct = () => {
                                 <Row>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Base Price ($)</Form.Label>
+                                            <Form.Label>Base Price (₹)</Form.Label>
                                             <Form.Control
                                                 type="number"
                                                 placeholder="0.00"
@@ -200,9 +200,9 @@ const AddProduct = () => {
                     </Col>
                 </Row>
 
-                <div className="d-flex justify-content-end gap-2 mb-5">
-                    <Button variant="light" size="lg">Cancel</Button>
-                    <Button variant="primary" size="lg" className="d-flex align-items-center gap-2 px-4">
+                <div className="d-flex flex-column flex-sm-row justify-content-end gap-2 mb-3 mb-sm-5 mt-4 mt-sm-0">
+                    <Button variant="light" size="lg" className="px-4 responsive-btn">Cancel</Button>
+                    <Button variant="primary" size="lg" className="d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm responsive-btn">
                         <Save size={20} /> Save Product
                     </Button>
                 </div>

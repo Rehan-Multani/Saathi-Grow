@@ -12,7 +12,7 @@ const LowStockAlerts = () => {
     return (
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4 bg-danger bg-opacity-10">
-                <Card.Body className="d-flex align-items-center gap-3">
+                <Card.Body className="d-flex flex-column flex-sm-row align-items-center gap-3 text-center text-sm-start">
                     <div className="bg-danger text-white p-3 rounded-circle">
                         <AlertTriangle size={24} />
                     </div>
@@ -56,8 +56,8 @@ const LowStockAlerts = () => {
                                         />
                                     </td>
                                     <td className="text-end pe-4">
-                                        <Button size="sm" variant="primary" className="d-flex align-items-center gap-2 ms-auto">
-                                            <ShoppingCart size={14} /> Reorder Now
+                                        <Button size="sm" variant="primary" className="d-flex align-items-center justify-content-center gap-2 ms-auto responsive-btn shadow-sm text-nowrap">
+                                            <ShoppingCart size={14} /> <span>Reorder<span className="d-none d-sm-inline"> Now</span></span>
                                         </Button>
                                     </td>
                                 </tr>

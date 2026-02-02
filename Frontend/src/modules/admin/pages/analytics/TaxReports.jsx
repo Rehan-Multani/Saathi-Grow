@@ -3,9 +3,9 @@ import { Card, Table, Button, Form, Row, Col, Alert } from 'react-bootstrap';
 import { Download, FileText, Printer, Calculator, AlertTriangle } from 'lucide-react';
 
 const TAX_DATA = [
-    { id: 'GST-1001', period: 'Nov 2023', taxable: '$25,000.00', gst: '$1,250.00', status: 'Filed' },
-    { id: 'GST-1002', period: 'Oct 2023', taxable: '$22,500.00', gst: '$1,125.00', status: 'Filed' },
-    { id: 'GST-1003', period: 'Sep 2023', taxable: '$18,000.00', gst: '$900.00', status: 'Audited' },
+    { id: 'GST-1001', period: 'Nov 2023', taxable: '₹25,000.00', gst: '₹1,250.00', status: 'Filed' },
+    { id: 'GST-1002', period: 'Oct 2023', taxable: '₹22,500.00', gst: '₹1,125.00', status: 'Filed' },
+    { id: 'GST-1003', period: 'Sep 2023', taxable: '₹18,000.00', gst: '₹900.00', status: 'Audited' },
 ];
 
 const TaxReports = () => {

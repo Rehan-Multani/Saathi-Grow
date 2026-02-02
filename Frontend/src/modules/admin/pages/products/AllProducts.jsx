@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Table, Badge, Button, Form, InputGroup, Row, Col, Dropdown } from 'react-bootstrap';
-import { Search, Plus, MoreHorizontal, Edit, Trash2, QrCode } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, Plus, Edit, Trash2, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 const PRODUCTS_MOCK = [
@@ -12,12 +12,16 @@ const PRODUCTS_MOCK = [
 
 const ProductStatusBadge = ({ status }) => {
     const variants = {
-        Active: 'success',
-        'Low Stock': 'warning',
-        'Out of Stock': 'danger',
-        Draft: 'secondary'
+        Active: 'bg-green-100 text-green-700',
+        'Low Stock': 'bg-amber-100 text-amber-700',
+        'Out of Stock': 'bg-red-100 text-red-700',
+        Draft: 'bg-gray-100 text-gray-700'
     };
-    return <Badge bg={variants[status] || 'secondary'} className="px-3 rounded-pill fw-normal">{status}</Badge>;
+    return (
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${variants[status] || 'bg-gray-100 text-gray-600'}`}>
+            {status}
+        </span>
+    );
 };
 
 const AllProducts = () => {
@@ -30,87 +34,100 @@ const AllProducts = () => {
     );
 
     return (
-        <div className="p-3">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                    <h5 className="mb-0 fw-bold">Product Inventory</h5>
-                    <div className="d-flex gap-2 w-100 justify-content-md-end">
-                        <InputGroup style={{ maxWidth: '300px' }}>
-                            <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
-                            <Form.Control
+        <div className="p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h5 className="mb-0 font-bold text-gray-800 text-lg">Product Inventory</h5>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden w-full sm:w-[300px] focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                            <div className="pl-3 text-gray-400">
+                                <Search size={18} />
+                            </div>
+                            <input
+                                type="text"
                                 placeholder="Search Name, SKU..."
-                                className="border-start-0 ps-0 shadow-none"
+                                className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                        </InputGroup>
-                        <Button variant="primary" className="d-flex align-items-center gap-2">
-                            <Plus size={18} /> <span className="d-none d-sm-inline">Add Product</span>
-                        </Button>
+                        </div>
+                        <Link
+                            to="/admin/products/add"
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                        >
+                            <Plus size={18} />
+                            <span className="hidden sm:inline">Add Product</span>
+                            <span className="sm:hidden">Add</span>
+                        </Link>
                     </div>
-                </Card.Body>
-            </Card>
+                </div>
+            </div>
 
-            <Card className="border-0 shadow-sm">
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Product Name</th>
-                                <th className="border-0 py-3">Category</th>
-                                <th className="border-0 py-3">SKU</th>
-                                <th className="border-0 py-3">Price</th>
-                                <th className="border-0 py-3">Stock</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                <th className="px-6 py-4">Product Name</th>
+                                <th className="px-6 py-4">Category</th>
+                                <th className="px-6 py-4">SKU</th>
+                                <th className="px-6 py-4">Price</th>
+                                <th className="px-6 py-4">Stock</th>
+                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-100">
                             {filteredProducts.map((p, idx) => (
-                                <tr key={idx}>
-                                    <td className="ps-4">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div className="bg-light rounded d-flex align-items-center justify-content-center" style={{ width: 40, height: 40 }}>
-                                                {/* Placeholder for image */}
-                                                <span className="fw-bold text-muted">{p.name.charAt(0)}</span>
+                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold">
+                                                {p.name.charAt(0)}
                                             </div>
-                                            <div className="d-flex flex-column">
-                                                <span className="fw-medium text-dark">{p.name}</span>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-gray-800">{p.name}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="text-muted">{p.category}</td>
-                                    <td className="small text-monospace">{p.sku}</td>
-                                    <td className="fw-bold text-dark">${p.price.toFixed(2)}</td>
-                                    <td>
-                                        <span className={p.stock === 0 ? 'text-danger fw-bold' : ''}>{p.stock}</span>
+                                    <td className="px-6 py-4 text-gray-500">{p.category}</td>
+                                    <td className="px-6 py-4 text-gray-500 text-sm font-mono">{p.sku}</td>
+                                    <td className="px-6 py-4 font-bold text-gray-800">₹{p.price.toFixed(2)}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`font-medium ${p.stock === 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                                            {p.stock}
+                                        </span>
                                     </td>
-                                    <td><ProductStatusBadge status={p.status} /></td>
-                                    <td className="text-end pe-4">
-                                        <div className="d-flex justify-content-end gap-2">
-                                            <Button variant="light" size="sm" className="btn-icon-soft" title="View QR" onClick={() => setShowQR(showQR === p.id ? null : p.id)}>
+                                    <td className="px-6 py-4"><ProductStatusBadge status={p.status} /></td>
+                                    <td className="px-6 py-4 text-right relative">
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                className={`p-1.5 rounded bg-gray-50 hover:bg-gray-200 transition-colors ${showQR === p.id ? 'text-blue-600 bg-blue-50' : 'text-gray-500'}`}
+                                                title="View QR"
+                                                onClick={() => setShowQR(showQR === p.id ? null : p.id)}
+                                            >
                                                 <QrCode size={16} />
-                                            </Button>
-                                            <Button variant="light" size="sm" className="btn-icon-soft text-primary" title="Edit">
+                                            </button>
+                                            <button className="p-1.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Edit">
                                                 <Edit size={16} />
-                                            </Button>
-                                            <Button variant="light" size="sm" className="btn-icon-soft text-danger" title="Delete">
+                                            </button>
+                                            <button className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Delete">
                                                 <Trash2 size={16} />
-                                            </Button>
+                                            </button>
                                         </div>
                                         {showQR === p.id && (
-                                            <div className="position-absolute bg-white shadow p-3 rounded border text-center" style={{ right: '40px', zIndex: 10 }}>
+                                            <div className="absolute right-10 top-12 bg-white shadow-xl p-3 rounded-xl border border-gray-100 z-10 text-center animate-in fade-in zoom-in-95 duration-200">
                                                 <QRCodeSVG value={p.sku} size={100} />
-                                                <div className="small mt-2 text-muted">{p.sku}</div>
+                                                <div className="text-xs mt-2 text-gray-500">{p.sku}</div>
                                             </div>
                                         )}
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                    </Table>
-                </Card.Body>
-            </Card>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 };

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Card, Button, Form, Row, Col, Table } from 'react-bootstrap';
-import { Download, Calendar, DollarSign, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
+import { Download, Calendar, IndianRupee, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
 
 const REVENUE_DATA = [
-    { date: '2023-11-01', orders: 156, gross: '$4,500.00', refunds: '$120.00', net: '$4,380.00' },
-    { date: '2023-10-31', orders: 142, gross: '$3,890.00', refunds: '$0.00', net: '$3,890.00' },
-    { date: '2023-10-30', orders: 160, gross: '$4,800.00', refunds: '$50.00', net: '$4,750.00' },
+    { date: '2023-11-01', orders: 156, gross: '₹4,500.00', refunds: '₹120.00', net: '₹4,380.00' },
+    { date: '2023-10-31', orders: 142, gross: '₹3,890.00', refunds: '₹0.00', net: '₹3,890.00' },
+    { date: '2023-10-30', orders: 160, gross: '₹4,800.00', refunds: '₹50.00', net: '₹4,750.00' },
 ];
 
 const RevenueAnalytics = () => {
@@ -32,7 +32,7 @@ const RevenueAnalytics = () => {
                     <Card className="border-0 shadow-sm bg-primary text-white h-100">
                         <Card.Body>
                             <div className="text-white-50 small text-uppercase fw-bold mb-2">Total Net Sales</div>
-                            <h3 className="fw-bold mb-0">$42,593.00</h3>
+                            <h3 className="fw-bold mb-0">₹42,593.00</h3>
                             <div className="small mt-2 d-flex align-items-center gap-1">
                                 <ArrowUpRight size={14} /> +12.5% vs last week
                             </div>
@@ -43,7 +43,7 @@ const RevenueAnalytics = () => {
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Body>
                             <div className="text-muted small text-uppercase fw-bold mb-2">Total Refunds</div>
-                            <h3 className="fw-bold mb-0 text-danger">$1,240.00</h3>
+                            <h3 className="fw-bold mb-0 text-danger">₹1,240.00</h3>
                             <div className="small mt-2 text-muted d-flex align-items-center gap-1">
                                 <TrendingDown size={14} className="text-success" /> -5% vs last week
                             </div>
@@ -54,7 +54,7 @@ const RevenueAnalytics = () => {
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Body>
                             <div className="text-muted small text-uppercase fw-bold mb-2">Vendor Payouts</div>
-                            <h3 className="fw-bold mb-0">$28,400.00</h3>
+                            <h3 className="fw-bold mb-0">₹28,400.00</h3>
                             <div className="small mt-2 text-muted">Paid out this month</div>
                         </Card.Body>
                     </Card>
@@ -63,7 +63,7 @@ const RevenueAnalytics = () => {
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Body>
                             <div className="text-muted small text-uppercase fw-bold mb-2">Net Profit</div>
-                            <h3 className="fw-bold mb-0 text-success">$12,953.00</h3>
+                            <h3 className="fw-bold mb-0 text-success">₹12,953.00</h3>
                             <div className="small mt-2 text-muted d-flex align-items-center gap-1">
                                 <TrendingUp size={14} className="text-success" /> +8.2% margin
                             </div>

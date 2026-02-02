@@ -3,9 +3,9 @@ import { Card, Table, Button, Form, Row, Col } from 'react-bootstrap';
 import { Download, Monitor, Store, ShoppingCart, User } from 'lucide-react';
 
 const POS_DATA = [
-    { id: 'TXN-9001', branch: 'Main Store - Downtown', cashier: 'Sarah C.', items: 4, total: '$56.00', time: '10:30 AM', itemsList: 'Milk, Bread, Eggs, Cheese' },
-    { id: 'TXN-9002', branch: 'West Mall Kiosk', cashier: 'John C.', items: 1, total: '$12.00', time: '10:45 AM', itemsList: 'Magazines' },
-    { id: 'TXN-9003', branch: 'Main Store - Downtown', cashier: 'Sarah C.', items: 8, total: '$145.50', time: '11:00 AM', itemsList: 'Vegetables, Meat, Snacks...' },
+    { id: 'TXN-9001', branch: 'Main Store - Downtown', cashier: 'Sarah C.', items: 4, total: '₹56.00', time: '10:30 AM', itemsList: 'Milk, Bread, Eggs, Cheese' },
+    { id: 'TXN-9002', branch: 'West Mall Kiosk', cashier: 'John C.', items: 1, total: '₹12.00', time: '10:45 AM', itemsList: 'Magazines' },
+    { id: 'TXN-9003', branch: 'Main Store - Downtown', cashier: 'Sarah C.', items: 8, total: '₹145.50', time: '11:00 AM', itemsList: 'Vegetables, Meat, Snacks...' },
 ];
 
 const POSAnalytics = () => {
@@ -47,7 +47,7 @@ const POSAnalytics = () => {
                                 <span className="small text-uppercase fw-bold">Today's Transactions</span>
                             </div>
                             <h3 className="fw-bold mb-0">342</h3>
-                            <div className="small mt-1 text-success fw-bold">Avg $35.00 / txn</div>
+                            <div className="small mt-1 text-success fw-bold">Avg ₹35.00 / txn</div>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -59,7 +59,7 @@ const POSAnalytics = () => {
                                 <span className="small text-uppercase fw-bold">Best Performing Branch</span>
                             </div>
                             <h5 className="fw-bold mb-0 text-primary">Main Store - Downtown</h5>
-                            <div className="small mt-1 text-muted">$4,200 sales today</div>
+                            <div className="small mt-1 text-muted">₹4,200 sales today</div>
                         </Card.Body>
                     </Card>
                 </Col>

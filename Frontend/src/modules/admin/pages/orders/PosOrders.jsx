@@ -53,16 +53,16 @@ const PosOrders = () => {
                         <Card.Body className="bg-light p-3 overflow-auto" style={{ maxHeight: '75vh' }}>
                             <Row className="g-3">
                                 {PRODUCT_DATABASE.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((product, idx) => (
-                                    <Col md={4} sm={6} key={idx}>
-                                        <Card className="border-0 shadow-sm h-100 product-card cursor-pointer" onClick={() => handleAddToCart(product)}>
+                                    <Col xs={12} sm={6} md={4} key={idx}>
+                                        <Card className="border-0 shadow-sm h-100 product-card pos-product-card cursor-pointer" onClick={() => handleAddToCart(product)}>
                                             <div className="aspect-ratio-16-9 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center p-4">
-                                                <Package size={48} className="text-secondary opacity-50" />
+                                                <Package size={54} className="text-secondary opacity-50" />
                                             </div>
                                             <Card.Body>
                                                 <h6 className="fw-bold text-dark mb-1">{product.name}</h6>
                                                 <div className="d-flex justify-content-between align-items-center">
-                                                    <span className="text-primary fw-bold">${product.price}</span>
-                                                    <Badge bg="light" text="dark" className="border">Stock: {product.stock}</Badge>
+                                                    <span className="text-primary fw-bold">₹{product.price}</span>
+                                                    <Badge bg="light" text="dark" className="border py-1 px-2">Stock: {product.stock}</Badge>
                                                 </div>
                                             </Card.Body>
                                         </Card>
@@ -96,10 +96,10 @@ const PosOrders = () => {
                                                 <tr key={i} className="border-bottom">
                                                     <td>
                                                         <div className="fw-medium small">{item.name}</div>
-                                                        <div className="text-muted small">${item.price} x {item.qty}</div>
+                                                        <div className="text-muted small">₹{item.price} x {item.qty}</div>
                                                     </td>
                                                     <td className="text-end fw-bold">
-                                                        ${(item.price * item.qty).toFixed(2)}
+                                                        ₹{(item.price * item.qty).toFixed(2)}
                                                     </td>
                                                     <td className="text-end" style={{ width: '30px' }}>
                                                         <Button variant="link" className="text-danger p-0" onClick={() => handleRemoveFromCart(item.sku)}>
@@ -117,15 +117,15 @@ const PosOrders = () => {
                             <div className="bg-light p-3 border-top">
                                 <div className="d-flex justify-content-between mb-2 small text-muted">
                                     <span>Subtotal</span>
-                                    <span>${calculateTotal()}</span>
+                                    <span>₹{calculateTotal()}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-2 small text-muted">
                                     <span>Tax (10%)</span>
-                                    <span>${(calculateTotal() * 0.1).toFixed(2)}</span>
+                                    <span>₹{(calculateTotal() * 0.1).toFixed(2)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-3 fw-bold fs-5 text-dark">
                                     <span>Total</span>
-                                    <span>${(calculateTotal() * 1.1).toFixed(2)}</span>
+                                    <span>₹{(calculateTotal() * 1.1).toFixed(2)}</span>
                                 </div>
                                 <Button variant="success" className="w-100 py-2 fw-bold text-uppercase d-flex align-items-center justify-content-center gap-2" disabled={cart.length === 0}>
                                     Complete Order
