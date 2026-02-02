@@ -6,7 +6,7 @@ import { Minus, Plus, ShoppingCart, Clock, ShieldCheck, ChevronRight } from 'luc
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
-    const { addToCart, removeFromCart, cart } = useCart();
+    const { addToCart, removeFromCart, updateQuantity, cart } = useCart();
 
     const product = products.find(p => p.id === parseInt(id));
 
@@ -16,7 +16,7 @@ const ProductDetailsPage = () => {
     const quantity = cartItem ? cartItem.quantity : 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-[#efefef] pb-20">
             <div className="bg-white border-b border-gray-100 shadow-sm sticky top-16 z-40">
                 <div className="max-w-7xl mx-auto px-4 py-3">
                     <div className="flex items-center text-sm text-gray-500 gap-1">
@@ -81,15 +81,15 @@ const ProductDetailsPage = () => {
                                 {quantity === 0 ? (
                                     <button
                                         onClick={() => addToCart(product)}
-                                        className="bg-[#0c831f] text-white font-bold py-2.5 px-8 rounded-md hover:bg-[#0b721b] transition shadow-sm text-sm"
+                                        className="product_button bg-white text-[#0c831f] border-[1.5px] border-[#0c831f] hover:!bg-[#0a6b19] hover:!text-white hover:!border-[#0a6b19] font-bold py-2.5 px-8 transition shadow-sm text-sm uppercase tracking-wide"
                                     >
                                         Add to cart
                                     </button>
                                 ) : (
-                                    <div className="flex items-center gap-4 bg-[#0c831f] text-white rounded-md px-3 py-1.5 w-fit shadow-sm">
-                                        <button onClick={() => removeFromCart(product.id)} className="p-1 hover:bg-[#0b721b] rounded transition"><Minus size={16} /></button>
+                                    <div className="flex items-center gap-4 bg-[#0c831f] text-white rounded-xl px-3 py-1.5 w-fit shadow-sm">
+                                        <button onClick={() => updateQuantity(product.id, -1)} className="p-1 hover:bg-[#0b721b] rounded-lg transition"><Minus size={16} /></button>
                                         <span className="text-sm font-bold min-w-[20px] text-center">{quantity}</span>
-                                        <button onClick={() => addToCart(product)} className="p-1 hover:bg-[#0b721b] rounded transition"><Plus size={16} /></button>
+                                        <button onClick={() => updateQuantity(product.id, 1)} className="p-1 hover:bg-[#0b721b] rounded-lg transition"><Plus size={16} /></button>
                                     </div>
                                 )}
                             </div>

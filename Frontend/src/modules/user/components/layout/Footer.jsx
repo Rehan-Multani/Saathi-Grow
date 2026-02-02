@@ -10,9 +10,9 @@ const Footer = () => {
 
           {/* Useful Links Section */}
           <div className="lg:w-1/3">
-            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4 md:mb-6">Useful Links</h3>
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
-              <ul className="space-y-2 md:space-y-3">
+            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">Useful Links</h3>
+            <div className="grid grid-cols-3 w-full gap-x-4 md:gap-x-8">
+              <ul className="space-y-1 p-0 list-none">
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">About</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Careers</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Blog</Link></li>
@@ -20,7 +20,7 @@ const Footer = () => {
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Lead</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Value</Link></li>
               </ul>
-              <ul className="space-y-2 md:space-y-3">
+              <ul className="space-y-1 p-0 list-none">
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Privacy</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Terms</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">FAQs</Link></li>
@@ -28,7 +28,7 @@ const Footer = () => {
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Mobile</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Contact</Link></li>
               </ul>
-              <ul className="space-y-2 md:space-y-3">
+              <ul className="space-y-1 p-0 list-none">
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Partner</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Express</Link></li>
                 <li><Link to="#" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm">Seller</Link></li>
@@ -41,11 +41,11 @@ const Footer = () => {
 
           {/* Categories Section */}
           <div className="lg:w-2/3">
-            <div className="flex items-center gap-4 mb-4 md:mb-6">
+            <div className="flex items-center gap-4 mb-2">
               <h3 className="text-base md:text-lg font-bold text-gray-900">Categories</h3>
               <Link to="/category" className="!text-[#0c831f] text-sm md:text-base font-normal">see all</Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-2 gap-y-2 md:gap-x-4 md:gap-y-3">
+            <div className="grid grid-cols-3 gap-x-2 gap-y-1 md:gap-x-4 md:gap-y-2">
               <Link to="/category/vegetables-fruits" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Vegetables & Fruits</Link>
               <Link to="/category/dairy-breakfast" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Dairy & Breakfast</Link>
               <Link to="/category/munchies" className="!text-gray-500 hover:text-gray-900 text-xs md:text-sm truncate">Munchies</Link>

@@ -15,7 +15,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="bg-white rounded-[20px] p-3 shadow-sm border border-transparent hover:border-gray-100 hover:shadow-md transition-all duration-300 flex flex-col gap-3 h-full">
+    <div className="bg-white rounded-[20px] p-3 shadow-sm border border-transparent hover:border-[#0c831f] hover:shadow-xl hover:scale-105 transition-all duration-300 flex flex-col gap-3 h-full">
       <Link to={`/product/${product.id}`} className="block relative w-full aspect-square">
         <img
           src={product.image}
@@ -39,7 +39,7 @@ const ProductCard = ({ product }) => {
 
           <button
             onClick={handleAddToCart}
-            className="px-4 py-1 bg-white text-[#0c831f] border-[1.5px] border-[#0c831f] hover:!bg-[#0a6b19] active:!bg-[#0a6b19] hover:!text-white active:!text-white hover:!border-[#0a6b19] active:!border-[#0a6b19] text-[11px] font-bold rounded-lg transition-colors uppercase tracking-wide"
+            className="product_button px-4 py-1 bg-white text-[#0c831f] border-[1.5px] border-[#0c831f] hover:!bg-[#0a6b19] active:!bg-[#0a6b19] hover:!text-white active:!text-white hover:!border-[#0a6b19] active:!border-[#0a6b19] text-[11px] font-bold !rounded-lg transition-colors uppercase tracking-wide"
           >
             ADD
           </button>

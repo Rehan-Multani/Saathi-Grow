@@ -68,7 +68,7 @@ const LocationModal = () => {
                         {/* Detect Location Button */}
                         <button
                             onClick={handleDetectLocation}
-                            className="flex-none bg-[#0c831f] text-white px-6 py-2.5 rounded-[6px] hover:bg-[#0b721b] transition-colors font-semibold text-sm h-[42px] whitespace-nowrap"
+                            className="flex-none bg-[#0c831f] text-white px-6 py-2.5 rounded-full hover:bg-[#0b721b] transition-colors font-semibold text-sm h-[42px] whitespace-nowrap"
                         >
                             Detect my location
                         </button>
@@ -102,11 +102,10 @@ const LocationModal = () => {
                                 <h3 className="text-xs font-semibold text-gray-400 uppercase mb-3 text-left">Popular Cities</h3>
                             )}
 
-                            {/* "Use Current Input" Option */}
                             {searchText.trim().length > 0 && !suggestions.map(s => s.toLowerCase()).includes(searchText.toLowerCase()) && (
                                 <button
                                     onClick={() => handleManualSelect(searchText)}
-                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors group mb-1"
+                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors group mb-1"
                                 >
                                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
                                         <MapPin size={16} className="text-gray-500 group-hover:text-[var(--saathi-green)]" />
@@ -118,12 +117,11 @@ const LocationModal = () => {
                                 </button>
                             )}
 
-                            {/* Suggestions List */}
                             {suggestions.map((city) => (
                                 <button
                                     key={city}
                                     onClick={() => handleManualSelect(city)}
-                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors group border-b border-gray-50 last:border-0"
+                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors group border-b border-gray-50 last:border-0"
                                 >
                                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
                                         <MapPin size={16} className="text-gray-400 group-hover:text-gray-600" />
@@ -138,10 +136,11 @@ const LocationModal = () => {
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
-            </div>
-        </div>
+                    )
+                    }
+                </div >
+            </div >
+        </div >
     );
 };
 

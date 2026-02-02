@@ -62,7 +62,7 @@ const CartSidebar = () => {
                             </div>
                             <button
                                 onClick={() => setIsCartOpen(false)}
-                                className="px-6 py-2.5 bg-[#16a34a] text-white rounded-lg font-medium text-xs hover:bg-green-700 transition shadow-sm"
+                                className="px-6 py-2.5 bg-[#16a34a] text-white rounded-full font-medium text-xs hover:bg-green-700 transition shadow-sm"
                             >
                                 Browse Products
                             </button>
@@ -100,7 +100,7 @@ const CartSidebar = () => {
                                                     <span className="font-bold text-gray-900 !text-[14px]">₹{item.price * item.quantity}</span>
 
                                                     {/* Qty Control */}
-                                                    <div className="flex items-center gap-2 bg-[#16a34a] rounded px-1.5 py-0.5 shadow-sm h-7 min-w-[55px] justify-between">
+                                                    <div className="flex items-center gap-2 bg-[#16a34a] rounded-lg px-1.5 py-0.5 shadow-sm h-7 min-w-[55px] justify-between">
                                                         <button onClick={() => updateQuantity(item.id, -1)} className="text-white hover:text-green-100 flex items-center justify-center w-4 h-full"><Minus size={12} strokeWidth={2.5} /></button>
                                                         <span className="text-white text-xs font-bold">{item.quantity}</span>
                                                         <button onClick={() => updateQuantity(item.id, 1)} className="text-white hover:text-green-100 flex items-center justify-center w-4 h-full"><Plus size={12} strokeWidth={2.5} /></button>
@@ -159,7 +159,7 @@ const CartSidebar = () => {
                                     navigate('/checkout');
                                 }
                             }}
-                            className="w-full bg-[#16a34a] text-white px-4 rounded-xl flex items-center justify-between hover:bg-green-700 transition-colors shadow-none h-12"
+                            className="w-full bg-[#16a34a] text-white px-4 rounded-full flex items-center justify-between hover:bg-green-700 transition-colors shadow-none h-12"
                         >
                             <div className="flex flex-col items-start">
                                 <span className="font-bold text-[14px]">₹{finalTotal}</span>
