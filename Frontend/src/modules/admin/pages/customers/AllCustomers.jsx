@@ -3,10 +3,10 @@ import { Card, Table, Button, Form, InputGroup, Badge, Dropdown } from 'react-bo
 import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle } from 'lucide-react';
 
 const CUSTOMERS_MOCK = [
-    { id: 'CUST-001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+1 555-0101', city: 'New York', orders: 24, spent: '$1,240.50', status: 'Active', points: 450 },
-    { id: 'CUST-002', name: 'Bob Smith', email: 'bob.smith@test.com', phone: '+1 555-0102', city: 'Los Angeles', orders: 5, spent: '$200.00', status: 'Blocked', points: 10 },
-    { id: 'CUST-003', name: 'Carol Williams', email: 'carol.w@demo.com', phone: '+1 555-0103', city: 'Chicago', orders: 12, spent: '$850.75', status: 'Active', points: 120 },
-    { id: 'CUST-004', name: 'David Brown', email: 'david.b@sample.com', phone: '+1 555-0104', city: 'Houston', orders: 1, spent: '$45.00', status: 'Active', points: 5 },
+    { id: 'CUST-001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+1 555-0101', city: 'New York', orders: 24, spent: '₹1,240.50', status: 'Active', points: 450 },
+    { id: 'CUST-002', name: 'Bob Smith', email: 'bob.smith@test.com', phone: '+1 555-0102', city: 'Los Angeles', orders: 5, spent: '₹200.00', status: 'Blocked', points: 10 },
+    { id: 'CUST-003', name: 'Carol Williams', email: 'carol.w@demo.com', phone: '+1 555-0103', city: 'Chicago', orders: 12, spent: '₹850.75', status: 'Active', points: 120 },
+    { id: 'CUST-004', name: 'David Brown', email: 'david.b@sample.com', phone: '+1 555-0104', city: 'Houston', orders: 1, spent: '₹45.00', status: 'Active', points: 5 },
 ];
 
 const AllCustomers = () => {

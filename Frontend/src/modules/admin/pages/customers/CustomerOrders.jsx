@@ -3,10 +3,10 @@ import { Card, Table, Button, Form, InputGroup, Row, Col } from 'react-bootstrap
 import { Search, Filter, Calendar } from 'lucide-react';
 
 const CUSTOMER_ORDERS_MOCK = [
-    { orderId: 'ORD-8801', customer: 'Alice Johnson', items: 'Milk, Bread, Eggs', amount: '$25.50', date: '2023-11-01', status: 'Delivered' },
-    { orderId: 'ORD-8802', customer: 'Carol Williams', items: 'Detergent, Soap', amount: '$15.00', date: '2023-10-31', status: 'Processing' },
-    { orderId: 'ORD-8803', customer: 'Alice Johnson', items: 'Vegetables Pack', amount: '$35.00', date: '2023-10-28', status: 'Delivered' },
-    { orderId: 'ORD-8804', customer: 'Bob Smith', items: 'Electronics Gadget', amount: '$200.00', date: '2023-10-25', status: 'Cancelled' },
+    { orderId: 'ORD-8801', customer: 'Alice Johnson', items: 'Milk, Bread, Eggs', amount: '₹25.50', date: '2023-11-01', status: 'Delivered' },
+    { orderId: 'ORD-8802', customer: 'Carol Williams', items: 'Detergent, Soap', amount: '₹15.00', date: '2023-10-31', status: 'Processing' },
+    { orderId: 'ORD-8803', customer: 'Alice Johnson', items: 'Vegetables Pack', amount: '₹35.00', date: '2023-10-28', status: 'Delivered' },
+    { orderId: 'ORD-8804', customer: 'Bob Smith', items: 'Electronics Gadget', amount: '₹200.00', date: '2023-10-25', status: 'Cancelled' },
 ];
 
 const CustomerOrders = () => {
@@ -64,7 +64,7 @@ const CustomerOrders = () => {
                                     <td className="fw-bold">{o.amount}</td>
                                     <td>
                                         <span className={`badge rounded-pill fw-normal px-3 bg-${o.status === 'Delivered' ? 'success' :
-                                                o.status === 'Cancelled' ? 'danger' : 'info'
+                                            o.status === 'Cancelled' ? 'danger' : 'info'
                                             }`}>
                                             {o.status}
                                         </span>

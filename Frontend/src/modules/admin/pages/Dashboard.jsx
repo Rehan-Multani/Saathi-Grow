@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Package, Users, DollarSign, TrendingUp, TrendingDown, Activity, CreditCard } from 'lucide-react';
+import { ShoppingCart, Package, Users, IndianRupee, TrendingUp, TrendingDown, Activity, CreditCard } from 'lucide-react';
 import { Card, Row, Col, Table, Badge, Button } from 'react-bootstrap';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -48,15 +48,23 @@ const StatCard = ({ title, value, icon: Icon, color, trend, trendValue, gradient
 );
 
 const recentOrders = [
-    { id: '#ORD-001', customer: 'Alex Johnson', product: 'Wireless Headset', amount: '$120.00', status: 'Delivered' },
-    { id: '#ORD-002', customer: 'Sam Smith', product: 'Smart Watch', amount: '$250.00', status: 'Pending' },
-    { id: '#ORD-003', customer: 'Maria Garcia', product: 'Organic Bananas', amount: '$15.50', status: 'Processing' },
-    { id: '#ORD-004', customer: 'John Doe', product: 'Gaming Mouse', amount: '$45.00', status: 'Cancelled' },
+    { id: '#ORD-001', customer: 'Alex Johnson', product: 'Wireless Headset', amount: '₹120.00', status: 'Delivered' },
+    { id: '#ORD-002', customer: 'Sam Smith', product: 'Smart Watch', amount: '₹250.00', status: 'Pending' },
+    { id: '#ORD-003', customer: 'Maria Garcia', product: 'Organic Bananas', amount: '₹15.50', status: 'Processing' },
+    { id: '#ORD-004', customer: 'John Doe', product: 'Gaming Mouse', amount: '₹45.00', status: 'Cancelled' },
 ];
 
 const Dashboard = () => {
+    const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+    React.useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
-        <div className="p-4">
+        <div className="p-2 p-md-4">
             {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
@@ -74,8 +82,8 @@ const Dashboard = () => {
                 <Col xl={3} md={6}>
                     <StatCard
                         title="Total Revenue"
-                        value="$54,230"
-                        icon={DollarSign}
+                        value="₹54,230"
+                        icon={IndianRupee}
                         color="#3B82F6"
                         gradient="linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"
                         trend="up"
@@ -138,7 +146,7 @@ const Dashboard = () => {
                                         </linearGradient>
                                     </defs>
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `$${val}`} />
+                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val}`} />
                                     <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f1f5f9" />
                                     <Tooltip
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
@@ -156,12 +164,27 @@ const Dashboard = () => {
                         </Card.Header>
                         <Card.Body className="d-flex align-items-center justify-content-center" style={{ minHeight: '350px' }}>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={categoryData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                    <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
+                                <BarChart
+                                    data={categoryData}
+                                    layout={isMobile ? "horizontal" : "vertical"}
+                                    margin={isMobile ? { top: 20, right: 20, left: 0, bottom: 5 } : { top: 5, right: 30, left: 20, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={isMobile} vertical={!isMobile} />
+                                    <XAxis
+                                        type={isMobile ? "category" : "number"}
+                                        dataKey={isMobile ? "name" : undefined}
+                                        hide={!isMobile}
+                                        tick={{ fontSize: 10 }}
+                                    />
+                                    <YAxis
+                                        type={isMobile ? "number" : "category"}
+                                        dataKey={isMobile ? undefined : "name"}
+                                        width={isMobile ? 40 : 80}
+                                        tick={{ fontSize: 10 }}
+                                        hide={false}
+                                    />
                                     <Tooltip cursor={{ fill: 'transparent' }} />
-                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
+                                    <Bar dataKey="value" radius={isMobile ? [4, 4, 0, 0] : [0, 4, 4, 0]} barSize={isMobile ? 40 : 30}>
                                         {categoryData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}

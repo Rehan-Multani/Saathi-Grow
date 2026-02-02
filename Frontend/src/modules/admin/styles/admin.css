@@ -65,6 +65,12 @@ body {
     flex-grow: 1;
 }
 
+@media (max-width: 575.98px) {
+    .admin-content {
+        padding: 0.5rem 0rem;
+    }
+}
+
 /* 
   RESPONSIVE RULES (Media Queries)
   Bootstrap Breakpoint: lg is 992px
@@ -142,4 +148,28 @@ body {
     font-weight: bold;
     font-size: 1.25rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Buttons for Mobile */
+@media (max-width: 575.98px) {
+    .responsive-btn {
+        font-size: 0.85rem !important;
+        padding: 0.5rem 0.75rem !important;
+        margin: 0 !important;
+    }
+}
+
+/* POS Specific Enhancements */
+@media (max-width: 767.98px) {
+    .pos-product-card .card-body {
+        padding: 1.25rem !important;
+    }
+
+    .pos-product-card h6 {
+        font-size: 1.1rem !important;
+    }
+
+    .pos-product-card .text-primary {
+        font-size: 1.2rem !important;
+    }
 }

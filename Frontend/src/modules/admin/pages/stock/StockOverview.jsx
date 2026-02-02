@@ -11,8 +11,16 @@ const STOCK_DATA = [
 ];
 
 const StockOverview = () => {
+    const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+    React.useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
-        <div className="p-3">
+        <div className="p-2 p-md-4">
             <h4 className="fw-bold mb-4">Stock Overview</h4>
 
             <Row className="g-4 mb-4">
@@ -57,12 +65,27 @@ const StockOverview = () => {
                         <Card.Body>
                             <h5 className="fw-bold mb-4">Stock by Category</h5>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={STOCK_DATA} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                    <XAxis type="number" />
-                                    <YAxis dataKey="name" type="category" width={80} />
+                                <BarChart
+                                    data={STOCK_DATA}
+                                    layout={isMobile ? "horizontal" : "vertical"}
+                                    margin={isMobile ? { top: 20, right: 20, left: 0, bottom: 5 } : { top: 5, right: 30, left: 20, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={isMobile} vertical={!isMobile} />
+                                    <XAxis
+                                        type={isMobile ? "category" : "number"}
+                                        dataKey={isMobile ? "name" : undefined}
+                                        hide={!isMobile}
+                                        tick={{ fontSize: 10 }}
+                                    />
+                                    <YAxis
+                                        type={isMobile ? "number" : "category"}
+                                        dataKey={isMobile ? undefined : "name"}
+                                        width={isMobile ? 40 : 80}
+                                        tick={{ fontSize: 10 }}
+                                        hide={false}
+                                    />
                                     <Tooltip cursor={{ fill: 'transparent' }} />
-                                    <Bar dataKey="stock" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
+                                    <Bar dataKey="stock" fill="#3b82f6" radius={isMobile ? [4, 4, 0, 0] : [0, 4, 4, 0]} barSize={isMobile ? 40 : 20} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </Card.Body>

@@ -67,7 +67,7 @@ const CreateOffer = () => {
                                         <Form.Label>Discount Type</Form.Label>
                                         <Form.Select name="discountType" value={formData.discountType} onChange={handleChange}>
                                             <option value="Percentage">Percentage (%)</option>
-                                            <option value="Fixed">Fixed Amount ($)</option>
+                                            <option value="Fixed">Fixed Amount (₹)</option>
                                         </Form.Select>
                                     </Form.Group>
                                 </Col>

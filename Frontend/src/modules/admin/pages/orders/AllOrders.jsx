@@ -3,11 +3,11 @@ import { Card, Table, Badge, Button, Form, InputGroup } from 'react-bootstrap';
 import { Search, Eye, Filter, Download } from 'lucide-react';
 
 const MOCK_ORDERS = [
-    { id: 'ORD-1001', customer: 'John Doe', date: '2023-10-25', status: 'Delivered', total: '$120.00', items: 3, payment: 'Paid' },
-    { id: 'ORD-1002', customer: 'Jane Smith', date: '2023-10-26', status: 'Pending', total: '$85.50', items: 1, payment: 'Pending' },
-    { id: 'ORD-1003', customer: 'Bob Wilson', date: '2023-10-26', status: 'Processing', total: '$210.00', items: 5, payment: 'Paid' },
-    { id: 'ORD-1004', customer: 'Alice Brown', date: '2023-10-27', status: 'Cancelled', total: '$45.00', items: 2, payment: 'Refunded' },
-    { id: 'ORD-1005', customer: 'Charlie Day', date: '2023-10-27', status: 'Delivered', total: '$340.00', items: 8, payment: 'Paid' },
+    { id: 'ORD-1001', customer: 'John Doe', date: '2023-10-25', status: 'Delivered', total: '₹120.00', items: 3, payment: 'Paid' },
+    { id: 'ORD-1002', customer: 'Jane Smith', date: '2023-10-26', status: 'Pending', total: '₹85.50', items: 1, payment: 'Pending' },
+    { id: 'ORD-1003', customer: 'Bob Wilson', date: '2023-10-26', status: 'Processing', total: '₹210.00', items: 5, payment: 'Paid' },
+    { id: 'ORD-1004', customer: 'Alice Brown', date: '2023-10-27', status: 'Cancelled', total: '₹45.00', items: 2, payment: 'Refunded' },
+    { id: 'ORD-1005', customer: 'Charlie Day', date: '2023-10-27', status: 'Delivered', total: '₹340.00', items: 8, payment: 'Paid' },
 ];
 
 const OrderStatusBadge = ({ status }) => {

@@ -4,9 +4,9 @@ import { Search, Plus, Ticket, Copy, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const PROMO_MOCK = [
-    { id: '1', code: 'SAVE10', type: 'Percentage', value: '10%', usage: '125/500', minOrder: '$50', status: 'Active' },
-    { id: '2', code: 'FREESHIP', type: 'Free Shipping', value: 'N/A', usage: '45/100', minOrder: '$20', status: 'Active' },
-    { id: '3', code: 'NEWUSER', type: 'Fixed Amount', value: '$5.00', usage: '890/1000', minOrder: '$0', status: 'Expired' },
+    { id: '1', code: 'SAVE10', type: 'Percentage', value: '10%', usage: '125/500', minOrder: '₹50', status: 'Active' },
+    { id: '2', code: 'FREESHIP', type: 'Free Shipping', value: 'N/A', usage: '45/100', minOrder: '₹20', status: 'Active' },
+    { id: '3', code: 'NEWUSER', type: 'Fixed Amount', value: '₹5.00', usage: '890/1000', minOrder: '₹0', status: 'Expired' },
 ];
 
 const AllPromoCodes = () => {
@@ -19,19 +19,19 @@ const AllPromoCodes = () => {
     return (
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h5 className="mb-0 fw-bold">Promo Codes</h5>
-                    <div className="d-flex gap-2 w-100 justify-content-md-end">
-                        <InputGroup style={{ maxWidth: '300px' }}>
+                    <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-sm-end">
+                        <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                             <Form.Control
                                 placeholder="Search Code..."
-                                className="border-start-0 ps-0 shadow-none"
+                                className="border-start-0 ps-0 shadow-none font-small"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Link to="/admin/promocodes/create" className="btn btn-primary d-flex align-items-center gap-2">
+                        <Link to="/admin/promocodes/create" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
                             <Plus size={18} /> Create Code
                         </Link>
                     </div>

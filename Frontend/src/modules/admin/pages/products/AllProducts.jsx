@@ -81,7 +81,7 @@ const AllProducts = () => {
                                     </td>
                                     <td className="text-muted">{p.category}</td>
                                     <td className="small text-monospace">{p.sku}</td>
-                                    <td className="fw-bold text-dark">${p.price.toFixed(2)}</td>
+                                    <td className="fw-bold text-dark">₹{p.price.toFixed(2)}</td>
                                     <td>
                                         <span className={p.stock === 0 ? 'text-danger fw-bold' : ''}>{p.stock}</span>
                                     </td>

@@ -13,9 +13,9 @@ const Sliders = () => {
     return (
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h5 className="mb-0 fw-bold">App Sliders</h5>
-                    <Link to="/admin/sliders/add" className="btn btn-primary d-flex align-items-center gap-2 ms-auto">
+                    <Link to="/admin/sliders/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
                         <Plus size={18} /> Add New Slider
                     </Link>
                 </Card.Body>

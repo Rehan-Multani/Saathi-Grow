@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card, Table, Button, Badge } from 'react-bootstrap';
-import { Download, DollarSign, CheckCircle, Clock } from 'lucide-react';
+import { Download, IndianRupee, CheckCircle, Clock } from 'lucide-react';
 
 const PAYOUTS_MOCK = [
-    { id: 'PAY-8801', vendor: 'Fresh Farms Ltd', amount: '$1,250.00', date: '2023-11-01', status: 'Paid', method: 'Bank Transfer' },
-    { id: 'PAY-8802', vendor: 'Tech World', amount: '$3,400.00', date: '2023-10-25', status: 'Processing', method: 'PayPal' },
-    { id: 'PAY-8803', vendor: 'Fresh Farms Ltd', amount: '$900.00', date: '2023-10-15', status: 'Paid', method: 'Bank Transfer' },
-    { id: 'PAY-8804', vendor: 'Urban Styles', amount: '$450.00', date: '2023-10-10', status: 'Failed', method: 'Bank Transfer', error: 'Invalid Account' },
+    { id: 'PAY-8801', vendor: 'Fresh Farms Ltd', amount: '₹1,250.00', date: '2023-11-01', status: 'Paid', method: 'Bank Transfer' },
+    { id: 'PAY-8802', vendor: 'Tech World', amount: '₹3,400.00', date: '2023-10-25', status: 'Processing', method: 'PayPal' },
+    { id: 'PAY-8803', vendor: 'Fresh Farms Ltd', amount: '₹900.00', date: '2023-10-15', status: 'Paid', method: 'Bank Transfer' },
+    { id: 'PAY-8804', vendor: 'Urban Styles', amount: '₹450.00', date: '2023-10-10', status: 'Failed', method: 'Bank Transfer', error: 'Invalid Account' },
 ];
 
 const VendorPayouts = () => {

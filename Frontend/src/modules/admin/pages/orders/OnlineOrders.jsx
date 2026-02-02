@@ -3,9 +3,9 @@ import { Card, Table, Badge, Button, Form, InputGroup } from 'react-bootstrap';
 import { Search, Eye, Truck, CreditCard } from 'lucide-react';
 
 const ONLINE_ORDERS_MOCK = [
-    { id: 'ORD-2001', customer: 'Sarah Connor', date: '2023-10-28', status: 'Processing', total: '$150.00', items: 4, paymentValues: { method: 'Stripe', status: 'Paid' }, delivery: 'FedEx' },
-    { id: 'ORD-2002', customer: 'Kyle Reese', date: '2023-10-28', status: 'Pending', total: '$45.00', items: 1, paymentValues: { method: 'PayPal', status: 'Pending' }, delivery: 'Unassigned' },
-    { id: 'ORD-2003', customer: 'Ellen Ripley', date: '2023-10-27', status: 'Delivered', total: '$890.00', items: 12, paymentValues: { method: 'Credit Card', status: 'Paid' }, delivery: 'DHL Express' },
+    { id: 'ORD-2001', customer: 'Sarah Connor', date: '2023-10-28', status: 'Processing', total: '₹150.00', items: 4, paymentValues: { method: 'Stripe', status: 'Paid' }, delivery: 'FedEx' },
+    { id: 'ORD-2002', customer: 'Kyle Reese', date: '2023-10-28', status: 'Pending', total: '₹45.00', items: 1, paymentValues: { method: 'PayPal', status: 'Pending' }, delivery: 'Unassigned' },
+    { id: 'ORD-2003', customer: 'Ellen Ripley', date: '2023-10-27', status: 'Delivered', total: '₹890.00', items: 12, paymentValues: { method: 'Credit Card', status: 'Paid' }, delivery: 'DHL Express' },
 ];
 
 const OrderStatusBadge = ({ status }) => {
