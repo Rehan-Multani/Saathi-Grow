@@ -204,7 +204,7 @@ const Dashboard = () => {
                     <div className="mb-6">
                         <h5 className="font-bold text-gray-800 text-lg">Sales by Category</h5>
                     </div>
-                    <div className="h-[350px] flex items-center justify-center">
+                    <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 data={categoryData}

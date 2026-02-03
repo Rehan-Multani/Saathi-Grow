@@ -44,16 +44,18 @@ const AddStockAdjustment = () => {
 
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="d-flex align-items-center gap-2">
-                    <Button variant="light" size="sm" onClick={() => navigate('/admin/stock/adjustments')} className="rounded-circle p-2">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
+                <div className="d-flex align-items-center gap-2 w-100 w-sm-auto text-nowrap">
+                    <Button variant="light" size="sm" onClick={() => navigate('/admin/stock/adjustments')} className="rounded-circle p-2 shadow-sm">
                         <ArrowLeft size={18} />
                     </Button>
                     <h4 className="fw-bold mb-0">New Stock Adjustment</h4>
                 </div>
-                <Button variant="light" onClick={() => navigate('/admin/stock/adjustments')}>
-                    <X size={18} className="me-2" /> Cancel
-                </Button>
+                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto">
+                    <Button variant="light" onClick={() => navigate('/admin/stock/adjustments')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center">
+                        <X size={18} /> Cancel
+                    </Button>
+                </div>
             </div>
 
             <Row>
@@ -139,10 +141,10 @@ const AddStockAdjustment = () => {
                                     />
                                 </Form.Group>
 
-                                <div className="d-flex justify-content-end gap-2">
-                                    <Button variant="light" size="lg" onClick={() => navigate('/admin/stock/adjustments')}>Cancel</Button>
-                                    <Button variant="primary" size="lg" type="submit" className="d-flex align-items-center gap-2 px-4">
-                                        <Save size={18} /> Save Adjustment
+                                <div className="d-flex flex-column flex-sm-row justify-content-end gap-3 mt-4">
+                                    <Button variant="light" size="lg" onClick={() => navigate('/admin/stock/adjustments')} className="w-100 w-sm-auto order-2 order-sm-1">Cancel</Button>
+                                    <Button variant="primary" size="lg" type="submit" className="d-flex align-items-center justify-content-center gap-2 px-4 w-100 w-sm-auto shadow-sm order-1 order-sm-2">
+                                        <Save size={22} /> Save Adjustment
                                     </Button>
                                 </div>
                             </Form>

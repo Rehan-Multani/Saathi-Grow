@@ -25,12 +25,16 @@ import DeliveryPartners from '../pages/delivery/DeliveryPartners';
 import AddDeliveryPartner from '../pages/delivery/AddDeliveryPartner';
 import AssignDeliveries from '../pages/delivery/AssignDeliveries';
 import DeliveryTracking from '../pages/delivery/DeliveryTracking';
+import PartnerDetails from '../pages/delivery/PartnerDetails';
 import AllVendors from '../pages/vendors/AllVendors';
 import AddVendor from '../pages/vendors/AddVendor';
 import VendorProducts from '../pages/vendors/VendorProducts';
+import VendorDetails from '../pages/vendors/VendorDetails';
 import VendorPayouts from '../pages/vendors/VendorPayouts';
+import PayoutDetails from '../pages/vendors/PayoutDetails';
 import Branches from '../pages/locations/Branches';
 import AddBranch from '../pages/locations/AddBranch';
+import EditBranch from '../pages/locations/EditBranch';
 import Warehouses from '../pages/locations/Warehouses';
 import AddWarehouse from '../pages/locations/AddWarehouse';
 import Offers from '../pages/offers/Offers';
@@ -51,6 +55,7 @@ import VendorReports from '../pages/reports/VendorReports';
 import RevenueAnalytics from '../pages/analytics/RevenueAnalytics';
 import POSAnalytics from '../pages/analytics/POSAnalytics';
 import VendorEarnings from '../pages/analytics/VendorEarnings';
+import VendorEarningDetail from '../pages/analytics/VendorEarningDetail';
 import TaxReports from '../pages/analytics/TaxReports';
 import PrivacyPolicy from '../pages/policies/PrivacyPolicy';
 import RefundPolicy from '../pages/policies/RefundPolicy';
@@ -61,8 +66,7 @@ import BillingSettings from '../pages/settings/BillingSettings';
 import AppSettings from '../pages/settings/AppSettings';
 import SocialProfile from '../pages/settings/SocialProfile';
 import AllStaff from '../pages/staff/AllStaff';
-
-// Placeholder components for the demo
+import AddStaff from '../pages/staff/AddStaff';
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
         <div className="mb-3 bg-light rounded-circle p-4">
@@ -122,7 +126,7 @@ const AdminRoutes = () => {
 
                         {/* Staff */}
                         <Route path="staff" element={<AllStaff />} />
-                        <Route path="staff/add" element={<PlaceholderPage title="Add Staff" />} />
+                        <Route path="staff/add" element={<AddStaff />} />
 
                         {/* Stock Management */}
                         <Route path="stock" element={<StockOverview />} />
@@ -134,19 +138,23 @@ const AdminRoutes = () => {
 
                         {/* Delivery Management */}
                         <Route path="delivery/partners" element={<DeliveryPartners />} />
+                        <Route path="delivery/partners/:id" element={<PartnerDetails />} />
                         <Route path="delivery/partners/add" element={<AddDeliveryPartner />} />
                         <Route path="delivery/assign" element={<AssignDeliveries />} />
                         <Route path="delivery/tracking" element={<DeliveryTracking />} />
 
                         {/* Vendors */}
                         <Route path="vendors" element={<AllVendors />} />
+                        <Route path="vendors/:id" element={<VendorDetails />} />
                         <Route path="vendors/add" element={<AddVendor />} />
                         <Route path="vendors/products" element={<VendorProducts />} />
                         <Route path="vendors/payouts" element={<VendorPayouts />} />
+                        <Route path="vendors/payouts/:id" element={<PayoutDetails />} />
 
                         {/* Locations */}
                         <Route path="locations/branches" element={<Branches />} />
                         <Route path="locations/branches/add" element={<AddBranch />} />
+                        <Route path="locations/branches/edit/:id" element={<EditBranch />} />
                         <Route path="locations/warehouses" element={<Warehouses />} />
                         <Route path="locations/warehouses/add" element={<AddWarehouse />} />
 
@@ -179,6 +187,7 @@ const AdminRoutes = () => {
                         <Route path="analytics/revenue" element={<RevenueAnalytics />} />
                         <Route path="analytics/pos" element={<POSAnalytics />} />
                         <Route path="analytics/earnings" element={<VendorEarnings />} />
+                        <Route path="analytics/earnings/:id" element={<VendorEarningDetail />} />
                         <Route path="analytics/tax" element={<TaxReports />} />
 
                         {/* Policies */}

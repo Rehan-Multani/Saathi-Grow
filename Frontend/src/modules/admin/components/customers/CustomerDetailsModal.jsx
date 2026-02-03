@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, Mail, Phone, MapPin, Calendar, ShoppingBag, Star, ShieldAlert } from 'lucide-react';
 
-const CustomerDetailsModal = ({ show, onHide, customer }) => {
+const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {
     // Prevent background scrolling when modal is open
     useEffect(() => {
         if (show) {
@@ -130,14 +130,23 @@ const CustomerDetailsModal = ({ show, onHide, customer }) => {
 
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors">
+                    <button
+                        onClick={() => onSendMessage(customer, 'Email')}
+                        className="px-4 py-2 border border-blue-100 text-blue-600 bg-blue-50/50 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+                    >
+                        Send Email
+                    </button>
+                    <button
+                        onClick={() => onSendMessage(customer, 'Message')}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors"
+                    >
                         Send Message
                     </button>
                     <button
                         onClick={onHide}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
                     >
-                        Close
+                        Done
                     </button>
                 </div>
             </div>

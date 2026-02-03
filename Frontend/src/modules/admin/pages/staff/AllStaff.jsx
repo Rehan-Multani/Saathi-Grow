@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Modal } from 'react-bootstrap';
-import { Search, Plus, User, Shield, Briefcase, Mail, Phone, Edit, Trash2, Key } from 'lucide-react';
+import { Search, Plus, User, Shield, Briefcase, Mail, Phone, Edit, Trash2, Key, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import StaffEditModal from '../../components/staff/StaffEditModal';
+import Swal from 'sweetalert2';
 
 const INITIAL_STAFF = [
     { id: 'STF-001', name: 'Alice Williams', role: 'Store Manager', email: 'alice@sathigro.com', phone: '+1 555-0201', status: 'Active', permissions: ['All Access'] },
@@ -24,6 +26,7 @@ const AllStaff = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [staffList, setStaffList] = useState(INITIAL_STAFF);
     const [showPermissionModal, setShowPermissionModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [tempPermissions, setTempPermissions] = useState([]);
 
@@ -31,6 +34,39 @@ const AllStaff = () => {
         setSelectedStaff(staff);
         setTempPermissions([...staff.permissions]);
         setShowPermissionModal(true);
+    };
+
+    const handleDelete = (id, name) => {
+        Swal.fire({
+            title: 'Remove Staff?',
+            text: `Are you sure you want to remove ${name}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Delete'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setStaffList(prev => prev.filter(s => s.id !== id));
+                Swal.fire('Removed!', 'Staff member has been removed.', 'success');
+            }
+        });
+    };
+
+    const handleEdit = (staff) => {
+        setSelectedStaff(staff);
+        setShowEditModal(true);
+    };
+
+    const handleSaveStaff = (updatedStaff) => {
+        setStaffList(prev => prev.map(s => s.id === updatedStaff.id ? updatedStaff : s));
+        Swal.fire({
+            title: 'Updated!',
+            text: 'Staff member details have been updated.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
     };
 
     const handlePermissionToggle = (perm) => {
@@ -65,8 +101,8 @@ const AllStaff = () => {
             <div className="p-3">
                 <Card className="border-0 shadow-sm mb-4">
                     <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                        <h5 className="mb-0 fw-bold">Staff Management</h5>
-                        <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-sm-end">
+                        <h5 className="mb-0 fw-bold text-nowrap">Staff Management</h5>
+                        <div className="d-flex flex-column flex-sm-row gap-2 flex-grow-1 justify-content-sm-end">
                             <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                                 <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                                 <Form.Control
@@ -150,10 +186,16 @@ const AllStaff = () => {
                                                 >
                                                     <Key size={16} />
                                                 </Button>
-                                                <Button variant="light" size="sm" className="btn-icon-soft text-primary" title="Edit Staff">
+                                                <Button
+                                                    variant="light" size="sm" className="btn-icon-soft text-primary" title="Edit Staff"
+                                                    onClick={() => handleEdit(s)}
+                                                >
                                                     <Edit size={16} />
                                                 </Button>
-                                                <Button variant="light" size="sm" className="btn-icon-soft text-danger" title="Remove Staff">
+                                                <Button
+                                                    variant="light" size="sm" className="btn-icon-soft text-danger" title="Remove Staff"
+                                                    onClick={() => handleDelete(s.id, s.name)}
+                                                >
                                                     <Trash2 size={16} />
                                                 </Button>
                                             </div>
@@ -210,11 +252,23 @@ const AllStaff = () => {
                         </div>
                     )}
                 </Modal.Body>
-                <Modal.Footer className="border-0 pt-0">
-                    <Button variant="light" onClick={() => setShowPermissionModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={handleSavePermissions}>Save Changes</Button>
+                <Modal.Footer className="border-0 pt-0 gap-2">
+                    <Button variant="light" onClick={() => setShowPermissionModal(false)} className="d-flex align-items-center gap-2">
+                        <X size={18} /> Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleSavePermissions} className="d-flex align-items-center gap-2 shadow-sm">
+                        <Shield size={18} /> Save Changes
+                    </Button>
                 </Modal.Footer>
             </Modal>
+
+            {/* Edit Staff Modal */}
+            <StaffEditModal
+                show={showEditModal}
+                onHide={() => setShowEditModal(false)}
+                staff={selectedStaff}
+                onSave={handleSaveStaff}
+            />
         </>
     );
 };

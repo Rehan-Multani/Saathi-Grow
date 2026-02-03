@@ -12,8 +12,8 @@ const POSAnalytics = () => {
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0">POS Analytics</h4>
-                <div className="d-flex gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                <h4 className="fw-bold mb-0 text-nowrap">POS Analytics</h4>
+                <div className="d-flex gap-2 flex-grow-1 w-100 w-sm-auto justify-content-between justify-content-sm-end">
                     <Form.Select size="sm" style={{ width: '180px' }} className="shadow-none flex-grow-1 flex-sm-grow-0">
                         <option>All Branches</option>
                         <option>Main Store - Downtown</option>

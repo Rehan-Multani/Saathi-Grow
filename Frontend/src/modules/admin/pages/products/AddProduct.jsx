@@ -1,3 +1,6 @@
+import React, { useState, useEffect } from 'react';
+import { Form, Row, Col, Card, Button, InputGroup, Image } from 'react-bootstrap';
+import { RefreshCw, Save, Upload, X } from 'lucide-react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 
 const AddProduct = () => {

@@ -28,11 +28,13 @@ const CreatePromoCode = () => {
 
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="fw-bold mb-0">Create New Promo Code</h4>
-                <Button variant="light" onClick={() => navigate('/admin/promocodes')}>
-                    <X size={18} className="me-2" /> Cancel
-                </Button>
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
+                <h4 className="fw-bold mb-0 text-nowrap">Create New Promo Code</h4>
+                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto">
+                    <Button variant="light" onClick={() => navigate('/admin/promocodes')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center">
+                        <X size={18} /> Cancel
+                    </Button>
+                </div>
             </div>
 
             <Row className="justify-content-center">

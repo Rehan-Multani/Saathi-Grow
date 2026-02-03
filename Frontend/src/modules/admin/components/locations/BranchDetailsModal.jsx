@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, MapPin, Phone, Clock, Store, User, Mail, DollarSign, Package } from 'lucide-react';
 
-const BranchDetailsModal = ({ show, onHide, branch }) => {
+const BranchDetailsModal = ({ show, onHide, branch, onEdit }) => {
     useEffect(() => {
         if (show) {
             document.body.style.overflow = 'hidden';
@@ -143,7 +143,13 @@ const BranchDetailsModal = ({ show, onHide, branch }) => {
                     >
                         Close
                     </button>
-                    <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                    <button
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                        onClick={() => {
+                            onHide();
+                            onEdit(branch.id);
+                        }}
+                    >
                         Edit Branch
                     </button>
                 </div>

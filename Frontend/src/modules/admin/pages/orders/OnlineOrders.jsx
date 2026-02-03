@@ -79,7 +79,7 @@ const OnlineOrders = () => {
                                 <th className="px-6 py-4">Payment</th>
                                 <th className="px-6 py-4">Delivery</th>
                                 <th className="px-6 py-4 text-right">Total</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -110,7 +110,7 @@ const OnlineOrders = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right font-bold text-gray-800">{order.total}</td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-center">
                                         <button
                                             className="p-1 text-gray-800 hover:text-blue-600 transition-colors"
                                             onClick={() => handleShowDetails(order)}
