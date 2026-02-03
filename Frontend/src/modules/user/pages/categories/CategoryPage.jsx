@@ -1,77 +1,120 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { products } from '../../data/products';
 import { categories } from '../../data/categories';
 import ProductCard from '../../components/product/ProductCard';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Filter } from 'lucide-react';
+import { ProductCardSkeleton } from '../../components/common/Skeleton';
 
 const CategoryPage = () => {
     const { slug } = useParams();
+    const [selectedSubCat, setSelectedSubCat] = useState('all');
+    const [loading, setLoading] = useState(true);
 
-    // If slug is present, filter by category, else show all
-    const displayedProducts = slug
-        ? products.filter(p => p.category === slug)
-        : products;
+    // Find the current main category
+    const currentCategory = categories.find(c => c.slug === slug) || categories[0];
 
-    const currentCategory = slug
-        ? categories.find(c => c.slug === slug)
-        : { name: 'All Products' };
+    // Reset subcategory and loading when main category changes
+    useEffect(() => {
+        setLoading(true);
+        setSelectedSubCat('all');
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [slug]);
+
+    // Filter products based on main category and selected subcategory
+    const displayedProducts = products.filter(p => {
+        const matchesMain = p.category === slug;
+        const matchesSub = selectedSubCat === 'all' || p.subCategory === selectedSubCat;
+        return matchesMain && matchesSub;
+    });
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
-            <div className="bg-white border-b border-gray-100 shadow-sm sticky top-16 z-40">
+        <div className="min-h-screen bg-[#f8f9fb] dark:bg-[#212121] pb-20 transition-colors duration-300">
+            {/* Breadcrumbs */}
+            <div className="bg-white dark:bg-[#212121] border-b border-gray-100 dark:border-gray-800 sticky top-16 z-40">
                 <div className="max-w-7xl mx-auto px-4 py-3">
-                    <div className="flex items-center text-sm text-gray-500 gap-1">
-                        <Link to="/" className="hover:text-[var(--saathi-green)]">Home</Link>
+                    <div className="flex items-center text-[10px] md:text-sm text-gray-400 gap-1 uppercase tracking-wider font-medium">
+                        <Link to="/" className="hover:text-[var(--saathi-green)] transition-colors">Home</Link>
                         <ChevronRight size={14} />
-                        <span className="font-semibold text-gray-800">{currentCategory?.name || 'Category'}</span>
+                        <span className="text-gray-800 dark:text-white font-bold">{currentCategory?.name}</span>
+                        {selectedSubCat !== 'all' && (
+                            <>
+                                <ChevronRight size={14} />
+                                <span className="text-[var(--saathi-green)] dark:text-[#7e978e] font-bold">
+                                    {currentCategory?.subCategories?.find(s => s.slug === selectedSubCat)?.name}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Sub-Category Horizontal List */}
+            <div className="bg-white dark:bg-[#212121] border-b border-gray-100 dark:border-gray-800 sticky top-[112px] z-30 overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 py-4">
+                    <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-1">
+                        <button
+                            onClick={() => setSelectedSubCat('all')}
+                            className={`flex-shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] dark:bg-[#7e978e] dark:border-[#7e978e] text-white shadow-sm' : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-[#7e978e] hover:text-[#7e978e] dark:hover:border-[#7e978e] dark:hover:text-[#7e978e]'}`}
+                        >
+                            All {currentCategory?.name}
+                        </button>
+                        {currentCategory?.subCategories?.map(sub => (
+                            <button
+                                key={sub.id}
+                                onClick={() => setSelectedSubCat(sub.slug)}
+                                className={`flex-shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] dark:bg-[#7e978e] dark:border-[#7e978e] text-white shadow-sm' : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-[#7e978e] hover:text-[#7e978e] dark:hover:border-[#7e978e] dark:hover:text-[#7e978e]'}`}
+                            >
+                                {sub.name}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex gap-8">
-                    {/* Sidebar for Desktop */}
-                    <div className="hidden lg:block w-64 flex-shrink-0">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-100 sticky top-32 overflow-hidden">
-                            <div className="p-4 border-b border-gray-100 bg-gray-50">
-                                <h3 className="font-bold text-gray-800">Categories</h3>
-                            </div>
-                            <div className="divide-y divide-gray-50">
-                                {categories.map(cat => (
-                                    <Link
-                                        key={cat.id}
-                                        to={`/category/${cat.slug}`}
-                                        replace
-                                        className={`block px-4 py-3 text-sm hover:bg-[#0c831f] hover:!text-white transition-colors ${slug === cat.slug ? 'bg-[#0c831f] text-white font-semibold border-l-4 border-[var(--saathi-yellow)]' : 'text-gray-600'}`}
-                                    >
-                                        {cat.name}
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Product Grid */}
-                    <div className="flex-1">
-                        <div className="flex items-center justify-between mb-6">
-                            <h1 className="text-2xl font-bold text-gray-800">{currentCategory?.name} <span className="text-gray-400 text-lg font-normal">({displayedProducts.length})</span></h1>
-                        </div>
-
-                        {displayedProducts.length > 0 ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {displayedProducts.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="bg-white rounded-lg p-12 text-center text-gray-500">
-                                <p>No products found in this category.</p>
-                                <Link to="/" className="text-[var(--saathi-green)] mt-2 inline-block font-medium">Go back Home</Link>
-                            </div>
+                {/* Product Section */}
+                <div className="mb-8">
+                    <h1 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight flex items-center gap-3">
+                        {loading ? 'Loading...' : (selectedSubCat === 'all' ? currentCategory?.name : currentCategory?.subCategories?.find(s => s.slug === selectedSubCat)?.name)}
+                        {!loading && (
+                            <span className="text-gray-400 dark:text-gray-600 text-sm md:text-base font-medium bg-gray-100 dark:bg-gray-900 px-2 py-0.5 rounded-md">
+                                {displayedProducts.length} items
+                            </span>
                         )}
-                    </div>
+                    </h1>
                 </div>
+
+                {loading ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5">
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <ProductCardSkeleton key={i} />
+                        ))}
+                    </div>
+                ) : displayedProducts.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5">
+                        {displayedProducts.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="bg-white dark:bg-[#212121] rounded-3xl p-16 text-center shadow-sm border border-gray-100 dark:border-gray-800 max-w-2xl mx-auto">
+                        <div className="w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Filter size={32} className="text-gray-300" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">No items found</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-8">We couldn't find any products in this sub-category right now.</p>
+                        <button
+                            onClick={() => setSelectedSubCat('all')}
+                            className="bg-[var(--saathi-green)] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg transition-all"
+                        >
+                            Browse All Items
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

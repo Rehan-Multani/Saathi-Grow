@@ -1,63 +1,178 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { banners } from '../../data/banners';
 import { categories } from '../../data/categories';
 import { products } from '../../data/products';
 import ProductCard from '../../components/product/ProductCard';
 import { useSearch } from '../../context/SearchContext';
-import { ChevronRight, Carrot, Milk, Cookie, CupSoda, Snowflake, Coffee, Croissant, Wheat, SprayCan, Sparkles } from 'lucide-react';
+import { ChevronRight, ArrowRight, ArrowLeft, Carrot, Milk, Cookie, CupSoda, Snowflake, Coffee, Croissant, Wheat, SprayCan, Sparkles } from 'lucide-react';
+import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../components/common/Skeleton';
 
-const categoryIcons = {
-    'vegetables-fruits': { icon: Carrot, color: '#16a34a' },
-    'dairy-breakfast': { icon: Milk, color: '#16a34a' },
-    'munchies': { icon: Cookie, color: '#16a34a' },
-    'cold-drinks-juices': { icon: CupSoda, color: '#16a34a' },
-    'instant-frozen-food': { icon: Snowflake, color: '#16a34a' },
-    'tea-coffee-health-drinks': { icon: Coffee, color: '#16a34a' },
-    'bakery-biscuits': { icon: Croissant, color: '#16a34a' },
-    'atta-rice-dal': { icon: Wheat, color: '#16a34a' },
-    'cleaning-household': { icon: SprayCan, color: '#16a34a' },
-    'personal-care': { icon: Sparkles, color: '#16a34a' }
+// Offer Images
+import offer1 from '../../../../assets/offers/offer1.png';
+import offer2 from '../../../../assets/offers/offer2.png';
+import offer3 from '../../../../assets/offers/offer3.png';
+import offer4 from '../../../../assets/offers/offer4.png';
+
+const offerBanners = [
+    { id: 1, image: offer1 },
+    { id: 2, image: offer2 },
+    { id: 3, image: offer3 },
+    { id: 4, image: offer4 }
+];
+
+const categoryColors = {
+    'staples-and-grains': '#e0e0e0',
+    'masala-and-spices': '#ffe0b2',
+    'dairy-egg-frozen': '#fff9c4',
+    'oil-and-ghee': '#f5f5f5',
+    'fruit-and-vegetables': '#e8f5e9',
+    'meat-and-seafood': '#ffebee',
+    'snacks-and-bakery': '#fff3e0',
+    'beverages': '#e1f5fe',
+    'personal-care': '#f3e5f5',
+    'cleaning-essentials': '#e8f5e9',
+    'home-office': '#e3f2fd',
+    'pet-care': '#f3e5f5',
+    'baby-care': '#fff3e0',
+    'beauty-grooming': '#fce4ec'
 };
 
 const HomePage = () => {
     const { searchQuery } = useSearch();
+    const scrollContainerRef = useRef(null);
+    const [loading, setLoading] = useState(true);
+    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
-    // Search Logic
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Update window width on resize
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
-    const filteredCategories = categories.filter(c =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const itemsToShow = windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : 3;
+
+    // Simulate initial data loading
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1200);
+        return () => clearTimeout(timer);
+    }, []);
+
+
+
+    // Auto-scroll Offers (Infinite one-direction)
+    const [offerIndex, setOfferIndex] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(true);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setOfferIndex((prev) => prev + 1);
+            setIsTransitioning(true);
+        }, 2000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // Reset for infinite loop
+    useEffect(() => {
+        if (offerIndex >= offerBanners.length) {
+            const timer = setTimeout(() => {
+                setIsTransitioning(false);
+                setOfferIndex(0);
+            }, 1000); // Wait for transition animation to finish
+            return () => clearTimeout(timer);
+        }
+    }, [offerIndex]);
+
+    // Category Scroll State
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+
+    const handleCategoryScroll = () => {
+        if (scrollContainerRef.current) {
+            setCanScrollLeft(scrollContainerRef.current.scrollLeft > 20);
+        }
+    };
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', handleCategoryScroll);
+            return () => container.removeEventListener('scroll', handleCategoryScroll);
+        }
+    }, [loading]);
+
+    const scrollRight = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+        }
+    };
+
+    const scrollLeft = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+        }
+    };
 
     const isSearching = searchQuery.length > 0;
 
-    // Group products by category
+    const filteredCategories = categories.filter(cat =>
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const getProductsByCategory = (categorySlug) => {
-        return products.filter(p => p.category === categorySlug).slice(0, 8);
+        return products.filter(p => p.category === categorySlug);
     };
 
     return (
-        <div className="pb-20 bg-[#efefef] min-h-screen">
-            {/* Hero Section - Hide if searching */}
-            {!isSearching && (
-                <div className="w-full bg-[#efefef] overflow-hidden">
-                    <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6">
-                        <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-lg relative aspect-[2.5/1] md:aspect-[3/1]">
-                            <img
-                                src={banners[0].image}
-                                alt="Banner"
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex flex-col justify-center px-4 md:px-16 text-white">
-                                <h1 className="text-2xl md:text-5xl font-bold mb-1 md:mb-2 leading-tight">Groceries in <br /><span className="text-[var(--saathi-yellow)]">10 Minutes</span></h1>
-                                <p className="text-xs md:text-lg opacity-90 mb-2 md:mb-6 max-w-[180px] md:max-w-md line-clamp-2">Get fresh vegetables, fruits, and daily essentials delivered.</p>
-                                <Link to="/category" className="bg-[var(--saathi-green)] text-white px-4 py-1.5 md:px-8 md:py-3 rounded-full font-bold w-fit text-xs md:text-base shadow-lg shadow-green-900/20">Shop Now</Link>
-                            </div>
+        <div className="bg-white dark:!bg-[#212121] min-h-screen transition-colors duration-300">
+
+
+            {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
+            {!isSearching && !loading && (
+                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 overflow-hidden relative group/offers">
+                    <div className="relative">
+                        <div
+                            className={`flex ${isTransitioning ? 'transition-transform duration-1000 ease-in-out' : ''}`}
+                            style={{
+                                transform: `translateX(-${offerIndex * (100 / itemsToShow)}%)`,
+                                gap: itemsToShow === 1 ? '0px' : '16px'
+                            }}
+                        >
+                            {[...offerBanners, ...offerBanners, ...offerBanners].map((offer, idx) => (
+                                <div
+                                    key={`${offer.id}-${idx}`}
+                                    className="flex-shrink-0"
+                                    style={{
+                                        width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(16 * (itemsToShow - 1)) / itemsToShow}px)`
+                                    }}
+                                >
+                                    <div className="relative cursor-pointer overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-gray-100 dark:border-white/10 shadow-sm transition-all duration-300 mx-0">
+                                        <div className="aspect-[16/8] sm:aspect-[16/7] overflow-hidden">
+                                            <img
+                                                src={offer.image}
+                                                alt="Special Offer"
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
+                    </div>
+
+                    {/* Pagination Dots */}
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                        {offerBanners.map((_, idx) => (
+                            <div
+                                key={idx}
+                                className={`h-1 rounded-full transition-all duration-300 ${(offerIndex % offerBanners.length) === idx
+                                    ? 'w-6 bg-[var(--saathi-green)]'
+                                    : 'w-2 bg-gray-300/50 dark:bg-white/20'
+                                    }`}
+                            />
+                        ))}
                     </div>
                 </div>
             )}
@@ -65,86 +180,164 @@ const HomePage = () => {
             {/* Categories */}
             {(filteredCategories.length > 0 || !isSearching) && (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-8">
-                    <div className="flex items-center justify-between mb-3 sm:mb-6">
-                        <h2 className="text-sm md:text-2xl font-bold text-gray-800">Shop by Category</h2>
-                        {!isSearching && <Link to="/category" className="text-[var(--saathi-green)] text-xs md:text-base font-semibold">See All</Link>}
+                    <div className="flex items-center justify-between mb-4 md:mb-8">
+                        <h2 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight">Shop by Category</h2>
+                        {!isSearching && <Link to="/category" className="text-[var(--saathi-green)] text-xs md:text-base font-bold underline underline-offset-4">See All</Link>}
                     </div>
-                    <div className="flex overflow-x-auto gap-5 md:gap-10 pb-2 scrollbar-hide -ml-3">
-                        {filteredCategories.map((cat) => {
-                            const iconData = categoryIcons[cat.slug] || { icon: Carrot, color: '#16a34a' };
-                            const IconComponent = iconData.icon;
-                            return (
-                                <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center flex-shrink-0 w-16 md:w-24 group">
-                                    <div
-                                        className="w-16 h-16 md:w-24 md:h-24 bg-white/60 rounded-xl md:rounded-2xl flex items-center justify-center mb-1.5 md:mb-3 ring-1 ring-transparent group-hover:ring-[#16a34a] ring-offset-0 shadow-sm relative overflow-hidden transition-all duration-300 group-hover:scale-105"
-                                        style={{ color: iconData.color }}
+                    <div className="relative group/nav">
+                        <div
+                            ref={scrollContainerRef}
+                            className="grid grid-cols-3 sm:flex sm:overflow-x-auto gap-3 sm:gap-8 pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start"
+                            onScroll={handleCategoryScroll}
+                        >
+                            {loading ? (
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <CategorySkeleton key={i} />
+                                ))
+                            ) : (
+                                filteredCategories.map((cat) => {
+                                    const bgColor = categoryColors[cat.slug] || '#f3f4f6';
+                                    return (
+                                        <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center transition-transform hover:scale-105 group w-full sm:w-32 sm:flex-shrink-0">
+                                            <div
+                                                className="w-[90px] h-[90px] sm:w-28 sm:h-28 rounded-2xl md:rounded-[2.2rem] shadow-sm flex items-center justify-center mb-3 transition-shadow group-hover:shadow-md relative overflow-hidden"
+                                                style={{ backgroundColor: bgColor }}
+                                            >
+                                                <img
+                                                    src={cat.image}
+                                                    alt={cat.name}
+                                                    className="w-14 h-14 md:w-[85px] md:h-[85px] object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                            <span className="text-[11px] md:text-[14px] font-bold text-center text-gray-500 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[32px] flex items-start justify-center">
+                                                {cat.name}
+                                            </span>
+                                        </Link>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {!loading && (
+                            <>
+                                {canScrollLeft && (
+                                    <button
+                                        onClick={scrollLeft}
+                                        className="absolute -left-5 top-10 md:top-14 z-30 bg-white dark:bg-[#212121] text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
+                                        aria-label="Scroll left"
                                     >
-                                        <IconComponent size={32} strokeWidth={1.5} className="md:w-10 md:h-10" />
-                                    </div>
-                                    <span className="text-[9px] md:text-sm font-medium text-center text-gray-700 leading-tight line-clamp-2 h-[24px] md:h-[40px] overflow-hidden flex items-center justify-center w-full">{cat.name}</span>
-                                </Link>
-                            );
-                        })}
+                                        <ArrowLeft size={26} strokeWidth={2.5} />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={scrollRight}
+                                    className="absolute -right-5 top-10 md:top-14 z-30 bg-white dark:bg-black text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
+                                    aria-label="Scroll right"
+                                >
+                                    <ArrowRight size={26} strokeWidth={2.5} />
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* Search Results */}
-            {isSearching && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 rounded-t-3xl border-t border-gray-100">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">
-                        Search Results for "{searchQuery}"
-                    </h2>
-                    {filteredProducts.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-6">
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
-                        </div>
+            {/* Category Sections */}
+            {!isSearching && (
+                <div className="pb-12">
+                    {categories.slice(0, 6).map((category) => (
+                        <ProductRow
+                            key={category.id}
+                            category={category}
+                            loading={loading}
+                            getProductsByCategory={getProductsByCategory}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Sub-component for individual product rows to manage scroll state
+const ProductRow = ({ category, loading, getProductsByCategory }) => {
+    const sectionRef = useRef(null);
+    const [showLeft, setShowLeft] = useState(false);
+    const categoryProducts = getProductsByCategory(category.slug);
+
+    if (categoryProducts.length === 0) return null;
+
+    const handleScroll = () => {
+        if (sectionRef.current) {
+            setShowLeft(sectionRef.current.scrollLeft > 20);
+        }
+    };
+
+    const sectionScroll = (dir) => {
+        if (sectionRef.current) {
+            const scrollAmt = dir === 'left' ? -400 : 400;
+            sectionRef.current.scrollBy({ left: scrollAmt, behavior: 'smooth' });
+        }
+    };
+
+    return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+                <h2 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
+                    {category.name}
+                </h2>
+                <Link
+                    to={`/category/${category.slug}`}
+                    className="flex items-center gap-1 text-[var(--saathi-green)] text-[11px] md:text-base font-bold underline underline-offset-4"
+                >
+                    see all
+                    <ChevronRight size={18} />
+                </Link>
+            </div>
+
+            <div className="relative group/section">
+                <div
+                    ref={sectionRef}
+                    onScroll={handleScroll}
+                    className="flex overflow-x-auto gap-3 md:gap-5 pb-4 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-stretch"
+                >
+                    {loading ? (
+                        Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="flex-shrink-0 w-[145px] sm:w-[170px] md:w-[200px]">
+                                <ProductCardSkeleton />
+                            </div>
+                        ))
                     ) : (
-                        <div className="text-center py-20">
-                            <p className="text-gray-500">No products found for "{searchQuery}"</p>
-                        </div>
+                        categoryProducts.map((product) => (
+                            <div key={product.id} className="flex-shrink-0 w-[145px] sm:w-[170px] md:w-[200px]">
+                                <ProductCard product={product} />
+                            </div>
+                        ))
                     )}
                 </div>
-            )}
 
-            {/* Category Sections - Only show when not searching */}
-            {!isSearching && (
-                <div>
-                    {categories.map((category) => {
-                        const categoryProducts = getProductsByCategory(category.slug);
-
-                        // Only show category section if it has products
-                        if (categoryProducts.length === 0) return null;
-
-                        return (
-                            <div key={category.id} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-                                {/* Category Header */}
-                                <div className="flex items-center justify-between mb-4 md:mb-6">
-                                    <h2 className="text-base md:text-xl font-bold text-gray-900">
-                                        {category.name}
-                                    </h2>
-                                    <Link
-                                        to={`/category/${category.slug}`}
-                                        className="flex items-center gap-1 text-[var(--saathi-green)] text-xs md:text-sm font-semibold hover:gap-2 transition-all"
-                                    >
-                                        see all
-                                        <ChevronRight size={16} />
-                                    </Link>
-                                </div>
-
-                                {/* Products Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-6">
-                                    {categoryProducts.map((product) => (
-                                        <ProductCard key={product.id} product={product} />
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                {!loading && (
+                    <>
+                        {showLeft && (
+                            <button
+                                onClick={() => sectionScroll('left')}
+                                className="absolute -left-5 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-black text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
+                                aria-label="Scroll left"
+                            >
+                                <ArrowLeft size={26} strokeWidth={2.5} />
+                            </button>
+                        )}
+                        <button
+                            onClick={() => sectionScroll('right')}
+                            className="absolute -right-5 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-black text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
+                            aria-label="Scroll right"
+                        >
+                            <ArrowRight size={26} strokeWidth={2.5} />
+                        </button>
+                    </>
+                )}
+            </div>
         </div>
     );
 };

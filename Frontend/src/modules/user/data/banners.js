@@ -11,7 +11,7 @@ export const banners = [
     },
     {
         id: 3,
-        image: 'https://images.unsplash.com/photo-1583252376919-68a19418af04?q=80&w=2000&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1543168256-418811576931?q=80&w=2000&auto=format&fit=crop',
         alt: 'Fresh Produce'
     }
 ];

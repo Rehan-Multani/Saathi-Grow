@@ -14,7 +14,8 @@ export const products = [
         originalPrice: 50,
         weight: '1 kg',
         image: munchiesImg,
-        category: 'vegetables-fruits',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: true,
         description: 'Fresh, juicy, and hybrid tomatoes sourced directly from farms. Perfect for salads, curries, and soups.'
     },
@@ -25,7 +26,8 @@ export const products = [
         originalPrice: 40,
         weight: '1 kg',
         image: munchiesImg,
-        category: 'vegetables-fruits',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: true,
         description: 'Top quality onions that add flavor to your dishes. Essential for every kitchen.'
     },
@@ -36,7 +38,8 @@ export const products = [
         originalPrice: 45,
         weight: '1 kg',
         image: munchiesImg,
-        category: 'vegetables-fruits',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: false,
         description: 'Starchy and fresh potatoes suitable for frying, boiling, and baking.'
     },
@@ -47,7 +50,8 @@ export const products = [
         originalPrice: 60,
         weight: '1 kg',
         image: munchiesImg,
-        category: 'vegetables-fruits',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-fruits',
         isBestSeller: true,
         description: 'Sweet and nutritious Robusta bananas. Great source of energy and potassium.'
     },
@@ -58,7 +62,8 @@ export const products = [
         originalPrice: 50,
         weight: '500 g',
         image: munchiesImg,
-        category: 'vegetables-fruits',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: false,
         description: 'Fresh and crunchy orange carrots. Rich in Vitamin A.'
     },
@@ -69,7 +74,8 @@ export const products = [
         originalPrice: 60,
         weight: '500 g',
         image: munchiesImg,
-        category: 'vegetables-fruits',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: true,
         description: 'Fresh green capsicums. Perfect for stir-fries and salads.'
     },
@@ -82,7 +88,7 @@ export const products = [
         originalPrice: 56,
         weight: '1 L',
         image: 'https://www.bigbasket.com/media/uploads/p/l/306926_4-amul-taaza-fresh-toned-milk.jpg',
-        category: 'dairy-breakfast',
+        category: 'dairy-egg-frozen',
         isBestSeller: true,
         description: 'Pasteurized toned milk, rich in calcium and protein. Ideal for daily consumption.'
     },
@@ -93,7 +99,8 @@ export const products = [
         originalPrice: 70,
         weight: '1 L',
         image: mothersDairyImg,
-        category: 'dairy-breakfast',
+        category: 'dairy-egg-frozen',
+        subCategory: 'milk',
         isBestSeller: false,
         description: 'Fresh and pure milk from Mother Dairy. Perfect for tea, coffee, and shakes.'
     },
@@ -104,7 +111,7 @@ export const products = [
         originalPrice: 58,
         weight: '100 g',
         image: 'https://www.bigbasket.com/media/uploads/p/l/1200163_4-amul-butter-pasteurised.jpg',
-        category: 'dairy-breakfast',
+        category: 'dairy-egg-frozen',
         isBestSeller: true,
         description: 'The taste of India. Amul Butter is creamy, salty, and perfect for toast and parathas.'
     },
@@ -115,7 +122,7 @@ export const products = [
         originalPrice: 100,
         weight: '100 g (5 slices)',
         image: cheeseSlicesImg,
-        category: 'dairy-breakfast',
+        category: 'dairy-egg-frozen',
         isBestSeller: false,
         description: 'Classic cheese slices for your sandwiches and burgers. Rich in calcium.'
     },
@@ -126,7 +133,8 @@ export const products = [
         originalPrice: 15,
         weight: '200 ml',
         image: buttermilkImg,
-        category: 'dairy-breakfast',
+        category: 'dairy-egg-frozen',
+        subCategory: 'milk',
         isBestSeller: true,
         description: 'Refreshing spiced buttermilk. Perfect digestive drink.'
     },
@@ -137,9 +145,21 @@ export const products = [
         originalPrice: 140,
         weight: '200 g',
         image: paneerImg,
-        category: 'dairy-breakfast',
+        category: 'dairy-egg-frozen',
         isBestSeller: true,
         description: 'Soft and fresh paneer blocks for delicious curries.'
+    },
+    {
+        id: 110,
+        name: 'Farm Fresh Eggs - Pack of 6',
+        price: 45,
+        originalPrice: 55,
+        weight: '6 pcs',
+        image: munchiesImg,
+        category: 'dairy-egg-frozen',
+        subCategory: 'eggs',
+        isBestSeller: true,
+        description: 'Quality eggs from local farms. Fresh and nutritious.'
     },
 
     // Munchies
@@ -150,7 +170,7 @@ export const products = [
         originalPrice: 20,
         weight: '50g',
         image: munchiesImg,
-        category: 'munchies',
+        category: 'snacks-bakery',
         isBestSeller: false,
         description: 'Crispy potato chips with a spicy Indian masala flavor. A favorite snack for everyone.'
     },
@@ -161,7 +181,7 @@ export const products = [
         originalPrice: 30,
         weight: '60g',
         image: munchiesImg,
-        category: 'munchies',
+        category: 'snacks-bakery',
         isBestSeller: true,
         description: 'Crunchy corn chips with a bold nacho cheese flavor. Perfect for dipping.'
     },
@@ -172,7 +192,7 @@ export const products = [
         originalPrice: 20,
         weight: '80g',
         image: munchiesImg,
-        category: 'munchies',
+        category: 'snacks-bakery',
         isBestSeller: true,
         description: 'Spicy and tangy crunchy sticks. A classic Indian snack.'
     },
@@ -183,7 +203,7 @@ export const products = [
         originalPrice: 20,
         weight: '70g',
         image: munchiesImg,
-        category: 'munchies',
+        category: 'snacks-bakery',
         isBestSeller: false,
         description: 'Unique triangular chips with a tangy pickle flavor.'
     },
@@ -194,7 +214,7 @@ export const products = [
         originalPrice: 110,
         weight: '110g',
         image: munchiesImg,
-        category: 'munchies',
+        category: 'snacks-bakery',
         isBestSeller: true,
         description: 'International favorite potato crisps. Salty and addictive.'
     },
@@ -205,7 +225,7 @@ export const products = [
         originalPrice: 55,
         weight: '200g',
         image: munchiesImg,
-        category: 'munchies',
+        category: 'snacks-bakery',
         isBestSeller: true,
         description: 'Traditional spicy fried noodles. Great tea-time snack.'
     },
@@ -490,7 +510,8 @@ export const products = [
         originalPrice: 520,
         weight: '10 kg',
         image: munchiesImg,
-        category: 'atta-rice-dal',
+        category: 'staples-and-grains',
+        subCategory: 'atta-flours',
         isBestSeller: false,
         description: '100% whole wheat atta. Soft rotis guaranteed.'
     },
@@ -501,7 +522,8 @@ export const products = [
         originalPrice: 950,
         weight: '5 kg',
         image: munchiesImg,
-        category: 'atta-rice-dal',
+        category: 'staples-and-grains',
+        subCategory: 'rice-products',
         isBestSeller: true,
         description: 'Long grain aromatic basmati rice. Perfect for biryani and pulao.'
     },
@@ -512,7 +534,8 @@ export const products = [
         originalPrice: 200,
         weight: '1 kg',
         image: munchiesImg,
-        category: 'atta-rice-dal',
+        category: 'staples-and-grains',
+        subCategory: 'dals-pulses',
         isBestSeller: false,
         description: 'Unpolished Toor Dal rich in protein. Tastes great and cooks fast.'
     },
@@ -523,7 +546,8 @@ export const products = [
         originalPrice: 530,
         weight: '10 kg',
         image: munchiesImg,
-        category: 'atta-rice-dal',
+        category: 'staples-and-grains',
+        subCategory: 'atta-flours',
         isBestSeller: true,
         description: 'Premium quality wheat flour for soft rotis.'
     },
@@ -534,7 +558,8 @@ export const products = [
         originalPrice: 900,
         weight: '5 kg',
         image: munchiesImg,
-        category: 'atta-rice-dal',
+        category: 'staples-and-grains',
+        subCategory: 'rice-products',
         isBestSeller: false,
         description: 'Everyday basmati rice with great aroma.'
     },
@@ -545,7 +570,8 @@ export const products = [
         originalPrice: 160,
         weight: '1 kg',
         image: munchiesImg,
-        category: 'atta-rice-dal',
+        category: 'staples-and-grains',
+        subCategory: 'dals-pulses',
         isBestSeller: true,
         description: 'High protein unpolished moong dal.'
     },
@@ -684,5 +710,128 @@ export const products = [
         category: 'personal-care',
         isBestSeller: true,
         description: 'Reduces hair fall and makes hair strong.'
+    },
+    // Personal Care
+    {
+        id: 901,
+        name: 'Dettol Original Soap',
+        price: 45,
+        originalPrice: 50,
+        weight: '125g',
+        image: 'https://images.unsplash.com/photo-1584622728568-ad4426548981?auto=format&fit=crop&w=300&q=80',
+        category: 'personal-care',
+        description: 'Dettol Original Bar Soap is a gentle soap with a fresh fragrance. It contains antibacterial agents that provide trusted Dettol protection.'
+    },
+    {
+        id: 902,
+        name: 'Colgate Strong Teeth Toothpaste',
+        price: 95,
+        originalPrice: 100,
+        weight: '200g',
+        image: 'https://images.unsplash.com/photo-1559595500-e15038b1bd74?auto=format&fit=crop&w=300&q=80',
+        category: 'personal-care',
+        description: 'Colgate Strong Teeth Toothpaste with Amino Power helps add natural calcium to your teeth, making them strong from within.'
+    },
+    {
+        id: 903,
+        name: 'Dove Cream Beauty Bar',
+        price: 60,
+        originalPrice: 65,
+        weight: '100g',
+        image: 'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?auto=format&fit=crop&w=300&q=80',
+        category: 'personal-care',
+        description: 'Dove Cream Beauty Bar combines a gentle cleansing formula with Dove’s signature 1/4 moisturizing cream to give you softer, smoother, and more glowing skin.'
+    },
+    {
+        id: 904,
+        name: 'Sensodyne Toothpaste - Fresh Mint',
+        price: 150,
+        originalPrice: 170,
+        weight: '150g',
+        image: 'https://images.unsplash.com/photo-1563123317-1356da6584ac?auto=format&fit=crop&w=300&q=80',
+        category: 'personal-care',
+        description: 'Sensodyne Fresh Mint Toothpaste is specifically formulated for people with sensitive teeth.'
+    },
+    {
+        id: 905,
+        name: 'Nivea Soft Moisturizer Cream',
+        price: 300,
+        originalPrice: 350,
+        weight: '200 ml',
+        image: 'https://images.unsplash.com/photo-1620916566398-39f1143f29f8?auto=format&fit=crop&w=300&q=80',
+        category: 'personal-care',
+        description: 'NIVEA Soft is a highly effective, intensive moisturizing cream for everyday use.'
+    },
+    {
+        id: 906,
+        name: 'Pantene Shampoo - Hair Fall Control',
+        price: 450,
+        originalPrice: 500,
+        weight: '650 ml',
+        image: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&w=300&q=80',
+        category: 'personal-care',
+        description: 'Pantene Hair Fall Control Shampoo helps to reinforce the hair structure and provide nourishment.'
+    },
+    // Oil & Ghee
+    {
+        id: 1001,
+        name: 'Fortune Sunlite Refined Sunflower Oil',
+        price: 155,
+        originalPrice: 180,
+        weight: '1 L',
+        image: 'https://images.unsplash.com/photo-1474979266404-7eaacabc88c5?auto=format&fit=crop&w=300&q=80',
+        category: 'oil-and-ghee',
+        description: 'Light and healthy sunflower oil.'
+    },
+    {
+        id: 1002,
+        name: 'Amul Pure Ghee',
+        price: 560,
+        originalPrice: 600,
+        weight: '1 L',
+        image: 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=300&q=80',
+        category: 'oil-and-ghee',
+        description: 'Pure cow ghee for better health.'
+    },
+    {
+        id: 1003,
+        name: 'Saffola Gold Oil',
+        price: 185,
+        originalPrice: 210,
+        weight: '1 L',
+        image: 'https://images.unsplash.com/photo-1474979266404-7eaacabc88c5?auto=format&fit=crop&w=300&q=80',
+        category: 'oil-and-ghee',
+        description: 'Pro-healthy lifestyle oil.'
+    },
+    // Chocolate & Sweet
+    {
+        id: 1101,
+        name: 'Cadbury Dairy Milk Silk',
+        price: 80,
+        originalPrice: 90,
+        weight: '60g',
+        image: 'https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=300&q=80',
+        category: 'chocolate-sweet',
+        description: 'Smooth and creamy chocolate.'
+    },
+    {
+        id: 1102,
+        name: 'Ferrero Rocher T16',
+        price: 499,
+        originalPrice: 550,
+        weight: '200g',
+        image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&w=300&q=80',
+        category: 'chocolate-sweet',
+        description: 'Luxury chocolate truffles.'
+    },
+    {
+        id: 1103,
+        name: 'Snickers Peanut Chocolate',
+        price: 50,
+        originalPrice: 55,
+        weight: '50g',
+        image: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?auto=format&fit=crop&w=300&q=80',
+        category: 'chocolate-sweet',
+        description: 'Hungry? Grab a Snickers.'
     }
 ];
