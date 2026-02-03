@@ -1,7 +1,30 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const RegisterPage = () => {
+    const { register } = useAuth();
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: ''
+    });
+
+    const handleRegister = (e) => {
+        e.preventDefault();
+        if (formData.phone.length !== 10) {
+            alert('Enter a valid 10-digit phone number');
+            return;
+        }
+
+        const result = register(formData);
+        if (result.success) {
+            navigate('/');
+        } else {
+            alert(result.message);
+        }
+    };
+
     return (
         <div className="relative min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             {/* Background Image with Blur */}
@@ -23,23 +46,42 @@ const RegisterPage = () => {
                         <p className="text-gray-500 dark:text-gray-300 text-sm">Join SaathiGro for the freshest groceries.</p>
                     </div>
 
-                    <form className="space-y-4">
+                    <form onSubmit={handleRegister} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-                            <input type="text" placeholder="John Doe" className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-[var(--saathi-green)] focus:ring-1 focus:ring-[var(--saathi-green)] outline-none transition dark:text-white" />
+                            <input
+                                type="text"
+                                required
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="John Doe"
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-[var(--saathi-green)] focus:ring-1 focus:ring-[var(--saathi-green)] outline-none transition dark:text-white"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-                            <input type="tel" placeholder="+91" className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-[var(--saathi-green)] focus:ring-1 focus:ring-[var(--saathi-green)] outline-none transition dark:text-white" />
+                            <input
+                                type="tel"
+                                required
+                                maxLength="10"
+                                value={formData.phone}
+                                onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
+                                placeholder="98765 43210"
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-[var(--saathi-green)] focus:ring-1 focus:ring-[var(--saathi-green)] outline-none transition dark:text-white"
+                            />
                         </div>
 
-                        <button type="button" className="w-full bg-[var(--saathi-green)] dark:bg-[#7e978e] text-white py-3 rounded-xl font-bold text-lg hover:bg-green-700 dark:hover:bg-[#6b827a] transition shadow-lg shadow-green-100 dark:shadow-none">
+                        <button
+                            type="submit"
+                            disabled={formData.phone.length !== 10 || !formData.name}
+                            className="w-full bg-[#0c831f] dark:bg-[#0c831f] text-white py-3 rounded-xl font-bold text-lg hover:bg-green-700 dark:hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-green-100 dark:shadow-none"
+                        >
                             Register
                         </button>
                     </form>
 
                     <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-300">
-                        Already have an account? <Link to="/login" className="text-[var(--saathi-green)] dark:text-[#7e978e] font-bold hover:underline">Log in</Link>
+                        Already have an account? <Link to="/login" className="text-[#0c831f] dark:text-[#10b981] font-bold hover:underline">Log in</Link>
                     </div>
                 </div>
             </div>

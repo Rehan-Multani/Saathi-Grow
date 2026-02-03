@@ -39,11 +39,11 @@ const CategoryPage = () => {
                     <div className="flex items-center text-[10px] md:text-sm text-gray-400 gap-1 uppercase tracking-wider font-medium">
                         <Link to="/" className="hover:text-[var(--saathi-green)] transition-colors">Home</Link>
                         <ChevronRight size={14} />
-                        <span className="text-gray-800 dark:text-white font-bold">{currentCategory?.name}</span>
+                        <span className="text-gray-800 dark:text-white font-semibold">{currentCategory?.name}</span>
                         {selectedSubCat !== 'all' && (
                             <>
                                 <ChevronRight size={14} />
-                                <span className="text-[var(--saathi-green)] dark:text-[#7e978e] font-bold">
+                                <span className="text-[var(--saathi-green)] dark:text-[#10b981] font-bold">
                                     {currentCategory?.subCategories?.find(s => s.slug === selectedSubCat)?.name}
                                 </span>
                             </>
@@ -58,7 +58,7 @@ const CategoryPage = () => {
                     <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-1">
                         <button
                             onClick={() => setSelectedSubCat('all')}
-                            className={`flex-shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] dark:bg-[#7e978e] dark:border-[#7e978e] text-white shadow-sm' : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-[#7e978e] hover:text-[#7e978e] dark:hover:border-[#7e978e] dark:hover:text-[#7e978e]'}`}
+                            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] dark:bg-[#0c831f] dark:border-[#0c831f] text-white shadow-sm' : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-[#0c831f] hover:text-[#0c831f] dark:hover:border-[#10b981] dark:hover:text-[#10b981]'}`}
                         >
                             All {currentCategory?.name}
                         </button>
@@ -66,7 +66,7 @@ const CategoryPage = () => {
                             <button
                                 key={sub.id}
                                 onClick={() => setSelectedSubCat(sub.slug)}
-                                className={`flex-shrink-0 px-5 py-2 rounded-full text-xs md:text-sm font-bold transition-all border ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] dark:bg-[#7e978e] dark:border-[#7e978e] text-white shadow-sm' : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-[#7e978e] hover:text-[#7e978e] dark:hover:border-[#7e978e] dark:hover:text-[#7e978e]'}`}
+                                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all border ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] dark:bg-[#0c831f] dark:border-[#0c831f] text-white shadow-sm' : 'bg-transparent border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-[#0c831f] hover:text-[#0c831f] dark:hover:border-[#10b981] dark:hover:text-[#10b981]'}`}
                             >
                                 {sub.name}
                             </button>
@@ -77,11 +77,11 @@ const CategoryPage = () => {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Product Section */}
-                <div className="mb-8">
-                    <h1 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight flex items-center gap-3">
+                <div className="mb-6">
+                    <h1 className="text-xs md:text-sm font-bold text-slate-800 dark:text-gray-300 tracking-tight flex items-center gap-2">
                         {loading ? 'Loading...' : (selectedSubCat === 'all' ? currentCategory?.name : currentCategory?.subCategories?.find(s => s.slug === selectedSubCat)?.name)}
                         {!loading && (
-                            <span className="text-gray-400 dark:text-gray-600 text-sm md:text-base font-medium bg-gray-100 dark:bg-gray-900 px-2 py-0.5 rounded-md">
+                            <span className="text-gray-400 dark:text-gray-600 text-[10px] md:text-xs font-medium bg-gray-100 dark:bg-gray-900/50 px-2 py-0.5 rounded-md">
                                 {displayedProducts.length} items
                             </span>
                         )}

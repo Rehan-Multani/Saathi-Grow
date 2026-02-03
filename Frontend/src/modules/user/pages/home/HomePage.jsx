@@ -21,14 +21,14 @@ const offerBanners = [
 ];
 
 const categoryColors = {
-    'staples-and-grains': '#e0e0e0',
-    'masala-and-spices': '#ffe0b2',
+    'staples-and-grains': '#f0f4f8',
+    'masala-and-spices': '#fdf0d5',
     'dairy-egg-frozen': '#fff9c4',
     'oil-and-ghee': '#f5f5f5',
     'fruit-and-vegetables': '#e8f5e9',
     'meat-and-seafood': '#ffebee',
-    'snacks-and-bakery': '#fff3e0',
-    'beverages': '#e1f5fe',
+    'snacks-bakery': '#fff3e0',
+    'food-beverage': '#e1f5fe',
     'personal-care': '#f3e5f5',
     'cleaning-essentials': '#e8f5e9',
     'home-office': '#e3f2fd',
@@ -125,7 +125,7 @@ const HomePage = () => {
     };
 
     return (
-        <div className="bg-white dark:!bg-[#212121] min-h-screen transition-colors duration-300">
+        <div className="bg-white dark:bg-black min-h-screen transition-colors duration-300">
 
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
@@ -147,7 +147,7 @@ const HomePage = () => {
                                         width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(16 * (itemsToShow - 1)) / itemsToShow}px)`
                                     }}
                                 >
-                                    <div className="relative cursor-pointer overflow-hidden rounded-none sm:rounded-2xl border-y sm:border border-gray-100 dark:border-white/10 shadow-sm transition-all duration-300 mx-0">
+                                    <div className="relative cursor-pointer overflow-hidden rounded-none sm:rounded-2xl shadow-sm transition-all duration-300 mx-0 border-none">
                                         <div className="aspect-[16/8] sm:aspect-[16/7] overflow-hidden">
                                             <img
                                                 src={offer.image}
@@ -162,14 +162,14 @@ const HomePage = () => {
                         </div>
                     </div>
 
-                    {/* Pagination Dots */}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                    {/* Pagination Lines (Blinkit Style) */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-10">
                         {offerBanners.map((_, idx) => (
                             <div
                                 key={idx}
-                                className={`h-1 rounded-full transition-all duration-300 ${(offerIndex % offerBanners.length) === idx
-                                    ? 'w-6 bg-[var(--saathi-green)]'
-                                    : 'w-2 bg-gray-300/50 dark:bg-white/20'
+                                className={`h-1.5 rounded-full transition-all duration-500 ${(offerIndex % offerBanners.length) === idx
+                                    ? 'w-12 bg-[#0c831f] shadow-[0_0_10px_rgba(12,131,31,0.3)]'
+                                    : 'w-6 bg-gray-300 dark:bg-white/20'
                                     }`}
                             />
                         ))}
@@ -181,7 +181,7 @@ const HomePage = () => {
             {(filteredCategories.length > 0 || !isSearching) && (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-8">
                     <div className="flex items-center justify-between mb-4 md:mb-8">
-                        <h2 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight">Shop by Category</h2>
+                        <h2 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-100 tracking-tight">Shop by Category</h2>
                         {!isSearching && <Link to="/category" className="text-[var(--saathi-green)] text-xs md:text-base font-bold underline underline-offset-4">See All</Link>}
                     </div>
                     <div className="relative group/nav">
@@ -200,17 +200,17 @@ const HomePage = () => {
                                     return (
                                         <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center transition-transform hover:scale-105 group w-full sm:w-32 sm:flex-shrink-0">
                                             <div
-                                                className="w-[90px] h-[90px] sm:w-28 sm:h-28 rounded-2xl md:rounded-[2.2rem] shadow-sm flex items-center justify-center mb-3 transition-shadow group-hover:shadow-md relative overflow-hidden"
+                                                className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center justify-center mb-3 transition-all duration-300 group-hover:shadow-md relative overflow-hidden group-hover:-translate-y-1"
                                                 style={{ backgroundColor: bgColor }}
                                             >
                                                 <img
                                                     src={cat.image}
                                                     alt={cat.name}
-                                                    className="w-14 h-14 md:w-[85px] md:h-[85px] object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110"
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                     loading="lazy"
                                                 />
                                             </div>
-                                            <span className="text-[11px] md:text-[14px] font-bold text-center text-gray-500 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[32px] flex items-start justify-center">
+                                            <span className="text-[12px] md:text-[14px] font-extrabold text-center text-[#2d3748] dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[36px] flex items-start justify-center tracking-tight">
                                                 {cat.name}
                                             </span>
                                         </Link>
@@ -224,7 +224,7 @@ const HomePage = () => {
                                 {canScrollLeft && (
                                     <button
                                         onClick={scrollLeft}
-                                        className="absolute -left-5 top-10 md:top-14 z-30 bg-white dark:bg-[#212121] text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
+                                        className="absolute -left-5 top-10 md:top-14 z-30 bg-white dark:bg-[#141414] text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/5 cursor-pointer hidden md:flex"
                                         aria-label="Scroll left"
                                     >
                                         <ArrowLeft size={26} strokeWidth={2.5} />
@@ -232,7 +232,7 @@ const HomePage = () => {
                                 )}
                                 <button
                                     onClick={scrollRight}
-                                    className="absolute -right-5 top-10 md:top-14 z-30 bg-white dark:bg-black text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
+                                    className="absolute -right-5 top-10 md:top-14 z-30 bg-white dark:bg-[#141414] text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/5 cursor-pointer hidden md:flex"
                                     aria-label="Scroll right"
                                 >
                                     <ArrowRight size={26} strokeWidth={2.5} />
@@ -246,7 +246,7 @@ const HomePage = () => {
             {/* Category Sections */}
             {!isSearching && (
                 <div className="pb-12">
-                    {categories.slice(0, 6).map((category) => (
+                    {categories.map((category) => (
                         <ProductRow
                             key={category.id}
                             category={category}

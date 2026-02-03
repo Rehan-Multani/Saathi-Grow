@@ -25,13 +25,13 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="bg-white dark:!bg-black rounded-[14px] p-2.5 shadow-sm border border-gray-100 dark:border-white/10 hover:border-[#0c831f] dark:hover:border-[#0c831f] hover:shadow-xl hover:scale-105 transition-all duration-300 flex flex-col gap-2 h-full group">
+    <div className="bg-white dark:bg-[#141414] rounded-xl p-2 sm:p-2.5 shadow-[0_2px_12px_rgba(0,0,0,0,04)] dark:shadow-none border border-gray-100 dark:border-white/5 hover:border-[#0c831f] dark:hover:border-[#0c831f]/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex flex-col gap-1.5 h-auto md:h-full group">
       {/* Product Image */}
-      <Link to={`/product/${product.id}`} className="block relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:!bg-black">
+      <Link to={`/product/${product.id}`} className="block relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a]">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
       </Link>
@@ -39,28 +39,28 @@ const ProductCard = ({ product }) => {
       <div className="flex flex-col flex-grow">
         {/* Title */}
         <Link to={`/product/${product.id}`}>
-          <div className="font-bold text-gray-900 dark:text-gray-300 text-[12px] sm:text-[14px] leading-tight mb-1 line-clamp-2 h-[34px]">
+          <div className="font-bold text-gray-900 dark:text-gray-100 text-[12px] sm:text-[14px] leading-tight mb-1 line-clamp-2 h-[34px]">
             {product.name}
           </div>
         </Link>
 
         {/* Weight */}
-        <div className="text-gray-500 dark:text-gray-400 text-[10px] mb-2">{product.weight}</div>
+        <div className="text-gray-500 dark:text-gray-400 text-[10px] mb-2 font-medium">{product.weight}</div>
 
         {/* Bottom Row: Price & Action */}
         <div className="flex items-center justify-between mt-auto">
           <div className="flex flex-col">
             {product.originalPrice && product.originalPrice > product.price && (
-              <span className="text-gray-400 line-through text-[11px]">₹{product.originalPrice}</span>
+              <span className="text-gray-400 dark:text-gray-500 line-through text-[11px]">₹{product.originalPrice}</span>
             )}
-            <span className="text-sm sm:text-[15px] font-black text-gray-900 dark:text-white">₹{product.price}</span>
+            <span className="text-sm sm:text-[15px] font-black text-gray-900 dark:text-[#f8fafc]">₹{product.price}</span>
           </div>
 
           {quantity > 0 ? (
-            <div className="flex items-center bg-[#0c831f] dark:bg-[#7e978e] text-white rounded-md overflow-hidden transition-all duration-300 shadow-sm border border-transparent">
+            <div className="flex items-center bg-[#0c831f] dark:bg-[#0c831f]/90 text-white rounded-md overflow-hidden transition-all duration-300 shadow-sm border border-transparent">
               <button
                 onClick={(e) => handleUpdateQuantity(e, -1)}
-                className="px-2 py-1 hover:bg-[#0a6b19] dark:hover:bg-[#6b827a] transition-colors"
+                className="px-2 py-1 hover:bg-[#0a6b19] dark:hover:bg-[#0c831f] transition-colors"
                 aria-label="Decrease quantity"
               >
                 <Minus size={14} strokeWidth={3} />
@@ -70,7 +70,7 @@ const ProductCard = ({ product }) => {
               </span>
               <button
                 onClick={(e) => handleUpdateQuantity(e, 1)}
-                className="px-2 py-1 hover:bg-[#0a6b19] dark:hover:bg-[#6b827a] transition-colors"
+                className="px-2 py-1 hover:bg-[#0a6b19] dark:hover:bg-[#0c831f] transition-colors"
                 aria-label="Increase quantity"
               >
                 <Plus size={14} strokeWidth={3} />
@@ -79,7 +79,7 @@ const ProductCard = ({ product }) => {
           ) : (
             <button
               onClick={handleAddToCart}
-              className="product_button px-3 py-1 bg-white dark:!bg-[#7e978e] dark:!text-white text-[#0c831f] border-[1px] border-[#0c831f] hover:!bg-[#0a6b19] active:!bg-[#0a6b19] hover:!text-white active:!text-white hover:!border-[#0a6b19] active:!border-[#0a6b19] dark:hover:!bg-black dark:active:!bg-black dark:hover:!text-[#7e978e] dark:active:!text-[#7e978e] dark:hover:!border-[#7e978e] dark:active:!border-[#7e978e] text-[10px] font-bold !rounded-md transition-colors uppercase tracking-wide"
+              className="product_button px-4 py-1.5 bg-white dark:bg-[#0c831f]/10 dark:text-[#10b981] text-[#0c831f] border-[1px] border-[#0c831f]/30 dark:border-[#10b981]/30 hover:!bg-[#0c831f] dark:hover:!bg-[#0c831f] active:!bg-[#0a6b19] hover:!text-white active:!text-white hover:!border-[#0c831f] active:!border-[#0a6b19] text-[11px] font-black !rounded-lg transition-all uppercase tracking-wider shadow-sm"
             >
               ADD
             </button>

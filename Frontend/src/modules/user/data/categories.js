@@ -92,12 +92,6 @@ export const categories = [
         slug: 'pet-care'
     },
     {
-        id: 17,
-        name: 'Baby Care',
-        image: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=200&q=80',
-        slug: 'baby-care'
-    },
-    {
         id: 18,
         name: 'Beauty & Grooming',
         image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=200&q=80',

@@ -21,9 +21,16 @@
 }
 
 :root.dark {
-  color-scheme: dark !important;
-  background-color: #212121 !important;
-  color: #f9fafb !important;
+  color-scheme: dark;
+  --bg-main: #0a0a0a;
+  --bg-surface: #141414;
+  --bg-surface-hover: #1c1c1c;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+
+  background-color: var(--bg-main);
+  color: var(--text-primary);
 }
 
 @theme {
@@ -62,6 +69,10 @@ a {
   border-radius: 3px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
@@ -85,6 +96,12 @@ a {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .glass-dark {
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 .dark,
@@ -94,20 +111,32 @@ a {
 .dark .bg-gray-50,
 .dark nav,
 .dark .sticky {
-  background-color: #212121 !important;
+  background-color: var(--bg-main) !important;
+}
+
+.dark .bg-surface,
+.dark .bg-secondary {
+  background-color: var(--bg-surface) !important;
 }
 
 .dark,
 .dark .text-gray-900,
 .dark .text-gray-800,
 .dark .text-gray-700 {
-  color: #ffffff;
+  color: var(--text-primary);
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: var(--text-secondary);
 }
 
 .dark .border-gray-100,
 .dark .border-gray-200,
-.dark .border-gray-50 {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+.dark .border-gray-50,
+.dark .border-gray-300 {
+  border-color: var(--border-color) !important;
 }
 
 /* Maintain Category Pastel Colors - these should remain visible */
