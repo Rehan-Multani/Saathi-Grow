@@ -91,7 +91,7 @@ const AllOrders = () => {
                                 <th className="px-6 py-4">Payment</th>
                                 <th className="px-6 py-4">Items</th>
                                 <th className="px-6 py-4 text-right">Total</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -114,7 +114,7 @@ const AllOrders = () => {
                                     </td>
                                     <td className="px-6 py-4 text-gray-600">{order.items}</td>
                                     <td className="px-6 py-4 text-right font-bold text-gray-800">{order.total}</td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-center">
                                         <button
                                             className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                                             onClick={() => handleShowDetails(order)}
