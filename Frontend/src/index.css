@@ -72,6 +72,7 @@ a {
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -119,7 +120,6 @@ a {
   display: none !important;
 }
 
-/* Fix for Dropdown Items Alignment */
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -137,4 +137,26 @@ a {
 
 .animate-shimmer {
   animation: shimmer 1.5s infinite linear;
+}
+
+/* Custom utility to disable hover effects */
+.no-hover-effect:hover,
+.no-hover-effect:active,
+.no-hover-effect:focus {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: inherit !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.no-hover-effect.btn-primary:hover {
+  background-color: var(--bs-primary) !important;
+  color: white !important;
+}
+
+.no-hover-effect.btn-outline-secondary:hover {
+  background-color: transparent !important;
+  color: var(--bs-secondary) !important;
+  border-color: #dee2e6 !important;
 }

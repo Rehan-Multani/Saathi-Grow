@@ -19,11 +19,13 @@ const AddWarehouse = () => {
 
     return (
         <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="fw-bold mb-0">Add New Warehouse</h4>
-                <Button variant="light" onClick={() => navigate('/admin/locations/warehouses')}>
-                    <X size={18} className="me-2" /> Cancel
-                </Button>
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
+                <h4 className="fw-bold mb-0 text-nowrap">Add New Warehouse</h4>
+                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto">
+                    <Button variant="light" onClick={() => navigate('/admin/locations/warehouses')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center">
+                        <X size={18} /> Cancel
+                    </Button>
+                </div>
             </div>
 
             <Row className="justify-content-center">

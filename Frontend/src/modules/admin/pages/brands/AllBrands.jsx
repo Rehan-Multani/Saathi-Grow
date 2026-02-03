@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
 import { Search, Plus, Edit, Trash2, Tag, Upload, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { showDeleteConfirmation, showSuccessAlert } from '../../../../common/utils/alertUtils';
+import BrandEditModal from '../../components/products/BrandEditModal';
 
 const BRANDS_MOCK = [
     { id: '1', name: 'Nike', products: 120, status: 'Active' },
@@ -13,10 +15,31 @@ const BRANDS_MOCK = [
 
 const AllBrands = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedBrand, setSelectedBrand] = useState(null);
 
     const filtered = BRANDS_MOCK.filter(b =>
         b.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleDelete = async (id) => {
+        const result = await showDeleteConfirmation('Delete Brand', 'Are you sure you want to delete this brand?');
+        if (result.isConfirmed) {
+            // API call would go here
+            await showSuccessAlert('Deleted!', 'Brand has been deleted.');
+        }
+    };
+
+    const handleEdit = (brand) => {
+        setSelectedBrand(brand);
+        setShowEditModal(true);
+    };
+
+    const handleSave = async (updatedBrand) => {
+        // API call would go here
+        console.log('Updated Brand:', updatedBrand);
+        await showSuccessAlert('Updated!', 'Brand details have been updated successfully.');
+    };
 
     return (
         <div className="p-3">
@@ -80,10 +103,16 @@ const AllBrands = () => {
                                     </td>
                                     <td className="text-end pe-4">
                                         <div className="d-flex justify-content-end gap-2">
-                                            <Button variant="light" size="sm" className="btn-icon-soft text-primary">
+                                            <Button
+                                                variant="light" size="sm" className="btn-icon-soft text-primary"
+                                                onClick={() => handleEdit(b)}
+                                            >
                                                 <Edit size={16} />
                                             </Button>
-                                            <Button variant="light" size="sm" className="btn-icon-soft text-danger">
+                                            <Button
+                                                variant="light" size="sm" className="btn-icon-soft text-danger"
+                                                onClick={() => handleDelete(b.id)}
+                                            >
                                                 <Trash2 size={16} />
                                             </Button>
                                         </div>
@@ -94,6 +123,13 @@ const AllBrands = () => {
                     </Table>
                 </Card.Body>
             </Card>
+
+            <BrandEditModal
+                show={showEditModal}
+                onHide={() => setShowEditModal(false)}
+                brand={selectedBrand}
+                onSave={handleSave}
+            />
         </div>
     );
 };

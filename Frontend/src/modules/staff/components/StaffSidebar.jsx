@@ -84,8 +84,8 @@ const StaffSidebar = ({ showMobile, onClose }) => {
                                                             to={subItem.path}
                                                             end={true}
                                                             className={({ isActive }) =>
-                                                                `flex items-center pl-12 pr-4 py-2 text-sm text-slate-400 hover:text-white transition-colors
-                                                                ${isActive ? 'text-green-400 font-medium' : ''}`
+                                                                `flex items-center pl-12 pr-4 py-2 my-1 mx-3 rounded-lg text-sm transition-all duration-200
+                                                                ${isActive ? 'bg-green-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`
                                                             }
                                                             onClick={() => showMobile && onClose()}
                                                         >

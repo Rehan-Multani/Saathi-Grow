@@ -21,8 +21,8 @@ const VendorReports = () => {
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0">Vendor Performance Reports</h4>
-                <div className="w-100 w-sm-auto d-flex justify-content-end">
+                <h4 className="fw-bold mb-0 text-nowrap">Vendor Performance Reports</h4>
+                <div className="flex-grow-1 w-100 w-sm-auto d-flex justify-content-end">
                     <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
                         <Download size={16} /> <span className="d-none d-sm-inline">Export Report</span>
                         <span className="d-inline d-sm-none">Export</span>

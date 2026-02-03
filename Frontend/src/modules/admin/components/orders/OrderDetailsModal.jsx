@@ -22,7 +22,8 @@ const OrderDetailsModal = ({ show, onHide, order }) => {
         name: `Product Item ${i + 1}`,
         price: '₹' + (parseFloat(order.total.replace('₹', '')) / (order.items || 1)).toFixed(2),
         quantity: 1,
-        total: '₹' + (parseFloat(order.total.replace('₹', '')) / (order.items || 1)).toFixed(2)
+        total: '₹' + (parseFloat(order.total.replace('₹', '')) / (order.items || 1)).toFixed(2),
+        image: `https://placehold.co/50`
     }));
 
     // Helper for status badge colors
@@ -33,6 +34,122 @@ const OrderDetailsModal = ({ show, onHide, order }) => {
             case 'Cancelled': return 'bg-red-100 text-red-700';
             default: return 'bg-blue-100 text-blue-700';
         }
+    };
+
+    const handleDownloadInvoice = () => {
+        const invoiceContent = `
+            <html>
+            <head>
+                <title>Invoice #${order.id}</title>
+                <style>
+                    body { font-family: 'Helvetica', 'Arial', sans-serif; padding: 40px; color: #333; }
+                    .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+                    .company-name { font-size: 24px; font-weight: bold; color: #2563eb; }
+                    .invoice-title { font-size: 32px; font-weight: bold; text-align: right; }
+                    .section-title { font-size: 14px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 10px; }
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+                    table { w-full; border-collapse: collapse; margin-bottom: 30px; width: 100%; }
+                    th { text-align: left; padding: 12px; background-color: #f8f9fa; border-bottom: 2px solid #eee; font-size: 14px; }
+                    td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+                    .text-right { text-align: right; }
+                    .totals { width: 300px; margin-left: auto; }
+                    .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
+                    .grand-total { font-weight: bold; font-size: 18px; border-top: 2px solid #333; padding-top: 10px; margin-top: 10px; }
+                    .footer { margin-top: 60px; text-align: center; color: #999; font-size: 12px; }
+                    .product-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 10px; }
+                    .product-cell { display: flex; align-items: center; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div>
+                        <div class="company-name">SathiGro</div>
+                        <div>123 Business Street, Tech City</div>
+                        <div>support@sathigro.com</div>
+                    </div>
+                    <div>
+                        <div class="invoice-title">INVOICE</div>
+                        <div>#${order.id}</div>
+                        <div>Date: ${order.date}</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div>
+                        <div class="section-title">Bill To:</div>
+                        <strong>${order.customer}</strong><br>
+                        123, Green Park Avenue,<br>
+                        Mumbai, Maharashtra - 400001
+                    </div>
+                    <div>
+                        <div class="section-title">Payment Info:</div>
+                        Status: ${order.payment}<br>
+                        Method: Credit Card ending **** 4242
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item Description</th>
+                            <th class="text-right">Price</th>
+                            <th class="text-right">Qty</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${mockItems.map(item => `
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <img src="${item.image}" alt="${item.name}" class="product-img" />
+                                        <div>
+                                            <strong>${item.name}</strong><br>
+                                            <span style="font-size: 12px; color: #666;">Variation: Red, XL</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-right">${item.price}</td>
+                                <td class="text-right">${item.quantity}</td>
+                                <td class="text-right">${item.total}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div class="totals">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span>${order.total}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Tax (18%):</span>
+                        <span>₹24.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Delivery Fee:</span>
+                        <span>₹50.00</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span>Total:</span>
+                        <span>${order.total}</span>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>Thank you for your business!</p>
+                </div>
+
+                <script>
+                    window.onload = function() { window.print(); }
+                </script>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '', 'width=800,height=600');
+        printWindow.document.write(invoiceContent);
+        printWindow.document.close();
     };
 
     return (
@@ -67,7 +184,10 @@ const OrderDetailsModal = ({ show, onHide, order }) => {
                                 <Clock size={14} className="mr-1.5" /> {order.date}
                             </span>
                         </div>
-                        <button className="flex items-center gap-2 px-3 py-1.5 border border-blue-600 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+                        <button
+                            onClick={handleDownloadInvoice}
+                            className="flex items-center gap-2 px-3 py-1.5 border border-blue-600 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
+                        >
                             <Download size={16} /> Download Invoice
                         </button>
                     </div>
@@ -111,8 +231,13 @@ const OrderDetailsModal = ({ show, onHide, order }) => {
                                 {mockItems.map((item, idx) => (
                                     <tr key={idx}>
                                         <td className="px-5 py-3 pl-6">
-                                            <div className="font-medium text-gray-800">{item.name}</div>
-                                            <div className="text-xs text-gray-500">Variation: Red, XL</div>
+                                            <div className="flex items-center gap-3">
+                                                <img src={item.image} alt={item.name} className="w-10 h-10 rounded object-cover border border-gray-100" />
+                                                <div>
+                                                    <div className="font-medium text-gray-800">{item.name}</div>
+                                                    <div className="text-xs text-gray-500">Variation: Red, XL</div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-5 py-3 text-center text-gray-600">{item.quantity}</td>
                                         <td className="px-5 py-3 text-right text-gray-600">{item.price}</td>

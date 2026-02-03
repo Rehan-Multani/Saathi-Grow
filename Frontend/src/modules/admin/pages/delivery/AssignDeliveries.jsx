@@ -21,7 +21,7 @@ const AssignDeliveries = () => {
             </Card>
 
             <Card className="border-0 shadow-sm">
-                <Card.Body className="p-0">
+                <Card.Body className="p-0 pb-5" style={{ minHeight: '400px' }}>
                     <Table hover responsive className="mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
@@ -51,11 +51,11 @@ const AssignDeliveries = () => {
                                     </td>
                                     <td><Badge bg="secondary" className="rounded-pill fw-normal px-3">{item.status}</Badge></td>
                                     <td className="text-end pe-4">
-                                        <Dropdown align="end">
+                                        <Dropdown align="end" drop={idx >= PENDING_DELIVERIES.length - 1 ? "up" : "down"}>
                                             <Dropdown.Toggle size="sm" variant="outline-primary" className="d-flex align-items-center gap-2 ms-auto">
                                                 <UserCheck size={16} /> Assign Driver
                                             </Dropdown.Toggle>
-                                            <Dropdown.Menu>
+                                            <Dropdown.Menu style={{ zIndex: 9999, minWidth: '180px' }}>
                                                 <Dropdown.Header>Available Drivers</Dropdown.Header>
                                                 {DRIVERS.map((d, i) => (
                                                     <Dropdown.Item key={i} href="#">{d}</Dropdown.Item>

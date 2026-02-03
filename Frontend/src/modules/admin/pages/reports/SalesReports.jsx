@@ -13,8 +13,8 @@ const SalesReports = () => {
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0">Sales Reports</h4>
-                <div className="d-flex gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+                <h4 className="fw-bold mb-0 text-nowrap">Sales Reports</h4>
+                <div className="d-flex gap-2 flex-grow-1 w-100 w-sm-auto justify-content-between justify-content-sm-end">
                     <Form.Select size="sm" style={{ width: '140px' }} className="shadow-none">
                         <option>Last 30 Days</option>
                         <option>This Month</option>
