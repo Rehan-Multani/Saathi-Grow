@@ -37,7 +37,7 @@ const SecurityPage = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-black p-4 pt-6 relative overflow-hidden">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-8 p-4">
                     <button
                         onClick={() => {
                             const from = location.state?.from || '/';
@@ -45,7 +45,7 @@ const SecurityPage = () => {
                             const shouldOpenMenu = !noMenuPages.includes(from);
                             navigate(from, { state: { openMenu: shouldOpenMenu } });
                         }}
-                        className="p-1.5 bg-white dark:bg-[#141414] rounded-full shadow-sm"
+                        className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm"
                     >
                         <ArrowLeft size={16} />
                     </button>
@@ -53,83 +53,83 @@ const SecurityPage = () => {
                 </div>
 
                 {/* Password Section */}
-                <div className="mb-6">
-                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest leading-none">Password Management</h3>
-                    <div className="bg-white dark:bg-[#141414] rounded-[24px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
+                <div className="px-4 mb-8">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Password Management</h3>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
                         <button
                             onClick={() => setShowPasswordModal(true)}
-                            className="w-full p-3.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-left"
+                            className="w-full py-4 px-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-left group"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-orange-50 dark:bg-orange-500/10 rounded-lg flex items-center justify-center text-orange-500">
-                                    <Key size={16} />
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 rounded-xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-orange-500 shadow-sm">
+                                    <Key size={18} />
                                 </div>
                                 <div>
-                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight">Change password</h4>
+                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight leading-none mb-0.5">Change password</h4>
                                     <p className="!text-[8.5px] text-gray-400 font-medium">Last changed 3 months ago</p>
                                 </div>
                             </div>
-                            <ChevronRight size={14} className="text-gray-300" />
+                            <ChevronRight size={14} className="text-gray-300 group-hover:text-[#0c831f] transition-colors" />
                         </button>
                     </div>
                 </div>
 
                 {/* Two Factor Auth */}
-                <div className="mb-6">
-                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest leading-none">Enhanced Protection</h3>
-                    <div className="bg-white dark:bg-[#141414] rounded-[20px] border border-gray-100 dark:border-white/5 p-3.5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 text-left">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${twoFactor ? 'bg-green-50 text-[#0c831f]' : 'bg-gray-50 text-gray-400'}`}>
-                                    <Shield size={16} />
+                <div className="px-4 mb-8">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Enhanced Protection</h3>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                        <div className="py-4 px-2 flex items-center justify-between group">
+                            <div className="flex items-center gap-4 text-left">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100 dark:border-white/10 shadow-sm transition-colors ${twoFactor ? 'bg-green-50 text-[#0c831f]' : 'bg-gray-50 dark:bg-white/5 text-gray-400'}`}>
+                                    <Shield size={18} />
                                 </div>
                                 <div>
-                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight">2FA security</h4>
+                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight leading-none mb-0.5">2FA security</h4>
                                     <p className="!text-[8.5px] text-gray-400 font-medium">Secure your login with OTP</p>
                                 </div>
                             </div>
                             <button
                                 onClick={handleToggle2FA}
-                                className={`w-12 h-6 rounded-full transition-all relative ${twoFactor ? 'bg-[#0c831f]' : 'bg-gray-200'}`}
+                                className={`w-9 h-5 rounded-full transition-all relative ${twoFactor ? 'bg-[#0c831f]' : 'bg-gray-200 dark:bg-white/10'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${twoFactor ? 'left-7' : 'left-1'}`} />
+                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm ${twoFactor ? 'left-[1.35rem]' : 'left-1'}`} />
                             </button>
                         </div>
                     </div>
                 </div>
 
                 {/* Logged in Devices */}
-                <div className="mb-6">
-                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest leading-none">Logged-in Devices</h3>
-                    <div className="bg-white dark:bg-[#141414] rounded-[20px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
+                <div className="px-4 mb-8">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Logged-in Devices</h3>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
                         {devices.map((device, idx) => (
                             <div
                                 key={idx}
-                                className={`p-4 flex items-center justify-between ${idx !== devices.length - 1 ? 'border-b border-gray-50 dark:border-white/5' : ''}`}
+                                className="py-4 px-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
                             >
                                 <div className="flex items-center gap-4 text-left">
-                                    <div className="w-8 h-8 bg-gray-50 dark:bg-white/5 rounded-lg flex items-center justify-center text-gray-400">
-                                        <device.icon size={16} />
+                                    <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-gray-400 shadow-sm">
+                                        <device.icon size={18} />
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight">{device.name}</h4>
+                                    <div className="flex flex-col justify-center">
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight leading-none">{device.name}</h4>
                                             {device.active && (
-                                                <span className="px-1.5 py-0.5 bg-green-100 text-[#0c831f] text-[7px] font-black uppercase rounded leading-none">Current</span>
+                                                <span className="px-1.5 py-0.5 bg-green-100 dark:bg-[#0c831f]/20 text-[#0c831f] text-[7px] font-black uppercase rounded leading-none">Current</span>
                                             )}
                                         </div>
-                                        <p className="!text-[8.5px] text-gray-400 font-medium">{device.location}</p>
+                                        <p className="!text-[8.5px] text-gray-400 font-medium leading-none">{device.location}</p>
                                     </div>
                                 </div>
-                                <button className="!text-[8.5px] font-black text-red-500 uppercase tracking-tight active:scale-95">Revoke</button>
+                                <button className="!text-[8.5px] font-black text-red-500 uppercase tracking-widest active:scale-95 px-2 py-1 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all">Revoke</button>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Tips */}
-                <div className="bg-blue-50 dark:bg-blue-500/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-500/20">
-                    <p className="text-[11px] text-blue-700 dark:text-blue-400 font-bold leading-relaxed text-center">SaathiGro will never ask for your password or OTP via call or email. Stay safe! 🛡️</p>
+                <div className="mx-6 p-4 bg-[#eefaf1] rounded-2xl border border-[#0c831f]/10 text-center">
+                    <p className="text-[11px] text-[#0c831f] font-bold leading-relaxed">SaathiGro will never ask for your password or OTP via call or email. Stay safe! 🛡️</p>
                 </div>
             </div>
 

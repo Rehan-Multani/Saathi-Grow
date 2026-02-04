@@ -42,80 +42,80 @@ const SettingsPage = () => {
         <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-2 p-3 sticky top-0 bg-white/80 dark:bg-black/80 backdrop-blur-[10px] z-10 border-b border-gray-50 dark:border-white/5">
+                <div className="flex items-center gap-3 mb-8 p-4">
                     <button
                         onClick={() => navigate(location.state?.from || '/', { state: { openMenu: true } })}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                        className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm"
                     >
-                        <ArrowLeft size={16} className="text-gray-600 dark:text-gray-400" />
+                        <ArrowLeft size={16} />
                     </button>
-                    <h1 className="!text-[11px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Settings</h1>
+                    <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Settings</h1>
                 </div>
 
                 {/* Account Section */}
-                <div className="p-3 pt-2">
-                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest">Account</h3>
-                    <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-100 dark:border-white/5 overflow-hidden">
-                        {menuItems.map((item, idx) => (
+                <div className="px-4 mb-8">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">My Information</h3>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                        {menuItems.map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => navigate(item.path, { state: { from: '/settings' } })}
-                                className={`w-full p-2.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all ${idx !== menuItems.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''}`}
+                                className="w-full py-4 px-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
                             >
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color.replace('bg-', 'bg-opacity-10 bg-')} dark:bg-white/5`}>
-                                        <item.icon size={14} />
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100 dark:border-white/10 shadow-sm ${item.color.replace('bg-', 'bg-')}`}>
+                                        <item.icon size={18} className="text-[#0c831f]" />
                                     </div>
                                     <div className="text-left">
-                                        <div className="!text-[9.5px] font-black text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">{item.title}</div>
-                                        <p className="!text-[7.5px] text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">{item.subtitle}</p>
+                                        <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 leading-none mb-0.5">{item.title}</h4>
+                                        <p className="!text-[8.5px] text-gray-400 font-medium">{item.subtitle}</p>
                                     </div>
                                 </div>
-                                <ChevronRight size={12} className="text-gray-300" />
+                                <ChevronRight size={14} className="text-gray-300 group-hover:text-[#0c831f] transition-colors" />
                             </button>
                         ))}
                     </div>
                 </div>
 
                 {/* Preferences Section */}
-                <div className="p-3 pt-0">
-                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest">Preferences</h3>
-                    <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-100 dark:border-white/5 overflow-hidden">
+                <div className="px-4 mb-8">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">App Preferences</h3>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
                         {/* Theme Toggle */}
-                        <div className="p-2.5 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
-                            <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-purple-50 text-purple-500 bg-opacity-40 dark:bg-white/5">
-                                    {isDarkMode ? <Moon size={14} /> : <Sun size={14} />}
+                        <div className="py-4 px-2 flex items-center justify-between group">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-50 dark:bg-purple-500/10 border border-gray-100 dark:border-white/10 shadow-sm">
+                                    {isDarkMode ? <Moon size={18} className="text-purple-600" /> : <Sun size={18} className="text-orange-500" />}
                                 </div>
                                 <div className="text-left">
-                                    <div className="!text-[9.5px] font-black text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">Dark Mode</div>
-                                    <p className="!text-[7.5px] text-gray-400 dark:text-gray-500 font-medium">Toggle app appearance</p>
+                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 leading-none mb-0.5">Dark Mode</h4>
+                                    <p className="!text-[8.5px] text-gray-400 font-medium">Toggle app appearance</p>
                                 </div>
                             </div>
                             <button
                                 onClick={toggleTheme}
-                                className={`w-8 h-4 rounded-full transition-all relative ${isDarkMode ? 'bg-[#0c831f]' : 'bg-gray-200'}`}
+                                className={`w-9 h-5 rounded-full transition-all relative ${isDarkMode ? 'bg-[#0c831f]' : 'bg-gray-200 dark:bg-white/10'}`}
                             >
-                                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'left-[1.125rem]' : 'left-0.5'}`} />
+                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'left-[1.35rem]' : 'left-1'}`} />
                             </button>
                         </div>
 
                         {/* Notifications Toggle */}
-                        <div className="p-2.5 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-pink-50 text-pink-500 bg-opacity-40 dark:bg-white/5">
-                                    <Bell size={14} />
+                        <div className="py-4 px-2 flex items-center justify-between group">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-pink-50 dark:bg-pink-500/10 border border-gray-100 dark:border-white/10 shadow-sm">
+                                    <Bell size={18} className="text-pink-600" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="!text-[9.5px] font-black text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">Push Notifications</div>
-                                    <p className="!text-[7.5px] text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">Order updates and offers</p>
+                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 leading-none mb-0.5">Push Notifications</h4>
+                                    <p className="!text-[8.5px] text-gray-400 font-medium">Order updates and offers</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                                className={`w-8 h-4 rounded-full transition-all relative ${notificationsEnabled ? 'bg-[#0c831f]' : 'bg-gray-200'}`}
+                                className={`w-9 h-5 rounded-full transition-all relative ${notificationsEnabled ? 'bg-[#0c831f]' : 'bg-gray-200 dark:bg-white/10'}`}
                             >
-                                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${notificationsEnabled ? 'left-[1.125rem]' : 'left-0.5'}`} />
+                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${notificationsEnabled ? 'left-[1.35rem]' : 'left-1'}`} />
                             </button>
                         </div>
                     </div>
@@ -123,16 +123,16 @@ const SettingsPage = () => {
 
                 {/* Logout Button */}
                 {user && (
-                    <div className="p-3 pt-1">
+                    <div className="px-6">
                         <button
                             onClick={() => {
                                 logout();
                                 navigate('/');
                             }}
-                            className="w-full p-2.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-center gap-2 font-black !text-[9.5px] transition-all hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-[0.98]"
+                            className="w-full py-4 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-2xl flex items-center justify-center gap-2 font-black !text-[11px] transition-all hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-[0.98] uppercase tracking-widest"
                         >
-                            <LogOut size={14} />
-                            Logout Account
+                            <LogOut size={16} />
+                            Sign Out Account
                         </button>
                     </div>
                 )}

@@ -55,7 +55,7 @@ const WishlistPage = () => {
                     </button>
                     <div>
                         <h1 className="!text-[12px] font-black text-gray-900 dark:text-gray-100 leading-none tracking-tight">My Wishlist</h1>
-                        <p className="!text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-1">{wishlist.length} Items saved</p>
+                        <p className="!text-[7px] text-gray-400 font-bold uppercase tracking-widest mt-1">{wishlist.length} Items saved</p>
                     </div>
                 </div>
 
@@ -102,16 +102,15 @@ const WishlistPage = () => {
                                     {/* Details */}
                                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                                         <h3
-                                            className="text-[8px] font-bold text-gray-800 dark:text-gray-100 leading-tight mb-0.5 truncate cursor-pointer uppercase tracking-tight"
+                                            className="text-[7px] font-bold text-gray-800 dark:text-gray-100 leading-tight mb-0.5 truncate cursor-pointer uppercase tracking-tight"
                                             onClick={() => navigate(`/product/${item.id}`)}
                                         >
                                             {item.name}
                                         </h3>
-                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-tighter mb-4 opacity-70">{item.weight}</p>
-
+                                        <p className="text-[6.5px] text-gray-400 font-bold uppercase tracking-tighter mb-4 opacity-70">{item.weight}</p>
                                         <div className="flex items-center justify-between">
                                             <div className="flex flex-col">
-                                                <span className="!text-[15px] font-black text-gray-900 dark:text-gray-100 leading-none">₹{item.price}</span>
+                                                <span className="!text-[13px] font-black text-gray-900 dark:text-gray-100 leading-none">₹{item.price}</span>
                                                 {item.originalPrice && (
                                                     <span className="!text-[10px] text-gray-300 dark:text-gray-600 line-through font-bold mt-0.5 leading-none">₹{item.originalPrice}</span>
                                                 )}

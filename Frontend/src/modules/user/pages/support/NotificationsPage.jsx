@@ -37,7 +37,7 @@ const NotificationsPage = () => {
         <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-2 p-3 sticky top-0 bg-white/80 dark:bg-black/80 backdrop-blur-[10px] z-10 border-b border-gray-50 dark:border-white/5">
+                <div className="flex items-center gap-3 mb-8 p-4">
                     <button
                         onClick={() => {
                             const from = location.state?.from || '/';
@@ -45,43 +45,46 @@ const NotificationsPage = () => {
                             const shouldOpenMenu = !noMenuPages.includes(from);
                             navigate(from, { state: { openMenu: shouldOpenMenu } });
                         }}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                        className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm"
                     >
-                        <ArrowLeft size={16} className="text-gray-600 dark:text-gray-400" />
+                        <ArrowLeft size={16} />
                     </button>
-                    <h1 className="!text-[11px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Notifications</h1>
+                    <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Notifications</h1>
                 </div>
 
                 {/* Notifications List */}
-                <div className="p-3 space-y-1.5">
-                    {notifications.map((item) => (
-                        <div
-                            key={item.id}
-                            className="bg-white dark:bg-[#121212] p-2.5 rounded-xl border border-gray-100 dark:border-white/5 flex gap-2 transition-all active:scale-[0.98] cursor-pointer"
-                        >
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${item.color.replace('bg-', 'bg-opacity-10 bg-')}`}>
-                                <item.icon size={14} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-start mb-0.5">
-                                    <div className="font-black text-gray-900 dark:text-gray-100 !text-[8.5px] truncate pr-2 tracking-tight">{item.title}</div>
-                                    <span className="!text-[6px] text-gray-400 font-black uppercase tracking-tighter whitespace-nowrap mt-1">{item.time}</span>
+                <div className="px-4">
+                    <p className="!text-[8px] font-bold text-gray-400 mb-2 tracking-widest px-2">RECENTLY RECEIVED</p>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                        {notifications.map((item) => (
+                            <div
+                                key={item.id}
+                                className="w-full py-5 px-2 flex items-start gap-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group cursor-pointer"
+                            >
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100 dark:border-white/10 ${item.color.replace('text-', 'text-saathi-green').replace('bg-', 'bg-')}`}>
+                                    <item.icon size={18} className="text-[#0c831f]" />
                                 </div>
-                                <p className="text-[7.5px] text-gray-400 dark:text-gray-500 leading-tight font-medium">
-                                    {item.message}
-                                </p>
+                                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                    <div className="flex justify-between items-center mb-0.5">
+                                        <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 leading-none">{item.title}</h4>
+                                        <span className="!text-[7px] text-gray-400 font-bold uppercase tracking-widest">{item.time}</span>
+                                    </div>
+                                    <p className="!text-[8.5px] text-gray-400 dark:text-gray-500 font-medium leading-relaxed line-clamp-2">
+                                        {item.message}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
 
                 {notifications.length === 0 && (
-                    <div className="text-center py-20 px-6">
-                        <div className="w-12 h-12 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <Bell size={24} className="text-gray-300" />
+                    <div className="flex flex-col items-center justify-center py-24 text-center px-6">
+                        <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                            <Bell size={32} className="text-gray-300" />
                         </div>
-                        <h2 className="text-xs font-black text-gray-900 dark:text-gray-100">All caught up!</h2>
-                        <p className="text-[8.5px] text-gray-500 font-medium tracking-tight">No new notifications to show right now.</p>
+                        <h2 className="!text-[14px] font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">All caught up!</h2>
+                        <p className="!text-[10px] text-gray-400 font-medium max-w-[200px]">No new notifications to show right now.</p>
                     </div>
                 )}
             </div>

@@ -2,29 +2,20 @@ import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Heart } from 'lucide-react';
-import { useWishlist } from '../../context/WishlistContext';
+import { Plus, Minus } from 'lucide-react';
 
 const ProductCard = ({ product }) => {
   const { cart, addToCart, updateQuantity } = useCart();
-  const { toggleWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const cartItem = cart.find(item => item.id === product.id);
   const quantity = cartItem ? cartItem.quantity : 0;
-  const isWishlisted = isInWishlist(product.id);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
-  };
-
-  const handleWishlist = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleWishlist(product);
   };
 
   const handleUpdateQuantity = (e, delta) => {
@@ -45,17 +36,6 @@ const ProductCard = ({ product }) => {
             loading="lazy"
           />
         </Link>
-        {/* Wishlist Button */}
-        <button
-          onClick={handleWishlist}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/70 dark:bg-black/30 backdrop-blur-md shadow-sm active:scale-90 transition-all z-10"
-        >
-          <Heart
-            size={14}
-            className={`${isWishlisted ? 'text-red-500 fill-red-500 animate-in zoom-in duration-300' : 'text-gray-400 dark:text-gray-500'}`}
-            strokeWidth={isWishlisted ? 0 : 3}
-          />
-        </button>
       </div>
 
       <div className="flex flex-col flex-grow">
@@ -79,7 +59,7 @@ const ProductCard = ({ product }) => {
           </div>
 
           {quantity > 0 ? (
-            <div className="flex items-center bg-[#0c831f] dark:bg-[#0c831f] text-white rounded-lg shadow-sm h-[32px] min-w-[75px] overflow-hidden transition-all duration-300">
+            <div className="flex items-center bg-[#0c831f] dark:bg-[#0c831f] text-white !rounded-xl shadow-sm h-[32px] min-w-[75px] overflow-hidden transition-all duration-300">
               <button
                 onClick={(e) => handleUpdateQuantity(e, -1)}
                 className="flex-1 h-full flex items-center justify-center hover:bg-[#0a6b19] dark:hover:bg-[#0c831f]/80 transition-colors"
@@ -101,14 +81,14 @@ const ProductCard = ({ product }) => {
           ) : (
             <button
               onClick={handleAddToCart}
-              className="px-4 py-1.5 bg-[#0c831f] dark:bg-black text-white dark:!text-[#0c831f] border border-[#0c831f]/20 hover:border-[#0c831f] active:scale-95 transition-all text-[11px] font-black rounded-lg uppercase tracking-wider shadow-sm"
+              className="px-4 py-1.5 bg-[#0c831f] dark:bg-black text-white dark:!text-[#0c831f] border border-[#0c831f]/20 hover:border-[#0c831f] active:scale-95 transition-all text-[11px] font-black !rounded-xl uppercase tracking-wider shadow-sm"
             >
               ADD
             </button>
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

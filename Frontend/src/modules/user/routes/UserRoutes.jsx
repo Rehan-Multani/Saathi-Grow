@@ -19,7 +19,6 @@ const HelpPage = lazy(() => import('../pages/support/HelpPage'));
 const SettingsPage = lazy(() => import('../pages/support/SettingsPage'));
 const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const SecurityPage = lazy(() => import('../pages/support/SecurityPage'));
-const WishlistPage = lazy(() => import('../pages/profile/WishlistPage'));
 const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPage'));
 const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
 const OrdersPage = lazy(() => import('../pages/profile/OrdersPage'));
@@ -64,7 +63,6 @@ const UserRoutes = () => {
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/security" element={<SecurityPage />} />
-                    <Route path="/wishlist" element={<WishlistPage />} />
                     <Route path="/saved-addresses" element={<SavedAddressesPage />} />
                     <Route path="/add-address" element={<AddressFormPage />} />
                     <Route path="/edit-address/:id" element={<AddressFormPage />} />

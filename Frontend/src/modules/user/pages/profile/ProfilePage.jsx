@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, Heart, CreditCard } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -22,7 +22,6 @@ const ProfilePage = () => {
 
     const sections = [
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
-        { icon: Heart, label: "My Wishlist", subtitle: "Items you've saved for later", path: "/wishlist" },
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: CreditCard, label: "SaathiGro Wallet", subtitle: "₹0.00 Balance available", path: "/wallet" }
     ];

@@ -277,69 +277,67 @@ const Navbar = () => {
       <div className={`fixed top-0 left-0 h-full w-[280px] bg-white dark:bg-[#141414] z-[101] md:hidden transform transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
           {/* Drawer Header */}
-          <div className="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-green-50/30 dark:bg-[#0c831f]/10">
+          <div className="p-5 flex items-center justify-between border-b border-gray-50 dark:border-white/5">
             <button
               onClick={() => {
-                if (user) {
-                  navigate('/profile', { state: { from: routerLocation.pathname } });
-                  setIsMenuOpen(false);
-                } else {
-                  navigate('/login');
-                  setIsMenuOpen(false);
-                }
+                const target = user ? '/profile' : '/login';
+                navigate(target, { state: { from: routerLocation.pathname } });
+                setIsMenuOpen(false);
               }}
-              className="flex items-center gap-3 text-left"
+              className="flex items-center gap-4 text-left"
             >
-              <div className="w-10 h-10 rounded-full bg-[var(--saathi-green)] flex items-center justify-center text-white">
-                <User size={20} />
+              <div className="w-12 h-12 rounded-full bg-[#eefaf1] dark:bg-[#0c831f]/10 border-4 border-gray-50 dark:border-white/5 flex items-center justify-center text-[#0c831f] shadow-sm overflow-hidden">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={24} />
+                )}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-1">
-                  {user ? (user.name || user.email) : 'Welcome Guest'}
+                <span className="!text-[13px] font-black text-gray-900 dark:text-gray-100 leading-none mb-1">
+                  {user ? (user.name || "Saathi Member") : 'Welcome Guest'}
                 </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                <span className="!text-[9px] text-gray-500 font-bold uppercase tracking-wider">
                   {user ? 'View Profile' : 'Login to your account'}
                 </span>
               </div>
             </button>
             <button
               onClick={() => setIsMenuOpen(false)}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors"
+              className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-400"
             >
-              <X size={20} className="text-gray-500" />
+              <X size={18} />
             </button>
           </div>
 
           {/* Drawer Content */}
-          <div className="flex-1 overflow-y-auto py-2">
-            {/* Location Section - Mobile Drawer */}
-            <div className="px-4 py-3">
-              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 px-1">Location</p>
+          <div className="flex-1 overflow-y-auto py-6">
+            {/* Location Section */}
+            <div className="px-6 mb-8">
+              <p className="!text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 px-2">Location</p>
               <button
                 onClick={() => {
                   openLocationModal();
                   setIsMenuOpen(false);
                 }}
-                className="w-full flex items-center gap-4 transition-all active:scale-95 group"
+                className="w-full py-2 px-2 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-white/5 !rounded-2xl transition-all group"
               >
-                <div className="w-10 h-10 bg-green-50 dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center text-[#0c831f] group-hover:bg-[#0c831f]/20 transition-colors">
-                  <MapPin size={20} />
+                <div className="w-10 h-10 bg-green-50 dark:bg-[#0c831f]/10 !rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-[#0c831f] shadow-sm">
+                  <MapPin size={18} />
                 </div>
-                <div className="flex flex-col items-start overflow-hidden">
-                  <span className="text-[14px] font-black text-gray-800 dark:text-gray-100 line-clamp-1">
+                <div className="flex flex-col items-start overflow-hidden text-left">
+                  <span className="!text-[11px] font-black text-gray-900 dark:text-gray-100 line-clamp-1 leading-none mb-1">
                     {location.city ? location.address : 'Select Location'}
                   </span>
-                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Tap to change</span>
+                  <span className="!text-[8px] text-gray-400 font-bold uppercase tracking-widest">Tap to change</span>
                 </div>
               </button>
             </div>
 
-
-            {/* Quick Links */}
-            {/* Quick Links */}
-            <div className="px-4 py-3">
-              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 px-1">Support & Info</p>
-              <div className="space-y-4">
+            {/* Quick Links Section */}
+            <div className="px-6">
+              <p className="!text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 px-2">Support & Info</p>
+              <div className="divide-y divide-gray-100 dark:divide-white/5">
                 {[
                   { icon: Bell, label: 'Notifications', path: '/notifications' },
                   { icon: HelpCircle, label: 'Help & Support', path: '/help' },
@@ -351,12 +349,12 @@ const Navbar = () => {
                       navigate(item.path, { state: { from: routerLocation.pathname } });
                       setIsMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-4 text-gray-700 dark:text-gray-300 transition-all active:scale-95 group"
+                    className="w-full py-4 px-2 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group group-active:scale-95 !rounded-2xl"
                   >
-                    <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center group-hover:bg-[#0c831f]/10 transition-colors">
-                      <item.icon size={20} className="text-[#0c831f]" />
+                    <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 !rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-[#0c831f] shadow-sm">
+                      <item.icon size={18} />
                     </div>
-                    <span className="text-[14px] font-black tracking-tight">{item.label}</span>
+                    <span className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight leading-none">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -364,25 +362,25 @@ const Navbar = () => {
           </div>
 
           {/* Drawer Footer */}
-          <div className="p-4 border-t border-gray-100 dark:border-white/5">
+          <div className="p-6">
             {user ? (
               <button
                 onClick={() => {
                   logout();
                   setIsMenuOpen(false);
                 }}
-                className="w-full py-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all"
+                className="w-full py-3.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-2xl font-black !text-[11px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all uppercase tracking-widest"
               >
-                <LogOut size={18} />
+                <LogOut size={16} />
                 Sign Out
               </button>
             ) : (
               <Link
                 to="/login"
                 onClick={() => setIsMenuOpen(false)}
-                className="w-full py-3 bg-[var(--saathi-green)] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none transition-all hover:brightness-110"
+                className="w-full py-4 bg-[#0c831f] text-white rounded-2xl font-black !text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all uppercase tracking-widest"
               >
-                <User size={18} />
+                <User size={16} />
                 Sign In / Sign Up
               </Link>
             )}
