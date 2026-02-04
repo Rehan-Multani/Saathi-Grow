@@ -51,11 +51,11 @@ const ProductDetailsPage = () => {
             </div>
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12">
 
                     {/* Left: Image Section */}
                     <div className="flex flex-col gap-6">
-                        <div className="relative aspect-square bg-white dark:bg-[#111] rounded-[32px] overflow-hidden flex items-center justify-center group shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#0c831f]/10 dark:border-white/5 p-8 md:p-12 max-w-[400px] mx-auto w-full transition-all duration-500 hover:shadow-xl">
+                        <div className="relative aspect-square bg-white dark:bg-[#111] rounded-[32px] overflow-hidden flex items-center justify-center group shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#0c831f]/10 dark:border-white/5 p-4 md:p-12 max-w-[260px] md:max-w-[400px] mx-auto w-full transition-all duration-500 hover:shadow-xl">
                             <img
                                 src={selectedImage}
                                 alt={product.name}
@@ -82,11 +82,11 @@ const ProductDetailsPage = () => {
 
                     {/* Right: Details Section */}
                     <div className="flex flex-col text-left py-0 md:py-2">
-                        <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-200 mb-2 leading-tight">
+                        <h1 className="text-[15px] md:text-xl font-bold text-gray-900 dark:text-gray-200 mb-1 leading-tight">
                             {product.name}
                         </h1>
 
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-2 mb-2">
                             <div className="flex items-center gap-1 bg-[#2a2a2a] px-2.5 py-1 rounded-md">
                                 <Star size={14} className="text-yellow-500 fill-yellow-500" />
                                 <span className="text-xs font-bold text-gray-400">0.0</span>
@@ -96,11 +96,11 @@ const ProductDetailsPage = () => {
                             </div>
                         </div>
 
-                        <div className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">
+                        <div className="text-[11px] font-medium text-gray-500 mb-2 uppercase tracking-wide">
                             {product.weight}
                         </div>
 
-                        <div className="text-xl font-bold text-[#0c831f] dark:text-[#10b981] mb-6">
+                        <div className="text-lg font-bold text-[#0c831f] dark:text-[#10b981] mb-3">
                             ₹ {product.price}.00
                         </div>
 
@@ -111,7 +111,7 @@ const ProductDetailsPage = () => {
                             </div>
                         </div>
 
-                        <div className="mt-8 mb-8">
+                        <div className="mt-4 mb-6">
                             {quantity === 0 ? (
                                 <button
                                     onClick={() => addToCart(product)}

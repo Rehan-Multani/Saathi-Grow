@@ -89,26 +89,27 @@ const CategoryPage = () => {
 
     return (
         <div className="min-h-screen bg-[#f8f9fb] dark:bg-black pb-20 transition-colors duration-300">
-            {/* Breadcrumbs & Navigation */}
-            <div className="bg-white dark:bg-[#141414] border-b border-gray-100 dark:border-white/5 sticky top-16 z-40 px-4 py-3">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center text-[10px] md:text-sm text-gray-400 gap-2 uppercase tracking-widest font-black">
-                        <Link to="/" className="hover:text-[#0c831f] transition-colors">Home</Link>
-                        <ChevronRight size={14} strokeWidth={3} />
-                        <Link to="/category" className="hover:text-[#0c831f] transition-colors">Categories</Link>
-                        <ChevronRight size={14} strokeWidth={3} />
-                        <span className="text-gray-900 dark:text-white">{currentCategory?.name}</span>
+            {/* Combined Sticky Headers: Breadcrumbs + Subcategories */}
+            <div className="sticky top-16 z-40 bg-white dark:bg-[#141414] border-b border-gray-100 dark:border-white/5 shadow-sm">
+                {/* Breadcrumbs */}
+                <div className="px-4 py-2.5 border-b border-gray-50 dark:border-white/5">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between">
+                        <div className="flex items-center text-[9px] md:text-xs text-gray-400 gap-1.5 uppercase tracking-widest font-black">
+                            <Link to="/" className="hover:text-[#0c831f] transition-colors">Home</Link>
+                            <ChevronRight size={10} strokeWidth={3} />
+                            <Link to="/category" className="hover:text-[#0c831f] transition-colors">Categories</Link>
+                            <ChevronRight size={10} strokeWidth={3} />
+                            <span className="text-gray-900 dark:text-white line-clamp-1">{currentCategory?.name}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Sub-Category Slider */}
-            <div className="bg-white dark:bg-[#141414] border-b border-gray-100 dark:border-white/5 sticky top-[112px] z-30">
-                <div className="max-w-7xl mx-auto px-4 py-4">
-                    <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+                {/* Sub-Category Slider */}
+                <div className="max-w-7xl mx-auto px-4 py-3">
+                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                         <button
                             onClick={() => setSelectedSubCat('all')}
-                            className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-lg' : 'bg-transparent border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold'}`}
+                            className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold'}`}
                         >
                             All
                         </button>
@@ -116,7 +117,7 @@ const CategoryPage = () => {
                             <button
                                 key={sub.id}
                                 onClick={() => setSelectedSubCat(sub.slug)}
-                                className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-lg' : 'bg-transparent border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold'}`}
+                                className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold'}`}
                             >
                                 {sub.name}
                             </button>

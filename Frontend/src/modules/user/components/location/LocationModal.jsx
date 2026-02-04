@@ -46,24 +46,24 @@ const LocationModal = () => {
     );
 
     return (
-        <div className="fixed inset-0 z-[100] flex justify-center pt-[70px] px-4 pointer-events-none">
+        <div className="fixed inset-0 z-[100] flex justify-center md:pt-[70px] px-0 md:px-4 pointer-events-none">
             {/* Darkened Overlay */}
             <div
-                className="absolute inset-0 bg-black/50 pointer-events-auto transition-opacity"
+                className="absolute inset-0 bg-white dark:bg-black md:bg-black/50 pointer-events-auto transition-opacity"
                 onClick={closeLocationModal}
             ></div>
 
             {/* Modal Box */}
-            <div className="bg-white dark:bg-[#141414] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-none w-full max-w-[750px] relative z-10 overflow-hidden animate-in slide-in-from-top-4 duration-300 pointer-events-auto p-8 border border-gray-100 dark:border-white/5 h-fit">
+            <div className="bg-white dark:bg-[#141414] md:rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-none w-full max-w-[750px] relative z-10 overflow-hidden animate-in md:slide-in-from-top-4 slide-in-from-bottom-full duration-300 pointer-events-auto p-5 md:p-8 border-0 md:border md:border-gray-100 md:dark:border-white/5 h-full md:h-fit">
                 <button
                     onClick={closeLocationModal}
-                    className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                    className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors md:flex"
                 >
                     <X size={20} className="text-gray-400" />
                 </button>
 
-                <div className="flex flex-col">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-8 text-left">Change Location</h2>
+                <div className="flex flex-col h-full">
+                    <h2 className="text-base md:text-lg font-black text-gray-900 dark:text-gray-100 mb-6 md:mb-8 text-left tracking-tight">Change Location</h2>
 
                     {/* blinkit-style input row */}
                     <div className="flex flex-col md:flex-row items-center gap-6 mb-2">
@@ -84,31 +84,31 @@ const LocationModal = () => {
                         </div>
 
                         {/* Search Input */}
-                        <div className="w-full md:flex-1 relative h-[48px]">
+                        <div className="w-full md:flex-1 relative h-[44px] md:h-[48px]">
                             <input
                                 type="text"
-                                placeholder="search delivery location"
+                                placeholder="Search delivery location"
                                 value={searchText}
                                 onChange={(e) => setSearchText(e.target.value)}
-                                className="w-full h-full pl-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:border-[#0c831f] dark:focus:border-[#0c831f] transition-colors placeholder:text-gray-400 text-gray-700 dark:text-white text-sm bg-transparent"
+                                className="w-full h-full pl-4 pr-10 border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:border-[#0c831f] dark:focus:border-[#0c831f] transition-colors placeholder:text-gray-400 text-gray-700 dark:text-white text-xs md:text-sm bg-gray-50 dark:bg-white/5"
                             />
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                <Search size={18} />
+                                <Search size={16} />
                             </div>
                         </div>
                     </div>
 
                     {/* Suggestions Area */}
                     {(searchText.length > 0 || suggestions.length > 0) && (
-                        <div className="mt-6 max-h-[300px] overflow-y-auto pr-1">
+                        <div className="mt-4 md:mt-6 max-h-[calc(100vh-250px)] md:max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
                             {suggestions.map((city) => (
                                 <button
                                     key={city}
                                     onClick={() => handleManualSelect(city)}
-                                    className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group border-b border-gray-50 dark:border-white/5 last:border-0"
+                                    className="w-full flex items-center gap-3 p-3 md:p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group border-b border-gray-50 dark:border-white/5 last:border-0"
                                 >
-                                    <MapPin size={18} className="text-gray-400 group-hover:text-[#0c831f]" />
-                                    <span className="text-base text-gray-700 dark:text-gray-200 font-medium">{city}</span>
+                                    <MapPin size={16} className="text-gray-400 group-hover:text-[#0c831f]" />
+                                    <span className="text-sm md:text-base text-gray-700 dark:text-gray-200 font-medium">{city}</span>
                                 </button>
                             ))}
                         </div>

@@ -6,6 +6,8 @@ import { LocationProvider } from './modules/user/context/LocationContext';
 import { SearchProvider } from './modules/user/context/SearchContext';
 import { ThemeProvider } from './modules/user/context/ThemeContext';
 import "./App.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Lazy Load Module Routes
 const UserRoutes = lazy(() => import('./modules/user/routes/UserRoutes'));
@@ -34,6 +36,8 @@ const GlobalLoading = () => (
     </div>
 );
 
+import { WishlistProvider } from './modules/user/context/WishlistContext';
+
 function App() {
     return (
         <ThemeProvider>
@@ -41,19 +45,33 @@ function App() {
                 <LocationProvider>
                     <SearchProvider>
                         <CartProvider>
-                            <BrowserRouter>
-                                <Suspense fallback={<GlobalLoading />}>
-                                    <Routes>
-                                        <Route path="/staff/*" element={<StaffRoutes />} />
-                                        <Route path="/admin/*" element={<AdminRoutes />} />
-                                        <Route path="/vendor/*" element={<VendorRoutes />} />
-                                        <Route path="/*" element={<UserRoutes />} />
-                                    </Routes>
+                            <WishlistProvider>
+                                <BrowserRouter>
+                                    <Suspense fallback={<GlobalLoading />}>
+                                        <Routes>
+                                            <Route path="/staff/*" element={<StaffRoutes />} />
+                                            <Route path="/admin/*" element={<AdminRoutes />} />
+                                            <Route path="/vendor/*" element={<VendorRoutes />} />
+                                            <Route path="/*" element={<UserRoutes />} />
+                                        </Routes>
 
-                                    <LoginModal />
-                                    <LocationModal />
-                                </Suspense>
-                            </BrowserRouter>
+                                        <LoginModal />
+                                        <LocationModal />
+                                        <ToastContainer
+                                            position="bottom-center"
+                                            autoClose={2000}
+                                            hideProgressBar={false}
+                                            newestOnTop={false}
+                                            closeOnClick
+                                            rtl={false}
+                                            pauseOnFocusLoss
+                                            draggable
+                                            pauseOnHover
+                                            theme="colored"
+                                        />
+                                    </Suspense>
+                                </BrowserRouter>
+                            </WishlistProvider>
                         </CartProvider>
                     </SearchProvider>
                 </LocationProvider>

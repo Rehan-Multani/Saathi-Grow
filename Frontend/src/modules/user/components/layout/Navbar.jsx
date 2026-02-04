@@ -88,7 +88,7 @@ const Navbar = () => {
                 <div className="flex items-center gap-1 text-[10px] font-black text-[#0c831f] dark:text-[#0c831f] uppercase tracking-wider">
                   Delivering to <ChevronDown size={12} className="group-hover:text-[#0c831f] dark:group-hover:text-[#0c831f] transition-colors" />
                 </div>
-                <div className="flex items-center gap-1 text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-1 max-w-[150px] whitespace-nowrap overflow-hidden text-ellipsis">
+                <div className="flex items-center gap-1 text-xs md:text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-1 max-w-[150px] whitespace-nowrap overflow-hidden text-ellipsis">
                   {location.city ? location.address : 'Select Location'}
                 </div>
               </div>
@@ -100,7 +100,7 @@ const Navbar = () => {
                 onMouseLeave={() => setShowCategories(false)}
               >
                 <div className="flex items-center gap-1 cursor-pointer py-2 group">
-                  <span className="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-[var(--saathi-green)] dark:group-hover:text-[#10b981] transition-colors">
+                  <span className="text-xs md:text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-[var(--saathi-green)] dark:group-hover:text-[#10b981] transition-colors">
                     Categories
                   </span>
                   <ChevronDown size={14} className="text-gray-500 dark:text-gray-400 group-hover:text-[var(--saathi-green)]" />
@@ -314,31 +314,32 @@ const Navbar = () => {
           <div className="flex-1 overflow-y-auto py-2">
             {/* Location Section - Mobile Drawer */}
             <div className="px-4 py-3">
-              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Location</p>
+              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 px-1">Location</p>
               <button
                 onClick={() => {
                   openLocationModal();
                   setIsMenuOpen(false);
                 }}
-                className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"
+                className="w-full flex items-center gap-4 transition-all active:scale-95 group"
               >
-                <div className="p-2 bg-green-100 dark:bg-[#0c831f]/20 rounded-lg text-[#0c831f]">
-                  <MapPin size={18} />
+                <div className="w-10 h-10 bg-green-50 dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center text-[#0c831f] group-hover:bg-[#0c831f]/20 transition-colors">
+                  <MapPin size={20} />
                 </div>
                 <div className="flex flex-col items-start overflow-hidden">
-                  <span className="text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-1">
+                  <span className="text-[14px] font-black text-gray-800 dark:text-gray-100 line-clamp-1">
                     {location.city ? location.address : 'Select Location'}
                   </span>
-                  <span className="text-[10px] text-gray-500">Tap to change</span>
+                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Tap to change</span>
                 </div>
               </button>
             </div>
 
 
             {/* Quick Links */}
-            <div className="px-4 py-3 border-t border-gray-50 dark:border-white/5">
-              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Support & Info</p>
-              <div className="space-y-1">
+            {/* Quick Links */}
+            <div className="px-4 py-3">
+              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 px-1">Support & Info</p>
+              <div className="space-y-4">
                 {[
                   { icon: Bell, label: 'Notifications', path: '/notifications' },
                   { icon: HelpCircle, label: 'Help & Support', path: '/help' },
@@ -350,10 +351,12 @@ const Navbar = () => {
                       navigate(item.path, { state: { from: routerLocation.pathname } });
                       setIsMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl text-sm font-bold transition-all active:scale-95 border border-transparent hover:border-gray-100 dark:hover:border-white/5"
+                    className="w-full flex items-center gap-4 text-gray-700 dark:text-gray-300 transition-all active:scale-95 group"
                   >
-                    <item.icon size={20} className="text-[#0c831f]" />
-                    {item.label}
+                    <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center group-hover:bg-[#0c831f]/10 transition-colors">
+                      <item.icon size={20} className="text-[#0c831f]" />
+                    </div>
+                    <span className="text-[14px] font-black tracking-tight">{item.label}</span>
                   </button>
                 ))}
               </div>

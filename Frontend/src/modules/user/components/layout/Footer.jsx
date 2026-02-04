@@ -10,31 +10,31 @@ const Footer = () => {
 
           {/* Useful Links Section */}
           <div className="lg:w-1/3 text-center lg:text-left flex flex-col items-center lg:items-start">
-            <h3 className="text-[15px] md:text-lg font-black text-gray-900 dark:text-gray-100 mb-5 md:mb-6 uppercase tracking-widest">Useful Links</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 w-full gap-x-6 md:gap-x-12 gap-y-3 justify-items-center lg:justify-items-start">
+            <h3 className="text-[13px] md:text-lg font-black text-gray-900 dark:text-gray-100 mb-5 md:mb-6 uppercase tracking-widest">Useful Links</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 md:gap-x-6 lg:gap-x-8 gap-y-3 justify-items-center lg:justify-items-start">
               <ul className="space-y-1 p-0 list-none">
-                <li><Link to="/about" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">About</Link></li>
-                <li><Link to="/careers" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Careers</Link></li>
-                <li><Link to="/blog" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Blog</Link></li>
-                <li><Link to="/press" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Press</Link></li>
-                <li><Link to="/lead" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Lead</Link></li>
-                <li><Link to="/value" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Value</Link></li>
+                <li><Link to="/about" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">About</Link></li>
+                <li><Link to="/careers" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Careers</Link></li>
+                <li><Link to="/blog" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Blog</Link></li>
+                <li><Link to="/press" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Press</Link></li>
+                <li><Link to="/lead" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Lead</Link></li>
+                <li><Link to="/value" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Value</Link></li>
               </ul>
               <ul className="space-y-1 p-0 list-none">
-                <li><Link to="/privacy" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Privacy</Link></li>
-                <li><Link to="/terms" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Terms</Link></li>
-                <li><Link to="/faqs" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">FAQs</Link></li>
-                <li><Link to="/security" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Security</Link></li>
-                <li><Link to="/mobile" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Mobile</Link></li>
-                <li><Link to="/contact" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Contact</Link></li>
+                <li><Link to="/privacy" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Privacy</Link></li>
+                <li><Link to="/terms" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Terms</Link></li>
+                <li><Link to="/faqs" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">FAQs</Link></li>
+                <li><Link to="/security" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Security</Link></li>
+                <li><Link to="/mobile" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Mobile</Link></li>
+                <li><Link to="/contact" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Contact</Link></li>
               </ul>
               <ul className="space-y-1 p-0 list-none hidden sm:block">
-                <li><Link to="/partner" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Partner</Link></li>
-                <li><Link to="/express" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Express</Link></li>
-                <li><Link to="/seller" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Seller</Link></li>
-                <li><Link to="/warehouse" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Warehouse</Link></li>
-                <li><Link to="/deliver" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Deliver</Link></li>
-                <li><Link to="/resources" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm transition-colors">Resources</Link></li>
+                <li><Link to="/partner" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Partner</Link></li>
+                <li><Link to="/express" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Express</Link></li>
+                <li><Link to="/seller" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Seller</Link></li>
+                <li><Link to="/warehouse" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Warehouse</Link></li>
+                <li><Link to="/deliver" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Deliver</Link></li>
+                <li><Link to="/resources" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">Resources</Link></li>
               </ul>
             </div>
           </div>
@@ -42,7 +42,7 @@ const Footer = () => {
           {/* Categories Section */}
           <div className="lg:w-2/3 text-center lg:text-left flex flex-col items-center lg:items-start mt-10 lg:mt-0">
             <div className="flex items-center gap-4 mb-5 md:mb-6 justify-center lg:justify-start">
-              <h3 className="text-[15px] md:text-xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Categories</h3>
+              <h3 className="text-[13px] md:text-xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Categories</h3>
               <Link to="/category" className="text-[#0c831f] text-[10px] md:text-sm font-black hover:opacity-80 transition-all border-b border-[#0c831f] pb-0.5">see all</Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 md:gap-x-12 md:gap-y-4 justify-items-center lg:justify-items-start">

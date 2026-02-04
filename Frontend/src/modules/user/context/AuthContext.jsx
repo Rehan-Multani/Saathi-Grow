@@ -61,6 +61,10 @@ export const AuthProvider = ({ children }) => {
         return { success: true };
     };
 
+    const updateUser = (userData) => {
+        setUser(prev => ({ ...prev, ...userData }));
+    };
+
     const logout = () => {
         setUser(null);
     };
@@ -83,6 +87,7 @@ export const AuthProvider = ({ children }) => {
                 user,
                 login,
                 register,
+                updateUser,
                 logout,
                 showLoginModal,
                 openLogin,

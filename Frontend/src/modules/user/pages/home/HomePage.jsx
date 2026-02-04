@@ -183,14 +183,14 @@ const HomePage = () => {
             {(filteredCategories.length > 0 || !isSearching) && (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10">
                     <div className="flex items-center justify-between mb-4 md:mb-6">
-                        <h2 className="text-[17px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
+                        <h2 className="text-[13px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
                         {!isSearching && (
                             <Link
                                 to="/category"
-                                className="flex items-center gap-1 text-[#0c831f] text-xs md:text-base font-black uppercase tracking-widest hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
+                                className="flex items-center gap-1 text-[#0c831f] text-[10px] md:text-sm font-black tracking-widest hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
                             >
-                                See All
-                                <ChevronRight size={16} strokeWidth={3} />
+                                See all
+                                <ChevronRight size={12} strokeWidth={3} />
                             </Link>
                         )}
                     </div>
@@ -222,7 +222,7 @@ const HomePage = () => {
                                                     loading="lazy"
                                                 />
                                             </div>
-                                            <span className="text-[10px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[28px] sm:min-h-[32px] flex items-start justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
+                                            <span className="text-[9px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[26px] sm:min-h-[32px] flex items-start justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
                                                 {cat.name}
                                             </span>
                                         </Link>
@@ -308,15 +308,15 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0">
             <div className="flex items-center justify-between mb-4 md:mb-6">
-                <h2 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
+                <h2 className="text-[11px] md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
                 </h2>
                 <Link
                     to={`/category/${category.slug}`}
-                    className="flex items-center gap-1 text-[var(--saathi-green)] text-[11px] md:text-base font-bold underline underline-offset-4"
+                    className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all"
                 >
-                    see all
-                    <ChevronRight size={18} />
+                    See all
+                    <ChevronRight size={14} />
                 </Link>
             </div>
 

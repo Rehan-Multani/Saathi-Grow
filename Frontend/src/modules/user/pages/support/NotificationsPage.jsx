@@ -39,12 +39,17 @@ const NotificationsPage = () => {
                 {/* Header */}
                 <div className="flex items-center gap-2 p-3 sticky top-0 bg-white/80 dark:bg-black/80 backdrop-blur-[10px] z-10 border-b border-gray-50 dark:border-white/5">
                     <button
-                        onClick={() => navigate(location.state?.from || '/', { state: { openMenu: true } })}
+                        onClick={() => {
+                            const from = location.state?.from || '/';
+                            const noMenuPages = ['/settings', '/profile'];
+                            const shouldOpenMenu = !noMenuPages.includes(from);
+                            navigate(from, { state: { openMenu: shouldOpenMenu } });
+                        }}
                         className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
                     >
                         <ArrowLeft size={16} className="text-gray-600 dark:text-gray-400" />
                     </button>
-                    <h1 className="text-sm font-black text-gray-900 dark:text-gray-100 tracking-tight">Notifications</h1>
+                    <h1 className="!text-[11px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Notifications</h1>
                 </div>
 
                 {/* Notifications List */}
@@ -59,10 +64,10 @@ const NotificationsPage = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-start mb-0.5">
-                                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-[11px] truncate pr-2 tracking-tight">{item.title}</h3>
-                                    <span className="text-[7.5px] text-gray-400 font-extrabold uppercase tracking-tighter whitespace-nowrap mt-1">{item.time}</span>
+                                    <div className="font-black text-gray-900 dark:text-gray-100 !text-[8.5px] truncate pr-2 tracking-tight">{item.title}</div>
+                                    <span className="!text-[6px] text-gray-400 font-black uppercase tracking-tighter whitespace-nowrap mt-1">{item.time}</span>
                                 </div>
-                                <p className="text-[8.5px] text-gray-400 dark:text-gray-500 leading-tight font-medium">
+                                <p className="text-[7.5px] text-gray-400 dark:text-gray-500 leading-tight font-medium">
                                     {item.message}
                                 </p>
                             </div>

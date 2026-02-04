@@ -21,6 +21,9 @@ const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const SecurityPage = lazy(() => import('../pages/support/SecurityPage'));
 const WishlistPage = lazy(() => import('../pages/profile/WishlistPage'));
 const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPage'));
+const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
+const OrdersPage = lazy(() => import('../pages/profile/OrdersPage'));
+const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
 
 const LoadingFallback = () => (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
@@ -63,6 +66,10 @@ const UserRoutes = () => {
                     <Route path="/security" element={<SecurityPage />} />
                     <Route path="/wishlist" element={<WishlistPage />} />
                     <Route path="/saved-addresses" element={<SavedAddressesPage />} />
+                    <Route path="/add-address" element={<AddressFormPage />} />
+                    <Route path="/edit-address/:id" element={<AddressFormPage />} />
+                    <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/wallet" element={<WalletPage />} />
 
                     {/* Auth Pages matching UserLayout for standard feel */}
                     <Route path="/login" element={<LoginPage />} />

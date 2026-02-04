@@ -6,7 +6,19 @@ import { useAuth } from '../../context/AuthContext';
 const ProfilePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
+    const fileInputRef = React.useRef(null);
+
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                updateUser({ photoURL: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const sections = [
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
@@ -16,70 +28,84 @@ const ProfilePage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-black p-4 pt-6">
+        <div className="min-h-screen bg-white dark:bg-black p-4 pt-6">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-8">
+                <div className="flex items-center gap-3 mb-8">
                     <button
-                        onClick={() => navigate(location.state?.from || '/', { state: { openMenu: true } })}
-                        className="p-2 bg-white dark:bg-[#141414] rounded-full shadow-sm"
+                        onClick={() => {
+                            const from = location.state?.from || '/';
+                            const shouldOpenMenu = from !== '/settings';
+                            navigate(from, { state: { openMenu: shouldOpenMenu } });
+                        }}
+                        className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full"
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={16} />
                     </button>
-                    <h1 className="text-xl font-black text-gray-900 dark:text-gray-100">My Profile</h1>
+                    <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">My Profile</h1>
                 </div>
 
-                {/* Profile Card */}
-                <div className="bg-white dark:bg-[#141414] p-6 rounded-[32px] border border-gray-100 dark:border-white/5 shadow-sm mb-8">
+                {/* Profile Section - Integrated */}
+                <div className="mb-8">
                     <div className="flex flex-col items-center">
-                        <div className="relative mb-4">
-                            <div className="w-24 h-24 bg-[#eefaf1] rounded-[24px] flex items-center justify-center border-4 border-white dark:border-[#141414] overflow-hidden shadow-lg">
+                        <div className="relative mb-3">
+                            <div className="w-20 h-20 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center border-4 border-gray-50 dark:border-white/5 overflow-hidden shadow-sm">
                                 {user?.photoURL ? (
                                     <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    <User size={40} className="text-[#0c831f]" />
+                                    <User size={30} className="text-[#0c831f]" />
                                 )}
                             </div>
-                            <button className="absolute -bottom-1 -right-1 p-2 bg-[#0c831f] text-white rounded-xl shadow-lg border-2 border-white dark:border-[#141414] active:scale-95 transition-transform">
-                                <Camera size={14} />
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageUpload}
+                                className="hidden"
+                                accept="image/*"
+                            />
+                            <button
+                                onClick={() => fileInputRef.current.click()}
+                                className="absolute -bottom-1 -right-1 p-1.5 bg-[#0c831f] text-white rounded-lg shadow-lg border-2 border-white dark:border-[#141414] active:scale-95 transition-transform"
+                            >
+                                <Camera size={12} />
                             </button>
                         </div>
-                        <h2 className="text-lg font-black text-gray-900 dark:text-gray-100">{user?.displayName || "Saathi Member"}</h2>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">{user?.email || "member@saathigro.com"}</p>
+                        <h2 className="!text-[16px] font-black text-gray-900 dark:text-gray-100">{user?.displayName || "Saathi Member"}</h2>
+                        <p className="!text-[10px] text-gray-400 font-bold tracking-widest mt-0.5">{user?.email || "member@saathigro.com"}</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-gray-50 dark:border-white/5">
+                    <div className="grid grid-cols-2 gap-4 mt-8 py-6 border-y border-gray-50 dark:border-white/5">
                         <div className="text-center">
-                            <p className="text-sm font-black text-gray-900 dark:text-gray-100">0</p>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Orders</p>
+                            <p className="!text-[12px] font-black text-gray-900 dark:text-gray-100">0</p>
+                            <p className="!text-[8px] text-gray-400 font-bold uppercase tracking-tighter">Orders</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-sm font-black text-gray-900 dark:text-gray-100">₹0</p>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Savings</p>
+                            <p className="!text-[12px] font-black text-gray-900 dark:text-gray-100">₹0</p>
+                            <p className="!text-[8px] text-gray-400 font-bold uppercase tracking-tighter">Savings</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Menu Sections */}
-                <div className="space-y-4 mb-8">
-                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mb-2">My Information</h3>
-                    <div className="bg-white dark:bg-[#141414] rounded-[24px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
+                <div className="space-y-1 mb-6">
+                    <h3 className="!text-[8px] font-bold text-gray-400 px-2 mb-2 tracking-widest">My Information</h3>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
                         {sections.map((item, idx) => (
                             <button
                                 key={idx}
-                                onClick={() => navigate(item.path)}
-                                className={`w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all ${idx !== sections.length - 1 ? 'border-b border-gray-50 dark:border-white/5' : ''}`}
+                                onClick={() => navigate(item.path, { state: { from: '/profile' } })}
+                                className="w-full py-4 px-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-[#eefaf1] dark:bg-white/5 rounded-xl flex items-center justify-center text-[#0c831f]">
-                                        <item.icon size={20} />
+                                    <div className="w-8 h-8 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-lg flex items-center justify-center text-[#0c831f] shadow-sm">
+                                        <item.icon size={16} />
                                     </div>
                                     <div className="text-left">
-                                        <h4 className="text-sm font-bold text-gray-800 dark:text-gray-100 leading-none mb-1">{item.label}</h4>
-                                        <p className="text-[10px] text-gray-400 font-medium">{item.subtitle}</p>
+                                        <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 leading-none mb-0.5">{item.label}</h4>
+                                        <p className="!text-[8.5px] text-gray-400 font-medium">{item.subtitle}</p>
                                     </div>
                                 </div>
-                                <ChevronRight size={18} className="text-gray-300" />
+                                <ChevronRight size={14} className="text-gray-300 group-hover:text-[#0c831f] transition-colors" />
                             </button>
                         ))}
                     </div>

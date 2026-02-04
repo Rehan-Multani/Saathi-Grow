@@ -49,17 +49,17 @@ const SettingsPage = () => {
                     >
                         <ArrowLeft size={16} className="text-gray-600 dark:text-gray-400" />
                     </button>
-                    <h1 className="text-sm font-black text-gray-900 dark:text-gray-100 tracking-tight">Settings</h1>
+                    <h1 className="!text-[11px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Settings</h1>
                 </div>
 
                 {/* Account Section */}
                 <div className="p-3 pt-2">
-                    <h3 className="text-[10px] font-bold text-gray-400 mb-2 px-1">Account</h3>
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest">Account</h3>
                     <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-100 dark:border-white/5 overflow-hidden">
                         {menuItems.map((item, idx) => (
                             <button
                                 key={item.id}
-                                onClick={() => navigate(item.path)}
+                                onClick={() => navigate(item.path, { state: { from: '/settings' } })}
                                 className={`w-full p-2.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all ${idx !== menuItems.length - 1 ? 'border-b border-gray-100 dark:border-white/5' : ''}`}
                             >
                                 <div className="flex items-center gap-2">
@@ -67,8 +67,8 @@ const SettingsPage = () => {
                                         <item.icon size={14} />
                                     </div>
                                     <div className="text-left">
-                                        <h4 className="text-[11px] font-bold text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">{item.title}</h4>
-                                        <p className="text-[8.5px] text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">{item.subtitle}</p>
+                                        <div className="!text-[9.5px] font-black text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">{item.title}</div>
+                                        <p className="!text-[7.5px] text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">{item.subtitle}</p>
                                     </div>
                                 </div>
                                 <ChevronRight size={12} className="text-gray-300" />
@@ -79,7 +79,7 @@ const SettingsPage = () => {
 
                 {/* Preferences Section */}
                 <div className="p-3 pt-0">
-                    <h3 className="text-[10px] font-bold text-gray-400 mb-2 px-1">Preferences</h3>
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest">Preferences</h3>
                     <div className="bg-white dark:bg-[#121212] rounded-xl border border-gray-100 dark:border-white/5 overflow-hidden">
                         {/* Theme Toggle */}
                         <div className="p-2.5 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
@@ -88,8 +88,8 @@ const SettingsPage = () => {
                                     {isDarkMode ? <Moon size={14} /> : <Sun size={14} />}
                                 </div>
                                 <div className="text-left">
-                                    <h4 className="text-[11px] font-bold text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">Dark Mode</h4>
-                                    <p className="text-[8.5px] text-gray-400 dark:text-gray-500 font-medium">Toggle app appearance</p>
+                                    <div className="!text-[9.5px] font-black text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">Dark Mode</div>
+                                    <p className="!text-[7.5px] text-gray-400 dark:text-gray-500 font-medium">Toggle app appearance</p>
                                 </div>
                             </div>
                             <button
@@ -107,8 +107,8 @@ const SettingsPage = () => {
                                     <Bell size={14} />
                                 </div>
                                 <div className="text-left">
-                                    <h4 className="text-[11px] font-bold text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">Push Notifications</h4>
-                                    <p className="text-[8.5px] text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">Order updates and offers</p>
+                                    <div className="!text-[9.5px] font-black text-gray-900 dark:text-gray-100 leading-none mb-0.5 tracking-tight">Push Notifications</div>
+                                    <p className="!text-[7.5px] text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">Order updates and offers</p>
                                 </div>
                             </div>
                             <button
@@ -129,7 +129,7 @@ const SettingsPage = () => {
                                 logout();
                                 navigate('/');
                             }}
-                            className="w-full p-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-center gap-2 font-black text-[11px] transition-all hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-[0.98]"
+                            className="w-full p-2.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-center gap-2 font-black !text-[9.5px] transition-all hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-[0.98]"
                         >
                             <LogOut size={14} />
                             Logout Account

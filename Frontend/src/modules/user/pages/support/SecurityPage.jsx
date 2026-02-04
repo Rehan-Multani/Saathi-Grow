@@ -37,50 +37,55 @@ const SecurityPage = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-black p-4 pt-6 relative overflow-hidden">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-8">
+                <div className="flex items-center gap-3 mb-6">
                     <button
-                        onClick={() => navigate(location.state?.from || '/', { state: { openMenu: true } })}
-                        className="p-2 bg-white dark:bg-[#141414] rounded-full shadow-sm"
+                        onClick={() => {
+                            const from = location.state?.from || '/';
+                            const noMenuPages = ['/settings', '/profile'];
+                            const shouldOpenMenu = !noMenuPages.includes(from);
+                            navigate(from, { state: { openMenu: shouldOpenMenu } });
+                        }}
+                        className="p-1.5 bg-white dark:bg-[#141414] rounded-full shadow-sm"
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={16} />
                     </button>
-                    <h1 className="text-xl font-black text-gray-900 dark:text-gray-100">Security Center</h1>
+                    <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Security Center</h1>
                 </div>
 
                 {/* Password Section */}
-                <div className="mb-8">
-                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mb-3">Password Management</h3>
+                <div className="mb-6">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest leading-none">Password Management</h3>
                     <div className="bg-white dark:bg-[#141414] rounded-[24px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
                         <button
                             onClick={() => setShowPasswordModal(true)}
-                            className="w-full p-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-left"
+                            className="w-full p-3.5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-left"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-500">
-                                    <Key size={20} />
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-orange-50 dark:bg-orange-500/10 rounded-lg flex items-center justify-center text-orange-500">
+                                    <Key size={16} />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-gray-800 dark:text-gray-100">Change Password</h4>
-                                    <p className="text-[10px] text-gray-400 font-medium">Last changed 3 months ago</p>
+                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight">Change password</h4>
+                                    <p className="!text-[8.5px] text-gray-400 font-medium">Last changed 3 months ago</p>
                                 </div>
                             </div>
-                            <ChevronRight size={18} className="text-gray-300" />
+                            <ChevronRight size={14} className="text-gray-300" />
                         </button>
                     </div>
                 </div>
 
                 {/* Two Factor Auth */}
-                <div className="mb-8">
-                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mb-3">Enhanced Protection</h3>
-                    <div className="bg-white dark:bg-[#141414] rounded-[24px] border border-gray-100 dark:border-white/5 p-5 shadow-sm">
+                <div className="mb-6">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest leading-none">Enhanced Protection</h3>
+                    <div className="bg-white dark:bg-[#141414] rounded-[20px] border border-gray-100 dark:border-white/5 p-3.5 shadow-sm">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 text-left">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${twoFactor ? 'bg-green-50 text-[#0c831f]' : 'bg-gray-50 text-gray-400'}`}>
-                                    <Shield size={20} />
+                            <div className="flex items-center gap-3 text-left">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${twoFactor ? 'bg-green-50 text-[#0c831f]' : 'bg-gray-50 text-gray-400'}`}>
+                                    <Shield size={16} />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-gray-800 dark:text-gray-100">2FA Security</h4>
-                                    <p className="text-[10px] text-gray-400 font-medium">Secure your login with OTP</p>
+                                    <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight">2FA security</h4>
+                                    <p className="!text-[8.5px] text-gray-400 font-medium">Secure your login with OTP</p>
                                 </div>
                             </div>
                             <button
@@ -94,29 +99,29 @@ const SecurityPage = () => {
                 </div>
 
                 {/* Logged in Devices */}
-                <div className="mb-8">
-                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mb-3">Logged-in Devices</h3>
-                    <div className="bg-white dark:bg-[#141414] rounded-[24px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
+                <div className="mb-6">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-1 tracking-widest leading-none">Logged-in Devices</h3>
+                    <div className="bg-white dark:bg-[#141414] rounded-[20px] border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
                         {devices.map((device, idx) => (
                             <div
                                 key={idx}
                                 className={`p-4 flex items-center justify-between ${idx !== devices.length - 1 ? 'border-b border-gray-50 dark:border-white/5' : ''}`}
                             >
                                 <div className="flex items-center gap-4 text-left">
-                                    <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-xl flex items-center justify-center text-gray-400">
-                                        <device.icon size={20} />
+                                    <div className="w-8 h-8 bg-gray-50 dark:bg-white/5 rounded-lg flex items-center justify-center text-gray-400">
+                                        <device.icon size={16} />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h4 className="text-sm font-bold text-gray-800 dark:text-gray-100">{device.name}</h4>
+                                            <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight">{device.name}</h4>
                                             {device.active && (
-                                                <span className="px-1.5 py-0.5 bg-green-100 text-[#0c831f] text-[8px] font-black uppercase rounded">Current</span>
+                                                <span className="px-1.5 py-0.5 bg-green-100 text-[#0c831f] text-[7px] font-black uppercase rounded leading-none">Current</span>
                                             )}
                                         </div>
-                                        <p className="text-[10px] text-gray-400 font-medium">{device.location}</p>
+                                        <p className="!text-[8.5px] text-gray-400 font-medium">{device.location}</p>
                                     </div>
                                 </div>
-                                <button className="text-[10px] font-black text-red-500 uppercase tracking-tight active:scale-95">Revoke</button>
+                                <button className="!text-[8.5px] font-black text-red-500 uppercase tracking-tight active:scale-95">Revoke</button>
                             </div>
                         ))}
                     </div>
@@ -132,21 +137,21 @@ const SecurityPage = () => {
             {showPasswordModal && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowPasswordModal(false)} />
-                    <div className="relative bg-white dark:bg-[#141414] w-full max-w-sm rounded-[32px] p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-black text-gray-900 dark:text-gray-100">Change Password</h2>
-                            <button onClick={() => setShowPasswordModal(false)} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full"><X size={20} /></button>
+                    <div className="relative bg-white dark:bg-[#141414] w-full max-w-[320px] rounded-[24px] p-5 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center mb-5">
+                            <h2 className="!text-[14px] font-black text-gray-900 dark:text-gray-100 tracking-tight uppercase">Change Password</h2>
+                            <button onClick={() => setShowPasswordModal(false)} className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm"><X size={16} /></button>
                         </div>
-                        <form onSubmit={handleChangePassword} className="space-y-4">
+                        <form onSubmit={handleChangePassword} className="space-y-3">
                             <div>
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Old Password</label>
-                                <input type="password" required className="w-full p-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl text-sm font-bold focus:outline-none focus:border-[#0c831f]" placeholder="••••••••" />
+                                <label className="!text-[8.5px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Old Password</label>
+                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="••••••••" />
                             </div>
                             <div>
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">New Password</label>
-                                <input type="password" required className="w-full p-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl text-sm font-bold focus:outline-none focus:border-[#0c831f]" placeholder="••••••••" />
+                                <label className="!text-[8.5px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">New Password</label>
+                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="••••••••" />
                             </div>
-                            <button type="submit" className="w-full bg-[#0c831f] text-white py-4 rounded-2xl font-black text-sm shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all mt-4">
+                            <button type="submit" className="w-full bg-[#0c831f] text-white py-3 rounded-xl font-black !text-[11px] shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all mt-4 uppercase tracking-widest">
                                 Update Password
                             </button>
                         </form>

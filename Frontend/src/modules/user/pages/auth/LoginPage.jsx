@@ -48,14 +48,14 @@ const LoginPage = () => {
                         <div className="bg-green-50 dark:bg-green-500/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-[#0c831f] dark:text-[#10b981]">
                             <User size={24} />
                         </div>
-                        <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Welcome Back</h1>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-300 mt-1 font-medium">Login to continue shopping</p>
+                        <h1 className="!text-base font-black text-gray-900 dark:text-white tracking-tight">Welcome Back</h1>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-300 mt-1 font-medium">Login to continue shopping</p>
                     </div>
 
                     {!showOTP ? (
                         <form onSubmit={handleSendOTP} className="space-y-4">
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1">Phone Number</label>
+                                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1">Phone Number</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <span className="text-gray-400 dark:text-gray-500 font-black text-xs">+91</span>
@@ -65,7 +65,7 @@ const LoginPage = () => {
                                         maxLength="10"
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                                        className="block w-full pl-11 pr-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none transition-all bg-gray-50/50 dark:bg-white/5 dark:text-white text-[13px] font-bold"
+                                        className="block w-full pl-11 pr-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none transition-all bg-gray-50/50 dark:bg-white/5 dark:text-white text-xs font-bold"
                                         placeholder="98765 43210"
                                         required
                                     />
