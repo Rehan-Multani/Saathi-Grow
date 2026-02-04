@@ -14,6 +14,13 @@ const CheckoutPage = lazy(() => import('../pages/checkout/CheckoutPage'));
 const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'));
 const AddressPage = lazy(() => import('../pages/location/AddressPage'));
+const NotificationsPage = lazy(() => import('../pages/support/NotificationsPage'));
+const HelpPage = lazy(() => import('../pages/support/HelpPage'));
+const SettingsPage = lazy(() => import('../pages/support/SettingsPage'));
+const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
+const SecurityPage = lazy(() => import('../pages/support/SecurityPage'));
+const WishlistPage = lazy(() => import('../pages/profile/WishlistPage'));
+const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPage'));
 
 const LoadingFallback = () => (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
@@ -49,6 +56,13 @@ const UserRoutes = () => {
                     <Route path="/product/:id" element={<ProductDetailsPage />} />
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/address" element={<AddressPage />} />
+                    <Route path="/notifications" element={<NotificationsPage />} />
+                    <Route path="/help" element={<HelpPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/security" element={<SecurityPage />} />
+                    <Route path="/wishlist" element={<WishlistPage />} />
+                    <Route path="/saved-addresses" element={<SavedAddressesPage />} />
 
                     {/* Auth Pages matching UserLayout for standard feel */}
                     <Route path="/login" element={<LoginPage />} />

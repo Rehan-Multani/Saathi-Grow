@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Search, User, LogOut, ChevronDown, MapPin, X } from 'lucide-react';
+import { Link, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
+import { ShoppingCart, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../context/LocationContext';
@@ -16,9 +16,20 @@ const Navbar = () => {
   const { searchQuery, setSearchQuery } = useSearch();
   const { isDarkMode, toggleTheme } = useTheme();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
   const uniqueCategories = [...new Set(products.map(p => p.category))];
+  const navigate = useNavigate();
+  const routerLocation = useRouterLocation();
+
+  useEffect(() => {
+    if (routerLocation.state?.openMenu) {
+      setIsMenuOpen(true);
+      // Clean up state to prevent menu opening on random refreshes/re-navigates
+      window.history.replaceState({ ...routerLocation.state, openMenu: false }, '');
+    }
+  }, [routerLocation]);
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
@@ -50,11 +61,19 @@ const Navbar = () => {
 
             {/* Logo & Location */}
             <div className="flex items-center gap-2 sm:gap-6">
+              {/* Hamburger Menu - Mobile */}
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                className="md:hidden p-2 -ml-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full"
+              >
+                <Menu size={24} />
+              </button>
+
               <Link to="/" className="flex-shrink-0 flex items-center">
                 <img
                   src={logo}
                   alt="SaathiGro Logo"
-                  className={`h-11 md:h-14 w-auto object-contain transition-all duration-300 ${isDarkMode
+                  className={`h-9 sm:h-12 md:h-14 w-auto object-contain transition-all duration-300 ${isDarkMode
                     ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
                     : 'mix-blend-multiply brightness-[1.05] contrast-[1.05]'
                     }`}
@@ -88,12 +107,12 @@ const Navbar = () => {
                 </div>
 
                 {showCategories && (
-                  <div className="absolute top-full left-0 w-64 bg-white dark:bg-[#141414] rounded-lg shadow-2xl border border-gray-100 dark:border-white/5 py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute top-full left-0 w-64 bg-white dark:bg-[#141414] rounded-xl shadow-2xl border border-gray-100 dark:border-white/5 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[450px] overflow-y-auto scrollbar-hide">
                     {uniqueCategories.map((cat, idx) => (
                       <Link
                         key={idx}
                         to={`/category/${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="block px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-[#0c831f] hover:text-[var(--saathi-green)] dark:hover:text-white transition-all border-b border-gray-50 dark:border-white/5 last:border-0"
+                        className="block px-4 py-2 text-[13px] font-bold text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-[#0c831f] hover:text-[var(--saathi-green)] dark:hover:text-white transition-all border-b border-gray-50 dark:border-white/5 last:border-0"
                       >
                         {cat}
                       </Link>
@@ -148,35 +167,38 @@ const Navbar = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 sm:gap-4">
 
-              {/* Dark Mode Toggle (Desktop/Mobile - Icon Only) */}
-              <div className="cursor-pointer select-none" onClick={toggleTheme}>
-                <div className={`w-10 h-5 rounded-full p-0.5 flex items-center transition-colors duration-300 ${isDarkMode ? 'bg-[#0c831f]' : 'bg-gray-200'}`}>
-                  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform duration-300 ${isDarkMode ? 'translate-x-[20px]' : 'translate-x-0'}`} />
+              {/* Theme Toggle Icon */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-all duration-500 relative group overflow-hidden"
+                aria-label="Toggle theme"
+              >
+                <div className="relative w-6 h-6 flex items-center justify-center">
+                  {/* Sun Icon */}
+                  <div className={`absolute transition-all duration-500 transform ${isDarkMode ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}>
+                    <Sun size={22} className="text-[#0c831f]" />
+                  </div>
+                  {/* Moon Icon */}
+                  <div className={`absolute transition-all duration-500 transform ${isDarkMode ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`}>
+                    <Moon size={22} className="text-yellow-400" />
+                  </div>
                 </div>
-              </div>
+              </button>
 
               {/* Mobile Search Toggle */}
               <button
                 onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full"
+                className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
+                aria-label="Toggle search"
               >
-                <Search size={22} />
+                <Search size={20} />
               </button>
 
-              {/* Location - Mobile (Icon Only) */}
-              <button
-                onClick={openLocationModal}
-                className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full"
-              >
-                <MapPin size={22} className={location.city ? "text-[#0c831f] dark:text-[#0c831f]" : "dark:text-[#0c831f]"} />
-              </button>
-
-              {/* User Account */}
+              {/* User Account - Desktop Only (Mobile has it in Sidebar) */}
               {user ? (
-                <div className="flex items-center">
-                  {/* Desktop/Mobile Logout Icon Only */}
+                <div className="hidden md:flex items-center">
                   <button onClick={logout} className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg transition-colors">
                     <LogOut size={22} />
                   </button>
@@ -184,17 +206,17 @@ const Navbar = () => {
               ) : (
                 <Link
                   to="/login"
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors text-gray-600 dark:text-gray-400"
+                  className="hidden md:block p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors text-gray-600 dark:text-gray-400"
                 >
                   <User size={24} className="text-[#0c831f] dark:text-[#0c831f]" />
                 </Link>
               )}
 
               {/* Cart Icon */}
-              <div className="relative group cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-all" onClick={toggleCart}>
-                <ShoppingCart size={24} className="text-[#0c831f] dark:text-[#0c831f]" />
+              <div className="relative group cursor-pointer p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-all" onClick={toggleCart}>
+                <ShoppingCart size={20} className="text-[#0c831f] dark:text-[#0c831f] md:size-[24px]" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#0c831f] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0a0a0a] shadow-sm">
+                  <span className="absolute -top-0 -right-0 bg-[#0c831f] text-white text-[8px] md:text-[9px] font-black w-3.5 h-3.5 md:w-5 md:h-5 rounded-full flex items-center justify-center border-[1.5px] border-white dark:border-[#0a0a0a] shadow-sm">
                     {cartCount}
                   </span>
                 )}
@@ -243,6 +265,127 @@ const Navbar = () => {
         </div>
       </nav>
 
+      {/* Mobile Sidebar Overlay */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] md:hidden transition-opacity duration-300"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar (Drawer) */}
+      <div className={`fixed top-0 left-0 h-full w-[280px] bg-white dark:bg-[#141414] z-[101] md:hidden transform transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex flex-col h-full">
+          {/* Drawer Header */}
+          <div className="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-green-50/30 dark:bg-[#0c831f]/10">
+            <button
+              onClick={() => {
+                if (user) {
+                  navigate('/profile', { state: { from: routerLocation.pathname } });
+                  setIsMenuOpen(false);
+                } else {
+                  navigate('/login');
+                  setIsMenuOpen(false);
+                }
+              }}
+              className="flex items-center gap-3 text-left"
+            >
+              <div className="w-10 h-10 rounded-full bg-[var(--saathi-green)] flex items-center justify-center text-white">
+                <User size={20} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-1">
+                  {user ? (user.name || user.email) : 'Welcome Guest'}
+                </span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                  {user ? 'View Profile' : 'Login to your account'}
+                </span>
+              </div>
+            </button>
+            <button
+              onClick={() => setIsMenuOpen(false)}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors"
+            >
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
+
+          {/* Drawer Content */}
+          <div className="flex-1 overflow-y-auto py-2">
+            {/* Location Section - Mobile Drawer */}
+            <div className="px-4 py-3">
+              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Location</p>
+              <button
+                onClick={() => {
+                  openLocationModal();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5"
+              >
+                <div className="p-2 bg-green-100 dark:bg-[#0c831f]/20 rounded-lg text-[#0c831f]">
+                  <MapPin size={18} />
+                </div>
+                <div className="flex flex-col items-start overflow-hidden">
+                  <span className="text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-1">
+                    {location.city ? location.address : 'Select Location'}
+                  </span>
+                  <span className="text-[10px] text-gray-500">Tap to change</span>
+                </div>
+              </button>
+            </div>
+
+
+            {/* Quick Links */}
+            <div className="px-4 py-3 border-t border-gray-50 dark:border-white/5">
+              <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Support & Info</p>
+              <div className="space-y-1">
+                {[
+                  { icon: Bell, label: 'Notifications', path: '/notifications' },
+                  { icon: HelpCircle, label: 'Help & Support', path: '/help' },
+                  { icon: Settings, label: 'Settings', path: '/settings' }
+                ].map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      navigate(item.path, { state: { from: routerLocation.pathname } });
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl text-sm font-bold transition-all active:scale-95 border border-transparent hover:border-gray-100 dark:hover:border-white/5"
+                  >
+                    <item.icon size={20} className="text-[#0c831f]" />
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Drawer Footer */}
+          <div className="p-4 border-t border-gray-100 dark:border-white/5">
+            {user ? (
+              <button
+                onClick={() => {
+                  logout();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full py-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all"
+              >
+                <LogOut size={18} />
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="w-full py-3 bg-[var(--saathi-green)] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none transition-all hover:brightness-110"
+              >
+                <User size={18} />
+                Sign In / Sign Up
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

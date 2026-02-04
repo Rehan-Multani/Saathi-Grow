@@ -57,20 +57,20 @@ const ProductCard = ({ product }) => {
           </div>
 
           {quantity > 0 ? (
-            <div className="flex items-center bg-[#0c831f] dark:bg-[#0c831f]/90 text-white rounded-md overflow-hidden transition-all duration-300 shadow-sm border border-transparent">
+            <div className="flex items-center bg-[#0c831f] dark:bg-[#0c831f] text-white rounded-lg shadow-sm h-[32px] min-w-[75px] overflow-hidden transition-all duration-300">
               <button
                 onClick={(e) => handleUpdateQuantity(e, -1)}
-                className="px-2 py-1 hover:bg-[#0a6b19] dark:hover:bg-[#0c831f] transition-colors"
+                className="flex-1 h-full flex items-center justify-center hover:bg-[#0a6b19] dark:hover:bg-[#0c831f]/80 transition-colors"
                 aria-label="Decrease quantity"
               >
                 <Minus size={14} strokeWidth={3} />
               </button>
-              <span className="px-1 text-[11px] font-bold min-w-[24px] text-center">
+              <span className="text-[13px] font-bold w-6 text-center select-none">
                 {quantity}
               </span>
               <button
                 onClick={(e) => handleUpdateQuantity(e, 1)}
-                className="px-2 py-1 hover:bg-[#0a6b19] dark:hover:bg-[#0c831f] transition-colors"
+                className="flex-1 h-full flex items-center justify-center hover:bg-[#0a6b19] dark:hover:bg-[#0c831f]/80 transition-colors"
                 aria-label="Increase quantity"
               >
                 <Plus size={14} strokeWidth={3} />

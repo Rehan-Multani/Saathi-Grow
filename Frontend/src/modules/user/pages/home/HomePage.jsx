@@ -85,12 +85,14 @@ const HomePage = () => {
         }
     }, [offerIndex]);
 
-    // Category Scroll State
     const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
 
     const handleCategoryScroll = () => {
         if (scrollContainerRef.current) {
-            setCanScrollLeft(scrollContainerRef.current.scrollLeft > 20);
+            const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+            setCanScrollLeft(scrollLeft > 20);
+            setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 20);
         }
     };
 
@@ -130,8 +132,8 @@ const HomePage = () => {
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
             {!isSearching && !loading && (
-                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 overflow-hidden relative group/offers">
-                    <div className="relative">
+                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 group/offers">
+                    <div className="relative overflow-hidden rounded-none sm:rounded-2xl">
                         <div
                             className={`flex ${isTransitioning ? 'transition-transform duration-1000 ease-in-out' : ''}`}
                             style={{
@@ -147,12 +149,12 @@ const HomePage = () => {
                                         width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(16 * (itemsToShow - 1)) / itemsToShow}px)`
                                     }}
                                 >
-                                    <div className="relative cursor-pointer overflow-hidden rounded-none sm:rounded-2xl shadow-sm transition-all duration-300 mx-0 border-none">
-                                        <div className="aspect-[16/8] sm:aspect-[16/7] overflow-hidden">
+                                    <div className="relative cursor-pointer transition-all duration-300 mx-0 border-none group/banner">
+                                        <div className="aspect-[16/7.5] sm:aspect-[16/7] overflow-hidden rounded-lg sm:rounded-2xl shadow-sm border border-gray-100/10">
                                             <img
                                                 src={offer.image}
                                                 alt="Special Offer"
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover/banner:scale-105"
                                                 loading="lazy"
                                             />
                                         </div>
@@ -162,14 +164,14 @@ const HomePage = () => {
                         </div>
                     </div>
 
-                    {/* Pagination Lines (Blinkit Style) */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+                    {/* Pagination Lines (Blinkit Style) - Moved below image */}
+                    <div className="flex justify-center gap-2.5 mt-4">
                         {offerBanners.map((_, idx) => (
                             <div
                                 key={idx}
                                 className={`h-1.5 rounded-full transition-all duration-500 ${(offerIndex % offerBanners.length) === idx
-                                    ? 'w-12 bg-[#0c831f] shadow-[0_0_10px_rgba(12,131,31,0.3)]'
-                                    : 'w-6 bg-gray-300 dark:bg-white/20'
+                                    ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
+                                    : 'w-4 bg-gray-200 dark:bg-white/10'
                                     }`}
                             />
                         ))}
@@ -179,38 +181,48 @@ const HomePage = () => {
 
             {/* Categories */}
             {(filteredCategories.length > 0 || !isSearching) && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-8">
-                    <div className="flex items-center justify-between mb-4 md:mb-8">
-                        <h2 className="text-sm md:text-base font-black text-[#1e293b] dark:text-gray-100 tracking-tight">Shop by Category</h2>
-                        {!isSearching && <Link to="/category" className="text-[var(--saathi-green)] text-xs md:text-base font-bold underline underline-offset-4">See All</Link>}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <h2 className="text-[17px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
+                        {!isSearching && (
+                            <Link
+                                to="/category"
+                                className="flex items-center gap-1 text-[#0c831f] text-xs md:text-base font-black uppercase tracking-widest hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
+                            >
+                                See All
+                                <ChevronRight size={16} strokeWidth={3} />
+                            </Link>
+                        )}
                     </div>
                     <div className="relative group/nav">
                         <div
                             ref={scrollContainerRef}
-                            className="grid grid-cols-3 sm:flex sm:overflow-x-auto gap-3 sm:gap-8 pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start"
+                            className="flex overflow-x-auto gap-3 sm:gap-8 pt-1 pb-4 md:pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start"
                             onScroll={handleCategoryScroll}
                         >
                             {loading ? (
                                 Array.from({ length: 8 }).map((_, i) => (
-                                    <CategorySkeleton key={i} />
+                                    <div key={i} className="flex-shrink-0 w-24">
+                                        <CategorySkeleton />
+                                    </div>
                                 ))
                             ) : (
                                 filteredCategories.map((cat) => {
                                     const bgColor = categoryColors[cat.slug] || '#f3f4f6';
                                     return (
-                                        <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center transition-transform hover:scale-105 group w-full sm:w-32 sm:flex-shrink-0">
+                                        <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0">
                                             <div
-                                                className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] rounded-[1.5rem] md:rounded-[2rem] shadow-sm flex items-center justify-center mb-3 transition-all duration-300 group-hover:shadow-md relative overflow-hidden group-hover:-translate-y-1"
+                                                className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-2xl sm:rounded-3xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100 dark:hover:border-white/10"
                                                 style={{ backgroundColor: bgColor }}
                                             >
                                                 <img
                                                     src={cat.image}
                                                     alt={cat.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                     loading="lazy"
                                                 />
                                             </div>
-                                            <span className="text-[12px] md:text-[14px] font-extrabold text-center text-[#2d3748] dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[36px] flex items-start justify-center tracking-tight">
+                                            <span className="text-[10px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[28px] sm:min-h-[32px] flex items-start justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
                                                 {cat.name}
                                             </span>
                                         </Link>
@@ -224,19 +236,21 @@ const HomePage = () => {
                                 {canScrollLeft && (
                                     <button
                                         onClick={scrollLeft}
-                                        className="absolute -left-5 top-10 md:top-14 z-30 bg-white dark:bg-[#141414] text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/5 cursor-pointer hidden md:flex"
+                                        className="absolute -left-4 top-10 md:top-14 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
                                         aria-label="Scroll left"
                                     >
-                                        <ArrowLeft size={26} strokeWidth={2.5} />
+                                        <ArrowLeft size={18} strokeWidth={2.5} />
                                     </button>
                                 )}
-                                <button
-                                    onClick={scrollRight}
-                                    className="absolute -right-5 top-10 md:top-14 z-30 bg-white dark:bg-[#141414] text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/5 cursor-pointer hidden md:flex"
-                                    aria-label="Scroll right"
-                                >
-                                    <ArrowRight size={26} strokeWidth={2.5} />
-                                </button>
+                                {canScrollRight && (
+                                    <button
+                                        onClick={scrollRight}
+                                        className="absolute -right-4 top-10 md:top-14 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
+                                        aria-label="Scroll right"
+                                    >
+                                        <ArrowRight size={18} strokeWidth={2.5} />
+                                    </button>
+                                )}
                             </>
                         )}
                     </div>
@@ -264,15 +278,25 @@ const HomePage = () => {
 const ProductRow = ({ category, loading, getProductsByCategory }) => {
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
+    const [showRight, setShowRight] = useState(true);
     const categoryProducts = getProductsByCategory(category.slug);
 
     if (categoryProducts.length === 0) return null;
 
     const handleScroll = () => {
         if (sectionRef.current) {
-            setShowLeft(sectionRef.current.scrollLeft > 20);
+            const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
+            setShowLeft(scrollLeft > 20);
+            setShowRight(scrollLeft + clientWidth < scrollWidth - 20);
         }
     };
+
+    useEffect(() => {
+        // Initial check after loading finishes
+        if (!loading) {
+            setTimeout(handleScroll, 100);
+        }
+    }, [loading]);
 
     const sectionScroll = (dir) => {
         if (sectionRef.current) {
@@ -322,19 +346,21 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                         {showLeft && (
                             <button
                                 onClick={() => sectionScroll('left')}
-                                className="absolute -left-5 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-black text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
+                                className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
                                 aria-label="Scroll left"
                             >
-                                <ArrowLeft size={26} strokeWidth={2.5} />
+                                <ArrowLeft size={18} strokeWidth={2.5} />
                             </button>
                         )}
-                        <button
-                            onClick={() => sectionScroll('right')}
-                            className="absolute -right-5 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-black text-[#0c831f] w-12 h-12 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 border border-gray-100 dark:border-white/10 cursor-pointer hidden md:flex"
-                            aria-label="Scroll right"
-                        >
-                            <ArrowRight size={26} strokeWidth={2.5} />
-                        </button>
+                        {showRight && (
+                            <button
+                                onClick={() => sectionScroll('right')}
+                                className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
+                                aria-label="Scroll right"
+                            >
+                                <ArrowRight size={18} strokeWidth={2.5} />
+                            </button>
+                        )}
                     </>
                 )}
             </div>
