@@ -15,9 +15,7 @@ const VendorRoutes = lazy(() => import('./modules/vendor/routes/VendorRoutes'));
 const StaffRoutes = lazy(() => import('./modules/staff/routes/StaffRoutes'));
 const AdminRoutes = lazy(() => import('./modules/admin/routes/AdminRoutes'));
 
-// Lazy Load Modals
-const LoginModal = lazy(() => import('./modules/user/components/auth/LoginModal'));
-const LocationModal = lazy(() => import('./modules/user/components/location/LocationModal'));
+
 
 const GlobalLoading = () => (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-white dark:bg-[#000000]">
@@ -36,7 +34,7 @@ const GlobalLoading = () => (
     </div>
 );
 
-import { WishlistProvider } from './modules/user/context/WishlistContext';
+
 
 function App() {
     return (
@@ -45,33 +43,30 @@ function App() {
                 <LocationProvider>
                     <SearchProvider>
                         <CartProvider>
-                            <WishlistProvider>
-                                <BrowserRouter>
-                                    <Suspense fallback={<GlobalLoading />}>
-                                        <Routes>
-                                            <Route path="/staff/*" element={<StaffRoutes />} />
-                                            <Route path="/admin/*" element={<AdminRoutes />} />
-                                            <Route path="/vendor/*" element={<VendorRoutes />} />
-                                            <Route path="/*" element={<UserRoutes />} />
-                                        </Routes>
+                            <BrowserRouter>
+                                <Suspense fallback={<GlobalLoading />}>
+                                    <Routes>
+                                        <Route path="/staff/*" element={<StaffRoutes />} />
+                                        <Route path="/admin/*" element={<AdminRoutes />} />
+                                        <Route path="/vendor/*" element={<VendorRoutes />} />
+                                        <Route path="/*" element={<UserRoutes />} />
+                                    </Routes>
 
-                                        <LoginModal />
-                                        <LocationModal />
-                                        <ToastContainer
-                                            position="bottom-center"
-                                            autoClose={2000}
-                                            hideProgressBar={false}
-                                            newestOnTop={false}
-                                            closeOnClick
-                                            rtl={false}
-                                            pauseOnFocusLoss
-                                            draggable
-                                            pauseOnHover
-                                            theme="colored"
-                                        />
-                                    </Suspense>
-                                </BrowserRouter>
-                            </WishlistProvider>
+
+                                    <ToastContainer
+                                        position="bottom-center"
+                                        autoClose={2000}
+                                        hideProgressBar={false}
+                                        newestOnTop={false}
+                                        closeOnClick
+                                        rtl={false}
+                                        pauseOnFocusLoss
+                                        draggable
+                                        pauseOnHover
+                                        theme="colored"
+                                    />
+                                </Suspense>
+                            </BrowserRouter>
                         </CartProvider>
                     </SearchProvider>
                 </LocationProvider>

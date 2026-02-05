@@ -6,6 +6,7 @@ import CartSidebar from '../components/cart/CartSidebar';
 import ScrollToTop from '../components/layout/ScrollToTop';
 import LocationModal from '../components/location/LocationModal';
 import FloatingCartStrip from '../components/cart/FloatingCartStrip';
+const LoginModal = lazy(() => import('../components/auth/LoginModal'));
 
 // Lazy Load Pages
 const HomePage = lazy(() => import('../pages/home/HomePage'));
@@ -43,6 +44,7 @@ const UserLayout = () => {
             <CartSidebar />
             <LocationModal />
             <FloatingCartStrip />
+            <LoginModal />
             <div className="min-h-screen bg-white dark:!bg-black transition-colors duration-300">
                 <Suspense fallback={<LoadingFallback />}>
                     <Outlet />
