@@ -4,6 +4,7 @@ import { products } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 import { Minus, Plus, ChevronRight, Star, ShoppingCart } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
+import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
@@ -57,9 +58,14 @@ const ProductDetailsPage = () => {
                     <div className="flex flex-col gap-6">
                         <div className="relative aspect-square bg-white dark:bg-[#111] rounded-[32px] overflow-hidden flex items-center justify-center group shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#0c831f]/10 dark:border-white/5 p-4 md:p-12 max-w-[260px] md:max-w-[400px] mx-auto w-full transition-all duration-500 hover:shadow-xl">
                             <img
-                                src={selectedImage}
+                                src={selectedImage || categoryPlaceholder}
                                 alt={product.name}
-                                className="w-full h-full object-contain transition-all duration-700 group-hover:scale-110"
+                                className={`w-full h-full transition-all duration-700 group-hover:scale-110 ${!selectedImage ? 'object-cover' : 'object-contain'}`}
+                                onError={(e) => {
+                                    e.target.src = categoryPlaceholder;
+                                    e.target.classList.add('opacity-80');
+                                    e.target.style.objectFit = 'cover';
+                                }}
                             />
                         </div>
 
@@ -69,12 +75,20 @@ const ProductDetailsPage = () => {
                                 <div
                                     key={i}
                                     onClick={() => setSelectedImage(img)}
-                                    className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl border flex items-center justify-center p-2.5 cursor-pointer transition-all duration-300 shadow-sm ${selectedImage === img
+                                    className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl border flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm ${selectedImage === img
                                         ? 'border-[#0c831f] bg-[#fdfdfd] dark:bg-[#0c831f]/10 shadow-md scale-105 ring-1 ring-[#0c831f]/20'
                                         : 'border-[#0c831f]/30 dark:border-white/10 hover:border-[#0c831f] bg-white dark:bg-[#222]'
                                         }`}
                                 >
-                                    <img src={img} alt="thumb" className="w-full h-full object-contain" />
+                                    <img
+                                        src={img || categoryPlaceholder}
+                                        alt="thumb"
+                                        className={`w-full h-full transition-all duration-300 ${!img ? 'object-cover' : 'object-contain'}`}
+                                        onError={(e) => {
+                                            e.target.src = categoryPlaceholder;
+                                            e.target.style.objectFit = 'cover';
+                                        }}
+                                    />
                                 </div>
                             ))}
                         </div>

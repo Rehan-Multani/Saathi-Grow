@@ -12,6 +12,7 @@ import offer1 from '../../../../assets/offers/offer1.png';
 import offer2 from '../../../../assets/offers/offer2.png';
 import offer3 from '../../../../assets/offers/offer3.png';
 import offer4 from '../../../../assets/offers/offer4.png';
+import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const offerBanners = [
     { id: 1, image: offer1 },
@@ -216,13 +217,18 @@ const HomePage = () => {
                                                 style={{ backgroundColor: bgColor }}
                                             >
                                                 <img
-                                                    src={cat.image}
+                                                    src={cat.image || categoryPlaceholder}
                                                     alt={cat.name}
                                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    onError={(e) => {
+                                                        e.target.src = categoryPlaceholder;
+                                                        e.target.classList.add('opacity-80');
+                                                        e.target.style.objectFit = 'cover';
+                                                    }}
                                                     loading="lazy"
                                                 />
                                             </div>
-                                            <span className="text-[9px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[26px] sm:min-h-[32px] flex items-start justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
+                                            <span className="text-[9px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[26px] sm:min-h-[32px] flex items-center justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
                                                 {cat.name}
                                             </span>
                                         </Link>

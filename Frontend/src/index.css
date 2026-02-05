@@ -60,6 +60,18 @@ a {
   color: inherit;
 }
 
+/* Fix for broken images - center aligned without overlay text */
+img {
+  position: relative;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.2;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+}
+
 #root {
   width: 100%;
   min-height: 100vh;

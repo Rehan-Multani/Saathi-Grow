@@ -5,6 +5,7 @@ import { categories } from '../../data/categories';
 import ProductCard from '../../components/product/ProductCard';
 import { ChevronRight, Filter, ArrowLeft, LayoutGrid } from 'lucide-react';
 import { ProductCardSkeleton } from '../../components/common/Skeleton';
+import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const categoryColors = {
     'staples-and-grains': '#f0f4f8',
@@ -67,7 +68,16 @@ const CategoryPage = () => {
                                     className="w-full aspect-square rounded-[24px] sm:rounded-[32px] flex items-center justify-center mb-3 transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 shadow-sm border border-transparent hover:border-green-100 dark:hover:border-white/10 overflow-hidden"
                                     style={{ backgroundColor: categoryColors[cat.slug] || '#f3f4f6' }}
                                 >
-                                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                    <img
+                                        src={cat.image || categoryPlaceholder}
+                                        alt={cat.name}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        onError={(e) => {
+                                            e.target.src = categoryPlaceholder;
+                                            e.target.classList.add('opacity-80');
+                                            e.target.style.objectFit = 'cover';
+                                        }}
+                                    />
                                 </div>
                                 <span className="text-[11px] sm:text-[14px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight tracking-tight px-1">
                                     {cat.name}

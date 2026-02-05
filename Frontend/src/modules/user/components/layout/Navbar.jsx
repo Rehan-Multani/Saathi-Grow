@@ -64,7 +64,7 @@ const Navbar = () => {
               {/* Hamburger Menu - Mobile */}
               <button
                 onClick={() => setIsMenuOpen(true)}
-                className="md:hidden p-2 -ml-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full"
+                className="md:hidden p-2 -ml-2 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
               >
                 <Menu size={24} />
               </button>
@@ -190,10 +190,10 @@ const Navbar = () => {
               {/* Mobile Search Toggle */}
               <button
                 onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
+                className="md:hidden p-2 text-[#0c831f] hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
                 aria-label="Toggle search"
               >
-                <Search size={20} />
+                <Search size={24} className="text-[#0c831f]" />
               </button>
 
               {/* User Account - Desktop Only (Mobile has it in Sidebar) */}
@@ -216,7 +216,7 @@ const Navbar = () => {
               <div className="relative group cursor-pointer p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-all" onClick={toggleCart}>
                 <ShoppingCart size={20} className="text-[#0c831f] dark:text-[#0c831f] md:size-[24px]" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-0 -right-0 bg-[#0c831f] text-white text-[8px] md:text-[9px] font-black w-3.5 h-3.5 md:w-5 md:h-5 rounded-full flex items-center justify-center border-[1.5px] border-white dark:border-[#0a0a0a] shadow-sm">
+                  <span className="absolute -top-1.5 -right-1.5 bg-[#0c831f] text-white text-[8px] md:text-[9px] font-black w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0a0a0a] shadow-md">
                     {cartCount}
                   </span>
                 )}
@@ -236,7 +236,7 @@ const Navbar = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/5 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--saathi-green)] dark:focus:ring-[#0c831f] transition-all dark:text-white"
                 />
-                <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Search className="absolute left-3 top-3 text-[#0c831f]" size={18} />
 
                 {/* Mobile Suggestions */}
                 {suggestions.length > 0 && searchQuery && (

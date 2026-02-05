@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
+import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus } from 'lucide-react';
@@ -30,9 +31,15 @@ const ProductCard = ({ product }) => {
       <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a]">
         <Link to={`/product/${product.id}`} className="block w-full h-full">
           <img
-            src={product.image}
+            src={product.image || categoryPlaceholder}
             alt={product.name}
-            className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-110"
+            className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${!product.image ? 'object-cover' : 'object-contain p-2'}`}
+            onError={(e) => {
+              e.target.src = categoryPlaceholder;
+              e.target.classList.remove('p-2');
+              e.target.classList.add('opacity-80');
+              e.target.style.objectFit = 'cover';
+            }}
             loading="lazy"
           />
         </Link>
