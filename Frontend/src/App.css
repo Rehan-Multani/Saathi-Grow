@@ -1,4 +1,4 @@
-/* Global button overrides - Modified to allow for custom curvature */
-.product_button {
-    border-radius: 12px !important;
+/* Global styles for smooth transitions */
+.transition-all {
+    transition: all 0.3s ease-in-out;
 }

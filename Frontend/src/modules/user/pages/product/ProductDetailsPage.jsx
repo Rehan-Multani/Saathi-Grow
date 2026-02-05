@@ -129,13 +129,13 @@ const ProductDetailsPage = () => {
                             {quantity === 0 ? (
                                 <button
                                     onClick={() => addToCart(product)}
-                                    className="w-full md:w-fit flex items-center justify-center gap-2 bg-[#0c831f] hover:bg-[#0a6b19] text-white font-bold py-3 px-12 rounded-[12px] transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                                    className="w-full md:w-fit flex items-center justify-center gap-2 bg-[#0c831f] hover:bg-[#0a6b19] text-white font-bold py-4 px-12 !rounded-full transition-all active:scale-95 shadow-lg shadow-green-500/20"
                                 >
                                     <ShoppingCart size={18} className="fill-white" />
                                     <span className="uppercase tracking-widest text-xs">Add to Cart</span>
                                 </button>
                             ) : (
-                                <div className="flex items-center bg-[#0c831f] rounded-[12px] p-1 w-fit shadow-lg shadow-green-500/20">
+                                <div className="flex items-center bg-[#0c831f] rounded-2xl p-1 w-fit shadow-lg shadow-green-500/20">
                                     <button
                                         onClick={() => updateQuantity(product.id, -1)}
                                         className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
