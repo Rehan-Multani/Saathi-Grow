@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 const LoginPage = () => {
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState('');
     const [showOTP, setShowOTP] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Get redirect path from query string
+    const queryParams = new URLSearchParams(location.search);
+    const redirectPath = queryParams.get('redirect') || '/';
+
+    // Robust Redirection: Watch for user change
+    React.useEffect(() => {
+        if (user) {
+            navigate(redirectPath, { replace: true });
+        }
+    }, [user, navigate, redirectPath]);
 
     const handleSendOTP = (e) => {
         e.preventDefault();
@@ -22,7 +34,7 @@ const LoginPage = () => {
         e.preventDefault();
         if (otp === '1234') {
             login(phoneNumber);
-            navigate('/');
+            navigate(redirectPath, { replace: true });
         } else {
             alert('Invalid OTP. Use 1234');
         }
@@ -74,7 +86,8 @@ const LoginPage = () => {
                             <button
                                 type="submit"
                                 disabled={phoneNumber.length !== 10}
-                                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
+                                style={{ borderRadius: '100px' }}
+                                className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
                                 <Lock size={14} className="mr-2" />
                                 Send OTP
@@ -97,7 +110,8 @@ const LoginPage = () => {
                             <button
                                 type="submit"
                                 disabled={otp.length !== 4}
-                                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
+                                style={{ borderRadius: '100px' }}
+                                className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
                                 Verify & Login
                             </button>
@@ -114,7 +128,7 @@ const LoginPage = () => {
                 <div className="bg-gray-50/50 dark:bg-white/5 px-6 py-3.5 text-center border-t border-gray-100 dark:border-white/5">
                     <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
                         Don't have an account?{' '}
-                        <Link to="/register" className="font-bold text-[#0c831f] dark:text-[#10b981] hover:underline">
+                        <Link to={`/register?redirect=${encodeURIComponent(redirectPath)}`} className="font-bold text-[#0c831f] dark:text-[#10b981] hover:underline">
                             Register
                         </Link>
                     </p>

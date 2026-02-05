@@ -3,6 +3,7 @@ import { X, Minus, Plus, ChevronRight, Clock, ShoppingBag, Info } from 'lucide-r
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const CartSidebar = () => {
     const { isCartOpen, setIsCartOpen, cart, updateQuantity, cartTotal, cartCount } = useCart();
@@ -88,7 +89,15 @@ const CartSidebar = () => {
                                 {cart.map((item) => (
                                     <div key={item.id} className="flex gap-2.5 items-center py-3.5 first:pt-1">
                                         <div className="w-10 h-10 border border-gray-50 dark:border-white/5 rounded-lg bg-white dark:bg-white/5 p-1 flex-shrink-0 flex items-center justify-center shadow-sm">
-                                            <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                                            <img
+                                                src={item.image || categoryPlaceholder}
+                                                alt={item.name}
+                                                className="w-full h-full object-contain"
+                                                onError={(e) => {
+                                                    e.target.src = categoryPlaceholder;
+                                                    e.target.style.objectFit = 'cover';
+                                                }}
+                                            />
                                         </div>
                                         <div className="flex-1 min-w-0 text-left">
                                             <div className="!text-[10px] font-black text-gray-800 dark:text-gray-100 leading-tight mb-0.5 line-clamp-2 tracking-tight uppercase">{item.name}</div>

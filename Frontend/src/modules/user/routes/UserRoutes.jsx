@@ -4,6 +4,8 @@ import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CartSidebar from '../components/cart/CartSidebar';
 import ScrollToTop from '../components/layout/ScrollToTop';
+import LocationModal from '../components/location/LocationModal';
+import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 
 // Lazy Load Pages
 const HomePage = lazy(() => import('../pages/home/HomePage'));
@@ -23,6 +25,8 @@ const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPag
 const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
 const OrdersPage = lazy(() => import('../pages/profile/OrdersPage'));
 const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
+const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage'));
+const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
 
 const LoadingFallback = () => (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
@@ -30,12 +34,15 @@ const LoadingFallback = () => (
     </div>
 );
 
+
 const UserLayout = () => {
     return (
         <>
             <ScrollToTop />
             <Navbar />
             <CartSidebar />
+            <LocationModal />
+            <FloatingCartStrip />
             <div className="min-h-screen bg-white dark:!bg-black transition-colors duration-300">
                 <Suspense fallback={<LoadingFallback />}>
                     <Outlet />
@@ -68,14 +75,14 @@ const UserRoutes = () => {
                     <Route path="/edit-address/:id" element={<AddressFormPage />} />
                     <Route path="/orders" element={<OrdersPage />} />
                     <Route path="/wallet" element={<WalletPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/order-success" element={<OrderSuccessPage />} />
 
                     {/* Auth Pages matching UserLayout for standard feel */}
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/logout-confirmation" element={<LogoutConfirmationPage />} />
                 </Route>
-
-                {/* Routes without Navbar (Standalone) - Only Checkout needs distraction-free */}
-                <Route path="/checkout" element={<CheckoutPage />} />
             </Routes>
         </Suspense>
     );

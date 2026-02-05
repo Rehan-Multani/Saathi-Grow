@@ -10,7 +10,7 @@ const Footer = () => {
 
           {/* Useful Links Section */}
           <div className="lg:w-1/3 text-center lg:text-left flex flex-col items-center lg:items-start">
-            <h3 className="text-[13px] md:text-lg font-black text-gray-900 dark:text-gray-100 mb-5 md:mb-6 uppercase tracking-widest">Useful Links</h3>
+            <h3 className="text-[13px] md:text-lg font-black text-gray-900 dark:text-gray-100 mb-5 md:mb-6 tracking-widest">Useful links</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 md:gap-x-6 lg:gap-x-8 gap-y-3 justify-items-center lg:justify-items-start">
               <ul className="space-y-1 p-0 list-none">
                 <li><Link to="/about" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-[10px] md:text-sm transition-colors">About</Link></li>
@@ -42,8 +42,8 @@ const Footer = () => {
           {/* Categories Section */}
           <div className="lg:w-2/3 text-center lg:text-left flex flex-col items-center lg:items-start mt-10 lg:mt-0">
             <div className="flex items-center gap-4 mb-5 md:mb-6 justify-center lg:justify-start">
-              <h3 className="text-[13px] md:text-xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">Categories</h3>
-              <Link to="/category" className="text-[#0c831f] text-[10px] md:text-sm font-black hover:opacity-80 transition-all border-b border-[#0c831f] pb-0.5">see all</Link>
+              <h3 className="text-[13px] md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-widest">Categories</h3>
+              <Link to="/category" className="text-[#0c831f] text-[10px] md:text-sm font-black hover:opacity-80 transition-all border-b border-[#0c831f] pb-0.5">See all</Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 md:gap-x-12 md:gap-y-4 justify-items-center lg:justify-items-start">
               <Link to="/category/fruit-and-vegetables" className="text-gray-500 dark:text-gray-400 hover:!text-[#0c831f] dark:hover:!text-[#10b981] text-xs md:text-sm truncate transition-colors">Vegetables & Fruits</Link>
@@ -98,7 +98,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
+    </footer >
   );
 };
 

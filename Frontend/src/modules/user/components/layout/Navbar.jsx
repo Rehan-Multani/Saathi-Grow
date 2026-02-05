@@ -199,13 +199,13 @@ const Navbar = () => {
               {/* User Account - Desktop Only (Mobile has it in Sidebar) */}
               {user ? (
                 <div className="hidden md:flex items-center">
-                  <button onClick={logout} className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg transition-colors">
+                  <button onClick={() => navigate('/logout-confirmation')} className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-lg transition-colors">
                     <LogOut size={22} />
                   </button>
                 </div>
               ) : (
                 <Link
-                  to="/login"
+                  to={`/login?redirect=${encodeURIComponent(routerLocation.pathname)}`}
                   className="hidden md:block p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors text-gray-600 dark:text-gray-400"
                 >
                   <User size={24} className="text-[#0c831f] dark:text-[#0c831f]" />
@@ -366,7 +366,7 @@ const Navbar = () => {
             {user ? (
               <button
                 onClick={() => {
-                  logout();
+                  navigate('/logout-confirmation');
                   setIsMenuOpen(false);
                 }}
                 className="w-full py-3.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-2xl font-black !text-[11px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all uppercase tracking-widest"
@@ -376,7 +376,7 @@ const Navbar = () => {
               </button>
             ) : (
               <Link
-                to="/login"
+                to={`/login?redirect=${encodeURIComponent(routerLocation.pathname)}`}
                 onClick={() => setIsMenuOpen(false)}
                 className="w-full py-4 bg-[#0c831f] text-white rounded-2xl font-black !text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all uppercase tracking-widest"
               >

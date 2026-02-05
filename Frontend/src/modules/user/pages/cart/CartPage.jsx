@@ -1,13 +1,25 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { Minus, Plus, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const CartPage = () => {
   const { cart, updateQuantity, cartTotal } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const deliveryFee = 15;
   const handlingFee = 5;
   const finalTotal = cartTotal + deliveryFee + handlingFee;
+
+  const handleProceed = () => {
+    if (!user) {
+      navigate('/login?redirect=/cart');
+    } else {
+      navigate('/checkout');
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -15,7 +27,7 @@ const CartPage = () => {
         <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-4">
           <span className="text-4xl">🛒</span>
         </div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">tYour Cart is Empty</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Your Cart is Empty</h2>
         <p className="text-gray-500 mb-6 text-center">Looks like you haven't added anything to your cart yet.</p>
         <Link to="/" className="bg-[var(--saathi-green)] text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition">
           Start Shopping
@@ -34,7 +46,15 @@ const CartPage = () => {
             {cart.map((item) => (
               <div key={item.id} className="p-4 flex gap-4">
                 <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-lg flex-shrink-0 flex items-center justify-center">
-                  <img src={item.image} alt={item.name} className="w-12 h-12 object-contain" />
+                  <img
+                    src={item.image || categoryPlaceholder}
+                    alt={item.name}
+                    className="w-12 h-12 object-contain"
+                    onError={(e) => {
+                      e.target.src = categoryPlaceholder;
+                      e.target.style.objectFit = 'cover';
+                    }}
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-1">
@@ -88,10 +108,14 @@ const CartPage = () => {
             <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase">Total</span>
             <span className="text-xl font-bold text-gray-900 dark:text-white">₹{finalTotal}</span>
           </div>
-          <Link to="/checkout" className="flex-1 bg-[var(--saathi-green)] text-white py-3 rounded-xl font-bold text-center hover:bg-green-700 transition flex items-center justify-center gap-2">
+          <button
+            onClick={handleProceed}
+            style={{ borderRadius: '100px' }}
+            className="flex-1 bg-[var(--saathi-green)] text-white py-3 font-bold text-center hover:bg-green-700 transition flex items-center justify-center gap-2"
+          >
             Proceed to Pay
             <ArrowRight size={18} />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const RegisterPage = () => {
-    const { register } = useAuth();
+    const { register, user } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Get redirect path
+    const queryParams = new URLSearchParams(location.search);
+    const redirectPath = queryParams.get('redirect') || '/';
+
+    // Robust Redirection: Watch for user change
+    React.useEffect(() => {
+        if (user) {
+            navigate(redirectPath, { replace: true });
+        }
+    }, [user, navigate, redirectPath]);
+
     const [formData, setFormData] = useState({
         name: '',
         phone: ''
@@ -19,7 +32,7 @@ const RegisterPage = () => {
 
         const result = register(formData);
         if (result.success) {
-            navigate('/');
+            navigate(redirectPath, { replace: true });
         } else {
             alert(result.message);
         }
@@ -74,7 +87,8 @@ const RegisterPage = () => {
                         <button
                             type="submit"
                             disabled={formData.phone.length !== 10 || !formData.name}
-                            className="w-full bg-[#0c831f] text-white py-2.5 rounded-xl font-black text-xs hover:bg-green-700 transition-all shadow-lg shadow-green-500/10 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{ borderRadius: '100px' }}
+                            className="w-full bg-[#0c831f] text-white py-2.5 font-black text-xs hover:bg-green-700 transition-all shadow-lg shadow-green-500/10 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Register Account
                         </button>
@@ -82,7 +96,7 @@ const RegisterPage = () => {
 
                     <div className="mt-6 text-center">
                         <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
-                            Already have an account? <Link to="/login" className="text-[#0c831f] dark:text-[#10b981] font-bold hover:underline">Log in</Link>
+                            Already have an account? <Link to={`/login?redirect=${encodeURIComponent(redirectPath)}`} className="text-[#0c831f] dark:text-[#10b981] font-bold hover:underline">Log in</Link>
                         </p>
                     </div>
                 </div>
