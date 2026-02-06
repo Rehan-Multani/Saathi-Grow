@@ -14,12 +14,14 @@ const AddProduct = () => {
         description: '',
         branchMode: 'All',
         selectedBranches: [],
-        sku: '' // Will be auto-generated
+        sku: '', // Will be auto-generated
+        tags: []
     });
 
     const [imagePreview, setImagePreview] = useState(null);
     const [showCropper, setShowCropper] = useState(false);
     const [tempImage, setTempImage] = useState(null);
+    const [tagInput, setTagInput] = useState('');
 
     // Categories mapping for SKU prefix
     const CATEGORIES = [
@@ -96,6 +98,36 @@ const AddProduct = () => {
         setFormData({ ...formData, sku: generateSKU() });
     };
 
+    const handleAddTag = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTag();
+        }
+    };
+
+    const handleAddTagButton = (e) => {
+        e.preventDefault();
+        addTag();
+    };
+
+    const addTag = () => {
+        const trimmedTag = tagInput.trim();
+        if (trimmedTag && !formData.tags.includes(trimmedTag)) {
+            setFormData(prev => ({
+                ...prev,
+                tags: [...prev.tags, trimmedTag]
+            }));
+            setTagInput('');
+        }
+    };
+
+    const handleRemoveTag = (tagToRemove) => {
+        setFormData(prev => ({
+            ...prev,
+            tags: prev.tags.filter(tag => tag !== tagToRemove)
+        }));
+    };
+
     return (
         <div className="p-3">
             <h4 className="mb-4 fw-bold">Add New Product</h4>
@@ -130,6 +162,35 @@ const AddProduct = () => {
                                                 value={formData.description}
                                                 onChange={handleChange}
                                             />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={12}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Tags</Form.Label>
+                                            <div className="d-flex flex-wrap gap-2 mb-2">
+                                                {formData.tags.map((tag, index) => (
+                                                    <span key={index} className="badge rounded-pill bg-light text-dark border d-flex align-items-center gap-2 px-3 py-2">
+                                                        {tag}
+                                                        <X
+                                                            size={14}
+                                                            className="cursor-pointer text-muted hover-danger"
+                                                            onClick={() => handleRemoveTag(tag)}
+                                                        />
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <InputGroup>
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="Type tag and press Enter..."
+                                                    value={tagInput}
+                                                    onChange={(e) => setTagInput(e.target.value)}
+                                                    onKeyDown={handleAddTag}
+                                                />
+                                                <Button variant="outline-secondary" onClick={handleAddTagButton}>
+                                                    Add
+                                                </Button>
+                                            </InputGroup>
                                         </Form.Group>
                                     </Col>
                                 </Row>
