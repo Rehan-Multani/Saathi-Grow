@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Lock, User } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
-
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Lock, User } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 const LoginPage = () => {
+    const { login, user } = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState('');
     const [showOTP, setShowOTP] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Get redirect path from query string
+    const queryParams = new URLSearchParams(location.search);
+    const redirectPath = queryParams.get('redirect') || '/';
+
+    // Robust Redirection: Watch for user change
+    React.useEffect(() => {
+        if (user) {
+            navigate(redirectPath, { replace: true });
+        }
+    }, [user, navigate, redirectPath]);
 
     const handleSendOTP = (e) => {
         e.preventDefault();
@@ -21,7 +33,8 @@ const LoginPage = () => {
     const handleVerifyOTP = (e) => {
         e.preventDefault();
         if (otp === '1234') {
-            navigate('/');
+            login(phoneNumber);
+            navigate(redirectPath, { replace: true });
         } else {
             alert('Invalid OTP. Use 1234');
         }
@@ -41,29 +54,30 @@ const LoginPage = () => {
             {/* Overlay for better text readability */}
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-300 relative z-10">
-                <div className="p-8">
-                    <div className="text-center mb-8">
-                        <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
-                            <User size={32} />
+            <div className="bg-white dark:bg-black rounded-xl shadow-xl w-full max-w-[340px] overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in zoom-in duration-300 relative z-10">
+                <div className="p-6">
+                    <div className="text-center mb-6">
+                        <div className="bg-green-50 dark:bg-green-500/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-[#0c831f] dark:text-[#10b981]">
+                            <User size={24} />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-                        <p className="text-sm text-gray-500 mt-2">Login to continue shopping</p>
+                        <h1 className="!text-base font-black text-gray-900 dark:text-white tracking-tight">Welcome Back</h1>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-300 mt-1 font-medium">Login to continue shopping</p>
                     </div>
 
                     {!showOTP ? (
-                        <form onSubmit={handleSendOTP} className="space-y-6">
+                        <form onSubmit={handleSendOTP} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1">Phone Number</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span className="text-gray-500 font-bold">+91</span>
+                                        <span className="text-gray-400 dark:text-gray-500 font-black text-xs">+91</span>
                                     </div>
                                     <input
                                         type="tel"
+                                        maxLength="10"
                                         value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
-                                        className="block w-full pl-12 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                                        className="block w-full pl-11 pr-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none transition-all bg-gray-50/50 dark:bg-white/5 dark:text-white text-xs font-bold"
                                         placeholder="98765 43210"
                                         required
                                     />
@@ -71,45 +85,50 @@ const LoginPage = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-[var(--saathi-green)] hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
+                                disabled={phoneNumber.length !== 10}
+                                style={{ borderRadius: '100px' }}
+                                className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
-                                <Lock size={18} className="mr-2" />
+                                <Lock size={14} className="mr-2" />
                                 Send OTP
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleVerifyOTP} className="space-y-6">
+                        <form onSubmit={handleVerifyOTP} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
+                                <label className="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1">Enter OTP</label>
                                 <input
                                     type="text"
+                                    maxLength="4"
                                     value={otp}
-                                    onChange={(e) => setOtp(e.target.value)}
-                                    className="block w-full px-3 py-3 border border-gray-300 rounded-xl text-center text-2xl tracking-widest focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="• • • •"
+                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                                    className="block w-full px-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl text-center text-xl tracking-[0.5em] focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none bg-gray-50/50 dark:bg-white/5 dark:text-white font-black"
+                                    placeholder="••••"
                                     required
                                 />
                             </div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                                disabled={otp.length !== 4}
+                                style={{ borderRadius: '100px' }}
+                                className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
                                 Verify & Login
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setShowOTP(false)}
-                                className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-semibold"
+                                className="w-full text-center text-[10px] text-[#0c831f] dark:text-[#10b981] hover:underline font-bold uppercase tracking-wider"
                             >
                                 Change Phone Number
                             </button>
                         </form>
                     )}
                 </div>
-                <div className="bg-gray-50 px-8 py-4 text-center border-t border-gray-100">
-                    <p className="text-xs text-gray-500">
+                <div className="bg-gray-50/50 dark:bg-white/5 px-6 py-3.5 text-center border-t border-gray-100 dark:border-white/5">
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
                         Don't have an account?{' '}
-                        <Link to="/register" className="font-bold text-blue-600 hover:text-blue-500">
+                        <Link to={`/register?redirect=${encodeURIComponent(redirectPath)}`} className="font-bold text-[#0c831f] dark:text-[#10b981] hover:underline">
                             Register
                         </Link>
                     </p>

@@ -1,22 +1,16 @@
-import mothersDairyImg from '../assets/images/products/images.jpg';
-import cheeseSlicesImg from '../assets/images/products/images (1).jpg';
-import buttermilkImg from '../assets/images/products/images (2).jpg';
-import paneerImg from '../assets/images/products/images (3).jpg';
-import munchiesImg from '../assets/images/products/images (4).jpg';
-import coldrinkImg from '../assets/images/products/images4.jpg';
-
 export const products = [
-    // Vegetables & Fruits
+    // 1. Fruit and vegetables
     {
         id: 1,
         name: 'Fresho Tomato - Hybrid',
         price: 38,
         originalPrice: 50,
         weight: '1 kg',
-        image: munchiesImg,
-        category: 'vegetables-fruits',
+        image: 'https://pngimg.com/uploads/tomato/tomato_PNG12581.png',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: true,
-        description: 'Fresh, juicy, and hybrid tomatoes sourced directly from farms. Perfect for salads, curries, and soups.'
+        description: 'Fresh, juicy, and hybrid tomatoes sourced directly from farms.'
     },
     {
         id: 9,
@@ -24,10 +18,11 @@ export const products = [
         price: 25,
         originalPrice: 40,
         weight: '1 kg',
-        image: munchiesImg,
-        category: 'vegetables-fruits',
+        image: 'https://pngimg.com/uploads/onion/onion_PNG3821.png',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: true,
-        description: 'Top quality onions that add flavor to your dishes. Essential for every kitchen.'
+        description: 'Top quality onions that add flavor to your dishes.'
     },
     {
         id: 10,
@@ -35,10 +30,11 @@ export const products = [
         price: 30,
         originalPrice: 45,
         weight: '1 kg',
-        image: munchiesImg,
-        category: 'vegetables-fruits',
+        image: 'https://pngimg.com/uploads/potato/potato_PNG7078.png',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
         isBestSeller: false,
-        description: 'Starchy and fresh potatoes suitable for frying, boiling, and baking.'
+        description: 'Starchy and fresh potatoes suitable for frying and boiling.'
     },
     {
         id: 11,
@@ -46,643 +42,715 @@ export const products = [
         price: 45,
         originalPrice: 60,
         weight: '1 kg',
-        image: munchiesImg,
-        category: 'vegetables-fruits',
+        image: 'https://pngimg.com/uploads/banana/banana_PNG827.png',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-fruits',
         isBestSeller: true,
-        description: 'Sweet and nutritious Robusta bananas. Great source of energy and potassium.'
-    },
-    {
-        id: 101,
-        name: 'Fresho Carrot - Orange',
-        price: 35,
-        originalPrice: 50,
-        weight: '500 g',
-        image: munchiesImg,
-        category: 'vegetables-fruits',
-        isBestSeller: false,
-        description: 'Fresh and crunchy orange carrots. Rich in Vitamin A.'
-    },
-    {
-        id: 102,
-        name: 'Fresho Capsicum - Green',
-        price: 40,
-        originalPrice: 60,
-        weight: '500 g',
-        image: munchiesImg,
-        category: 'vegetables-fruits',
-        isBestSeller: true,
-        description: 'Fresh green capsicums. Perfect for stir-fries and salads.'
-    },
-
-    // Dairy & Breakfast
-    {
-        id: 2,
-        name: 'Amul Taaza Fresh Toned Milk',
-        price: 54,
-        originalPrice: 56,
-        weight: '1 L',
-        image: 'https://www.bigbasket.com/media/uploads/p/l/306926_4-amul-taaza-fresh-toned-milk.jpg',
-        category: 'dairy-breakfast',
-        isBestSeller: true,
-        description: 'Pasteurized toned milk, rich in calcium and protein. Ideal for daily consumption.'
+        description: 'Sweet and nutritious Robusta bananas.'
     },
     {
         id: 12,
-        name: 'Mothers Dairy Milk',
-        price: 66,
-        originalPrice: 70,
-        weight: '1 L',
-        image: mothersDairyImg,
-        category: 'dairy-breakfast',
-        isBestSeller: false,
-        description: 'Fresh and pure milk from Mother Dairy. Perfect for tea, coffee, and shakes.'
+        name: 'Fresho Apple - Royal Gala',
+        price: 180,
+        originalPrice: 220,
+        weight: '1 kg',
+        image: 'https://pngimg.com/uploads/apple/apple_PNG12405.png',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-fruits',
+        isBestSeller: true,
+        description: 'Crisp and sweet Royal Gala apples.'
     },
     {
         id: 13,
-        name: 'Amul Butter - Pasteurized',
-        price: 56,
-        originalPrice: 58,
-        weight: '100 g',
-        image: 'https://www.bigbasket.com/media/uploads/p/l/1200163_4-amul-butter-pasteurised.jpg',
-        category: 'dairy-breakfast',
-        isBestSeller: true,
-        description: 'The taste of India. Amul Butter is creamy, salty, and perfect for toast and parathas.'
+        name: 'Fresh Spinach (Palak)',
+        price: 20,
+        originalPrice: 30,
+        weight: '250 g',
+        image: 'https://pngimg.com/uploads/spinach/spinach_PNG10.png',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
+        isBestSeller: false,
+        description: 'Fresh green spinach leaves rich in iron.'
     },
     {
         id: 14,
+        name: 'Fresh Carrots',
+        price: 40,
+        originalPrice: 60,
+        weight: '500 g',
+        image: 'https://pngimg.com/uploads/carrot/carrot_PNG4985.png',
+        category: 'fruit-and-vegetables',
+        subCategory: 'fresh-vegetables',
+        isBestSeller: false,
+        description: 'Crunchy and sweet orange carrots.'
+    },
+
+    // 2. Dairy Egg , Frozen
+    {
+        id: 2,
+        name: 'Amul Taaza Milk',
+        price: 54,
+        originalPrice: 56,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/milk/milk_PNG12760.png',
+        category: 'dairy-egg-frozen',
+        subCategory: 'milk',
+        isBestSeller: true,
+        description: 'Pasteurized toned milk, rich in calcium.'
+    },
+    {
+        id: 21,
+        name: 'Amul Butter',
+        price: 56,
+        originalPrice: 58,
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/butter/butter_PNG9141.png',
+        category: 'dairy-egg-frozen',
+        isBestSeller: true,
+        description: 'The taste of India. Salty and creamy.'
+    },
+    {
+        id: 22,
         name: 'Britannia Cheese Slices',
         price: 90,
         originalPrice: 100,
-        weight: '100 g (5 slices)',
-        image: cheeseSlicesImg,
-        category: 'dairy-breakfast',
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/cheese/cheese_PNG25299.png',
+        category: 'dairy-egg-frozen',
         isBestSeller: false,
-        description: 'Classic cheese slices for your sandwiches and burgers. Rich in calcium.'
+        description: 'Classic cheese slices for sandwiches.'
     },
     {
-        id: 103,
-        name: 'Amul Masti Spiced Buttermilk',
-        price: 15,
-        originalPrice: 15,
-        weight: '200 ml',
-        image: buttermilkImg,
-        category: 'dairy-breakfast',
+        id: 23,
+        name: 'Farm Fresh Eggs',
+        price: 45,
+        originalPrice: 55,
+        weight: '6 units',
+        image: 'https://pngimg.com/uploads/egg/egg_PNG40772.png',
+        category: 'dairy-egg-frozen',
+        subCategory: 'eggs',
         isBestSeller: true,
-        description: 'Refreshing spiced buttermilk. Perfect digestive drink.'
+        description: 'High quality nutritious eggs.'
     },
     {
-        id: 104,
-        name: 'Milky Mist Paneer',
-        price: 120,
-        originalPrice: 140,
+        id: 24,
+        name: 'Mother Dairy Paneer',
+        price: 85,
+        originalPrice: 95,
         weight: '200 g',
-        image: paneerImg,
-        category: 'dairy-breakfast',
+        image: 'https://pngimg.com/uploads/cheese/cheese_PNG25300.png',
+        category: 'dairy-egg-frozen',
         isBestSeller: true,
-        description: 'Soft and fresh paneer blocks for delicious curries.'
+        description: 'Fresh and soft paneer for your favorite dishes.'
+    },
+    {
+        id: 25,
+        name: 'Amul Masti Dahi',
+        price: 35,
+        originalPrice: 40,
+        weight: '400 g',
+        image: 'https://pngimg.com/uploads/yogurt/yogurt_PNG15.png',
+        category: 'dairy-egg-frozen',
+        isBestSeller: true,
+        description: 'Thick and creamy curd.'
     },
 
-    // Munchies
+    // 3. Snacks & Bakery
     {
         id: 3,
-        name: 'Lay\'s India\'s Magic Masala Chips',
+        name: 'Lay\'s Magic Masala Chips',
         price: 20,
         originalPrice: 20,
-        weight: '50g',
-        image: munchiesImg,
-        category: 'munchies',
-        isBestSeller: false,
-        description: 'Crispy potato chips with a spicy Indian masala flavor. A favorite snack for everyone.'
-    },
-    {
-        id: 15,
-        name: 'Doritos Nacho Cheese',
-        price: 30,
-        originalPrice: 30,
-        weight: '60g',
-        image: munchiesImg,
-        category: 'munchies',
+        weight: '50 g',
+        image: 'https://pngimg.com/uploads/potato_chips/potato_chips_PNG45.png',
+        category: 'snacks-bakery',
         isBestSeller: true,
-        description: 'Crunchy corn chips with a bold nacho cheese flavor. Perfect for dipping.'
+        description: 'Spicy Indian masala flavor potato chips.'
     },
     {
-        id: 16,
+        id: 31,
+        name: 'Britannia Good Day Cookies',
+        price: 35,
+        originalPrice: 40,
+        weight: '200 g',
+        image: 'https://pngimg.com/uploads/biscuit/biscuit_PNG92.png',
+        category: 'snacks-bakery',
+        isBestSeller: true,
+        description: 'Buttery cookies with cashews.'
+    },
+    {
+        id: 32,
+        name: 'Fresh Brown Bread',
+        price: 45,
+        originalPrice: 50,
+        weight: '400 g',
+        image: 'https://pngimg.com/uploads/bread/bread_PNG2265.png',
+        category: 'snacks-bakery',
+        isBestSeller: false,
+        description: 'Soft and healthy brown bread.'
+    },
+    {
+        id: 33,
         name: 'Kurkure Masala Munch',
         price: 20,
         originalPrice: 20,
-        weight: '80g',
-        image: munchiesImg,
-        category: 'munchies',
+        weight: '90 g',
+        image: 'https://pngimg.com/uploads/potato_chips/potato_chips_PNG10.png',
+        category: 'snacks-bakery',
         isBestSeller: true,
-        description: 'Spicy and tangy crunchy sticks. A classic Indian snack.'
+        description: 'Spicy and crunchy snacks.'
     },
     {
-        id: 105,
-        name: 'Bingo! Mad Angles - Achaari Masti',
-        price: 20,
-        originalPrice: 20,
-        weight: '70g',
-        image: munchiesImg,
-        category: 'munchies',
-        isBestSeller: false,
-        description: 'Unique triangular chips with a tangy pickle flavor.'
+        id: 34,
+        name: 'Parle-G Biscuits',
+        price: 15,
+        originalPrice: 15,
+        weight: '250 g',
+        image: 'https://pngimg.com/uploads/biscuit/biscuit_PNG40.png',
+        category: 'snacks-bakery',
+        isBestSeller: true,
+        description: 'The classic glucose biscuit.'
     },
     {
-        id: 106,
-        name: 'Pringles Original',
-        price: 100,
-        originalPrice: 110,
-        weight: '110g',
-        image: munchiesImg,
-        category: 'munchies',
+        id: 35,
+        name: 'Haldiram Bhujia',
+        price: 60,
+        originalPrice: 70,
+        weight: '200 g',
+        image: 'https://pngimg.com/uploads/potato_chips/potato_chips_PNG21.png',
+        category: 'snacks-bakery',
         isBestSeller: true,
-        description: 'International favorite potato crisps. Salty and addictive.'
-    },
-    {
-        id: 107,
-        name: 'Haldiram\'s Bhujia Sev',
-        price: 50,
-        originalPrice: 55,
-        weight: '200g',
-        image: munchiesImg,
-        category: 'munchies',
-        isBestSeller: true,
-        description: 'Traditional spicy fried noodles. Great tea-time snack.'
+        description: 'Spicy and savory bhujia.'
     },
 
-    // Cold Drinks & Juices
+    // 4. Food & Beverage
     {
         id: 4,
-        name: 'Coca-Cola Soft Drink - Original Taste',
+        name: 'Coca-Cola Soft Drink',
         price: 40,
         originalPrice: 40,
         weight: '750 ml',
-        image: coldrinkImg,
-        category: 'cold-drinks-juices',
+        image: 'https://pngimg.com/uploads/coca_cola/coca_cola_PNG8913.png',
+        category: 'food-beverage',
         isBestSeller: true,
-        description: 'The refreshing taste of Coca-Cola. Best served chilled.'
+        description: 'Refreshing original taste Coca-Cola.'
     },
     {
-        id: 17,
+        id: 41,
         name: 'Pepsi Soft Drink',
         price: 40,
         originalPrice: 40,
         weight: '750 ml',
-        image: coldrinkImg,
-        category: 'cold-drinks-juices',
+        image: 'https://pngimg.com/uploads/pepsi/pepsi_PNG8.png',
+        category: 'food-beverage',
         isBestSeller: false,
-        description: 'Refreshing Pepsi soft drink. A great companion for meals and parties.'
+        description: 'Cool and crisp Pepsi.'
     },
     {
-        id: 18,
-        name: 'Real Fruit Power Juice - Mixed Fruit',
-        price: 110,
-        originalPrice: 120,
-        weight: '1 L',
-        image: coldrinkImg,
-        category: 'cold-drinks-juices',
-        isBestSeller: true,
-        description: 'Healthy and tasty mixed fruit juice packed with vitamins.'
-    },
-    {
-        id: 108,
-        name: 'Sprite Soft Drink - Lime Flavoured',
+        id: 42,
+        name: 'Sprite Lime Drink',
         price: 40,
         originalPrice: 40,
         weight: '750 ml',
-        image: coldrinkImg,
-        category: 'cold-drinks-juices',
+        image: 'https://pngimg.com/uploads/sprite/sprite_PNG98767.png',
+        category: 'food-beverage',
         isBestSeller: true,
         description: 'Clear and refreshing lime soda.'
     },
     {
-        id: 109,
-        name: 'Thums Up Soft Drink',
-        price: 40,
-        originalPrice: 40,
-        weight: '750 ml',
-        image: coldrinkImg,
-        category: 'cold-drinks-juices',
-        isBestSeller: false,
-        description: 'Strong and fizzy cola drink. Taste the thunder.'
-    },
-    {
-        id: 110,
-        name: 'Tropicana 100% Orange Juice',
-        price: 115,
-        originalPrice: 125,
+        id: 43,
+        name: 'Real Mixed Fruit Juice',
+        price: 105,
+        originalPrice: 120,
         weight: '1 L',
-        image: coldrinkImg,
-        category: 'cold-drinks-juices',
-        isBestSeller: false,
-        description: '100% pure orange juice with no added sugar.'
+        image: 'https://pngimg.com/uploads/juice/juice_PNG7192.png',
+        category: 'food-beverage',
+        isBestSeller: true,
+        description: 'Natural mixed fruit juice.'
     },
-
-    // Instant & Frozen Food
     {
-        id: 5,
-        name: 'McCain French Fries',
+        id: 44,
+        name: 'Red Bull Energy Drink',
         price: 125,
-        originalPrice: 150,
-        weight: '420g',
-        image: munchiesImg,
-        category: 'instant-frozen-food',
+        originalPrice: 125,
+        weight: '250 ml',
+        image: 'https://pngimg.com/uploads/energy_drink/energy_drink_PNG43.png',
+        category: 'food-beverage',
         isBestSeller: false,
-        description: 'Crispy frozen french fries ready to fry or bake. A perfect snack.'
-    },
-    {
-        id: 19,
-        name: 'Maggi 2-Minute Noodles - Masala',
-        price: 140,
-        originalPrice: 160,
-        weight: '560g (Pack of 8)',
-        image: munchiesImg,
-        category: 'instant-frozen-food',
-        isBestSeller: true,
-        description: 'India’s favorite instant noodles. Ready in just 2 minutes.'
-    },
-    {
-        id: 20,
-        name: 'Knorr Hot & Sour Veg Soup',
-        price: 10,
-        originalPrice: 10,
-        weight: '43g',
-        image: munchiesImg,
-        category: 'instant-frozen-food',
-        isBestSeller: false,
-        description: 'Spicy and tangy vegetable soup. Easy to prepare and delicious.'
-    },
-    {
-        id: 111,
-        name: 'McCain Aloo Tikki',
-        price: 140,
-        originalPrice: 160,
-        weight: '400g',
-        image: munchiesImg,
-        category: 'instant-frozen-food',
-        isBestSeller: true,
-        description: 'Classic potato patties with indian spices.'
-    },
-    {
-        id: 112,
-        name: 'Yippee Magic Masala Noodles',
-        price: 120,
-        originalPrice: 140,
-        weight: '240g (Pack of 4)',
-        image: munchiesImg,
-        category: 'instant-frozen-food',
-        isBestSeller: false,
-        description: 'Long and non-sticky noodles with magic masala.'
-    },
-    {
-        id: 113,
-        name: 'MTR Ready to Eat - Paneer Butter Masala',
-        price: 150,
-        originalPrice: 170,
-        weight: '300g',
-        image: paneerImg,
-        category: 'instant-frozen-food',
-        isBestSeller: false,
-        description: 'Rich and creamy paneer curry. Heat and eat.'
+        description: 'Revitalizes body and mind.'
     },
 
-    // Tea, Coffee & Health Drinks
-    {
-        id: 6,
-        name: 'Red Label Tea',
-        price: 360,
-        originalPrice: 400,
-        weight: '1 kg',
-        image: coldrinkImg,
-        category: 'tea-coffee-health-drinks',
-        isBestSeller: true,
-        description: 'Strong and aromatic tea. Wake up to the perfect cup of chai.'
-    },
-    {
-        id: 21,
-        name: 'Nescafe Classic Coffee',
-        price: 330,
-        originalPrice: 350,
-        weight: '100g',
-        image: coldrinkImg,
-        category: 'tea-coffee-health-drinks',
-        isBestSeller: true,
-        description: '100% pure instant coffee. Rich aroma and smooth taste.'
-    },
-    {
-        id: 22,
-        name: 'Horlicks Health Drink - Classic Malt',
-        price: 250,
-        originalPrice: 280,
-        weight: '500g',
-        image: coldrinkImg,
-        category: 'tea-coffee-health-drinks',
-        isBestSeller: false,
-        description: 'Nutritious malt drink for kids and adults. Supports growth and immunity.'
-    },
-    {
-        id: 114,
-        name: 'Taj Mahal Tea',
-        price: 400,
-        originalPrice: 450,
-        weight: '500g',
-        image: coldrinkImg,
-        category: 'tea-coffee-health-drinks',
-        isBestSeller: true,
-        description: 'Premium tea leaves for a royal experience.'
-    },
-    {
-        id: 115,
-        name: 'Bru Instant Coffee',
-        price: 200,
-        originalPrice: 220,
-        weight: '50g',
-        image: coldrinkImg,
-        category: 'tea-coffee-health-drinks',
-        isBestSeller: false,
-        description: 'Aromatic coffee blend with chicory.'
-    },
-    {
-        id: 116,
-        name: 'Bournvita Health Drink',
-        price: 240,
-        originalPrice: 260,
-        weight: '500g',
-        image: coldrinkImg,
-        category: 'tea-coffee-health-drinks',
-        isBestSeller: true,
-        description: 'Chocolatey health drink for strength and energy.'
-    },
-
-    // Bakery & Biscuits
-    {
-        id: 7,
-        name: 'Britannia Good Day Cashew Cookies',
-        price: 35,
-        originalPrice: 40,
-        weight: '200g',
-        image: munchiesImg,
-        category: 'bakery-biscuits',
-        isBestSeller: true,
-        description: 'Buttery cookies loaded with cashews. Keep smiling properly.'
-    },
-    {
-        id: 23,
-        name: 'Parle-G Gold Biscuits',
-        price: 30,
-        originalPrice: 30,
-        weight: '1 kg',
-        image: munchiesImg,
-        category: 'bakery-biscuits',
-        isBestSeller: true,
-        description: 'The genius of energy. Classic glucose biscuits loved by generations.'
-    },
-    {
-        id: 24,
-        name: 'Modern Bread - Brown',
-        price: 45,
-        originalPrice: 50,
-        weight: '400g',
-        image: munchiesImg,
-        category: 'bakery-biscuits',
-        isBestSeller: false,
-        description: 'Healthy brown bread for your daily breakfast toast and sandwiches.'
-    },
-    {
-        id: 117,
-        name: 'Sunfeast Dark Fantasy Choco Fills',
-        price: 90,
-        originalPrice: 100,
-        weight: '300g',
-        image: munchiesImg,
-        category: 'bakery-biscuits',
-        isBestSeller: true,
-        description: 'Rich chocolate cookie with a molten chocolate center.'
-    },
-    {
-        id: 118,
-        name: 'Britannia Maris Gold',
-        price: 30,
-        originalPrice: 35,
-        weight: '400g',
-        image: munchiesImg,
-        category: 'bakery-biscuits',
-        isBestSeller: false,
-        description: 'Light and crisp tea biscuits. Zero trans fat.'
-    },
-    {
-        id: 119,
-        name: 'Britannia Cake - Fruit',
-        price: 55,
-        originalPrice: 60,
-        weight: '120g',
-        image: munchiesImg,
-        category: 'bakery-biscuits',
-        isBestSeller: true,
-        description: 'Soft and fluffy fruit cake. Perfect for snacking.'
-    },
-
-    // Atta, Rice & Dal
+    // 8. Staples and grains
     {
         id: 8,
-        name: 'Fortune Chakki Fresh Atta',
+        name: 'Fortune Chakki Atta',
         price: 450,
         originalPrice: 520,
         weight: '10 kg',
-        image: munchiesImg,
-        category: 'atta-rice-dal',
+        image: 'https://pngimg.com/uploads/flour/flour_PNG10.png',
+        category: 'staples-and-grains',
+        subCategory: 'atta-flours',
         isBestSeller: false,
-        description: '100% whole wheat atta. Soft rotis guaranteed.'
+        description: '100% whole wheat flour for soft rotis.'
     },
     {
-        id: 25,
+        id: 81,
         name: 'India Gate Basmati Rice',
         price: 800,
         originalPrice: 950,
         weight: '5 kg',
-        image: munchiesImg,
-        category: 'atta-rice-dal',
+        image: 'https://pngimg.com/uploads/rice/rice_PNG1.png',
+        category: 'staples-and-grains',
+        subCategory: 'rice-products',
         isBestSeller: true,
-        description: 'Long grain aromatic basmati rice. Perfect for biryani and pulao.'
+        description: 'Aromatic long grain basmati rice.'
     },
     {
-        id: 26,
-        name: 'Tata Sampann Tur Toor Dal',
-        price: 180,
-        originalPrice: 200,
-        weight: '1 kg',
-        image: munchiesImg,
-        category: 'atta-rice-dal',
-        isBestSeller: false,
-        description: 'Unpolished Toor Dal rich in protein. Tastes great and cooks fast.'
-    },
-    {
-        id: 120,
-        name: 'Aashirvaad Shudh Chakki Atta',
-        price: 460,
-        originalPrice: 530,
-        weight: '10 kg',
-        image: munchiesImg,
-        category: 'atta-rice-dal',
-        isBestSeller: true,
-        description: 'Premium quality wheat flour for soft rotis.'
-    },
-    {
-        id: 121,
-        name: 'Daawat Rozana Gold Basmati Rice',
-        price: 750,
-        originalPrice: 900,
-        weight: '5 kg',
-        image: munchiesImg,
-        category: 'atta-rice-dal',
-        isBestSeller: false,
-        description: 'Everyday basmati rice with great aroma.'
-    },
-    {
-        id: 122,
+        id: 82,
         name: 'Tata Sampann Moong Dal',
         price: 140,
         originalPrice: 160,
         weight: '1 kg',
-        image: munchiesImg,
-        category: 'atta-rice-dal',
+        image: 'https://pngimg.com/uploads/wheat/wheat_PNG57.png',
+        category: 'staples-and-grains',
+        subCategory: 'dals-pulses',
         isBestSeller: true,
-        description: 'High protein unpolished moong dal.'
+        description: 'Protein rich unpolished Moong Dal.'
     },
-
-    // Cleaning & Household
     {
-        id: 27,
-        name: 'Surf Excel Easy Wash Detergent Powder',
-        price: 110,
-        originalPrice: 125,
+        id: 83,
+        name: 'Tuar Dal (Arhar)',
+        price: 160,
+        originalPrice: 180,
         weight: '1 kg',
-        image: coldrinkImg,
-        category: 'cleaning-household',
+        image: 'https://pngimg.com/uploads/wheat/wheat_PNG18.png',
+        category: 'staples-and-grains',
         isBestSeller: true,
-        description: 'Removes tough stains easily. Keeps clothes looking new.'
+        description: 'Essential Indian pulse for daily meals.'
     },
     {
-        id: 28,
-        name: 'Vim Dishwash Bar',
-        price: 20,
-        originalPrice: 20,
-        weight: '200g',
-        image: coldrinkImg,
-        category: 'cleaning-household',
-        isBestSeller: false,
-        description: 'Lemon power to remove grease and odors from utensils.'
-    },
-    {
-        id: 123,
-        name: 'Lizol Floor Cleaner - Citrus',
-        price: 200,
-        originalPrice: 230,
-        weight: '1 L',
-        image: coldrinkImg,
-        category: 'cleaning-household',
+        id: 84,
+        name: 'Sugar - Premium Quality',
+        price: 50,
+        originalPrice: 55,
+        weight: '1 kg',
+        image: 'https://pngimg.com/uploads/sugar/sugar_PNG9.png',
+        category: 'staples-and-grains',
         isBestSeller: true,
-        description: 'Kills 99.9% germs. Leaves a fresh citrus fragrance.'
-    },
-    {
-        id: 124,
-        name: 'Harpic Toilet Cleaner',
-        price: 170,
-        originalPrice: 190,
-        weight: '1 L',
-        image: coldrinkImg,
-        category: 'cleaning-household',
-        isBestSeller: true,
-        description: 'Powerful toilet cleaner for sparkling white finish.'
-    },
-    {
-        id: 125,
-        name: 'Comfort Fabric Conditioner - Blue',
-        price: 220,
-        originalPrice: 250,
-        weight: '860 ml',
-        image: coldrinkImg,
-        category: 'cleaning-household',
-        isBestSeller: false,
-        description: 'Makes clothes soft and fragrant. Long lasting freshness.'
-    },
-    {
-        id: 126,
-        name: 'Ariel Matic Liquid Detergent',
-        price: 450,
-        originalPrice: 500,
-        weight: '2 L',
-        image: coldrinkImg,
-        category: 'cleaning-household',
-        isBestSeller: true,
-        description: 'Best for washing machines. Removes tough stains in one wash.'
+        description: 'Pure and refined white sugar.'
     },
 
-    // Personal Care
+    // 9. Masala and spices
     {
-        id: 29,
+        id: 9,
+        name: 'MDH Deggi Mirch',
+        price: 110,
+        originalPrice: 120,
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/pepper/pepper_PNG1272.png',
+        category: 'masala-and-spices',
+        isBestSeller: true,
+        description: 'Red chilli powder for color and spice.'
+    },
+    {
+        id: 91,
+        name: 'Tata Salt',
+        price: 25,
+        originalPrice: 28,
+        weight: '1 kg',
+        image: 'https://pngimg.com/uploads/sugar/sugar_PNG10.png',
+        category: 'masala-and-spices',
+        isBestSeller: true,
+        description: 'Desh ka Namak. Pure and iodized.'
+    },
+    {
+        id: 92,
+        name: 'Catch Turmeric Powder',
+        price: 35,
+        originalPrice: 40,
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/pepper/pepper_PNG1273.png',
+        category: 'masala-and-spices',
+        isBestSeller: true,
+        description: 'Pure and natural turmeric.'
+    },
+    {
+        id: 93,
+        name: 'Everest Garam Masala',
+        price: 65,
+        originalPrice: 75,
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/pepper/pepper_PNG1274.png',
+        category: 'masala-and-spices',
+        isBestSeller: false,
+        description: 'Rich blend of spices for authentic flavor.'
+    },
+
+    // 10. Oil and Ghee
+    {
+        id: 10,
+        name: 'Amul Pure Cow Ghee',
+        price: 560,
+        originalPrice: 600,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/butter/butter_PNG9141.png',
+        category: 'oil-and-ghee',
+        isBestSeller: true,
+        description: 'Pure and traditional cow ghee.'
+    },
+    {
+        id: 101,
+        name: 'Fortune Sunflower Oil',
+        price: 155,
+        originalPrice: 180,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/olive_oil/olive_oil_PNG9.png',
+        category: 'oil-and-ghee',
+        isBestSeller: false,
+        description: 'Refined sunflower oil for healthy cooking.'
+    },
+    {
+        id: 102,
+        name: 'Dhara Mustard Oil',
+        price: 175,
+        originalPrice: 195,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/olive_oil/olive_oil_PNG16.png',
+        category: 'oil-and-ghee',
+        isBestSeller: true,
+        description: 'Traditional mustard oil for Indian cooking.'
+    },
+    {
+        id: 103,
+        name: 'Saffola Gold Oil',
+        price: 190,
+        originalPrice: 210,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/olive_oil/olive_oil_PNG3.png',
+        category: 'oil-and-ghee',
+        isBestSeller: true,
+        description: 'Balanced oil for heart health.'
+    },
+
+    // 11. Personal care
+    {
+        id: 11,
         name: 'Dettol Original Soap',
         price: 45,
         originalPrice: 50,
-        weight: '125g',
-        image: coldrinkImg,
+        weight: '125 g',
+        image: 'https://pngimg.com/uploads/soap/soap_PNG3968.png',
         category: 'personal-care',
         isBestSeller: true,
-        description: 'Protects from 100 illness-causing germs. Trusted protection.'
+        description: 'Antibacterial soap for germ protection.'
     },
     {
-        id: 30,
-        name: 'Colgate Strong Teeth Toothpaste',
+        id: 111,
+        name: 'Colgate Strong Teeth',
         price: 95,
         originalPrice: 100,
-        weight: '200g',
-        image: coldrinkImg,
+        weight: '200 g',
+        image: 'https://pngimg.com/uploads/toothpaste/toothpaste_PNG1.png',
         category: 'personal-care',
         isBestSeller: true,
-        description: 'Stronger teeth and healthy gums. Calcium boost formula.'
+        description: 'Stronger teeth with Amino Power.'
     },
     {
-        id: 127,
-        name: 'Dove Cream Beauty Bar',
-        price: 60,
-        originalPrice: 65,
-        weight: '100g',
-        image: coldrinkImg,
+        id: 112,
+        name: 'Dove Shampoo',
+        price: 240,
+        originalPrice: 280,
+        weight: '340 ml',
+        image: 'https://pngimg.com/uploads/shampoo/shampoo_PNG1.png',
         category: 'personal-care',
         isBestSeller: true,
-        description: 'Contains 1/4th moisturizing cream for soft skin.'
+        description: 'Nourishing shampoo for soft hair.'
     },
     {
-        id: 128,
-        name: 'Sensodyne Toothpaste - Fresh Mint',
-        price: 150,
-        originalPrice: 170,
-        weight: '150g',
-        image: coldrinkImg,
+        id: 113,
+        name: 'Nivea Body Lotion',
+        price: 350,
+        originalPrice: 400,
+        weight: '400 ml',
+        image: 'https://pngimg.com/uploads/body_lotion/body_lotion_PNG32.png',
         category: 'personal-care',
         isBestSeller: false,
-        description: 'Relief from tooth sensitivity. Fresh minty taste.'
+        description: 'Moisturizing lotion for dry skin.'
     },
     {
-        id: 129,
-        name: 'Nivea Soft Moisturizer Cream',
-        price: 300,
-        originalPrice: 350,
+        id: 114,
+        name: 'Gillette Shaving Foam',
+        price: 180,
+        originalPrice: 200,
         weight: '200 ml',
-        image: coldrinkImg,
+        image: 'https://pngimg.com/uploads/shaving_foam/shaving_foam_PNG28.png',
         category: 'personal-care',
+        isBestSeller: false,
+        description: 'Smooth and comfortable shave.'
+    },
+
+    // 12. Chocolate & Sweet
+    {
+        id: 12,
+        name: 'Cadbury Dairy Milk',
+        price: 40,
+        originalPrice: 40,
+        weight: '50 g',
+        image: 'https://pngimg.com/uploads/chocolate/chocolate_PNG13.png',
+        category: 'chocolate-sweet',
         isBestSeller: true,
-        description: 'Light non-greasy moisturizer for face and body.'
+        description: 'Classic chocolate bar.'
     },
     {
-        id: 130,
-        name: 'Pantene Shampoo - Hair Fall Control',
+        id: 121,
+        name: 'Ferrero Rocher',
+        price: 550,
+        originalPrice: 600,
+        weight: '16 units',
+        image: 'https://pngimg.com/uploads/chocolate/chocolate_PNG9.png',
+        category: 'chocolate-sweet',
+        isBestSeller: true,
+        description: 'Premium hazelnut chocolates.'
+    },
+    {
+        id: 122,
+        name: 'KitKat 4 Finger',
+        price: 30,
+        originalPrice: 30,
+        weight: '38 g',
+        image: 'https://pngimg.com/uploads/chocolate/chocolate_PNG42.png',
+        category: 'chocolate-sweet',
+        isBestSeller: true,
+        description: 'Crisp wafer fingers in milk chocolate.'
+    },
+    {
+        id: 123,
+        name: 'Snickers Peanut Bar',
+        price: 50,
+        originalPrice: 50,
+        weight: '50 g',
+        image: 'https://pngimg.com/uploads/chocolate/chocolate_PNG5.png',
+        category: 'chocolate-sweet',
+        isBestSeller: true,
+        description: 'Hungry? Grab a Snickers.'
+    },
+    {
+        id: 124,
+        name: 'Lindt Excellence Dark',
+        price: 250,
+        originalPrice: 300,
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/chocolate/chocolate_PNG3.png',
+        category: 'chocolate-sweet',
+        isBestSeller: false,
+        description: 'Premium dark chocolate bar.'
+    },
+    {
+        id: 125,
+        name: 'Toblerone Milk',
+        price: 180,
+        originalPrice: 200,
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/chocolate/chocolate_PNG1.png',
+        category: 'chocolate-sweet',
+        isBestSeller: false,
+        description: 'Unique triangular Swiss chocolate.'
+    },
+
+    // 13. Dry Fruit
+    {
+        id: 13,
+        name: 'Happilo Almonds',
+        price: 150,
+        originalPrice: 180,
+        weight: '200 g',
+        image: 'https://pngimg.com/uploads/hazelnut/hazelnut_PNG35.png',
+        category: 'dry-fruit',
+        isBestSeller: true,
+        description: 'Premium California almonds.'
+    },
+    {
+        id: 131,
+        name: 'Happilo Cashews',
+        price: 180,
+        originalPrice: 210,
+        weight: '200 g',
+        image: 'https://pngimg.com/uploads/hazelnut/hazelnut_PNG37.png',
+        category: 'dry-fruit',
+        isBestSeller: true,
+        description: 'Crunchy and whole cashews.'
+    },
+    {
+        id: 132,
+        name: 'Pistachios (Pista)',
+        price: 250,
+        originalPrice: 300,
+        weight: '200 g',
+        image: 'https://pngimg.com/uploads/hazelnut/hazelnut_PNG32.png',
+        category: 'dry-fruit',
+        isBestSeller: false,
+        description: 'Roasted and salted pistachios.'
+    },
+    {
+        id: 133,
+        name: 'Walnuts (Akhrot)',
+        price: 350,
+        originalPrice: 400,
+        weight: '250 g',
+        image: 'https://pngimg.com/uploads/hazelnut/hazelnut_PNG41.png',
+        category: 'dry-fruit',
+        isBestSeller: true,
+        description: 'Healthy walnut kernels.'
+    },
+
+    // 14. Cleaning Essentials
+    {
+        id: 14,
+        name: 'Surf Excel Liquid',
+        price: 220,
+        originalPrice: 250,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/detergent/detergent_PNG40.png',
+        category: 'cleaning-essentials',
+        isBestSeller: true,
+        description: 'Tough stain removal liquid detergent.'
+    },
+    {
+        id: 141,
+        name: 'Lizol Floor Cleaner',
+        price: 200,
+        originalPrice: 230,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/detergent/detergent_PNG1.png',
+        category: 'cleaning-essentials',
+        isBestSeller: false,
+        description: 'Germ killing floor cleaner.'
+    },
+    {
+        id: 142,
+        name: 'Comfort Fabric Conditioner',
+        price: 180,
+        originalPrice: 200,
+        weight: '860 ml',
+        image: 'https://pngimg.com/uploads/detergent/detergent_PNG33.png',
+        category: 'cleaning-essentials',
+        isBestSeller: true,
+        description: 'Soft and fragrant clothes conditioner.'
+    },
+    {
+        id: 143,
+        name: 'Harpic Toilet Cleaner',
+        price: 160,
+        originalPrice: 180,
+        weight: '1 L',
+        image: 'https://pngimg.com/uploads/detergent/detergent_PNG21.png',
+        category: 'cleaning-essentials',
+        isBestSeller: true,
+        description: 'Effective toilet bowl cleaner.'
+    },
+
+    // 15. Home & Office
+    {
+        id: 15,
+        name: 'A4 Paper Bundle',
+        price: 350,
+        originalPrice: 400,
+        weight: '500 sheets',
+        image: 'https://pngimg.com/uploads/paper_sheet/paper_sheet_PNG8131.png',
+        category: 'home-office',
+        isBestSeller: true,
+        description: 'High quality A4 printer paper.'
+    },
+    {
+        id: 151,
+        name: 'Camel Oil Pastels',
+        price: 120,
+        originalPrice: 150,
+        weight: '25 shades',
+        image: 'https://pngimg.com/uploads/pencil/pencil_PNG40.png',
+        category: 'home-office',
+        isBestSeller: false,
+        description: 'Vibrant colors for art and craft.'
+    },
+    {
+        id: 152,
+        name: 'Notebook Pack of 6',
+        price: 300,
+        originalPrice: 360,
+        weight: '6 units',
+        image: 'https://pngimg.com/uploads/book/book_PNG2116.png',
+        category: 'home-office',
+        isBestSeller: true,
+        description: 'Soft cover ruled notebooks.'
+    },
+
+    // 16. Pet Care
+    {
+        id: 16,
+        name: 'Pedigree Dog Food',
         price: 450,
         originalPrice: 500,
-        weight: '650 ml',
-        image: coldrinkImg,
-        category: 'personal-care',
+        weight: '3 kg',
+        image: 'https://pngimg.com/uploads/dog_food/dog_food_PNG43.png',
+        category: 'pet-care',
         isBestSeller: true,
-        description: 'Reduces hair fall and makes hair strong.'
+        description: 'Complete and balanced meal for dogs.'
+    },
+    {
+        id: 161,
+        name: 'Whiskas Cat Food',
+        price: 350,
+        originalPrice: 400,
+        weight: '1.2 kg',
+        image: 'https://pngimg.com/uploads/cat_food/cat_food_PNG44.png',
+        category: 'pet-care',
+        isBestSeller: true,
+        description: 'Nutritious meal for your adult cat.'
+    },
+    {
+        id: 162,
+        name: 'Drools Dog Treats',
+        price: 120,
+        originalPrice: 150,
+        weight: '100 g',
+        image: 'https://pngimg.com/uploads/dog_food/dog_food_PNG10.png',
+        category: 'pet-care',
+        isBestSeller: false,
+        description: 'Delicious treats for rewarding your pet.'
+    },
+
+    // 18. Beauty & Grooming
+    {
+        id: 18,
+        name: 'Loreal Face Wash',
+        price: 150,
+        originalPrice: 180,
+        weight: '100 ml',
+        image: 'https://pngimg.com/uploads/soap/soap_PNG3968.png',
+        category: 'beauty-grooming',
+        isBestSeller: false,
+        description: 'Purifying face wash for glowing skin.'
+    },
+    {
+        id: 181,
+        name: 'Maybelline Lipstick',
+        price: 450,
+        originalPrice: 600,
+        weight: '4 g',
+        image: 'https://pngimg.com/uploads/lipstick/lipstick_PNG32.png',
+        category: 'beauty-grooming',
+        isBestSeller: true,
+        description: 'Long lasting matte lipstick.'
+    },
+    {
+        id: 182,
+        name: 'Beardo Beard Oil',
+        price: 250,
+        originalPrice: 300,
+        weight: '30 ml',
+        image: 'https://pngimg.com/uploads/body_lotion/body_lotion_PNG28.png',
+        category: 'beauty-grooming',
+        isBestSeller: false,
+        description: 'Nourish your beard for a stylish look.'
     }
 ];

@@ -1,133 +1,164 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { products } from '../../data/products';
 import { useCart } from '../../context/CartContext';
-import { Minus, Plus, ShoppingCart, Clock, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Minus, Plus, ChevronRight, Star, ShoppingCart } from 'lucide-react';
+import { ProductDetailSkeleton } from '../../components/common/Skeleton';
+import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
-    const { addToCart, removeFromCart, updateQuantity, cart } = useCart();
+    const { addToCart, updateQuantity, cart } = useCart();
+    const [loading, setLoading] = useState(true);
 
     const product = products.find(p => p.id === parseInt(id));
+    const [selectedImage, setSelectedImage] = useState(product?.image);
+    const productImages = product?.images || [
+        product?.image,
+        product?.image,
+        product?.image
+    ];
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        setLoading(true);
+        setSelectedImage(product?.image);
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [id, product]);
 
     if (!product) return <div className="p-8 text-center text-gray-500">Product not found</div>;
 
     const cartItem = cart.find(item => item.id === product.id);
     const quantity = cartItem ? cartItem.quantity : 0;
 
+    if (loading) return (
+        <div className="min-h-screen bg-[#efefef] dark:bg-black transition-colors duration-300">
+            <ProductDetailSkeleton />
+        </div>
+    );
+
     return (
-        <div className="min-h-screen bg-[#efefef] pb-20">
-            <div className="bg-white border-b border-gray-100 shadow-sm sticky top-16 z-40">
-                <div className="max-w-7xl mx-auto px-4 py-3">
-                    <div className="flex items-center text-sm text-gray-500 gap-1">
-                        <Link to="/" className="hover:text-[var(--saathi-green)]">Home</Link>
-                        <ChevronRight size={14} />
-                        <Link to={`/category/${product.category}`} className="hover:text-[var(--saathi-green)] capitalize">{product.category.replace(/-/g, ' ')}</Link>
-                        <ChevronRight size={14} />
-                        <span className="font-semibold text-gray-800 line-clamp-1">{product.name}</span>
-                    </div>
+        <div className="min-h-screen bg-white dark:bg-[#1a1a1a] pb-20 transition-colors duration-300">
+            {/* Minimal Breadcrumb */}
+            <div className="max-w-7xl mx-auto px-4 py-4">
+                <div className="flex items-center text-[11px] text-gray-400 gap-2 uppercase tracking-widest">
+                    <Link to="/" className="hover:text-[#0c831f]">Home</Link>
+                    <ChevronRight size={12} />
+                    <span className="text-gray-300">{product.name}</span>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white rounded-none border-0 md:rounded-2xl md:shadow-sm md:border md:border-gray-100 overflow-hidden min-h-[600px]">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-12 h-full">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12">
 
-                        {/* Left: Image Section */}
-                        <div className="p-4 md:p-8 flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-gray-100">
-                            <div className="flex-grow flex items-center justify-center w-full relative">
-                                <img src={product.image} alt={product.name} className="max-h-[400px] object-contain transition-transform hover:scale-105 duration-300" />
+                    {/* Left: Image Section */}
+                    <div className="flex flex-col gap-6">
+                        <div className="relative aspect-square bg-white dark:bg-[#111] rounded-[32px] overflow-hidden flex items-center justify-center group shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#0c831f]/10 dark:border-white/5 p-4 md:p-12 max-w-[260px] md:max-w-[400px] mx-auto w-full transition-all duration-500 hover:shadow-xl">
+                            <img
+                                src={selectedImage || categoryPlaceholder}
+                                alt={product.name}
+                                className={`w-full h-full transition-all duration-700 group-hover:scale-110 ${!selectedImage ? 'object-cover' : 'object-contain'}`}
+                                onError={(e) => {
+                                    e.target.src = categoryPlaceholder;
+                                    e.target.classList.add('opacity-80');
+                                    e.target.style.objectFit = 'cover';
+                                }}
+                            />
+                        </div>
+
+                        {/* Thumbnails */}
+                        <div className="flex gap-4 overflow-x-auto pb-2 justify-center">
+                            {productImages.map((img, i) => (
+                                <div
+                                    key={i}
+                                    onClick={() => setSelectedImage(img)}
+                                    className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl border flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm ${selectedImage === img
+                                        ? 'border-[#0c831f] bg-[#fdfdfd] dark:bg-[#0c831f]/10 shadow-md scale-105 ring-1 ring-[#0c831f]/20'
+                                        : 'border-[#0c831f]/30 dark:border-white/10 hover:border-[#0c831f] bg-white dark:bg-[#222]'
+                                        }`}
+                                >
+                                    <img
+                                        src={img || categoryPlaceholder}
+                                        alt="thumb"
+                                        className={`w-full h-full transition-all duration-300 ${!img ? 'object-cover' : 'object-contain'}`}
+                                        onError={(e) => {
+                                            e.target.src = categoryPlaceholder;
+                                            e.target.style.objectFit = 'cover';
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Right: Details Section */}
+                    <div className="flex flex-col text-left py-0 md:py-2">
+                        <h1 className="text-[15px] md:text-xl font-bold text-gray-900 dark:text-gray-200 mb-1 leading-tight">
+                            {product.name}
+                        </h1>
+
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-1 bg-[#2a2a2a] px-2.5 py-1 rounded-md">
+                                <Star size={14} className="text-yellow-500 fill-yellow-500" />
+                                <span className="text-xs font-bold text-gray-400">0.0</span>
                             </div>
-
-                            {/* Thumbnails (Mock) */}
-                            <div className="flex gap-4 mt-8 overflow-x-auto pb-2 w-full justify-center">
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div key={i} className={`w-16 h-16 border rounded-lg p-1 cursor-pointer hover:border-[var(--saathi-green)] ${i === 1 ? 'border-[var(--saathi-green)]' : 'border-gray-200'}`}>
-                                        <img src={product.image} alt="thumbnail" className="w-full h-full object-contain" />
-                                    </div>
-                                ))}
+                            <div className="border border-gray-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#0c831f] dark:text-[#10b981]">
+                                In Stock
                             </div>
                         </div>
 
-                        {/* Right: Details Section */}
-                        <div className="p-6 md:p-10 flex flex-col text-left">
-                            {/* Breadcrumbs */}
-                            <div className="text-xs text-gray-500 mb-4 flex items-center gap-1">
-                                <Link to="/" className="hover:text-gray-800">Home</Link> /
-                                <Link to={`/category/${product.category}`} className="hover:text-gray-800 capitalize"> {product.category.replace(/-/g, ' ')}</Link> /
-                                <span className="text-gray-400 truncate max-w-[200px]">{product.name}</span>
+                        <div className="text-[11px] font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                            {product.weight}
+                        </div>
+
+                        <div className="text-lg font-bold text-[#0c831f] dark:text-[#10b981] mb-3">
+                            ₹ {product.price}.00
+                        </div>
+
+                        <div className="mb-1">
+                            <p className="text-[10px] text-gray-500 font-medium mb-0.5 uppercase tracking-widest">Total Amount:</p>
+                            <div className="text-2xl md:text-3xl font-black text-[#0c831f] dark:text-[#10b981]">
+                                ₹ {product.price * (quantity || 1)}.00
                             </div>
+                        </div>
 
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">{product.name}</h1>
-
-                            {/* Weight / Timer if needed */}
-                            <div className="mb-4">
-                                <span className="text-sm font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded">{product.weight}</span>
-                            </div>
-
-                            {/* Price Section */}
-                            <div className="mb-8">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xl font-bold text-gray-900">₹{product.price}</span>
-                                    {product.originalPrice > product.price && (
-                                        <span className="text-sm text-gray-400 line-through">₹{product.originalPrice}</span>
-                                    )}
-                                </div>
-                                <p className="text-[10px] text-gray-400">(Inclusive of all taxes)</p>
-                            </div>
-
-                            {/* Add to Cart Button */}
-                            <div className="mb-12">
-                                {quantity === 0 ? (
+                        <div className="mt-4 mb-6">
+                            {quantity === 0 ? (
+                                <button
+                                    onClick={() => addToCart(product)}
+                                    className="w-full md:w-fit flex items-center justify-center gap-2 bg-[#0c831f] hover:bg-[#0a6b19] text-white font-bold py-4 px-12 !rounded-full transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                                >
+                                    <ShoppingCart size={18} className="fill-white" />
+                                    <span className="uppercase tracking-widest text-xs">Add to Cart</span>
+                                </button>
+                            ) : (
+                                <div className="flex items-center bg-[#0c831f] rounded-2xl p-1 w-fit shadow-lg shadow-green-500/20">
                                     <button
-                                        onClick={() => addToCart(product)}
-                                        className="product_button bg-white text-[#0c831f] border-[1.5px] border-[#0c831f] hover:!bg-[#0a6b19] hover:!text-white hover:!border-[#0a6b19] font-bold py-2.5 px-8 transition shadow-sm text-sm uppercase tracking-wide"
+                                        onClick={() => updateQuantity(product.id, -1)}
+                                        className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
                                     >
-                                        Add to cart
+                                        <Minus size={20} strokeWidth={3} />
                                     </button>
-                                ) : (
-                                    <div className="flex items-center gap-4 bg-[#0c831f] text-white rounded-xl px-3 py-1.5 w-fit shadow-sm">
-                                        <button onClick={() => updateQuantity(product.id, -1)} className="p-1 hover:bg-[#0b721b] rounded-lg transition"><Minus size={16} /></button>
-                                        <span className="text-sm font-bold min-w-[20px] text-center">{quantity}</span>
-                                        <button onClick={() => updateQuantity(product.id, 1)} className="p-1 hover:bg-[#0b721b] rounded-lg transition"><Plus size={16} /></button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Why Shop section */}
-                            <div>
-                                <h3 className="font-bold text-gray-900 text-sm mb-4">Why shop from SaathiGro?</h3>
-                                <div className="space-y-6">
-                                    <div className="flex gap-4 items-start">
-                                        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-yellow-50 flex items-center justify-center">
-                                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-fast-delivery-icon-download-in-svg-png-gif-file-formats--truck-vehicle-logistics-services-pack-business-icons-1536254.png" alt="delivery" className="w-6 h-6 object-contain opacity-80" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-800">10 Minute Delivery</p>
-                                            <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Get items delivered to your doorstep from dark stores near you, whenever you need them.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-yellow-50 flex items-center justify-center">
-                                            <img src="https://cdn-icons-png.flaticon.com/512/2529/2529396.png" alt="offer" className="w-6 h-6 object-contain opacity-80" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-800">Best Prices & Offers</p>
-                                            <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Best price destination with offers directly from the manufacturers.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="w-10 h-10 rounded-full flex-shrink-0 bg-yellow-50 flex items-center justify-center">
-                                            <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" alt="assortment" className="w-6 h-6 object-contain opacity-80" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-800">Wide Assortment</p>
-                                            <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Choose from 5000+ products across food, personal care, household & other categories.</p>
-                                        </div>
-                                    </div>
+                                    <span className="w-12 text-center font-black text-lg text-white">{quantity}</span>
+                                    <button
+                                        onClick={() => updateQuantity(product.id, 1)}
+                                        className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
+                                    >
+                                        <Plus size={20} strokeWidth={3} />
+                                    </button>
                                 </div>
-                            </div>
+                            )}
+                        </div>
 
+                        {/* Additional Info (Minimal) */}
+                        <div className="border-t border-gray-100 dark:border-white/5 pt-8">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-4">Product Details</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                                Fresh and natural coconut water combo. Perfect for a refreshing drink any time of the day. Packed with electrolytes and nutrients.
+                            </p>
                         </div>
                     </div>
                 </div>

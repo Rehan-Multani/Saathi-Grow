@@ -61,11 +61,11 @@ const AddressPage = () => {
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
-            <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 my-auto p-6 md:p-8">
+            <div className="w-full max-w-2xl bg-white dark:bg-black rounded-lg shadow-xl overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 my-auto p-6 md:p-8 border border-transparent dark:border-white/10">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-800">Change Location</h1>
-                    <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-gray-100 transition-colors">
+                    <h1 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white">Change Location</h1>
+                    <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
                         <X size={24} className="text-gray-600" />
                     </button>
                 </div>
@@ -74,7 +74,7 @@ const AddressPage = () => {
                     {/* Detect Button */}
                     <button
                         onClick={handleDetectLocation}
-                        className="w-full md:w-auto bg-[#0c831f] text-white px-6 py-3.5 rounded-md font-bold text-sm md:text-base hover:bg-green-700 transition-colors whitespace-nowrap z-10 shadow-sm flex items-center justify-center gap-2"
+                        className="w-full md:w-auto bg-[#0c831f] text-white px-6 py-3.5 rounded-md font-bold text-sm md:text-base hover:bg-[#0a6b19] transition-colors whitespace-nowrap z-10 shadow-sm flex items-center justify-center gap-2"
                     >
                         {detecting ? (
                             <>
@@ -88,11 +88,11 @@ const AddressPage = () => {
 
                     {/* OR Divider */}
                     <div className="flex items-center justify-center gap-3 w-full md:w-auto">
-                        <div className="h-[1px] bg-gray-200 w-full md:w-6 hidden md:block"></div>
-                        <div className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-[10px] md:text-xs text-gray-400 font-bold shrink-0 z-10">
+                        <div className="h-[1px] bg-gray-200 dark:bg-gray-800 w-full md:w-6 hidden md:block"></div>
+                        <div className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-center text-[10px] md:text-xs text-gray-400 font-bold shrink-0 z-10">
                             OR
                         </div>
-                        <div className="h-[1px] bg-gray-200 w-full md:w-6 hidden md:block"></div>
+                        <div className="h-[1px] bg-gray-200 dark:bg-gray-800 w-full md:w-6 hidden md:block"></div>
                     </div>
 
                     {/* Search Input */}
@@ -102,18 +102,18 @@ const AddressPage = () => {
                             placeholder="search delivery location"
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
-                            className="w-full pl-4 pr-10 py-3.5 border border-gray-200 rounded-md focus:outline-none focus:border-[#0c831f] text-gray-700 placeholder-gray-400 transition-colors shadow-sm"
+                            className="w-full pl-4 pr-10 py-3.5 border border-gray-200 dark:border-gray-800 rounded-md focus:outline-none focus:border-[#0c831f] bg-white dark:bg-gray-900 text-gray-700 dark:text-white placeholder-gray-400 transition-colors shadow-sm"
                         />
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
 
                         {/* Search Results Dropdown (Minimal) */}
                         {searchText.length > 0 && (
-                            <div className="absolute top-full left-0 right-0 bg-white border border-gray-100 shadow-lg rounded-b-md mt-1 z-50 max-h-60 overflow-y-auto">
+                            <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-lg rounded-b-md mt-1 z-50 max-h-60 overflow-y-auto">
                                 {suggestions.map((city) => (
                                     <button
                                         key={city}
                                         onClick={() => handleManualSelect(city)}
-                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 border-b border-gray-50 last:border-0 flex items-center gap-2"
+                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm text-gray-700 dark:text-white border-b border-gray-50 dark:border-gray-800 last:border-0 flex items-center gap-2"
                                     >
                                         <MapPin size={14} className="text-gray-400" />
                                         {city}
