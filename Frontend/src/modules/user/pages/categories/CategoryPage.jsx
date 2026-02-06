@@ -65,7 +65,7 @@ const CategoryPage = () => {
                                 className="flex flex-col items-center group active:scale-95 transition-all"
                             >
                                 <div
-                                    className="w-full aspect-square rounded-[20px] sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
+                                    className="w-20 sm:w-28 aspect-square rounded-[20px] sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
                                     style={{ backgroundColor: categoryColors[cat.slug] || '#f3f4f6' }}
                                 >
                                     <img
@@ -100,7 +100,7 @@ const CategoryPage = () => {
     return (
         <div className="min-h-screen bg-transparent dark:bg-black pb-28 transition-colors duration-300">
             {/* Combined Sticky Headers: Breadcrumbs + Subcategories */}
-            <div className="sticky top-0 z-40 bg-[#fffef5]/80 dark:bg-black/60 backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
+            <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
                 {/* Header with Back button */}
                 <div className="px-4 py-4 flex items-center gap-4">
                     <button onClick={() => navigate('/category')} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300">
@@ -172,6 +172,21 @@ const CategoryPage = () => {
                         </button>
                     </div>
                 )}
+            </div>
+
+            {/* Recommendations Section */}
+            <div className="max-w-7xl mx-auto px-4 pb-12">
+                <div className="border-t border-dashed border-gray-200 dark:border-white/10 pt-8 mt-4">
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="w-1 h-4 bg-[#f7cb15] rounded-full"></div>
+                        <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">You Might Also Like</h3>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        {products.filter(p => p.category !== slug).slice(0, 6).map((product) => (
+                            <ProductCard key={`rec-${product.id}`} product={product} />
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );

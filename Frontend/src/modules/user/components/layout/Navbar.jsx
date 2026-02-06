@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
-import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map, Mic } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../context/LocationContext';
@@ -24,6 +24,59 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
   const routerLocation = useRouterLocation();
   const [recentSearches, setRecentSearches] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  const recognitionRef = React.useRef(null);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition && !recognitionRef.current) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = 'en-IN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setSearchQuery(transcript);
+        setIsListening(false);
+        handleSuggestionClick(transcript);
+        navigate(`/category?search=${transcript}`);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, [navigate, setSearchQuery]);
+
+  const startListening = () => {
+    if (!recognitionRef.current) {
+      alert('Voice search is not supported in this browser.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (err) {
+        console.error('Failed to start recognition:', err);
+        recognitionRef.current.stop();
+        setIsListening(false);
+      }
+    }
+  };
 
   useEffect(() => {
     if (routerLocation.state?.openMenu) {
@@ -77,10 +130,9 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
     <div className="z-50 transition-colors duration-300 font-sans">
 
       {/* MOBILE LAYOUT */}
-      <div className="md:hidden bg-[#fffef5] dark:bg-[#0a0a0a] transition-colors duration-300 shadow-sm relative z-50">
-
-        {/* Row 1: Address Bar (Mobile) */}
-        <div className="px-4 pt-3 pb-1 flex items-center gap-2.5 transition-opacity">
+      <div className="md:hidden sticky top-0 z-50 bg-white dark:bg-[#141414] shadow-sm transition-colors duration-300">
+        {/* Row 1: Logo & Actions */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <div className="flex-1 flex flex-col items-start overflow-hidden">
             <button
               onClick={openLocationModal}
@@ -97,7 +149,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
           <div className="relative">
             <button
               onClick={toggleCart}
-              className="w-10 h-10 bg-white dark:bg-white/10 rounded-full flex items-center justify-center shadow-sm text-gray-700 dark:text-gray-200"
+              className="w-10 h-10 bg-white dark:bg-white/10 rounded-full flex items-center justify-center shadow-sm text-[#0c831f] dark:text-[#0c831f]"
             >
               <ShoppingBag size={20} />
             </button>
@@ -174,14 +226,23 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
                       navigate(`/category?search=${searchQuery.trim()}`);
                     }
                   }}
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-100/50 dark:bg-[#1c1c1c] border border-transparent dark:border-white/5 rounded-full focus:outline-none focus:bg-white dark:focus:bg-[#1c1c1c] focus:ring-2 focus:ring-[#0c831f]/10 dark:focus:ring-[#0c831f]/20 focus:border-[#0c831f]/20 transition-all text-sm font-medium dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-inner group-hover:shadow-sm"
+                  className="w-full pl-11 pr-24 py-2.5 bg-gray-100/50 dark:bg-[#1c1c1c] border border-transparent dark:border-white/5 rounded-full focus:outline-none focus:bg-white dark:focus:bg-[#1c1c1c] focus:ring-2 focus:ring-[#0c831f]/10 dark:focus:ring-[#0c831f]/20 focus:border-[#0c831f]/20 transition-all text-sm font-medium dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-inner group-hover:shadow-sm"
                 />
                 <Search className="absolute left-4 top-3 text-gray-400 dark:text-gray-500" size={18} strokeWidth={2} />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                    <X size={16} />
+                <div className="absolute right-3 top-2 flex items-center gap-1">
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                      <X size={16} />
+                    </button>
+                  )}
+                  <button
+                    onClick={startListening}
+                    className={`p-1.5 rounded-full transition-all ${isListening ? 'bg-[#0c831f] text-white animate-pulse' : 'text-gray-400 hover:text-[#0c831f] hover:bg-gray-200 dark:hover:bg-white/10'}`}
+                    title={isListening ? "Stop listening" : "Voice search"}
+                  >
+                    <Mic size={16} strokeWidth={2.5} />
                   </button>
-                )}
+                </div>
               </div>
 
               {/* Search Suggestions (Desktop) */}
@@ -243,7 +304,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
               <div className="relative">
                 <button
                   onClick={toggleCart}
-                  className="p-2.5 bg-gray-100 dark:bg-white/5 hover:bg-[#0c831f] hover:text-white dark:hover:bg-[#0c831f] text-gray-800 dark:text-gray-100 rounded-full transition-all duration-300 group shadow-sm"
+                  className="p-2.5 bg-gray-100 dark:bg-white/5 hover:bg-[#0c831f] hover:text-white dark:hover:bg-[#0c831f] text-gray-800 dark:text-[#0c831f] rounded-full transition-all duration-300 group shadow-sm"
                 >
                   <ShoppingBag size={20} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
                 </button>
@@ -267,7 +328,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       )}
 
       {/* Mobile Sidebar (Drawer) */}
-      <div className={`fixed top-0 left-0 h-full w-[280px] bg-[#fffef5] dark:bg-[#141414] z-[2000] md:hidden transform transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed top-0 left-0 h-full w-[280px] bg-white dark:bg-[#141414] z-[2000] md:hidden transform transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full pb-24">
           <div className="p-5 flex items-center justify-between border-b border-gray-50 dark:border-white/5">
             <button

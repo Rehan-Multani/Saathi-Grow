@@ -1,25 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { categories } from '../../data/categories';
 import { products } from '../../data/products';
 import ProductCard from '../../components/product/ProductCard';
 import { useSearch } from '../../context/SearchContext';
 import { ChevronRight, ArrowRight, ArrowLeft, Carrot, Milk, Cookie, CupSoda, Snowflake, Coffee, Croissant, Wheat, SprayCan, Sparkles } from 'lucide-react';
 import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../components/common/Skeleton';
-
-// Offer Images
-import offer1 from '../../../../assets/offers/offer1.png';
-import offer2 from '../../../../assets/offers/offer2.png';
-import offer3 from '../../../../assets/offers/offer3.png';
-import offer4 from '../../../../assets/offers/offer4.png';
+import { offerBanners } from '../../data/offers';
 import categoryPlaceholder from '../../assets/images/category-placeholder.png';
-
-const offerBanners = [
-    { id: 1, image: offer1 },
-    { id: 2, image: offer2 },
-    { id: 3, image: offer3 },
-    { id: 4, image: offer4 }
-];
 
 const categoryColors = {
     'staples-and-grains': '#f0f4f8',
@@ -39,6 +27,7 @@ const categoryColors = {
 };
 
 const HomePage = () => {
+    const navigate = useNavigate();
     const { searchQuery } = useSearch();
     const scrollContainerRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -128,7 +117,7 @@ const HomePage = () => {
     };
 
     return (
-        <div className="bg-[#fffef5] dark:bg-black min-h-screen transition-colors duration-300">
+        <div className="bg-white dark:bg-black min-h-screen transition-colors duration-300">
 
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
@@ -150,8 +139,13 @@ const HomePage = () => {
                                         width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(16 * (itemsToShow - 1)) / itemsToShow}px)`
                                     }}
                                 >
-                                    <div className="relative cursor-pointer transition-all duration-300 mx-0 border-none group/banner">
-                                        <div className="aspect-[16/7.5] sm:aspect-[16/7] overflow-hidden rounded-lg sm:rounded-2xl shadow-sm border border-gray-100/10">
+                                    <div
+                                        onClick={() => navigate(`/offer/${offer.id}`)}
+                                        className="relative cursor-pointer transition-all duration-300 mx-0 border-none group/banner block z-10"
+                                        role="button"
+                                        tabIndex={0}
+                                    >
+                                        <div className="aspect-[16/7.5] sm:aspect-[16/7] overflow-hidden rounded-lg sm:rounded-2xl shadow-sm border border-gray-100/10 pointer-events-none">
                                             <img
                                                 src={offer.image}
                                                 alt="Special Offer"

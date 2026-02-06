@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { products } from '../../data/products';
 import { useCart } from '../../context/CartContext';
@@ -30,14 +30,27 @@ const ProductDetailsPage = () => {
         return () => clearTimeout(timer);
     }, [id, product]);
 
-    const similarProducts = products
-        .filter(p => p.category === product?.category && p.id !== product?.id)
-        .slice(0, 10);
+    // Scroll to top on every product change
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [id]);
 
-    const recommendedProducts = products
-        .filter(p => p.category !== product?.category)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 10);
+    const similarProducts = useMemo(() => {
+        if (!product) return [];
+        return products
+            .filter(p => p.category === product.category && p.id !== product.id)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 8);
+    }, [product]);
+
+    const recommendedProducts = useMemo(() => {
+        if (!product) return [];
+        return products
+            .filter(p => p.subCategory === product.subCategory && p.id !== product.id && !similarProducts.find(sp => sp.id === p.id))
+            .concat(products.filter(p => p.category !== product.category))
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 8);
+    }, [product, similarProducts]);
 
     if (!product) return <div className="p-8 text-center text-gray-500">Product not found</div>;
 
@@ -51,7 +64,7 @@ const ProductDetailsPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#1a1a1a] pb-20 transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-[#09090b] pb-20 transition-colors duration-300">
             {/* Minimal Breadcrumb */}
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center text-[11px] text-gray-400 gap-2 uppercase tracking-widest">

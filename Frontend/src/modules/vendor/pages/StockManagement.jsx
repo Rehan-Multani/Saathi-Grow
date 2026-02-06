@@ -310,8 +310,8 @@ const StockManagement = () => {
                                             disabled={!isUnsaved}
                                             onClick={() => handleSaveStock(product.id)}
                                             className={`px-4 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1 active:scale-95 transition-all ${isUnsaved
-                                                    ? 'bg-[#0c831f] text-white hover:bg-[#0a6b19]'
-                                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                ? 'bg-[#0c831f] text-white hover:bg-[#0a6b19]'
+                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                 }`}
                                         >
                                             <Save size={14} /> Save

@@ -4,7 +4,7 @@ import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-white dark:bg-[#0a0a0a] pt-4 md:pt-16 pb-12 md:pb-12 font-sans transition-colors duration-300 border-t border-gray-100 dark:border-white/5">
+    <footer className="bg-white dark:bg-black pt-4 md:pt-16 pb-12 md:pb-12 font-sans transition-colors duration-300 border-t border-gray-100 dark:border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-row justify-between items-start gap-1 sm:gap-4 mb-4 sm:mb-12">
 
@@ -42,9 +42,9 @@ const Footer = () => {
           <div className="flex flex-col items-start text-left">
             <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Connect</h3>
             <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-8">
-              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#0c831f] hover:text-white transition-all"><Facebook size={12} className="sm:w-4 sm:h-4" /></a>
-              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#0c831f] hover:text-white transition-all"><Twitter size={12} className="sm:w-4 sm:h-4" /></a>
-              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#0c831f] hover:text-white transition-all"><Instagram size={12} className="sm:w-4 sm:h-4" /></a>
+              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all"><Facebook size={12} className="sm:w-4 sm:h-4" /></a>
+              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all"><Twitter size={12} className="sm:w-4 sm:h-4" /></a>
+              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all"><Instagram size={12} className="sm:w-4 sm:h-4" /></a>
             </div>
             <div className="hidden sm:flex flex-col gap-3 w-full max-w-[140px]">
               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/1024px-Google_Play_Store_badge_EN.svg.png" alt="Google Play" className="h-8 cursor-pointer hover:opacity-80 transition-opacity object-contain" />

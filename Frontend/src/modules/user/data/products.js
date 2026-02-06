@@ -1,7 +1,7 @@
 export const products = [
     // 1. Fruit and vegetables
     {
-        id: 1,
+        id: 101,
         name: 'Fresho Tomato - Hybrid',
         price: 38,
         originalPrice: 50,
@@ -13,7 +13,7 @@ export const products = [
         description: 'Fresh, juicy, and hybrid tomatoes sourced directly from farms.'
     },
     {
-        id: 9,
+        id: 102,
         name: 'Fresho Onion',
         price: 25,
         originalPrice: 40,
@@ -25,7 +25,7 @@ export const products = [
         description: 'Top quality onions that add flavor to your dishes.'
     },
     {
-        id: 10,
+        id: 103,
         name: 'Fresho Potato',
         price: 30,
         originalPrice: 45,
@@ -37,7 +37,7 @@ export const products = [
         description: 'Starchy and fresh potatoes suitable for frying and boiling.'
     },
     {
-        id: 11,
+        id: 104,
         name: 'Fresho Banana - Robusta',
         price: 45,
         originalPrice: 60,
@@ -49,7 +49,7 @@ export const products = [
         description: 'Sweet and nutritious Robusta bananas.'
     },
     {
-        id: 12,
+        id: 105,
         name: 'Fresho Apple - Royal Gala',
         price: 180,
         originalPrice: 220,
@@ -61,7 +61,7 @@ export const products = [
         description: 'Crisp and sweet Royal Gala apples.'
     },
     {
-        id: 13,
+        id: 106,
         name: 'Fresh Spinach (Palak)',
         price: 20,
         originalPrice: 30,
@@ -73,7 +73,7 @@ export const products = [
         description: 'Fresh green spinach leaves rich in iron.'
     },
     {
-        id: 14,
+        id: 107,
         name: 'Fresh Carrots',
         price: 40,
         originalPrice: 60,
@@ -87,7 +87,7 @@ export const products = [
 
     // 2. Dairy Egg , Frozen
     {
-        id: 2,
+        id: 201,
         name: 'Amul Taaza Milk',
         price: 54,
         originalPrice: 56,
@@ -99,7 +99,7 @@ export const products = [
         description: 'Pasteurized toned milk, rich in calcium.'
     },
     {
-        id: 21,
+        id: 202,
         name: 'Amul Butter',
         price: 56,
         originalPrice: 58,
@@ -110,7 +110,7 @@ export const products = [
         description: 'The taste of India. Salty and creamy.'
     },
     {
-        id: 22,
+        id: 203,
         name: 'Britannia Cheese Slices',
         price: 90,
         originalPrice: 100,
@@ -121,7 +121,7 @@ export const products = [
         description: 'Classic cheese slices for sandwiches.'
     },
     {
-        id: 23,
+        id: 204,
         name: 'Farm Fresh Eggs',
         price: 45,
         originalPrice: 55,
@@ -133,7 +133,7 @@ export const products = [
         description: 'High quality nutritious eggs.'
     },
     {
-        id: 24,
+        id: 205,
         name: 'Mother Dairy Paneer',
         price: 85,
         originalPrice: 95,
@@ -144,7 +144,7 @@ export const products = [
         description: 'Fresh and soft paneer for your favorite dishes.'
     },
     {
-        id: 25,
+        id: 206,
         name: 'Amul Masti Dahi',
         price: 35,
         originalPrice: 40,
@@ -157,7 +157,7 @@ export const products = [
 
     // 3. Snacks & Bakery
     {
-        id: 3,
+        id: 301,
         name: 'Lay\'s Magic Masala Chips',
         price: 20,
         originalPrice: 20,
@@ -168,7 +168,7 @@ export const products = [
         description: 'Spicy Indian masala flavor potato chips.'
     },
     {
-        id: 31,
+        id: 302,
         name: 'Britannia Good Day Cookies',
         price: 35,
         originalPrice: 40,
@@ -179,7 +179,7 @@ export const products = [
         description: 'Buttery cookies with cashews.'
     },
     {
-        id: 32,
+        id: 303,
         name: 'Fresh Brown Bread',
         price: 45,
         originalPrice: 50,
@@ -190,7 +190,7 @@ export const products = [
         description: 'Soft and healthy brown bread.'
     },
     {
-        id: 33,
+        id: 304,
         name: 'Kurkure Masala Munch',
         price: 20,
         originalPrice: 20,
@@ -201,7 +201,7 @@ export const products = [
         description: 'Spicy and crunchy snacks.'
     },
     {
-        id: 34,
+        id: 305,
         name: 'Parle-G Biscuits',
         price: 15,
         originalPrice: 15,
@@ -212,7 +212,7 @@ export const products = [
         description: 'The classic glucose biscuit.'
     },
     {
-        id: 35,
+        id: 306,
         name: 'Haldiram Bhujia',
         price: 60,
         originalPrice: 70,
@@ -225,7 +225,7 @@ export const products = [
 
     // 4. Food & Beverage
     {
-        id: 4,
+        id: 401,
         name: 'Coca-Cola Soft Drink',
         price: 40,
         originalPrice: 40,
@@ -236,7 +236,7 @@ export const products = [
         description: 'Refreshing original taste Coca-Cola.'
     },
     {
-        id: 41,
+        id: 402,
         name: 'Pepsi Soft Drink',
         price: 40,
         originalPrice: 40,
@@ -247,7 +247,7 @@ export const products = [
         description: 'Cool and crisp Pepsi.'
     },
     {
-        id: 42,
+        id: 403,
         name: 'Sprite Lime Drink',
         price: 40,
         originalPrice: 40,
@@ -258,7 +258,7 @@ export const products = [
         description: 'Clear and refreshing lime soda.'
     },
     {
-        id: 43,
+        id: 404,
         name: 'Real Mixed Fruit Juice',
         price: 105,
         originalPrice: 120,
@@ -269,7 +269,7 @@ export const products = [
         description: 'Natural mixed fruit juice.'
     },
     {
-        id: 44,
+        id: 405,
         name: 'Red Bull Energy Drink',
         price: 125,
         originalPrice: 125,
@@ -282,7 +282,7 @@ export const products = [
 
     // 8. Staples and grains
     {
-        id: 8,
+        id: 801,
         name: 'Fortune Chakki Atta',
         price: 450,
         originalPrice: 520,
@@ -294,7 +294,7 @@ export const products = [
         description: '100% whole wheat flour for soft rotis.'
     },
     {
-        id: 81,
+        id: 802,
         name: 'India Gate Basmati Rice',
         price: 800,
         originalPrice: 950,
@@ -306,7 +306,7 @@ export const products = [
         description: 'Aromatic long grain basmati rice.'
     },
     {
-        id: 82,
+        id: 803,
         name: 'Tata Sampann Moong Dal',
         price: 140,
         originalPrice: 160,
@@ -318,7 +318,7 @@ export const products = [
         description: 'Protein rich unpolished Moong Dal.'
     },
     {
-        id: 83,
+        id: 804,
         name: 'Tuar Dal (Arhar)',
         price: 160,
         originalPrice: 180,
@@ -329,7 +329,7 @@ export const products = [
         description: 'Essential Indian pulse for daily meals.'
     },
     {
-        id: 84,
+        id: 805,
         name: 'Sugar - Premium Quality',
         price: 50,
         originalPrice: 55,
@@ -342,7 +342,7 @@ export const products = [
 
     // 9. Masala and spices
     {
-        id: 9,
+        id: 901,
         name: 'MDH Deggi Mirch',
         price: 110,
         originalPrice: 120,
@@ -353,7 +353,7 @@ export const products = [
         description: 'Red chilli powder for color and spice.'
     },
     {
-        id: 91,
+        id: 902,
         name: 'Tata Salt',
         price: 25,
         originalPrice: 28,
@@ -364,7 +364,7 @@ export const products = [
         description: 'Desh ka Namak. Pure and iodized.'
     },
     {
-        id: 92,
+        id: 903,
         name: 'Catch Turmeric Powder',
         price: 35,
         originalPrice: 40,
@@ -375,7 +375,7 @@ export const products = [
         description: 'Pure and natural turmeric.'
     },
     {
-        id: 93,
+        id: 904,
         name: 'Everest Garam Masala',
         price: 65,
         originalPrice: 75,
@@ -388,7 +388,7 @@ export const products = [
 
     // 10. Oil and Ghee
     {
-        id: 10,
+        id: 1001,
         name: 'Amul Pure Cow Ghee',
         price: 560,
         originalPrice: 600,
@@ -399,7 +399,7 @@ export const products = [
         description: 'Pure and traditional cow ghee.'
     },
     {
-        id: 101,
+        id: 1002,
         name: 'Fortune Sunflower Oil',
         price: 155,
         originalPrice: 180,
@@ -410,7 +410,7 @@ export const products = [
         description: 'Refined sunflower oil for healthy cooking.'
     },
     {
-        id: 102,
+        id: 1003,
         name: 'Dhara Mustard Oil',
         price: 175,
         originalPrice: 195,
@@ -421,7 +421,7 @@ export const products = [
         description: 'Traditional mustard oil for Indian cooking.'
     },
     {
-        id: 103,
+        id: 1004,
         name: 'Saffola Gold Oil',
         price: 190,
         originalPrice: 210,
@@ -434,7 +434,7 @@ export const products = [
 
     // 11. Personal care
     {
-        id: 11,
+        id: 1101,
         name: 'Dettol Original Soap',
         price: 45,
         originalPrice: 50,
@@ -445,7 +445,7 @@ export const products = [
         description: 'Antibacterial soap for germ protection.'
     },
     {
-        id: 111,
+        id: 1102,
         name: 'Colgate Strong Teeth',
         price: 95,
         originalPrice: 100,
@@ -456,7 +456,7 @@ export const products = [
         description: 'Stronger teeth with Amino Power.'
     },
     {
-        id: 112,
+        id: 1103,
         name: 'Dove Shampoo',
         price: 240,
         originalPrice: 280,
@@ -467,7 +467,7 @@ export const products = [
         description: 'Nourishing shampoo for soft hair.'
     },
     {
-        id: 113,
+        id: 1104,
         name: 'Nivea Body Lotion',
         price: 350,
         originalPrice: 400,
@@ -478,7 +478,7 @@ export const products = [
         description: 'Moisturizing lotion for dry skin.'
     },
     {
-        id: 114,
+        id: 1105,
         name: 'Gillette Shaving Foam',
         price: 180,
         originalPrice: 200,
@@ -491,7 +491,7 @@ export const products = [
 
     // 12. Chocolate & Sweet
     {
-        id: 12,
+        id: 1201,
         name: 'Cadbury Dairy Milk',
         price: 40,
         originalPrice: 40,
@@ -502,7 +502,7 @@ export const products = [
         description: 'Classic chocolate bar.'
     },
     {
-        id: 121,
+        id: 1202,
         name: 'Ferrero Rocher',
         price: 550,
         originalPrice: 600,
@@ -513,7 +513,7 @@ export const products = [
         description: 'Premium hazelnut chocolates.'
     },
     {
-        id: 122,
+        id: 1203,
         name: 'KitKat 4 Finger',
         price: 30,
         originalPrice: 30,
@@ -524,7 +524,7 @@ export const products = [
         description: 'Crisp wafer fingers in milk chocolate.'
     },
     {
-        id: 123,
+        id: 1204,
         name: 'Snickers Peanut Bar',
         price: 50,
         originalPrice: 50,
@@ -535,7 +535,7 @@ export const products = [
         description: 'Hungry? Grab a Snickers.'
     },
     {
-        id: 124,
+        id: 1205,
         name: 'Lindt Excellence Dark',
         price: 250,
         originalPrice: 300,
@@ -546,7 +546,7 @@ export const products = [
         description: 'Premium dark chocolate bar.'
     },
     {
-        id: 125,
+        id: 1206,
         name: 'Toblerone Milk',
         price: 180,
         originalPrice: 200,
@@ -559,7 +559,7 @@ export const products = [
 
     // 13. Dry Fruit
     {
-        id: 13,
+        id: 1301,
         name: 'Happilo Almonds',
         price: 150,
         originalPrice: 180,
@@ -570,7 +570,7 @@ export const products = [
         description: 'Premium California almonds.'
     },
     {
-        id: 131,
+        id: 1302,
         name: 'Happilo Cashews',
         price: 180,
         originalPrice: 210,
@@ -581,7 +581,7 @@ export const products = [
         description: 'Crunchy and whole cashews.'
     },
     {
-        id: 132,
+        id: 1303,
         name: 'Pistachios (Pista)',
         price: 250,
         originalPrice: 300,
@@ -592,7 +592,7 @@ export const products = [
         description: 'Roasted and salted pistachios.'
     },
     {
-        id: 133,
+        id: 1304,
         name: 'Walnuts (Akhrot)',
         price: 350,
         originalPrice: 400,
@@ -605,7 +605,7 @@ export const products = [
 
     // 14. Cleaning Essentials
     {
-        id: 14,
+        id: 1401,
         name: 'Surf Excel Liquid',
         price: 220,
         originalPrice: 250,
@@ -616,7 +616,7 @@ export const products = [
         description: 'Tough stain removal liquid detergent.'
     },
     {
-        id: 141,
+        id: 1402,
         name: 'Lizol Floor Cleaner',
         price: 200,
         originalPrice: 230,
@@ -627,7 +627,7 @@ export const products = [
         description: 'Germ killing floor cleaner.'
     },
     {
-        id: 142,
+        id: 1403,
         name: 'Comfort Fabric Conditioner',
         price: 180,
         originalPrice: 200,
@@ -638,7 +638,7 @@ export const products = [
         description: 'Soft and fragrant clothes conditioner.'
     },
     {
-        id: 143,
+        id: 1404,
         name: 'Harpic Toilet Cleaner',
         price: 160,
         originalPrice: 180,
@@ -651,7 +651,7 @@ export const products = [
 
     // 15. Home & Office
     {
-        id: 15,
+        id: 1501,
         name: 'A4 Paper Bundle',
         price: 350,
         originalPrice: 400,
@@ -662,7 +662,7 @@ export const products = [
         description: 'High quality A4 printer paper.'
     },
     {
-        id: 151,
+        id: 1502,
         name: 'Camel Oil Pastels',
         price: 120,
         originalPrice: 150,
@@ -673,7 +673,7 @@ export const products = [
         description: 'Vibrant colors for art and craft.'
     },
     {
-        id: 152,
+        id: 1503,
         name: 'Notebook Pack of 6',
         price: 300,
         originalPrice: 360,
@@ -686,7 +686,7 @@ export const products = [
 
     // 16. Pet Care
     {
-        id: 16,
+        id: 1601,
         name: 'Pedigree Dog Food',
         price: 450,
         originalPrice: 500,
@@ -697,7 +697,7 @@ export const products = [
         description: 'Complete and balanced meal for dogs.'
     },
     {
-        id: 161,
+        id: 1602,
         name: 'Whiskas Cat Food',
         price: 350,
         originalPrice: 400,
@@ -708,7 +708,7 @@ export const products = [
         description: 'Nutritious meal for your adult cat.'
     },
     {
-        id: 162,
+        id: 1603,
         name: 'Drools Dog Treats',
         price: 120,
         originalPrice: 150,
@@ -721,7 +721,7 @@ export const products = [
 
     // 18. Beauty & Grooming
     {
-        id: 18,
+        id: 1801,
         name: 'Loreal Face Wash',
         price: 150,
         originalPrice: 180,
@@ -732,7 +732,7 @@ export const products = [
         description: 'Purifying face wash for glowing skin.'
     },
     {
-        id: 181,
+        id: 1802,
         name: 'Maybelline Lipstick',
         price: 450,
         originalPrice: 600,
@@ -743,7 +743,7 @@ export const products = [
         description: 'Long lasting matte lipstick.'
     },
     {
-        id: 182,
+        id: 1803,
         name: 'Beardo Beard Oil',
         price: 250,
         originalPrice: 300,

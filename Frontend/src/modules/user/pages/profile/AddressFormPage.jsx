@@ -82,8 +82,8 @@ const AddressFormPage = () => {
                                 type="button"
                                 onClick={() => setFormData({ ...formData, type: type.id })}
                                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all active:scale-95 ${formData.type === type.id
-                                        ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-lg shadow-green-500/20'
-                                        : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-600 dark:text-gray-400'
+                                    ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-lg shadow-green-500/20'
+                                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-600 dark:text-gray-400'
                                     }`}
                             >
                                 <type.icon size={14} />

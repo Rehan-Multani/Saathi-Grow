@@ -37,6 +37,7 @@ const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPag
 const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
 const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
 const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage'));
+const OfferPage = lazy(() => import('../pages/offer/OfferPage'));
 const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
 
 const LoadingFallback = () => (
@@ -49,7 +50,7 @@ const UserLayout = () => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="user-module-root flex flex-col min-h-screen">
             <ScrollToTop />
             <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
             <CartSidebar />
@@ -58,7 +59,7 @@ const UserLayout = () => {
             <LoginModal />
             <SearchOverlay />
 
-            <main className="flex-grow bg-[#fffef5] dark:!bg-black transition-colors duration-300 pb-20 md:pb-0">
+            <main className="flex-grow bg-white dark:!bg-black transition-colors duration-300 pb-20 md:pb-0">
                 <Suspense fallback={<LoadingFallback />}>
                     <Outlet />
                 </Suspense>
@@ -104,6 +105,7 @@ const UserRoutes = () => {
                     <Route path="/wallet" element={<WalletPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />
+                    <Route path="/offer/:id" element={<OfferPage />} />
 
                     {/* Auth Pages matching UserLayout for standard feel */}
                     <Route path="/login" element={<LoginPage />} />

@@ -54,7 +54,6 @@ body {
   background-color: inherit !important;
   color: inherit !important;
   -webkit-tap-highlight-color: transparent;
-  /* Remove mobile gray highlight */
 }
 
 /* Global Touch Feedback for Mobile */
@@ -76,7 +75,7 @@ a {
   color: inherit;
 }
 
-/* Fix for broken images - center aligned without overlay text */
+/* Fix for broken images */
 img {
   position: relative;
   text-align: center;
@@ -93,7 +92,7 @@ img {
   min-height: 100vh;
 }
 
-/* Scrollbar styling for Webkit */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -111,8 +110,6 @@ img {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
-
 
 @layer utilities {
   .line-clamp-2 {
@@ -139,21 +136,45 @@ img {
   }
 }
 
-.dark,
-.dark body,
-.dark #root,
-.dark .bg-white,
-.dark .bg-gray-50,
-.dark nav,
-.dark .sticky {
-  background-color: var(--bg-main) !important;
+/* 
+   USER MODULE DARK MODE REFINEMENT
+   Scoped to .user-module-root to fulfill the "sirf user module k liye" requirement.
+*/
+.dark .user-module-root {
+  --bg-page-pure: #000000;
+  --bg-card-dark: #121212;
+
+  /* Force pure black on page backgrounds */
+  &.bg-\[#fffef5\],
+  .bg-\[#fffef5\],
+  .bg-\[#fffdf0\] {
+    background-color: var(--bg-page-pure) !important;
+  }
+
+  /* Force dark grey on cards/surfaces that are white or light gray */
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100 {
+    background-color: var(--bg-card-dark) !important;
+  }
+
+  /* Force text visibility for standard gray/black text */
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700,
+  .text-black {
+    color: var(--text-primary) !important;
+  }
+
+  /* Adaptive borders for light components */
+  .border-gray-100,
+  .border-gray-200,
+  .border-gray-50 {
+    border-color: var(--border-color) !important;
+  }
 }
 
-.dark .bg-surface,
-.dark .bg-secondary {
-  background-color: var(--bg-surface) !important;
-}
-
+/* Keep current general dark mode logic for text colors as base */
 .dark,
 .dark .text-gray-900,
 .dark .text-gray-800,
@@ -167,26 +188,9 @@ img {
   color: var(--text-secondary);
 }
 
-.dark .border-gray-100,
-.dark .border-gray-200,
-.dark .border-gray-50,
-.dark .border-gray-300 {
-  border-color: var(--border-color) !important;
-}
-
-/* Maintain Category Pastel Colors - these should remain visible */
+/* Maintain Category Pastel Colors */
 .dark [style*="background-color"] {
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-
-/* Utility to remove Bootstrap Dropdown Toggle Caret */
-.no-caret::after {
-  display: none !important;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
 }
 
 @keyframes shimmer {
@@ -203,7 +207,6 @@ img {
   animation: shimmer 1.5s infinite linear;
 }
 
-/* Custom utility to disable hover effects */
 .no-hover-effect:hover,
 .no-hover-effect:active,
 .no-hover-effect:focus {
@@ -212,15 +215,4 @@ img {
   border-color: inherit !important;
   box-shadow: none !important;
   transform: none !important;
-}
-
-.no-hover-effect.btn-primary:hover {
-  background-color: var(--bs-primary) !important;
-  color: white !important;
-}
-
-.no-hover-effect.btn-outline-secondary:hover {
-  background-color: transparent !important;
-  color: var(--bs-secondary) !important;
-  border-color: #dee2e6 !important;
 }

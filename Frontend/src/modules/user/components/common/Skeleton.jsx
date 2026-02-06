@@ -63,4 +63,15 @@ export const ProductDetailSkeleton = () => (
     </div>
 );
 
+export const SuggestionSkeleton = () => (
+    <div className="bg-white dark:bg-[#1c1c1c] rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
+                <Skeleton className="w-8 h-8 rounded shrink-0" />
+                <Skeleton className="h-4 w-1/2" />
+            </div>
+        ))}
+    </div>
+);
+
 export default Skeleton;
