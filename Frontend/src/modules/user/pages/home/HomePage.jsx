@@ -128,7 +128,7 @@ const HomePage = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-black min-h-screen transition-colors duration-300">
+        <div className="bg-[#fffef5] dark:bg-black min-h-screen transition-colors duration-300">
 
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
@@ -211,15 +211,17 @@ const HomePage = () => {
                                 filteredCategories.map((cat) => {
                                     const bgColor = categoryColors[cat.slug] || '#f3f4f6';
                                     return (
-                                        <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0">
+                                        <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200">
                                             <div
-                                                className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-2xl sm:rounded-3xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100 dark:hover:border-white/10"
+                                                className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-2xl sm:rounded-3xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
                                                 style={{ backgroundColor: bgColor }}
                                             >
+                                                {/* Glassy reflection overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 pointer-events-none opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
                                                 <img
                                                     src={cat.image || categoryPlaceholder}
                                                     alt={cat.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-active:scale-110 z-10"
                                                     onError={(e) => {
                                                         e.target.src = categoryPlaceholder;
                                                         e.target.classList.add('opacity-80');

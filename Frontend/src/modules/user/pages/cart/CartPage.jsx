@@ -12,7 +12,6 @@ const CartPage = () => {
   const deliveryFee = 15;
   const handlingFee = 5;
   const finalTotal = cartTotal + deliveryFee + handlingFee;
-
   const handleProceed = () => {
     if (!user) {
       navigate('/login?redirect=/cart');
@@ -23,7 +22,7 @@ const CartPage = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
         <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-4">
           <span className="text-4xl">🛒</span>
         </div>
@@ -37,7 +36,7 @@ const CartPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 transition-colors duration-300">
+    <div className="min-h-screen bg-transparent dark:bg-gray-900 pb-20 transition-colors duration-300">
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">My Cart <span className="text-gray-400 dark:text-gray-500 text-lg font-normal">({cart.length} items)</span></h1>
 
@@ -102,19 +101,20 @@ const CartPage = () => {
       </div>
 
       {/* Checkout Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 p-4 shadow-lg z-50">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase">Total</span>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">₹{finalTotal}</span>
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 p-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-[1001]">
+        <div className="max-w-3xl mx-auto">
           <button
             onClick={handleProceed}
-            style={{ borderRadius: '100px' }}
-            className="flex-1 bg-[var(--saathi-green)] text-white py-3 font-bold text-center hover:bg-green-700 transition flex items-center justify-center gap-2"
+            className="w-full bg-[var(--saathi-green)] text-white py-3.5 rounded-2xl font-black text-center hover:bg-green-700 transition active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-between px-6"
           >
-            Proceed to Pay
-            <ArrowRight size={18} />
+            <div className="flex flex-col items-start leading-none gap-0.5">
+              <span className="text-xs font-medium opacity-90">{finalTotal} items</span>
+              <span className="text-lg font-bold">₹{finalTotal}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold uppercase tracking-wide">Proceed</span>
+              <ArrowRight size={20} strokeWidth={2.5} />
+            </div>
           </button>
         </div>
       </div>

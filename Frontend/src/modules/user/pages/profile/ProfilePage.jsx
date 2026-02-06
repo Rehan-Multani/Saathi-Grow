@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -27,7 +27,7 @@ const ProfilePage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black p-4 pt-6">
+        <div className="min-h-screen bg-transparent dark:bg-black p-4 pt-6">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8">
@@ -108,6 +108,23 @@ const ProfilePage = () => {
                             </button>
                         ))}
                     </div>
+
+                    {/* Logout Button */}
+                    <button
+                        onClick={() => navigate('/logout-confirmation')}
+                        className="w-full py-4 px-2 flex items-center justify-between hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group mt-2 border-t border-gray-100 dark:border-white/5"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-500/10 rounded-lg flex items-center justify-center text-red-500 shadow-sm">
+                                <LogOut size={16} />
+                            </div>
+                            <div className="text-left">
+                                <h4 className="!text-[11px] font-black text-red-600 dark:text-red-400 leading-none mb-0.5">Log Out</h4>
+                                <p className="!text-[8.5px] text-red-400/70 font-medium">Sign out of your account</p>
+                            </div>
+                        </div>
+                        <ChevronRight size={14} className="text-red-200 group-hover:text-red-500 transition-colors" />
+                    </button>
                 </div>
 
                 {/* Support Info */}

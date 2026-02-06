@@ -28,26 +28,29 @@ const FloatingCartStrip = () => {
     const DEFAULT_IMAGE = "https://cdn-icons-png.flaticon.com/512/679/679821.png"; // Placeholder package icon
 
     return (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[45] w-[95%] max-w-[165px] md:max-w-[220px] animate-in slide-in-from-bottom-10 duration-500">
+        <div className="fixed bottom-28 md:bottom-10 left-1/2 -translate-x-1/2 z-[45] w-[95%] max-w-[165px] md:max-w-[220px] animate-in slide-in-from-bottom-10 duration-500">
             <button
                 onClick={toggleCart}
-                style={{ borderRadius: '40px' }}
-                className="group relative flex w-full items-center justify-between bg-[#0c831f] p-3 md:p-3.5 text-white shadow-[0_12px_35px_rgba(12,131,31,0.45)] transition-all active:scale-[0.95] overflow-hidden"
+                className="group relative flex w-full items-center justify-between bg-gradient-to-b from-[#0c9d23] to-[#09811c] p-2.5 md:p-3 text-white shadow-[0_12px_30px_rgba(12,131,31,0.4)] border border-white/25 transition-all active:scale-[0.96] overflow-hidden"
+                style={{ borderRadius: '9999px' }}
             >
+                {/* High-Gloss Top Reflection Overlay */}
+                <div className="absolute top-0 left-0 right-0 h-[45%] bg-gradient-to-b from-white/25 to-transparent pointer-events-none z-10" />
+
                 {/* Fixed Shine Animation Effect */}
-                <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
-                    <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] animate-[shine_2.5s_infinite]" />
+                <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-20">
+                    <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-25deg] animate-[shine_4s_infinite]" />
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center z-10">
                     {/* Stacked Item Images - Bigger and Clearer */}
                     <div className="flex items-center">
                         {uniqueItems.map((item, index) => (
                             <div
                                 key={item.id}
-                                className="relative flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full border-[2px] border-white bg-white shadow-md transition-all duration-300 overflow-hidden"
+                                className="relative flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full border-[2px] border-white bg-white shadow-sm transition-all duration-300 overflow-hidden"
                                 style={{
-                                    marginLeft: index === 0 ? '0' : '-22px',
+                                    marginLeft: index === 0 ? '0' : '-20px',
                                     zIndex: (index + 1) * 10,
                                 }}
                             >
@@ -61,17 +64,17 @@ const FloatingCartStrip = () => {
                         ))}
                     </div>
 
-                    <div className="ml-2 flex flex-col items-start text-left">
-                        <span className="text-[12px] md:text-[14px] font-black leading-none tracking-tight">View cart</span>
-                        <span className="text-[10px] md:text-[11px] font-bold text-white/80 leading-none mt-1">
+                    <div className="ml-3 flex flex-col items-start text-left">
+                        <span className="text-[12px] md:text-[13px] font-black leading-tight tracking-tight">View cart</span>
+                        <span className="text-[10px] md:text-[11px] font-medium text-white/90 leading-none mt-0.5">
                             {cartCount} {cartCount === 1 ? 'item' : 'items'}
                         </span>
                     </div>
                 </div>
 
-                <div className="flex items-center">
-                    <div className="flex h-6 w-6 md:h-7 md:w-7 items-center justify-center rounded-full bg-black/20 transition-all group-hover:bg-black/30">
-                        <ChevronRight size={12} strokeWidth={6} className="text-white md:scale-110" />
+                <div className="flex items-center z-10">
+                    <div className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full bg-white/20 border border-white/10 transition-all group-hover:bg-white/30 backdrop-blur-sm">
+                        <ChevronRight size={14} strokeWidth={4} className="text-white" />
                     </div>
                 </div>
             </button>

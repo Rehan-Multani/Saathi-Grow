@@ -26,9 +26,12 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#141414] rounded-xl p-2 sm:p-2.5 shadow-[0_2px_12px_rgba(0,0,0,0,04)] dark:shadow-none border border-gray-100 dark:border-white/5 hover:border-[#0c831f] dark:hover:border-[#0c831f]/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex flex-col gap-1.5 h-auto md:h-full group">
+    <div className="bg-white dark:bg-[#141414] rounded-xl p-2 sm:p-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.08)] dark:shadow-none border border-gray-200/60 dark:border-white/10 hover:border-[#0c831f]/40 dark:hover:border-[#0c831f]/50 hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col gap-1.5 h-auto md:h-full group relative overflow-hidden">
+      {/* Glassy reflection effect */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 z-0" />
+
       {/* Product Image */}
-      <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a]">
+      <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a] z-10">
         <Link to={`/product/${product.id}`} className="block w-full h-full">
           <img
             src={product.image || categoryPlaceholder}
@@ -88,7 +91,7 @@ const ProductCard = ({ product }) => {
           ) : (
             <button
               onClick={handleAddToCart}
-              className="px-4 py-1.5 bg-[#0c831f] dark:bg-black text-white dark:!text-[#0c831f] border border-[#0c831f]/20 hover:border-[#0c831f] active:scale-95 transition-all text-[11px] font-black !rounded-xl uppercase tracking-wider shadow-sm"
+              className="px-3 py-1 sm:px-4 sm:py-1.5 bg-[#0c831f] dark:bg-black text-white dark:!text-[#0c831f] border border-[#0c831f]/20 hover:border-[#0c831f] active:scale-95 transition-all text-[10px] sm:text-[11px] font-black !rounded-lg sm:!rounded-xl uppercase tracking-wider shadow-sm"
             >
               ADD
             </button>

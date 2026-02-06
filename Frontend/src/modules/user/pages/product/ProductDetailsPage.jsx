@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { products } from '../../data/products';
 import { useCart } from '../../context/CartContext';
-import { Minus, Plus, ChevronRight, Star, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
+import ProductCard from '../../components/product/ProductCard';
 import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const ProductDetailsPage = () => {
@@ -28,6 +29,15 @@ const ProductDetailsPage = () => {
         }, 800);
         return () => clearTimeout(timer);
     }, [id, product]);
+
+    const similarProducts = products
+        .filter(p => p.category === product?.category && p.id !== product?.id)
+        .slice(0, 10);
+
+    const recommendedProducts = products
+        .filter(p => p.category !== product?.category)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
 
     if (!product) return <div className="p-8 text-center text-gray-500">Product not found</div>;
 
@@ -162,6 +172,60 @@ const ProductDetailsPage = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Recommendations Sections */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-12">
+
+                {/* Similar Products */}
+                {similarProducts.length > 0 && (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-[#eefaf1] dark:bg-[#0c831f]/10 flex items-center justify-center text-[#0c831f] shadow-sm">
+                                    <TrendingUp size={20} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">Similar Items</h2>
+                                    <p className="text-[10px] md:text-xs text-gray-400 font-medium">Explore more items in this category</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
+                            {similarProducts.map((p) => (
+                                <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
+                                    <ProductCard product={p} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* General Recommendations */}
+                {recommendedProducts.length > 0 && (
+                    <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 shadow-sm">
+                                    <Sparkles size={20} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">You may also like</h2>
+                                    <p className="text-[10px] md:text-xs text-gray-400 font-medium">Flash deals on top brands for you</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
+                            {recommendedProducts.map((p) => (
+                                <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
+                                    <ProductCard product={p} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

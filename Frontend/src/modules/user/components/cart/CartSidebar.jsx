@@ -21,7 +21,7 @@ const CartSidebar = () => {
     if (!isCartOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex justify-end font-sans">
+        <div className="fixed inset-0 z-[2000] flex justify-end font-sans">
             {/* Overlay - Hidden on Mobile for "Full Page" feel */}
             <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity hidden sm:block"
@@ -29,10 +29,10 @@ const CartSidebar = () => {
             ></div>
 
             {/* Main Container */}
-            <div className="relative w-full sm:max-w-[360px] bg-white dark:bg-black h-full shadow-2xl flex flex-col transform transition-all animate-in slide-in-from-bottom sm:slide-in-from-right duration-500 sm:rounded-l-[24px] overflow-hidden">
+            <div className="relative w-full sm:max-w-[360px] bg-[#fffef5] dark:bg-black h-full shadow-2xl flex flex-col transform transition-all animate-in slide-in-from-bottom sm:slide-in-from-right duration-500 sm:rounded-l-[24px] overflow-hidden">
 
                 {/* Header */}
-                <div className="px-3.5 py-3.5 bg-white dark:bg-[#141414] flex items-center justify-between sticky top-0 z-10 border-b border-gray-50 dark:border-white/5">
+                <div className="px-3.5 py-3.5 bg-[#fffef5] dark:bg-[#141414] flex items-center justify-between sticky top-0 z-10 border-b border-yellow-100 dark:border-white/5">
                     <h2 className="text-[15px] font-black text-[#1f2937] dark:text-gray-100 tracking-tight">My Basket</h2>
                     <button
                         onClick={() => setIsCartOpen(false)}
@@ -144,7 +144,7 @@ const CartSidebar = () => {
 
                 {/* Footer CTA */}
                 {cart.length > 0 && (
-                    <div className="p-2.5 bg-white dark:bg-[#141414] border-t border-gray-50 dark:border-white/5">
+                    <div className="p-2.5 bg-[#fffef5] dark:bg-[#141414] border-t border-yellow-100 dark:border-white/5 pb-20 md:pb-2.5">
                         <button
                             onClick={() => {
                                 setIsCartOpen(false);

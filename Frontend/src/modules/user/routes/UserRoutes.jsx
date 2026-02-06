@@ -1,14 +1,25 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import MobileRecommendations from '../components/layout/MobileRecommendations';
 import CartSidebar from '../components/cart/CartSidebar';
 import ScrollToTop from '../components/layout/ScrollToTop';
 import LocationModal from '../components/location/LocationModal';
 import FloatingCartStrip from '../components/cart/FloatingCartStrip';
-const LoginModal = lazy(() => import('../components/auth/LoginModal'));
+import MobileFooter from '../components/layout/MobileFooter';
+import SearchOverlay from '../components/search/SearchOverlay';
 
-// Lazy Load Pages
+// Standard Imports for Order Flow (to prevent lazy loading white screen issues)
+import OrdersPage from '../pages/profile/OrdersPage';
+import OrderDetailsPage from '../pages/profile/OrderDetailsPage';
+import CancelOrderPage from '../pages/profile/CancelOrderPage';
+import ReturnOrderPage from '../pages/profile/ReturnOrderPage';
+import RaiseComplaintPage from '../pages/profile/RaiseComplaintPage';
+import SupportChatPage from '../pages/profile/SupportChatPage';
+
+// Lazy Load Other Pages (Non-critical or large pages)
+const LoginModal = lazy(() => import('../components/auth/LoginModal'));
 const HomePage = lazy(() => import('../pages/home/HomePage'));
 const CategoryPage = lazy(() => import('../pages/categories/CategoryPage'));
 const ProductDetailsPage = lazy(() => import('../pages/product/ProductDetailsPage'));
@@ -24,7 +35,6 @@ const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const SecurityPage = lazy(() => import('../pages/support/SecurityPage'));
 const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPage'));
 const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
-const OrdersPage = lazy(() => import('../pages/profile/OrdersPage'));
 const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
 const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage'));
 const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
@@ -35,23 +45,33 @@ const LoadingFallback = () => (
     </div>
 );
 
-
 const UserLayout = () => {
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
     return (
-        <>
+        <div className="flex flex-col min-h-screen">
             <ScrollToTop />
-            <Navbar />
+            <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
             <CartSidebar />
             <LocationModal />
             <FloatingCartStrip />
             <LoginModal />
-            <div className="min-h-screen bg-white dark:!bg-black transition-colors duration-300">
+            <SearchOverlay />
+
+            <main className="flex-grow bg-[#fffef5] dark:!bg-black transition-colors duration-300 pb-20 md:pb-0">
                 <Suspense fallback={<LoadingFallback />}>
                     <Outlet />
                 </Suspense>
+            </main>
+
+            {/* Desktop Footer */}
+            <div className="hidden md:block">
+                <Footer />
             </div>
-            <Footer />
-        </>
+
+            {/* Mobile Navigation */}
+            <MobileFooter setIsMenuOpen={setIsMenuOpen} />
+        </div>
     );
 };
 
@@ -76,6 +96,11 @@ const UserRoutes = () => {
                     <Route path="/add-address" element={<AddressFormPage />} />
                     <Route path="/edit-address/:id" element={<AddressFormPage />} />
                     <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/orders/:id" element={<OrderDetailsPage />} />
+                    <Route path="/orders/:id/cancel" element={<CancelOrderPage />} />
+                    <Route path="/orders/:id/return" element={<ReturnOrderPage />} />
+                    <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />
+                    <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
                     <Route path="/wallet" element={<WalletPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />

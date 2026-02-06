@@ -47,25 +47,25 @@ const CategoryPage = () => {
 
     if (isMainListView) {
         return (
-            <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-4 pt-6 pb-24">
+            <div className="min-h-screen bg-transparent dark:bg-black p-4 pt-6 pb-24">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-8">
-                        <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-[#141414] rounded-full shadow-sm">
-                            <ArrowLeft size={20} />
+                        <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm">
+                            <ArrowLeft size={16} />
                         </button>
-                        <h1 className="text-xl font-black text-gray-900 dark:text-gray-100">Shop by Category</h1>
+                        <h1 className="text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
                     </div>
 
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
                         {categories.map((cat) => (
                             <Link
                                 key={cat.id}
                                 to={`/category/${cat.slug}`}
-                                className="flex flex-col items-center group"
+                                className="flex flex-col items-center group active:scale-95 transition-all"
                             >
                                 <div
-                                    className="w-full aspect-square rounded-[24px] sm:rounded-[32px] flex items-center justify-center mb-3 transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 shadow-sm border border-transparent hover:border-green-100 dark:hover:border-white/10 overflow-hidden"
+                                    className="w-full aspect-square rounded-[20px] sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
                                     style={{ backgroundColor: categoryColors[cat.slug] || '#f3f4f6' }}
                                 >
                                     <img
@@ -79,8 +79,8 @@ const CategoryPage = () => {
                                         }}
                                     />
                                 </div>
-                                <span className="text-[11px] sm:text-[14px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight tracking-tight px-1">
-                                    {cat.name}
+                                <span className="text-[10px] sm:text-[14px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight tracking-tight px-1 capitalize">
+                                    {cat.name.toLowerCase()}
                                 </span>
                             </Link>
                         ))}
@@ -98,28 +98,32 @@ const CategoryPage = () => {
     });
 
     return (
-        <div className="min-h-screen bg-[#f8f9fb] dark:bg-black pb-20 transition-colors duration-300">
+        <div className="min-h-screen bg-transparent dark:bg-black pb-28 transition-colors duration-300">
             {/* Combined Sticky Headers: Breadcrumbs + Subcategories */}
-            <div className="sticky top-16 z-40 bg-white dark:bg-[#141414] border-b border-gray-100 dark:border-white/5 shadow-sm">
-                {/* Breadcrumbs */}
-                <div className="px-4 py-2.5 border-b border-gray-50 dark:border-white/5">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between">
-                        <div className="flex items-center text-[9px] md:text-xs text-gray-400 gap-1.5 uppercase tracking-widest font-black">
-                            <Link to="/" className="hover:text-[#0c831f] transition-colors">Home</Link>
-                            <ChevronRight size={10} strokeWidth={3} />
-                            <Link to="/category" className="hover:text-[#0c831f] transition-colors">Categories</Link>
-                            <ChevronRight size={10} strokeWidth={3} />
-                            <span className="text-gray-900 dark:text-white line-clamp-1">{currentCategory?.name}</span>
+            <div className="sticky top-0 z-40 bg-[#fffef5]/80 dark:bg-black/60 backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
+                {/* Header with Back button */}
+                <div className="px-4 py-4 flex items-center gap-4">
+                    <button onClick={() => navigate('/category')} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300">
+                        <ArrowLeft size={16} />
+                    </button>
+                    <div className="flex flex-col">
+                        <h1 className="text-[13px] font-black text-gray-900 dark:text-gray-100 leading-none mb-1">
+                            {currentCategory?.name}
+                        </h1>
+                        <div className="flex items-center text-[7.5px] text-gray-400 gap-1.5 uppercase tracking-widest font-bold">
+                            <Link to="/" className="hover:text-[#0c831f]">Home</Link>
+                            <ChevronRight size={8} strokeWidth={4} />
+                            <Link to="/category" className="hover:text-[#0c831f]">Categories</Link>
                         </div>
                     </div>
                 </div>
 
                 {/* Sub-Category Slider */}
-                <div className="max-w-7xl mx-auto px-4 py-3">
+                <div className="max-w-7xl mx-auto px-4 pb-3">
                     <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                         <button
                             onClick={() => setSelectedSubCat('all')}
-                            className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold'}`}
+                            className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[9px] font-bold tracking-wide transition-all border capitalize ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400'}`}
                         >
                             All
                         </button>
@@ -127,24 +131,18 @@ const CategoryPage = () => {
                             <button
                                 key={sub.id}
                                 onClick={() => setSelectedSubCat(sub.slug)}
-                                className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 font-bold'}`}
+                                className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[9px] font-bold tracking-wide transition-all border capitalize ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400'}`}
                             >
-                                {sub.name}
+                                {sub.name.toLowerCase()}
                             </button>
                         ))}
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Heading */}
-                <div className="mb-8 flex items-end justify-between">
-                    <div>
-                        <h1 className="text-2xl font-black text-gray-900 dark:text-gray-100 flex items-center gap-3">
-                            {loading ? 'Thinking...' : (selectedSubCat === 'all' ? currentCategory?.name : currentCategory?.subCategories?.find(s => s.slug === selectedSubCat)?.name)}
-                        </h1>
-                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1.5">{displayedProducts.length} Products Available</p>
-                    </div>
+            <div className="max-w-7xl mx-auto px-4 py-6">
+                <div className="mb-6">
+                    <p className="text-[10px] text-gray-400 font-bold tracking-widest mt-1.5">{displayedProducts.length} Products Available</p>
                 </div>
 
                 {loading ? (

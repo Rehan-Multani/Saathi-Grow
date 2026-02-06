@@ -34,7 +34,7 @@ const OrdersPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-20">
+        <div className="min-h-screen bg-transparent dark:bg-black transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8 p-4">
@@ -59,6 +59,7 @@ const OrdersPage = () => {
                         {orders.map((order) => (
                             <div
                                 key={order.id}
+                                onClick={() => navigate(`/orders/${order.id}`)}
                                 className="w-full py-6 px-2 flex flex-col hover:bg-gray-50 dark:hover:bg-white/5 transition-all group cursor-pointer"
                             >
                                 <div className="flex justify-between items-start mb-4">

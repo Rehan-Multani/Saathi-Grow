@@ -46,7 +46,7 @@ const OrderSuccessPage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black flex flex-col items-center justify-center p-6 text-center relative overflow-hidden transition-colors duration-700 pt-20">
+        <div className="min-h-screen bg-transparent dark:bg-black flex flex-col items-center justify-center p-6 text-center relative overflow-hidden transition-colors duration-700 pt-20">
             <CelebrationBurst />
             <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
                 <div className="relative mb-10 flex flex-col items-center">

@@ -53,15 +53,15 @@ const LocationModal = () => {
     );
 
     return (
-        <div className="fixed inset-0 z-[100] flex justify-center md:pt-[70px] px-0 md:px-4 pointer-events-none">
+        <div className="fixed inset-0 z-[2100] flex justify-end md:justify-center items-end md:items-start md:pt-[100px] px-0 md:px-4 pointer-events-none font-sans">
             {/* Darkened Overlay */}
             <div
-                className="absolute inset-0 bg-white dark:bg-black md:bg-black/50 pointer-events-auto transition-opacity"
+                className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto transition-opacity"
                 onClick={closeLocationModal}
             ></div>
 
             {/* Modal Box */}
-            <div className="bg-white dark:bg-[#141414] md:rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-none w-full max-w-[550px] relative z-10 overflow-hidden animate-in md:slide-in-from-top-4 slide-in-from-bottom-full duration-300 pointer-events-auto p-5 md:p-6 border-0 md:border md:border-gray-100 md:dark:border-white/5 h-full md:h-fit max-h-[90vh] flex flex-col">
+            <div className="bg-white dark:bg-[#141414] w-full md:w-auto md:max-w-[550px] relative z-10 overflow-hidden animate-in slide-in-from-bottom duration-300 pointer-events-auto rounded-t-[24px] md:rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-xl border-t border-gray-100 dark:border-white/10 p-5 md:p-6 h-auto max-h-[85vh] flex flex-col pb-8 md:pb-6">
                 <button
                     onClick={closeLocationModal}
                     className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors md:flex"
