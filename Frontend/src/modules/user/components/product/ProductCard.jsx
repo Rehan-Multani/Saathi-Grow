@@ -26,7 +26,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#111111] rounded-2xl p-2 sm:p-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:border-[#0c831f]/30 active:border-[#0c831f]/30 dark:hover:border-white/40 hover:shadow-lg hover:shadow-green-500/10 active:shadow-md active:shadow-green-500/10 hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-1.5 h-auto md:h-full group relative overflow-hidden mb-1">
+    <div className="bg-white dark:bg-[#111111] rounded-2xl p-1.5 sm:p-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:border-[#0c831f]/30 active:border-[#0c831f]/30 dark:hover:border-white/40 hover:shadow-lg hover:shadow-green-500/10 active:shadow-md active:shadow-green-500/10 hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-1.5 h-auto md:h-full group relative overflow-hidden mb-1">
       {/* Premium Shine Effect Overlay */}
       <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent z-20 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-700 pointer-events-none translate-x-[-100%] group-hover:translate-x-[100%] group-active:translate-x-[100%] transform" style={{ transitionDuration: '0.8s' }} />
       {/* Product Image */}
@@ -50,13 +50,13 @@ const ProductCard = ({ product }) => {
       <div className="flex flex-col flex-grow">
         {/* Title */}
         <Link to={`/product/${product.id}`} className="z-10">
-          <div className="font-bold text-gray-800 dark:text-zinc-100 text-[13px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[32px] group-hover:text-[#0c831f] transition-colors">
+          <div className="font-bold text-gray-800 dark:text-zinc-100 text-[10px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[32px] group-hover:text-[#0c831f] transition-colors">
             {product.name}
           </div>
         </Link>
 
         {/* Weight */}
-        <div className="text-gray-400 dark:text-zinc-500 text-[10px] mb-2 font-semibold uppercase tracking-tight">{product.weight}</div>
+        <div className="text-gray-400 dark:text-zinc-500 text-[9px] sm:text-[10px] mb-2 font-semibold uppercase tracking-tight">{product.weight}</div>
 
         {/* Bottom Row: Price & Action */}
         <div className="flex items-center justify-between mt-auto z-10">
@@ -64,11 +64,11 @@ const ProductCard = ({ product }) => {
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-gray-400 dark:text-zinc-600 line-through text-[11px] font-medium">₹{product.originalPrice}</span>
             )}
-            <span className="text-[16px] sm:text-[18px] font-black text-gray-900 dark:text-white tracking-tight">₹{product.price}</span>
+            <span className="text-[13px] sm:text-[18px] font-black text-gray-900 dark:text-white tracking-tight">₹{product.price}</span>
           </div>
 
           {quantity > 0 ? (
-            <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[28px] sm:h-[36px] min-w-[70px] sm:min-w-[85px] border border-[#0c831f]">
+            <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[24px] sm:h-[36px] min-w-[60px] sm:min-w-[85px] border border-[#0c831f]">
               <button
                 onClick={(e) => handleUpdateQuantity(e, -1)}
                 className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform"
@@ -88,7 +88,7 @@ const ProductCard = ({ product }) => {
           ) : (
             <button
               onClick={handleAddToCart}
-              className="px-4 py-1 bg-[#0c831f] text-white border border-transparent hover:bg-[#0a6b19] active:scale-95 transition-all text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[28px] sm:h-[34px] flex items-center justify-center"
+              className="px-4 py-1 bg-[#0c831f] text-white border border-transparent hover:bg-[#0a6b19] active:scale-95 transition-all text-[9px] sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[24px] sm:h-[34px] flex items-center justify-center"
             >
               ADD
             </button>

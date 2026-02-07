@@ -132,29 +132,28 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       {/* MOBILE LAYOUT */}
       <div className="md:hidden sticky top-0 z-50 bg-white dark:bg-[#141414] shadow-sm transition-colors duration-300">
         {/* Row 1: Logo & Actions */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <div className="flex-1 flex flex-col items-start overflow-hidden">
-            <button
-              onClick={openLocationModal}
-              className="text-[18px] font-black text-[#1f2937] dark:text-gray-100 uppercase tracking-tighter leading-none flex items-center gap-1 active:opacity-70 transition-opacity"
-            >
-              DELIVERY IN 8 MINS <ChevronDown size={18} className="text-[#1f2937] dark:text-gray-100" strokeWidth={3} />
-            </button>
-            <span className="text-[11px] font-bold text-gray-600 dark:text-gray-400 truncate max-w-full leading-tight mt-0.5">
-              {location.address?.split(',').slice(0, 2).join(',') || "Select your location"}
-            </span>
-          </div>
+        <div className="flex items-center justify-between px-4 pt-3 pb-2 gap-3">
+          {/* Logo (Icon Only) */}
+          <Link to="/" className="flex-shrink-0 w-8 h-8 overflow-hidden relative">
+            <img
+              src={logo}
+              alt="SaathiGro"
+              className="h-full w-auto max-w-none object-left absolute left-0 top-0"
+            />
+          </Link>
+
+
 
           {/* Cart Toggle (Top Right) */}
-          <div className="relative">
+          <div className="relative flex-shrink-0 group">
             <button
               onClick={toggleCart}
-              className="w-10 h-10 bg-white dark:bg-white/10 rounded-full flex items-center justify-center shadow-sm text-[#0c831f] dark:text-[#0c831f]"
+              className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center text-[#0c831f] active:scale-90 transition-all duration-300"
             >
-              <ShoppingBag size={20} />
+              <ShoppingBag size={22} className="group-active:rotate-12 transition-transform" />
             </button>
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#0c831f] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-sm transform scale-100 animate-in zoom-in">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#eb3939] text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-[2px] border-white dark:border-[#141414] shadow-md transform scale-100 animate-in zoom-in">
                 {cartCount}
               </span>
             )}
@@ -174,6 +173,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
               className="w-full pl-10 pr-10 py-3 bg-white dark:bg-[#1c1c1c] rounded-2xl text-[14px] font-bold text-gray-800 dark:text-gray-100 focus:outline-none shadow-sm transition-all placeholder:text-gray-400 cursor-pointer"
             />
             <Search className="absolute left-3.5 top-3.5 text-gray-400" size={18} strokeWidth={2.5} />
+            <Mic className="absolute right-3.5 top-3.5 text-[#0c831f]" size={18} strokeWidth={2.5} />
           </div>
         </div>
       </div>

@@ -34,7 +34,7 @@ const CancelOrderPage = () => {
     return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] pb-10">
             <div className="sticky top-0 z-40 bg-white/80 dark:bg-black/60 backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4 transition-colors">
-                <div className="max-w-2xl md:max-w-full md:px-10 mx-auto flex items-center gap-4">
+                <div className="max-w-2xl mx-auto flex items-center gap-4">
                     <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
                         <ArrowLeft size={16} />
                     </button>
@@ -45,7 +45,7 @@ const CancelOrderPage = () => {
                 </div>
             </div>
 
-            <div className="max-w-2xl md:max-w-full md:px-10 mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="max-w-2xl mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
                     <div className="bg-red-50 dark:bg-red-500/5 p-4 rounded-2xl border border-red-100 dark:border-red-500/10 mb-2">
                         <p className="text-[10px] md:text-base text-red-600 font-bold tracking-tight">Are you sure you want to cancel? This action cannot be undone.</p>

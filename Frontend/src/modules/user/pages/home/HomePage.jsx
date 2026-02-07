@@ -176,8 +176,8 @@ const HomePage = () => {
 
             {/* Categories */}
             {(filteredCategories.length > 0 || !isSearching) && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10">
-                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10">
+                    <div className="flex items-center justify-between mb-2 md:mb-6">
                         <h2 className="text-[13px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
                         {!isSearching && (
                             <Link
@@ -192,7 +192,7 @@ const HomePage = () => {
                     <div className="relative group/nav">
                         <div
                             ref={scrollContainerRef}
-                            className="flex overflow-x-auto gap-3 sm:gap-8 pt-1 pb-4 md:pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start"
+                            className="flex overflow-x-auto gap-2 sm:gap-8 pt-1 pb-2 md:pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start"
                             onScroll={handleCategoryScroll}
                         >
                             {loading ? (
@@ -308,8 +308,8 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0">
+            <div className="flex items-center justify-between mb-2 md:mb-6">
                 <h2 className="text-[11px] md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
                 </h2>
@@ -326,17 +326,17 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                 <div
                     ref={sectionRef}
                     onScroll={handleScroll}
-                    className="flex overflow-x-auto gap-3 md:gap-5 pb-4 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-stretch"
+                    className="flex overflow-x-auto gap-2 md:gap-5 pb-2 md:pb-4 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-stretch"
                 >
                     {loading ? (
                         Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="flex-shrink-0 w-[145px] sm:w-[170px] md:w-[200px]">
+                            <div key={i} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
                                 <ProductCardSkeleton />
                             </div>
                         ))
                     ) : (
                         categoryProducts.map((product) => (
-                            <div key={product.id} className="flex-shrink-0 w-[145px] sm:w-[170px] md:w-[200px]">
+                            <div key={product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
                                 <ProductCard product={product} />
                             </div>
                         ))

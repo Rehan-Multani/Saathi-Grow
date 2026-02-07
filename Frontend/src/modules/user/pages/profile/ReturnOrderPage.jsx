@@ -34,7 +34,7 @@ const ReturnOrderPage = () => {
     return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] pb-10">
             <div className="sticky top-0 z-40 bg-white/80 dark:bg-black/60 backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4 transition-colors">
-                <div className="max-w-2xl md:max-w-full md:px-10 mx-auto flex items-center gap-4">
+                <div className="max-w-2xl mx-auto flex items-center gap-4">
                     <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
                         <ArrowLeft size={16} />
                     </button>
@@ -45,7 +45,7 @@ const ReturnOrderPage = () => {
                 </div>
             </div>
 
-            <div className="max-w-2xl md:max-w-full md:px-10 mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="max-w-2xl mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
                     <div>
                         <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Select reason for return</p>
