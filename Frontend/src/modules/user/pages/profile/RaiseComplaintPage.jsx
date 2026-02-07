@@ -34,24 +34,24 @@ const RaiseComplaintPage = () => {
     return (
         <div className="min-h-screen bg-white dark:bg-[#0a0a0a] pb-10">
             <div className="sticky top-0 z-40 bg-white/80 dark:bg-black/60 backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4 transition-colors">
-                <div className="max-w-2xl mx-auto flex items-center gap-4">
+                <div className="max-w-2xl md:max-w-full md:px-10 mx-auto flex items-center gap-4">
                     <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
                         <ArrowLeft size={16} />
                     </button>
-                    <h1 className="text-[13.5px] font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none">Raise complaint</h1>
+                    <h1 className="text-[13.5px] md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none">Raise complaint</h1>
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 py-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="max-w-2xl md:max-w-full md:px-10 mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
                     <div>
-                        <p className="!text-[8px] font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Select reason</p>
+                        <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Select reason</p>
                         <div className="divide-y divide-gray-100 dark:divide-white/5 border-y border-gray-100 dark:border-white/5 mx-[-1rem]">
                             {issues.map((issue, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setSelectedIssue(issue)}
-                                    className={`w-full py-4 px-5 text-left transition-all !text-[10px] font-bold flex items-center justify-between group ${selectedIssue === issue
+                                    className={`w-full py-3 md:py-4 px-5 text-left transition-all !text-[10px] md:!text-base font-bold flex items-center justify-between group ${selectedIssue === issue
                                         ? 'bg-green-50/50 dark:bg-[#0c831f]/10 text-[#0c831f]'
                                         : 'bg-white dark:bg-transparent text-gray-600 dark:text-gray-300'}`}
                                 >
@@ -65,18 +65,18 @@ const RaiseComplaintPage = () => {
                     </div>
 
                     <div>
-                        <p className="text-[8.5px] font-black text-gray-400 tracking-[0.2em] mb-4 uppercase">Additional comments (optional)</p>
+                        <p className="text-[8.5px] md:text-sm font-black text-gray-400 tracking-[0.2em] mb-4 uppercase">Additional comments (optional)</p>
                         <textarea
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Tell us more about the issue..."
-                            className="w-full h-28 p-3.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0c831f] text-[11px] dark:text-white placeholder:text-gray-400 shadow-sm"
+                            className="w-full h-28 p-3.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0c831f] text-[11px] md:text-base dark:text-white placeholder:text-gray-400 shadow-sm"
                         />
                     </div>
 
                     <div className="bg-blue-50 dark:bg-blue-500/10 p-3.5 rounded-xl flex gap-3 text-blue-600 border border-blue-100 dark:border-blue-500/10">
                         <ShieldCheck size={18} className="flex-shrink-0" />
-                        <p className="text-[9.5px] font-medium leading-relaxed italic">
+                        <p className="text-[9.5px] md:text-base font-medium leading-relaxed italic">
                             Your request will be processed according to our SaathiGro protection policy. Support will contact you within 24 hours.
                         </p>
                     </div>
@@ -84,7 +84,7 @@ const RaiseComplaintPage = () => {
                     <button
                         disabled={!selectedIssue}
                         onClick={submitRequest}
-                        className={`w-full py-3.5 rounded-xl text-[10.5px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 ${selectedIssue
+                        className={`w-full py-3.5 rounded-xl text-[10.5px] md:text-lg font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 ${selectedIssue
                             ? 'bg-[#0c831f] text-white shadow-green-500/20'
                             : 'bg-gray-200 dark:bg-white/10 text-gray-400 cursor-not-allowed shadow-none'}`}
                     >

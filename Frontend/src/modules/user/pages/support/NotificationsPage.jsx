@@ -55,11 +55,11 @@ const NotificationsPage = () => {
                 {/* Notifications List */}
                 <div className="px-4">
                     <p className="!text-[8px] font-bold text-gray-400 mb-2 tracking-widest px-2">RECENTLY RECEIVED</p>
-                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                    <div className="flex flex-col gap-3">
                         {notifications.map((item) => (
                             <div
                                 key={item.id}
-                                className="w-full py-5 px-2 flex items-start gap-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group cursor-pointer"
+                                className="w-full py-4 px-4 flex items-start gap-4 bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm active:scale-[0.98] transition-all"
                             >
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100 dark:border-white/10 ${item.color.replace('text-', 'text-saathi-green').replace('bg-', 'bg-')}`}>
                                     <item.icon size={18} className="text-[#0c831f]" />

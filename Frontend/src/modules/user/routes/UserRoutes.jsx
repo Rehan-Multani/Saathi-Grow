@@ -36,6 +36,7 @@ const SecurityPage = lazy(() => import('../pages/support/SecurityPage'));
 const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPage'));
 const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
 const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
+const AddMoneyPage = lazy(() => import('../pages/profile/AddMoneyPage'));
 const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage'));
 const OfferPage = lazy(() => import('../pages/offer/OfferPage'));
 const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
@@ -48,11 +49,16 @@ const LoadingFallback = () => (
 
 const UserLayout = () => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const location = useLocation();
+    const authNoChromePaths = ['/logout-confirmation', '/login', '/register'];
+    const hideDesktopChrome = authNoChromePaths.includes(location.pathname);
 
     return (
         <div className="user-module-root flex flex-col min-h-screen">
             <ScrollToTop />
-            <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+            <div className={hideDesktopChrome ? 'md:hidden' : ''}>
+                <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+            </div>
             <CartSidebar />
             <LocationModal />
             <FloatingCartStrip />
@@ -66,9 +72,11 @@ const UserLayout = () => {
             </main>
 
             {/* Desktop Footer */}
-            <div className="hidden md:block">
-                <Footer />
-            </div>
+            {!hideDesktopChrome && (
+                <div className="hidden md:block">
+                    <Footer />
+                </div>
+            )}
 
             {/* Mobile Navigation */}
             <MobileFooter setIsMenuOpen={setIsMenuOpen} />
@@ -103,6 +111,7 @@ const UserRoutes = () => {
                     <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />
                     <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
                     <Route path="/wallet" element={<WalletPage />} />
+                    <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />
                     <Route path="/offer/:id" element={<OfferPage />} />

@@ -85,11 +85,11 @@ const HelpPage = () => {
                 {/* FAQ Section */}
                 <div className="px-4 mb-8">
                     <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Common Questions</h3>
-                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                    <div className="flex flex-col gap-3">
                         {faqs.map((faq, i) => (
                             <div
                                 key={i}
-                                className="group"
+                                className="group bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden"
                             >
                                 <button
                                     onClick={() => setOpenFaq(openFaq === i ? null : i)}

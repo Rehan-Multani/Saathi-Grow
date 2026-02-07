@@ -9,7 +9,7 @@ const LogoutConfirmationPage = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/');
+        navigate('/login');
     };
 
     return (

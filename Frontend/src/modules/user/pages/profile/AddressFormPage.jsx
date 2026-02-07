@@ -71,7 +71,7 @@ const AddressFormPage = () => {
                 </h1>
             </div>
 
-            <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 space-y-6">
+            <form onSubmit={handleSubmit} className="max-w-2xl md:max-w-6xl mx-auto p-4 md:p-8 space-y-6">
                 {/* Address Type Selection */}
                 <div>
                     <label className="!text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Save address as</label>
@@ -167,10 +167,10 @@ const AddressFormPage = () => {
                 </div>
 
                 {/* Save Button */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-t border-gray-100 dark:border-white/5 z-20">
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-t border-gray-100 dark:border-white/5 z-20 md:static md:p-0 md:bg-transparent md:border-0">
                     <button
                         type="submit"
-                        className="w-full bg-[#0c831f] hover:bg-[#0a6b19] text-white font-black !text-[12px] uppercase tracking-[0.2em] py-4 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        className="w-full md:w-auto bg-[#0c831f] hover:bg-[#0a6b19] text-white font-black !text-[12px] md:!text-sm uppercase tracking-[0.2em] md:tracking-widest py-4 md:py-3 md:px-8 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 md:self-end"
                     >
                         Save Address
                     </button>

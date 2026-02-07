@@ -55,10 +55,10 @@ const SecurityPage = () => {
                 {/* Password Section */}
                 <div className="px-4 mb-8">
                     <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Password Management</h3>
-                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                    <div className="flex flex-col gap-3">
                         <button
                             onClick={() => setShowPasswordModal(true)}
-                            className="w-full py-4 px-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-left group"
+                            className="w-full py-4 px-4 flex items-center justify-between bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all text-left group active:scale-[0.98]"
                         >
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 rounded-xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-orange-500 shadow-sm">
@@ -77,8 +77,8 @@ const SecurityPage = () => {
                 {/* Two Factor Auth */}
                 <div className="px-4 mb-8">
                     <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Enhanced Protection</h3>
-                    <div className="divide-y divide-gray-100 dark:divide-white/5">
-                        <div className="py-4 px-2 flex items-center justify-between group">
+                    <div className="flex flex-col gap-3">
+                        <div className="py-4 px-4 flex items-center justify-between bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm group">
                             <div className="flex items-center gap-4 text-left">
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100 dark:border-white/10 shadow-sm transition-colors ${twoFactor ? 'bg-green-50 text-[#0c831f]' : 'bg-gray-50 dark:bg-white/5 text-gray-400'}`}>
                                     <Shield size={18} />
@@ -101,11 +101,11 @@ const SecurityPage = () => {
                 {/* Logged in Devices */}
                 <div className="px-4 mb-8">
                     <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Logged-in Devices</h3>
-                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                    <div className="flex flex-col gap-3">
                         {devices.map((device, idx) => (
                             <div
                                 key={idx}
-                                className="py-4 px-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
+                                className="py-4 px-4 flex items-center justify-between bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all group"
                             >
                                 <div className="flex items-center gap-4 text-left">
                                     <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-gray-400 shadow-sm">
