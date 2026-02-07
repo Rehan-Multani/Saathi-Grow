@@ -32,10 +32,10 @@ const HelpPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-20">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-8 p-4">
+                <div className="flex items-center gap-3 mb-0 p-4 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-transparent border-b border-gray-100 dark:border-white/5 md:border-none">
                     <button
                         onClick={() => {
                             const from = location.state?.from || '/';
@@ -43,15 +43,15 @@ const HelpPage = () => {
                             const shouldOpenMenu = !noMenuPages.includes(from);
                             navigate(from, { state: { openMenu: shouldOpenMenu } });
                         }}
-                        className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm"
+                        className="p-1.5 md:p-2 bg-white/50 dark:bg-[#141414] rounded-full shadow-sm hover:bg-gray-100 transition-colors"
                     >
-                        <ArrowLeft size={16} />
+                        <ArrowLeft size={16} className="md:w-6 md:h-6" />
                     </button>
-                    <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Help & Support</h1>
+                    <h1 className="!text-[16px] md:!text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Help & Support</h1>
                 </div>
 
                 {/* Main Contact Section */}
-                <div className="mx-6 mb-8 bg-[#0c831f] rounded-[24px] p-5 text-white shadow-xl shadow-green-500/20 relative overflow-hidden group">
+                <div className="mx-6 mb-8 mt-6 bg-[#0c831f] rounded-[24px] p-5 text-white shadow-xl shadow-green-500/20 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 transform translate-x-4 -translate-y-4 opacity-10 group-hover:scale-110 transition-transform">
                         <Headset size={80} />
                     </div>
@@ -83,31 +83,31 @@ const HelpPage = () => {
                 </div>
 
                 {/* FAQ Section */}
-                <div className="px-4 mb-8">
-                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Common Questions</h3>
-                    <div className="flex flex-col gap-3">
+                <div className="px-0 md:px-4 mb-8">
+                    <h3 className="!text-[10px] md:!text-xs font-bold text-gray-400 mb-2 px-6 md:px-2 tracking-widest uppercase">Common Questions</h3>
+                    <div className="flex flex-col gap-0 md:gap-3 bg-transparent md:bg-transparent">
                         {faqs.map((faq, i) => (
                             <div
                                 key={i}
-                                className="group bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden"
+                                className="group bg-transparent md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:shadow-sm overflow-hidden border-b border-gray-100/50 dark:border-white/5 md:border-b-0"
                             >
                                 <button
                                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                                    className="w-full py-4 px-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all outline-none"
+                                    className="w-full py-5 px-6 md:py-4 md:px-2 flex items-center justify-between hover:bg-gray-50/50 transition-all outline-none"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-gray-100 dark:border-white/10 shadow-sm transition-all ${openFaq === i ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-gray-50 dark:bg-white/5 text-gray-400'}`}>
+                                        <div className={`w-10 h-10 rounded-full md:rounded-xl flex items-center justify-center md:border border-gray-100 dark:border-white/10 shadow-sm md:shadow-none transition-all ${openFaq === i ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-gray-50/50 md:bg-gray-50 dark:bg-white/5 text-gray-400'}`}>
                                             <HelpCircle size={18} />
                                         </div>
-                                        <span className={`text-[11px] font-black text-left tracking-tight leading-snug pr-4 transition-colors ${openFaq === i ? 'text-[#0c831f]' : 'text-gray-800 dark:text-gray-200'}`}>{faq.q}</span>
+                                        <span className={`text-[13px] md:text-[11px] font-black text-left tracking-tight leading-snug pr-4 transition-colors ${openFaq === i ? 'text-[#0c831f]' : 'text-gray-800 dark:text-gray-200'}`}>{faq.q}</span>
                                     </div>
                                     {openFaq === i ? <ChevronUp size={16} className="text-[#0c831f]" /> : <ChevronDown size={16} className="text-gray-300 group-hover:text-[#0c831f] transition-colors" />}
                                 </button>
 
                                 {openFaq === i && (
-                                    <div className="px-2 pb-6 pt-0 animate-in fade-in slide-in-from-top-2 duration-300">
-                                        <div className="pl-14 pr-4">
-                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed font-medium bg-gray-50 dark:bg-white/5 p-3 rounded-2xl border border-gray-100 dark:border-white/5">
+                                    <div className="px-6 pb-6 pt-0 animate-in fade-in slide-in-from-top-2 duration-300 md:px-2">
+                                        <div className="pl-14 pr-0 md:pr-4">
+                                            <p className="text-[11px] md:text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed font-medium bg-gray-50/50 md:bg-gray-50 dark:bg-white/5 p-4 rounded-2xl md:p-3 md:rounded-2xl border border-gray-100/50 md:border-gray-100 dark:border-white/5">
                                                 {faq.a}
                                             </p>
                                         </div>

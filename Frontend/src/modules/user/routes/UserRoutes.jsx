@@ -50,13 +50,13 @@ const LoadingFallback = () => (
 const UserLayout = () => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
     const location = useLocation();
-    const authNoChromePaths = ['/logout-confirmation', '/login', '/register'];
+    const authNoChromePaths = ['/logout-confirmation', '/login', '/register', '/order-success'];
     const hideDesktopChrome = authNoChromePaths.includes(location.pathname);
 
     return (
         <div className="user-module-root flex flex-col min-h-screen">
             <ScrollToTop />
-            <div className={hideDesktopChrome ? 'md:hidden' : ''}>
+            <div className={hideDesktopChrome ? 'hidden md:hidden' : ''}>
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
             </div>
             <CartSidebar />
@@ -79,7 +79,7 @@ const UserLayout = () => {
             )}
 
             {/* Mobile Navigation */}
-            <MobileFooter setIsMenuOpen={setIsMenuOpen} />
+            {!hideDesktopChrome && <MobileFooter setIsMenuOpen={setIsMenuOpen} />}
         </div>
     );
 };

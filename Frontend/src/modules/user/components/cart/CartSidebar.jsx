@@ -29,10 +29,10 @@ const CartSidebar = () => {
             ></div>
 
             {/* Main Container */}
-            <div className="relative w-full sm:max-w-[360px] bg-white dark:bg-black h-full shadow-2xl flex flex-col transform transition-all animate-in slide-in-from-bottom sm:slide-in-from-right duration-500 sm:rounded-l-[24px] overflow-hidden">
+            <div className="relative w-full sm:max-w-[360px] bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] h-full shadow-2xl flex flex-col transform transition-all animate-in slide-in-from-bottom sm:slide-in-from-right duration-500 sm:rounded-l-[24px] overflow-hidden">
 
                 {/* Header */}
-                <div className="px-3.5 py-3.5 bg-white dark:bg-[#141414] flex items-center justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-white/5">
+                <div className="px-3.5 py-3.5 bg-transparent flex items-center justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-white/5">
                     <h2 className="text-[15px] font-black text-[#1f2937] dark:text-gray-100 tracking-tight">My Basket</h2>
                     <button
                         onClick={() => setIsCartOpen(false)}
@@ -44,9 +44,9 @@ const CartSidebar = () => {
 
                 {/* Savings Banner */}
                 {savings > 0 && (
-                    <div className="px-3.5 py-1.5 bg-[#eef6ff] dark:bg-blue-500/10 flex items-center justify-between border-b border-blue-100/20">
-                        <span className="text-[#2563eb] dark:text-blue-400 font-bold text-[8px] uppercase tracking-wider">Your total savings</span>
-                        <span className="text-[#2563eb] dark:text-blue-400 font-black text-[11px]">₹{savings}</span>
+                    <div className="px-3.5 py-1.5 bg-[#0c831f]/10 flex items-center justify-between border-b border-[#0c831f]/10">
+                        <span className="text-[#0c831f] dark:text-green-400 font-bold text-[8px] uppercase tracking-wider">Your total savings</span>
+                        <span className="text-[#0c831f] dark:text-green-400 font-black text-[11px]">₹{savings}</span>
                     </div>
                 )}
 
@@ -64,7 +64,7 @@ const CartSidebar = () => {
                                     setIsCartOpen(false);
                                     navigate('/');
                                 }}
-                                className="px-6 py-2.5 bg-[#0c831f] text-white rounded-lg font-black text-[10px] hover:translate-y-[-2px] transition-all shadow-lg shadow-green-500/20"
+                                className="px-8 py-3 bg-[#0c831f] text-white rounded-full font-black text-[10px] hover:translate-y-[-2px] transition-all shadow-lg shadow-green-500/20 uppercase tracking-widest"
                             >
                                 Browse Products
                             </button>
@@ -144,14 +144,14 @@ const CartSidebar = () => {
 
                 {/* Footer CTA */}
                 {cart.length > 0 && (
-                    <div className="p-2.5 bg-white dark:bg-[#141414] border-t border-gray-100 dark:border-white/5 pb-20 md:pb-2.5">
+                    <div className="p-2.5 bg-transparent border-t border-gray-100 dark:border-white/5 pb-20 md:pb-2.5">
                         <button
                             onClick={() => {
                                 setIsCartOpen(false);
                                 if (!user) navigate('/login');
                                 else navigate('/checkout');
                             }}
-                            className="w-full bg-[#0c831f] text-white px-3.5 rounded-xl flex items-center justify-between hover:bg-[#0a6b19] transition-all h-12 shadow-lg shadow-green-500/10 active:scale-[0.98] group"
+                            className="w-full bg-[#0c831f] text-white px-8 rounded-full flex items-center justify-between hover:bg-[#0a6b19] transition-all h-14 shadow-lg shadow-green-500/10 active:scale-[0.98] group"
                         >
                             <div className="flex flex-col items-start leading-none gap-0.5">
                                 <span className="font-black text-[15px]">₹{finalTotal}</span>

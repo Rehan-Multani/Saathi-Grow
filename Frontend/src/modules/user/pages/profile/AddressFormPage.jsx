@@ -57,12 +57,12 @@ const AddressFormPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-20">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] transition-colors duration-300 pb-20">
             {/* Header */}
-            <div className="flex items-center gap-3 p-4 sticky top-0 bg-white/80 dark:bg-black/80 backdrop-blur-[10px] z-10 border-b border-gray-50 dark:border-white/5">
+            <div className="flex items-center gap-3 p-4 sticky top-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:bg-black/80 backdrop-blur-[10px] z-10 border-b border-gray-100 dark:border-white/5">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                    className="p-1 hover:bg-white/50 dark:hover:bg-white/10 rounded-full transition-colors"
                 >
                     <ArrowLeft size={18} className="text-gray-600 dark:text-gray-400" />
                 </button>
@@ -167,7 +167,7 @@ const AddressFormPage = () => {
                 </div>
 
                 {/* Save Button */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-t border-gray-100 dark:border-white/5 z-20 md:static md:p-0 md:bg-transparent md:border-0">
+                <div className="fixed bottom-20 left-4 right-4 md:left-0 md:right-0 p-0 md:p-0 bg-transparent z-20 md:static md:bg-transparent md:border-0">
                     <button
                         type="submit"
                         className="w-full md:w-auto bg-[#0c831f] hover:bg-[#0a6b19] text-white font-black !text-[12px] md:!text-sm uppercase tracking-[0.2em] md:tracking-widest py-4 md:py-3 md:px-8 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 md:self-end"

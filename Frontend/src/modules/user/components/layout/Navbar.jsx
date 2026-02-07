@@ -132,36 +132,47 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       {/* MOBILE LAYOUT */}
       <div className="md:hidden sticky top-0 z-50 bg-white dark:bg-[#141414] shadow-sm transition-colors duration-300">
         {/* Row 1: Logo & Actions */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-2 gap-3">
-          {/* Logo (Icon Only) */}
-          <Link to="/" className="flex-shrink-0 w-8 h-8 overflow-hidden relative">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-3 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414]">
+          {/* Logo */}
+          <Link to="/" className="flex-shrink-0 flex items-center">
             <img
               src={logo}
               alt="SaathiGro"
-              className="h-full w-auto max-w-none object-left absolute left-0 top-0"
+              className={`h-9 w-auto object-contain transition-all duration-300 ${isDarkMode
+                ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
+                : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
+                }`}
             />
           </Link>
 
+          {/* Right Side: Notification & Location Group */}
+          <div className="flex items-center gap-2.5">
+            {/* Notification Icon */}
+            <Link to="/notifications" className="relative p-2 bg-white/50 dark:bg-white/10 rounded-full text-gray-700 dark:text-gray-200 border border-white dark:border-white/5 shadow-sm active:scale-90 transition-transform">
+              <Bell size={20} className="text-[#0c831f] dark:text-white" strokeWidth={2.5} />
+              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-black"></span>
+            </Link>
 
-
-          {/* Cart Toggle (Top Right) */}
-          <div className="relative flex-shrink-0 group">
-            <button
-              onClick={toggleCart}
-              className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center text-[#0c831f] active:scale-90 transition-all duration-300"
+            {/* Location Selector (Polished Design) */}
+            <div
+              onClick={openLocationModal}
+              className="flex flex-col items-end justify-center leading-none cursor-pointer max-w-[140px]"
             >
-              <ShoppingBag size={22} className="group-active:rotate-12 transition-transform" />
-            </button>
-            {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#eb3939] text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-[2px] border-white dark:border-[#141414] shadow-md transform scale-100 animate-in zoom-in">
-                {cartCount}
+              <div className="flex items-center gap-1 mb-0.5 w-full justify-end">
+                <span className="text-[14px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-tighter truncate text-right">
+                  {location.city || 'Home'}
+                </span>
+                <ChevronDown size={12} className="text-[#0c831f] flex-shrink-0" strokeWidth={4} />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 text-right truncate w-full tracking-tight">
+                {location.address || 'Select locality'}
               </span>
-            )}
+            </div>
           </div>
         </div>
 
         {/* Row 2: Search & Actions (Mobile) */}
-        <div className="px-4 pb-4 pt-2 flex items-center gap-3">
+        <div className="px-4 pb-4 pt-2 flex items-center gap-3 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414]">
           {/* Search Input */}
           <div className="flex-1 relative group">
             <input
@@ -170,7 +181,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
               value=""
               onClick={() => setIsSearchOverlayOpen(true)}
               readOnly
-              className="w-full pl-10 pr-10 py-3 bg-white dark:bg-[#1c1c1c] rounded-2xl text-[14px] font-bold text-gray-800 dark:text-gray-100 focus:outline-none shadow-sm transition-all placeholder:text-gray-400 cursor-pointer"
+              className="w-full pl-10 pr-10 py-3 bg-[#f6fbf7] border border-[#e8f5e9] dark:bg-[#1c1c1c] dark:border-white/5 rounded-2xl text-[14px] font-bold text-gray-800 dark:text-gray-100 focus:outline-none shadow-sm transition-all placeholder:text-gray-400 cursor-pointer"
             />
             <Search className="absolute left-3.5 top-3.5 text-gray-400" size={18} strokeWidth={2.5} />
             <Mic className="absolute right-3.5 top-3.5 text-[#0c831f]" size={18} strokeWidth={2.5} />
@@ -320,124 +331,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       </nav>
 
       {/* Mobile Sidebar Overlay */}
-      {isMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1999] md:hidden transition-opacity duration-300"
-          onClick={() => setIsMenuOpen(false)}
-        />
-      )}
-
-      {/* Mobile Sidebar (Drawer) */}
-      <div className={`fixed top-0 left-0 h-full w-[280px] bg-white dark:bg-[#141414] z-[2000] md:hidden transform transition-transform duration-300 ease-in-out shadow-2xl ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex flex-col h-full pb-24">
-          <div className="p-5 flex items-center justify-between border-b border-gray-50 dark:border-white/5">
-            <button
-              onClick={() => {
-                const target = user ? '/profile' : '/login';
-                navigate(target, { state: { from: routerLocation.pathname } });
-                setIsMenuOpen(false);
-              }}
-              className="flex items-center gap-4 text-left"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#eefaf1] dark:bg-[#0c831f]/10 border-4 border-gray-50 dark:border-white/5 flex items-center justify-center text-[#0c831f] shadow-sm overflow-hidden">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <User size={24} />
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="!text-[13px] font-black text-gray-900 dark:text-gray-100 leading-none mb-1">
-                  {user ? (user.name || "Saathi Member") : 'Welcome Guest'}
-                </span>
-                <span className="!text-[9px] text-gray-500 font-bold uppercase tracking-wider">
-                  {user ? 'View Profile' : 'Login to your account'}
-                </span>
-              </div>
-            </button>
-            <button
-              onClick={() => setIsMenuOpen(false)}
-              className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-400"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto py-6">
-            <div className="px-6 mb-8">
-              <p className="!text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 px-2">Location</p>
-              <button
-                onClick={() => {
-                  openLocationModal();
-                  setIsMenuOpen(false);
-                }}
-                className="w-full py-2 px-2 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-white/5 !rounded-2xl transition-all group"
-              >
-                <div className="w-10 h-10 bg-green-50 dark:bg-[#0c831f]/10 !rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-[#0c831f] shadow-sm">
-                  <MapPin size={18} />
-                </div>
-                <div className="flex flex-col items-start overflow-hidden text-left">
-                  <span className="!text-[11px] font-black text-gray-900 dark:text-gray-100 line-clamp-1 leading-none mb-1">
-                    {location.city ? location.address : 'Select Location'}
-                  </span>
-                  <span className="!text-[8px] text-gray-400 font-bold uppercase tracking-widest">Tap to change</span>
-                </div>
-              </button>
-            </div>
-
-            <div className="px-6">
-              <p className="!text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 px-2">Support & Info</p>
-              <div className="divide-y divide-gray-100 dark:divide-white/5">
-                {[
-                  { icon: ShoppingBag, label: 'My Orders', path: '/orders' },
-                  { icon: Map, label: 'Saved Addresses', path: '/saved-addresses' },
-                  { icon: Bell, label: 'Notifications', path: '/notifications' },
-                  { icon: HelpCircle, label: 'Help & Support', path: '/help' },
-                  { icon: Settings, label: 'Settings', path: '/settings' }
-                ].map((item, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      navigate(item.path, { state: { from: routerLocation.pathname } });
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full py-4 px-2 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group group-active:scale-95 !rounded-2xl"
-                  >
-                    <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 !rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-center text-[#0c831f] shadow-sm">
-                      <item.icon size={18} />
-                    </div>
-                    <span className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight leading-none">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6">
-            {user ? (
-              <button
-                onClick={() => {
-                  navigate('/logout-confirmation');
-                  setIsMenuOpen(false);
-                }}
-                className="w-full py-3.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-2xl font-black !text-[11px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all uppercase tracking-widest"
-              >
-                <LogOut size={16} />
-                Sign Out
-              </button>
-            ) : (
-              <Link
-                to={`/login?redirect=${encodeURIComponent(routerLocation.pathname)}`}
-                onClick={() => setIsMenuOpen(false)}
-                className="w-full py-4 bg-[#0c831f] text-white rounded-2xl font-black !text-[11px] flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all uppercase tracking-widest"
-              >
-                <User size={16} />
-                Sign In / Sign Up
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Mobile Sidebar Removed as per request */}
 
     </div>
   );

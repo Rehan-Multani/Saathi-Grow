@@ -22,13 +22,13 @@ const CartPage = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
-        <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+      <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] pb-20 flex flex-col items-center justify-center p-4">
+        <div className="w-24 h-24 bg-white/50 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
           <span className="text-4xl">🛒</span>
         </div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Your Cart is Empty</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Your Cart is Empty</h2>
         <p className="text-gray-500 mb-6 text-center">Looks like you haven't added anything to your cart yet.</p>
-        <Link to="/" className="bg-[var(--saathi-green)] text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition">
+        <Link to="/" className="bg-[var(--saathi-green)] text-white px-8 py-3.5 rounded-full font-black hover:bg-green-700 transition shadow-lg shadow-green-500/10 uppercase text-xs tracking-widest">
           Start Shopping
         </Link>
       </div>
@@ -36,12 +36,12 @@ const CartPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent dark:bg-gray-900 pb-20 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] pb-20 transition-colors duration-300">
       <div className="max-w-3xl mx-auto px-4 py-8 md:max-w-6xl md:grid md:grid-cols-3 md:gap-6">
         <div className="md:col-span-2">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">My Cart <span className="text-gray-400 dark:text-gray-500 text-lg font-normal">({cart.length} items)</span></h1>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mb-6 md:mb-0">
+          <div className="bg-transparent md:bg-white dark:bg-transparent dark:md:bg-gray-800 rounded-none md:rounded-2xl shadow-none md:shadow-sm border-none md:border border-gray-100 dark:border-gray-700 overflow-visible md:overflow-hidden mb-6 md:mb-0">
             <div className="divide-y divide-gray-100 dark:divide-gray-700">
               {cart.map((item) => (
                 <div key={item.id} className="p-4 flex gap-4">
@@ -79,7 +79,7 @@ const CartPage = () => {
 
         <div className="md:col-span-1">
           {/* Bill Details */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-24 md:mb-0">
+          <div className="bg-transparent md:bg-white dark:bg-transparent dark:md:bg-gray-800 rounded-none md:rounded-2xl shadow-none md:shadow-sm border-none md:border border-gray-100 dark:border-gray-700 p-6 mb-24 md:mb-0">
             <h3 className="font-bold text-gray-800 dark:text-white mb-4">Bill Details</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-600 dark:text-gray-300">
@@ -109,7 +109,7 @@ const CartPage = () => {
         <div className="max-w-3xl mx-auto">
           <button
             onClick={handleProceed}
-            className="w-full bg-[var(--saathi-green)] text-white py-3.5 rounded-2xl font-black text-center hover:bg-green-700 transition active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-between px-6"
+            className="w-full bg-[var(--saathi-green)] text-white py-4 rounded-full font-black text-center hover:bg-green-700 transition active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-between px-8"
           >
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-xs font-medium opacity-90">{finalTotal} items</span>

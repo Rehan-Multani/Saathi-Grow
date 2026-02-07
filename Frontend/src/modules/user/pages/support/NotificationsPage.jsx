@@ -34,7 +34,7 @@ const NotificationsPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-20">
+        <div className="min-h-screen bg-gradient-to-b from-[#f6fbf7] via-white to-white md:bg-white dark:bg-black transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8 p-4">
@@ -59,7 +59,7 @@ const NotificationsPage = () => {
                         {notifications.map((item) => (
                             <div
                                 key={item.id}
-                                className="w-full py-4 px-4 flex items-start gap-4 bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl shadow-sm active:scale-[0.98] transition-all"
+                                className="w-full py-4 px-4 flex items-start gap-4 bg-[#f1f8e9] md:bg-white dark:bg-[#141414] border border-[#c8e6c9] md:border-gray-100 dark:border-white/5 rounded-2xl shadow-sm active:scale-[0.98] transition-all"
                             >
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100 dark:border-white/10 ${item.color.replace('text-', 'text-saathi-green').replace('bg-', 'bg-')}`}>
                                     <item.icon size={18} className="text-[#0c831f]" />

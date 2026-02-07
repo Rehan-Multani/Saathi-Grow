@@ -58,13 +58,13 @@ const ProductDetailsPage = () => {
     const quantity = cartItem ? cartItem.quantity : 0;
 
     if (loading) return (
-        <div className="min-h-screen bg-[#efefef] dark:bg-black transition-colors duration-300">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">
             <ProductDetailSkeleton />
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#09090b] pb-20 transition-colors duration-300">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] pb-20 transition-colors duration-300">
             {/* Minimal Breadcrumb */}
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center text-[11px] text-gray-400 gap-2 uppercase tracking-widest">
@@ -177,7 +177,7 @@ const ProductDetailsPage = () => {
                         </div>
 
                         {/* Additional Info (Minimal) */}
-                        <div className="border-t border-gray-100 dark:border-white/5 pt-8">
+                        <div className="border-t border-gray-100 dark:border-white/5 pt-4 md:pt-8">
                             <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-4">Product Details</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                                 Fresh and natural coconut water combo. Perfect for a refreshing drink any time of the day. Packed with electrolytes and nutrients.
@@ -188,12 +188,12 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Recommendations Sections */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 md:mt-12 space-y-8 md:space-y-12">
 
                 {/* Similar Products */}
                 {similarProducts.length > 0 && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center justify-between mb-3 md:mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-2xl bg-[#eefaf1] dark:bg-[#0c831f]/10 flex items-center justify-center text-[#0c831f] shadow-sm">
                                     <TrendingUp size={20} strokeWidth={2.5} />
@@ -218,7 +218,7 @@ const ProductDetailsPage = () => {
                 {/* General Recommendations */}
                 {recommendedProducts.length > 0 && (
                     <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center justify-between mb-3 md:mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 shadow-sm">
                                     <Sparkles size={20} strokeWidth={2.5} />

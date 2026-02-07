@@ -13,7 +13,7 @@ const LogoutConfirmationPage = () => {
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <div className="min-h-screen md:min-h-[80vh] flex items-center justify-center px-4 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none transition-colors duration-300">
             <div className="w-full max-w-sm bg-white dark:bg-black rounded-3xl border border-gray-100 dark:border-white/5 p-8 text-center shadow-xl shadow-gray-200/50 dark:shadow-none">
                 <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
                     <ShieldAlert size={32} />

@@ -47,7 +47,7 @@ const CategoryPage = () => {
 
     if (isMainListView) {
         return (
-            <div className="min-h-screen bg-transparent dark:bg-black p-4 pt-6 pb-24">
+            <div className="min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] dark:bg-black p-4 pt-6 pb-24">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-8">
@@ -98,7 +98,7 @@ const CategoryPage = () => {
     });
 
     return (
-        <div className="min-h-screen bg-transparent dark:bg-black pb-28 transition-colors duration-300">
+        <div className="min-h-screen bg-gradient-to-b from-[#f6fbf7] via-white to-white md:bg-transparent dark:bg-black pb-28 transition-colors duration-300">
             {/* Combined Sticky Headers: Breadcrumbs + Subcategories */}
             <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
                 {/* Header with Back button */}
@@ -123,7 +123,7 @@ const CategoryPage = () => {
                     <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                         <button
                             onClick={() => setSelectedSubCat('all')}
-                            className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[9px] font-bold tracking-wide transition-all border capitalize ${selectedSubCat === 'all' ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400'}`}
+                            className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[9px] font-bold tracking-wide transition-all border capitalize ${selectedSubCat === 'all' ? 'bg-[#556b2f] border-[#556b2f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400'}`}
                         >
                             All
                         </button>
@@ -131,7 +131,7 @@ const CategoryPage = () => {
                             <button
                                 key={sub.id}
                                 onClick={() => setSelectedSubCat(sub.slug)}
-                                className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[9px] font-bold tracking-wide transition-all border capitalize ${selectedSubCat === sub.slug ? 'bg-[#0c831f] border-[#0c831f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400'}`}
+                                className={`flex-shrink-0 px-4 py-1.5 rounded-lg text-[9px] font-bold tracking-wide transition-all border capitalize ${selectedSubCat === sub.slug ? 'bg-[#556b2f] border-[#556b2f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-gray-400'}`}
                             >
                                 {sub.name.toLowerCase()}
                             </button>

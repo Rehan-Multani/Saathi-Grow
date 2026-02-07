@@ -48,18 +48,18 @@ const AddressPage = () => {
     );
 
     return (
-        <div className="relative min-h-[calc(100vh-64px)] flex items-start md:items-center justify-center py-4 md:py-12 px-4 sm:px-6 lg:px-8">
-            {/* Background Image with Blur */}
+        <div className="relative min-h-[calc(100vh-64px)] flex items-start md:items-center justify-center py-4 md:py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none transition-colors duration-300">
+            {/* Background Image with Blur - Hidden on mobile */}
             <div
-                className="absolute inset-0 bg-cover bg-center z-0"
+                className="absolute inset-0 bg-cover bg-center z-0 hidden md:block"
                 style={{
                     backgroundImage: 'url("https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop")',
                     filter: 'blur(8px)',
                     transform: 'scale(1.1)'
                 }}
             ></div>
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black/30 z-0"></div>
+            {/* Overlay - Hidden on mobile */}
+            <div className="absolute inset-0 bg-black/30 z-0 hidden md:block"></div>
 
             <div className="w-full max-w-2xl bg-white dark:bg-black rounded-lg shadow-xl overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 my-auto p-6 md:p-8 border border-transparent dark:border-white/10">
                 {/* Header */}

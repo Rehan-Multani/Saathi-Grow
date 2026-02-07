@@ -39,7 +39,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="relative min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative min-h-screen md:min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             {/* Background Image with Blur */}
             <div
                 className="absolute inset-0 bg-cover bg-center z-0"
