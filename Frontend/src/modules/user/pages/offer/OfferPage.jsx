@@ -146,9 +146,9 @@ const OfferPage = () => {
     return (
         <>
             {/* Desktop-only rebuilt layout */}
-            <div className="hidden md:block min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] font-sans pb-16 transition-colors duration-300">
+            <div className="hidden md:block min-h-screen bg-white dark:bg-black font-sans pb-16 transition-colors duration-300">
                 {/* Desktop Header */}
-                <div className="sticky top-0 z-50 bg-transparent backdrop-blur-xl border-b border-gray-100/50 dark:border-white/10 px-8 h-16 flex items-center justify-between">
+                <div className="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-100/50 dark:border-white/10 px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-all">
                             <ArrowLeft size={22} className="text-gray-900 dark:text-white" />

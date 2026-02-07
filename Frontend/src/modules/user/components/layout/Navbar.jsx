@@ -130,7 +130,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
     <div className="z-50 transition-colors duration-300 font-sans">
 
       {/* MOBILE LAYOUT */}
-      <div className="md:hidden sticky top-0 z-50 bg-white dark:bg-[#141414] shadow-sm transition-colors duration-300">
+      <div className="md:hidden sticky top-0 z-50 transition-colors duration-300">
         {/* Row 1: Logo & Actions */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-3 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414]">
           {/* Logo */}
@@ -190,7 +190,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       </div>
 
       {/* DESKTOP LAYOUT (Hidden on Mobile) */}
-      <nav className="hidden md:block bg-white dark:bg-black/80 dark:backdrop-blur-md border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300">
+      <nav className="hidden md:block bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
 
@@ -202,7 +202,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
                   alt="SaathiGro Logo"
                   className={`h-10 w-auto object-contain transition-all duration-300 ${isDarkMode
                     ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
-                    : 'brightness-[1.05] contrast-[1.05]'
+                    : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
                     }`}
                 />
               </Link>

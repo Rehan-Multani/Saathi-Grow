@@ -58,7 +58,7 @@ const CheckoutPage = () => {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] transition-colors duration-300 pb-32 pt-8 relative">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black transition-colors duration-300 pb-32 pt-8 relative">
             {/* Payment Processing Overlay */}
             {isPlacing && paymentMethod === 'online' && (
                 <div className="fixed inset-0 z-[100] bg-white dark:bg-black flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">

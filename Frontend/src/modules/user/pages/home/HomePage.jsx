@@ -117,7 +117,7 @@ const HomePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black transition-colors duration-300">
 
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
