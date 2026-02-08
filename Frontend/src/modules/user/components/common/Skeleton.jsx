@@ -7,7 +7,7 @@ const Skeleton = ({ className }) => {
 };
 
 export const ProductCardSkeleton = () => (
-    <div className="bg-white dark:bg-black rounded-[14px] p-2.5 border border-gray-100 dark:border-white/10 flex flex-col gap-2 h-full">
+    <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black rounded-[14px] p-2.5 border border-gray-100 dark:border-white/10 flex flex-col gap-2 h-full">
         <Skeleton className="aspect-square w-full rounded-xl" />
         <div className="flex flex-col gap-2 p-1">
             <Skeleton className="h-4 w-3/4" />

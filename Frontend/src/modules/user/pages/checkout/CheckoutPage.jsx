@@ -58,10 +58,10 @@ const CheckoutPage = () => {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black transition-colors duration-300 pb-32 pt-8 relative">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black transition-colors duration-300 pb-32 pt-8 relative">
             {/* Payment Processing Overlay */}
             {isPlacing && paymentMethod === 'online' && (
-                <div className="fixed inset-0 z-[100] bg-white dark:bg-black flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
+                <div className="fixed inset-0 z-[100] bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
                     <div className="w-full max-w-xs flex flex-col items-center">
                         <div className="mb-10 relative">
                             <div className="w-16 h-16 border-4 border-gray-100 dark:border-white/5 border-t-[#0c831f] rounded-full animate-spin"></div>
@@ -231,7 +231,8 @@ const CheckoutPage = () => {
                     <button
                         onClick={handlePlaceOrder}
                         disabled={isPlacing || cart.length === 0}
-                        className="flex-1 bg-[#0c831f] text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2 rounded-full"
+                        style={{ borderRadius: '16px' }}
+                        className="flex-1 bg-[#0c831f] text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2"
                     >
                         {isPlacing ? (
                             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>

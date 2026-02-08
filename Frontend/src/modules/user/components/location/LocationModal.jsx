@@ -61,7 +61,7 @@ const LocationModal = () => {
             ></div>
 
             {/* Modal Box */}
-            <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] w-full md:w-auto md:max-w-[550px] relative z-10 overflow-hidden animate-in slide-in-from-bottom duration-300 pointer-events-auto rounded-t-[24px] md:rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-xl border-t border-gray-100 dark:border-white/10 p-5 md:p-6 h-auto max-h-[85vh] flex flex-col pb-8 md:pb-6">
+            <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] md:dark:bg-black w-full md:w-auto md:max-w-[550px] relative z-10 overflow-hidden animate-in slide-in-from-bottom duration-300 pointer-events-auto rounded-t-[24px] md:rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-xl border-t border-gray-100 dark:border-white/10 p-5 md:p-6 h-auto max-h-[85vh] flex flex-col pb-8 md:pb-6">
                 <button
                     onClick={closeLocationModal}
                     className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors md:flex"

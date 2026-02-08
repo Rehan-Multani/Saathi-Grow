@@ -34,7 +34,7 @@ const NotificationsPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#f6fbf7] via-white to-white md:bg-white dark:bg-black transition-colors duration-300 pb-20">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8 p-4">
@@ -53,13 +53,13 @@ const NotificationsPage = () => {
                 </div>
 
                 {/* Notifications List */}
-                <div className="px-4">
-                    <p className="!text-[8px] font-bold text-gray-400 mb-2 tracking-widest px-2">RECENTLY RECEIVED</p>
-                    <div className="flex flex-col gap-3">
+                <div className="px-0 md:px-4">
+                    <p className="!text-[8px] font-bold text-gray-400 mb-2 tracking-widest px-4 md:px-2">RECENTLY RECEIVED</p>
+                    <div className="flex flex-col gap-0 md:gap-3">
                         {notifications.map((item) => (
                             <div
                                 key={item.id}
-                                className="w-full py-4 px-4 flex items-start gap-4 bg-[#f1f8e9] md:bg-white dark:bg-[#141414] border border-[#c8e6c9] md:border-gray-100 dark:border-white/5 rounded-2xl shadow-sm active:scale-[0.98] transition-all"
+                                className="w-full py-5 px-4 md:px-4 flex items-start gap-4 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-[#141414] border-b border-gray-100 dark:border-white/5 md:border md:rounded-2xl md:shadow-sm active:scale-[0.98] transition-all"
                             >
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100 dark:border-white/10 ${item.color.replace('text-', 'text-saathi-green').replace('bg-', 'bg-')}`}>
                                     <item.icon size={18} className="text-[#0c831f]" />

@@ -48,7 +48,7 @@ const AddressPage = () => {
     );
 
     return (
-        <div className="relative min-h-[calc(100vh-64px)] flex items-start md:items-center justify-center py-4 md:py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none transition-colors duration-300">
+        <div className="relative min-h-[calc(100vh-64px)] flex items-start md:items-center justify-center py-4 md:py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300">
             {/* Background Image with Blur - Hidden on mobile */}
             <div
                 className="absolute inset-0 bg-cover bg-center z-0 hidden md:block"

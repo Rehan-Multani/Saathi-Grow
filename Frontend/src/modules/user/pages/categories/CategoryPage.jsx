@@ -47,11 +47,20 @@ const CategoryPage = () => {
 
     if (isMainListView) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] dark:bg-black p-4 pt-6 pb-24">
+            <div className="min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white dark:bg-none dark:bg-black p-4 pt-6 pb-24">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-8">
-                        <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm">
+                        <button
+                            onClick={() => {
+                                if (window.innerWidth >= 768) {
+                                    navigate('/');
+                                } else {
+                                    navigate('/');
+                                }
+                            }}
+                            className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm"
+                        >
                             <ArrowLeft size={16} />
                         </button>
                         <h1 className="text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
@@ -98,12 +107,21 @@ const CategoryPage = () => {
     });
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#f6fbf7] via-white to-white md:bg-transparent dark:bg-black pb-28 transition-colors duration-300">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:bg-none dark:bg-black pb-28 transition-colors duration-300">
             {/* Combined Sticky Headers: Breadcrumbs + Subcategories */}
-            <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
+            <div className="sticky top-0 z-40 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:bg-none dark:bg-black md:backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
                 {/* Header with Back button */}
                 <div className="px-4 py-4 flex items-center gap-4">
-                    <button onClick={() => navigate('/category')} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300">
+                    <button
+                        onClick={() => {
+                            if (window.innerWidth >= 768) {
+                                navigate('/category');
+                            } else {
+                                navigate('/category');
+                            }
+                        }}
+                        className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300"
+                    >
                         <ArrowLeft size={16} />
                     </button>
                     <div className="flex flex-col">
@@ -158,7 +176,7 @@ const CategoryPage = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-[#141414] rounded-[40px] p-20 text-center shadow-sm border border-gray-100 dark:border-white/5 max-w-2xl mx-auto">
+                    <div className="bg-white dark:bg-black rounded-[40px] p-20 text-center shadow-sm border border-gray-100 dark:border-white/5 max-w-2xl mx-auto">
                         <div className="w-24 h-24 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                             <Filter size={40} className="text-gray-300" />
                         </div>

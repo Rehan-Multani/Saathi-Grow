@@ -32,10 +32,10 @@ const HelpPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] transition-colors duration-300 pb-20">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-0 p-4 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-transparent border-b border-gray-100 dark:border-white/5 md:border-none">
+                <div className="flex items-center gap-3 mb-0 p-4 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none transition-colors">
                     <button
                         onClick={() => {
                             const from = location.state?.from || '/';

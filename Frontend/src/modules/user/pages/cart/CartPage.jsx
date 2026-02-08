@@ -22,13 +22,17 @@ const CartPage = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] pb-20 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] pb-20 flex flex-col items-center justify-center p-4">
         <div className="w-24 h-24 bg-white/50 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
           <span className="text-4xl">🛒</span>
         </div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Your Cart is Empty</h2>
         <p className="text-gray-500 mb-6 text-center">Looks like you haven't added anything to your cart yet.</p>
-        <Link to="/" className="bg-[var(--saathi-green)] text-white px-8 py-3.5 rounded-full font-black hover:bg-green-700 transition shadow-lg shadow-green-500/10 uppercase text-xs tracking-widest">
+        <Link
+          to="/"
+          style={{ borderRadius: '16px' }}
+          className="bg-[var(--saathi-green)] text-white px-8 py-3.5 font-black hover:bg-green-700 transition shadow-lg shadow-green-500/10 uppercase text-xs tracking-widest"
+        >
           Start Shopping
         </Link>
       </div>
@@ -36,7 +40,7 @@ const CartPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] pb-20 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] pb-20 transition-colors duration-300">
       <div className="max-w-3xl mx-auto px-4 py-8 md:max-w-6xl md:grid md:grid-cols-3 md:gap-6">
         <div className="md:col-span-2">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">My Cart <span className="text-gray-400 dark:text-gray-500 text-lg font-normal">({cart.length} items)</span></h1>
@@ -109,7 +113,8 @@ const CartPage = () => {
         <div className="max-w-3xl mx-auto">
           <button
             onClick={handleProceed}
-            className="w-full bg-[var(--saathi-green)] text-white py-4 rounded-full font-black text-center hover:bg-green-700 transition active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-between px-8"
+            style={{ borderRadius: '16px' }}
+            className="w-full bg-[var(--saathi-green)] text-white py-4 font-black text-center hover:bg-green-700 transition active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-between px-8"
           >
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-xs font-medium opacity-90">{finalTotal} items</span>

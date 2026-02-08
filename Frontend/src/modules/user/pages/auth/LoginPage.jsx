@@ -86,7 +86,7 @@ const LoginPage = () => {
                             <button
                                 type="submit"
                                 disabled={phoneNumber.length !== 10}
-                                style={{ borderRadius: '100px' }}
+                                style={{ borderRadius: '16px' }}
                                 className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
                                 <Lock size={14} className="mr-2" />
@@ -110,7 +110,7 @@ const LoginPage = () => {
                             <button
                                 type="submit"
                                 disabled={otp.length !== 4}
-                                style={{ borderRadius: '100px' }}
+                                style={{ borderRadius: '16px' }}
                                 className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
                                 Verify & Login

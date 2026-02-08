@@ -47,9 +47,9 @@ const OrderDetailsPage = () => {
     const order = ordersDB[id] || ordersDB['SG-1234'];
 
     return (
-        <div className="min-h-screen bg-transparent dark:bg-[#0a0a0a] transition-colors duration-300 pb-24">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-24">
             {/* Header */}
-            <div className="sticky top-0 z-40 bg-white/80 dark:bg-black/60 backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4">
+            <div className="sticky top-0 z-40 bg-white/20 dark:bg-black/20 md:bg-none md:bg-white md:dark:bg-black backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4">
                 <div className="max-w-2xl md:max-w-6xl mx-auto flex items-center gap-4">
                     <button onClick={() => navigate('/orders')} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
                         <ArrowLeft size={16} />
@@ -63,7 +63,7 @@ const OrderDetailsPage = () => {
 
             <div className="max-w-2xl md:max-w-6xl mx-auto px-2 md:px-0 py-4 md:py-8">
                 {/* Order Status Stepper */}
-                <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 md:p-5 mb-6 border border-gray-100 dark:border-white/10 shadow-sm overflow-hidden">
+                <div className="bg-transparent md:bg-white/40 md:rounded-xl p-3 md:p-5 mb-6 md:border border-gray-100 dark:border-white/10 md:shadow-sm overflow-hidden">
                     <div className="flex items-center justify-between relative text-center">
                         <div className="absolute top-3.5 left-[15%] right-[15%] h-[1px] bg-gray-200 dark:bg-white/10 -z-0"></div>
                         <div className="flex flex-col items-center gap-1 z-10 relative">
@@ -83,7 +83,7 @@ const OrderDetailsPage = () => {
 
                 <div className="space-y-8 animate-in fade-in duration-500 md:grid md:grid-cols-2 md:gap-8">
                     {/* Order Items */}
-                    <div className="bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/5 rounded-2xl p-4">
+                    <div className="bg-transparent md:bg-white md:dark:bg-[#141414] md:border border-gray-100 dark:border-white/5 md:rounded-2xl p-0 md:p-4">
                         <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Ordered items</p>
                         <div className="divide-y divide-gray-100 dark:divide-white/5 border-y border-gray-100 dark:border-white/5">
                             {order.items.map((item, i) => (

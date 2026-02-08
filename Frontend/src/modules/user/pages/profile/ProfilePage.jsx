@@ -32,15 +32,19 @@ const ProfilePage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-transparent p-0 md:p-8">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black p-0 md:p-8">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 p-4 md:p-0 mb-0 md:mb-10 bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none border-b border-gray-50 md:border-none">
+                <div className="flex items-center gap-3 p-4 md:p-0 mb-0 md:mb-10 bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white md:dark:bg-black border-b border-gray-50 md:border-none">
                     <button
                         onClick={() => {
-                            const from = location.state?.from || '/';
-                            const shouldOpenMenu = from !== '/settings';
-                            navigate(from, { state: { openMenu: shouldOpenMenu } });
+                            if (window.innerWidth >= 768) {
+                                navigate('/');
+                            } else {
+                                const from = location.state?.from || '/';
+                                const shouldOpenMenu = from !== '/settings';
+                                navigate(from, { state: { openMenu: shouldOpenMenu } });
+                            }
                         }}
                         className="p-1.5 md:p-2 bg-white/50 dark:bg-[#141414] rounded-full hover:bg-gray-100 transition-colors md:bg-gray-50"
                     >
@@ -51,7 +55,7 @@ const ProfilePage = () => {
 
                 <div className="md:grid md:grid-cols-3 md:gap-8">
                     {/* Profile Section - Integrated */}
-                    <div className="mb-0 md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-6 bg-transparent md:bg-gradient-to-b md:from-[#f6fbf7] md:to-white dark:md:from-black dark:md:to-black">
+                    <div className="mb-0 md:bg-white md:dark:bg-black md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-6 bg-transparent md:bg-gradient-to-b md:from-[#f6fbf7] md:to-white dark:md:from-black dark:md:to-black">
                         <div className="flex flex-col items-center pt-2 pb-6 md:py-0">
                             <div className="relative mb-3 md:mb-5">
                                 <div className="w-24 h-24 md:w-32 md:h-32 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center border-4 border-white md:border-gray-50 dark:border-white/5 overflow-hidden shadow-sm">
@@ -95,7 +99,7 @@ const ProfilePage = () => {
                     <div className="md:col-span-2 bg-transparent md:bg-transparent">
                         <div className="space-y-0 md:space-y-1 mb-0 md:mb-10 max-w-none mx-auto md:mx-0">
                             <h3 className="!text-[10px] md:!text-xs font-bold text-gray-400 px-6 py-4 md:px-2 md:mb-2 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">My Information</h3>
-                            <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border md:border-gray-50 dark:md:border-white/5 overflow-hidden">
+                            <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white md:dark:bg-black md:rounded-2xl md:border md:border-gray-50 dark:md:border-white/5 overflow-hidden">
                                 {sections.map((item, idx) => (
                                     <button
                                         key={idx}
@@ -117,7 +121,7 @@ const ProfilePage = () => {
                             </div>
 
                             <h3 className="!text-[10px] md:!text-xs font-bold text-gray-400 px-6 py-4 md:px-2 md:mt-6 md:mb-2 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">App Preferences</h3>
-                            <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border border-gray-50 dark:md:border-white/5 overflow-hidden">
+                            <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white md:dark:bg-black md:rounded-2xl md:border border-gray-50 dark:md:border-white/5 overflow-hidden">
                                 {/* Theme Toggle */}
                                 <div className="py-5 px-6 md:py-6 md:px-6 flex items-center justify-between group">
                                     <div className="flex items-center gap-4 md:gap-6">
@@ -160,7 +164,7 @@ const ProfilePage = () => {
                             {/* Logout Button */}
                             <button
                                 onClick={() => navigate('/logout-confirmation')}
-                                className="w-full py-5 px-6 md:py-6 md:px-6 flex items-center justify-between bg-transparent md:bg-white dark:md:bg-[#141414] hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group border-t border-gray-100 dark:border-white/5 md:mt-4 md:rounded-2xl md:border"
+                                className="w-full py-5 px-6 md:py-6 md:px-6 flex items-center justify-between bg-transparent md:bg-white md:dark:bg-black hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group border-t border-gray-100 dark:border-white/5 md:mt-4 md:rounded-2xl md:border"
                             >
                                 <div className="flex items-center gap-4 md:gap-6">
                                     <div className="w-9 h-9 md:w-12 md:h-12 bg-red-50 dark:bg-red-900/20 md:border border-red-100 dark:border-red-500/10 rounded-full md:rounded-xl flex items-center justify-center text-red-500 md:shadow-sm">

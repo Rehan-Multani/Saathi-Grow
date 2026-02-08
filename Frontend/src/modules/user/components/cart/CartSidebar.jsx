@@ -151,7 +151,8 @@ const CartSidebar = () => {
                                 if (!user) navigate('/login');
                                 else navigate('/checkout');
                             }}
-                            className="w-full bg-[#0c831f] text-white px-8 rounded-full flex items-center justify-between hover:bg-[#0a6b19] transition-all h-14 shadow-lg shadow-green-500/10 active:scale-[0.98] group"
+                            style={{ borderRadius: '16px' }}
+                            className="w-full bg-[#0c831f] text-white px-8 flex items-center justify-between hover:bg-[#0a6b19] transition-all h-14 shadow-lg shadow-green-500/10 active:scale-[0.98] group"
                         >
                             <div className="flex flex-col items-start leading-none gap-0.5">
                                 <span className="font-black text-[15px]">₹{finalTotal}</span>

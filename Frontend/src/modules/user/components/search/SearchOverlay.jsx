@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
 import { products } from '../../data/products';
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton, SuggestionSkeleton } from '../common/Skeleton';
+import logo from '../../../../assets/logo.png';
+import { useTheme } from '../../context/ThemeContext';
 
 const SearchOverlay = () => {
     const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
+    const { isDarkMode } = useTheme();
     const navigate = useNavigate();
     const [recentSearches, setRecentSearches] = useState(() => {
         const saved = localStorage.getItem('recentSearches');
@@ -85,12 +88,17 @@ const SearchOverlay = () => {
         )
         : [];
 
-    // Generate autocomplete suggestions
+    // Generate autocomplete suggestions with images
     const suggestions = searchQuery
         ? products
             .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
             .slice(0, 5)
-            .map(p => p.name)
+            .map(p => ({
+                id: p.id,
+                name: p.name,
+                image: p.image,
+                category: p.category
+            }))
         : [];
 
     // Simulate loading when typing
@@ -117,11 +125,14 @@ const SearchOverlay = () => {
 
     const handleRecentClick = (query) => {
         setSearchQuery(query);
+        addToHistory(query);
     };
 
-    const handleSuggestionClick = (suggestion) => {
-        setSearchQuery(suggestion);
-        addToHistory(suggestion);
+    const removeRecent = (e, query) => {
+        e.stopPropagation();
+        const updated = recentSearches.filter(s => s !== query);
+        setRecentSearches(updated);
+        localStorage.setItem('recentSearches', JSON.stringify(updated));
     };
 
     const clearRecent = () => {
@@ -132,40 +143,62 @@ const SearchOverlay = () => {
     if (!isSearchOverlayOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-white dark:bg-[#09090b] z-[9999] overflow-y-auto">
+        <div className="fixed inset-0 bg-gradient-to-br from-[#e8f5e9] via-white to-white md:bg-white dark:bg-none dark:bg-black md:dark:bg-black z-[9999] overflow-y-auto transition-colors duration-300">
             {/* Header */}
-            <div className="sticky top-0 z-50 bg-white dark:bg-[#09090b] border-b border-gray-200 dark:border-white/10 p-4">
-                <div className="flex items-center gap-3">
-                    <button onClick={handleClose} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full">
-                        <ArrowLeft size={20} className="text-gray-700 dark:text-gray-200" />
-                    </button>
-                    <div className="flex-1 relative">
-                        <input
-                            type="text"
-                            placeholder='Search for "dal"'
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    addToHistory(searchQuery);
-                                }
-                            }}
-                            autoFocus
-                            className={`w-full pl-4 pr-20 py-3 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 rounded-xl text-[14px] font-medium text-gray-800 dark:text-gray-100 focus:outline-none focus:border-[#0c831f] dark:focus:border-[#0c831f] transition-all placeholder:text-gray-400 ${isListening ? 'ring-2 ring-[#0c831f]/50' : ''}`}
-                        />
-                        <div className="absolute right-2 top-1.5 flex items-center gap-1">
-                            {searchQuery && (
-                                <button onClick={() => setSearchQuery('')} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                                    <X size={18} />
+            <div className="sticky top-0 z-50 bg-white/80 md:bg-white dark:bg-black/80 md:dark:bg-[#111111] backdrop-blur-md md:backdrop-blur-none border-b border-gray-100 dark:border-white/5 shadow-sm transition-colors">
+                <div className="max-w-7xl mx-auto px-4 py-3 md:py-4">
+                    <div className="flex items-center gap-3 md:gap-4">
+                        <button onClick={handleClose} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors flex-shrink-0">
+                            <ArrowLeft size={20} className="text-gray-700 dark:text-gray-200" />
+                        </button>
+
+                        {/* Logo (Desktop Only) */}
+                        <Link
+                            to="/"
+                            onClick={() => setIsSearchOverlayOpen(false)}
+                            className="hidden md:flex items-center group flex-shrink-0"
+                        >
+                            <img
+                                src={logo}
+                                alt="SaathiGro Logo"
+                                className={`h-8 w-auto object-contain transition-all duration-300 hover:scale-105 ${isDarkMode
+                                    ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
+                                    : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
+                                    }`}
+                            />
+                        </Link>
+                        <div className="flex-1 relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:block">
+                                <Search size={20} className="text-[#0c831f]" strokeWidth={2.5} />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder='Search for "dal", "milk", or "snacks"'
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        addToHistory(searchQuery);
+                                    }
+                                }}
+                                autoFocus
+                                className={`w-full pl-4 md:pl-12 pr-12 md:pr-24 py-2.5 md:py-3.5 bg-white/50 md:bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 md:border-transparent focus:border-[#0c831f] rounded-xl text-[14px] md:text-[15px] font-medium text-gray-800 dark:text-gray-100 focus:outline-none transition-all placeholder:text-gray-400 ${isListening ? 'ring-2 ring-[#0c831f]/50' : ''}`}
+                            />
+                            <div className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 md:gap-1">
+                                {searchQuery && (
+                                    <button onClick={() => setSearchQuery('')} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                                        <X size={20} />
+                                    </button>
+                                )}
+                                <div className="w-[1px] h-5 md:h-6 bg-gray-200 dark:bg-white/10 mx-0.5 md:mx-1"></div>
+                                <button
+                                    onClick={startListening}
+                                    className={`p-2 rounded-lg transition-all ${isListening ? 'bg-[#0c831f] text-white animate-pulse' : 'text-[#0c831f] hover:bg-[#e8f5e9] dark:hover:bg-white/5'}`}
+                                    title={isListening ? "Stop listening" : "Voice search"}
+                                >
+                                    <Mic size={20} strokeWidth={2.5} />
                                 </button>
-                            )}
-                            <button
-                                onClick={startListening}
-                                className={`p-2 rounded-lg transition-all ${isListening ? 'bg-[#0c831f] text-white animate-pulse' : 'text-gray-400 hover:text-[#0c831f] hover:bg-gray-100 dark:hover:bg-white/5'}`}
-                                title={isListening ? "Stop listening" : "Voice search"}
-                            >
-                                {isListening ? <Mic size={18} /> : <Mic size={18} />}
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -191,15 +224,22 @@ const SearchOverlay = () => {
                             )}
                         </div>
                         {recentSearches.length > 0 ? (
-                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                            <div className="flex flex-wrap gap-2">
                                 {recentSearches.map((query, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => handleRecentClick(query)}
-                                        className="px-5 py-2.5 bg-white dark:bg-[#111] border border-gray-200 dark:border-white/10 hover:border-[#0c831f] hover:text-[#0c831f] rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 transition-all shadow-sm flex-shrink-0 min-w-[100px] text-center"
-                                    >
-                                        {query.charAt(0).toUpperCase() + query.slice(1).toLowerCase()}
-                                    </button>
+                                    <div key={i} className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 hover:border-[#0c831f] rounded-lg transition-all group">
+                                        <button
+                                            onClick={() => handleRecentClick(query)}
+                                            className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#0c831f]"
+                                        >
+                                            {query}
+                                        </button>
+                                        <button
+                                            onClick={(e) => removeRecent(e, query)}
+                                            className="p-0.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
                                 ))}
                             </div>
                         ) : (
@@ -215,7 +255,7 @@ const SearchOverlay = () => {
                                     { name: 'Vegetables', slug: 'fruit-and-vegetables' },
                                     { name: 'Fruits', slug: 'fruit-and-vegetables' },
                                     { name: 'Dairy', slug: 'dairy-egg-frozen' },
-                                    { name: 'Snacks', slug: 'snacks-and-branded-foods' }
+                                    { name: 'Snacks', slug: 'snacks-bakery' }
                                 ].map((cat) => (
                                     <button
                                         key={cat.name}
@@ -223,7 +263,7 @@ const SearchOverlay = () => {
                                             setSearchQuery(cat.name);
                                             addToHistory(cat.name);
                                         }}
-                                        className="h-20 bg-white dark:bg-[#111] rounded-lg text-left border border-gray-100 dark:border-white/10 group hover:border-[#0c831f] transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04)] px-5 flex items-center"
+                                        className="h-20 bg-[#e8f5e9] md:bg-white/40 dark:bg-white/5 rounded-lg text-left border border-green-100/50 md:border-gray-100 dark:border-white/10 group hover:border-[#0c831f] transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04)] px-5 flex items-center"
                                     >
                                         <p className="text-[14px] font-bold text-[#1e293b] dark:text-gray-200 group-hover:text-[#0c831f]">{cat.name}</p>
                                     </button>
@@ -245,26 +285,37 @@ const SearchOverlay = () => {
                             {isLoading ? (
                                 <SuggestionSkeleton />
                             ) : suggestions.length > 0 ? (
-                                <div className="bg-white dark:bg-[#111] rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
+                                <div className="space-y-0.5 max-w-2xl">
                                     {suggestions.map((suggestion, i) => (
                                         <button
                                             key={i}
                                             onClick={() => {
-                                                addToHistory(suggestion);
-                                                const foundProduct = products.find(p => p.name.toLowerCase() === suggestion.toLowerCase());
-                                                if (foundProduct) {
-                                                    navigate(`/product/${foundProduct.id}`);
-                                                    setIsSearchOverlayOpen(false);
-                                                } else {
-                                                    handleSuggestionClick(suggestion);
-                                                }
+                                                addToHistory(suggestion.name);
+                                                navigate(`/product/${suggestion.id}`);
+                                                setIsSearchOverlayOpen(false);
                                             }}
-                                            className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-white/5 border-b border-gray-50 dark:border-white/5 last:border-0 text-left transition-colors group"
+                                            className="w-full flex items-center gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group text-left"
                                         >
-                                            <Search size={14} className="text-gray-400 group-hover:text-[#0c831f] transition-colors" />
-                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
-                                                {suggestion.charAt(0).toUpperCase() + suggestion.slice(1).toLowerCase()}
-                                            </span>
+                                            <div className="w-10 h-10 bg-white dark:bg-black rounded-lg border border-gray-100 dark:border-white/5 flex items-center justify-center p-1 flex-shrink-0">
+                                                <img src={suggestion.image} alt="" className="w-full h-full object-contain" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#0c831f] transition-colors">
+                                                    {suggestion.name.toLowerCase().split(searchQuery.toLowerCase()).map((part, index, array) => (
+                                                        <React.Fragment key={index}>
+                                                            {part}
+                                                            {index < array.length - 1 && (
+                                                                <span className="font-black text-[#0c831f]">
+                                                                    {searchQuery.toLowerCase()}
+                                                                </span>
+                                                            )}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </span>
+                                                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                                                    {suggestion.category}
+                                                </span>
+                                            </div>
                                         </button>
                                     ))}
                                 </div>
@@ -276,20 +327,19 @@ const SearchOverlay = () => {
                         {/* 2. Scalable Product Grid */}
                         <div>
                             {!isLoading && filteredProducts.length > 0 && (
-                                <div className="flex items-center gap-2 mb-6">
-                                    <div className="w-1 h-3.5 bg-[#0c831f] rounded-full"></div>
-                                    <h3 className="text-[15px] font-bold text-gray-900 dark:text-gray-100">Results for "{searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1).toLowerCase()}"</h3>
-                                </div>
+                                <h2 className="text-[13px] md:text-[18px] font-bold text-gray-800 dark:text-gray-100 mb-6 px-1">
+                                    Showing results for <span className="text-[#0c831f]">"{searchQuery}"</span>
+                                </h2>
                             )}
 
                             {isLoading ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {Array.from({ length: 8 }).map((_, i) => (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
+                                    {Array.from({ length: 12 }).map((_, i) => (
                                         <ProductCardSkeleton key={i} />
                                     ))}
                                 </div>
                             ) : filteredProducts.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
                                     {filteredProducts.map((product) => (
                                         <div key={product.id} onClick={() => {
                                             addToHistory(searchQuery);

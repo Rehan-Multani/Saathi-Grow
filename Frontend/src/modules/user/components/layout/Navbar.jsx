@@ -8,6 +8,8 @@ import { useSearch } from '../../context/SearchContext';
 import { useTheme } from '../../context/ThemeContext';
 import { products } from '../../data/products';
 import logo from '../../../../assets/logo.png';
+import ProductCard from '../product/ProductCard';
+import { ProductCardSkeleton } from '../common/Skeleton';
 
 const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
   const { cartCount, cartTotal, toggleCart } = useCart();
@@ -25,6 +27,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
   const [recentSearches, setRecentSearches] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const recognitionRef = React.useRef(null);
 
@@ -91,13 +94,20 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
+      setIsLoading(true);
       const filtered = products.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.includes(searchQuery.toLowerCase())
-      ).slice(0, 6);
-      setSuggestions(filtered);
+        p.category.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 8);
+
+      const timer = setTimeout(() => {
+        setSuggestions(filtered);
+        setIsLoading(false);
+      }, 500);
+      return () => clearTimeout(timer);
     } else {
       setSuggestions([]);
+      setIsLoading(false);
     }
   }, [searchQuery]);
 
@@ -115,7 +125,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
 
   const handleRecentClick = (query) => {
     setSearchQuery(query);
-    setIsFocused(false);
+    // Keep it focused to show results
+    setIsFocused(true);
   };
 
   const removeRecent = (e, query) => {
@@ -190,7 +201,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       </div>
 
       {/* DESKTOP LAYOUT (Hidden on Mobile) */}
-      <nav className="hidden md:block bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300">
+      <nav className="hidden md:block md:bg-white md:bg-none md:dark:bg-black border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
 
@@ -200,7 +211,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
                 <img
                   src={logo}
                   alt="SaathiGro Logo"
-                  className={`h-10 w-auto object-contain transition-all duration-300 ${isDarkMode
+                  className={`h-10 w-auto object-contain transition-all duration-300 hover:scale-105 ${isDarkMode
                     ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
                     : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
                     }`}
@@ -223,67 +234,25 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
 
             {/* Center: Search Bar - Desktop */}
             <div className="flex-1 max-w-xl relative group mx-8">
-              <div className="relative z-50 transition-all duration-300 transform group-hover:scale-[1.01]">
-                <input
-                  type="text"
-                  placeholder="Search for 'milk', 'bread'..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && searchQuery.trim()) {
-                      handleSuggestionClick(searchQuery.trim());
-                      navigate(`/category?search=${searchQuery.trim()}`);
-                    }
-                  }}
-                  className="w-full pl-11 pr-24 py-2.5 bg-gray-100/50 dark:bg-[#1c1c1c] border border-transparent dark:border-white/5 rounded-full focus:outline-none focus:bg-white dark:focus:bg-[#1c1c1c] focus:ring-2 focus:ring-[#0c831f]/10 dark:focus:ring-[#0c831f]/20 focus:border-[#0c831f]/20 transition-all text-sm font-medium dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-inner group-hover:shadow-sm"
-                />
-                <Search className="absolute left-4 top-3 text-gray-400 dark:text-gray-500" size={18} strokeWidth={2} />
-                <div className="absolute right-3 top-2 flex items-center gap-1">
-                  {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                      <X size={16} />
-                    </button>
-                  )}
-                  <button
-                    onClick={startListening}
-                    className={`p-1.5 rounded-full transition-all ${isListening ? 'bg-[#0c831f] text-white animate-pulse' : 'text-gray-400 hover:text-[#0c831f] hover:bg-gray-200 dark:hover:bg-white/10'}`}
-                    title={isListening ? "Stop listening" : "Voice search"}
-                  >
-                    <Mic size={16} strokeWidth={2.5} />
-                  </button>
-                </div>
+              <div
+                onClick={() => setIsSearchOverlayOpen(true)}
+                className="w-full pl-11 pr-24 py-2.5 bg-gray-100/50 dark:bg-[#1c1c1c] border border-transparent dark:border-white/5 rounded-full text-sm font-medium text-gray-400 dark:text-gray-500 shadow-inner group-hover:shadow-sm cursor-pointer flex items-center"
+              >
+                Search for 'milk', 'bread'...
               </div>
-
-              {/* Search Suggestions (Desktop) */}
-              {isFocused && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-xl border border-gray-100 dark:border-white/5 overflow-hidden z-[60] p-1">
-                  {!searchQuery && recentSearches.length > 0 && (
-                    <div className="p-2">
-                      <p className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Recent</p>
-                      {recentSearches.map((query, i) => (
-                        <div key={i} onClick={() => handleRecentClick(query)} className="flex items-center justify-between gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl cursor-pointer transition-colors">
-                          <div className="flex items-center gap-3"><Search size={14} className="text-gray-400" /><span className="text-sm font-medium text-gray-700 dark:text-gray-200">{query}</span></div>
-                          <button onClick={(e) => removeRecent(e, query)} className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full text-gray-400"><X size={12} /></button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {searchQuery && suggestions.length > 0 && (
-                    <div className="p-1">
-                      {suggestions.map((item) => (
-                        <Link key={item.id} to={`/product/${item.id}`} onClick={() => handleSuggestionClick(item.name)} className="flex items-center gap-4 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-gray-100 dark:border-white/5 flex-shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-contain" /></div>
-                          <div className="flex flex-col"><span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{item.name}</span><span className="text-[10px] text-gray-500">{item.category}</span></div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <Search className="absolute left-4 top-3 text-[#0c831f]" size={18} strokeWidth={2.5} />
+              <div className="absolute right-3 top-2 flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsSearchOverlayOpen(true);
+                  }}
+                  className="p-1.5 rounded-full transition-all text-gray-400 hover:text-[#0c831f] hover:bg-gray-200 dark:hover:bg-white/10"
+                >
+                  <Mic size={16} strokeWidth={2.5} />
+                </button>
+              </div>
             </div>
-
             {/* Right: Actions (Desktop) */}
             <div className="flex items-center gap-3">
               <button
@@ -305,7 +274,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
               ) : (
                 <Link
                   to={`/login?redirect=${encodeURIComponent(routerLocation.pathname)}`}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-full text-xs font-black uppercase tracking-wider hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                  style={{ borderRadius: '16px' }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-black uppercase tracking-wider hover:shadow-lg hover:-translate-y-0.5 transition-all"
                 >
                   <User size={14} strokeWidth={3} />
                   Login
@@ -329,10 +299,6 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
           </div>
         </div>
       </nav>
-
-      {/* Mobile Sidebar Overlay */}
-      {/* Mobile Sidebar Removed as per request */}
-
     </div>
   );
 };

@@ -87,7 +87,7 @@ const RegisterPage = () => {
                         <button
                             type="submit"
                             disabled={formData.phone.length !== 10 || !formData.name}
-                            style={{ borderRadius: '100px' }}
+                            style={{ borderRadius: '16px' }}
                             className="w-full bg-[#0c831f] text-white py-2.5 font-black text-xs hover:bg-green-700 transition-all shadow-lg shadow-green-500/10 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Register Account

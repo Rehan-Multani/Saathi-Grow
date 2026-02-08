@@ -18,7 +18,7 @@ const CancelOrderPage = () => {
 
     if (submitted) {
         return (
-            <div className="min-h-screen bg-white dark:bg-[#0a0a0a] flex flex-col items-center justify-center p-6 text-center">
+            <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white md:dark:bg-black dark:from-[#141414] dark:to-[#141414] flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-6 text-red-600 animate-bounce">
                     <CheckCircle size={32} strokeWidth={3} />
                 </div>
@@ -32,8 +32,8 @@ const CancelOrderPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#0a0a0a] pb-10">
-            <div className="sticky top-0 z-40 bg-white/80 dark:bg-black/60 backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4 transition-colors">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white md:dark:bg-black dark:from-[#141414] dark:to-[#141414] pb-10">
+            <div className="sticky top-0 z-40 bg-white/20 dark:bg-black/20 md:bg-none md:bg-white md:dark:bg-black backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4 transition-colors">
                 <div className="max-w-2xl mx-auto flex items-center gap-4">
                     <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
                         <ArrowLeft size={16} />
@@ -47,20 +47,20 @@ const CancelOrderPage = () => {
 
             <div className="max-w-2xl mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
-                    <div className="bg-red-50 dark:bg-red-500/5 p-4 rounded-2xl border border-red-100 dark:border-red-500/10 mb-2">
+                    <div className="bg-red-500/10 dark:bg-red-500/5 p-4 md:rounded-2xl md:border border-red-100 dark:border-red-500/10 mb-2">
                         <p className="text-[10px] md:text-base text-red-600 font-bold tracking-tight">Are you sure you want to cancel? This action cannot be undone.</p>
                     </div>
 
                     <div>
                         <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Select reason for cancellation</p>
-                        <div className="divide-y divide-gray-100 dark:divide-white/5 border-y border-gray-100 dark:border-white/5 mx-[-1rem]">
+                        <div className="divide-y divide-gray-100 dark:divide-white/5 md:border-y md:border-gray-100 md:dark:border-white/5 mx-[-1rem]">
                             {issues.map((issue, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setSelectedIssue(issue)}
-                                    className={`w-full py-3 md:py-4 px-5 text-left transition-all !text-[10px] md:!text-base font-bold flex items-center justify-between group ${selectedIssue === issue
-                                        ? 'bg-red-50/50 dark:bg-red-500/10 text-red-600'
-                                        : 'bg-white dark:bg-transparent text-gray-600 dark:text-gray-300'}`}
+                                    className={`w-full py-4 px-5 text-left transition-all !text-[10px] md:!text-base font-bold flex items-center justify-between group ${selectedIssue === issue
+                                        ? 'bg-red-500/10 text-red-600'
+                                        : 'bg-transparent text-gray-600 dark:text-gray-300'}`}
                                 >
                                     <span>{issue}</span>
                                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${selectedIssue === issue ? 'border-red-600 bg-red-600' : 'border-gray-200 dark:border-white/10'}`}>
@@ -77,7 +77,7 @@ const CancelOrderPage = () => {
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Please explain why you are cancelling..."
-                            className="w-full h-28 p-3.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-600 text-[11px] md:text-base dark:text-white placeholder:text-gray-400 shadow-sm"
+                            className="w-full h-28 p-3.5 bg-white/20 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-600 text-[11px] md:text-base dark:text-white placeholder:text-gray-400 shadow-sm"
                         />
                     </div>
 
