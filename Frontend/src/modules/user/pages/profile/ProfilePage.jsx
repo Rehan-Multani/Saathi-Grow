@@ -32,10 +32,10 @@ const ProfilePage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black p-0 md:p-8">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black p-0 md:p-2">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 p-4 md:p-0 mb-0 md:mb-10 bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white md:dark:bg-black border-b border-gray-50 md:border-none">
+                <div className="hidden md:flex items-center gap-3 p-4 md:p-0 mb-0 md:mb-1 bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white md:dark:bg-black border-b border-gray-50 md:border-none">
                     <button
                         onClick={() => {
                             if (window.innerWidth >= 768) {
@@ -53,12 +53,12 @@ const ProfilePage = () => {
                     <h1 className="!text-[16px] md:!text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">My Profile</h1>
                 </div>
 
-                <div className="md:grid md:grid-cols-3 md:gap-8">
+                <div className="md:grid md:grid-cols-3 md:gap-4">
                     {/* Profile Section - Integrated */}
-                    <div className="mb-0 md:bg-white md:dark:bg-black md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-6 bg-transparent md:bg-gradient-to-b md:from-[#f6fbf7] md:to-white dark:md:from-black dark:md:to-black">
+                    <div className="mb-0 md:bg-white md:dark:bg-black md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-2 bg-transparent md:bg-gradient-to-b md:from-[#f6fbf7] md:to-white dark:md:from-black dark:md:to-black">
                         <div className="flex flex-col items-center pt-2 pb-6 md:py-0">
-                            <div className="relative mb-3 md:mb-5">
-                                <div className="w-24 h-24 md:w-32 md:h-32 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center border-4 border-white md:border-gray-50 dark:border-white/5 overflow-hidden shadow-sm">
+                            <div className="relative mb-3 md:mb-2">
+                                <div className="w-24 h-24 md:w-24 md:h-24 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center border-4 border-white md:border-gray-50 dark:border-white/5 overflow-hidden shadow-sm">
                                     {user?.photoURL ? (
                                         <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
@@ -79,40 +79,39 @@ const ProfilePage = () => {
                                     <Camera size={14} className="md:w-5 md:h-5" />
                                 </button>
                             </div>
-                            <h2 className="!text-[20px] md:!text-2xl font-black text-gray-900 dark:text-gray-100">{user?.displayName || "Saathi Member"}</h2>
-                            <p className="!text-[12px] md:!text-sm text-gray-400 font-bold tracking-widest mt-0.5 md:mt-1">{user?.email || "member@saathigro.com"}</p>
+                            <h2 className="!text-[20px] md:!text-xl font-black text-gray-900 dark:text-gray-100">{user?.displayName || "Saathi Member"}</h2>
+                            <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-0.5 md:mt-0.5">{user?.email || "member@saathigro.com"}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 py-4 md:py-8 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
+                        <div className="grid grid-cols-2 gap-4 py-4 md:py-3 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-2xl font-black text-gray-900 dark:text-gray-100">0</p>
-                                <p className="!text-[9px] md:!text-xs text-gray-400 font-bold uppercase tracking-widest">Orders</p>
+                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">0</p>
+                                <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Orders</p>
                             </div>
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-2xl font-black text-gray-900 dark:text-gray-100">₹0</p>
-                                <p className="!text-[9px] md:!text-xs text-gray-400 font-bold uppercase tracking-widest">Savings</p>
+                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹0</p>
+                                <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Savings</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Menu Sections */}
                     <div className="md:col-span-2 bg-transparent md:bg-transparent">
-                        <div className="space-y-0 md:space-y-1 mb-0 md:mb-10 max-w-none mx-auto md:mx-0">
-                            <h3 className="!text-[10px] md:!text-xs font-bold text-gray-400 px-6 py-4 md:px-2 md:mb-2 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">My Information</h3>
+                        <div className="space-y-0 md:space-y-1 mb-0 md:mb-2 max-w-none mx-auto md:mx-0">
+                            <h3 className="!text-[10px] md:!text-[9px] font-bold text-gray-400 px-6 py-4 md:px-2 md:mb-1 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">My Information</h3>
                             <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white md:dark:bg-black md:rounded-2xl md:border md:border-gray-50 dark:md:border-white/5 overflow-hidden">
                                 {sections.map((item, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => navigate(item.path, { state: { from: '/profile' } })}
-                                        className="w-full py-5 px-6 md:py-6 md:px-6 flex items-center justify-between hover:bg-[#e8f5e9] md:hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
+                                        className="w-full py-5 px-6 md:py-1.5 md:px-4 flex items-center justify-between hover:bg-[#e8f5e9] md:hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
                                     >
                                         <div className="flex items-center gap-4 md:gap-6">
-                                            <div className="w-9 h-9 md:w-12 md:h-12 bg-gray-50/50 md:bg-white dark:bg-white/5 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-xl flex items-center justify-center text-[#556b2f] md:shadow-sm group-hover:bg-[#eefaf1] transition-colors">
-                                                <item.icon size={18} className="md:w-6 md:h-6" />
+                                            <div className="w-9 h-9 md:w-9 md:h-9 bg-gray-50/50 md:bg-white dark:bg-white/5 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center text-[#556b2f] md:shadow-sm group-hover:bg-[#eefaf1] transition-colors">
+                                                <item.icon size={18} className="md:w-4.5 md:h-4.5" />
                                             </div>
-                                            <div className="text-left">
-                                                <h4 className="!text-[13px] md:!text-lg font-black text-gray-800 dark:text-gray-100 leading-none mb-1 md:mb-1.5">{item.label}</h4>
-                                                <p className="!text-[10px] md:!text-sm text-gray-400 font-medium">{item.subtitle}</p>
+                                            <div className="text-left leading-tight">
+                                                <h4 className="!text-[13px] md:!text-base font-black text-gray-800 dark:text-gray-100 leading-none mb-0 md:mb-0.5">{item.label}</h4>
+                                                <p className="!text-[10px] md:!text-[11px] text-gray-400 font-medium">{item.subtitle}</p>
                                             </div>
                                         </div>
                                         <ChevronRight size={16} className="text-gray-300 group-hover:text-[#556b2f] transition-colors md:w-5 md:h-5" />
@@ -120,17 +119,17 @@ const ProfilePage = () => {
                                 ))}
                             </div>
 
-                            <h3 className="!text-[10px] md:!text-xs font-bold text-gray-400 px-6 py-4 md:px-2 md:mt-6 md:mb-2 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">App Preferences</h3>
+                            <h3 className="!text-[10px] md:!text-[9px] font-bold text-gray-400 px-6 py-4 md:px-2 md:mt-1 md:mb-0.5 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">App Preferences</h3>
                             <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white md:dark:bg-black md:rounded-2xl md:border border-gray-50 dark:md:border-white/5 overflow-hidden">
                                 {/* Theme Toggle */}
-                                <div className="py-5 px-6 md:py-6 md:px-6 flex items-center justify-between group">
+                                <div className="py-5 px-6 md:py-2 md:px-6 flex items-center justify-between group">
                                     <div className="flex items-center gap-4 md:gap-6">
-                                        <div className="w-9 h-9 md:w-12 md:h-12 bg-purple-50 dark:bg-purple-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-xl flex items-center justify-center md:shadow-sm">
-                                            {isDarkMode ? <Moon size={18} className="text-purple-600 md:w-6 md:h-6" /> : <Sun size={18} className="text-orange-500 md:w-6 md:h-6" />}
+                                        <div className="w-9 h-9 md:w-9 md:h-9 bg-purple-50 dark:bg-purple-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center md:shadow-sm">
+                                            {isDarkMode ? <Moon size={18} className="text-purple-600 md:w-4.5 md:h-4.5" /> : <Sun size={18} className="text-orange-500 md:w-4.5 md:h-4.5" />}
                                         </div>
-                                        <div className="text-left">
-                                            <h4 className="!text-[13px] md:!text-lg font-black text-gray-800 dark:text-gray-100 leading-none mb-1 md:mb-1.5">Dark Mode</h4>
-                                            <p className="!text-[10px] md:!text-sm text-gray-400 font-medium">Toggle app appearance</p>
+                                        <div className="text-left leading-tight">
+                                            <h4 className="!text-[13px] md:!text-base font-black text-gray-800 dark:text-gray-100 leading-none mb-0 md:mb-0.5">Dark Mode</h4>
+                                            <p className="!text-[10px] md:!text-[11px] text-gray-400 font-medium">Toggle app appearance</p>
                                         </div>
                                     </div>
                                     <button
@@ -142,14 +141,14 @@ const ProfilePage = () => {
                                 </div>
 
                                 {/* Notifications Toggle */}
-                                <div className="py-5 px-6 md:py-6 md:px-6 flex items-center justify-between group">
+                                <div className="py-5 px-6 md:py-2 md:px-6 flex items-center justify-between group">
                                     <div className="flex items-center gap-4 md:gap-6">
-                                        <div className="w-9 h-9 md:w-12 md:h-12 bg-pink-50 dark:bg-pink-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-xl flex items-center justify-center md:shadow-sm">
-                                            <Bell size={18} className="text-pink-600 md:w-6 md:h-6" />
+                                        <div className="w-9 h-9 md:w-9 md:h-9 bg-pink-50 dark:bg-pink-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center md:shadow-sm">
+                                            <Bell size={18} className="text-pink-600 md:w-4.5 md:h-4.5" />
                                         </div>
-                                        <div className="text-left">
-                                            <h4 className="!text-[13px] md:!text-lg font-black text-gray-800 dark:text-gray-100 leading-none mb-1 md:mb-1.5">Notifications</h4>
-                                            <p className="!text-[10px] md:!text-sm text-gray-400 font-medium">Order updates and offers</p>
+                                        <div className="text-left leading-tight">
+                                            <h4 className="!text-[13px] md:!text-base font-black text-gray-800 dark:text-gray-100 leading-none mb-0 md:mb-0.5">Notifications</h4>
+                                            <p className="!text-[10px] md:!text-[11px] text-gray-400 font-medium">Order updates and offers</p>
                                         </div>
                                     </div>
                                     <button
@@ -164,11 +163,11 @@ const ProfilePage = () => {
                             {/* Logout Button */}
                             <button
                                 onClick={() => navigate('/logout-confirmation')}
-                                className="w-full py-5 px-6 md:py-6 md:px-6 flex items-center justify-between bg-transparent md:bg-white md:dark:bg-black hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group border-t border-gray-100 dark:border-white/5 md:mt-4 md:rounded-2xl md:border"
+                                className="w-full py-5 px-6 md:py-1.5 md:px-4 flex items-center justify-between bg-transparent md:bg-white md:dark:bg-black hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group border-t border-gray-100 dark:border-white/5 md:mt-1 md:rounded-2xl md:border"
                             >
                                 <div className="flex items-center gap-4 md:gap-6">
-                                    <div className="w-9 h-9 md:w-12 md:h-12 bg-red-50 dark:bg-red-900/20 md:border border-red-100 dark:border-red-500/10 rounded-full md:rounded-xl flex items-center justify-center text-red-500 md:shadow-sm">
-                                        <LogOut size={18} className="md:w-6 md:h-6" />
+                                    <div className="w-9 h-9 md:w-9 md:h-9 bg-red-50 dark:bg-red-900/20 md:border border-red-100 dark:border-red-500/10 rounded-full md:rounded-lg flex items-center justify-center text-red-500 md:shadow-sm">
+                                        <LogOut size={18} className="md:w-4.5 md:h-4.5" />
                                     </div>
                                     <div className="text-left">
                                         <h4 className="!text-[13px] md:!text-lg font-black text-red-600 dark:text-red-400 leading-none mb-1 md:mb-1.5">Log Out</h4>
@@ -180,8 +179,8 @@ const ProfilePage = () => {
                         </div>
 
                         {/* Support Info */}
-                        <div className="bg-gray-50 md:bg-[#eefaf1] md:rounded-2xl p-6 md:p-6 md:border border-[#0c831f]/10 text-center max-w-none mx-auto md:max-w-none md:mx-0">
-                            <p className="text-[10px] md:text-base text-gray-400 md:text-[#0c831f] font-bold">SaathiGro App v1.0.0</p>
+                        <div className="bg-gray-50 md:bg-[#eefaf1] md:rounded-2xl p-6 md:p-2 md:border border-[#0c831f]/10 text-center max-w-none mx-auto md:max-w-none md:mx-0 mt-3 md:mt-2">
+                            <p className="text-[10px] md:text-sm text-gray-400 md:text-[#0c831f] font-bold">SaathiGro App v1.0.0</p>
                         </div>
                     </div>
                 </div>

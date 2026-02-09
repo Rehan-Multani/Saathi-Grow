@@ -37,7 +37,7 @@ const NotificationsPage = () => {
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300 pb-20">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-8 p-4">
+                <div className="hidden md:flex items-center gap-3 mb-8 p-4">
                     <button
                         onClick={() => {
                             const from = location.state?.from || '/';

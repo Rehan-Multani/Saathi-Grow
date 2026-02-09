@@ -37,7 +37,7 @@ const OrdersPage = () => {
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-20 md:p-8 md:pb-8">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-0 md:mb-10 p-4 md:p-0 border-b border-gray-200/50 md:border-none bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white md:dark:bg-black">
+                <div className="hidden md:flex items-center gap-3 mb-0 md:mb-10 p-4 md:p-0 border-b border-gray-200/50 md:border-none bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white md:dark:bg-black">
                     <button
                         onClick={() => navigate('/profile')}
                         className="p-1.5 md:p-2 bg-white/50 dark:bg-[#141414] rounded-full shadow-sm hover:bg-gray-100 transition-colors md:bg-gray-50"

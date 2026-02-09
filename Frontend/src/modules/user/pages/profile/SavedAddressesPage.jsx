@@ -20,7 +20,7 @@ const SavedAddressesPage = () => {
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black p-0 pt-0 pb-24 md:p-8 md:pb-8 transition-colors duration-300">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-0 md:mb-10 p-4 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-black/80 md:dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none transition-colors">
+                <div className="hidden md:flex items-center justify-between mb-0 md:mb-10 p-4 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-black/80 md:dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none transition-colors">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => {

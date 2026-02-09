@@ -26,7 +26,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-[#111111] rounded-2xl p-1 sm:p-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:border-[#0c831f]/30 active:border-[#0c831f]/30 dark:hover:border-white/40 hover:shadow-lg hover:shadow-green-500/10 active:shadow-md active:shadow-green-500/10 hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-1 sm:gap-1.5 h-auto md:h-full group relative overflow-hidden mb-1 ring-1 ring-[#0c831f]/5 md:ring-0">
+    <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-[#111111] rounded-2xl p-2 sm:p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:border-[#0c831f]/30 active:border-[#0c831f]/30 dark:hover:border-white/40 hover:shadow-lg hover:shadow-green-500/10 active:shadow-md active:shadow-green-500/10 hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-1.5 sm:gap-2 h-auto md:h-full group relative overflow-hidden mb-1 ring-1 ring-[#0c831f]/5 md:ring-0">
 
       {/* Premium Shine Effect Overlay (Mobile Specific Sweep) */}
       <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden dark:hidden">
@@ -54,7 +54,7 @@ const ProductCard = ({ product }) => {
         </Link>
       </div>
 
-      <div className="flex flex-col flex-grow px-0.5">
+      <div className="flex flex-col flex-grow px-1 sm:px-1.5">
         {/* Title */}
         <Link to={`/product/${product.id}`} className="z-10">
           <div className="font-extrabold text-gray-800 dark:text-zinc-100 text-[9px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[24px] sm:min-h-[32px] group-hover:text-[#0c831f] transition-colors tracking-tight">

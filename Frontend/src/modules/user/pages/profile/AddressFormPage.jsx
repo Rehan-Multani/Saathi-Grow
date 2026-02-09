@@ -59,7 +59,7 @@ const AddressFormPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black transition-colors duration-300 pb-20">
             {/* Header */}
-            <div className="flex items-center gap-3 p-4 sticky top-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black backdrop-blur-[10px] md:backdrop-blur-none z-10 border-b border-gray-100 dark:border-white/5 transition-colors">
+            <div className="hidden md:flex items-center gap-3 p-4 sticky top-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black backdrop-blur-[10px] md:backdrop-blur-none z-10 border-b border-gray-100 dark:border-white/5 transition-colors">
                 <button
                     onClick={() => navigate(-1)}
                     className="p-1 hover:bg-white/50 dark:hover:bg-white/10 rounded-full transition-colors"

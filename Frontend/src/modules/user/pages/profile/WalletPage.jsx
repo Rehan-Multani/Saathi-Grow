@@ -18,7 +18,7 @@ const WalletPage = () => {
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black p-0 pt-0 pb-24 md:p-8 md:pb-8 transition-colors duration-300">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Clean Header */}
-                <div className="flex items-center gap-3 mb-0 md:mb-10 px-4 py-4 md:px-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none">
+                <div className="hidden md:flex items-center gap-3 mb-0 md:mb-10 px-4 py-4 md:px-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none">
                     <button
                         onClick={() => {
                             const from = location.state?.from || '/profile';

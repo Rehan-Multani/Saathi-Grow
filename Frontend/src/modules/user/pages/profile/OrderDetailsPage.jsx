@@ -49,7 +49,7 @@ const OrderDetailsPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-24">
             {/* Header */}
-            <div className="sticky top-0 z-40 bg-white/20 dark:bg-black/20 md:bg-none md:bg-white md:dark:bg-black backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4">
+            <div className="hidden md:block sticky top-0 z-40 bg-white/20 dark:bg-black/20 md:bg-none md:bg-white md:dark:bg-black backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4">
                 <div className="max-w-2xl md:max-w-6xl mx-auto flex items-center gap-4">
                     <button onClick={() => navigate('/orders')} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
                         <ArrowLeft size={16} />
