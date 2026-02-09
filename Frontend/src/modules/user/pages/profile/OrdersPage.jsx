@@ -55,9 +55,9 @@ const OrdersPage = () => {
                             <div
                                 key={order.id}
                                 onClick={() => navigate(`/orders/${order.id}`)}
-                                className="w-full py-5 px-6 md:p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-white/5 md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl transition-all group cursor-pointer md:hover:shadow-md"
+                                className="w-full py-3 px-6 md:p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-white/5 md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl transition-all group cursor-pointer md:hover:shadow-md"
                             >
-                                <div className="flex justify-between items-start mb-2 md:mb-6">
+                                <div className="flex justify-between items-start mb-1 md:mb-6">
                                     <div className="flex items-center gap-4 md:gap-4">
                                         <div className="w-9 h-9 md:w-14 md:h-14 rounded-full md:rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm text-[#0c831f]">
                                             <Package size={18} className="md:w-7 md:h-7" />

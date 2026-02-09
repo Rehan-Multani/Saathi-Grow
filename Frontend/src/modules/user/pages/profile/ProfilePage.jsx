@@ -56,8 +56,8 @@ const ProfilePage = () => {
                 <div className="md:grid md:grid-cols-3 md:gap-4">
                     {/* Profile Section - Integrated */}
                     <div className="mb-0 md:bg-white md:dark:bg-black md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-2 bg-transparent md:bg-gradient-to-b md:from-[#f6fbf7] md:to-white dark:md:from-black dark:md:to-black">
-                        <div className="flex flex-col items-center pt-2 pb-6 md:py-0">
-                            <div className="relative mb-3 md:mb-2">
+                        <div className="flex flex-col items-center pt-1 pb-2 md:py-0">
+                            <div className="relative mb-1 md:mb-2">
                                 <div className="w-24 h-24 md:w-24 md:h-24 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center border-4 border-white md:border-gray-50 dark:border-white/5 overflow-hidden shadow-sm">
                                     {user?.photoURL ? (
                                         <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
@@ -83,7 +83,7 @@ const ProfilePage = () => {
                             <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-0.5 md:mt-0.5">{user?.email || "member@saathigro.com"}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 py-4 md:py-3 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
+                        <div className="grid grid-cols-2 gap-4 py-2 md:py-3 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
                             <div className="text-center">
                                 <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">0</p>
                                 <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Orders</p>
@@ -97,13 +97,13 @@ const ProfilePage = () => {
 
                     <div className="md:col-span-2 bg-transparent md:bg-transparent">
                         <div className="space-y-0 md:space-y-1 mb-0 md:mb-2 max-w-none mx-auto md:mx-0">
-                            <h3 className="!text-[10px] md:!text-[9px] font-bold text-gray-400 px-6 py-4 md:px-2 md:mb-1 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">My Information</h3>
+                            <h3 className="!text-[10px] md:!text-[9px] font-bold text-gray-400 px-6 py-3 md:px-2 md:mb-1 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">My Information</h3>
                             <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white md:dark:bg-black md:rounded-2xl md:border md:border-gray-50 dark:md:border-white/5 overflow-hidden">
                                 {sections.map((item, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => navigate(item.path, { state: { from: '/profile' } })}
-                                        className="w-full py-5 px-6 md:py-1.5 md:px-4 flex items-center justify-between hover:bg-[#e8f5e9] md:hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
+                                        className="w-full py-3 px-6 md:py-1.5 md:px-4 flex items-center justify-between hover:bg-[#e8f5e9] md:hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
                                     >
                                         <div className="flex items-center gap-4 md:gap-6">
                                             <div className="w-9 h-9 md:w-9 md:h-9 bg-gray-50/50 md:bg-white dark:bg-white/5 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center text-[#556b2f] md:shadow-sm group-hover:bg-[#eefaf1] transition-colors">
@@ -119,10 +119,10 @@ const ProfilePage = () => {
                                 ))}
                             </div>
 
-                            <h3 className="!text-[10px] md:!text-[9px] font-bold text-gray-400 px-6 py-4 md:px-2 md:mt-1 md:mb-0.5 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">App Preferences</h3>
+                            <h3 className="!text-[10px] md:!text-[9px] font-bold text-gray-400 px-6 py-3 md:px-2 md:mt-1 md:mb-0.5 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">App Preferences</h3>
                             <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white md:dark:bg-black md:rounded-2xl md:border border-gray-50 dark:md:border-white/5 overflow-hidden">
                                 {/* Theme Toggle */}
-                                <div className="py-5 px-6 md:py-2 md:px-6 flex items-center justify-between group">
+                                <div className="py-3 px-6 md:py-2 md:px-6 flex items-center justify-between group">
                                     <div className="flex items-center gap-4 md:gap-6">
                                         <div className="w-9 h-9 md:w-9 md:h-9 bg-purple-50 dark:bg-purple-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center md:shadow-sm">
                                             {isDarkMode ? <Moon size={18} className="text-purple-600 md:w-4.5 md:h-4.5" /> : <Sun size={18} className="text-orange-500 md:w-4.5 md:h-4.5" />}
@@ -141,7 +141,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 {/* Notifications Toggle */}
-                                <div className="py-5 px-6 md:py-2 md:px-6 flex items-center justify-between group">
+                                <div className="py-3 px-6 md:py-2 md:px-6 flex items-center justify-between group">
                                     <div className="flex items-center gap-4 md:gap-6">
                                         <div className="w-9 h-9 md:w-9 md:h-9 bg-pink-50 dark:bg-pink-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center md:shadow-sm">
                                             <Bell size={18} className="text-pink-600 md:w-4.5 md:h-4.5" />
@@ -163,7 +163,7 @@ const ProfilePage = () => {
                             {/* Logout Button */}
                             <button
                                 onClick={() => navigate('/logout-confirmation')}
-                                className="w-full py-5 px-6 md:py-1.5 md:px-4 flex items-center justify-between bg-transparent md:bg-white md:dark:bg-black hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group border-t border-gray-100 dark:border-white/5 md:mt-1 md:rounded-2xl md:border"
+                                className="w-full py-3 px-6 md:py-1.5 md:px-4 flex items-center justify-between bg-transparent md:bg-white md:dark:bg-black hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group border-t border-gray-100 dark:border-white/5 md:mt-1 md:rounded-2xl md:border"
                             >
                                 <div className="flex items-center gap-4 md:gap-6">
                                     <div className="w-9 h-9 md:w-9 md:h-9 bg-red-50 dark:bg-red-900/20 md:border border-red-100 dark:border-red-500/10 rounded-full md:rounded-lg flex items-center justify-center text-red-500 md:shadow-sm">
@@ -179,7 +179,7 @@ const ProfilePage = () => {
                         </div>
 
                         {/* Support Info */}
-                        <div className="bg-gray-50 md:bg-[#eefaf1] md:rounded-2xl p-6 md:p-2 md:border border-[#0c831f]/10 text-center max-w-none mx-auto md:max-w-none md:mx-0 mt-3 md:mt-2">
+                        <div className="bg-gray-50 md:bg-[#eefaf1] md:rounded-2xl p-4 md:p-2 md:border border-[#0c831f]/10 text-center max-w-none mx-auto md:max-w-none md:mx-0 mt-3 md:mt-2">
                             <p className="text-[10px] md:text-sm text-gray-400 md:text-[#0c831f] font-bold">SaathiGro App v1.0.0</p>
                         </div>
                     </div>

@@ -208,7 +208,7 @@ const ProductDetailsPage = () => {
                         <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
                             {similarProducts.map((p) => (
                                 <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
-                                    <ProductCard product={p} />
+                                    <ProductCard product={p} isCompact={true} />
                                 </div>
                             ))}
                         </div>
@@ -233,7 +233,7 @@ const ProductDetailsPage = () => {
                         <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
                             {recommendedProducts.map((p) => (
                                 <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
-                                    <ProductCard product={p} />
+                                    <ProductCard product={p} isCompact={true} />
                                 </div>
                             ))}
                         </div>

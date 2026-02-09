@@ -50,7 +50,7 @@ const SavedAddressesPage = () => {
                             key={addr.id}
                             className="bg-transparent md:bg-white dark:md:bg-[#141414] rounded-none md:rounded-3xl border-none md:border md:border-gray-100 dark:md:border-white/5 shadow-none md:shadow-sm overflow-hidden transition-all hover:bg-gray-50/50 dark:hover:bg-white/5 md:hover:shadow-md md:hover:border-green-100 dark:md:hover:border-white/10 flex flex-col justify-between"
                         >
-                            <div className="p-4 md:p-6">
+                            <div className="p-3 md:p-6">
                                 <div className="flex justify-between items-start mb-2 md:mb-4">
                                     <div className="flex items-center gap-3 md:gap-5">
                                         <div className="w-9 h-9 md:w-14 md:h-14 bg-white/50 dark:bg-white/5 border border-gray-100/50 dark:border-white/5 rounded-full md:rounded-2xl flex items-center justify-center text-[#0c831f] shadow-sm md:shadow-none">
@@ -89,7 +89,7 @@ const SavedAddressesPage = () => {
                             </div>
 
                             {/* Recent Order Meta at this Address - Mobile removed background */}
-                            <div className="bg-transparent md:bg-gray-50 dark:md:bg-white/5 px-4 py-2 md:px-6 md:py-3 flex items-center justify-between border-t border-gray-100/50 dark:border-white/5 mt-auto">
+                            <div className="bg-transparent md:bg-gray-50 dark:md:bg-white/5 px-4 py-1.5 md:px-6 md:py-3 flex items-center justify-between border-t border-gray-100/50 dark:border-white/5 mt-auto">
                                 <div className="flex items-center gap-1.5 md:gap-2">
                                     <ShoppingBag size={12} className="text-gray-400 md:w-5 md:h-5" />
                                     <span className="!text-[9px] md:!text-xs text-gray-500 font-bold uppercase tracking-tight">Last order: <span className="text-gray-700 dark:text-gray-300">{addr.lastOrder?.date || 'None'}</span></span>

@@ -59,7 +59,7 @@ const NotificationsPage = () => {
                         {notifications.map((item) => (
                             <div
                                 key={item.id}
-                                className="w-full py-5 px-4 md:px-4 flex items-start gap-4 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-[#141414] border-b border-gray-100 dark:border-white/5 md:border md:rounded-2xl md:shadow-sm active:scale-[0.98] transition-all"
+                                className="w-full py-3 px-4 md:px-4 flex items-start gap-4 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-[#141414] border-b border-gray-100 dark:border-white/5 md:border md:rounded-2xl md:shadow-sm active:scale-[0.98] transition-all"
                             >
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100 dark:border-white/10 ${item.color.replace('text-', 'text-saathi-green').replace('bg-', 'bg-')}`}>
                                     <item.icon size={18} className="text-[#0c831f]" />

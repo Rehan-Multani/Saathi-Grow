@@ -34,10 +34,10 @@ const WalletPage = () => {
                 </div>
 
                 {/* Flat Balance Section */}
-                <div className="px-6 py-10 bg-transparent md:bg-gray-50 dark:md:bg-white/5 mb-0 md:mb-6 md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-6 text-center">
+                <div className="px-6 py-4 bg-transparent md:bg-gray-50 dark:md:bg-white/5 mb-0 md:mb-6 md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                         <span className="!text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Total Balance</span>
-                        <h2 className="!text-[36px] md:!text-[28px] font-black text-gray-900 dark:text-white leading-none tracking-tighter mb-8">₹{balance.toFixed(2)}</h2>
+                        <h2 className="!text-[36px] md:!text-[28px] font-black text-gray-900 dark:text-white leading-none tracking-tighter mb-4">₹{balance.toFixed(2)}</h2>
 
                         <div className="flex gap-4 w-full max-w-[280px]">
                             <button
@@ -55,11 +55,11 @@ const WalletPage = () => {
 
                 {/* Quick Stats Grid - Subtle & Flat */}
                 <div className="grid grid-cols-2 divide-x divide-gray-200/50 dark:divide-white/5 border-y border-gray-100 dark:border-white/5 mb-8 bg-transparent md:bg-transparent">
-                    <div className="py-6 md:py-4 flex flex-col items-center">
+                    <div className="py-4 md:py-4 flex flex-col items-center">
                         <p className="!text-[9px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Spent this month</p>
                         <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹1,240.00</p>
                     </div>
-                    <div className="py-6 md:py-4 flex flex-col items-center">
+                    <div className="py-4 md:py-4 flex flex-col items-center">
                         <p className="!text-[9px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Saathi Points</p>
                         <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">452 pts</p>
                     </div>
@@ -74,7 +74,7 @@ const WalletPage = () => {
 
                     <div className="divide-y divide-gray-100 dark:divide-white/5 md:divide-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-6 transition-all">
                         {transactions.map((tx) => (
-                            <div key={tx.id} className="w-full py-5 px-6 md:py-4 md:px-4 flex items-center justify-between active:bg-gray-50/50 transition-all bg-transparent md:bg-white dark:md:bg-[#141414] border-none md:border md:border-gray-100 dark:md:border-white/5 rounded-none md:rounded-2xl shadow-none md:shadow-sm">
+                            <div key={tx.id} className="w-full py-3 px-6 md:py-4 md:px-4 flex items-center justify-between active:bg-gray-50/50 transition-all bg-transparent md:bg-white dark:md:bg-[#141414] border-none md:border md:border-gray-100 dark:md:border-white/5 rounded-none md:rounded-2xl shadow-none md:shadow-sm">
                                 <div className="flex items-center gap-4 md:gap-3">
                                     <div className={`w-10 h-10 md:w-10 md:h-10 rounded-full flex items-center justify-center ${tx.type === 'credited' ? 'bg-green-50 text-green-500 dark:bg-green-500/10' : 'bg-white border border-gray-100 dark:border-white/5 text-gray-400 dark:bg-white/5'}`}>
                                         {tx.type === 'credited' ? <TrendingUp size={16} className="md:w-5 md:h-5" /> : <CreditCard size={16} className="md:w-5 md:h-5" />}
@@ -96,7 +96,7 @@ const WalletPage = () => {
                 </div>
 
                 {/* Footer Security Section */}
-                <div className="mt-8 md:mt-8 px-6 md:px-0 py-8 md:py-0 md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:bg-white dark:md:bg-[#141414] md:p-6 flex flex-col items-center">
+                <div className="mt-6 md:mt-8 px-6 md:px-0 py-4 md:py-0 md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:bg-white dark:md:bg-[#141414] md:p-6 flex flex-col items-center">
                     <ShieldCheck size={24} className="text-[#0c831f] opacity-30 mb-2" />
                     <p className="!text-[10px] md:!text-sm text-gray-400 font-bold text-center leading-relaxed max-w-[240px] md:max-w-none">
                         SaathiGro uses bank-grade security for all your transactions.

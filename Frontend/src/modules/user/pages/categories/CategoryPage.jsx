@@ -59,11 +59,11 @@ const CategoryPage = () => {
                                     navigate('/');
                                 }
                             }}
-                            className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm"
+                            className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm hidden md:flex"
                         >
                             <ArrowLeft size={16} />
                         </button>
-                        <h1 className="text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
+                        <h1 className="text-[11px] md:text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
                     </div>
 
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
@@ -111,7 +111,7 @@ const CategoryPage = () => {
             {/* Combined Sticky Headers: Breadcrumbs + Subcategories */}
             <div className="sticky top-0 z-40 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:bg-none dark:bg-black md:backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
                 {/* Header with Back button */}
-                <div className="px-4 py-4 flex items-center gap-4">
+                <div className="px-4 py-4 md:py-4 flex items-center gap-4">
                     <button
                         onClick={() => {
                             if (window.innerWidth >= 768) {
@@ -120,12 +120,12 @@ const CategoryPage = () => {
                                 navigate('/category');
                             }
                         }}
-                        className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300"
+                        className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 hidden md:flex"
                     >
                         <ArrowLeft size={16} />
                     </button>
                     <div className="flex flex-col">
-                        <h1 className="text-[13px] font-black text-gray-900 dark:text-gray-100 leading-none mb-1">
+                        <h1 className="text-[11px] md:text-[13px] font-black text-gray-900 dark:text-gray-100 leading-none mb-1">
                             {currentCategory?.name}
                         </h1>
                         <div className="flex items-center text-[7.5px] text-gray-400 gap-1.5 uppercase tracking-widest font-bold">
@@ -172,7 +172,7 @@ const CategoryPage = () => {
                 ) : displayedProducts.length > 0 ? (
                     <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 animate-in fade-in duration-500">
                         {displayedProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard key={product.id} product={product} isCompact={true} />
                         ))}
                     </div>
                 ) : (
@@ -201,7 +201,7 @@ const CategoryPage = () => {
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         {products.filter(p => p.category !== slug).slice(0, 6).map((product) => (
-                            <ProductCard key={`rec-${product.id}`} product={product} />
+                            <ProductCard key={`rec-${product.id}`} product={product} isCompact={true} />
                         ))}
                     </div>
                 </div>

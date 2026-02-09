@@ -34,72 +34,72 @@ const FlyerProductCard = ({ product, badgeText }) => {
     const quantity = cartItem ? cartItem.quantity : 0;
 
     return (
-        <div className="bg-white dark:bg-[#111111] rounded-xl md:rounded-2xl p-1 md:p-2 shadow-[0_8px_24px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none border border-gray-200/60 dark:border-white/20 hover:border-[#0c831f]/40 dark:hover:border-white/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-col gap-1 h-auto md:h-full group relative overflow-hidden">
+        <div className="bg-white dark:bg-[#111111] rounded-xl md:rounded-2xl p-2 md:p-2 shadow-[0_8px_24px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none border border-gray-200/60 dark:border-white/20 hover:border-[#0c831f]/40 dark:hover:border-white/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-col gap-0 h-auto md:h-full group relative overflow-hidden">
 
 
             {/* Discount Badge - Flyer Style */}
-            <div className="absolute -top-1 -left-1 w-11 h-11 md:w-12 md:h-12 bg-[#0c831f] rounded-full flex flex-col items-center justify-center text-white font-bold leading-tight border-2 border-white dark:border-gray-800 shadow-md z-20 rotate-[-5deg] group-hover:rotate-0 transition-transform">
-                <span className="text-[7px] md:text-[8px] uppercase font-black">{badgeText.split(' ')[0]}</span>
-                <span className="text-[9px] md:text-[10px] font-black">{badgeText.split(' ').slice(1).join(' ')}</span>
+            <div className="absolute -top-1 -left-1 w-9 h-9 md:w-12 md:h-12 bg-[#0c831f] rounded-full flex flex-col items-center justify-center text-white font-bold leading-tight border-2 border-white dark:border-gray-800 shadow-md z-20 rotate-[-5deg] group-hover:rotate-0 transition-transform">
+                <span className="text-[6px] md:text-[8px] uppercase font-black">{badgeText.split(' ')[0]}</span>
+                <span className="text-[7.5px] md:text-[10px] font-black">{badgeText.split(' ').slice(1).join(' ')}</span>
             </div>
 
             {/* Product Image Section */}
-            <Link to={`/product/${product.id}`} className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a] z-10 flex items-center justify-center p-3">
+            <Link to={`/product/${product.id}`} className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a] z-10 flex items-center justify-center p-2">
                 <img
                     src={product.image || categoryPlaceholder}
                     alt={product.name}
-                    className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                     onError={(e) => {
                         e.target.src = categoryPlaceholder;
                         e.target.style.objectFit = 'cover';
                     }}
                 />
                 {/* Sale Tag */}
-                <div className="absolute top-2 right-2 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md">
+                <div className="absolute top-1 right-1 bg-red-500 text-white text-[7px] font-bold px-1 py-0.5 rounded-md">
                     -{discount}%
                 </div>
             </Link>
 
             {/* Product Details */}
-            <div className="flex flex-col flex-grow z-10">
+            <div className="flex flex-col flex-grow z-10 px-1">
                 <Link to={`/product/${product.id}`}>
-                    <h4 className="font-medium md:font-bold text-gray-900 dark:text-gray-100 text-[8.5px] sm:text-[13px] md:!text-[11px] leading-tight mb-1 line-clamp-2 min-h-[22px] sm:min-h-[32px]">
+                    <h4 className="font-medium md:font-bold text-gray-900 dark:text-gray-100 text-[7.5px] sm:text-[13px] md:!text-[11px] leading-tight mb-0.5 line-clamp-2 min-h-[18px] sm:min-h-[32px]">
                         {product.name}
                     </h4>
                 </Link>
-                <div className="text-gray-500 dark:text-gray-400 text-[9px] mb-2 font-medium">
+                <div className="text-gray-500 dark:text-gray-400 text-[8px] mb-1 font-medium">
                     {product.weight} • {product.subCategory || "Premium"}
                 </div>
 
                 {/* Pricing & Add Button */}
                 <div className="flex items-center justify-between mt-auto">
                     <div className="flex flex-col">
-                        <span className="text-gray-400 dark:text-gray-500 line-through text-[11px]">₹{product.originalPrice}</span>
-                        <span className="text-xs sm:text-[15px] font-black text-gray-900 dark:text-[#f8fafc]">₹{product.price}</span>
+                        <span className="text-gray-400 dark:text-gray-500 line-through text-[8px]">₹{product.originalPrice}</span>
+                        <span className="text-[10px] sm:text-[15px] font-black text-gray-900 dark:text-[#f8fafc]">₹{product.price}</span>
                     </div>
 
                     {quantity > 0 ? (
-                        <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[28px] sm:h-[36px] min-w-[70px] sm:min-w-[85px] border border-[#0c831f]">
+                        <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[22px] sm:h-[36px] min-w-[55px] sm:min-w-[85px] border border-[#0c831f]">
                             <button
                                 onClick={() => updateQuantity(product.id, -1)}
                                 className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform"
                             >
-                                <Minus size={12} sm:size={14} strokeWidth={2.5} />
+                                <Minus size={10} sm:size={14} strokeWidth={2.5} />
                             </button>
-                            <span className="text-[11px] sm:text-[14px] font-black w-5 sm:w-7 text-center select-none leading-none">
+                            <span className="text-[9px] sm:text-[14px] font-black w-4 sm:w-7 text-center select-none leading-none">
                                 {quantity}
                             </span>
                             <button
                                 onClick={() => updateQuantity(product.id, 1)}
                                 className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-r-full will-change-transform"
                             >
-                                <Plus size={12} sm:size={14} strokeWidth={2.5} />
+                                <Plus size={10} sm:size={14} strokeWidth={2.5} />
                             </button>
                         </div>
                     ) : (
                         <button
                             onClick={() => addToCart(product)}
-                            className="px-4 py-1 bg-[#0c831f] text-white border border-transparent hover:bg-[#0a6b19] active:scale-95 transition-all text-[10px] sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[28px] sm:h-[34px] flex items-center justify-center"
+                            className="px-2 py-0.5 bg-[#0c831f] text-white border border-transparent hover:bg-[#0a6b19] active:scale-95 transition-all text-[7.5px] sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[20px] sm:h-[34px] flex items-center justify-center"
                             aria-label="Add to cart"
                         >
                             ADD
@@ -324,12 +324,12 @@ const OfferPage = () => {
                 <div className="px-4 py-4 space-y-6">
 
                     {/* Mobile Hero Section (Redesigned to Match Home Carousel) */}
-                    <div className="relative w-full bg-gradient-to-r from-[#718355] to-[#4f5c3a] dark:from-[#141414] dark:to-[#141414] pb-8 pt-4 px-6 overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
+                    <div className="relative w-full bg-gradient-to-r from-[#718355] to-[#4f5c3a] dark:from-[#141414] dark:to-[#141414] pb-4 pt-2 px-6 overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
                         <div className="relative z-10 flex flex-col items-start max-w-[70%]">
                             <span className="text-[10px] bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md font-bold text-white mb-2 uppercase tracking-wider shadow-sm border border-white/10">
                                 {offer.subTitle || 'Limited Time Offer'}
                             </span>
-                            <h1 className="text-3xl font-black text-white dark:text-gray-100 leading-[0.9] mb-1 tracking-tighter uppercase line-clamp-2">
+                            <h1 className="text-2xl font-black text-white dark:text-gray-100 leading-[0.9] mb-1 tracking-tighter uppercase line-clamp-2">
                                 {offer.title.split(' ')[0]}<br />
                                 <span className="text-[#e2e8db]">{offer.discount}</span>
                             </h1>
@@ -344,7 +344,7 @@ const OfferPage = () => {
                         </div>
 
                         {/* Floating Hero Icons (Dynamic Matching Home) */}
-                        <div className="absolute right-[-10px] top-[20px] w-[140px] h-[140px] z-0 pointer-events-none">
+                        <div className="absolute right-[-10px] top-[15px] w-[110px] h-[110px] z-0 pointer-events-none">
                             {(() => {
                                 const getIcons = (id) => {
                                     if (id === 1) return ['🥬', '🥕', '🥦'];
@@ -356,9 +356,9 @@ const OfferPage = () => {
                                 const icons = getIcons(offer.id);
                                 return (
                                     <>
-                                        <div className="absolute top-0 right-0 text-[80px] drop-shadow-xl animate-bounce duration-[3000ms] select-none text-opacity-90">{icons[0]}</div>
-                                        <div className="absolute bottom-0 left-[-10px] text-[60px] drop-shadow-lg animate-pulse duration-[2000ms] select-none text-opacity-90">{icons[1]}</div>
-                                        <div className="absolute top-[60px] left-[-30px] text-[40px] drop-shadow-md animate-spin-slow select-none text-opacity-90">{icons[2]}</div>
+                                        <div className="absolute top-0 right-0 text-[60px] drop-shadow-xl animate-bounce duration-[3000ms] select-none text-opacity-90">{icons[0]}</div>
+                                        <div className="absolute bottom-0 left-[-10px] text-[40px] drop-shadow-lg animate-pulse duration-[2000ms] select-none text-opacity-90">{icons[1]}</div>
+                                        <div className="absolute top-[40px] left-[-20px] text-[30px] drop-shadow-md animate-spin-slow select-none text-opacity-90">{icons[2]}</div>
                                     </>
                                 );
                             })()}
@@ -370,14 +370,14 @@ const OfferPage = () => {
                     </div>
 
                     {/* Free Delivery Bar */}
-                    <div className="bg-[#0c831f] rounded-[20px] p-4 text-white flex items-center justify-between shadow-lg shadow-green-500/10 active:scale-[0.98] transition-all">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30">
-                                <Truck size={20} />
+                    <div className="bg-[#0c831f] rounded-[16px] p-3 text-white flex items-center justify-between shadow-lg shadow-green-500/10 active:scale-[0.98] transition-all">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/30">
+                                <Truck size={16} />
                             </div>
                             <div>
-                                <h4 className="font-black text-lg capitalize tracking-tight leading-none mb-0.5">Zero Shipping Cost</h4>
-                                <p className="text-[10px] font-bold opacity-80 tracking-wide">Valid on all deals today!</p>
+                                <h4 className="font-black text-[14px] capitalize tracking-tight leading-none mb-0.5">Zero Shipping Cost</h4>
+                                <p className="text-[9px] font-bold opacity-80 tracking-wide">Valid on all deals today!</p>
                             </div>
                         </div>
                         <ChevronDown size={18} className="-rotate-90 opacity-60" />
@@ -408,7 +408,7 @@ const OfferPage = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-2">
                             {dealProducts.map(product => (
                                 <FlyerProductCard
                                     key={product.id}

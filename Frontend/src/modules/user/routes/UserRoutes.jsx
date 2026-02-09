@@ -56,9 +56,11 @@ const UserLayout = () => {
     return (
         <div className="user-module-root flex flex-col min-h-screen">
             <ScrollToTop />
-            <div className={hideDesktopChrome ? 'hidden md:hidden' : ''}>
+            <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''}`}>
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
             </div>
+            {/* Spacer for fixed Navbar */}
+            {!hideDesktopChrome && <div className="h-[110px] md:h-20"></div>}
             <CartSidebar />
             <LocationModal />
             <FloatingCartStrip />

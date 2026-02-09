@@ -51,7 +51,7 @@ const HelpPage = () => {
                 </div>
 
                 {/* Main Contact Section */}
-                <div className="mx-6 mb-8 mt-6 bg-[#0c831f] rounded-[24px] p-5 text-white shadow-xl shadow-green-500/20 relative overflow-hidden group">
+                <div className="mx-6 mb-4 mt-4 bg-[#0c831f] rounded-[24px] p-5 text-white shadow-xl shadow-green-500/20 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 transform translate-x-4 -translate-y-4 opacity-10 group-hover:scale-110 transition-transform">
                         <Headset size={80} />
                     </div>
@@ -93,7 +93,7 @@ const HelpPage = () => {
                             >
                                 <button
                                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                                    className="w-full py-5 px-6 md:py-4 md:px-2 flex items-center justify-between hover:bg-gray-50/50 transition-all outline-none"
+                                    className="w-full py-4 px-6 md:py-4 md:px-2 flex items-center justify-between hover:bg-gray-50/50 transition-all outline-none"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className={`w-10 h-10 rounded-full md:rounded-xl flex items-center justify-center md:border border-gray-100 dark:border-white/10 shadow-sm md:shadow-none transition-all ${openFaq === i ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-gray-50/50 md:bg-gray-50 dark:bg-white/5 text-gray-400'}`}>
@@ -105,7 +105,7 @@ const HelpPage = () => {
                                 </button>
 
                                 {openFaq === i && (
-                                    <div className="px-6 pb-6 pt-0 animate-in fade-in slide-in-from-top-2 duration-300 md:px-2">
+                                    <div className="px-6 pb-4 pt-0 animate-in fade-in slide-in-from-top-2 duration-300 md:px-2">
                                         <div className="pl-14 pr-0 md:pr-4">
                                             <p className="text-[11px] md:text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed font-medium bg-gray-50/50 md:bg-gray-50 dark:bg-white/5 p-4 rounded-2xl md:p-3 md:rounded-2xl border border-gray-100/50 md:border-gray-100 dark:border-white/5">
                                                 {faq.a}
@@ -119,7 +119,7 @@ const HelpPage = () => {
                 </div>
 
                 {/* Email Support */}
-                <div className="mx-6 mb-10 p-6 bg-white dark:bg-[#0c831f]/5 rounded-[24px] border border-dashed border-[#0c831f]/20 text-center group active:scale-95 transition-transform duration-300">
+                <div className="mx-6 mb-10 p-4 bg-white dark:bg-[#0c831f]/5 rounded-[24px] border border-dashed border-[#0c831f]/20 text-center group active:scale-95 transition-transform duration-300">
                     <div className="w-12 h-12 bg-green-50 dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                         <Mail size={22} className="text-[#0c831f]" />
                     </div>

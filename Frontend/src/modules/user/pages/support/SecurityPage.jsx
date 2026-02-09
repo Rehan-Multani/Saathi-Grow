@@ -58,7 +58,7 @@ const SecurityPage = () => {
                     <div className="flex flex-col gap-0 md:gap-3 bg-transparent md:bg-transparent">
                         <button
                             onClick={() => setShowPasswordModal(true)}
-                            className="w-full py-5 px-6 md:py-4 md:px-4 flex items-center justify-between bg-transparent md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:shadow-sm hover:md:shadow-md transition-all text-left group active:bg-gray-50/50"
+                            className="w-full py-4 px-6 md:py-4 md:px-4 flex items-center justify-between bg-transparent md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:shadow-sm hover:md:shadow-md transition-all text-left group active:bg-gray-50/50"
                         >
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 md:w-10 md:h-10 bg-orange-50 dark:bg-orange-500/10 rounded-full md:rounded-xl border border-orange-100/50 dark:border-white/10 flex items-center justify-center text-orange-500 shadow-sm md:shadow-none">
@@ -78,7 +78,7 @@ const SecurityPage = () => {
                 <div className="px-0 md:px-0 mb-6 md:mb-8 md:p-4">
                     <h3 className="!text-[10px] md:!text-xs font-bold text-gray-400 mb-2 px-6 md:px-2 tracking-widest uppercase">Enhanced Protection</h3>
                     <div className="flex flex-col gap-0 md:gap-3 bg-transparent md:bg-transparent">
-                        <div className="py-5 px-6 md:py-4 md:px-4 flex items-center justify-between bg-transparent md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:shadow-sm group">
+                        <div className="py-4 px-6 md:py-4 md:px-4 flex items-center justify-between bg-transparent md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:shadow-sm group">
                             <div className="flex items-center gap-4 text-left">
                                 <div className={`w-10 h-10 rounded-full md:rounded-xl flex items-center justify-center border border-gray-100/50 dark:border-white/10 shadow-sm transition-colors ${twoFactor ? 'bg-green-50 text-[#0c831f]' : 'bg-gray-50 dark:bg-white/5 text-gray-400'}`}>
                                     <Shield size={18} />
@@ -105,7 +105,7 @@ const SecurityPage = () => {
                         {devices.map((device, idx) => (
                             <div
                                 key={idx}
-                                className="py-5 px-6 md:py-4 md:px-4 flex items-center justify-between bg-transparent md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:shadow-sm hover:md:shadow-md transition-all group"
+                                className="py-4 px-6 md:py-4 md:px-4 flex items-center justify-between bg-transparent md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:shadow-sm hover:md:shadow-md transition-all group"
                             >
                                 <div className="flex items-center gap-4 text-left">
                                     <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-full md:rounded-xl border border-gray-100/50 dark:border-white/10 flex items-center justify-center text-gray-400 shadow-sm md:shadow-none">
