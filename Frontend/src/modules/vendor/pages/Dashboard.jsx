@@ -5,14 +5,17 @@ import { formatCurrency } from '../utils/formatDate';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
-const StatCard = ({ title, value, icon: Icon, color, trend }) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-full min-h-[140px] transition-all hover:shadow-md group">
+const StatCard = ({ title, value, icon: Icon, color, trend, onClick }) => (
+    <div
+        onClick={onClick}
+        className="premium-card p-6 flex flex-col justify-between h-full min-h-[140px] group cursor-pointer hover:shadow-lg transition-all duration-200"
+    >
         <div className="flex justify-between items-start mb-4">
             <div>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider group-hover:text-[#0c831f] transition-colors">{title}</p>
                 <h3 className="text-3xl font-extrabold text-gray-900 mt-2">{value}</h3>
             </div>
-            <div className={`p-3 rounded-xl ${color} shadow-sm bg-opacity-10`}>
+            <div className={`p-3 rounded-xl ${color} shadow-sm bg-opacity-10 group-hover:scale-110 transition-transform`}>
                 <Icon size={22} className="text-white" />
             </div>
         </div>
@@ -66,6 +69,7 @@ const Dashboard = () => {
                     icon={Package}
                     color="bg-blue-500"
                     trend="+2"
+                    onClick={() => navigate('/vendor/products')}
                 />
                 <StatCard
                     title="Total Orders"
@@ -73,6 +77,7 @@ const Dashboard = () => {
                     icon={ShoppingBag}
                     color="bg-purple-500"
                     trend="+12%"
+                    onClick={() => navigate('/vendor/orders')}
                 />
                 <StatCard
                     title="Pending Orders"
@@ -80,6 +85,7 @@ const Dashboard = () => {
                     icon={Clock}
                     color="bg-[#f7cb15]"
                     trend="-5"
+                    onClick={() => navigate('/vendor/orders')}
                 />
                 <StatCard
                     title="Total Earnings"
@@ -87,11 +93,12 @@ const Dashboard = () => {
                     icon={Wallet}
                     color="bg-[#0c831f]"
                     trend="+8%"
+                    onClick={() => navigate('/vendor/earnings')}
                 />
             </div>
 
             {/* ANALYTICS CHART SECTION */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="premium-card p-6">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-bold text-gray-900 tracking-tight">Weekly Sales Analysis</h2>
                     <select className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 outline-none text-gray-600">
@@ -124,7 +131,7 @@ const Dashboard = () => {
             <div className="flex flex-col gap-6">
 
                 {/* RECENT ORDERS (Main Column) */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="premium-card overflow-hidden">
                     <div className="p-5 border-b border-gray-100 flex justify-between items-center">
                         <h2 className="text-lg font-bold text-gray-900 tracking-tight">Recent Orders</h2>
                         <button onClick={() => navigate('/vendor/orders')} className="text-xs font-bold text-[#0c831f] flex items-center gap-1 hover:underline">

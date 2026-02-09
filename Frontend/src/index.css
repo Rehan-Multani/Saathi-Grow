@@ -75,6 +75,30 @@ a {
   color: inherit;
 }
 
+@keyframes fadeInApp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-entry {
+  animation: fadeInApp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.premium-card {
+  @apply bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-300;
+}
+
+.premium-card:hover {
+  @apply shadow-lg shadow-gray-200/50 -translate-y-1 border-[#0c831f]/20;
+}
+
 /* Fix for broken images */
 img {
   position: relative;

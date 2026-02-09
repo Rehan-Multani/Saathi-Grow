@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, X } from 'lucide-react';
+import { Save, X, ArrowLeft, Package } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
 
@@ -8,16 +8,16 @@ const EditProduct = () => {
     const { productId } = useParams();
     const { products, updateProduct } = useVendor();
 
-    const existingProduct = products.find(p => p.id === parseInt(productId)) || {
+    const existingProduct = products.find(p => p.id === parseInt(productId)) || null;
+
+    const [form, setForm] = useState(existingProduct || {
         name: '',
         category: '',
         price: 0,
         stock: 0,
         description: '',
         image: ''
-    };
-
-    const [form, setForm] = useState(existingProduct);
+    });
 
     const categories = ['Vegetables', 'Fruits', 'Dairy', 'Snacks', 'Beverages', 'Staples', 'Munchies'];
 
@@ -27,106 +27,164 @@ const EditProduct = () => {
         navigate('/vendor/products');
     };
 
-    if (!existingProduct.name) return null;
+    if (!existingProduct) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <Package size={48} className="text-gray-300 mb-4" />
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Product not found</h2>
+                <p className="text-sm text-gray-500 mb-4">The product you're looking for doesn't exist.</p>
+                <button
+                    onClick={() => navigate('/vendor/products')}
+                    className="px-4 py-2 bg-[#0c831f] text-white text-sm font-bold rounded-lg hover:bg-[#0a6b19]"
+                >
+                    Back to Products
+                </button>
+            </div>
+        );
+    }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => navigate('/vendor/products')}>
-            <div
-                className="bg-white rounded-none md:rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border-none md:border border-gray-100 animate-in zoom-in-95 duration-300 relative z-10 flex flex-col h-full md:h-auto md:max-h-[90vh]"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <div className="space-y-6 pb-12">
+            {/* Header */}
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={() => navigate('/vendor/products')}
+                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+                >
+                    <ArrowLeft size={20} />
+                </button>
+                <div>
                     <h1 className="text-xl font-bold text-gray-900">Edit Product</h1>
-                    <button onClick={() => navigate('/vendor/products')} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-                        <X size={20} />
-                    </button>
+                    <p className="text-sm text-gray-500">Update product information</p>
                 </div>
+            </div>
 
-                <div className="overflow-y-auto p-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Image Preview Area - Highlighting the product visually */}
-                        <div className="flex justify-center mb-2">
-                            <div className="w-32 h-32 bg-white rounded-xl shadow-md border border-gray-100 p-2 flex items-center justify-center relative group">
-                                {form.image ? (
-                                    <img src={form.image} alt={form.name} className="w-full h-full object-contain rounded-lg" />
-                                ) : (
-                                    <span className="text-gray-400 text-xs">No Image</span>
-                                )}
-                                <div className="absolute -bottom-2 bg-white px-3 py-1 rounded-full shadow-sm text-[10px] font-bold text-gray-500 border border-gray-100">
-                                    {form.category}
+            {/* Form Card */}
+            <div className="premium-card p-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Product Image Preview */}
+                    <div className="flex justify-center">
+                        <div className="w-32 h-32 bg-gray-50 rounded-lg border-2 border-gray-200 p-2 flex items-center justify-center">
+                            {form.image ? (
+                                <img src={form.image} alt={form.name} className="w-full h-full object-contain" />
+                            ) : (
+                                <div className="text-center">
+                                    <Package size={32} className="text-gray-300 mx-auto mb-2" />
+                                    <span className="text-xs text-gray-400 font-medium">No image</span>
                                 </div>
-                            </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Form Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Product Name */}
+                        <div>
+                            <label className="text-xs font-bold text-gray-700 block mb-2">
+                                Product Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                required
+                                type="text"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:outline-none transition-colors"
+                                value={form.name}
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                placeholder="Enter product name"
+                            />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700">Product Name</label>
-                                <input
-                                    required
-                                    type="text"
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-4 focus:ring-green-500/10 focus:outline-none transition-all placeholder:text-gray-400"
-                                    value={form.name}
-                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700">Category</label>
-                                <select
-                                    required
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-4 focus:ring-green-500/10 focus:outline-none bg-white transition-all"
-                                    value={form.category}
-                                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700">Price (₹)</label>
-                                <input
-                                    required
-                                    type="number"
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-4 focus:ring-green-500/10 focus:outline-none transition-all"
-                                    value={form.price}
-                                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700">Stock Quantity</label>
-                                <input
-                                    required
-                                    type="number"
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-4 focus:ring-green-500/10 focus:outline-none transition-all"
-                                    value={form.stock}
-                                    onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                                />
-                            </div>
+                        {/* Category */}
+                        <div>
+                            <label className="text-xs font-bold text-gray-700 block mb-2">
+                                Category <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                required
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:outline-none transition-colors"
+                                value={form.category}
+                                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                            >
+                                <option value="">Select category</option>
+                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
                         </div>
 
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-700">Description</label>
-                            <textarea
-                                rows="3"
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-4 focus:ring-green-500/10 focus:outline-none resize-none transition-all"
-                                value={form.description || ''}
-                                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                placeholder="Enter product description..."
-                            ></textarea>
+                        {/* Price */}
+                        <div>
+                            <label className="text-xs font-bold text-gray-700 block mb-2">
+                                Price (₹) <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                required
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:outline-none transition-colors"
+                                value={form.price}
+                                onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
+                                placeholder="0.00"
+                            />
                         </div>
 
-                        <div className="pt-4 flex justify-end gap-3 border-t border-gray-50 mt-4">
-                            <button type="button" onClick={() => navigate('/vendor/products')} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
-                            <button type="submit" className="px-6 py-2.5 bg-[#0c831f] text-white text-sm font-bold rounded-lg hover:bg-[#0a6b19] flex items-center gap-2 transition-colors shadow-lg shadow-green-900/20 active:scale-95">
-                                <Save size={18} />
-                                Update Changes
-                            </button>
+                        {/* Stock */}
+                        <div>
+                            <label className="text-xs font-bold text-gray-700 block mb-2">
+                                Stock Quantity <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                required
+                                type="number"
+                                min="0"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:outline-none transition-colors"
+                                value={form.stock}
+                                onChange={(e) => setForm({ ...form, stock: parseInt(e.target.value) || 0 })}
+                                placeholder="0"
+                            />
                         </div>
-                    </form>
-                </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                        <label className="text-xs font-bold text-gray-700 block mb-2">Description</label>
+                        <textarea
+                            rows="4"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:outline-none resize-none transition-colors"
+                            value={form.description || ''}
+                            onChange={(e) => setForm({ ...form, description: e.target.value })}
+                            placeholder="Enter product description..."
+                        />
+                    </div>
+
+                    {/* Image URL */}
+                    <div>
+                        <label className="text-xs font-bold text-gray-700 block mb-2">Image URL</label>
+                        <input
+                            type="url"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:outline-none transition-colors"
+                            value={form.image || ''}
+                            onChange={(e) => setForm({ ...form, image: e.target.value })}
+                            placeholder="https://example.com/image.jpg"
+                        />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/vendor/products')}
+                            className="px-6 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-6 py-2 bg-[#0c831f] text-white text-sm font-bold rounded-lg hover:bg-[#0a6b19] flex items-center gap-2 transition-colors shadow-sm"
+                        >
+                            <Save size={16} />
+                            Update Product
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );

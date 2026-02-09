@@ -1,21 +1,21 @@
 import React, { useState, useRef } from 'react';
-import { X, Upload, ChevronDown, Plus, Trash2, Image as ImageIcon, Info, DollarSign, ArrowLeft, Save } from 'lucide-react';
+import { X, Upload, ChevronDown, Plus, Trash2, Image as ImageIcon, Info, DollarSign, ArrowLeft, Save, Bell, LogOut, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
 
 const AddProduct = () => {
     const navigate = useNavigate();
-    const { addProduct } = useVendor();
+    const { addProduct, vendor } = useVendor();
     const fileInputRef = useRef(null);
+    const otherFilesRef = useRef(null);
 
-    const [images, setImages] = useState([]);
-    const [tempImageUrl, setTempImageUrl] = useState('');
+    const [mainImage, setMainImage] = useState(null);
+    const [otherImages, setOtherImages] = useState([]);
 
-    // More comprehensive state
     const [formData, setFormData] = useState({
         name: '',
         brand: '',
-        category: 'Vegetables & Fruits',
+        category: '',
         mrp: '',
         price: '',
         unit: '',
@@ -24,52 +24,18 @@ const AddProduct = () => {
         stock: 10
     });
 
-    const categories = [
-        'Vegetables & Fruits', 'Dairy & Breakfast', 'Munchies', 'Cold Drinks',
-        'Instant Food', 'Tea, Coffee & Health Drinks', 'Bakery & Biscuits'
-    ];
+    const categories = ['Vegetables & Fruits', 'Dairy & Breakfast', 'Munchies', 'Fashion', 'Electronics'];
+    const brands = ['Fashion Hub', 'Amul', 'Nestle', 'Tata', 'Reliance', 'Other'];
 
-    const calculateDiscount = () => {
-        if (formData.mrp && formData.price) {
-            const discount = ((formData.mrp - formData.price) / formData.mrp) * 100;
-            return discount > 0 ? Math.round(discount) + '% OFF' : '';
-        }
-        return '';
-    };
-
-    // URL Handler
-    const handleAddImageUrl = () => {
-        if (tempImageUrl.trim()) {
-            setImages([...images, tempImageUrl]);
-            setTempImageUrl('');
-        }
-    };
-
-    const handleUrlKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleAddImageUrl();
-        }
-    };
-
-    // File Upload Handler
-    const handleFileUpload = (e) => {
+    const handleMainUpload = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            // Create a local blob URL for preview
-            const objectUrl = URL.createObjectURL(file);
-            setImages([...images, objectUrl]);
-            // Reset input so same file can be selected again if needed
-            e.target.value = '';
-        }
+        if (file) setMainImage(URL.createObjectURL(file));
     };
 
-    const triggerFileUpload = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleRemoveImage = (index) => {
-        setImages(images.filter((_, i) => i !== index));
+    const handleOtherUpload = (e) => {
+        const files = Array.from(e.target.files);
+        const newImages = files.map(file => URL.createObjectURL(file));
+        setOtherImages([...otherImages, ...newImages]);
     };
 
     const handleSubmit = (e) => {
@@ -77,287 +43,171 @@ const AddProduct = () => {
         addProduct({
             ...formData,
             price: Number(formData.price),
-            stock: Number(formData.stock),
-            // Compatibility: Use first image as main image, keep array too
-            image: images.length > 0 ? images[0] : 'https://via.placeholder.com/150',
-            images: images
+            image: mainImage || 'https://via.placeholder.com/150',
+            images: otherImages
         });
         navigate('/vendor/products');
     };
 
     return (
-        <div className="bg-white md:rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[calc(100vh-100px)]">
-
-            {/* Hidden File Input */}
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept="image/*"
-                className="hidden"
-            />
+        <div className="min-h-screen bg-white pb-20 overflow-x-hidden">
+            <input type="file" ref={fileInputRef} onChange={handleMainUpload} accept="image/*" className="hidden" />
+            <input type="file" ref={otherFilesRef} onChange={handleOtherUpload} accept="image/*" multiple className="hidden" />
 
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10 transition-shadow shadow-sm">
+            <div className="bg-white border-b border-gray-100 px-8 py-3 flex items-center justify-between sticky top-0 z-50">
                 <div className="flex items-center gap-3">
                     <button onClick={() => navigate('/vendor/products')} className="p-2 hover:bg-gray-100 rounded-full transition-colors md:hidden">
-                        <ArrowLeft size={20} className="text-gray-600" />
+                        <ArrowLeft size={18} className="text-gray-600" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900 tracking-tight">Add New Product</h1>
-                        <p className="text-sm text-gray-500 hidden md:block">Fill in the details to list your item</p>
+                        <h1 className="text-base font-bold text-gray-900 tracking-tight">Add new product</h1>
+                        <p className="text-[10px] text-gray-500 font-medium tracking-tight">List your item on SaathiGro</p>
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/vendor/products')}
-                        className="hidden md:block px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 transition-colors"
-                    >
+                <div className="flex items-center gap-2">
+                    <button onClick={() => navigate('/vendor/products')} className="px-4 py-2 rounded-lg text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors">
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-6 py-2 rounded-lg bg-[#0c831f] text-white text-sm font-bold hover:bg-[#0a6b19] shadow-sm transition-colors flex items-center justify-center gap-2"
+                        className="px-6 py-2 rounded-lg bg-[#0c831f] text-white text-xs font-bold hover:bg-[#0a6b19] shadow-sm transition-all flex items-center gap-2"
                     >
-                        <Save size={18} /> Save Product
+                        <Save size={16} /> Save Product
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
-                <form onSubmit={handleSubmit} className="p-4 md:p-8 space-y-8 max-w-5xl mx-auto">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 py-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
 
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Left Column: Media (Sticky on Desktop) */}
-                        <div className="w-full lg:w-1/3 space-y-4">
-                            <div className="lg:sticky lg:top-8 space-y-4">
-                                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Product Images</h3>
+                    {/* Basic Information */}
+                    <div className="space-y-3">
+                        <h3 className="text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Basic information</h3>
 
-                                {/* Main Preview Area (Click to Upload) */}
-                                <div
-                                    onClick={triggerFileUpload}
-                                    className="aspect-square bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#0c831f]/50 hover:bg-green-50/10 cursor-pointer transition-all"
-                                >
-                                    {images.length > 0 ? (
-                                        <>
-                                            <img src={images[0]} alt="Main" className="w-full h-full object-contain p-4 mix-blend-multiply" />
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-white text-xs font-bold flex items-center gap-2">
-                                                    <Upload size={14} /> Change Image
-                                                </div>
-                                            </div>
-                                        </>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-semibold text-gray-500">Product name *</label>
+                                <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
+                                    placeholder="Enter product name" />
+                            </div>
+                            <div className="space-y-0.5">
+                                <label className="text-[10px] font-semibold text-gray-500">Unit</label>
+                                <input value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
+                                    placeholder="e.g., 1kg, 500g" />
+                            </div>
+                            <div className="space-y-0.5">
+                                <label className="text-[10px] font-semibold text-gray-500">Category *</label>
+                                <div className="relative">
+                                    <select required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:border-[#0c831f] outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="">Select category</option>
+                                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                    <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
+                            <div className="space-y-0.5">
+                                <label className="text-[10px] font-semibold text-gray-500">Brand</label>
+                                <div className="relative">
+                                    <select value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:border-[#0c831f] outline-none transition-all appearance-none cursor-pointer">
+                                        <option value="">Select brand</option>
+                                        {brands.map(b => <option key={b} value={b}>{b}</option>)}
+                                    </select>
+                                    <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-0.5">
+                            <label className="text-[10px] font-semibold text-gray-500">Description</label>
+                            <textarea rows="2" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all resize-none placeholder:text-gray-300"
+                                placeholder="Enter product description..." />
+                        </div>
+                    </div>
+
+                    {/* Pricing */}
+                    <div className="space-y-3">
+                        <h3 className="text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Pricing</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                            <div className="space-y-0.5">
+                                <label className="text-[10px] font-semibold text-gray-500">Price *</label>
+                                <input required type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
+                                    placeholder="0.00" />
+                            </div>
+                            <div className="space-y-0.5">
+                                <label className="text-[10px] font-semibold text-gray-500">Original price</label>
+                                <input type="number" value={formData.mrp} onChange={(e) => setFormData({ ...formData, mrp: e.target.value })}
+                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-400 focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
+                                    placeholder="0.00" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Product Media - Ultra Compact */}
+                    <div className="bg-[#f9f8ff] border border-[#e5e0ff] rounded-xl p-3 space-y-2">
+                        <div className="flex items-center gap-2 text-[#4c3eac]">
+                            <Upload size={12} strokeWidth={2.5} />
+                            <h3 className="text-[10px] font-bold tracking-tight">Product media</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                            <div className="md:col-span-4 bg-white border border-[#e5e0ff] rounded-lg p-2 space-y-1">
+                                <h4 className="text-[9px] font-bold text-gray-500">Main image</h4>
+                                <div onClick={() => fileInputRef.current.click()}
+                                    className="w-full h-12 border-2 border-dashed border-[#e5e0ff] rounded-lg flex items-center justify-center cursor-pointer hover:bg-purple-50/50 transition-all overflow-hidden group">
+                                    {mainImage ? (
+                                        <img src={mainImage} alt="Main" className="h-full object-contain p-1" />
                                     ) : (
-                                        <div className="text-center p-4">
-                                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400 group-hover:scale-110 transition-transform duration-300">
-                                                <Upload size={20} />
-                                            </div>
-                                            <p className="text-sm font-bold text-gray-600">Click to Upload</p>
-                                            <p className="text-xs text-gray-400 mt-1">SVG, PNG, JPG or GIF</p>
+                                        <div className="flex items-center gap-1.5 text-[#6355d8] font-bold text-[9px]">
+                                            <Upload size={10} />
+                                            <span>Upload image</span>
                                         </div>
                                     )}
                                 </div>
+                            </div>
 
-                                {/* URL Input Simulation */}
-                                <div className="flex gap-2">
-                                    <input
-                                        value={tempImageUrl}
-                                        onChange={(e) => setTempImageUrl(e.target.value)}
-                                        onKeyDown={handleUrlKeyDown}
-                                        placeholder="Or paste image URL here..."
-                                        className="flex-1 text-xs px-3 py-2 border rounded-lg focus:border-[#0c831f] outline-none bg-gray-50 focus:bg-white transition-all shadow-sm"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleAddImageUrl}
-                                        className="px-3 bg-gray-900 text-white rounded-lg hover:bg-black transition-colors shadow-sm"
-                                    >
-                                        <Plus size={16} />
-                                    </button>
-                                </div>
-
-                                {/* Thumbnails List */}
-                                <div className="grid grid-cols-4 gap-2">
-                                    {images.map((img, idx) => (
-                                        <div key={idx} className="aspect-square rounded-lg border border-gray-200 relative overflow-hidden group cursor-pointer bg-white hover:border-[#0c831f] transition-all">
-                                            <img src={img} alt="" className="w-full h-full object-cover" onClick={() => {
-                                                // Clicking thumbnail could set it as main? For now just preview.
-                                                // Or functionality to swap? 
-                                                // Simple swap logic:
-                                                const newImages = [...images];
-                                                [newImages[0], newImages[idx]] = [newImages[idx], newImages[0]];
-                                                setImages(newImages);
-                                            }} />
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); handleRemoveImage(idx); }}
-                                                className="absolute top-0.5 right-0.5 p-1 bg-black/50 hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                                            >
-                                                <X size={10} className="text-white" />
+                            <div className="md:col-span-8 bg-white border border-[#e5e0ff] rounded-lg p-2 space-y-1">
+                                <h4 className="text-[9px] font-bold text-gray-500">Gallery</h4>
+                                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                                    {otherImages.map((img, i) => (
+                                        <div key={i} className="relative aspect-square rounded-md overflow-hidden border border-[#e5e0ff] bg-gray-50 p-1 group">
+                                            <img src={img} alt="" className="w-full h-full object-contain" />
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); setOtherImages(otherImages.filter((_, idx) => idx !== i)); }}
+                                                className="absolute top-0 right-0 p-0.5 bg-white border border-gray-100 rounded-bl-md text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all">
+                                                <X size={8} />
                                             </button>
                                         </div>
                                     ))}
-
-                                    {/* Functional Empty Slots - Click to Upload */}
-                                    {[...Array(Math.max(0, 3 - images.length))].map((_, i) => (
-                                        <button
-                                            key={`empty-${i}`}
-                                            type="button"
-                                            onClick={triggerFileUpload}
-                                            className="aspect-square rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300 hover:border-[#0c831f] hover:text-[#0c831f] hover:bg-green-50/30 transition-all"
-                                            title="Add Image"
-                                        >
-                                            <Plus size={20} />
-                                        </button>
-                                    ))}
+                                    <button type="button" onClick={() => otherFilesRef.current.click()}
+                                        className="aspect-square border-2 border-dashed border-[#e5e0ff] rounded-md flex flex-col items-center justify-center text-[#6355d8] hover:bg-purple-50/50 transition-all">
+                                        <Plus size={16} />
+                                    </button>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Right Column: Details Form */}
-                        <div className="flex-1 space-y-8">
-                            {/* Basic Info */}
-                            <div className="space-y-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                                <h3 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                                    <Info size={18} className="text-[#0c831f]" /> Basic Details
-                                </h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Brand Name</label>
-                                        <input
-                                            value={formData.brand}
-                                            onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all"
-                                            placeholder="e.g. Amul"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Product Name</label>
-                                        <input
-                                            required
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all"
-                                            placeholder="e.g. Toned Milk"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Category</label>
-                                        <div className="relative">
-                                            <select
-                                                value={formData.category}
-                                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all appearance-none cursor-pointer"
-                                            >
-                                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                            <ChevronDown size={16} className="absolute right-4 top-3.5 text-gray-400 pointer-events-none" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Food Preference</label>
-                                        <div className="flex gap-4 mt-2">
-                                            <label className="flex items-center gap-2 cursor-pointer group">
-                                                <input type="radio" checked={formData.isVeg} onChange={() => setFormData({ ...formData, isVeg: true })} name="veg" className="hidden" />
-                                                <div className={`w-5 h-5 border-2 flex items-center justify-center rounded transition-colors ${formData.isVeg ? 'border-green-600 bg-green-50' : 'border-gray-300 group-hover:border-green-400'}`}>
-                                                    <div className={`w-2.5 h-2.5 rounded-full ${formData.isVeg ? 'bg-green-600' : 'bg-transparent'}`}></div>
-                                                </div>
-                                                <span className={`text-sm font-bold ${formData.isVeg ? 'text-green-700' : 'text-gray-500'}`}>Vegetarian</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer group">
-                                                <input type="radio" checked={!formData.isVeg} onChange={() => setFormData({ ...formData, isVeg: false })} name="veg" className="hidden" />
-                                                <div className={`w-5 h-5 border-2 flex items-center justify-center rounded transition-colors ${!formData.isVeg ? 'border-red-600 bg-red-50' : 'border-gray-300 group-hover:border-red-400'}`}>
-                                                    <div className={`w-2.5 h-2.5 rounded-full ${!formData.isVeg ? 'bg-red-600' : 'bg-transparent'}`}></div>
-                                                </div>
-                                                <span className={`text-sm font-bold ${!formData.isVeg ? 'text-red-700' : 'text-gray-500'}`}>Non-Vegetarian</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Pricing & Inventory */}
-                            <div className="space-y-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                                <h3 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                                    <DollarSign size={18} className="text-[#0c831f]" /> Pricing & Inventory
-                                </h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">MRP (₹)</label>
-                                        <div className="relative">
-                                            <input
-                                                type="number"
-                                                value={formData.mrp}
-                                                onChange={(e) => setFormData({ ...formData, mrp: e.target.value })}
-                                                className="w-full pl-8 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all font-mono"
-                                                placeholder="100"
-                                            />
-                                            <span className="absolute left-3 top-2.5 text-gray-400 text-xs">₹</span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Selling Price (₹)</label>
-                                        <div className="relative">
-                                            <input
-                                                required
-                                                type="number"
-                                                value={formData.price}
-                                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                                className="w-full pl-8 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all font-mono"
-                                                placeholder="90"
-                                            />
-                                            <span className="absolute left-3 top-2.5 text-gray-400 text-xs">₹</span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Discount</label>
-                                        <div className="px-4 py-2.5 bg-green-50 text-green-700 text-sm font-bold rounded-xl border border-green-100 h-[42px] flex items-center justify-center">
-                                            {calculateDiscount() || 'No Discount'}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Unit / Size</label>
-                                        <input
-                                            required
-                                            value={formData.unit}
-                                            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all"
-                                            placeholder="e.g. 500g, 1L, 1 Pkt"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-600">Initial Stock</label>
-                                        <input
-                                            type="number"
-                                            value={formData.stock}
-                                            onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all"
-                                            placeholder="e.g. 50"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-gray-600">Description</label>
-                                <textarea
-                                    rows="4"
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-[#0c831f] focus:ring-4 focus:ring-[#0c831f]/10 outline-none transition-all resize-none placeholder-gray-400"
-                                    placeholder="Add product highlights, ingredients, etc."
-                                ></textarea>
-                            </div>
+                    {/* Stock Detail */}
+                    <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gray-600">In stock</label>
+                            <input type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                                className="w-16 px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold focus:border-[#0c831f] outline-none" />
                         </div>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <div className="relative">
+                                <input type="checkbox" checked={formData.isVeg} onChange={(e) => setFormData({ ...formData, isVeg: e.target.checked })} className="sr-only" />
+                                <div className={`w-8 h-4 rounded-full transition-colors ${formData.isVeg ? 'bg-[#0c831f]' : 'bg-gray-200'}`} />
+                                <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform ${formData.isVeg ? 'translate-x-4' : ''}`} />
+                            </div>
+                            <span className="text-[11px] font-bold text-gray-600">Vegetarian item</span>
+                        </label>
                     </div>
                 </form>
             </div>
