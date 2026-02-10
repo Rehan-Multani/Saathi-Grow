@@ -29,11 +29,11 @@ const WalletHistory = () => {
     const pendingAmount = transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0);
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="space-y-6 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Wallet History</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Wallet History</h1>
                     <p className="text-sm text-gray-500">Track all your financial transactions</p>
                 </div>
                 <button className="px-4 py-2 bg-[#0c831f] text-white rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-[#0a6b19] transition-colors">
@@ -44,7 +44,7 @@ const WalletHistory = () => {
 
             {/* Balance Card */}
             <div className="premium-card overflow-hidden">
-                <div className="bg-gradient-to-br from-[#0c831f] to-[#085d16] p-6 text-white">
+                <div className="bg-gradient-to-br from-[#0c831f] to-[#085d16] p-6 lg:p-5 text-white">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2.5 bg-white/20 rounded-lg">
                             <CreditCard size={24} />
@@ -91,8 +91,8 @@ const WalletHistory = () => {
                                 key={type}
                                 onClick={() => setFilterType(type)}
                                 className={`px-4 py-2 rounded-lg text-sm font-bold capitalize border transition-colors ${filterType === type
-                                        ? 'bg-[#0c831f] text-white border-[#0c831f]'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                    ? 'bg-[#0c831f] text-white border-[#0c831f]'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                     }`}
                             >
                                 {type}
@@ -104,17 +104,17 @@ const WalletHistory = () => {
 
             {/* Transactions List */}
             <div className="premium-card overflow-hidden">
-                <div className="p-5 border-b border-gray-100">
+                <div className="p-5 lg:p-4 border-b border-gray-100">
                     <h3 className="text-base font-bold text-gray-900">Transaction History</h3>
                 </div>
                 <div className="divide-y divide-gray-50">
                     {filteredTransactions.map(transaction => (
-                        <div key={transaction.id} className="p-5 hover:bg-gray-50 transition-colors">
+                        <div key={transaction.id} className="p-5 lg:p-3 hover:bg-gray-50 transition-colors">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-4 flex-1">
                                     <div className={`p-3 rounded-lg ${transaction.type === 'credit' ? 'bg-green-50 text-green-600' :
-                                            transaction.type === 'debit' ? 'bg-red-50 text-red-600' :
-                                                'bg-yellow-50 text-yellow-600'
+                                        transaction.type === 'debit' ? 'bg-red-50 text-red-600' :
+                                            'bg-yellow-50 text-yellow-600'
                                         }`}>
                                         <ArrowUpRight
                                             size={20}
@@ -128,8 +128,8 @@ const WalletHistory = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className={`text-base font-bold ${transaction.type === 'credit' ? 'text-green-600' :
-                                            transaction.type === 'debit' ? 'text-red-600' :
-                                                'text-yellow-600'
+                                        transaction.type === 'debit' ? 'text-red-600' :
+                                            'text-yellow-600'
                                         }`}>
                                         {transaction.type === 'debit' ? '-' : '+'}{formatCurrency(transaction.amount)}
                                     </p>

@@ -44,7 +44,7 @@ const EditProduct = () => {
     }
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="space-y-6 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button
@@ -60,8 +60,8 @@ const EditProduct = () => {
             </div>
 
             {/* Form Card */}
-            <div className="premium-card p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="premium-card p-6 lg:p-5">
+                <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-5">
                     {/* Product Image Preview */}
                     <div className="flex justify-center">
                         <div className="w-32 h-32 bg-gray-50 rounded-lg border-2 border-gray-200 p-2 flex items-center justify-center">
@@ -77,7 +77,7 @@ const EditProduct = () => {
                     </div>
 
                     {/* Form Fields */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-5">
                         {/* Product Name */}
                         <div>
                             <label className="text-xs font-bold text-gray-700 block mb-2">

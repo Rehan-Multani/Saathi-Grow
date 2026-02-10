@@ -21,17 +21,17 @@ const Analysis = () => {
     ];
 
     return (
-        <div className="space-y-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Business Analysis</h1>
+        <div className="space-y-6 lg:space-y-5">
+            <div className="mb-6 lg:mb-4">
+                <h1 className="text-2xl lg:text-2xl font-bold text-gray-900 tracking-tight">Business Analysis</h1>
                 <p className="text-sm text-gray-500">Detailed insights into your store's performance.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-5">
                 {/* Sales Chart */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-bold text-gray-900 tracking-tight mb-4">Revenue Trend</h2>
-                    <div className="h-[300px] w-full">
+                <div className="bg-white p-6 lg:p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg lg:text-lg font-bold text-gray-900 tracking-tight mb-4 lg:mb-3">Revenue Trend</h2>
+                    <div className="h-[300px] lg:h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={salesData}>
                                 <defs>
@@ -54,9 +54,9 @@ const Analysis = () => {
                 </div>
 
                 {/* Orders Bar Chart */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-bold text-gray-900 tracking-tight mb-4">Orders Volume</h2>
-                    <div className="h-[300px] w-full">
+                <div className="bg-white p-6 lg:p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg lg:text-lg font-bold text-gray-900 tracking-tight mb-4 lg:mb-3">Orders Volume</h2>
+                    <div className="h-[300px] lg:h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={salesData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />

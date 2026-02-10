@@ -11,6 +11,7 @@ const AddProduct = () => {
 
     const [mainImage, setMainImage] = useState(null);
     const [otherImages, setOtherImages] = useState([]);
+    const [variants, setVariants] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -44,7 +45,12 @@ const AddProduct = () => {
             ...formData,
             price: Number(formData.price),
             image: mainImage || 'https://via.placeholder.com/150',
-            images: otherImages
+            images: otherImages,
+            variants: variants.map(v => ({
+                ...v,
+                stock: Number(v.stock) || 0,
+                price: Number(v.price) || Number(formData.price)
+            }))
         });
         navigate('/vendor/products');
     };
@@ -55,37 +61,37 @@ const AddProduct = () => {
             <input type="file" ref={otherFilesRef} onChange={handleOtherUpload} accept="image/*" multiple className="hidden" />
 
             {/* Header */}
-            <div className="bg-white border-b border-gray-100 px-8 py-3 flex items-center justify-between sticky top-0 z-50">
+            <div className="bg-white border-b border-gray-100 px-3 md:px-8 py-2 md:py-3 lg:py-2.5 flex items-center justify-between sticky top-0 z-50">
                 <div className="flex items-center gap-3">
                     <button onClick={() => navigate('/vendor/products')} className="p-2 hover:bg-gray-100 rounded-full transition-colors md:hidden">
                         <ArrowLeft size={18} className="text-gray-600" />
                     </button>
                     <div>
-                        <h1 className="text-base font-bold text-gray-900 tracking-tight">Add new product</h1>
-                        <p className="text-[10px] text-gray-500 font-medium tracking-tight">List your item on SaathiGro</p>
+                        <h1 className="text-sm md:text-base font-bold text-gray-900 tracking-tight">Add new product</h1>
+                        <p className="text-[9px] md:text-[10px] text-gray-500 font-medium tracking-tight">List your item on SaathiGro</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button onClick={() => navigate('/vendor/products')} className="px-4 py-2 rounded-lg text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-1.5 md:gap-2">
+                    <button onClick={() => navigate('/vendor/products')} className="hidden md:block px-4 py-2 rounded-lg text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors">
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-6 py-2 rounded-lg bg-[#0c831f] text-white text-xs font-bold hover:bg-[#0a6b19] shadow-sm transition-all flex items-center gap-2"
+                        className="px-3 md:px-6 py-1.5 md:py-2 rounded-lg bg-[#0c831f] text-white text-[10px] md:text-xs font-bold hover:bg-[#0a6b19] shadow-sm transition-all flex items-center gap-1.5"
                     >
-                        <Save size={16} /> Save Product
+                        <Save size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Save Product</span><span className="sm:hidden">Save</span>
                     </button>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 md:px-12 py-4">
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="max-w-7xl mx-auto px-3 md:px-12 py-3 md:py-4 lg:py-4">
+                <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 lg:space-y-5">
 
                     {/* Basic Information */}
-                    <div className="space-y-3">
-                        <h3 className="text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Basic information</h3>
+                    <div className="space-y-2 md:space-y-3 lg:space-y-3">
+                        <h3 className="text-[10px] md:text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Basic information</h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 md:gap-x-6 lg:gap-x-5 gap-y-2 md:gap-y-3 lg:gap-y-3">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-semibold text-gray-500">Product name *</label>
                                 <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -130,10 +136,106 @@ const AddProduct = () => {
                         </div>
                     </div>
 
+                    {/* Variants Section */}
+                    <div className="space-y-2 md:space-y-3 lg:space-y-3">
+                        <div className="flex items-center justify-between border-b border-gray-50 pb-1">
+                            <h3 className="text-[10px] md:text-xs font-bold text-gray-700 tracking-tight">Variants (Size, Color, etc.)</h3>
+                            <button
+                                onClick={() => setVariants([...variants, { type: 'Size', value: '', stock: '', price: '' }])}
+                                className="flex items-center gap-1 text-[9px] md:text-[10px] font-bold text-[#0c831f] hover:underline"
+                            >
+                                <Plus size={10} /> Add Variant
+                            </button>
+                        </div>
+
+                        <div className="space-y-2">
+                            {variants.map((variant, index) => (
+                                <div key={index} className="flex flex-col md:flex-row gap-2 bg-gray-50 p-2 rounded-lg relative group">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
+                                        <div className="space-y-0.5">
+                                            <label className="text-[9px] font-semibold text-gray-500">Attr Type</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={variant.type}
+                                                    onChange={(e) => {
+                                                        const newVariants = [...variants];
+                                                        newVariants[index].type = e.target.value;
+                                                        setVariants(newVariants);
+                                                    }}
+                                                    className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none appearance-none cursor-pointer"
+                                                >
+                                                    <option value="Size">Size</option>
+                                                    <option value="Weight">Weight</option>
+                                                    <option value="Color">Color</option>
+                                                    <option value="Material">Material</option>
+                                                    <option value="Style">Style</option>
+                                                </select>
+                                                <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <label className="text-[9px] font-semibold text-gray-500">Value</label>
+                                            <input
+                                                value={variant.value}
+                                                onChange={(e) => {
+                                                    const newVariants = [...variants];
+                                                    newVariants[index].value = e.target.value;
+                                                    setVariants(newVariants);
+                                                }}
+                                                placeholder={variant.type === 'Color' ? 'e.g. Red' : 'e.g. XL, 1kg'}
+                                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <label className="text-[9px] font-semibold text-gray-500">Stock</label>
+                                            <input
+                                                type="number"
+                                                value={variant.stock}
+                                                onChange={(e) => {
+                                                    const newVariants = [...variants];
+                                                    newVariants[index].stock = e.target.value;
+                                                    setVariants(newVariants);
+                                                }}
+                                                placeholder="Qty"
+                                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <label className="text-[9px] font-semibold text-gray-500">Price</label>
+                                            <input
+                                                type="number"
+                                                value={variant.price}
+                                                onChange={(e) => {
+                                                    const newVariants = [...variants];
+                                                    newVariants[index].price = e.target.value;
+                                                    setVariants(newVariants);
+                                                }}
+                                                placeholder="₹ 0.00"
+                                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setVariants(variants.filter((_, i) => i !== index))}
+                                        className="absolute -top-1 -right-1 md:static md:flex items-center justify-center p-1.5 md:p-1 text-red-500 hover:bg-red-50 rounded bg-white shadow-sm md:shadow-none border md:border-none border-gray-100"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                            {variants.length === 0 && (
+                                <div className="text-center py-4 bg-gray-50/50 border border-dashed border-gray-200 rounded-lg">
+                                    <p className="text-[10px] text-gray-400">No variants added type specific details liek size, color etc.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Pricing */}
-                    <div className="space-y-3">
-                        <h3 className="text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Pricing</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                    <div className="space-y-2 md:space-y-3 lg:space-y-3">
+                        <h3 className="text-[10px] md:text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Pricing</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 md:gap-x-6 lg:gap-x-5 gap-y-2 md:gap-y-3 lg:gap-y-3">
                             <div className="space-y-0.5">
                                 <label className="text-[10px] font-semibold text-gray-500">Price *</label>
                                 <input required type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })}
@@ -150,13 +252,13 @@ const AddProduct = () => {
                     </div>
 
                     {/* Product Media - Ultra Compact */}
-                    <div className="bg-[#f9f8ff] border border-[#e5e0ff] rounded-xl p-3 space-y-2">
-                        <div className="flex items-center gap-2 text-[#4c3eac]">
+                    <div className="bg-[#f9f8ff] border border-[#e5e0ff] rounded-xl p-2 md:p-3 space-y-2">
+                        <div className="flex items-center gap-1.5 md:gap-2 text-[#4c3eac]">
                             <Upload size={12} strokeWidth={2.5} />
-                            <h3 className="text-[10px] font-bold tracking-tight">Product media</h3>
+                            <h3 className="text-[9px] md:text-[10px] font-bold tracking-tight">Product media</h3>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3">
                             <div className="md:col-span-4 bg-white border border-[#e5e0ff] rounded-lg p-2 space-y-1">
                                 <h4 className="text-[9px] font-bold text-gray-500">Main image</h4>
                                 <div onClick={() => fileInputRef.current.click()}

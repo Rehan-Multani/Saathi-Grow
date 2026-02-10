@@ -50,13 +50,13 @@ const ProductList = () => {
     const activeFilterCount = [categoryFilter, stockFilter, priceRange].filter(f => f !== 'all').length;
 
     return (
-        <div className="space-y-4 relative pb-20 md:pb-0">
+        <div className="space-y-4 lg:space-y-5 relative pb-20 md:pb-0">
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h1 className="text-base font-bold text-gray-900 tracking-tight">Products</h1>
-                    <p className="text-[10px] text-gray-500 font-medium">Manage your product inventory</p>
+                    <h1 className="text-base lg:text-xl font-bold text-gray-900 tracking-tight">Products</h1>
+                    <p className="text-[10px] lg:text-xs text-gray-500 font-medium">Manage your product inventory</p>
                 </div>
                 <button
                     onClick={() => navigate('/vendor/products/add')}
@@ -68,7 +68,7 @@ const ProductList = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-3 rounded-lg border border-gray-100 sticky top-0 z-20 transition-shadow">
+            <div className="bg-white p-3 lg:p-4 rounded-lg border border-gray-100 sticky top-0 z-20 transition-shadow">
                 <div className="flex flex-col md:flex-row gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -162,18 +162,18 @@ const ProductList = () => {
                     <table className="w-full text-left border-collapse min-w-[900px]">
                         <thead className="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Product</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Price</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Stock</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">Actions</th>
+                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Product</th>
+                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Category</th>
+                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Price</th>
+                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Stock</th>
+                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => (
                                     <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
-                                        <td className="px-4 py-2">
+                                        <td className="px-4 py-2 lg:py-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded bg-white border border-gray-100 p-0.5 flex-shrink-0">
                                                     <img src={product.image} alt="" className="w-full h-full object-contain" />
@@ -181,9 +181,9 @@ const ProductList = () => {
                                                 <span className="text-xs font-bold text-gray-800 tracking-tight">{product.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 text-[11px] text-gray-500 font-medium">{product.category}</td>
-                                        <td className="px-4 py-2 text-xs font-bold text-gray-900">{formatCurrency(product.price)}</td>
-                                        <td className="px-4 py-2">
+                                        <td className="px-4 py-2 lg:py-2 text-[11px] text-gray-500 font-medium">{product.category}</td>
+                                        <td className="px-4 py-2 lg:py-2 text-xs font-bold text-gray-900">{formatCurrency(product.price)}</td>
+                                        <td className="px-4 py-2 lg:py-2">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${product.stock < 20
                                                 ? 'bg-red-50 text-red-600 border border-red-100/50'
                                                 : 'bg-green-50 text-green-700 border border-green-100/50'
@@ -191,7 +191,7 @@ const ProductList = () => {
                                                 {product.stock} units
                                             </span>
                                         </td>
-                                        <td className="px-4 py-2 text-center">
+                                        <td className="px-4 py-2 lg:py-2 text-center">
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
                                                     onClick={() => navigate(`edit/${product.id}`)}
@@ -239,7 +239,7 @@ const ProductList = () => {
                             {/* Content */}
                             <div className="flex-1 min-w-0 flex flex-col justify-between">
                                 <div>
-                                    <h3 className="text-xs font-bold text-gray-800 truncate tracking-tight">{product.name}</h3>
+                                    <h3 className="text-[10px] font-bold text-gray-800 truncate tracking-tight">{product.name}</h3>
                                     <p className="text-[10px] text-gray-400 font-bold">{product.category}</p>
                                 </div>
 

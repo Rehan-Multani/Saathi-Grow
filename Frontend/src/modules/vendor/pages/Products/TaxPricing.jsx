@@ -95,7 +95,7 @@ const TaxPricing = () => {
     const allSelected = filteredProducts.length > 0 && selectedProducts.length === filteredProducts.length;
 
     return (
-        <div className="space-y-4 pb-12">
+        <div className="space-y-4 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
@@ -118,7 +118,7 @@ const TaxPricing = () => {
             </div>
 
             {/* Search & Filter */}
-            <div className="premium-card p-3">
+            <div className="premium-card p-3 lg:p-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -149,7 +149,7 @@ const TaxPricing = () => {
             </div>
 
             {/* Bulk Price Update */}
-            <div className="premium-card p-4">
+            <div className="premium-card p-4 lg:p-4">
                 <div className="flex items-center gap-2 mb-3">
                     <TrendingUp size={16} className="text-[#0c831f]" />
                     <h2 className="text-sm font-bold text-gray-900">Bulk Price Update</h2>
@@ -192,7 +192,7 @@ const TaxPricing = () => {
             <div className="premium-card overflow-hidden">
                 {/* Desktop Table View */}
                 <div className="hidden md:block">
-                    <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr] gap-4 px-4 py-2 border-b border-gray-100 bg-gray-50">
+                    <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr] gap-4 px-4 py-2 lg:py-2.5 border-b border-gray-100 bg-gray-50">
                         <div className="flex items-center">
                             <input
                                 type="checkbox"
@@ -211,7 +211,7 @@ const TaxPricing = () => {
                         {filteredProducts.map((product) => (
                             <div
                                 key={product.id}
-                                className={`grid grid-cols-[40px_2fr_1fr_1fr_1fr] gap-4 px-4 py-3 hover:bg-gray-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-green-50/50' : ''
+                                className={`grid grid-cols-[40px_2fr_1fr_1fr_1fr] gap-4 px-4 py-3 lg:py-3 hover:bg-gray-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-green-50/50' : ''
                                     }`}
                             >
                                 <div className="flex items-center">

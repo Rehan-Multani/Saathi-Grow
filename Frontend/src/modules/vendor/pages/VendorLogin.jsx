@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, ArrowRight, CheckCircle } from 'lucide-react';
+import { Store, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+import { useVendor } from '../contexts/VendorContext';
 
 const VendorLogin = () => {
     const navigate = useNavigate();
+    const { login } = useVendor();
     const [email, setEmail] = useState('vendor@saathigro.com');
     const [password, setPassword] = useState('123456');
+    const [error, setError] = useState('');
 
     const handleLogin = (e) => {
         e.preventDefault();
-        // Simulate login
-        navigate('/vendor/dashboard');
+        setError('');
+
+        // Validate with stored password
+        const isValid = login(email, password);
+
+        if (isValid) {
+            navigate('/vendor/dashboard');
+        } else {
+            setError('Invalid password! Please try again.');
+        }
     };
 
     return (
@@ -60,6 +71,14 @@ const VendorLogin = () => {
                                 placeholder="••••••••"
                             />
                         </div>
+
+                        {/* Error Message */}
+                        {error && (
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-red-700 animate-in slide-in-from-top">
+                                <AlertCircle size={18} />
+                                <span className="text-sm font-bold">{error}</span>
+                            </div>
+                        )}
 
                         <div className="flex items-center justify-between text-xs">
                             <div className="flex items-center gap-2">

@@ -41,18 +41,18 @@ const ProductReviews = () => {
     };
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="space-y-6 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Product Reviews</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Product Reviews</h1>
                     <p className="text-sm text-gray-500">Manage customer feedback and ratings</p>
                 </div>
             </div>
 
             {/* Overall Rating Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="premium-card p-6">
+                <div className="premium-card p-6 lg:p-5">
                     <div className="text-center">
                         <h2 className="text-5xl font-extrabold text-gray-900">{avgRating}</h2>
                         <div className="flex items-center justify-center gap-1 my-2">
@@ -62,7 +62,7 @@ const ProductReviews = () => {
                     </div>
                 </div>
 
-                <div className="premium-card p-6 lg:col-span-2">
+                <div className="premium-card p-6 lg:p-5 lg:col-span-2">
                     <h3 className="text-sm font-bold text-gray-900 mb-4">Rating Distribution</h3>
                     <div className="space-y-3">
                         {[
@@ -88,7 +88,7 @@ const ProductReviews = () => {
             </div>
 
             {/* Filters */}
-            <div className="premium-card p-4">
+            <div className="premium-card p-4 lg:p-4">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -106,8 +106,8 @@ const ProductReviews = () => {
                                 key={rating}
                                 onClick={() => setFilterRating(rating)}
                                 className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap border transition-colors ${filterRating === rating
-                                        ? 'bg-[#0c831f] text-white border-[#0c831f]'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                    ? 'bg-[#0c831f] text-white border-[#0c831f]'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                     }`}
                             >
                                 {rating === 'all' ? 'All' : `${rating} Star`}
@@ -120,7 +120,7 @@ const ProductReviews = () => {
             {/* Reviews List */}
             <div className="space-y-4">
                 {filteredReviews.map(review => (
-                    <div key={review.id} className="premium-card p-5">
+                    <div key={review.id} className="premium-card p-5 lg:p-4">
                         <div className="flex gap-4">
                             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                                 {review.customer.charAt(0)}

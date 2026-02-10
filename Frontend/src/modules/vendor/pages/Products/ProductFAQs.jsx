@@ -129,19 +129,19 @@ const ProductFAQs = () => {
             </div>
 
             {/* FAQ List */}
-            <div className="space-y-3">
+            <div className="space-y-0">
                 {filteredFaqs.length === 0 ? (
-                    <div className="premium-card p-12 text-center">
+                    <div className="p-12 text-center">
                         <Search size={32} className="text-gray-300 mx-auto mb-3" />
                         <h3 className="text-sm font-bold text-gray-900">No questions found</h3>
                         <p className="text-xs text-gray-500 mt-1">Try adjusting your search or filters</p>
                     </div>
                 ) : (
-                    filteredFaqs.map((faq) => (
-                        <div key={faq.id} className="premium-card p-4 hover:shadow-md transition-shadow">
-                            <div className="flex gap-4">
+                    filteredFaqs.map((faq, index) => (
+                        <div key={faq.id} className={`p-4 hover:bg-gray-50 transition-colors ${index !== filteredFaqs.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                            <div className="flex gap-3">
                                 {/* Left: Question Details */}
-                                <div className="flex-1 space-y-2">
+                                <div className="flex-1 space-y-1.5">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className={`w-2 h-2 rounded-full ${faq.status === 'Pending' ? 'bg-amber-500' : 'bg-green-500'}`} />
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${faq.status === 'Pending'
@@ -155,7 +155,7 @@ const ProductFAQs = () => {
                                         </span>
                                     </div>
 
-                                    <h3 className="text-sm font-bold text-gray-900 leading-tight">
+                                    <h3 className="text-[11px] font-bold text-gray-900 leading-tight">
                                         "{faq.question}"
                                     </h3>
 
@@ -172,14 +172,14 @@ const ProductFAQs = () => {
                                     </div>
 
                                     {faq.answer && replyingToId !== faq.id && (
-                                        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                        <div className="mt-1.5 p-2 bg-green-50 border border-green-200 rounded-lg">
                                             <p className="text-xs text-green-900"><strong>Your Answer:</strong> {faq.answer}</p>
                                         </div>
                                     )}
 
                                     {/* Inline Reply Chatbox */}
                                     {replyingToId === faq.id && (
-                                        <div className="mt-3 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-[#0c831f]/30 rounded-lg p-3 animate-in slide-in-from-top-2 duration-200">
+                                        <div className="mt-2 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-[#0c831f]/30 rounded-lg p-2.5 animate-in slide-in-from-top-2 duration-200">
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center gap-2">
                                                     <MessageCircle size={14} className="text-[#0c831f]" />

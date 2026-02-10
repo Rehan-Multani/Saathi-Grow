@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Settings, Info, Box, Layers, Hash, ArrowRight, X, Search, Filter, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Info, Box, Layers, Hash, ArrowRight, X, Search, Filter, CheckCircle2, Edit2 } from 'lucide-react';
 
 const ProductAttributes = () => {
     const [attributes, setAttributes] = useState([
@@ -110,7 +110,7 @@ const ProductAttributes = () => {
     };
 
     return (
-        <div className="space-y-4 pb-12">
+        <div className="space-y-4 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
@@ -127,7 +127,7 @@ const ProductAttributes = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 lg:gap-4">
                 {[
                     { label: 'Active', val: activeCount, icon: Layers, color: 'text-blue-600', bg: 'bg-blue-50' },
                     { label: 'Groups', val: totalGroups, icon: Box, color: 'text-purple-600', bg: 'bg-purple-50' },
@@ -146,7 +146,7 @@ const ProductAttributes = () => {
             </div>
 
             {/* Search & Filters */}
-            <div className="premium-card p-3">
+            <div className="premium-card p-3 lg:p-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -194,25 +194,25 @@ const ProductAttributes = () => {
                                 <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Group</th>
                                 <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Values</th>
                                 <th className="px-4 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">Status</th>
-                                <th className="px-4 py-2 text-right text-[10px] font-bold text-gray-500 uppercase">Actions</th>
+                                <th className="px-4 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredAttributes.map((attr) => (
                                 <tr key={attr.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-4 py-3">
+                                    <td className="px-4 py-3 lg:py-3">
                                         <p className="text-sm font-bold text-gray-900">{attr.name}</p>
                                         <p className="text-[10px] text-gray-500 mt-0.5">{attr.type}</p>
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-4 py-3 lg:py-3">
                                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${getGroupColor(attr.group)}`}>
                                             {attr.group}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-4 py-3 lg:py-3">
                                         <p className="text-xs text-gray-600 truncate max-w-xs">{attr.values}</p>
                                     </td>
-                                    <td className="px-4 py-3 text-center">
+                                    <td className="px-4 py-3 lg:py-3 text-center">
                                         {attr.active ? (
                                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-50 px-2 py-1 rounded-full border border-green-200">
                                                 <CheckCircle2 size={10} />
@@ -224,9 +224,9 @@ const ProductAttributes = () => {
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-4 py-3 lg:py-3">
                                         {deletingId === attr.id ? (
-                                            <div className="flex justify-end">
+                                            <div className="flex justify-center">
                                                 <div className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-400/40 rounded-lg p-2 animate-in slide-in-from-top-2 duration-200">
                                                     <p className="text-xs font-bold text-gray-900 mb-2">Delete?</p>
                                                     <div className="flex gap-2">
@@ -246,12 +246,12 @@ const ProductAttributes = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex items-center justify-end gap-1">
+                                            <div className="flex items-center justify-center gap-1">
                                                 <button
                                                     onClick={() => handleOpenModal(attr)}
                                                     className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded transition-all"
                                                 >
-                                                    <Settings size={14} />
+                                                    <Edit2 size={14} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(attr.id)}
@@ -316,7 +316,7 @@ const ProductAttributes = () => {
                                         onClick={() => handleOpenModal(attr)}
                                         className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded hover:bg-gray-200 flex items-center justify-center gap-1"
                                     >
-                                        <Settings size={12} />
+                                        <Edit2 size={12} />
                                         Edit
                                     </button>
                                     <button

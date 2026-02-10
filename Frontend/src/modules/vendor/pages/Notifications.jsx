@@ -15,14 +15,14 @@ const Notifications = () => {
     ];
 
     return (
-        <div className="-mx-4 -my-4 md:mx-0 md:my-0 md:space-y-6 bg-white md:bg-transparent min-h-screen md:min-h-0">
+        <div className="-mx-4 -my-4 md:mx-0 md:my-0 md:space-y-6 lg:space-y-5 bg-white md:bg-transparent min-h-screen md:min-h-0">
             {/* Header */}
-            <div className="sticky top-0 z-20 bg-white border-b border-gray-100 md:border-none px-4 py-4 md:px-0 md:py-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="sticky top-0 z-20 bg-white border-b border-gray-100 md:border-none px-4 py-3 lg:py-2 md:px-0 md:py-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
-                    <p className="text-xs text-gray-500 hidden md:block">Stay updated with your store activity</p>
+                    <h1 className="text-lg lg:text-xl font-bold text-gray-900 tracking-tight">Notifications</h1>
+                    <p className="text-xs text-gray-500 hidden md:block font-medium">Stay updated with your store activity</p>
                 </div>
-                <button className="text-xs font-bold text-[#0c831f] hover:text-[#0a6b19]">
+                <button className="text-[10px] font-bold text-[#0c831f] hover:text-[#0a6b19] uppercase tracking-wider">
                     Mark all as read
                 </button>
             </div>
@@ -30,12 +30,12 @@ const Notifications = () => {
             <div className="bg-white md:rounded-xl md:shadow-sm md:border border-gray-100 overflow-hidden">
                 <div className="divide-y divide-gray-50">
                     {notifications.map((notification) => (
-                        <div key={notification.id} className={`p-4 hover:bg-gray-50 transition-colors flex gap-4 bg-white ${notification.read ? 'opacity-70' : ''}`}>
-                            <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${notification.type === 'order' ? 'bg-blue-50 text-blue-600' :
+                        <div key={notification.id} className={`p-4 lg:p-3 hover:bg-gray-50 transition-colors flex gap-4 bg-white ${notification.read ? 'opacity-70' : ''}`}>
+                            <div className={`w-10 h-10 lg:w-9 lg:h-9 rounded-full flex-shrink-0 flex items-center justify-center ${notification.type === 'order' ? 'bg-blue-50 text-blue-600' :
                                 notification.type === 'alert' ? 'bg-red-50 text-red-600' :
                                     'bg-green-50 text-green-600'
                                 }`}>
-                                <Bell size={18} />
+                                <Bell size={18} className="lg:w-4 lg:h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-start mb-0.5">

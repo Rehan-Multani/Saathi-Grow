@@ -22,11 +22,11 @@ const Promotions = () => {
     const totalUsage = promotions.reduce((sum, p) => sum + p.used, 0);
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="space-y-6 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Promotions</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Promotions</h1>
                     <p className="text-sm text-gray-500">Create and manage promotional campaigns</p>
                 </div>
                 <button
@@ -40,7 +40,7 @@ const Promotions = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-green-50 text-green-600 rounded-lg">
                             <Tag size={20} />
@@ -51,7 +51,7 @@ const Promotions = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
                             <TrendingUp size={20} />
@@ -62,7 +62,7 @@ const Promotions = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
                             <TrendingUp size={20} />
@@ -99,9 +99,9 @@ const Promotions = () => {
                 </div>
 
                 {/* Promotions Grid */}
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-6 lg:p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-5">
                     {displayPromotions.map(promo => (
-                        <div key={promo.id} className="border border-gray-100 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-all">
+                        <div key={promo.id} className="border border-gray-100 rounded-xl p-5 lg:p-4 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="text-base font-bold text-gray-900">{promo.name}</h3>
@@ -112,8 +112,8 @@ const Promotions = () => {
                                     </p>
                                 </div>
                                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${promo.status === 'active'
-                                        ? 'bg-green-50 text-green-700 border border-green-100'
-                                        : 'bg-gray-50 text-gray-600 border border-gray-100'
+                                    ? 'bg-green-50 text-green-700 border border-green-100'
+                                    : 'bg-gray-50 text-gray-600 border border-gray-100'
                                     }`}>
                                     {promo.status}
                                 </span>

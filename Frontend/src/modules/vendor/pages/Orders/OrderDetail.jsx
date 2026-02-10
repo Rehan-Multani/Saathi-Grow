@@ -47,14 +47,14 @@ const OrderDetail = () => {
     const currentStepIndex = statusSteps.indexOf(order.status);
 
     return (
-        <div className="space-y-4 pb-12">
+        <div className="space-y-3 pb-8">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/vendor/orders')}
-                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
                 >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={18} />
                 </button>
                 <div className="flex-1">
                     <h1 className="text-base font-bold text-gray-900">Order #{order.id}</h1>
@@ -75,7 +75,7 @@ const OrderDetail = () => {
             </div>
 
             {/* Status Timeline */}
-            <div className="premium-card p-4">
+            <div className="premium-card p-3">
                 <h2 className="text-sm font-bold text-gray-900 mb-4">Order Status</h2>
                 <div className="flex items-center justify-between relative">
                     {statusSteps.map((step, index) => {
@@ -85,8 +85,8 @@ const OrderDetail = () => {
                             <div key={step} className="flex-1 relative">
                                 <div className="flex flex-col items-center">
                                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${isCompleted
-                                            ? 'bg-[#0c831f] border-[#0c831f] text-white'
-                                            : 'bg-white border-gray-300 text-gray-400'
+                                        ? 'bg-[#0c831f] border-[#0c831f] text-white'
+                                        : 'bg-white border-gray-300 text-gray-400'
                                         }`}>
                                         {isCompleted ? <CheckCircle2 size={16} /> : <div className="w-2 h-2 rounded-full bg-gray-300" />}
                                     </div>
@@ -105,11 +105,11 @@ const OrderDetail = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 {/* Left Column */}
-                <div className="lg:col-span-2 space-y-4">
+                <div className="lg:col-span-2 space-y-3">
                     {/* Order Items */}
-                    <div className="premium-card p-4">
+                    <div className="premium-card p-3">
                         <h2 className="text-sm font-bold text-gray-900 mb-3">Order Items ({order.items})</h2>
                         <div className="space-y-3">
                             {/* Mock items - in real app, would come from order.products */}
@@ -129,7 +129,7 @@ const OrderDetail = () => {
                     </div>
 
                     {/* Delivery Address */}
-                    <div className="premium-card p-4">
+                    <div className="premium-card p-3">
                         <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                             <MapPin size={14} />
                             Delivery Address
@@ -147,9 +147,9 @@ const OrderDetail = () => {
                 </div>
 
                 {/* Right Column */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {/* Order Summary */}
-                    <div className="premium-card p-4">
+                    <div className="premium-card p-3">
                         <h2 className="text-sm font-bold text-gray-900 mb-3">Order Summary</h2>
                         <div className="space-y-2">
                             <div className="flex justify-between text-xs">
@@ -184,7 +184,7 @@ const OrderDetail = () => {
                     </div>
 
                     {/* Customer Info */}
-                    <div className="premium-card p-4">
+                    <div className="premium-card p-3">
                         <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                             <User size={14} />
                             Customer Details
@@ -203,7 +203,7 @@ const OrderDetail = () => {
                     </div>
 
                     {/* Payment Info */}
-                    <div className="premium-card p-4">
+                    <div className="premium-card p-3">
                         <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                             <CreditCard size={14} />
                             Payment

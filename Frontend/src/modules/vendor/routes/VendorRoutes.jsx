@@ -11,7 +11,6 @@ import AddProduct from '../pages/Products/AddProduct';
 import EditProduct from '../pages/Products/EditProduct';
 import DeleteProductPage from '../pages/Products/DeleteProductPage';
 import BulkUpload from '../pages/Products/BulkUpload';
-import ProductFAQs from '../pages/Products/ProductFAQs';
 import TaxPricing from '../pages/Products/TaxPricing';
 import ProductAttributes from '../pages/Products/ProductAttributes';
 import AllOrders from '../pages/Orders/AllOrders';
@@ -71,7 +70,6 @@ const VendorRoutes = () => {
                     <Route path="products/edit/:productId" element={<EditProduct />} />
                     <Route path="products/delete/:productId" element={<DeleteProductPage />} />
                     <Route path="products/bulk" element={<BulkUpload />} />
-                    <Route path="products/faqs" element={<ProductFAQs />} />
                     <Route path="products/tax-pricing" element={<TaxPricing />} />
                     <Route path="products/attributes" element={<ProductAttributes />} />
                     <Route path="orders" element={<AllOrders />} />

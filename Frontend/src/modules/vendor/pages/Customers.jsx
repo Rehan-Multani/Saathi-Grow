@@ -28,18 +28,18 @@ const Customers = () => {
     const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpent, 0);
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="space-y-6 lg:space-y-5 pb-12">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-2">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Customer Management</h1>
-                    <p className="text-sm text-gray-500">View and manage your customer database</p>
+                    <h1 className="text-lg lg:text-xl font-bold text-gray-900 tracking-tight">Customer Management</h1>
+                    <p className="text-xs text-gray-500 font-medium">View and manage your customer database</p>
                 </div>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
                             <Users size={20} />
@@ -50,7 +50,7 @@ const Customers = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-green-50 text-green-600 rounded-lg">
                             <TrendingUp size={20} />
@@ -61,7 +61,7 @@ const Customers = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
                             <ShoppingBag size={20} />
@@ -72,7 +72,7 @@ const Customers = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-yellow-50 text-yellow-600 rounded-lg">
                             <DollarSign size={20} />
@@ -86,7 +86,7 @@ const Customers = () => {
             </div>
 
             {/* Filters */}
-            <div className="premium-card p-4">
+            <div className="premium-card p-4 lg:p-4">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -117,19 +117,19 @@ const Customers = () => {
                     <table className="w-full text-left min-w-[800px]">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Customer</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Contact</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Orders</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Total Spent</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Last Order</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Status</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase text-right">Action</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Customer</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Contact</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Orders</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Total Spent</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Last Order</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Status</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {filteredCustomers.map(customer => (
                                 <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gradient-to-br from-[#0c831f] to-[#0a6b19] rounded-full flex items-center justify-center text-white font-bold text-sm">
                                                 {customer.name.charAt(0)}
@@ -140,26 +140,26 @@ const Customers = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3">
                                         <p className="text-sm text-gray-600">{customer.email}</p>
                                         <p className="text-xs text-gray-500">{customer.phone}</p>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3">
                                         <span className="text-sm font-bold text-gray-900">{customer.totalOrders}</span>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3">
                                         <span className="text-sm font-bold text-gray-900">{formatCurrency(customer.totalSpent)}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{customer.lastOrder}</td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3 text-sm text-gray-600">{customer.lastOrder}</td>
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3">
                                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${customer.status === 'active'
-                                                ? 'bg-green-50 text-green-700 border border-green-100'
-                                                : 'bg-gray-50 text-gray-600 border border-gray-100'
+                                            ? 'bg-green-50 text-green-700 border border-green-100'
+                                            : 'bg-gray-50 text-gray-600 border border-gray-100'
                                             }`}>
                                             {customer.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3 text-right">
                                         <button className="px-3 py-1.5 text-xs font-bold text-[#0c831f] hover:bg-green-50 rounded-lg transition-colors flex items-center gap-1 ml-auto">
                                             <Eye size={14} />
                                             View
@@ -186,8 +186,8 @@ const Customers = () => {
                                 <p className="text-xs text-gray-500">{customer.phone}</p>
                             </div>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${customer.status === 'active'
-                                    ? 'bg-green-50 text-green-700 border border-green-100'
-                                    : 'bg-gray-50 text-gray-600 border border-gray-100'
+                                ? 'bg-green-50 text-green-700 border border-green-100'
+                                : 'bg-gray-50 text-gray-600 border border-gray-100'
                                 }`}>
                                 {customer.status}
                             </span>

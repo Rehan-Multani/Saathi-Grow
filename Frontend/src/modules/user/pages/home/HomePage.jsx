@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { categories } from '../../data/categories';
 import { products } from '../../data/products';
 import ProductCard from '../../components/product/ProductCard';
+import LowestPricesSection from '../../components/product/LowestPricesSection';
 import { useSearch } from '../../context/SearchContext';
 import { ChevronRight, ArrowRight, ArrowLeft, Carrot, Milk, Cookie, CupSoda, Snowflake, Coffee, Croissant, Wheat, SprayCan, Sparkles } from 'lucide-react';
 import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../components/common/Skeleton';
@@ -257,6 +258,11 @@ const HomePage = () => {
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* Lowest Prices Ever Section */}
+            {!isSearching && (
+                <LowestPricesSection products={products} loading={loading} />
             )}
 
             {/* Category Sections */}

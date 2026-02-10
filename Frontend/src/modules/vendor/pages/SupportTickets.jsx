@@ -50,18 +50,18 @@ const SupportTickets = () => {
     };
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="space-y-6 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Support Tickets</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Support Tickets</h1>
                     <p className="text-sm text-gray-500">Manage customer inquiries and support requests</p>
                 </div>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
                             <AlertCircle size={20} />
@@ -72,7 +72,7 @@ const SupportTickets = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
                             <Clock size={20} />
@@ -83,7 +83,7 @@ const SupportTickets = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-green-50 text-green-600 rounded-lg">
                             <CheckCircle size={20} />
@@ -97,7 +97,7 @@ const SupportTickets = () => {
             </div>
 
             {/* Filters */}
-            <div className="premium-card p-4">
+            <div className="premium-card p-4 lg:p-4">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -115,8 +115,8 @@ const SupportTickets = () => {
                                 key={status}
                                 onClick={() => setFilterStatus(status)}
                                 className={`px-4 py-2 rounded-lg text-sm font-bold capitalize border transition-colors ${filterStatus === status
-                                        ? 'bg-[#0c831f] text-white border-[#0c831f]'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                    ? 'bg-[#0c831f] text-white border-[#0c831f]'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                     }`}
                             >
                                 {status === 'in-progress' ? 'In Progress' : status}
@@ -134,7 +134,7 @@ const SupportTickets = () => {
                         <div
                             key={ticket.id}
                             onClick={() => setSelectedTicket(ticket)}
-                            className={`premium-card p-5 cursor-pointer transition-all ${selectedTicket?.id === ticket.id ? 'border-[#0c831f] bg-green-50/30' : ''
+                            className={`premium-card p-5 lg:p-4 cursor-pointer transition-all ${selectedTicket?.id === ticket.id ? 'border-[#0c831f] bg-green-50/30' : ''
                                 }`}
                         >
                             <div className="flex justify-between items-start mb-3">
@@ -195,8 +195,8 @@ const SupportTickets = () => {
                                 {selectedTicket.messages.map((msg, idx) => (
                                     <div key={idx} className={`flex ${msg.from === 'vendor' ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-xs px-4 py-3 rounded-lg ${msg.from === 'vendor'
-                                                ? 'bg-[#0c831f] text-white'
-                                                : 'bg-gray-100 text-gray-900'
+                                            ? 'bg-[#0c831f] text-white'
+                                            : 'bg-gray-100 text-gray-900'
                                             }`}>
                                             <p className="text-sm">{msg.text}</p>
                                             <p className={`text-xs mt-1 ${msg.from === 'vendor' ? 'text-green-100' : 'text-gray-500'}`}>

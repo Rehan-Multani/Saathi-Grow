@@ -12,7 +12,8 @@ export const VendorProvider = ({ children }) => {
         phone: "+91 9876543210",
         address: "Sector 14, Gurgaon",
         isOpen: true,
-        image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&q=80"
+        image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&q=80",
+        password: localStorage.getItem('vendorPassword') || '123456' // Default password
     });
 
     const [stats, setStats] = useState({
@@ -35,14 +36,43 @@ export const VendorProvider = ({ children }) => {
     ]);
 
     const login = (email, password) => {
-        // Mock login
-        console.log("Logged in", email);
-        return true;
+        // Get stored password from localStorage
+        const storedPassword = localStorage.getItem('vendorPassword') || '123456';
+
+        // Validate password
+        if (password === storedPassword) {
+            console.log("Logged in successfully", email);
+            return true;
+        } else {
+            console.log("Invalid password");
+            return false;
+        }
     };
 
     const register = (data) => {
         console.log("Registered", data);
         return true;
+    };
+
+    const changePassword = (currentPassword, newPassword) => {
+        const storedPassword = localStorage.getItem('vendorPassword') || '123456';
+
+        // Verify current password
+        if (currentPassword !== storedPassword) {
+            return { success: false, error: 'Current password is incorrect' };
+        }
+
+        // Update password
+        localStorage.setItem('vendorPassword', newPassword);
+        setVendor(prev => ({ ...prev, password: newPassword }));
+
+        return { success: true };
+    };
+
+    const logout = () => {
+        // Clear any session data if needed
+        console.log("Vendor logged out");
+        // Navigate will be handled by the component calling this
     };
 
     const addProduct = (product) => {
@@ -82,7 +112,9 @@ export const VendorProvider = ({ children }) => {
             updateProduct,
             updateOrderStatus,
             toggleShopStatus,
-            updateVendorProfile
+            updateVendorProfile,
+            changePassword,
+            logout
         }}>
             {children}
         </VendorContext.Provider>

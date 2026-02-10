@@ -44,11 +44,11 @@ const InventoryReports = () => {
     ];
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="space-y-6 lg:space-y-5 pb-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Inventory Reports</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Inventory Reports</h1>
                     <p className="text-sm text-gray-500">Comprehensive analytics and insights</p>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
@@ -71,7 +71,7 @@ const InventoryReports = () => {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
                             <Package size={20} />
@@ -82,7 +82,7 @@ const InventoryReports = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2.5 bg-green-50 text-green-600 rounded-lg">
                             <BarChart3 size={20} />
@@ -93,7 +93,7 @@ const InventoryReports = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2.5 bg-yellow-50 text-yellow-600 rounded-lg">
                             <AlertTriangle size={20} />
@@ -104,7 +104,7 @@ const InventoryReports = () => {
                         </div>
                     </div>
                 </div>
-                <div className="premium-card p-5">
+                <div className="premium-card p-5 lg:p-4">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2.5 bg-red-50 text-red-600 rounded-lg">
                             <TrendingDown size={20} />
@@ -119,7 +119,7 @@ const InventoryReports = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Stock Distribution Chart */}
-                <div className="premium-card p-6">
+                <div className="premium-card p-6 lg:p-5">
                     <h3 className="text-base font-bold text-gray-900 mb-4">Stock Level Distribution</h3>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={stockDistribution}>
@@ -136,7 +136,7 @@ const InventoryReports = () => {
                 </div>
 
                 {/* Category Distribution */}
-                <div className="premium-card p-6">
+                <div className="premium-card p-6 lg:p-5">
                     <h3 className="text-base font-bold text-gray-900 mb-4">Category-wise Value</h3>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
@@ -165,24 +165,24 @@ const InventoryReports = () => {
 
             {/* Top Products Table */}
             <div className="premium-card overflow-hidden">
-                <div className="p-5 border-b border-gray-100">
+                <div className="p-5 lg:p-4 border-b border-gray-100">
                     <h3 className="text-base font-bold text-gray-900">Top Products by Value</h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left min-w-[600px]">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Product</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Category</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Stock</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Unit Price</th>
-                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase text-right">Total Value</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Product</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Category</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Stock</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase">Unit Price</th>
+                                <th className="px-6 py-3 lg:px-4 lg:py-2 text-xs font-bold text-gray-500 uppercase text-right">Total Value</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {topProducts.map((product, index) => (
                                 <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                                                 <img src={product.image} alt="" className="w-full h-full object-cover" />
@@ -190,14 +190,14 @@ const InventoryReports = () => {
                                             <span className="text-sm font-bold text-gray-900">{product.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3 text-sm text-gray-600">{product.category}</td>
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3">
                                         <span className={`text-sm font-bold ${product.stock === 0 ? 'text-red-600' : product.stock < 20 ? 'text-yellow-600' : 'text-green-600'}`}>
                                             {product.stock}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatCurrency(product.price)}</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-gray-900 text-right">{formatCurrency(product.totalValue)}</td>
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3 text-sm font-medium text-gray-900">{formatCurrency(product.price)}</td>
+                                    <td className="px-6 py-4 lg:px-4 lg:py-3 text-sm font-bold text-gray-900 text-right">{formatCurrency(product.totalValue)}</td>
                                 </tr>
                             ))}
                         </tbody>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 
 const VendorSidebar = () => {
@@ -30,7 +30,6 @@ const VendorSidebar = () => {
                 { label: 'Manage Products', path: '/vendor/products' },
                 { label: 'Add Product', path: '/vendor/products/add' },
                 { label: 'Bulk Upload', path: '/vendor/products/bulk' },
-                { label: 'Product FAQs', path: '/vendor/products/faqs' },
                 { label: 'Tax & Pricing', path: '/vendor/products/tax-pricing' },
                 { label: 'Product Attributes', path: '/vendor/products/attributes' },
             ]
@@ -45,6 +44,7 @@ const VendorSidebar = () => {
                 { label: 'Order Tracking', path: '/vendor/orders/tracking' },
             ]
         },
+        { icon: RotateCcw, label: 'Return Request', path: '/vendor/return-requests' },
         { icon: Wallet, label: 'Earnings', path: '/vendor/earnings' },
         { icon: User, label: 'Profile', path: '/vendor/profile' },
     ];
@@ -86,7 +86,13 @@ const VendorSidebar = () => {
                             <div key={item.label} className="space-y-1">
                                 <NavLink
                                     to={item.path}
-                                    onClick={(e) => hasSubItems && toggleMenu(e, item.label)}
+                                    onClick={(e) => {
+                                        if (hasSubItems) {
+                                            toggleMenu(e, item.label);
+                                        } else {
+                                            setIsOpen(false); // Close mobile menu
+                                        }
+                                    }}
                                     className={({ isActive }) => `flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${(isActive && !hasSubItems) || (hasSubItems && isExpanded)
                                         ? 'bg-[#0c831f]/10 text-[#0c831f]'
                                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

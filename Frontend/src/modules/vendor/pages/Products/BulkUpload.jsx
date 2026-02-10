@@ -17,10 +17,33 @@ const BulkUpload = () => {
         }
     };
 
+    const downloadTemplate = () => {
+        // Create CSV content with headers and sample data
+        const csvContent = [
+            ['SKU', 'Product Name', 'Category', 'Price', 'Stock', 'Weight', 'Description', 'Image URL'],
+            ['SG-001', 'Sample Product 1', 'Groceries', '99.00', '50', '100g', 'This is a sample product description', 'https://example.com/image1.jpg'],
+            ['SG-002', 'Sample Product 2', 'Dairy', '149.00', '30', '1L', 'Another sample product', 'https://example.com/image2.jpg'],
+            ['SG-003', 'Sample Product 3', 'Snacks', '49.00', '100', '250g', 'Sample snack item', 'https://example.com/image3.jpg']
+        ].map(row => row.join(',')).join('\n');
+
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'saathigro_product_template.csv');
+        link.style.visibility = 'hidden';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="min-h-screen bg-white pb-12">
             {/* Header */}
-            <div className="bg-white border-b border-gray-100 px-8 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 sticky top-0 z-50">
+            <div className="bg-white border-b border-gray-100 px-8 py-3 lg:py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 sticky top-0 z-50">
                 <div className="flex items-center gap-3">
                     <button onClick={() => navigate('/vendor/products')} className="p-1.5 hover:bg-gray-100 rounded-lg md:hidden">
                         <ArrowRight className="rotate-180" size={18} />
@@ -31,7 +54,10 @@ const BulkUpload = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold text-gray-600 hover:bg-gray-100 transition-all">
+                    <button
+                        onClick={downloadTemplate}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold text-gray-600 hover:bg-gray-100 transition-all"
+                    >
                         <Download size={12} /> Download template
                     </button>
                     {step > 1 && (
@@ -42,7 +68,7 @@ const BulkUpload = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 md:px-12 py-4">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 lg:py-4">
                 {/* Steps Navigator */}
                 <div className="flex items-center gap-4 mb-4 overflow-x-auto pb-1 no-scrollbar border-b border-gray-50">
                     {[

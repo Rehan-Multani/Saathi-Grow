@@ -46,19 +46,19 @@ const Earnings = () => {
     };
 
     return (
-        <div>
-            <h1 className="text-lg font-bold text-gray-900 mb-6">Earnings & Payouts</h1>
+        <div className="space-y-4 lg:space-y-5">
+            <h1 className="text-lg lg:text-xl font-bold text-gray-900 tracking-tight">Earnings & Payouts</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5 mb-6 lg:mb-6">
                 {/* Total Balance Card */}
-                <div className="bg-gradient-to-br from-[#0c831f] to-[#085d16] rounded-xl p-6 text-white shadow-lg">
-                    <div className="flex items-center gap-3 mb-4">
+                <div className="bg-gradient-to-br from-[#0c831f] to-[#085d16] rounded-xl p-4 lg:p-5 text-white shadow-lg">
+                    <div className="flex items-center gap-3 mb-3 lg:mb-4">
                         <div className="p-2 bg-white/20 rounded-lg">
-                            <Wallet size={24} />
+                            <Wallet size={20} />
                         </div>
                         <span className="text-sm font-medium text-green-100">Available Balance</span>
                     </div>
-                    <h2 className="text-3xl font-bold mb-1">{formatCurrency(stats.earnings)}</h2>
+                    <h2 className="text-2xl lg:text-3xl font-bold mb-1">{formatCurrency(stats.earnings)}</h2>
                     <p className="text-xs text-green-100 opacity-80 mb-6">Next payout scheduled for Tomorrow</p>
 
                     <button
@@ -70,8 +70,8 @@ const Earnings = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="bg-white rounded-xl border border-gray-100 p-6">
-                    <h3 className="text-sm font-bold text-gray-800 mb-4">Performance</h3>
+                <div className="bg-white rounded-xl border border-gray-100 p-4 lg:p-5">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 lg:mb-4">Performance</h3>
                     <div className="space-y-4">
                         <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                             <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ const Earnings = () => {
                         <tbody className="divide-y divide-gray-50">
                             {transactions.map((tx) => (
                                 <tr key={tx.id} className="hover:bg-gray-50">
-                                    <td className="p-4">
+                                    <td className="p-3 lg:p-3">
                                         <div className="flex items-center gap-3">
                                             <div className={`p-1.5 rounded-full ${tx.type === 'credit' ? 'bg-green-100 text-green-600' : tx.type === 'debit' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
                                                 <ArrowUpRight size={14} className={tx.type === 'debit' ? 'rotate-180' : ''} />

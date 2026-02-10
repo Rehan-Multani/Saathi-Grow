@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, ShieldCheck, CheckCircle, RefreshCw } from 'lucide-react';
+import { useReturnRequests } from '../../../../common/contexts/ReturnRequestsContext';
 
 const ReturnOrderPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { addReturnRequest } = useReturnRequests();
     const [selectedIssue, setSelectedIssue] = useState('');
     const [comment, setComment] = useState('');
     const [submitted, setSubmitted] = useState(false);
@@ -12,6 +14,17 @@ const ReturnOrderPage = () => {
     const issues = ['Item is damaged', 'Expired product', 'Quality not good', 'Wrong item delivered'];
 
     const submitRequest = () => {
+        // Save return request to context
+        addReturnRequest({
+            orderId: `ORD-${id}`,
+            customer: 'Current User', // In real app, get from user context
+            product: 'Product Name', // In real app, get from order data
+            reason: selectedIssue,
+            description: comment || selectedIssue, // Use comment if provided, otherwise use issue
+            amount: 0, // In real app, get from order data
+            images: [] // In real app, allow image uploads
+        });
+
         setSubmitted(true);
         setTimeout(() => navigate('/orders'), 3000);
     };

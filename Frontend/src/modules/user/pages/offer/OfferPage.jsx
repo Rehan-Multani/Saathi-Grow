@@ -63,7 +63,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
             {/* Product Details */}
             <div className="flex flex-col flex-grow z-10 px-1">
                 <Link to={`/product/${product.id}`}>
-                    <h4 className="font-medium md:font-bold text-gray-900 dark:text-gray-100 text-[7.5px] sm:text-[13px] md:!text-[11px] leading-tight mb-0.5 line-clamp-2 min-h-[18px] sm:min-h-[32px]">
+                    <h4 className="font-medium md:font-bold text-gray-900 dark:text-gray-100 text-[7px] sm:text-[11px] md:!text-[9px] leading-tight mb-0.5 line-clamp-2 min-h-[18px] sm:min-h-[32px]">
                         {product.name}
                     </h4>
                 </Link>
