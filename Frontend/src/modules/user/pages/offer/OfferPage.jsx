@@ -34,29 +34,32 @@ const FlyerProductCard = ({ product, badgeText }) => {
     const quantity = cartItem ? cartItem.quantity : 0;
 
     return (
-        <div className="bg-white dark:bg-[#111111] rounded-xl md:rounded-2xl p-2 md:p-2 shadow-[0_8px_24px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none border border-gray-200/60 dark:border-white/20 hover:border-[#0c831f]/40 dark:hover:border-white/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-col gap-0 h-auto md:h-full group relative overflow-hidden">
+        <div className="bg-white dark:bg-[#111111] rounded-xl md:rounded-2xl p-1.5 md:p-3 shadow-[0_8px_24px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none border border-gray-200/60 dark:border-white/20 hover:border-[#0c831f]/40 dark:hover:border-white/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-col gap-0 h-auto md:h-full group relative overflow-hidden">
 
 
-            {/* Discount Badge - Flyer Style */}
-            <div className="absolute -top-1 -left-1 w-9 h-9 md:w-12 md:h-12 bg-[#0c831f] rounded-full flex flex-col items-center justify-center text-white font-bold leading-tight border-2 border-white dark:border-gray-800 shadow-md z-20 rotate-[-5deg] group-hover:rotate-0 transition-transform">
-                <span className="text-[6px] md:text-[8px] uppercase font-black">{badgeText.split(' ')[0]}</span>
-                <span className="text-[7.5px] md:text-[10px] font-black">{badgeText.split(' ').slice(1).join(' ')}</span>
+            {/* Discount Badge - Flyer Style (Leaf Shape) */}
+            <div className="absolute -top-1 -left-1 w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-[#0c831f] to-[#085a15] rounded-tl-2xl rounded-br-2xl rounded-tr-sm rounded-bl-sm flex flex-col items-center justify-center text-white font-bold leading-tight border-2 border-white dark:border-black shadow-xl z-20 rotate-[-5deg] group-hover:rotate-0 transition-all duration-500">
+                <span className="text-[5.5px] md:text-[9px] uppercase font-black tracking-tighter opacity-90">{badgeText.split(' ')[0]}</span>
+                <span className="text-[7.5px] md:text-[12px] font-black tracking-tighter">
+                    {badgeText.split(' ').length > 2 ? badgeText.split(' ').slice(1, 3).join(' ') : badgeText.split(' ').slice(1).join(' ')}
+                </span>
             </div>
 
             {/* Product Image Section */}
-            <Link to={`/product/${product.id}`} className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a] z-10 flex items-center justify-center p-2">
+            <Link to={`/product/${product.id}`} className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50/50 dark:bg-[#0a0a0a] z-10 flex items-center justify-center p-1.5 md:p-3">
                 <img
                     src={product.image || categoryPlaceholder}
                     alt={product.name}
-                    className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105"
                     onError={(e) => {
                         e.target.src = categoryPlaceholder;
                         e.target.style.objectFit = 'cover';
                     }}
                 />
-                {/* Sale Tag */}
-                <div className="absolute top-1 right-1 bg-red-500 text-white text-[7px] font-bold px-1 py-0.5 rounded-md">
-                    -{discount}%
+
+                {/* Sale Percentage Tag (Matched to Home Reference) */}
+                <div className="absolute top-1 right-1 bg-gradient-to-r from-red-600 to-red-500 text-white text-[6.5px] md:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg border border-white/20 z-20 transform hover:scale-110 transition-transform">
+                    {discount}% OFF
                 </div>
             </Link>
 
@@ -67,7 +70,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                         {product.name}
                     </h4>
                 </Link>
-                <div className="text-gray-500 dark:text-gray-400 text-[8px] mb-1 font-medium">
+                <div className="text-gray-500 dark:text-gray-400 text-[7px] md:text-[9px] mb-1 font-medium italic opacity-80">
                     {product.weight} • {product.subCategory || "Premium"}
                 </div>
 
@@ -304,7 +307,7 @@ const OfferPage = () => {
             {/* Mobile View (Redesigned) */}
             <div className="md:hidden min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] font-sans pb-24 transition-colors duration-300">
                 {/* Header / Navbar */}
-                <div className="sticky top-0 z-50 bg-transparent backdrop-blur-xl border-b border-gray-100/50 dark:border-white/10 px-4 h-14 flex items-center justify-between" >
+                <div className="sticky top-0 z-50 bg-white dark:bg-black border-b border-gray-100/50 dark:border-white/10 px-4 pt-[82px] pb-3 flex items-center justify-between h-auto" >
                     <div className="flex items-center gap-2">
                         <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-all">
                             <ArrowLeft size={20} className="text-gray-900 dark:text-white" />
@@ -408,7 +411,7 @@ const OfferPage = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-1.5">
                             {dealProducts.map(product => (
                                 <FlyerProductCard
                                     key={product.id}

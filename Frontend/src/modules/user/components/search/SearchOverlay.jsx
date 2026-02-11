@@ -263,9 +263,9 @@ const SearchOverlay = () => {
                                             setSearchQuery(cat.name);
                                             addToHistory(cat.name);
                                         }}
-                                        className="h-20 bg-[#e8f5e9] md:bg-white/40 dark:bg-white/5 rounded-lg text-left border border-green-100/50 md:border-gray-100 dark:border-white/10 group hover:border-[#0c831f] transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04)] px-5 flex items-center"
+                                        className="h-14 md:h-20 bg-[#e8f5e9] md:bg-white/40 dark:bg-white/5 rounded-lg border border-green-100/50 md:border-gray-100 dark:border-white/10 group hover:border-[#0c831f] transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04)] px-2 md:px-5 flex items-center justify-center cursor-pointer active:scale-95"
                                     >
-                                        <p className="text-[14px] font-bold text-[#1e293b] dark:text-gray-200 group-hover:text-[#0c831f]">{cat.name}</p>
+                                        <span className="text-[13px] md:text-[14px] font-bold text-[#1e293b] dark:text-gray-200 group-hover:text-[#0c831f] text-center leading-none">{cat.name}</span>
                                     </button>
                                 ))}
                             </div>

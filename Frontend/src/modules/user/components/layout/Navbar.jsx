@@ -11,7 +11,7 @@ import logo from '../../../../assets/logo.png';
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton } from '../common/Skeleton';
 
-const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
+const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const { cartCount, cartTotal, toggleCart } = useCart();
   const { user, logout } = useAuth();
   const { location, openLocationModal } = useLocation();
@@ -143,7 +143,18 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       {/* MOBILE LAYOUT */}
       <div className="md:hidden transition-colors duration-300">
         {/* Row 1: Logo & Actions */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-3 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90 dark:from-[#141414] dark:to-[#141414]/90 backdrop-blur-md">
+        <div
+          className={`flex items-center justify-between px-4 pt-4 pb-2 gap-3 transition-colors duration-300 relative ${isDarkMode ? 'bg-black' : 'backdrop-blur-md'}`}
+          style={{
+            background: (!isDarkMode && customTheme)
+              ? `linear-gradient(to right, ${customTheme.bgColor}, #ffffff90)`
+              : undefined
+          }}
+        >
+          {/* Default Background if no custom theme - Light Mode Only */}
+          {!customTheme && !isDarkMode && (
+            <div className="absolute inset-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90 -z-10" />
+          )}
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 flex items-center">
             <img
@@ -183,7 +194,18 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
         </div>
 
         {/* Row 2: Search & Actions (Mobile) */}
-        <div className="px-4 pb-4 pt-2 flex items-center gap-3 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90 dark:from-[#141414] dark:to-[#141414]/90 backdrop-blur-md">
+        <div
+          className={`px-4 pb-4 pt-2 flex items-center gap-3 transition-colors duration-300 relative ${isDarkMode ? 'bg-black' : 'backdrop-blur-md'}`}
+          style={{
+            background: (!isDarkMode && customTheme)
+              ? `linear-gradient(to right, ${customTheme.bgColor}, #ffffff90)`
+              : undefined
+          }}
+        >
+          {/* Default Background if no custom theme - Light Mode Only */}
+          {!customTheme && !isDarkMode && (
+            <div className="absolute inset-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90 -z-10" />
+          )}
           {/* Search Input */}
           <div className="flex-1 relative group">
             <input
@@ -201,7 +223,11 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       </div>
 
       {/* DESKTOP LAYOUT (Hidden on Mobile) */}
-      <nav className="hidden md:block md:bg-white/90 md:dark:bg-black/90 backdrop-blur-md border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300">
+      <nav
+        className={`hidden md:block border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300 relative ${isDarkMode ? 'bg-black' : 'backdrop-blur-md'}`}
+        style={{ backgroundColor: (!isDarkMode && customTheme) ? customTheme.bgColor : undefined }}
+      >
+        {!customTheme && !isDarkMode && <div className="absolute inset-0 bg-white/90 -z-10" />}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
 

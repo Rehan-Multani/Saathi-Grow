@@ -29,15 +29,27 @@
 
 :root.dark {
   color-scheme: dark;
-  --bg-main: #0a0a0a;
-  --bg-surface: #141414;
-  --bg-surface-hover: #1c1c1c;
+  --bg-main: #000000;
+  --bg-surface: #0a0a0a;
+  --bg-surface-hover: #111111;
   --border-color: rgba(255, 255, 255, 0.08);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
 
   background-color: var(--bg-main);
   color: var(--text-primary);
+}
+
+/* Make all icons yellow in dark mode */
+.dark svg {
+  color: var(--saathi-yellow) !important;
+  stroke: var(--saathi-yellow) !important;
+}
+
+/* Force white icons for quantity selector in dark mode (on green background) */
+.dark .quantity-selector svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 @theme {

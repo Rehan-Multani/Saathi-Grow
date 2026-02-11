@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { Routes, Route, Outlet, useLocation, matchPath } from 'react-router-dom';
+import { getOccasionConfig } from '../data/occasions';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import MobileRecommendations from '../components/layout/MobileRecommendations';
@@ -9,6 +10,7 @@ import LocationModal from '../components/location/LocationModal';
 import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
+import { useTheme } from '../context/ThemeContext';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -21,6 +23,8 @@ import SupportChatPage from '../pages/profile/SupportChatPage';
 // Lazy Load Other Pages (Non-critical or large pages)
 const LoginModal = lazy(() => import('../components/auth/LoginModal'));
 const HomePage = lazy(() => import('../pages/home/HomePage'));
+const OccasionPage = lazy(() => import('../pages/home/OccasionPage'));
+const LowestPricesPage = lazy(() => import('../pages/home/LowestPricesPage'));
 const CategoryPage = lazy(() => import('../pages/categories/CategoryPage'));
 const ProductDetailsPage = lazy(() => import('../pages/product/ProductDetailsPage'));
 const CartPage = lazy(() => import('../pages/cart/CartPage'));
@@ -50,14 +54,32 @@ const LoadingFallback = () => (
 const UserLayout = () => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
     const location = useLocation();
+    const { isDarkMode } = useTheme();
     const authNoChromePaths = ['/logout-confirmation', '/login', '/register', '/order-success'];
     const hideDesktopChrome = authNoChromePaths.includes(location.pathname);
+
+    // Determine Theme based on route (for Occasion Pages & Lowest Prices)
+    const occasionMatch = matchPath("/occasion/:slug", location.pathname);
+    const occasionSlug = occasionMatch?.params?.slug;
+    const occasionConfig = occasionSlug ? getOccasionConfig(occasionSlug) : null;
+
+    // Check for Lowest Prices Page
+    const isLowestPricesPage = matchPath("/lowest-prices", location.pathname);
+
+    let customTheme = null;
+    if (!isDarkMode) {
+        if (occasionConfig) {
+            customTheme = { bgColor: occasionConfig.bgColor, themeColor: occasionConfig.themeColor };
+        } else if (isLowestPricesPage) {
+            customTheme = { bgColor: "#fef2f2", themeColor: "#dc2626" }; // Red Theme
+        }
+    }
 
     return (
         <div className="user-module-root flex flex-col min-h-screen">
             <ScrollToTop />
             <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''}`}>
-                <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+                <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>
             {/* Spacer for fixed Navbar */}
             {!hideDesktopChrome && <div className="h-[110px] md:h-20"></div>}
@@ -76,7 +98,7 @@ const UserLayout = () => {
             {/* Desktop Footer */}
             {!hideDesktopChrome && (
                 <div className="hidden md:block">
-                    <Footer />
+                    <Footer customTheme={customTheme} />
                 </div>
             )}
 
@@ -93,6 +115,8 @@ const UserRoutes = () => {
                 {/* Routes with Navbar */}
                 <Route element={<UserLayout />}>
                     <Route path="/" element={<HomePage />} />
+                    <Route path="/occasion/:slug" element={<OccasionPage />} />
+                    <Route path="/lowest-prices" element={<LowestPricesPage />} />
                     <Route path="/category" element={<CategoryPage />} />
                     <Route path="/category/:slug" element={<CategoryPage />} />
                     <Route path="/product/:id" element={<ProductDetailsPage />} />

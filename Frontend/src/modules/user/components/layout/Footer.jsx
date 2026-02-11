@@ -2,9 +2,19 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 
-const Footer = () => {
+const Footer = ({ customTheme }) => {
   return (
-    <footer className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] md:dark:bg-black pt-4 md:pt-16 pb-12 md:pb-12 font-sans transition-colors duration-300 border-t border-gray-100 dark:border-white/5">
+    <footer
+      className="pt-4 md:pt-16 pb-12 md:pb-12 font-sans transition-colors duration-300 border-t border-gray-100 dark:border-white/5 relative"
+      style={{
+        background: customTheme
+          ? `linear-gradient(to right, ${customTheme.bgColor}, #ffffff)`
+          : undefined
+      }}
+    >
+      {!customTheme && (
+        <div className="absolute inset-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#000000] dark:to-[#000000] md:dark:bg-black -z-10" />
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-row justify-between items-start gap-1 sm:gap-4 mb-4 sm:mb-12">
 

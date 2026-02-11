@@ -78,8 +78,14 @@ const CartSidebar = () => {
                                         <Clock size={14} className="text-[#0c831f]" strokeWidth={3} />
                                     </div>
                                     <div>
-                                        <h3 className="!text-[10px] font-black text-gray-800 dark:text-gray-100 leading-tight">Delivery in 8 minutes</h3>
+                                        <h3 className="!text-[10px] font-black text-gray-800 dark:text-gray-100 leading-tight">Approximately in 8 minutes</h3>
                                         <p className="text-[7.5px] text-gray-400 font-bold mt-0.5 uppercase tracking-widest leading-none">Shipment of {cartCount} item{cartCount !== 1 ? 's' : ''}</p>
+                                        <div className="flex items-start gap-1 mt-1.5 p-1.5 bg-red-50 dark:bg-red-500/10 rounded-md border border-red-100 dark:border-red-500/20 max-w-[200px]">
+                                            <Info size={10} className="text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                            <p className="text-[8px] text-red-600 dark:text-red-300 transform leading-tight font-medium">
+                                                Delivery time is estimated and may vary due to traffic or weather conditions.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -104,7 +110,7 @@ const CartSidebar = () => {
                                             <p className="!text-[8px] text-gray-400 font-bold mb-1 uppercase tracking-widest opacity-70">{item.weight}</p>
                                             <p className="font-black text-gray-900 dark:text-gray-100 !text-[12px]">₹{item.price}</p>
                                         </div>
-                                        <div className="flex items-center bg-[#0c831f] text-white rounded-lg h-6.5 w-[64px] shadow-md shadow-green-500/10 overflow-hidden flex-shrink-0">
+                                        <div className="flex items-center bg-[#0c831f] text-white rounded-lg h-6.5 w-[64px] shadow-md shadow-green-500/10 overflow-hidden flex-shrink-0 quantity-selector">
                                             <button onClick={() => updateQuantity(item.id, -1)} className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors"><Minus size={9} strokeWidth={3} /></button>
                                             <span className="text-[9px] font-black w-4 text-center select-none">{item.quantity}</span>
                                             <button onClick={() => updateQuantity(item.id, 1)} className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors"><Plus size={9} strokeWidth={3} /></button>
@@ -112,39 +118,40 @@ const CartSidebar = () => {
                                     </div>
                                 ))}
                             </div>
-
-                            {/* Bill Details - Integrated */}
-                            <div className="p-3 bg-gray-50/50 dark:bg-white/5 rounded-[20px] mx-1 mt-4">
-                                <h3 className="!text-[9px] font-black text-gray-400 dark:text-gray-500 mb-3 text-left uppercase tracking-widest">Bill details</h3>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
-                                        <span>Items total</span>
-                                        <div className="flex items-center gap-1.5 font-black">
-                                            {savings > 0 && <span className="line-through text-gray-300 dark:text-gray-600 opacity-60">₹{itemTotalOriginal}</span>}
-                                            <span className="text-gray-900 dark:text-gray-100">₹{itemTotalDiscounted}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
-                                        <span className="flex items-center gap-1">Delivery charge</span>
-                                        <span className="text-[#0c831f] font-black">FREE</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
-                                        <span className="flex items-center gap-1">Handling charge</span>
-                                        <span className="text-gray-900 dark:text-gray-100 font-black">₹{handlingFee}</span>
-                                    </div>
-                                    <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex justify-between items-center">
-                                        <span className="font-black text-gray-900 dark:text-gray-100 !text-[12px] uppercase tracking-tighter">Grand total</span>
-                                        <span className="font-black text-gray-900 dark:text-gray-100 !text-[18px]">₹{finalTotal}</span>
-                                    </div>
-                                </div>
-                            </div>
                         </>
                     )}
                 </div>
 
-                {/* Footer CTA */}
+                {/* Fixed Bottom Section (Bill & CTA) */}
                 {cart.length > 0 && (
-                    <div className="p-2.5 bg-transparent border-t border-gray-100 dark:border-white/5 pb-20 md:pb-2.5">
+                    <div className="bg-white dark:bg-[#111111] border-t border-gray-100 dark:border-white/5 p-3 sm:p-4 space-y-3 z-20">
+                        {/* Bill Details - Moved here to be fixed */}
+                        <div className="p-3 bg-gray-50/50 dark:bg-white/5 rounded-[20px] shadow-sm border border-gray-100 dark:border-white/5">
+                            <h3 className="!text-[9px] font-black text-gray-400 dark:text-gray-500 mb-3 text-left uppercase tracking-widest">Bill details</h3>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
+                                    <span>Items total</span>
+                                    <div className="flex items-center gap-1.5 font-black">
+                                        {savings > 0 && <span className="line-through text-gray-300 dark:text-gray-600 opacity-60">₹{itemTotalOriginal}</span>}
+                                        <span className="text-gray-900 dark:text-gray-100">₹{itemTotalDiscounted}</span>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
+                                    <span className="flex items-center gap-1">Delivery charge</span>
+                                    <span className="text-[#0c831f] font-black">FREE</span>
+                                </div>
+                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
+                                    <span className="flex items-center gap-1">Handling charge</span>
+                                    <span className="text-gray-900 dark:text-gray-100 font-black">₹{handlingFee}</span>
+                                </div>
+                                <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex justify-between items-center">
+                                    <span className="font-black text-gray-900 dark:text-gray-100 !text-[12px] uppercase tracking-tighter">Grand total</span>
+                                    <span className="font-black text-gray-900 dark:text-gray-100 !text-[18px]">₹{finalTotal}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer CTA */}
                         <button
                             onClick={() => {
                                 setIsCartOpen(false);
