@@ -46,7 +46,7 @@ const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 border-b border-gray-50 dark:border-white/5 my-0 rounded-xl transition-all duration-300" style={{ background: isDarkMode ? '' : 'linear-gradient(to right, #fef2f2, #fecaca)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 border-b border-gray-50 dark:border-white/5 my-0 rounded-xl transition-all duration-300" style={{ background: isDarkMode ? '' : 'linear-gradient(to right, #e8f5e9, #ffffff)' }}>
             {/* Section Header */}
             <div className="flex items-center justify-between mb-1 md:mb-2">
                 <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest
                 </div>
                 <Link
                     to="/lowest-prices"
-                    className="flex items-center gap-1 text-[#dc2626] dark:text-[#f7cb15] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all"
+                    className="flex items-center gap-1 text-[#0c831f] dark:text-[#f7cb15] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all"
                 >
                     See all
                     <ChevronRight size={14} />
@@ -98,7 +98,7 @@ const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest
                                 </div>
                                 <ProductCard
                                     product={product}
-                                    customTheme={{ themeColor: isDarkMode ? '#f7cb15' : '#dc2626' }}
+                                    customTheme={{ themeColor: isDarkMode ? '#f7cb15' : '#0c831f' }}
                                 />
                             </div>
                         ))

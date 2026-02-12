@@ -8,6 +8,7 @@ import {
 import { offerBanners } from '../../data/offers';
 import { products } from '../../data/products';
 import { useCart } from '../../context/CartContext';
+import { useTheme } from '../../context/ThemeContext';
 import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 // Helper for countdown
@@ -34,7 +35,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
     const quantity = cartItem ? cartItem.quantity : 0;
 
     return (
-        <div className="bg-white dark:bg-[#111111] rounded-xl md:rounded-2xl p-1.5 md:p-3 shadow-[0_8px_24px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none border border-gray-200/60 dark:border-white/20 hover:border-[#0c831f]/40 dark:hover:border-white/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-col gap-0 h-auto md:h-full group relative overflow-hidden">
+        <div className="bg-white dark:bg-[#111111] rounded-xl md:rounded-2xl p-1 md:p-2 shadow-[0_8px_24px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none border border-gray-200/60 dark:border-white/20 hover:border-[#0c831f]/40 dark:hover:border-white/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-col gap-0 h-auto md:h-full group relative overflow-hidden">
 
 
             {/* Discount Badge - Flyer Style (Leaf Shape) */}
@@ -46,7 +47,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
             </div>
 
             {/* Product Image Section */}
-            <Link to={`/product/${product.id}`} className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50/50 dark:bg-[#0a0a0a] z-10 flex items-center justify-center p-1.5 md:p-3">
+            <Link to={`/product/${product.id}`} className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50/50 dark:bg-[#0a0a0a] z-10 flex items-center justify-center p-1.5 md:p-2.5">
                 <img
                     src={product.image || categoryPlaceholder}
                     alt={product.name}
@@ -66,7 +67,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
             {/* Product Details */}
             <div className="flex flex-col flex-grow z-10 px-1">
                 <Link to={`/product/${product.id}`}>
-                    <h4 className="font-medium md:font-bold text-gray-900 dark:text-gray-100 text-[7px] sm:text-[11px] md:!text-[9px] leading-tight mb-0.5 line-clamp-2 min-h-[18px] sm:min-h-[32px]">
+                    <h4 className="font-medium md:font-bold text-gray-900 dark:text-gray-100 text-[8px] sm:text-[10px] md:!text-[9.5px] leading-tight mb-0.5 line-clamp-2 min-h-[14px] sm:min-h-[24px]">
                         {product.name}
                     </h4>
                 </Link>
@@ -74,35 +75,36 @@ const FlyerProductCard = ({ product, badgeText }) => {
                     {product.weight} • {product.subCategory || "Premium"}
                 </div>
 
-                {/* Pricing & Add Button */}
-                <div className="flex items-center justify-between mt-auto">
-                    <div className="flex flex-col">
-                        <span className="text-gray-400 dark:text-gray-500 line-through text-[8px]">₹{product.originalPrice}</span>
-                        <span className="text-[10px] sm:text-[15px] font-black text-gray-900 dark:text-[#f8fafc]">₹{product.price}</span>
+                <div className="flex items-center justify-between mt-auto pt-1">
+                    <div className="flex flex-col justify-end">
+                        <span className="text-gray-400 dark:text-gray-500 line-through text-[8px] leading-[1] mb-0.5">₹{product.originalPrice}</span>
+                        <div className="flex items-baseline">
+                            <span className="text-[12px] sm:text-[16px] font-black text-gray-900 dark:text-[#f8fafc] leading-none">₹{product.price}</span>
+                        </div>
                     </div>
 
                     {quantity > 0 ? (
-                        <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[22px] sm:h-[36px] min-w-[55px] sm:min-w-[85px] border border-[#0c831f]">
+                        <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[26px] sm:h-[40px] min-w-[70px] sm:min-w-[95px] border border-[#0c831f]">
                             <button
                                 onClick={() => updateQuantity(product.id, -1)}
                                 className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform"
                             >
-                                <Minus size={10} sm:size={14} strokeWidth={2.5} />
+                                <Minus size={12} sm:size={16} strokeWidth={2.5} />
                             </button>
-                            <span className="text-[9px] sm:text-[14px] font-black w-4 sm:w-7 text-center select-none leading-none">
+                            <span className="text-[10px] sm:text-[15px] font-black w-4 sm:w-7 text-center select-none leading-none">
                                 {quantity}
                             </span>
                             <button
                                 onClick={() => updateQuantity(product.id, 1)}
                                 className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-r-full will-change-transform"
                             >
-                                <Plus size={10} sm:size={14} strokeWidth={2.5} />
+                                <Plus size={12} sm:size={16} strokeWidth={2.5} />
                             </button>
                         </div>
                     ) : (
                         <button
                             onClick={() => addToCart(product)}
-                            className="px-2 py-0.5 bg-[#0c831f] text-white border border-transparent hover:bg-[#0a6b19] active:scale-95 transition-all text-[7.5px] sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[20px] sm:h-[34px] flex items-center justify-center"
+                            className="px-3 sm:px-4 py-0.5 bg-[#0c831f] text-white border border-transparent hover:bg-[#0a6b19] active:scale-95 transition-all text-[9px] sm:text-[13px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[24px] sm:h-[38px] flex items-center justify-center"
                             aria-label="Add to cart"
                         >
                             ADD
@@ -117,6 +119,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
 const OfferPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { isDarkMode } = useTheme();
     const [copied, setCopied] = useState(false);
     const [activeFilter, setActiveFilter] = useState('Hot Deals');
 
@@ -182,10 +185,10 @@ const OfferPage = () => {
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-8 mt-10 space-y-12">
+                <div className="max-w-7xl mx-auto px-8 mt-6 space-y-8">
                     {/* Re-designed Split Hero Section (Balanced Image Size) */}
-                    <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-[3rem] bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/10 shadow-2xl shadow-black/5 min-h-[480px]">
-                        <div className="p-16 flex flex-col justify-center space-y-8 relative overflow-hidden">
+                    <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-[3rem] bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/10 shadow-2xl shadow-black/5 min-h-[400px]">
+                        <div className="p-10 flex flex-col justify-center space-y-6 relative overflow-hidden">
                             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 dark:bg-green-500/5 blur-[100px] rounded-full"></div>
 
                             <div className="relative space-y-4">
@@ -265,7 +268,7 @@ const OfferPage = () => {
                     </div>
 
                     {/* Main Featured Deal Section */}
-                    <div className="space-y-8">
+                    <div className="space-y-6">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-3">
                                 <div className="h-4 w-1 bg-[#0c831f] rounded-full"></div>
@@ -278,7 +281,7 @@ const OfferPage = () => {
                                         <button
                                             key={f}
                                             onClick={() => setActiveFilter(f)}
-                                            className={`px-6 py-2 rounded-xl text-xs font-black transition-all whitespace-nowrap ${activeFilter === f
+                                            className={`px-6 py-2 rounded-full text-xs font-black transition-all whitespace-nowrap ${activeFilter === f
                                                 ? 'bg-[#0c831f] text-white shadow-lg shadow-green-500/20'
                                                 : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
                                                 }`}
@@ -305,9 +308,9 @@ const OfferPage = () => {
             </div>
 
             {/* Mobile View (Redesigned) */}
-            <div className="md:hidden min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] font-sans pb-24 transition-colors duration-300">
+            <div className="md:hidden min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] font-sans pb-20 transition-colors duration-300">
                 {/* Header / Navbar */}
-                <div className="sticky top-0 z-50 bg-white dark:bg-black border-b border-gray-100/50 dark:border-white/10 px-4 pt-[82px] pb-3 flex items-center justify-between h-auto" >
+                <div className={`sticky top-0 z-50 border-b border-gray-100/50 dark:border-white/10 px-4 pt-4 pb-3 flex items-center justify-between h-auto ${isDarkMode ? 'bg-black' : 'bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90'}`} >
                     <div className="flex items-center gap-2">
                         <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-all">
                             <ArrowLeft size={20} className="text-gray-900 dark:text-white" />
@@ -324,24 +327,34 @@ const OfferPage = () => {
                     </div>
                 </div >
 
-                <div className="px-4 py-4 space-y-6">
+                <div className="px-3 py-1.5 space-y-3">
 
                     {/* Mobile Hero Section (Redesigned to Match Home Carousel) */}
-                    <div className="relative w-full bg-gradient-to-r from-[#718355] to-[#4f5c3a] dark:from-[#141414] dark:to-[#141414] pb-4 pt-2 px-6 overflow-hidden shadow-sm border border-white/50 dark:border-white/5">
-                        <div className="relative z-10 flex flex-col items-start max-w-[70%]">
-                            <span className="text-[10px] bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md font-bold text-white mb-2 uppercase tracking-wider shadow-sm border border-white/10">
-                                {offer.subTitle || 'Limited Time Offer'}
+                    <div className="relative w-full bg-gradient-to-r from-[#718355] to-[#4f5c3a] dark:from-[#141414] dark:to-[#141414] pb-3 pt-1.5 px-5 overflow-hidden shadow-sm border border-white/50 dark:border-white/5 rounded-2xl">
+                        <div className="relative z-10 py-1">
+                            <span className="bg-white/20 backdrop-blur-md text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-white/30 mb-1.5 inline-block">
+                                Fresh Product with Great Price
                             </span>
-                            <h1 className="text-2xl font-black text-white dark:text-gray-100 leading-[0.9] mb-1 tracking-tighter uppercase line-clamp-2">
+                            <h1 className="text-2xl font-black text-white leading-[1.1] mb-2 tracking-tight">
                                 {offer.title.split(' ')[0]}<br />
                                 <span className="text-[#e2e8db]">{offer.discount}</span>
                             </h1>
-                            <p className="text-[11px] font-bold text-white/80 dark:text-gray-400 mb-4 bg-black/20 dark:bg-white/5 px-2.5 py-1 rounded-full inline-block line-clamp-1 border border-white/10 backdrop-blur-sm">
-                                Code: {offer.couponCode} • Tab to Apply
+                            <p
+                                onClick={() => {
+                                    navigator.clipboard.writeText(offer.couponCode);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+                                }}
+                                className={`text-[10px] font-bold mb-3 px-2 py-0.5 rounded-full inline-block line-clamp-1 border border-white/10 backdrop-blur-sm cursor-pointer active:scale-95 transition-all ${copied ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-black/20 dark:bg-white/5 text-white/80 dark:text-gray-400'}`}
+                            >
+                                {copied ? 'Code Copied!' : `Code: ${offer.couponCode} • Tap to Apply`}
                             </p>
                             <div className="flex items-center gap-2">
-                                <div className="bg-white dark:bg-white text-[#556b2f] dark:text-black px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1.5">
-                                    Offer Active <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse ml-1"></div>
+                                <div className="bg-white dark:bg-zinc-800 text-[#556b2f] dark:text-gray-200 px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1 border border-white/20">
+                                    Live <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+                                </div>
+                                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1 border border-white/20 animate-pulse-subtle">
+                                    <Truck size={10} strokeWidth={3} /> Free Delivery
                                 </div>
                             </div>
                         </div>
@@ -372,37 +385,23 @@ const OfferPage = () => {
                         <div className="absolute bottom-5 left-10 w-12 h-12 rounded-full bg-green-400/10 blur-xl pointer-events-none"></div>
                     </div>
 
-                    {/* Free Delivery Bar */}
-                    <div className="bg-[#0c831f] rounded-[16px] p-3 text-white flex items-center justify-between shadow-lg shadow-green-500/10 active:scale-[0.98] transition-all">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/30">
-                                <Truck size={16} />
-                            </div>
-                            <div>
-                                <h4 className="font-black text-[14px] capitalize tracking-tight leading-none mb-0.5">Zero Shipping Cost</h4>
-                                <p className="text-[9px] font-bold opacity-80 tracking-wide">Valid on all deals today!</p>
-                            </div>
-                        </div>
-                        <ChevronDown size={18} className="-rotate-90 opacity-60" />
-                    </div>
 
                     {/* Hot Deals Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between sticky top-14 bg-transparent backdrop-blur-sm z-30 py-3 -mx-4 px-4 border-b border-gray-200/50 dark:border-white/5">
-                            <div className="flex items-center gap-2">
-                                <div className="w-1 h-6 bg-[#0c831f] rounded-full"></div>
-                                <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight uppercase">Featured</h3>
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-4 sticky top-[72px] bg-white/80 dark:bg-black/80 backdrop-blur-md z-30 py-2 -mx-3 px-3 border-b border-gray-100 dark:border-white/5 overflow-hidden">
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <div className="w-0.5 h-4 bg-[#0c831f] rounded-full"></div>
+                                <h3 className="text-sm font-black text-gray-900 dark:text-white tracking-tight">Featured</h3>
                             </div>
 
-                            {/* Filter Tabs */}
-                            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                            <div className="flex gap-2 overflow-x-auto scrollbar-hide py-0.5 pr-2">
                                 {['Hot Deals', 'Under ₹99', 'Buy 1 Get 1'].map((f) => (
                                     <button
                                         key={f}
                                         onClick={() => setActiveFilter(f)}
-                                        className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all border whitespace-nowrap ${activeFilter === f
+                                        className={`px-3 py-1 rounded-full text-[9.5px] font-black transition-all border-2 whitespace-nowrap shadow-sm active:scale-95 ${activeFilter === f
                                             ? 'bg-[#0c831f] text-white border-[#0c831f]'
-                                            : 'bg-white text-gray-500 border-gray-200 dark:bg-[#111] dark:border-white/10'
+                                            : 'bg-white text-gray-500 border-gray-50 dark:bg-[#111] dark:border-white/5'
                                             }`}
                                     >
                                         {f}
@@ -411,7 +410,7 @@ const OfferPage = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-1.5">
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-4">
                             {dealProducts.map(product => (
                                 <FlyerProductCard
                                     key={product.id}

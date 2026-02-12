@@ -30,8 +30,9 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding }) =>
 
   return (
     <div
-      className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-[#111111] rounded-2xl p-3 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-2 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0"
+      className="rounded-2xl p-3 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-2 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0"
       style={{
+        backgroundColor: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
         '--theme-color': customTheme ? customTheme.themeColor : '#0c831f'
       }}

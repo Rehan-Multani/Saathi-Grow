@@ -10,9 +10,9 @@ const LowestPricesPage = () => {
 
     const { isDarkMode } = useTheme();
 
-    const themeColor = isDarkMode ? "#ffffff" : "#dc2626"; // White for dark, Red for light
-    const bgColor = isDarkMode ? "#000000" : "#fef2f2"; // Black for dark, Red 50 for light
-    const accentColor = isDarkMode ? "#000000" : "#fecaca"; // Black for dark, Red 200 for light
+    const themeColor = isDarkMode ? "#ffffff" : "#0c831f";
+    const bgColor = isDarkMode ? "#000000" : "#e8f5e9";
+    const accentColor = isDarkMode ? "#000000" : "#ffffff";
 
     // Filter for products with discounts
     const discountedProducts = useMemo(() => {
@@ -29,13 +29,13 @@ const LowestPricesPage = () => {
         <div
             className="min-h-screen pb-20 transition-colors duration-300"
             style={{
-                background: `linear-gradient(to bottom, ${bgColor}, ${accentColor})`,
+                background: isDarkMode ? bgColor : `linear-gradient(to right, ${bgColor}, ${accentColor})`,
                 minHeight: '100vh'
             }}
         >
             {/* Header */}
             <div
-                className="sticky top-0 z-40 px-4 pt-[82px] pb-3 flex items-center gap-4 shadow-sm transition-colors duration-300 backdrop-blur-md bg-opacity-95"
+                className="sticky top-0 z-40 px-4 pt-[74px] pb-2 flex items-center gap-3 shadow-sm transition-colors duration-300 backdrop-blur-md bg-opacity-95"
                 style={{ backgroundColor: bgColor }}
             >
                 <button
@@ -45,10 +45,10 @@ const LowestPricesPage = () => {
                     <ArrowLeft size={20} style={{ color: themeColor }} strokeWidth={2.5} />
                 </button>
                 <div className="flex flex-col">
-                    <h1 className="text-lg font-black leading-none tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
+                    <h1 className="text-base font-black leading-none tracking-tight flex items-center gap-2 mb-0.5" style={{ color: themeColor }}>
                         Lowest Prices Ever <TrendingDown size={18} />
                     </h1>
-                    <p className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'opacity-70'}`} style={{ color: isDarkMode ? '' : themeColor }}>
+                    <p className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-400' : 'opacity-70'}`} style={{ color: isDarkMode ? '' : themeColor }}>
                         Massive discounts on top products
                     </p>
                 </div>
@@ -56,15 +56,15 @@ const LowestPricesPage = () => {
 
             {/* Filter/Sort Bar */}
             <div
-                className="sticky top-[134px] z-30 px-4 py-2 backdrop-blur-md transition-colors duration-300"
+                className="sticky top-[122px] z-30 px-4 py-2 backdrop-blur-md transition-colors duration-300"
                 style={{ backgroundColor: `${bgColor}90` }}
             >
                 <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white/40 hover:bg-white/60 rounded-full text-xs font-bold border border-white/20 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 hover:opacity-90 rounded-full text-xs font-bold border border-gray-200 dark:border-white/10 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
                         <Filter size={12} strokeWidth={2.5} />
                         Filter
                     </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white/40 hover:bg-white/60 rounded-full text-xs font-bold border border-white/20 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 hover:opacity-90 rounded-full text-xs font-bold border border-gray-200 dark:border-white/10 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
                         Sort By <ChevronDown size={12} strokeWidth={2.5} />
                     </button>
                     <div className="w-[1px] h-4 bg-black/5 mx-1"></div>
@@ -80,7 +80,7 @@ const LowestPricesPage = () => {
                     {discountedProducts.map(product => (
                         <div key={product.id} className="relative">
                             {/* Discount Badge */}
-                            <div className="absolute top-2 right-2 z-50 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                            <div className="absolute top-2 right-2 z-50 bg-[#0c831f] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
                                 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                             </div>
                             <ProductCard

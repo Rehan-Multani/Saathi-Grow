@@ -11,17 +11,6 @@ export const getOccasionConfig = (slug) => {
                 productIds: [1201, 1202, 1203, 1205, 1206, 1802, 1104], // Chocolates, Grooming
                 icon: "💖"
             };
-        case 'shivratri-essentials':
-            return {
-                title: "Shivratri Essentials",
-                subtitle: "Fasting & Pooja Needs",
-                description: "Everything you need for your holy fasting and prayers.",
-                themeColor: "#ff9800", // Orange
-                bgColor: "#fff3e0", // Light Orange
-                accentColor: "#ffe0b2",
-                productIds: [104, 105, 106, 201, 206, 805, 1001, 1301, 1302, 103], // Fruits, Milk, Dry Fruits
-                icon: "🕉️"
-            };
         case 'saathi-select':
             return {
                 title: "Saathi Signature",

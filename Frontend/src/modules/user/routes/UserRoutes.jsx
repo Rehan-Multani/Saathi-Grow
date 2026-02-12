@@ -70,8 +70,6 @@ const UserLayout = () => {
     if (!isDarkMode) {
         if (occasionConfig) {
             customTheme = { bgColor: occasionConfig.bgColor, themeColor: occasionConfig.themeColor };
-        } else if (isLowestPricesPage) {
-            customTheme = { bgColor: "#fef2f2", themeColor: "#dc2626" }; // Red Theme
         }
     }
 

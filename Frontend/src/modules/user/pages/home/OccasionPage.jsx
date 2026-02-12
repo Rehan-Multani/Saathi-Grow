@@ -42,7 +42,7 @@ const OccasionPage = () => {
         >
             {/* Header */}
             <div
-                className="sticky top-0 z-40 px-4 pt-[82px] pb-3 flex items-center gap-4 shadow-sm transition-colors duration-300 backdrop-blur-md bg-opacity-95"
+                className="sticky top-0 z-40 px-4 pt-[74px] pb-2 flex items-center gap-3 shadow-sm transition-colors duration-300 backdrop-blur-md bg-opacity-95"
                 style={{ backgroundColor: isDarkMode ? '#000000' : occasionConfig.bgColor }}
             >
                 <button
@@ -52,24 +52,24 @@ const OccasionPage = () => {
                     <ArrowLeft size={20} style={{ color: isDarkMode ? '#ffffff' : occasionConfig.themeColor }} strokeWidth={2.5} />
                 </button>
                 <div className="flex flex-col">
-                    <h1 className="text-lg font-black leading-none tracking-tight" style={{ color: isDarkMode ? '#ffffff' : occasionConfig.themeColor }}>
+                    <h1 className="text-base font-black leading-none tracking-tight mb-0.5" style={{ color: isDarkMode ? '#ffffff' : occasionConfig.themeColor }}>
                         {occasionConfig.title}
                     </h1>
-                    <p className="text-xs font-bold opacity-70" style={{ color: isDarkMode ? '#94a3b8' : occasionConfig.themeColor }}>
+                    <p className="text-[10px] font-bold opacity-70" style={{ color: isDarkMode ? '#94a3b8' : occasionConfig.themeColor }}>
                         {occasionConfig.subtitle}
                     </p>
                 </div>
             </div>
 
             {/* Banner Section */}
-            <div className={`px-6 py-2 ${isDarkMode ? 'bg-[#111111]' : ''}`}>
+            <div className={`px-5 py-1 ${isDarkMode ? 'bg-[#111111]' : ''}`}>
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="max-w-[100%]">
-                        <div className="text-4xl mb-2 animate-bounce duration-[2000ms]">{occasionConfig.icon}</div>
-                        <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mb-1 tracking-tighter">
+                        <div className="text-3xl mb-1 animate-bounce duration-[2000ms]">{occasionConfig.icon}</div>
+                        <h2 className="text-xl md:text-3xl font-black text-gray-900 dark:text-white mb-0.5 tracking-tighter">
                             {occasionConfig.title}
                         </h2>
-                        <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 font-medium max-w-2xl">
+                        <p className="text-[11px] md:text-base text-gray-600 dark:text-gray-300 font-medium max-w-2xl leading-tight">
                             {occasionConfig.description}
                         </p>
                     </div>
@@ -77,15 +77,15 @@ const OccasionPage = () => {
             </div>
 
             {/* Filter / Sort Bar (Visual Only for now) */}
-            <div className="sticky top-[134px] z-30 bg-white/50 dark:bg-black/50 backdrop-blur-md border-b border-gray-100/20 py-3 px-4 shadow-sm mb-6 transition-colors duration-300">
+            <div className="sticky top-[122px] z-30 bg-white/50 dark:bg-black/50 backdrop-blur-md border-b border-gray-100/20 py-2 px-4 shadow-sm mb-4 transition-colors duration-300">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{displayProducts.length} Items Found</p>
+                    <p className="text-[10px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{displayProducts.length} Items Found</p>
                     <div className="flex gap-2">
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200/50 dark:border-white/10 bg-white/50 dark:bg-white/5 text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 transition-colors shadow-sm">
-                            Filters <Filter size={12} strokeWidth={2.5} />
+                        <button className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200/50 dark:border-white/10 bg-white/50 dark:bg-white/5 text-[10px] font-bold text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 transition-colors shadow-sm">
+                            Filters <Filter size={10} strokeWidth={2.5} />
                         </button>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200/50 dark:border-white/10 bg-white/50 dark:bg-white/5 text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 transition-colors shadow-sm">
-                            Sort By <ChevronDown size={12} strokeWidth={2.5} />
+                        <button className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200/50 dark:border-white/10 bg-white/50 dark:bg-white/5 text-[10px] font-bold text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 transition-colors shadow-sm">
+                            Sort By <ChevronDown size={10} strokeWidth={2.5} />
                         </button>
                     </div>
                 </div>
@@ -98,7 +98,10 @@ const OccasionPage = () => {
                         <ProductCard
                             key={product.id}
                             product={product}
-                            customTheme={{ themeColor: isDarkMode ? '#f7cb15' : occasionConfig.themeColor }}
+                            customTheme={{
+                                themeColor: isDarkMode ? '#f7cb15' : occasionConfig.themeColor,
+                                bgColor: isDarkMode ? '' : occasionConfig.bgColor
+                            }}
                         />
                     ))}
                 </div>

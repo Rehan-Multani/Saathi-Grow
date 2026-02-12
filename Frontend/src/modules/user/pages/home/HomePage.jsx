@@ -276,19 +276,6 @@ const HomePage = () => {
                 />
             )}
 
-            {/* Shivratri Essentials Section */}
-            {!isSearching && (
-                <OccasionSection
-                    title="Shivratri Essentials"
-                    subtitle="Fasting & Pooja Needs"
-                    products={products.filter(p => [104, 105, 106, 201, 206, 805, 1001, 1301, 1302, 103].includes(p.id))}
-                    loading={loading}
-                    themeColor="#ff9800"
-                    bgColor="#fff3e0"
-                    slug="shivratri-essentials"
-                    badgeText="🕉️ Special Festival Offer - Limited Time!"
-                />
-            )}
 
             {/* Lowest Prices Ever Section */}
             {!isSearching && (
@@ -510,7 +497,10 @@ const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgCol
                             <div key={product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
                                 <ProductCard
                                     product={product}
-                                    customTheme={{ themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor }}
+                                    customTheme={{
+                                        themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor,
+                                        bgColor: isDarkMode ? '' : bgColor
+                                    }}
                                 />
                             </div>
                         ))

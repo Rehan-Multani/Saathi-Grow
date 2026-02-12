@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
-import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map, Mic } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map, Mic, Globe } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../context/LocationContext';
@@ -28,6 +28,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [language, setLanguage] = useState(localStorage.getItem('preferredLanguage') || 'English');
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
   const recognitionRef = React.useRef(null);
 
@@ -218,6 +220,62 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             />
             <Search className="absolute left-3.5 top-3.5 text-gray-400" size={18} strokeWidth={2.5} />
             <Mic className="absolute right-3.5 top-3.5 text-[#0c831f]" size={18} strokeWidth={2.5} />
+          </div>
+
+          {/* Language Switcher - Transparent in Light Mode */}
+          <div className="relative ml-1">
+            <button
+              onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+              className={`flex flex-col items-center justify-center p-1.5 rounded-xl transition-all min-w-[32px] ${isDarkMode
+                  ? 'bg-white/10 border border-white/5 shadow-sm'
+                  : 'bg-transparent border-transparent shadow-none'
+                }`}
+            >
+              <Globe size={18} className="text-[#0c831f] dark:text-gray-100" strokeWidth={2.5} />
+              <span className="text-[8px] font-black text-[#0c831f] dark:text-gray-300 uppercase tracking-tighter mt-0.5 leading-none">
+                {language === 'English' ? 'EN' : 'HI'}
+              </span>
+            </button>
+
+            {isLanguageMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsLanguageMenuOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-200">
+                  <div className="p-1.5 space-y-0.5">
+                    {[
+                      { name: 'English', sub: 'Default' },
+                      { name: 'Hindi', sub: 'हिंदी' }
+                    ].map((lang) => (
+                      <button
+                        key={lang.name}
+                        onClick={() => {
+                          setLanguage(lang.name);
+                          localStorage.setItem('preferredLanguage', lang.name);
+                          setIsLanguageMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${language === lang.name
+                          ? 'bg-[#0c831f] text-white shadow-md'
+                          : 'hover:bg-[#f0fdf4] dark:hover:bg-[#0c831f] text-gray-700 dark:text-gray-200 dark:hover:text-white'
+                          }`}
+                      >
+                        <div className="flex flex-col items-start translate-y-[1px]">
+                          <span className="text-[13px] font-bold leading-none">{lang.name}</span>
+                          <span className={`text-[9px] mt-0.5 font-medium ${language === lang.name ? 'text-white/70' : 'text-gray-400'}`}>
+                            {lang.sub}
+                          </span>
+                        </div>
+                        {language === lang.name && (
+                          <div className="w-1 h-1 rounded-full bg-white opacity-80" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
