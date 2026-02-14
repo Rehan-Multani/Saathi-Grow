@@ -1,32 +1,53 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Search, Plus, Edit, Trash2, Tag, Upload, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { showDeleteConfirmation, showSuccessAlert } from '../../../../common/utils/alertUtils';
+import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import BrandEditModal from '../../components/products/BrandEditModal';
-
-const BRANDS_MOCK = [
-    { id: '1', name: 'Nike', products: 120, status: 'Active' },
-    { id: '2', name: 'Adidas', products: 95, status: 'Active' },
-    { id: '3', name: 'Samsung', products: 40, status: 'Active' },
-    { id: '4', name: 'Apple', products: 60, status: 'Active' },
-    { id: '5', name: 'Nestle', products: 15, status: 'Inactive' },
-];
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { getBrands, deleteBrand, updateBrand } from '../../api/brandApi';
+import { toast } from 'react-toastify';
 
 const AllBrands = () => {
+    const { adminUser } = useAdminAuth();
+    const [brands, setBrands] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedBrand, setSelectedBrand] = useState(null);
 
-    const filtered = BRANDS_MOCK.filter(b =>
-        b.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const fetchBrands = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await getBrands(adminUser.token);
+            setBrands(data);
+        } catch (error) {
+            console.error('Error fetching brands:', error);
+            toast.error('Failed to load brands');
+        } finally {
+            setLoading(false);
+        }
+    }, [adminUser.token]);
+
+    useEffect(() => {
+        fetchBrands();
+    }, [fetchBrands]);
+
+    const filtered = brands.filter(b =>
+        b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleDelete = async (id) => {
-        const result = await showDeleteConfirmation('Delete Brand', 'Are you sure you want to delete this brand?');
+        const result = await showDeleteConfirmation('Delete Brand', 'Are you sure you want to delete this brand? This action cannot be undone.');
         if (result.isConfirmed) {
-            // API call would go here
-            await showSuccessAlert('Deleted!', 'Brand has been deleted.');
+            try {
+                await deleteBrand(adminUser.token, id);
+                setBrands(brands.filter(b => b._id !== id));
+                await showSuccessAlert('Deleted!', 'Brand has been deleted.');
+            } catch (error) {
+                showErrorAlert('Error', error.message || 'Failed to delete brand');
+            }
         }
     };
 
@@ -35,22 +56,30 @@ const AllBrands = () => {
         setShowEditModal(true);
     };
 
-    const handleSave = async (updatedBrand) => {
-        // API call would go here
-        console.log('Updated Brand:', updatedBrand);
-        await showSuccessAlert('Updated!', 'Brand details have been updated successfully.');
+    const handleSave = async (updatedBrandData) => {
+        try {
+            // If updatedBrandData is FormData (for logo updates), or a plain object
+            const isFormData = updatedBrandData instanceof FormData;
+            const updated = await updateBrand(adminUser.token, selectedBrand._id, updatedBrandData);
+
+            setBrands(brands.map(b => b._id === updated._id ? updated : b));
+            toast.success('Brand updated successfully');
+            setShowEditModal(false);
+        } catch (error) {
+            toast.error(error.message || 'Failed to update brand');
+        }
     };
 
     return (
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <h5 className="mb-0 fw-bold">Brands</h5>
+                    <h5 className="mb-0 fw-bold">Marketplace Brands</h5>
                     <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-sm-end">
                         <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Search Brands..."
+                                placeholder="Search by name or category..."
                                 className="border-start-0 ps-0 shadow-none"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -75,52 +104,82 @@ const AllBrands = () => {
 
             <Card className="border-0 shadow-sm">
                 <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">Brand Name</th>
-                                <th className="border-0 py-3">Products</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map((b, idx) => (
-                                <tr key={idx}>
-                                    <td className="ps-4">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <div className="bg-light p-2 rounded text-primary">
-                                                <Tag size={18} />
-                                            </div>
-                                            <span className="fw-bold text-dark">{b.name}</span>
-                                        </div>
-                                    </td>
-                                    <td>{b.products} Items</td>
-                                    <td>
-                                        <Badge bg={b.status === 'Active' ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3">
-                                            {b.status}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-end pe-4">
-                                        <div className="d-flex justify-content-end gap-2">
-                                            <Button
-                                                variant="light" size="sm" className="btn-icon-soft text-primary"
-                                                onClick={() => handleEdit(b)}
-                                            >
-                                                <Edit size={16} />
-                                            </Button>
-                                            <Button
-                                                variant="light" size="sm" className="btn-icon-soft text-danger"
-                                                onClick={() => handleDelete(b.id)}
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
-                                        </div>
-                                    </td>
+                    {loading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="grow" variant="primary" />
+                            <p className="mt-2 text-muted">Loading brands...</p>
+                        </div>
+                    ) : filtered.length > 0 ? (
+                        <Table hover responsive className="mb-0 align-middle">
+                            <thead className="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th className="ps-4 border-0 py-3">Brand</th>
+                                    <th className="border-0 py-3">Category</th>
+                                    <th className="border-0 py-3">Details</th>
+                                    <th className="border-0 py-3">Status</th>
+                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </Table>
+                            </thead>
+                            <tbody>
+                                {filtered.map((b) => (
+                                    <tr key={b._id}>
+                                        <td className="ps-4">
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div className="bg-light rounded p-1 border" style={{ width: '40px', height: '40px' }}>
+                                                    {b.logo ? (
+                                                        <img src={b.logo} alt={b.name} className="w-100 h-100 object-fit-contain" />
+                                                    ) : (
+                                                        <div className="w-100 h-100 d-flex align-items-center justify-content-center text-primary">
+                                                            <Tag size={20} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="fw-bold text-dark">{b.name}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <Badge bg="info" className="bg-opacity-10 text-info fw-normal px-2">
+                                                {b.category}
+                                            </Badge>
+                                        </td>
+                                        <td className="small text-muted">
+                                            {b.website ? <a href={b.website} target="_blank" rel="noreferrer" className="text-decoration-none d-block">Website</a> : null}
+                                            <span className="text-truncate d-inline-block" style={{ maxWidth: '200px' }}>{b.description || 'No description'}</span>
+                                        </td>
+                                        <td>
+                                            <Badge bg={b.status === 'Active' ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3">
+                                                {b.status}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-end pe-4">
+                                            <div className="d-flex justify-content-end gap-2">
+                                                <Button
+                                                    variant="light" size="sm" className="btn-icon-soft text-primary"
+                                                    onClick={() => handleEdit(b)}
+                                                >
+                                                    <Edit size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="light" size="sm" className="btn-icon-soft text-danger"
+                                                    onClick={() => handleDelete(b._id)}
+                                                    disabled={adminUser.role !== 'Admin'}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    ) : (
+                        <div className="text-center py-5">
+                            <Tag size={48} className="text-muted mb-3 opacity-20" />
+                            <h5>No Brands Found</h5>
+                            <p className="text-muted">Start by adding your first brand!</p>
+                            <Link to="/admin/brands/add" className="btn btn-primary mt-2">Add New Brand</Link>
+                        </div>
+                    )}
                 </Card.Body>
             </Card>
 

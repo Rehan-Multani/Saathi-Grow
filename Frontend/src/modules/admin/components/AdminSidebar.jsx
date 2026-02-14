@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { adminSidebarMenu } from '../data/sidebarMenu';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 const AdminSidebar = ({ showMobile, onClose }) => {
+    const { adminLogout } = useAdminAuth();
+    const navigate = useNavigate();
     const location = useLocation();
     const [openSubmenus, setOpenSubmenus] = useState({});
+
+    const handleLogout = () => {
+        adminLogout();
+        navigate('/admin/login');
+    };
 
     useEffect(() => {
         // Auto-expand menu if active link is inside
@@ -45,7 +53,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                     <span>SathiGro</span>
                 </div>
 
-                <nav className="py-3">
+                <nav className="py-3 flex-grow">
                     <div className="flex flex-col gap-1">
                         {adminSidebarMenu.map((item, index) => {
                             const hasChildActive = item.submenu?.some(sub => location.pathname === sub.path);
@@ -107,7 +115,10 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                 </nav>
 
                 <div className="p-3 border-t border-white/10 mt-auto">
-                    <button className="flex items-center w-full px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                    >
                         <Icons.LogOut size={18} className="mr-3" />
                         <span>Logout</span>
                     </button>

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col, Image as BSImage } from 'react-bootstrap';
-import { Save, X, Upload, Palette, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Modal, Button, Form, Row, Col, Image as BSImage, Spinner } from 'react-bootstrap';
+import { Save, X, Upload, Palette, Image as ImageIcon, Camera } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const PRESET_COLORS = [
     '#FEE2E2', '#FEF3C7', '#D1FAE5', '#DBEAFE',
@@ -10,27 +11,30 @@ const PRESET_COLORS = [
 ];
 
 const CategoryEditModal = ({ show, onHide, category, onSave }) => {
+    const [loading, setLoading] = useState(false);
+    const fileInputRef = useRef(null);
     const [formData, setFormData] = useState({
         name: '',
         slug: '',
-        parent: 'None',
         status: 'Active',
         description: '',
         bgColor: '#DBEAFE'
     });
+
     const [imagePreview, setImagePreview] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
 
     useEffect(() => {
         if (category) {
             setFormData({
                 name: category.name || '',
                 slug: category.slug || '',
-                parent: category.parent || 'None',
                 status: category.status || 'Active',
                 description: category.description || '',
                 bgColor: category.bgColor || '#DBEAFE'
             });
             setImagePreview(category.image || null);
+            setImageFile(null);
         }
     }, [category]);
 
@@ -42,6 +46,10 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                return toast.error('Image size should be less than 2MB');
+            }
+            setImageFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result);
@@ -54,19 +62,37 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
         setFormData(prev => ({ ...prev, bgColor: color }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSave({ ...category, ...formData, image: imagePreview });
-        onHide();
+        setLoading(true);
+
+        try {
+            const data = new FormData();
+            data.append('name', formData.name);
+            data.append('slug', formData.slug);
+            data.append('status', formData.status);
+            data.append('description', formData.description);
+            data.append('bgColor', formData.bgColor);
+
+            if (imageFile) {
+                data.append('image', imageFile);
+            }
+
+            await onSave(data);
+        } catch (error) {
+            // Error handling is usually done in the parent component's handleSave
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <Modal show={show} onHide={onHide} centered size="lg" className="category-edit-modal">
             <Modal.Header closeButton className="border-0 pb-0">
-                <Modal.Title className="fw-bold px-2">Edit Category</Modal.Title>
+                <Modal.Title className="fw-bold px-2 text-dark">Update Category</Modal.Title>
             </Modal.Header>
-            <Modal.Body className="pt-4">
-                <Form onSubmit={handleSubmit} className="px-2">
+            <Modal.Body className="pt-4 px-4 pb-4">
+                <Form onSubmit={handleSubmit}>
                     <Row>
                         <Col md={7}>
                             <div className="mb-3">
@@ -79,6 +105,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                     className="bg-light border-0 py-2 shadow-none"
                                     placeholder="e.g. Electronics"
                                     required
+                                    disabled={loading}
                                 />
                             </div>
 
@@ -91,38 +118,24 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                     onChange={handleChange}
                                     className="bg-light border-0 py-2 font-monospace shadow-none"
                                     placeholder="electronics-item"
-                                    required
+                                    disabled={loading}
                                 />
+                                <Form.Text className="text-muted small">Unique identifier for SEO.</Form.Text>
                             </div>
 
-                            <Row className="g-3 mb-3">
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Parent Category</Form.Label>
-                                    <Form.Select
-                                        name="parent"
-                                        value={formData.parent}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                    >
-                                        <option value="None">None (Top Level)</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Clothing">Clothing</option>
-                                        <option value="Groceries">Groceries</option>
-                                    </Form.Select>
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Status</Form.Label>
-                                    <Form.Select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                    >
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
-                                    </Form.Select>
-                                </Col>
-                            </Row>
+                            <div className="mb-3">
+                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Status</Form.Label>
+                                <Form.Select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    className="bg-light border-0 py-2 shadow-none"
+                                    disabled={loading}
+                                >
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </Form.Select>
+                            </div>
 
                             <div className="mb-0">
                                 <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Description</Form.Label>
@@ -134,26 +147,27 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                     onChange={handleChange}
                                     className="bg-light border-0 py-2 shadow-none"
                                     placeholder="Category description..."
+                                    disabled={loading}
                                 />
                             </div>
                         </Col>
 
                         <Col md={5} className="border-start">
-                            <h6 className="small fw-bold text-muted uppercase tracking-wider mb-3">Image & Appearance</h6>
+                            <h6 className="small fw-bold text-muted uppercase tracking-wider mb-3">Appearance</h6>
 
                             <div
-                                className="text-center mb-3 p-3 border border-dashed rounded-xl bg-light position-relative overflow-hidden"
+                                className="text-center mb-3 p-3 border border-dashed rounded-xl bg-light position-relative overflow-hidden shadow-inner"
                                 style={{ minHeight: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                                 {imagePreview ? (
-                                    <div className="position-relative w-100">
+                                    <div className="position-relative">
                                         <div
-                                            className="rounded-xl overflow-hidden mx-auto d-flex align-items-center justify-content-center border"
+                                            className="rounded-xl overflow-hidden mx-auto d-flex align-items-center justify-content-center border-white border-2 shadow-sm"
                                             style={{
                                                 width: '120px',
                                                 height: '120px',
                                                 backgroundColor: formData.bgColor,
-                                                padding: '10px',
+                                                padding: '12px',
                                                 transition: 'background-color 0.3s ease'
                                             }}
                                         >
@@ -164,24 +178,26 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                             />
                                         </div>
                                         <Button
-                                            variant="danger"
+                                            variant="primary"
                                             size="sm"
-                                            className="position-absolute top-0 end-0 m-0 rounded-circle shadow p-1"
-                                            onClick={() => setImagePreview(null)}
-                                            style={{ transform: 'translate(5px, -5px)', zIndex: 5 }}
+                                            className="position-absolute bottom-0 end-0 rounded-circle shadow p-2"
+                                            onClick={() => fileInputRef.current.click()}
+                                            disabled={loading}
+                                            style={{ transform: 'translate(5px, 5px)' }}
                                         >
-                                            <X size={12} />
+                                            <Camera size={14} />
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="text-muted py-2">
-                                        <Upload className="text-primary opacity-50 mb-2" size={24} />
-                                        <p className="small mb-0">Change Image</p>
+                                    <div className="text-muted py-2 cursor-pointer" onClick={() => fileInputRef.current.click()}>
+                                        <Upload className="text-primary opacity-50 mb-2 mx-auto" size={28} />
+                                        <p className="small mb-0 fw-bold">Add Category Image</p>
                                     </div>
                                 )}
-                                <Form.Control
+                                <input
                                     type="file"
-                                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
+                                    ref={fileInputRef}
+                                    className="d-none"
                                     onChange={handleImageChange}
                                     accept="image/*"
                                 />
@@ -201,8 +217,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                             boxShadow: formData.bgColor === color ? `0 0 0 1px white, 0 0 0 3px ${color}` : 'none',
                                             transition: 'transform 0.2s ease',
                                         }}
-                                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
-                                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                                        title={color}
                                     />
                                 ))}
                                 <Form.Control
@@ -210,19 +225,20 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                     name="bgColor"
                                     value={formData.bgColor}
                                     onChange={handleChange}
+                                    disabled={loading}
                                     className="p-0 border-0 ms-1"
                                     style={{ width: '24px', height: '24px', cursor: 'pointer', background: 'transparent' }}
                                 />
                             </div>
 
-                            <div className="p-2 rounded border bg-light">
-                                <p className="text-[10px] text-muted fw-bold uppercase mb-2 tracking-widest">Live Preview</p>
-                                <div className="d-flex align-items-center gap-2">
+                            <div className="p-3 rounded-xl border bg-light shadow-inner">
+                                <p className="text-[10px] text-muted fw-bold uppercase mb-2 tracking-widest text-center">Live Preview Card</p>
+                                <div className="d-flex align-items-center gap-3 justify-content-center">
                                     <div
-                                        className="rounded-circle shadow-sm"
+                                        className="rounded-xl shadow-sm border-white border-2"
                                         style={{
-                                            width: '40px',
-                                            height: '40px',
+                                            width: '48px',
+                                            height: '48px',
                                             backgroundColor: formData.bgColor,
                                             padding: '8px',
                                             display: 'flex',
@@ -233,10 +249,10 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                         {imagePreview ? (
                                             <BSImage src={imagePreview} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                         ) : (
-                                            <ImageIcon size={18} className="text-gray-400" />
+                                            <ImageIcon size={20} className="text-muted opacity-30" />
                                         )}
                                     </div>
-                                    <div className="text-truncate fw-bold small">
+                                    <div className="text-truncate fw-bold small" style={{ maxWidth: '100px' }}>
                                         {formData.name || 'Category'}
                                     </div>
                                 </div>
@@ -245,11 +261,12 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                     </Row>
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium shadow-none border">
+                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium shadow-none border" disabled={loading}>
                             Cancel
                         </Button>
-                        <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm">
-                            <Save size={18} /> Update Category
+                        <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm" disabled={loading}>
+                            {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
+                            {loading ? 'Saving...' : 'Update Category'}
                         </Button>
                     </div>
                 </Form>

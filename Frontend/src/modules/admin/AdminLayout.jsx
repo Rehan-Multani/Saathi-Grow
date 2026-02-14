@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import AdminSidebar from './components/AdminSidebar';
 import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react';
 import { adminSidebarMenu } from './data/sidebarMenu';
+import { useAdminAuth } from './context/AdminAuthContext';
 
 const AdminLayout = () => {
+    const { adminLogout, adminUser } = useAdminAuth();
+    const navigate = useNavigate();
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const location = useLocation();
+
+    const handleLogout = () => {
+        adminLogout();
+        navigate('/admin/login');
+    };
 
     // Helper to find current page title
     const getCurrentTitle = () => {
@@ -63,11 +71,19 @@ const AdminLayout = () => {
                                 className="flex items-center gap-2 hover:bg-gray-50 rounded-full pr-2 transition-colors focus:outline-none"
                             >
                                 <div className="text-right hidden sm:block">
-                                    <div className="font-bold text-sm text-gray-800 leading-none">Admin User</div>
-                                    <div className="text-[11px] text-gray-500 leading-none mt-1">Super Admin</div>
+                                    <div className="font-bold text-sm text-gray-800 leading-none">
+                                        {adminUser?.name || 'Admin User'}
+                                    </div>
+                                    <div className="text-[11px] text-gray-500 leading-none mt-1">
+                                        {adminUser?.role || 'Staff'}
+                                    </div>
                                 </div>
-                                <div className="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm">
-                                    A
+                                <div className="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm overflow-hidden">
+                                    {adminUser?.profileImage ? (
+                                        <img src={adminUser.profileImage} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        (adminUser?.name?.charAt(0) || 'A')
+                                    )}
                                 </div>
                             </button>
 
@@ -82,16 +98,19 @@ const AdminLayout = () => {
                                         <div className="px-4 py-2 border-b border-gray-50 mb-1">
                                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
                                         </div>
-                                        <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                                        <a href="/admin/settings/profile" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                                             <User size={16} className="mr-2" /> Profile
                                         </a>
-                                        <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                                        <a href="/admin/settings/app" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                                             <Settings size={16} className="mr-2" /> Settings
                                         </a>
                                         <div className="my-1 border-t border-gray-50"></div>
-                                        <a href="#" className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                        >
                                             <LogOut size={16} className="mr-2" /> Logout
-                                        </a>
+                                        </button>
                                     </div>
                                 </>
                             )}

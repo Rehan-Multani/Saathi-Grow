@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { Spinner } from 'react-bootstrap';
 import ProductEditModal from '../../components/products/ProductEditModal';
 import RestockModal from '../../components/products/RestockModal';
-import Swal from 'sweetalert2';
-
-const INITIAL_PRODUCTS = [
-    { id: '1', name: 'Premium Wireless Headset', brand: 'Sony', category: 'Electronics', price: 120.00, stock: 45, location: 'L1-F1', sku: 'ELEC-HEAD-001', status: 'Active' },
-    { id: '2', name: 'Organic Bananas (1kg)', brand: 'FreshFarm', category: 'Groceries', price: 4.50, stock: 120, location: 'L2-F1', sku: 'GROC-BAN-002', status: 'Active' },
-    { id: '3', name: 'Cotton T-Shirt', brand: 'H&M', category: 'Clothing', price: 25.00, stock: 15, location: 'L1-F2', sku: 'CLOTH-TSHIRT-003', status: 'Low Stock' },
-    { id: '4', name: 'Gaming Laptop', brand: 'Dell', category: 'Electronics', price: 1250.00, stock: 0, location: 'Secure-1', sku: 'ELEC-LAP-004', status: 'Out of Stock' },
-];
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { getProducts, deleteProduct, updateProduct } from '../../api/productApi';
+import { getCategories } from '../../api/categoryApi';
+import { getBrands } from '../../api/brandApi';
+import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import { toast } from 'react-toastify';
 
 const ProductStatusBadge = ({ status }) => {
     const variants = {
@@ -28,7 +27,11 @@ const ProductStatusBadge = ({ status }) => {
 };
 
 const AllProducts = () => {
-    const [products, setProducts] = useState(INITIAL_PRODUCTS);
+    const { adminUser } = useAdminAuth();
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showQR, setShowQR] = useState(null);
     const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -38,35 +41,51 @@ const AllProducts = () => {
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
-    const uniqueCategories = [...new Set(products.map(p => p.category))];
-    const uniqueBrands = [...new Set(products.map(p => p.brand))];
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [productsData, categoriesData, brandsData] = await Promise.all([
+                getProducts(adminUser.token),
+                getCategories(adminUser.token),
+                getBrands(adminUser.token)
+            ]);
+            setProducts(productsData);
+            setCategories(categoriesData);
+            setBrands(brandsData);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            toast.error('Failed to load products');
+        } finally {
+            setLoading(false);
+        }
+    }, [adminUser.token]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.brand.toLowerCase().includes(searchTerm.toLowerCase());
+            p.brandName.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
-        const matchesBrand = selectedBrand ? p.brand === selectedBrand : true;
+        const matchesBrand = selectedBrand ? p.brandName === selectedBrand : true;
 
         return matchesSearch && matchesCategory && matchesBrand;
     });
 
-    const handleDelete = (id, name) => {
-        Swal.fire({
-            title: 'Delete Product?',
-            text: `Are you sure you want to remove "${name}"?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Delete'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                setProducts(products.filter(p => p.id !== id));
-                Swal.fire('Deleted!', 'Product has been removed.', 'success');
+    const handleDelete = async (id, name) => {
+        const result = await showDeleteConfirmation('Delete Product?', `Are you sure you want to remove "${name}"?`);
+        if (result.isConfirmed) {
+            try {
+                await deleteProduct(adminUser.token, id);
+                setProducts(products.filter(p => p._id !== id));
+                showSuccessAlert('Deleted!', 'Product has been removed.');
+            } catch (error) {
+                showErrorAlert('Error', error.message || 'Failed to delete product');
             }
-        });
+        }
     };
 
     const handleEdit = (product) => {
@@ -79,24 +98,32 @@ const AllProducts = () => {
         setShowRestockModal(true);
     };
 
-    const handleSave = (updatedProduct) => {
-        setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-        Swal.fire({
-            title: 'Updated!',
-            text: 'Product details have been updated successfully.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        });
+    const handleSave = async (updatedProductData) => {
+        try {
+            const updated = await updateProduct(adminUser.token, selectedProduct._id, updatedProductData);
+            setProducts(products.map(p => p._id === updated._id ? updated : p));
+            toast.success('Product updated successfully');
+            setShowEditModal(false);
+        } catch (error) {
+            toast.error(error.message || 'Failed to update product');
+        }
     };
 
-    const handleRestockSave = (productId, amount) => {
-        setProducts(products.map(p =>
-            p.id === productId
-                ? { ...p, stock: p.stock + parseInt(amount), status: (p.stock + parseInt(amount)) > 20 ? 'Active' : 'Low Stock' }
-                : p
-        ));
-        Swal.fire('Inventory Updated!', `${amount} units have been added to the stock.`, 'success');
+    const handleRestockSave = async (productId, amount) => {
+        try {
+            const product = products.find(p => p._id === productId);
+            const newStock = product.stockQuantity + parseInt(amount);
+
+            const data = new FormData();
+            data.append('stockQuantity', newStock);
+            if (newStock > 10) data.append('status', 'Active');
+
+            const updated = await updateProduct(adminUser.token, productId, data);
+            setProducts(products.map(p => p._id === updated._id ? updated : p));
+            showSuccessAlert('Inventory Updated!', `${amount} units have been added.`);
+        } catch (error) {
+            showErrorAlert('Error', error.message || 'Failed to update stock');
+        }
     };
 
     return (
@@ -145,18 +172,18 @@ const AllProducts = () => {
                                                 onChange={(e) => setSelectedCategory(e.target.value)}
                                             >
                                                 <option value="">All Categories</option>
-                                                {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-xs font-medium text-gray-500 mb-1 block">Vendor / Brand</label>
+                                            <label className="text-xs font-medium text-gray-500 mb-1 block">Brand</label>
                                             <select
                                                 className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
                                                 value={selectedBrand}
                                                 onChange={(e) => setSelectedBrand(e.target.value)}
                                             >
                                                 <option value="">All Brands</option>
-                                                {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
+                                                {brands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                             </select>
                                         </div>
                                         {(selectedCategory || selectedBrand) && (
@@ -195,95 +222,103 @@ const AllProducts = () => {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
-                            <tr>
-                                <th className="px-6 py-4">Product Name</th>
-                                <th className="px-6 py-4 text-center">Brand</th>
-                                <th className="px-6 py-4 text-center">Category</th>
-                                <th className="px-6 py-4 text-center">Price</th>
-                                <th className="px-6 py-4 text-center">Stock</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {filteredProducts.length > 0 ? filteredProducts.map((p) => (
-                                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold overflow-hidden border">
-                                                {p.image ? <img src={p.image} alt="" className="w-full h-full object-cover" /> : p.name.charAt(0)}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="font-medium text-gray-800">{p.name}</span>
-                                                <span className="text-xs text-gray-400 font-mono">{p.sku}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-500 text-center">{p.brand}</td>
-                                    <td className="px-6 py-4 text-gray-500 text-center">{p.category}</td>
-                                    <td className="px-6 py-4 font-bold text-gray-800 text-center">₹{p.price.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-center">
-                                        <span className={`font-medium ${p.stock === 0 ? 'text-red-600' : 'text-gray-700'}`}>
-                                            {p.stock}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-center"><ProductStatusBadge status={p.status} /></td>
-                                    <td className="px-6 py-4 text-right relative">
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                className={`p-1.5 rounded-lg bg-gray-50 hover:bg-gray-200 transition-colors border ${showQR === p.id ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-gray-500 border-gray-100'}`}
-                                                title="View QR"
-                                                onClick={() => setShowQR(showQR === p.id ? null : p.id)}
-                                            >
-                                                <QrCode size={16} />
-                                            </button>
-                                            <button
-                                                className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-100"
-                                                title="Restock"
-                                                onClick={() => handleRestockOpen(p)}
-                                            >
-                                                <PackagePlus size={16} />
-                                            </button>
-                                            <button
-                                                className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
-                                                title="Edit"
-                                                onClick={() => handleEdit(p)}
-                                            >
-                                                <Edit size={16} />
-                                            </button>
-                                            <button
-                                                className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"
-                                                title="Delete"
-                                                onClick={() => handleDelete(p.id, p.name)}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                        {showQR === p.id && (
-                                            <>
-                                                <div
-                                                    className="fixed inset-0 z-[5] bg-transparent"
-                                                    onClick={() => setShowQR(null)}
-                                                ></div>
-                                                <div className="absolute right-10 top-12 bg-white shadow-xl p-3 rounded-xl border border-gray-100 z-[10] text-center animate-in fade-in zoom-in-95 duration-200">
-                                                    <QRCodeSVG value={p.sku} size={100} />
-                                                    <div className="text-xs mt-2 text-gray-500 font-bold">{p.sku}</div>
-                                                </div>
-                                            </>
-                                        )}
-                                    </td>
-                                </tr>
-                            )) : (
+                    {loading ? (
+                        <div className="text-center py-10">
+                            <Spinner animation="border" variant="primary" />
+                            <p className="mt-2 text-muted">Loading products...</p>
+                        </div>
+                    ) : (
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
                                 <tr>
-                                    <td colSpan="7" className="text-center py-10 text-gray-400">
-                                        No products found.
-                                    </td>
+                                    <th className="px-6 py-4">Product Name</th>
+                                    <th className="px-6 py-4 text-center">Brand</th>
+                                    <th className="px-6 py-4 text-center">Category</th>
+                                    <th className="px-6 py-4 text-center">Price</th>
+                                    <th className="px-6 py-4 text-center">Stock</th>
+                                    <th className="px-6 py-4 text-center">Status</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {filteredProducts.length > 0 ? filteredProducts.map((p) => (
+                                    <tr key={p._id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold overflow-hidden border">
+                                                    {p.image ? <img src={p.image} alt="" className="w-full h-full object-cover" /> : p.name.charAt(0)}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium text-gray-800">{p.name}</span>
+                                                    <span className="text-xs text-gray-400 font-mono">{p.sku}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-500 text-center">{p.brandName}</td>
+                                        <td className="px-6 py-4 text-gray-500 text-center">{p.category}</td>
+                                        <td className="px-6 py-4 font-bold text-gray-800 text-center">₹{p.basePrice?.toFixed(2)}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`font-medium ${p.stockQuantity === 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                                                {p.stockQuantity}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center"><ProductStatusBadge status={p.status} /></td>
+                                        <td className="px-6 py-4 text-right relative">
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    className={`p-1.5 rounded-lg bg-gray-50 hover:bg-gray-200 transition-colors border ${showQR === p._id ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-gray-500 border-gray-100'}`}
+                                                    title="View QR"
+                                                    onClick={() => setShowQR(showQR === p._id ? null : p._id)}
+                                                >
+                                                    <QrCode size={16} />
+                                                </button>
+                                                <button
+                                                    className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-100"
+                                                    title="Restock"
+                                                    onClick={() => handleRestockOpen(p)}
+                                                >
+                                                    <PackagePlus size={16} />
+                                                </button>
+                                                <button
+                                                    className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
+                                                    title="Edit"
+                                                    onClick={() => handleEdit(p)}
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"
+                                                    title="Delete"
+                                                    onClick={() => handleDelete(p._id, p.name)}
+                                                    disabled={adminUser.role !== 'Admin'}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                            {showQR === p._id && (
+                                                <>
+                                                    <div
+                                                        className="fixed inset-0 z-[5] bg-transparent"
+                                                        onClick={() => setShowQR(null)}
+                                                    ></div>
+                                                    <div className="absolute right-10 top-12 bg-white shadow-xl p-3 rounded-xl border border-gray-100 z-[10] text-center animate-in fade-in zoom-in-95 duration-200">
+                                                        <QRCodeSVG value={p.sku} size={100} />
+                                                        <div className="text-xs mt-2 text-gray-500 font-bold">{p.sku}</div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="7" className="text-center py-10 text-gray-400">
+                                            No products found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 

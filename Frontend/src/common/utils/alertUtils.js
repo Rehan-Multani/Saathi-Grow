@@ -38,3 +38,11 @@ export const showSuccessAlert = (title = 'Deleted!', text = 'Your file has been 
         'success'
     );
 };
+
+export const showErrorAlert = (title = 'Error', text = 'Something went wrong.') => {
+    return Swal.fire(
+        title,
+        text,
+        'error'
+    );
+};

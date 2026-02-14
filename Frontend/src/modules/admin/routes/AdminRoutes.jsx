@@ -89,12 +89,22 @@ const ProtectedAdminRoute = () => {
     return <Outlet />;
 };
 
+const PublicAdminRoute = () => {
+    const { adminUser } = useAdminAuth();
+    if (adminUser) {
+        return <Navigate to="/admin/dashboard" replace />;
+    }
+    return <Outlet />;
+};
+
 const AdminRoutes = () => {
     return (
         <AdminAuthProvider>
             <Routes>
                 {/* Public Admin Routes */}
-                <Route path="login" element={<AdminLogin />} />
+                <Route element={<PublicAdminRoute />}>
+                    <Route path="login" element={<AdminLogin />} />
+                </Route>
 
                 {/* Protected Admin Routes */}
                 <Route element={<ProtectedAdminRoute />}>
