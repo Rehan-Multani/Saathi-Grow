@@ -38,10 +38,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding }) =>
       }}
     >
 
-      {/* Premium Shine Effect Overlay (Mobile Specific Sweep) */}
-      <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden dark:hidden">
-        <div className="absolute top-0 -left-[100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-25deg] animate-[shine-sweep_3s_infinite]" />
-      </div>
+
 
       {/* Pulsing Border Highlight - Mobile Only */}
       <div
@@ -56,6 +53,11 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding }) =>
 
       {/* Product Image */}
       <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a] z-10 transition-all duration-500 group-hover:bg-white dark:group-hover:bg-zinc-800/40">
+
+        {/* Shine Effect on Hover - Image Only */}
+        <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden dark:hidden rounded-xl">
+          <div className="absolute top-0 -left-[100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-25deg] group-hover:animate-[shine-sweep-fast_0.75s_ease-in-out]" />
+        </div>
         <Link to={`/product/${product.id}`} className="block w-full h-full">
           <img
             src={product.image || categoryPlaceholder}
@@ -134,10 +136,9 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding }) =>
         </div>
       </div>
       <style>{`
-        @keyframes shine-sweep {
+        @keyframes shine-sweep-fast {
           0% { left: -100%; }
-          30% { left: 100%; }
-          100% { left: 100%; }
+          100% { left: 200%; }
         }
       `}</style>
     </div >

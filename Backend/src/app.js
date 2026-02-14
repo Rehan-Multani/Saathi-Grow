@@ -7,8 +7,14 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
 
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: join(__dirname, '.env') });
 
 // Connect to Database
 connectDB();

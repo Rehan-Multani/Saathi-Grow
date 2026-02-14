@@ -55,28 +55,64 @@ const HomePage = () => {
 
 
 
-    // Auto-scroll Offers (Infinite one-direction)
-    const [offerIndex, setOfferIndex] = useState(0);
+    // Manual & Infinite Scroll Logic - Starts at middle set to allow bidirectional scrolling
+    const [offerIndex, setOfferIndex] = useState(offerBanners.length);
     const [isTransitioning, setIsTransitioning] = useState(true);
 
+    // Initial positioning check
     useEffect(() => {
-        const timer = setInterval(() => {
-            setOfferIndex((prev) => prev + 1);
-            setIsTransitioning(true);
-        }, 2000);
-        return () => clearInterval(timer);
+        // If loaded with 0 (from previous state or SSR mismatch), jump to middle
+        if (offerIndex === 0 && offerBanners.length > 0) {
+            setOfferIndex(offerBanners.length);
+        }
     }, []);
 
-    // Reset for infinite loop
+    // Handle Infinite Loop Reset (Bidirectional)
     useEffect(() => {
-        if (offerIndex >= offerBanners.length) {
+        const totalItems = offerBanners.length * 3;
+        // If we reach the end of the 2nd set (start of 3rd set visually) or start of 1st set
+        if (offerIndex >= offerBanners.length * 2) {
             const timer = setTimeout(() => {
                 setIsTransitioning(false);
-                setOfferIndex(0);
-            }, 1000); // Wait for transition animation to finish
+                setOfferIndex(offerBanners.length + (offerIndex % offerBanners.length));
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (offerIndex < offerBanners.length) {
+            // If we are in the first set, we want to snap to the second set
+            const timer = setTimeout(() => {
+                setIsTransitioning(false);
+                setOfferIndex(offerBanners.length + (offerIndex % offerBanners.length));
+            }, 1000);
             return () => clearTimeout(timer);
         }
     }, [offerIndex]);
+
+    // Restore transition capability after a snap reset
+    useEffect(() => {
+        if (!isTransitioning) {
+            const timer = setTimeout(() => {
+                setIsTransitioning(true);
+            }, 50); // Small delay to ensure render cycle completes
+            return () => clearTimeout(timer);
+        }
+    }, [isTransitioning]);
+
+    const handleNextOffer = (e) => {
+        e.stopPropagation();
+        if (!isTransitioning) setIsTransitioning(true);
+        setOfferIndex((prev) => prev + 1);
+    };
+
+    const handlePrevOffer = (e) => {
+        e.stopPropagation();
+        if (!isTransitioning) setIsTransitioning(true);
+        setOfferIndex((prev) => prev - 1);
+    };
+
+    const handleDotClick = (index) => {
+        setIsTransitioning(true);
+        setOfferIndex(offerBanners.length + index);
+    };
 
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
@@ -125,7 +161,7 @@ const HomePage = () => {
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
             {!isSearching && !loading && (
-                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 group/offers">
+                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 group/offers relative">
                     <div className="relative overflow-hidden rounded-none sm:rounded-2xl">
                         <div
                             className={`flex ${isTransitioning ? 'transition-transform duration-1000 ease-in-out' : ''}`}
@@ -160,6 +196,22 @@ const HomePage = () => {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Navigation Arrows */}
+                        <button
+                            onClick={handlePrevOffer}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
+                            aria-label="Previous Offer"
+                        >
+                            <ArrowLeft size={20} className="md:w-6 md:h-6" />
+                        </button>
+                        <button
+                            onClick={handleNextOffer}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
+                            aria-label="Next Offer"
+                        >
+                            <ArrowRight size={20} className="md:w-6 md:h-6" />
+                        </button>
                     </div>
 
                     {/* Pagination Lines (Blinkit Style) - Moved below image */}
@@ -167,9 +219,10 @@ const HomePage = () => {
                         {offerBanners.map((_, idx) => (
                             <div
                                 key={idx}
-                                className={`h-1.5 rounded-full transition-all duration-500 ${(offerIndex % offerBanners.length) === idx
+                                onClick={() => handleDotClick(idx)}
+                                className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer hover:scale-110 ${(offerIndex % offerBanners.length) === idx
                                     ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
-                                    : 'w-4 bg-gray-200 dark:bg-white/10'
+                                    : 'w-4 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
                                     }`}
                             />
                         ))}
@@ -264,22 +317,28 @@ const HomePage = () => {
 
             {/* Valentine's Week Special Section */}
             {!isSearching && (
-                <OccasionSection
-                    title="Valentine's Week Special"
-                    subtitle="Gifts for your loved ones"
-                    products={products.filter(p => [1201, 1202, 1203, 1205, 1206, 1802, 1104].includes(p.id))}
-                    loading={loading}
-                    themeColor="#e91e63"
-                    bgColor="#fce4ec"
-                    slug="valentine-week"
-                    badgeText="💝 Best Gifts for Your Ones - Shop Now!"
-                />
+                <>
+                    <OccasionSection
+                        title="Valentine's Week Special"
+                        subtitle="Gifts for your loved ones"
+                        products={products.filter(p => [1201, 1202, 1203, 1205, 1206, 1802, 1104].includes(p.id))}
+                        loading={loading}
+                        themeColor="#e91e63"
+                        bgColor="#fce4ec"
+                        slug="valentine-week"
+                        badgeText="💝 Best Gifts for Your Ones - Shop Now!"
+                    />
+                    <div className="h-4 sm:h-8" />
+                </>
             )}
 
 
             {/* Lowest Prices Ever Section */}
             {!isSearching && (
-                <LowestPricesSection products={products} loading={loading} />
+                <>
+                    <LowestPricesSection products={products} loading={loading} />
+                    <div className="h-4 sm:h-8" />
+                </>
             )}
 
             {/* Saathi Select Section */}
@@ -408,7 +467,7 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
 };
 
 // Reusable Occasion Section Component
-const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgColor, slug, badgeText }) => {
+const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgColor, slug, badgeText, className }) => {
     const { isDarkMode } = useTheme();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
@@ -436,7 +495,7 @@ const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgCol
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 my-0 rounded-xl relative transition-all duration-300" style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 my-0 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex flex-col">
                     <h2 className="text-lg md:text-xl font-black tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>
