@@ -10,7 +10,7 @@ import {
   updatePayoutStatus
 } from '../controllers/vendorController.js';
 import { protectAdmin, restrictTo } from '../middleware/authMiddleware.js';
-import upload from '../config/multer.js';
+import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 

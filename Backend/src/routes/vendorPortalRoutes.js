@@ -2,8 +2,8 @@ import express from 'express';
 import {
   login,
   register,
-  getProfile, 
-  updateProfile 
+  getProfile,
+  updateProfile
 } from '../controllers/vendorAuthController.js';
 import {
   getVendorProducts,
@@ -12,7 +12,7 @@ import {
   deleteVendorProduct
 } from '../controllers/vendorProductController.js';
 import { protectVendor } from '../middleware/authMiddleware.js';
-import upload from '../config/multer.js';
+import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
