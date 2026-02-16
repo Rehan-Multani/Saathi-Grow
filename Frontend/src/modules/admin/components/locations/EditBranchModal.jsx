@@ -1,44 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
 import { Save, X } from 'lucide-react';
-import Swal from 'sweetalert2';
+import { getAllStaff } from '../../api/adminApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 
 const EditBranchModal = ({ show, onHide, branch, onSave }) => {
+    const { adminUser } = useAdminAuth();
     const [formData, setFormData] = useState({
         name: '',
-        address: '',
+        code: '',
         phone: '',
-        manager: '',
-        status: 'Active'
+        email: '',
+        isActive: true,
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: ''
+        }
     });
 
     useEffect(() => {
         if (branch) {
             setFormData({
                 name: branch.name || '',
-                address: branch.address || '',
+                code: branch.code || '',
                 phone: branch.phone || '',
-                manager: branch.manager || '',
-                status: branch.status || 'Active'
+                email: branch.email || '',
+                isActive: branch.isActive ?? true,
+                address: {
+                    street: branch.address?.street || '',
+                    city: branch.address?.city || '',
+                    state: branch.address?.state || '',
+                    zipCode: branch.address?.zipCode || ''
+                }
             });
         }
     }, [branch, show]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value, type, checked } = e.target;
+        if (name.includes('.')) {
+            const [parent, child] = name.split('.');
+            setFormData(prev => ({
+                ...prev,
+                [parent]: { ...prev[parent], [child]: value }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave({ ...branch, ...formData });
-        onHide();
-        Swal.fire({
-            title: 'Updated!',
-            text: 'Branch details have been updated.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        });
+        onSave(formData);
     };
 
     if (!show) return null;
@@ -51,7 +69,7 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
             <Modal.Body className="p-4">
                 <Form onSubmit={handleSubmit}>
                     <Row className="g-3">
-                        <Col md={12}>
+                        <Col md={8}>
                             <Form.Group>
                                 <Form.Label className="small fw-bold text-muted text-uppercase">Branch Name</Form.Label>
                                 <Form.Control
@@ -64,22 +82,21 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                                 />
                             </Form.Group>
                         </Col>
-
-                        <Col md={6}>
+                        <Col md={4}>
                             <Form.Group>
-                                <Form.Label className="small fw-bold text-muted text-uppercase">Manager Name</Form.Label>
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Branch Code</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    name="manager"
-                                    value={formData.manager}
+                                    name="code"
+                                    value={formData.code}
                                     onChange={handleChange}
                                     required
-                                    className="py-2 border-light-subtle shadow-none bg-light"
+                                    className="py-2 border-light-subtle shadow-none bg-light text-uppercase"
                                 />
                             </Form.Group>
                         </Col>
 
-                        <Col md={6}>
+                        <Col md={12}>
                             <Form.Group>
                                 <Form.Label className="small fw-bold text-muted text-uppercase">Contact Number</Form.Label>
                                 <Form.Control
@@ -95,33 +112,73 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
 
                         <Col md={12}>
                             <Form.Group>
-                                <Form.Label className="small fw-bold text-muted text-uppercase">Full Address</Form.Label>
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Branch Email</Form.Label>
                                 <Form.Control
-                                    as="textarea"
-                                    rows={2}
-                                    name="address"
-                                    value={formData.address}
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
                                     onChange={handleChange}
-                                    required
-                                    className="border-light-subtle shadow-none bg-light"
+                                    className="py-2 border-light-subtle shadow-none bg-light"
                                 />
                             </Form.Group>
                         </Col>
 
                         <Col md={12}>
-                            <Form.Group>
-                                <Form.Label className="small fw-bold text-muted text-uppercase">Operational Status</Form.Label>
-                                <Form.Select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    className="py-2 border-light-subtle shadow-none bg-light"
-                                >
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
-                                    <option value="Under Renovation">Under Renovation</option>
-                                </Form.Select>
-                            </Form.Group>
+                            <Form.Label className="small fw-bold text-muted text-uppercase mb-2">Location Details</Form.Label>
+                            <Row className="g-2">
+                                <Col md={6}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Street"
+                                        name="address.street"
+                                        value={formData.address.street}
+                                        onChange={handleChange}
+                                        className="py-2 border-light-subtle shadow-none bg-light"
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="City"
+                                        name="address.city"
+                                        value={formData.address.city}
+                                        onChange={handleChange}
+                                        className="py-2 border-light-subtle shadow-none bg-light"
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="State"
+                                        name="address.state"
+                                        value={formData.address.state}
+                                        onChange={handleChange}
+                                        className="py-2 border-light-subtle shadow-none bg-light"
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Zip Code"
+                                        name="address.zipCode"
+                                        value={formData.address.zipCode}
+                                        onChange={handleChange}
+                                        className="py-2 border-light-subtle shadow-none bg-light"
+                                    />
+                                </Col>
+                            </Row>
+                        </Col>
+
+                        <Col md={12}>
+                            <Form.Check
+                                type="switch"
+                                id="branch-active-switch"
+                                label="Branch Active"
+                                name="isActive"
+                                checked={formData.isActive}
+                                onChange={handleChange}
+                                className="fw-medium mt-2"
+                            />
                         </Col>
                     </Row>
 
@@ -130,7 +187,7 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                             <X size={18} className="me-2" /> Cancel
                         </Button>
                         <Button variant="primary" type="submit" className="flex-grow-1 py-2 shadow-sm fw-bold d-flex align-items-center justify-content-center">
-                            <Save size={18} className="me-2" /> Save Changes
+                            <Save size={18} className="me-2" /> Update Branch
                         </Button>
                     </div>
                 </Form>

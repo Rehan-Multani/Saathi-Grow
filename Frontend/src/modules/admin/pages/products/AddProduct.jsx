@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
 import { RefreshCw, Save, Upload, X, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
+import { getBranches } from '../../api/branchApi';
+import { getVendors } from '../../api/vendorApi';
 import { createProduct, getAISuggestions } from '../../api/productApi';
 import { toast } from 'react-toastify';
 
@@ -20,20 +23,26 @@ const AddProduct = () => {
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
 
+    const [branches, setBranches] = useState([]);
+    const [vendors, setVendors] = useState([]);
+
     const [formData, setFormData] = useState({
         name: '',
         category: '',
         brandName: '',
         basePrice: '',
-        stockQuantity: '',
+        unitType: 'pcs',
         physicalLocation: '',
         description: '',
         isAllBranches: true,
         specificBranches: [],
         sku: '',
         tags: [],
-        status: 'Active'
+        status: 'Active',
+        vendor: ''
     });
+
+    const [branchStocks, setBranchStocks] = useState([]); // Array of { branchId, name, stock, lowStockThreshold }
 
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
@@ -45,15 +54,21 @@ const AddProduct = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [categoriesData, brandsData] = await Promise.all([
+                const [categoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
                     getCategories(adminUser.token),
-                    getBrands(adminUser.token)
+                    getBrands(adminUser.token),
+                    getBranches(adminUser.token),
+                    getVendors(adminUser.token)
                 ]);
                 setCategories(categoriesData.filter(c => c.status === 'Active'));
                 setBrands(brandsData.filter(b => b.status === 'Active'));
+                setBranches(branchesData.filter(b => b.isActive));
+                setVendors(vendorsData.filter(v => v.status === 'Active'));
+
+                // We don't initialize branchStocks here anymore, let user select
             } catch (error) {
                 console.error('Error fetching data:', error);
-                toast.error('Failed to load categories and brands');
+                toast.error('Failed to load initial data');
             } finally {
                 setInitialLoading(false);
             }
@@ -62,7 +77,36 @@ const AddProduct = () => {
         if (adminUser?.token) {
             fetchData();
         }
-    }, [adminUser]);
+    }, [adminUser.token]);
+
+    const handleBranchToggle = (branch) => {
+        const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
+        if (isSelected) {
+            setBranchStocks(prev => prev.filter(bs => bs.branchId !== branch._id));
+            setFormData(prev => ({
+                ...prev,
+                specificBranches: prev.specificBranches.filter(id => id !== branch._id)
+            }));
+        } else {
+            setBranchStocks(prev => [...prev, {
+                branchId: branch._id,
+                name: branch.name,
+                stock: 0,
+                lowStockThreshold: 10
+            }]);
+            setFormData(prev => ({
+                ...prev,
+                specificBranches: [...prev.specificBranches, branch._id]
+            }));
+        }
+    };
+
+    // Handle Branch Stock change
+    const handleBranchStockChange = (branchId, field, value) => {
+        setBranchStocks(prev => prev.map(bs =>
+            bs.branchId === branchId ? { ...bs, [field]: Number(value) } : bs
+        ));
+    };
 
     // Filter Brands when category changes
     useEffect(() => {
@@ -176,18 +220,31 @@ const AddProduct = () => {
             return toast.error('Please fill all required fields');
         }
 
+        if (branchStocks.length === 0) {
+            return toast.error('Please select at least one branch');
+        }
+
         setLoading(true);
         try {
             const data = new FormData();
+
+            // Fixed handling of isAllBranches based on user request
+            const isAll = formData.specificBranches.length === branches.length;
+
             Object.keys(formData).forEach(key => {
                 if (key === 'tags') {
                     data.append(key, formData.tags.join(','));
                 } else if (key === 'specificBranches') {
                     data.append(key, formData.specificBranches.join(','));
+                } else if (key === 'isAllBranches') {
+                    data.append(key, isAll);
                 } else {
                     data.append(key, formData[key]);
                 }
             });
+
+            // Append branch stocks as stringified JSON
+            data.append('branchStocks', JSON.stringify(branchStocks));
 
             if (imageFile) {
                 data.append('image', imageFile);
@@ -291,9 +348,9 @@ const AddProduct = () => {
                                     </InputGroup>
                                 </Form.Group>
 
-                                <h6 className="mb-3 fw-bold mt-4">Pricing & Inventory</h6>
+                                <h6 className="mb-3 fw-bold mt-4">Pricing & Units</h6>
                                 <Row>
-                                    <Col md={4}>
+                                    <Col md={6}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Base Price (₹) <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
@@ -306,32 +363,85 @@ const AddProduct = () => {
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={4}>
+                                    <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Stock Quantity <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="0"
-                                                name="stockQuantity"
-                                                value={formData.stockQuantity}
-                                                onChange={handleChange}
-                                                required
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Physical Location</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="e.g. L1-F1"
-                                                name="physicalLocation"
-                                                value={formData.physicalLocation}
-                                                onChange={handleChange}
-                                            />
+                                            <Form.Label>Unit Type</Form.Label>
+                                            <Form.Select name="unitType" value={formData.unitType} onChange={handleChange}>
+                                                <option value="pcs">Pcs</option>
+                                                <option value="kg">Kg</option>
+                                                <option value="gm">Gm</option>
+                                                <option value="ml">Ml</option>
+                                                <option value="ltr">Ltr</option>
+                                                <option value="pkt">Pkt</option>
+                                                <option value="box">Box</option>
+                                            </Form.Select>
                                         </Form.Group>
                                     </Col>
                                 </Row>
+
+                                <h6 className="mb-3 fw-bold mt-4 text-primary">Branch Availability & Stock</h6>
+                                <p className="text-muted small mb-3">Select branches where this product will be available and set initial stock.</p>
+
+                                <div className="p-3 bg-light rounded border mb-4">
+                                    <Form.Label className="fw-bold mb-3">Available In:</Form.Label>
+                                    <div className="d-flex flex-wrap gap-3">
+                                        {branches.map(branch => {
+                                            const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
+                                            return (
+                                                <Form.Check
+                                                    key={branch._id}
+                                                    type="checkbox"
+                                                    id={`branch-${branch._id}`}
+                                                    label={branch.name}
+                                                    checked={isSelected}
+                                                    onChange={() => handleBranchToggle(branch)}
+                                                    className="fw-medium custom-checkbox"
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {branchStocks.length > 0 ? (
+                                    branchStocks.map((branch, index) => (
+                                        <div key={branch.branchId} className="p-3 rounded mb-3 bg-white border shadow-sm border-start border-4 border-primary">
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <span className="fw-bold text-dark">{branch.name}</span>
+                                                <Badge bg="primary" className="fw-normal">Stock Setting</Badge>
+                                            </div>
+                                            <Row>
+                                                <Col md={6}>
+                                                    <Form.Group className="mb-2">
+                                                        <Form.Label className="small fw-bold">Initial Stock Concentration</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            placeholder="0"
+                                                            value={branch.stock}
+                                                            min="0"
+                                                            onChange={(e) => handleBranchStockChange(branch.branchId, 'stock', e.target.value)}
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col md={6}>
+                                                    <Form.Group className="mb-2">
+                                                        <Form.Label className="small fw-bold">Low Stock Warning</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            placeholder="10"
+                                                            value={branch.lowStockThreshold}
+                                                            min="0"
+                                                            onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                            </Row>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4 border border-dashed rounded bg-light">
+                                        <p className="text-muted mb-0 small">No branches selected. Please select at least one branch to set stock.</p>
+                                    </div>
+                                )}
                             </Card.Body>
                         </Card>
                     </Col>
@@ -358,6 +468,15 @@ const AddProduct = () => {
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
+                                    <Form.Label>Assign Vendor (Optional)</Form.Label>
+                                    <Form.Select name="vendor" value={formData.vendor} onChange={handleChange}>
+                                        <option value="">Admin / In-house</option>
+                                        {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName}</option>)}
+                                    </Form.Select>
+                                    <Form.Text className="text-muted small italic">Assigning a vendor links this product to their inventory.</Form.Text>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
                                     <Form.Label>SKU (Auto-Generated) <span className="text-danger">*</span></Form.Label>
                                     <InputGroup>
                                         <Form.Control
@@ -371,6 +490,29 @@ const AddProduct = () => {
                                         </Button>
                                     </InputGroup>
                                 </Form.Group>
+
+                                {formData.sku && (
+                                    <div className="text-center mt-3 p-3 bg-white border rounded shadow-sm">
+                                        <div className="small fw-bold text-muted mb-2 uppercase">SKU QR Preview</div>
+                                        <div className="d-inline-block p-2 border rounded bg-white">
+                                            <QRCodeSVG
+                                                value={formData.sku}
+                                                size={150}
+                                                level="H"
+                                                includeMargin={true}
+                                                imageSettings={{
+                                                    src: "/favicon.ico",
+                                                    x: undefined,
+                                                    y: undefined,
+                                                    height: 24,
+                                                    width: 24,
+                                                    excavate: true,
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="text-xs mt-2 text-muted font-monospace">{formData.sku}</div>
+                                    </div>
+                                )}
                             </Card.Body>
                         </Card>
 

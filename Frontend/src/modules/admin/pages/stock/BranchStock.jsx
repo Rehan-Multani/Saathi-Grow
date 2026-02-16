@@ -1,21 +1,57 @@
-import React, { useState } from 'react';
-import { Card, Table, Form, InputGroup, Badge } from 'react-bootstrap';
-import { Search, MapPin } from 'lucide-react';
-
-const BRANCH_STOCK_MOCK = [
-    { branch: 'Main Store', location: 'New York', product: 'Wireless Mouse', stock: 45, status: 'In Stock' },
-    { branch: 'Main Store', location: 'New York', product: 'Keyboard', stock: 12, status: 'Low Stock' },
-    { branch: 'Downtown Branch', location: 'Boston', product: 'Wireless Mouse', stock: 10, status: 'Low Stock' },
-    { branch: 'Downtown Branch', location: 'Boston', product: 'Keyboard', stock: 0, status: 'Out of Stock' },
-    { branch: 'Westside Hub', location: 'Chicago', product: 'USB Cable', stock: 500, status: 'In Stock' },
-];
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
+import { Search, MapPin, Package } from 'lucide-react';
+import { getProducts } from '../../api/productApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const BranchStock = () => {
+    const { adminUser } = useAdminAuth();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filtered = BRANCH_STOCK_MOCK.filter(item =>
-        item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.branch.toLowerCase().includes(searchTerm.toLowerCase())
+    useEffect(() => {
+        const fetchBranchWiseStock = async () => {
+            try {
+                const data = await getProducts(adminUser.token);
+                setProducts(data);
+            } catch (error) {
+                console.error('Error fetching stock:', error);
+                toast.error('Failed to load branch-wise stock');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (adminUser?.token) fetchBranchWiseStock();
+    }, [adminUser]);
+
+    // Flatten products into branch-wise list
+    const branchStockList = products.reduce((acc, product) => {
+        if (product.branchStocks && product.branchStocks.length > 0) {
+            product.branchStocks.forEach(bs => {
+                acc.push({
+                    productId: product._id,
+                    productName: product.name,
+                    image: product.image,
+                    sku: product.sku,
+                    branchName: bs.branchId?.name || 'Unknown',
+                    branchCode: bs.branchId?.branchCode || '',
+                    location: bs.branchId?.address || 'N/A',
+                    stock: bs.stock,
+                    threshold: bs.lowStockThreshold,
+                    status: bs.stock === 0 ? 'Out of Stock' : bs.stock <= bs.lowStockThreshold ? 'Low Stock' : 'In Stock'
+                });
+            });
+        }
+        return acc;
+    }, []);
+
+    const filtered = branchStockList.filter(item =>
+        item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.branchName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -42,24 +78,45 @@ const BranchStock = () => {
                             <tr>
                                 <th className="ps-4 border-0 py-3">Branch</th>
                                 <th className="border-0 py-3">Product</th>
-                                <th className="border-0 py-3">Current Stock</th>
+                                <th className="border-0 py-3 text-center">Current Stock</th>
                                 <th className="border-0 py-3">Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map((row, idx) => (
-                                <tr key={idx}>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="4" className="text-center py-5">
+                                        <Spinner animation="border" variant="primary" size="sm" />
+                                        <span className="ms-2">Loading stock data...</span>
+                                    </td>
+                                </tr>
+                            ) : filtered.length > 0 ? filtered.map((row, idx) => (
+                                <tr key={`${row.productId}-${idx}`}>
                                     <td className="ps-4">
                                         <div className="d-flex align-items-center gap-2">
-                                            <MapPin size={16} className="text-secondary" />
+                                            <MapPin size={16} className="text-primary" />
                                             <div>
-                                                <div className="fw-medium text-dark">{row.branch}</div>
-                                                <div className="small text-muted">{row.location}</div>
+                                                <div className="fw-medium text-dark">{row.branchName}</div>
+                                                <div className="small text-muted">{row.branchCode}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="fw-medium">{row.product}</td>
-                                    <td className="fw-bold">{row.stock}</td>
+                                    <td>
+                                        <div className="d-flex align-items-center gap-2">
+                                            <div className="w-8 h-8 bg-light rounded flex items-center justify-center text-secondary font-bold overflow-hidden border">
+                                                {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : row.productName.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="fw-medium text-dark">{row.productName}</div>
+                                                <div className="small text-muted font-monospace">{row.sku}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="text-center">
+                                        <span className={`fw-bold ${row.stock <= row.threshold ? 'text-danger' : 'text-dark'}`}>
+                                            {row.stock}
+                                        </span>
+                                    </td>
                                     <td>
                                         <Badge bg={
                                             row.status === 'In Stock' ? 'success' :
@@ -69,7 +126,11 @@ const BranchStock = () => {
                                         </Badge>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan="4" className="text-center py-5 text-muted">No stock data found</td>
+                                </tr>
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>

@@ -1,32 +1,34 @@
-import React, { useState } from 'react';
-import { Card, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
-import { User, Mail, Phone, Lock, Briefcase, Save, ArrowLeft, Shield } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Button, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
+import { User, Mail, Phone, Lock, Briefcase, Save, ArrowLeft, Shield, Store } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { createStaff } from '../../api/adminApi';
+import { getBranches } from '../../api/branchApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const AddStaff = () => {
     const navigate = useNavigate();
+    const { adminUser } = useAdminAuth();
+    const [loading, setLoading] = useState(false);
+    const [branches, setBranches] = useState([]);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         email: '',
         phone: '',
-        role: '',
+        role: 'Staff',
+        branchId: '',
         password: '',
         confirmPassword: '',
-        status: 'Active',
+        isActive: true,
         permissions: []
     });
 
     const [validated, setValidated] = useState(false);
 
-    const ROLES = [
-        'Store Manager',
-        'Sales Associate',
-        'Inventory Manager',
-        'Support Agent',
-        'Delivery Coordinator',
-        'Admin'
-    ];
+    const isBranchManager = adminUser.role === 'Branch Manager';
+    const ROLES = isBranchManager ? ['Staff'] : ['Admin', 'Branch Manager', 'Staff'];
 
     const PERMISSIONS_LIST = [
         { id: 'dashboard_view', label: 'View Dashboard' },
@@ -37,6 +39,23 @@ const AddStaff = () => {
         { id: 'settings_edit', label: 'Edit Settings' },
         { id: 'returns_approve', label: 'Return Policy: Approve/Deny' }
     ];
+
+    useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                const data = await getBranches(adminUser.token);
+                setBranches(data);
+
+                // If branch manager, pre-set their branch
+                if (isBranchManager && adminUser.branchId) {
+                    setFormData(prev => ({ ...prev, branchId: adminUser.branchId }));
+                }
+            } catch (error) {
+                console.error('Error fetching branches:', error);
+            }
+        };
+        fetchBranches();
+    }, [adminUser.token, isBranchManager, adminUser.branchId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -54,7 +73,7 @@ const AddStaff = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         const form = e.currentTarget;
         e.preventDefault();
         e.stopPropagation();
@@ -65,16 +84,29 @@ const AddStaff = () => {
         }
 
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+            toast.error("Passwords do not match!");
             return;
         }
 
-        // Logic to submit data to backend would go here
-        console.log("Submitting Staff Data:", formData);
-
-        // Simulating success
-        alert("Staff member added successfully!");
-        navigate('/admin/staff');
+        setLoading(true);
+        try {
+            const staffData = {
+                name: `${formData.firstName} ${formData.lastName}`.trim(),
+                email: formData.email,
+                phone: formData.phone,
+                password: formData.password,
+                role: formData.role,
+                permissions: formData.permissions,
+                branchId: isBranchManager ? adminUser.branchId : (formData.branchId || null)
+            };
+            await createStaff(adminUser.token, staffData);
+            toast.success("Staff member created successfully!");
+            navigate('/admin/staff');
+        } catch (error) {
+            toast.error(error.message || "Failed to create staff member");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -91,7 +123,6 @@ const AddStaff = () => {
 
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Row className="g-4">
-                    {/* Left Column: Personal Info & Login */}
                     <Col lg={8}>
                         <Card className="border-0 shadow-sm mb-4">
                             <Card.Body className="p-4">
@@ -101,7 +132,7 @@ const AddStaff = () => {
                                 <Row className="g-3">
                                     <Col md={6}>
                                         <Form.Group>
-                                            <Form.Label>First Name</Form.Label>
+                                            <Form.Label className="small fw-bold">First Name</Form.Label>
                                             <Form.Control
                                                 required
                                                 type="text"
@@ -109,13 +140,14 @@ const AddStaff = () => {
                                                 name="firstName"
                                                 value={formData.firstName}
                                                 onChange={handleChange}
+                                                className="shadow-none border-light-subtle bg-light-subtle"
                                             />
                                             <Form.Control.Feedback type="invalid">First name is required.</Form.Control.Feedback>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group>
-                                            <Form.Label>Last Name</Form.Label>
+                                            <Form.Label className="small fw-bold">Last Name</Form.Label>
                                             <Form.Control
                                                 required
                                                 type="text"
@@ -123,14 +155,15 @@ const AddStaff = () => {
                                                 name="lastName"
                                                 value={formData.lastName}
                                                 onChange={handleChange}
+                                                className="shadow-none border-light-subtle bg-light-subtle"
                                             />
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group>
-                                            <Form.Label>Email Address</Form.Label>
+                                            <Form.Label className="small fw-bold">Email Address</Form.Label>
                                             <InputGroup>
-                                                <InputGroup.Text><Mail size={16} /></InputGroup.Text>
+                                                <InputGroup.Text className="bg-light border-light-subtle"><Mail size={16} /></InputGroup.Text>
                                                 <Form.Control
                                                     required
                                                     type="email"
@@ -138,6 +171,7 @@ const AddStaff = () => {
                                                     name="email"
                                                     value={formData.email}
                                                     onChange={handleChange}
+                                                    className="shadow-none border-light-subtle bg-light-subtle"
                                                 />
                                                 <Form.Control.Feedback type="invalid">Please provide a valid email.</Form.Control.Feedback>
                                             </InputGroup>
@@ -145,9 +179,9 @@ const AddStaff = () => {
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group>
-                                            <Form.Label>Phone Number</Form.Label>
+                                            <Form.Label className="small fw-bold">Phone Number</Form.Label>
                                             <InputGroup>
-                                                <InputGroup.Text><Phone size={16} /></InputGroup.Text>
+                                                <InputGroup.Text className="bg-light border-light-subtle"><Phone size={16} /></InputGroup.Text>
                                                 <Form.Control
                                                     required
                                                     type="tel"
@@ -155,6 +189,7 @@ const AddStaff = () => {
                                                     name="phone"
                                                     value={formData.phone}
                                                     onChange={handleChange}
+                                                    className="shadow-none border-light-subtle bg-light-subtle"
                                                 />
                                             </InputGroup>
                                         </Form.Group>
@@ -169,7 +204,7 @@ const AddStaff = () => {
                                 <Row className="g-3">
                                     <Col md={6}>
                                         <Form.Group>
-                                            <Form.Label>Password</Form.Label>
+                                            <Form.Label className="small fw-bold">Password</Form.Label>
                                             <Form.Control
                                                 required
                                                 type="password"
@@ -178,13 +213,14 @@ const AddStaff = () => {
                                                 value={formData.password}
                                                 onChange={handleChange}
                                                 minLength={8}
+                                                className="shadow-none border-light-subtle bg-light-subtle"
                                             />
                                             <Form.Text className="text-muted small">Min. 8 characters</Form.Text>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group>
-                                            <Form.Label>Confirm Password</Form.Label>
+                                            <Form.Label className="small fw-bold">Confirm Password</Form.Label>
                                             <Form.Control
                                                 required
                                                 type="password"
@@ -193,6 +229,7 @@ const AddStaff = () => {
                                                 value={formData.confirmPassword}
                                                 onChange={handleChange}
                                                 isInvalid={formData.confirmPassword && formData.password !== formData.confirmPassword}
+                                                className="shadow-none border-light-subtle bg-light-subtle"
                                             />
                                             <Form.Control.Feedback type="invalid">Passwords do not match.</Form.Control.Feedback>
                                         </Form.Group>
@@ -202,7 +239,6 @@ const AddStaff = () => {
                         </Card>
                     </Col>
 
-                    {/* Right Column: Role & Permissions */}
                     <Col lg={4}>
                         <Card className="border-0 shadow-sm mb-4 h-100">
                             <Card.Body className="p-4 d-flex flex-column">
@@ -211,15 +247,15 @@ const AddStaff = () => {
                                 </h6>
 
                                 <Form.Group className="mb-4">
-                                    <Form.Label>Assign Role</Form.Label>
+                                    <Form.Label className="small fw-bold">Assign Role</Form.Label>
                                     <Form.Select
                                         required
                                         name="role"
                                         value={formData.role}
                                         onChange={handleChange}
-                                        className="mb-2"
+                                        disabled={isBranchManager}
+                                        className="mb-3 shadow-none border-light-subtle bg-light-subtle"
                                     >
-                                        <option value="">Select a role...</option>
                                         {ROLES.map(role => (
                                             <option key={role} value={role}>{role}</option>
                                         ))}
@@ -227,41 +263,36 @@ const AddStaff = () => {
                                 </Form.Group>
 
                                 <Form.Group className="mb-4">
-                                    <Form.Label>Account Status</Form.Label>
-                                    <div className="d-flex gap-3">
-                                        <Form.Check
-                                            type="radio"
-                                            label="Active"
-                                            name="status"
-                                            id="statusActive"
-                                            className="fw-medium"
-                                            checked={formData.status === 'Active'}
-                                            onChange={() => setFormData({ ...formData, status: 'Active' })}
-                                        />
-                                        <Form.Check
-                                            type="radio"
-                                            label="Inactive"
-                                            name="status"
-                                            id="statusInactive"
-                                            className="fw-medium text-muted"
-                                            checked={formData.status === 'Inactive'}
-                                            onChange={() => setFormData({ ...formData, status: 'Inactive' })}
-                                        />
-                                    </div>
+                                    <Form.Label className="small fw-bold d-flex align-items-center gap-2">
+                                        <Store size={16} /> Assign Branch
+                                    </Form.Label>
+                                    <Form.Select
+                                        name="branchId"
+                                        value={formData.branchId}
+                                        onChange={handleChange}
+                                        disabled={isBranchManager}
+                                        className="shadow-none border-light-subtle bg-light-subtle"
+                                    >
+                                        {!isBranchManager && <option value="">Global / No Branch</option>}
+                                        {branches.map(b => (
+                                            <option key={b._id} value={b._id}>{b.name}</option>
+                                        ))}
+                                    </Form.Select>
+                                    <Form.Text className="text-muted small italic">Select the branch this staff belongs to.</Form.Text>
                                 </Form.Group>
 
                                 <div className="mt-2">
-                                    <Form.Label className="d-flex align-items-center gap-2 mb-3">
+                                    <Form.Label className="d-flex align-items-center gap-2 mb-3 small fw-bold">
                                         <Shield size={16} /> Specific Permissions
                                     </Form.Label>
-                                    <div className="bg-light p-3 rounded custom-scrollbar" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                    <div className="bg-light p-3 rounded custom-scrollbar border" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                                         {PERMISSIONS_LIST.map(perm => (
                                             <Form.Check
                                                 key={perm.id}
                                                 type="switch"
                                                 id={`perm-${perm.id}`}
                                                 label={perm.label}
-                                                className="mb-2 small"
+                                                className="mb-2 small fw-medium"
                                                 checked={formData.permissions.includes(perm.id)}
                                                 onChange={() => handlePermissionChange(perm.id)}
                                             />
@@ -270,8 +301,8 @@ const AddStaff = () => {
                                 </div>
 
                                 <div className="mt-auto pt-4">
-                                    <Button type="submit" variant="primary" size="lg" className="w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm">
-                                        <Save size={20} /> Create Account
+                                    <Button type="submit" variant="primary" size="lg" className="w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm fw-bold" disabled={loading}>
+                                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={20} />} Create Account
                                     </Button>
                                 </div>
                             </Card.Body>

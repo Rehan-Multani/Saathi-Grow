@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Spinner } from 'react-bootstrap';
 import ProductEditModal from '../../components/products/ProductEditModal';
 import RestockModal from '../../components/products/RestockModal';
+import InventoryLogsModal from '../../components/products/InventoryLogsModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getProducts, deleteProduct, updateProduct } from '../../api/productApi';
 import { getCategories } from '../../api/categoryApi';
@@ -15,12 +16,12 @@ import { toast } from 'react-toastify';
 const ProductStatusBadge = ({ status }) => {
     const variants = {
         Active: 'bg-green-100 text-green-700',
-        'Low Stock': 'bg-amber-100 text-amber-700',
-        'Out of Stock': 'bg-red-100 text-red-700',
-        Draft: 'bg-gray-100 text-gray-700'
+        'Low Stock': 'bg-red-100 text-red-700 border border-red-200 animate-pulse',
+        'Out of Stock': 'bg-gray-100 text-gray-500 border border-gray-200',
+        Draft: 'bg-blue-50 text-blue-600'
     };
     return (
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${variants[status] || 'bg-gray-100 text-gray-600'}`}>
+        <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${variants[status] || 'bg-gray-100 text-gray-600'}`}>
             {status}
         </span>
     );
@@ -39,6 +40,7 @@ const AllProducts = () => {
     const [selectedBrand, setSelectedBrand] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
+    const [showLogsModal, setShowLogsModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const fetchData = useCallback(async () => {
@@ -63,6 +65,11 @@ const AllProducts = () => {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    const getTotalStock = (p) => {
+        if (!p.branchStocks || p.branchStocks.length === 0) return 0;
+        return p.branchStocks.reduce((sum, bs) => sum + bs.stock, 0);
+    };
 
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,6 +105,11 @@ const AllProducts = () => {
         setShowRestockModal(true);
     };
 
+    const handleLogsOpen = (product) => {
+        setSelectedProduct(product);
+        setShowLogsModal(true);
+    };
+
     const handleSave = async (updatedProductData) => {
         try {
             const updated = await updateProduct(adminUser.token, selectedProduct._id, updatedProductData);
@@ -109,21 +121,8 @@ const AllProducts = () => {
         }
     };
 
-    const handleRestockSave = async (productId, amount) => {
-        try {
-            const product = products.find(p => p._id === productId);
-            const newStock = product.stockQuantity + parseInt(amount);
-
-            const data = new FormData();
-            data.append('stockQuantity', newStock);
-            if (newStock > 10) data.append('status', 'Active');
-
-            const updated = await updateProduct(adminUser.token, productId, data);
-            setProducts(products.map(p => p._id === updated._id ? updated : p));
-            showSuccessAlert('Inventory Updated!', `${amount} units have been added.`);
-        } catch (error) {
-            showErrorAlert('Error', error.message || 'Failed to update stock');
-        }
+    const handleRestockSuccess = (updatedProduct) => {
+        setProducts(products.map(p => p._id === updatedProduct._id ? updatedProduct : p));
     };
 
     return (
@@ -222,26 +221,29 @@ const AllProducts = () => {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
-                    {loading ? (
-                        <div className="text-center py-10">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">Loading products...</p>
-                        </div>
-                    ) : (
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                            <tr>
+                                <th className="px-6 py-4">Product Name</th>
+                                <th className="px-6 py-4 text-center">Brand</th>
+                                <th className="px-6 py-4 text-center">Category</th>
+                                <th className="px-6 py-4 text-center">Branches</th>
+                                <th className="px-6 py-4 text-center">Price</th>
+                                <th className="px-6 py-4 text-center">Total Stock</th>
+                                <th className="px-6 py-4 text-center">Status</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {loading ? (
                                 <tr>
-                                    <th className="px-6 py-4">Product Name</th>
-                                    <th className="px-6 py-4 text-center">Brand</th>
-                                    <th className="px-6 py-4 text-center">Category</th>
-                                    <th className="px-6 py-4 text-center">Price</th>
-                                    <th className="px-6 py-4 text-center">Stock</th>
-                                    <th className="px-6 py-4 text-center">Status</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <td colSpan="8" className="text-center py-10">
+                                        <Spinner animation="border" variant="primary" />
+                                        <p className="mt-2 text-muted text-sm">Loading products...</p>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredProducts.length > 0 ? filteredProducts.map((p) => (
+                            ) : filteredProducts.length > 0 ? (
+                                filteredProducts.map((p) => (
                                     <tr key={p._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
@@ -256,10 +258,23 @@ const AllProducts = () => {
                                         </td>
                                         <td className="px-6 py-4 text-gray-500 text-center">{p.brandName}</td>
                                         <td className="px-6 py-4 text-gray-500 text-center">{p.category}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <div className="flex flex-wrap justify-center gap-1">
+                                                {p.branchStocks && p.branchStocks.length > 0 ? (
+                                                    p.branchStocks.map((bs, idx) => (
+                                                        <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] whitespace-nowrap">
+                                                            {bs.branchId?.name || 'Main'}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs">No Branch</span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4 font-bold text-gray-800 text-center">₹{p.basePrice?.toFixed(2)}</td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className={`font-medium ${p.stockQuantity === 0 ? 'text-red-600' : 'text-gray-700'}`}>
-                                                {p.stockQuantity}
+                                            <span className={`font-medium ${getTotalStock(p) === 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                                                {getTotalStock(p)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-center"><ProductStatusBadge status={p.status} /></td>
@@ -273,8 +288,15 @@ const AllProducts = () => {
                                                     <QrCode size={16} />
                                                 </button>
                                                 <button
+                                                    className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-100"
+                                                    title="View History"
+                                                    onClick={() => handleLogsOpen(p)}
+                                                >
+                                                    <HistoryIcon size={16} />
+                                                </button>
+                                                <button
                                                     className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-100"
-                                                    title="Restock"
+                                                    title="Adjust Inventory"
                                                     onClick={() => handleRestockOpen(p)}
                                                 >
                                                     <PackagePlus size={16} />
@@ -301,24 +323,46 @@ const AllProducts = () => {
                                                         className="fixed inset-0 z-[5] bg-transparent"
                                                         onClick={() => setShowQR(null)}
                                                     ></div>
-                                                    <div className="absolute right-10 top-12 bg-white shadow-xl p-3 rounded-xl border border-gray-100 z-[10] text-center animate-in fade-in zoom-in-95 duration-200">
-                                                        <QRCodeSVG value={p.sku} size={100} />
-                                                        <div className="text-xs mt-2 text-gray-500 font-bold">{p.sku}</div>
+                                                    <div className="absolute right-10 top-12 bg-white shadow-xl p-4 rounded-xl border border-gray-100 z-[10] text-center animate-in fade-in zoom-in-95 duration-200" style={{ width: '180px' }}>
+                                                        <h6 className="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Product QR Code</h6>
+                                                        <div className="bg-gray-50 p-2 rounded-lg mb-3">
+                                                            {p.qrCode ? (
+                                                                <img src={p.qrCode} alt="Product QR" className="w-full h-auto" />
+                                                            ) : (
+                                                                <QRCodeSVG value={p.sku} size={140} level="H" />
+                                                            )}
+                                                        </div>
+                                                        <div className="text-xs mb-3 text-gray-800 font-mono font-bold bg-gray-100 py-1 rounded">{p.sku}</div>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const link = document.createElement('a');
+                                                                link.href = p.qrCode || ''; // Usually stored as data URL or Cloudinary URL
+                                                                link.download = `QR-${p.sku}.png`;
+                                                                document.body.appendChild(link);
+                                                                link.click();
+                                                                document.body.removeChild(link);
+                                                            }}
+                                                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                        >
+                                                            <Download size={12} />
+                                                            DOWNLOAD QR
+                                                        </button>
                                                     </div>
                                                 </>
                                             )}
                                         </td>
                                     </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="7" className="text-center py-10 text-gray-400">
-                                            No products found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    )}
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="8" className="text-center py-10 text-gray-400">
+                                        No products found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -333,9 +377,15 @@ const AllProducts = () => {
                 show={showRestockModal}
                 onHide={() => setShowRestockModal(false)}
                 product={selectedProduct}
-                onRestock={handleRestockSave}
+                onRestockSuccess={handleRestockSuccess}
             />
-        </div>
+
+            <InventoryLogsModal
+                show={showLogsModal}
+                onHide={() => setShowLogsModal(false)}
+                product={selectedProduct}
+            />
+        </div >
     );
 };
 

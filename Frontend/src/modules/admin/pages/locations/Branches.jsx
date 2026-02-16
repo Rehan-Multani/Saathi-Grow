@@ -1,28 +1,43 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Row, Col } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Table, Button, Form, InputGroup, Badge, Row, Col, Spinner } from 'react-bootstrap';
 import { Search, Plus, MapPin, Store, Edit, Trash2, Info, Upload, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BranchDetailsModal from '../../components/locations/BranchDetailsModal';
 import EditBranchModal from '../../components/locations/EditBranchModal';
-import Swal from 'sweetalert2';
-
-const INITIAL_BRANCHES = [
-    { id: '1', name: 'Main Store - Downtown', address: '123 Market St, Downtown', phone: '+91 98765 43210', manager: 'Sarah Connor', status: 'Active' },
-    { id: '2', name: 'Northside Branch', address: '456 North Ave, Uptown', phone: '+91 98765 43211', manager: 'Kyle Reese', status: 'Active' },
-    { id: '3', name: 'West Mall Kiosk', address: '789 West Mall, Westside', phone: '+91 98765 43212', manager: 'John Connor', status: 'Inactive' },
-];
+import { getBranches, deleteBranch } from '../../api/branchApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import { toast } from 'react-toastify';
 
 const Branches = () => {
-    const [branches, setBranches] = useState(INITIAL_BRANCHES);
+    const { adminUser } = useAdminAuth();
+    const [branches, setBranches] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState(null);
 
+    const fetchBranchesData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await getBranches(adminUser.token);
+            setBranches(data);
+        } catch (error) {
+            console.error('Error fetching branches:', error);
+            toast.error('Failed to load branches');
+        } finally {
+            setLoading(false);
+        }
+    }, [adminUser.token]);
+
+    useEffect(() => {
+        fetchBranchesData();
+    }, [fetchBranchesData]);
+
     const filtered = branches.filter(b =>
         b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.manager.toLowerCase().includes(searchTerm.toLowerCase())
+        b.code?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleShowDetails = (branch) => {
@@ -30,66 +45,35 @@ const Branches = () => {
         setShowDetailsModal(true);
     };
 
-    const handleEdit = (id) => {
-        const branch = branches.find(b => b.id === id);
+    const handleEdit = (branch) => {
         setSelectedBranch(branch);
         setShowEditModal(true);
     };
 
-    const handleSaveBranch = (updatedBranch) => {
-        setBranches(branches.map(b => b.id === updatedBranch.id ? updatedBranch : b));
-        Swal.fire({
-            title: 'Updated!',
-            text: 'Branch details have been updated successfully.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        });
+    const handleSaveBranch = () => {
+        fetchBranchesData();
+        setShowEditModal(false);
     };
 
-    const handleDelete = (id, name) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `You are about to delete ${name}. This action cannot be undone!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Delete'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                setBranches(branches.filter(b => b.id !== id));
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'Branch has been removed.',
-                    icon: 'success',
-                    confirmButtonColor: '#0c831f'
-                });
+    const handleDelete = async (id, name) => {
+        const result = await showDeleteConfirmation('Delete Branch?', `Are you sure you want to remove "${name}"?`);
+        if (result.isConfirmed) {
+            try {
+                await deleteBranch(adminUser.token, id);
+                setBranches(branches.filter(b => b._id !== id));
+                showSuccessAlert('Deleted!', 'Branch has been removed.');
+            } catch (error) {
+                showErrorAlert('Error', error.message || 'Failed to delete branch');
             }
-        });
+        }
     };
 
     const handleExport = () => {
-        Swal.fire({
-            title: 'Exporting...',
-            text: 'Preparing store branches list...',
-            icon: 'info',
-            timer: 1500,
-            showConfirmButton: false,
-            didOpen: () => Swal.showLoading()
-        }).then(() => {
-            Swal.fire('Exported!', 'The branch list has been downloaded.', 'success');
-        });
+        toast.info('Export functionality coming soon');
     };
 
     const handleImport = () => {
-        Swal.fire({
-            title: 'Import Branches',
-            text: 'Select a file to import branches from.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Choose File'
-        });
+        toast.info('Import functionality coming soon');
     };
 
     return (
@@ -131,83 +115,94 @@ const Branches = () => {
 
             <Card className="border-0 shadow-sm overflow-hidden mt-2">
                 <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase font-weight-bold">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">Branch Details</th>
-                                <th className="border-0 py-3">Manager</th>
-                                <th className="border-0 py-3">Phone</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.length > 0 ? filtered.map((b) => (
-                                <tr key={b.id}>
-                                    <td className="ps-4">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div className="bg-primary bg-opacity-10 p-2 rounded text-primary">
-                                                <Store size={20} />
-                                            </div>
-                                            <div>
-                                                <div className="fw-bold text-dark">{b.name}</div>
-                                                <div className="text-muted small d-flex align-items-center gap-1">
-                                                    <MapPin size={12} /> {b.address}
+                    {loading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" />
+                            <p className="mt-2 text-muted">Loading branches...</p>
+                        </div>
+                    ) : (
+                        <Table hover responsive className="mb-0 align-middle">
+                            <thead className="bg-light text-muted small text-uppercase font-weight-bold">
+                                <tr>
+                                    <th className="ps-4 border-0 py-3">Branch Details</th>
+                                    <th className="border-0 py-3">Code</th>
+                                    <th className="border-0 py-3">Phone</th>
+                                    <th className="border-0 py-3">Status</th>
+                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.length > 0 ? filtered.map((b) => (
+                                    <tr key={b._id}>
+                                        <td className="ps-4">
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div className="bg-primary bg-opacity-10 p-2 rounded text-primary">
+                                                    <Store size={20} />
+                                                </div>
+                                                <div>
+                                                    <div className="fw-bold text-dark">{b.name}</div>
+                                                    <div className="text-muted small d-flex align-items-center gap-1">
+                                                        <MapPin size={12} /> {b.address?.city}, {b.address?.state}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="fw-medium text-secondary">{b.manager}</td>
-                                    <td className="text-muted font-monospace small">{b.phone}</td>
-                                    <td>
-                                        <Badge
-                                            bg={b.status === 'Active' ? 'success' : 'secondary'}
-                                            className="rounded-pill fw-normal px-3 py-1 shadow-sm"
-                                        >
-                                            {b.status}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-end pe-4">
-                                        <div className="d-flex justify-content-end gap-2">
-                                            <Button
-                                                variant="light"
-                                                size="sm"
-                                                className="btn-icon-soft text-primary border shadow-none"
-                                                onClick={() => handleShowDetails(b)}
-                                                title="View Details"
+                                        </td>
+                                        <td>
+                                            <Badge bg="light" className="text-dark border font-monospace small">
+                                                {b.code}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-muted font-monospace small">{b.phone}</td>
+                                        <td>
+                                            <Badge
+                                                bg={b.isActive ? 'success' : 'secondary'}
+                                                className="rounded-pill fw-normal px-3 py-1 shadow-sm"
                                             >
-                                                <Info size={16} />
-                                            </Button>
-                                            <Button
-                                                variant="light"
-                                                size="sm"
-                                                className="btn-icon-soft text-warning border shadow-none"
-                                                onClick={() => handleEdit(b.id)}
-                                                title="Edit"
-                                            >
-                                                <Edit size={16} />
-                                            </Button>
-                                            <Button
-                                                variant="light"
-                                                size="sm"
-                                                className="btn-icon-soft text-danger border shadow-none"
-                                                onClick={() => handleDelete(b.id, b.name)}
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )) : (
-                                <tr>
-                                    <td colSpan="5" className="text-center py-5">
-                                        <div className="text-muted">No branches found matching your search.</div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </Table>
+                                                {b.isActive ? 'Active' : 'Inactive'}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-end pe-4">
+                                            <div className="d-flex justify-content-end gap-2">
+                                                <Button
+                                                    variant="light"
+                                                    size="sm"
+                                                    className="btn-icon-soft text-primary border shadow-none"
+                                                    onClick={() => handleShowDetails(b)}
+                                                    title="View Details"
+                                                >
+                                                    <Info size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="light"
+                                                    size="sm"
+                                                    className="btn-icon-soft text-warning border shadow-none"
+                                                    onClick={() => handleEdit(b)}
+                                                    title="Edit"
+                                                >
+                                                    <Edit size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="light"
+                                                    size="sm"
+                                                    className="btn-icon-soft text-danger border shadow-none"
+                                                    onClick={() => handleDelete(b._id, b.name)}
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="6" className="text-center py-5">
+                                            <div className="text-muted">No branches found matching your search.</div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </Table>
+                    )}
                 </Card.Body>
             </Card>
 

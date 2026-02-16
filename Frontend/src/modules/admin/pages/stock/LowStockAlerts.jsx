@@ -1,49 +1,79 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, ProgressBar } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Button, ProgressBar, Spinner } from 'react-bootstrap';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { showSuccessAlert } from '../../../../common/utils/alertUtils';
 import RestockModal from '../../components/products/RestockModal';
-
-const LOW_STOCK_MOCK = [
-    { id: '101', product: 'Mechanical Keyboard', sku: 'ELEC-KEY-002', branch: 'Main Branch', current: 12, minLevel: 20, status: 'Critical', stock: 12 },
-    { id: '102', product: 'Wireless Mouse', sku: 'ELEC-MOU-001', branch: 'Downtown Store', current: 10, minLevel: 15, status: 'Warning', stock: 10 },
-    { id: '103', product: 'USB-C Cable (1m)', sku: 'ACC-CAB-005', branch: 'Warehouse A', current: 5, minLevel: 50, status: 'Critical', stock: 5 },
-];
+import { getProducts } from '../../api/productApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const LowStockAlerts = () => {
+    const { adminUser } = useAdminAuth();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
-    const [alertsList, setAlertsList] = useState(LOW_STOCK_MOCK);
 
-    const handleRestockOpen = (product) => {
-        // Map the alert item to a product-like object for the modal
-        setSelectedProduct({
-            id: product.id,
-            name: product.product,
-            sku: product.sku,
-            stock: product.current
-        });
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+            const data = await getProducts(adminUser.token);
+            setProducts(data);
+        } catch (error) {
+            console.error('Error fetching low stock:', error);
+            toast.error('Failed to load low stock alerts');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (adminUser?.token) fetchProducts();
+    }, [adminUser]);
+
+    // Flatten into low stock alerts list
+    const alertsList = products.reduce((acc, product) => {
+        if (product.branchStocks && product.branchStocks.length > 0) {
+            product.branchStocks.forEach(bs => {
+                if (bs.stock <= bs.lowStockThreshold) {
+                    acc.push({
+                        product, // Original product object for the modal
+                        id: product._id,
+                        name: product.name,
+                        sku: product.sku,
+                        branchName: bs.branchId?.name || 'Unknown',
+                        current: bs.stock,
+                        minLevel: bs.lowStockThreshold,
+                        status: bs.stock === 0 ? 'Critical' : 'Warning'
+                    });
+                }
+            });
+        }
+        return acc;
+    }, []);
+
+    const handleRestockOpen = (alertItem) => {
+        setSelectedProduct(alertItem.product);
         setShowRestockModal(true);
     };
 
-    const handleRestockSave = async (productId, amount) => {
-        // In a real app, call API to restock here
-        setAlertsList(prev => prev.map(item =>
-            item.id === productId ? { ...item, current: item.current + amount, stock: item.current + amount } : item
-        ));
-        await showSuccessAlert('Inventory Updated!', `${amount} units have been added to the stock.`);
+    const handleRestockSuccess = (updatedProduct) => {
+        setProducts(prev => prev.map(p => p._id === updatedProduct._id ? updatedProduct : p));
+        showSuccessAlert('Inventory Updated!', 'Stock has been adjusted successfully.');
     };
 
     return (
         <div className="p-3">
-            <Card className="border-0 shadow-sm mb-4 bg-danger bg-opacity-10">
+            <Card className="border-0 shadow-sm mb-4 bg-danger bg-opacity-10 py-2">
                 <Card.Body className="d-flex flex-column flex-sm-row align-items-center gap-3 text-center text-sm-start">
-                    <div className="bg-danger text-white p-3 rounded-circle">
+                    <div className="bg-danger text-white p-3 rounded-circle shadow-sm">
                         <AlertTriangle size={24} />
                     </div>
                     <div>
-                        <h5 className="fw-bold text-danger mb-1">Action Required: {alertsList.filter(a => a.current < a.minLevel).length} Products Critical</h5>
-                        <p className="mb-0 text-muted small">These items are below their minimum stock levels. Restock immediately to avoid losing sales.</p>
+                        <h5 className="fw-bold text-danger mb-1">
+                            {loading ? 'Scanning Inventory...' : `Action Required: ${alertsList.length} Low Stock Alerts`}
+                        </h5>
+                        <p className="mb-0 text-muted small">These items are below their minimum stock levels in specific branches. Restock immediately to avoid losing sales.</p>
                     </div>
                 </Card.Body>
             </Card>
@@ -63,25 +93,39 @@ const LowStockAlerts = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {alertsList.map((item, idx) => (
-                                <tr key={idx}>
-                                    <td className="ps-4">
-                                        <div className="fw-bold text-dark">{item.product}</div>
-                                        <div className="small text-muted text-monospace">{item.sku}</div>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="4" className="text-center py-5">
+                                        <Spinner animation="border" variant="primary" size="sm" />
+                                        <span className="ms-2">Loading data...</span>
                                     </td>
-                                    <td className="text-muted">{item.branch}</td>
+                                </tr>
+                            ) : alertsList.length > 0 ? alertsList.map((item, idx) => (
+                                <tr key={`${item.id}-${idx}`}>
+                                    <td className="ps-4">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <div className="w-10 h-10 bg-light rounded flex items-center justify-center text-secondary font-bold overflow-hidden border flex-shrink-0">
+                                                {item.product.image ? <img src={item.product.image} alt="" className="w-full h-full object-cover" /> : item.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="fw-bold text-dark">{item.name}</div>
+                                                <div className="small text-muted font-monospace">{item.sku}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="text-muted fw-medium">{item.branchName}</td>
                                     <td style={{ minWidth: '200px' }}>
                                         <div className="d-flex justify-content-between mb-1 small">
-                                            <span className={`fw-bold ${item.current < item.minLevel * 0.5 ? 'text-red-500' : 'text-amber-500'}`}>
+                                            <span className={`fw-bold ${item.current <= item.minLevel * 0.5 ? 'text-danger' : 'text-warning'}`}>
                                                 {item.current} items left
                                             </span>
-                                            <span className="text-muted">Min: {item.minLevel}</span>
+                                            <span className="text-muted small">Threshold: {item.minLevel}</span>
                                         </div>
                                         <ProgressBar
-                                            now={Math.min(100, (item.current / item.minLevel) * 100)}
-                                            variant={item.current < item.minLevel * 0.5 ? 'danger' : 'warning'}
+                                            now={item.minLevel > 0 ? Math.min(100, (item.current / (item.minLevel * 2)) * 100) : 100}
+                                            variant={item.current <= item.minLevel * 0.5 ? 'danger' : 'warning'}
                                             style={{ height: '6px' }}
-                                            className="bg-gray-100"
+                                            className="bg-light"
                                         />
                                     </td>
                                     <td className="text-end pe-4">
@@ -95,20 +139,32 @@ const LowStockAlerts = () => {
                                         </Button>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan="4" className="text-center py-5 text-muted">
+                                        All inventory levels are healthy!
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>
             </Card>
 
-            <RestockModal
-                show={showRestockModal}
-                onHide={() => setShowRestockModal(false)}
-                product={selectedProduct}
-                onRestock={handleRestockSave}
-            />
+            {selectedProduct && (
+                <RestockModal
+                    show={showRestockModal}
+                    onHide={() => {
+                        setShowRestockModal(false);
+                        setSelectedProduct(null);
+                    }}
+                    product={selectedProduct}
+                    onRestockSuccess={handleRestockSuccess}
+                />
+            )}
         </div>
     );
 };
 
 export default LowStockAlerts;
+

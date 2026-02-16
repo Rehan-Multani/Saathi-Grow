@@ -93,3 +93,50 @@ export const getAISuggestions = async (token, productName, type) => {
   }
   return data;
 };
+
+export const adjustInventory = async (token, id, adjustmentData) => {
+  const response = await fetch(`${API_BASE_URL}/${id}/inventory`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(adjustmentData),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to adjust inventory');
+  }
+  return data;
+};
+
+export const getInventoryLogs = async (token, id) => {
+  const response = await fetch(`${API_BASE_URL}/${id}/inventory-logs`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch inventory logs');
+  }
+  return data;
+};
+
+export const getAllInventoryLogs = async (token) => {
+  const response = await fetch(`${API_BASE_URL}/inventory-logs`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch global inventory logs');
+  }
+  return data;
+};

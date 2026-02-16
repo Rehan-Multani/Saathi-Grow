@@ -1,27 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import { Save, Store, User, Phone, Mail, MapPin } from 'lucide-react';
+import { Modal, Button, Form, Row, Col, Spinner, Image } from 'react-bootstrap';
+import { Save, Store, User, Phone, Mail, MapPin, Camera, X } from 'lucide-react';
+import { updateVendor } from '../../api/vendorApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
+    const { adminUser } = useAdminAuth();
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: '',
-        owner: '',
+        storeName: '',
+        ownerName: '',
         email: '',
         phone: '',
         address: '',
-        status: 'Active'
+        description: '',
+        status: 'Pending'
     });
+    const [logoFile, setLogoFile] = useState(null);
+    const [logoPreview, setLogoPreview] = useState(null);
 
     useEffect(() => {
         if (vendor) {
             setFormData({
-                name: vendor.name || '',
-                owner: vendor.owner || '',
+                storeName: vendor.storeName || '',
+                ownerName: vendor.ownerName || '',
                 email: vendor.email || '',
                 phone: vendor.phone || '',
                 address: vendor.address || '',
-                status: vendor.status || 'Active'
+                description: vendor.description || '',
+                status: vendor.status || 'Pending'
             });
+            setLogoPreview(vendor.logo || null);
+            setLogoFile(null);
         }
     }, [vendor]);
 
@@ -30,10 +41,39 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleLogoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setLogoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLogoPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSave({ ...vendor, ...formData });
-        onHide();
+        setLoading(true);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                data.append(key, formData[key]);
+            });
+            if (logoFile) {
+                data.append('logo', logoFile);
+            }
+
+            await updateVendor(adminUser.token, vendor._id, data);
+            toast.success('Vendor updated successfully');
+            onSave();
+            onHide();
+        } catch (error) {
+            toast.error(error.message || 'Failed to update vendor');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -43,55 +83,80 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                     <Store className="text-primary" size={24} /> Edit Vendor Profile
                 </Modal.Title>
             </Modal.Header>
-            <Modal.Body className="pt-4 px-4">
+            <Modal.Body className="pt-4 px-4 pb-4">
                 <Form onSubmit={handleSubmit}>
-                    <Row className="g-3 mb-3">
-                        <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Store Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
-                                required
-                            />
-                        </Col>
-                        <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Owner Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="owner"
-                                value={formData.owner}
-                                onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
-                                required
-                            />
-                        </Col>
-                    </Row>
+                    <Row>
+                        <Col md={8}>
+                            <Row className="g-3 mb-3">
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">Store Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="storeName"
+                                        value={formData.storeName}
+                                        onChange={handleChange}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">Owner Name</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="ownerName"
+                                        value={formData.ownerName}
+                                        onChange={handleChange}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                            </Row>
 
-                    <Row className="g-3 mb-3">
-                        <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Email Address</Form.Label>
-                            <Form.Control
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
-                                required
-                            />
+                            <Row className="g-3 mb-3">
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">Email Address</Form.Label>
+                                    <Form.Control
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">Phone Number</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                            </Row>
                         </Col>
-                        <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Phone Number</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
-                                required
-                            />
+
+                        <Col md={4} className="border-start">
+                            <Form.Label className="small fw-bold text-muted uppercase">Store Logo</Form.Label>
+                            <div className="text-center p-3 border border-dashed rounded bg-light position-relative">
+                                {logoPreview ? (
+                                    <div className="position-relative">
+                                        <Image src={logoPreview} fluid rounded style={{ maxHeight: '120px' }} />
+                                        <label className="position-absolute bottom-0 end-0 bg-primary text-white p-1 rounded-circle cursor-pointer shadow-sm translate-x-1/2 translate-y-1/2">
+                                            <Camera size={14} />
+                                            <input type="file" className="d-none" onChange={handleLogoChange} accept="image/*" />
+                                        </label>
+                                    </div>
+                                ) : (
+                                    <label className="cursor-pointer py-4 d-block">
+                                        <Camera size={30} className="text-muted mb-2" />
+                                        <div className="small text-muted">Update Logo</div>
+                                        <input type="file" className="d-none" onChange={handleLogoChange} accept="image/*" />
+                                    </label>
+                                )}
+                            </div>
                         </Col>
                     </Row>
 
@@ -110,7 +175,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                         </Col>
                     </Row>
 
-                    <Row className="g-3 mb-3">
+                    <Row className="g-3">
                         <Col md={6}>
                             <Form.Label className="small fw-bold text-muted uppercase">Status</Form.Label>
                             <Form.Select
@@ -121,17 +186,18 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                             >
                                 <option value="Active">Active</option>
                                 <option value="Pending">Pending</option>
-                                <option value="Blocked">Blocked</option>
+                                <option value="Inactive">Inactive</option>
                             </Form.Select>
                         </Col>
                     </Row>
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium border shadow-none">
+                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium border shadow-none" disabled={loading}>
                             Discard
                         </Button>
-                        <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm">
-                            <Save size={18} /> Update Vendor
+                        <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm" disabled={loading}>
+                            {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
+                            {loading ? 'Updating...' : 'Update Vendor'}
                         </Button>
                     </div>
                 </Form>

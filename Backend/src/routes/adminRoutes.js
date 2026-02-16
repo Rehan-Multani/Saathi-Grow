@@ -20,13 +20,13 @@ router.post('/login', adminLogin);
 router.get('/profile', protectAdmin, getAdminProfile);
 router.put('/profile', protectAdmin, upload.single('profileImage'), updateAdminProfile);
 
-// Staff Management (Restricted to main 'Admin' role)
+// Staff Management (Restricted to Admin and Branch Manager roles)
 router.route('/staff')
-    .get(protectAdmin, restrictTo('Admin'), getAllAdmins)
-    .post(protectAdmin, restrictTo('Admin'), createAdmin);
+    .get(protectAdmin, restrictTo('Admin', 'Branch Manager'), getAllAdmins)
+    .post(protectAdmin, restrictTo('Admin', 'Branch Manager'), createAdmin);
 
 router.route('/staff/:id')
-    .put(protectAdmin, restrictTo('Admin'), updateAdmin)
-    .delete(protectAdmin, restrictTo('Admin'), deleteAdmin);
+    .put(protectAdmin, restrictTo('Admin', 'Branch Manager'), updateAdmin)
+    .delete(protectAdmin, restrictTo('Admin', 'Branch Manager'), deleteAdmin);
 
 export default router;

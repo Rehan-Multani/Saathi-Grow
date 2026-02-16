@@ -21,6 +21,6 @@ router.route('/')
 router.route('/:id')
   .get(getCategoryById)
   .put(upload.single('image'), updateCategory)
-  .delete(restrictTo('Admin'), deleteCategory);
+  .delete(restrictTo('Admin', 'Branch Manager'), deleteCategory);
 
 export default router;

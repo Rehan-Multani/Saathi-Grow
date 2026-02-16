@@ -54,3 +54,50 @@ export const updateProfile = async (token, profileData) => {
   }
   return data;
 };
+
+export const getAllStaff = async (token) => {
+  const response = await fetch(`${API_BASE_URL}/staff`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch staff');
+  return data;
+};
+
+export const createStaff = async (token, staffData) => {
+  const response = await fetch(`${API_BASE_URL}/staff`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(staffData)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to create staff');
+  return data;
+};
+
+export const updateStaff = async (token, id, staffData) => {
+  const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(staffData)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to update staff');
+  return data;
+};
+
+export const deleteStaff = async (token, id) => {
+  const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to delete staff');
+  return data;
+};

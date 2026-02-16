@@ -52,9 +52,15 @@ import adminRoutes from './routes/adminRoutes.js';
 import brandRoutes from './routes/brandRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import productRoutes from './routes/productRoutes.js';
+import branchRoutes from './routes/branchRoutes.js';
+import vendorRoutes from './routes/vendorRoutes.js';
+import vendorPortalRoutes from './routes/vendorPortalRoutes.js';
 
 // Use Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin/branches', branchRoutes);
+app.use('/api/admin/vendors', vendorRoutes);
+app.use('/api/vendors', vendorPortalRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/brands', brandRoutes);
 app.use('/api/admin/categories', categoryRoutes);

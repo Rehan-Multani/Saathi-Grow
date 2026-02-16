@@ -1,26 +1,28 @@
-import React, { useState } from 'react';
-import { Card, Form, Button, Row, Col } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Button, Row, Col, Spinner } from 'react-bootstrap';
 import { Save, X, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getProducts, adjustInventory } from '../../api/productApi';
+import { getBranches } from '../../api/branchApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const AddStockAdjustment = () => {
     const navigate = useNavigate();
+    const { adminUser } = useAdminAuth();
+    const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [products, setProducts] = useState([]);
+    const [branches, setBranches] = useState([]);
+
     const [formData, setFormData] = useState({
-        product: '',
-        type: 'Addition', // Addition, Deduction
-        quantity: '',
-        date: new Date().toISOString().split('T')[0],
+        productId: '',
+        branchId: '',
+        type: 'Addition', // Addition, Deduction, Damage, Return
+        amount: '',
         reason: '',
         notes: ''
     });
-
-    const PRODUCTS = [
-        { id: '1', name: 'Wireless Mouse' },
-        { id: '2', name: 'Keyboard' },
-        { id: '3', name: 'USB Cable' },
-        { id: '4', name: 'Monitor 24"' },
-        { id: '5', name: 'Headphones' },
-    ];
 
     const REASONS = [
         'New Stock Arrival',
@@ -28,19 +30,66 @@ const AddStockAdjustment = () => {
         'Inventory Correction',
         'Return',
         'Theft/Loss',
+        'Audit',
         'Other'
     ];
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const [productsData, branchesData] = await Promise.all([
+                    getProducts(adminUser.token),
+                    getBranches(adminUser.token)
+                ]);
+                setProducts(productsData);
+                setBranches(branchesData.filter(b => b.isActive));
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                toast.error('Failed to load products and branches');
+            } finally {
+                setInitialLoading(false);
+            }
+        };
+
+        if (adminUser?.token) fetchInitialData();
+    }, [adminUser]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Here you would normally submit the form data to the backend
-        console.log('Adjustment Submitted:', formData);
-        navigate('/admin/stock/adjustments');
+        if (!formData.productId || !formData.branchId || !formData.amount || !formData.reason) {
+            toast.warning('Please fill all required fields');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await adjustInventory(adminUser.token, formData.productId, {
+                amount: Number(formData.amount),
+                type: formData.type,
+                reason: formData.reason + (formData.notes ? ` - ${formData.notes}` : ''),
+                branchId: formData.branchId
+            });
+            toast.success('Stock adjusted successfully');
+            navigate('/admin/stock/adjustments');
+        } catch (error) {
+            toast.error(error.message || 'Failed to adjust stock');
+        } finally {
+            setLoading(false);
+        }
     };
+
+    if (initialLoading) {
+        return (
+            <div className="text-center py-10">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-2 text-muted text-sm">Loading form data...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-3">
@@ -67,12 +116,43 @@ const AddStockAdjustment = () => {
                                     <Col md={12}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Select Product <span className="text-danger">*</span></Form.Label>
-                                            <Form.Select name="product" value={formData.product} onChange={handleChange} required>
+                                            <Form.Select name="productId" value={formData.productId} onChange={handleChange} required>
                                                 <option value="">Choose Product...</option>
-                                                {PRODUCTS.map(p => (
-                                                    <option key={p.id} value={p.name}>{p.name}</option>
+                                                {products.map(p => (
+                                                    <option key={p._id} value={p._id}>{p.name} ({p.sku})</option>
                                                 ))}
                                             </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+
+                                <Row className="mb-3">
+                                    <Col md={12}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Select Branch <span className="text-danger">*</span></Form.Label>
+                                            <Form.Select name="branchId" value={formData.branchId} onChange={handleChange} required>
+                                                <option value="">{formData.productId ? 'Choose Branch...' : 'Select Product First'}</option>
+                                                {branches.filter(b => {
+                                                    if (!formData.productId) return false;
+                                                    const selectedProduct = products.find(p => p._id === formData.productId);
+                                                    if (!selectedProduct) return false;
+                                                    // Check if branch exists in product's branchStocks
+                                                    return selectedProduct.branchStocks?.some(bs => {
+                                                        const bid = bs.branchId?._id || bs.branchId;
+                                                        return bid.toString() === b._id.toString();
+                                                    });
+                                                }).map(b => (
+                                                    <option key={b._id} value={b._id}>{b.name} ({b.code})</option>
+                                                ))}
+                                            </Form.Select>
+                                            {formData.productId && branches.filter(b => {
+                                                const selectedProduct = products.find(p => p._id === formData.productId);
+                                                return selectedProduct?.branchStocks?.some(bs => (bs.branchId?._id || bs.branchId).toString() === b._id.toString());
+                                            }).length === 0 && (
+                                                    <Form.Text className="text-danger">
+                                                        This product is not assigned to any branch. Edit the product to add branches.
+                                                    </Form.Text>
+                                                )}
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -84,27 +164,33 @@ const AddStockAdjustment = () => {
                                             <Form.Select name="type" value={formData.type} onChange={handleChange}>
                                                 <option value="Addition">Addition (+)</option>
                                                 <option value="Deduction">Deduction (-)</option>
+                                                <option value="Damage">Damage (-)</option>
+                                                <option value="Return">Return (+)</option>
+                                                <option value="Audit">Audit (Direct Set)</option>
                                             </Form.Select>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Quantity <span className="text-danger">*</span></Form.Label>
+                                            <Form.Label>Quantity/New Stock <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="number"
-                                                min="1"
+                                                min="0"
                                                 placeholder="Enter quantity"
-                                                name="quantity"
-                                                value={formData.quantity}
+                                                name="amount"
+                                                value={formData.amount}
                                                 onChange={handleChange}
                                                 required
                                             />
+                                            <Form.Text className="text-muted small">
+                                                For 'Audit' type, enter the actual total stock. For others, enter the change amount.
+                                            </Form.Text>
                                         </Form.Group>
                                     </Col>
                                 </Row>
 
                                 <Row className="mb-3">
-                                    <Col md={6}>
+                                    <Col md={12}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Reason <span className="text-danger">*</span></Form.Label>
                                             <Form.Select name="reason" value={formData.reason} onChange={handleChange} required>
@@ -113,18 +199,6 @@ const AddStockAdjustment = () => {
                                                     <option key={idx} value={r}>{r}</option>
                                                 ))}
                                             </Form.Select>
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Date <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="date"
-                                                name="date"
-                                                value={formData.date}
-                                                onChange={handleChange}
-                                                required
-                                            />
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -142,9 +216,10 @@ const AddStockAdjustment = () => {
                                 </Form.Group>
 
                                 <div className="d-flex flex-column flex-sm-row justify-content-end gap-3 mt-4">
-                                    <Button variant="light" size="lg" onClick={() => navigate('/admin/stock/adjustments')} className="w-100 w-sm-auto order-2 order-sm-1">Cancel</Button>
-                                    <Button variant="primary" size="lg" type="submit" className="d-flex align-items-center justify-content-center gap-2 px-4 w-100 w-sm-auto shadow-sm order-1 order-sm-2">
-                                        <Save size={22} /> Save Adjustment
+                                    <Button variant="light" size="lg" onClick={() => navigate('/admin/stock/adjustments')} className="w-100 w-sm-auto order-2 order-sm-1" disabled={loading}>Cancel</Button>
+                                    <Button variant="primary" size="lg" type="submit" className="d-flex align-items-center justify-content-center gap-2 px-4 w-100 w-sm-auto shadow-sm order-1 order-sm-2" disabled={loading}>
+                                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={22} />}
+                                        {loading ? 'Processing...' : 'Save Adjustment'}
                                     </Button>
                                 </div>
                             </Form>

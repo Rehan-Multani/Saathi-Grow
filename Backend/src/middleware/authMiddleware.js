@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Admin from '../models/Admin.js';
+import Vendor from '../models/Vendor.js';
 
 // Protect Customer/User Routes
 export const protect = async (req, res, next) => {
@@ -17,6 +18,24 @@ export const protect = async (req, res, next) => {
     }
   }
   if (!token) res.status(401).json({ message: 'Not authorized, no token' });
+};
+
+// Protect Vendor Portal Routes
+export const protectVendor = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.vendor = await Vendor.findById(decoded.id);
+      if (!req.vendor) return res.status(401).json({ message: 'Vendor access denied' });
+      if (req.vendor.status !== 'Active') return res.status(403).json({ message: 'Account is not active' });
+      next();
+    } catch (error) {
+      res.status(401).json({ message: 'Session expired, please login again' });
+    }
+  }
+  if (!token) res.status(401).json({ message: 'Vendor authentication required' });
 };
 
 // Protect Admin Panel Routes

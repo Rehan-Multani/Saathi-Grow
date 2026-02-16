@@ -26,59 +26,118 @@ export const adminLogin = async (req, res) => {
 
 // --- STAFF MANAGEMENT (CRUD for 'Admin' Role) ---
 
-// @desc    Get all staff/managers
+// @desc    Get all staff/managers (excluding other Admins)
 // @route   GET /api/admin/staff
-// @access  Private (Admin Only)
+// @access  Private (Admin/Branch Manager)
 export const getAllAdmins = async (req, res) => {
-  const admins = await Admin.find({}).sort('-createdAt');
-  res.json(admins);
+  try {
+    let query = { _id: { $ne: req.admin._id } };
+
+    // Hierarchy Logic:
+    if (req.admin.role === 'Branch Manager') {
+      // Branch Managers can only see 'Staff' assigned to THEIR branch
+      query.role = 'Staff';
+      query.branchId = req.admin.branchId;
+    } else if (req.admin.role === 'Admin') {
+      // Admins can see all 'Branch Manager' and 'Staff' across all branches
+      query.role = { $in: ['Branch Manager', 'Staff'] };
+    } else {
+      // Staff members shouldn't be accessing this, but if they do, show nothing or throw error
+      return res.status(403).json({ message: 'Not authorized to view staff list' });
+    }
+
+    const admins = await Admin.find(query)
+      .populate('branchId', 'name code')
+      .sort('-createdAt');
+
+    res.json(admins);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // @desc    Create new Staff/Manager
 // @route   POST /api/admin/staff
-// @access  Private (Admin Only)
+// @access  Private (Admin/Branch Manager)
 export const createAdmin = async (req, res) => {
-  const { name, email, phone, password, role, permissions } = req.body;
+  try {
+    const { name, email, phone, password, role, permissions, branchId } = req.body;
 
-  const adminExists = await Admin.findOne({ email });
+    const adminExists = await Admin.findOne({ email });
+    if (adminExists) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
 
-  if (adminExists) {
-    return res.status(400).json({ message: 'User with this email already exists' });
-  }
+    let finalRole = role;
+    let finalBranchId = branchId;
 
-  const admin = await Admin.create({
-    name,
-    email,
-    phone,
-    password,
-    role,
-    permissions
-  });
+    // Hierarchy Enforcement:
+    if (req.admin.role === 'Branch Manager') {
+      // Branch Managers can ONLY create Staff for their own branch
+      finalRole = 'Staff';
+      finalBranchId = req.admin.branchId;
+    } else if (req.admin.role === 'Admin') {
+      // Admins can create Branch Managers or Staff
+      // Don't allow creating 'Admin' role via this endpoint for security
+      if (role === 'Admin') {
+        return res.status(403).json({ message: 'Cannot create other Admin accounts via this module' });
+      }
+    }
 
-  if (admin) {
+    const admin = await Admin.create({
+      name,
+      email,
+      phone,
+      password,
+      role: finalRole,
+      permissions,
+      branchId: finalBranchId || null
+    });
+
     res.status(201).json({
       _id: admin._id,
       name: admin.name,
       email: admin.email,
       role: admin.role
     });
-  } else {
-    res.status(400).json({ message: 'Invalid staff data' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 // @desc    Update Staff/Manager
 // @route   PUT /api/admin/staff/:id
-// @access  Private (Admin Only)
+// @access  Private (Admin/Branch Manager)
 export const updateAdmin = async (req, res) => {
-  const admin = await Admin.findById(req.params.id);
+  try {
+    const admin = await Admin.findById(req.params.id);
+    if (!admin) {
+      return res.status(404).json({ message: 'Staff member not found' });
+    }
 
-  if (admin) {
+    // Security Check: Prevents editing other Admins
+    if (admin.role === 'Admin' && req.admin.role !== 'Admin') {
+      return res.status(403).json({ message: 'Not authorized to edit Admin accounts' });
+    }
+
+    // Hierarchy Enforcement:
+    if (req.admin.role === 'Branch Manager') {
+      // Managers can only edit staff in THEIR branch
+      if (admin.role !== 'Staff' || admin.branchId.toString() !== req.admin.branchId.toString()) {
+        return res.status(403).json({ message: 'Not authorized to edit staff from other branches' });
+      }
+
+      // Managers can't change roles or branches
+      delete req.body.role;
+      delete req.body.branchId;
+    }
+
     admin.name = req.body.name || admin.name;
     admin.email = req.body.email || admin.email;
     admin.phone = req.body.phone || admin.phone;
     admin.role = req.body.role || admin.role;
     admin.permissions = req.body.permissions || admin.permissions;
+    admin.branchId = req.body.branchId !== undefined ? req.body.branchId : admin.branchId;
     admin.isActive = req.body.isActive ?? admin.isActive;
 
     if (req.body.password) {
@@ -87,8 +146,8 @@ export const updateAdmin = async (req, res) => {
 
     const updatedAdmin = await admin.save();
     res.json(updatedAdmin);
-  } else {
-    res.status(404).json({ message: 'Staff member not found' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

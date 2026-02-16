@@ -5,22 +5,23 @@ import { useVendor } from '../contexts/VendorContext';
 
 const VendorLogin = () => {
     const navigate = useNavigate();
-    const { login } = useVendor();
-    const [email, setEmail] = useState('vendor@saathigro.com');
-    const [password, setPassword] = useState('123456');
+    const { login, loading } = useVendor();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
 
-        // Validate with stored password
-        const isValid = login(email, password);
+        if (!email || !password) {
+            return setError('Please fill in all fields');
+        }
 
-        if (isValid) {
+        const success = await login(email, password);
+
+        if (success) {
             navigate('/vendor/dashboard');
-        } else {
-            setError('Invalid password! Please try again.');
         }
     };
 
@@ -90,9 +91,19 @@ const VendorLogin = () => {
 
                         <button
                             type="submit"
-                            className="w-full py-3.5 bg-[#0c831f] text-white font-bold rounded-xl shadow-lg shadow-green-900/20 hover:bg-[#0a6b19] active:scale-95 transition-all flex items-center justify-center gap-2"
+                            disabled={loading}
+                            className={`w-full py-3.5 bg-[#0c831f] text-white font-bold rounded-xl shadow-lg shadow-green-900/20 hover:bg-[#0a6b19] active:scale-95 transition-all flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            Login to Dashboard <ArrowRight size={18} />
+                            {loading ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Signing in...
+                                </>
+                            ) : (
+                                <>
+                                    Login to Dashboard <ArrowRight size={18} />
+                                </>
+                            )}
                         </button>
                     </form>
 

@@ -21,6 +21,6 @@ router.route('/')
 router.route('/:id')
   .get(getBrandById)
   .put(upload.single('logo'), updateBrand)
-  .delete(restrictTo('Admin'), deleteBrand);
+  .delete(restrictTo('Admin', 'Branch Manager'), deleteBrand);
 
 export default router;

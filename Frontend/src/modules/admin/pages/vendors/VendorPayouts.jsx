@@ -1,28 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Row, Col, Card, Table, Button, Badge } from 'react-bootstrap';
+import { Row, Col, Card, Table, Button, Badge, Spinner } from 'react-bootstrap';
 import { Download, IndianRupee, CheckCircle, Clock, Wallet } from 'lucide-react';
 import Swal from 'sweetalert2';
-
-const PAYOUTS_MOCK = [
-    { id: 'PAY-8801', vendor: 'Fresh Farms Ltd', amount: '₹1,250.00', date: '2023-11-01', status: 'Paid', method: 'Bank Transfer', utr: 'UTR983241' },
-    { id: 'PAY-8802', vendor: 'Tech World', amount: '₹3,400.00', date: '2023-10-25', status: 'Processing', method: 'PayPal', utr: '-' },
-    { id: 'PAY-8803', vendor: 'Fresh Farms Ltd', amount: '₹900.00', date: '2023-10-15', status: 'Paid', method: 'Bank Transfer', utr: 'UTR772134' },
-    { id: 'PAY-8804', vendor: 'Urban Styles', amount: '₹450.00', date: '2023-10-10', status: 'Failed', method: 'Bank Transfer', utr: '-', error: 'Invalid Account' },
-];
+import { getPayouts } from '../../api/vendorApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const VendorPayouts = () => {
     const navigate = useNavigate();
+    const { adminUser } = useAdminAuth();
+    const [loading, setLoading] = useState(true);
+    const [payouts, setPayouts] = useState([]);
+
+    useEffect(() => {
+        const fetchPayouts = async () => {
+            try {
+                const data = await getPayouts(adminUser.token);
+                setPayouts(data);
+            } catch (error) {
+                toast.error('Failed to load payout logs');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (adminUser?.token) {
+            fetchPayouts();
+        }
+    }, [adminUser.token]);
+
+    const stats = {
+        total: payouts.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0),
+        processing: payouts.reduce((acc, curr) => acc + (curr.status === 'Processing' ? curr.amount : 0), 0),
+        settledMonth: payouts.reduce((acc, curr) => {
+            const date = new Date(curr.payoutDate);
+            const now = new Date();
+            if (curr.status === 'Paid' && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
+                return acc + curr.amount;
+            }
+            return acc;
+        }, 0)
+    };
 
     const handleExport = () => {
         const headers = ['Payout ID', 'Vendor', 'Amount', 'Date', 'Method', 'Reference No.', 'Status'];
-        const csvRows = PAYOUTS_MOCK.map(p => [
-            p.id,
-            `"${p.vendor}"`,
-            `"${p.amount}"`,
-            p.date,
-            `"${p.method}"`,
-            `"${p.utr}"`,
+        const csvRows = payouts.map(p => [
+            p._id,
+            `"${p.vendor?.storeName || 'Unknown'}"`,
+            p.amount,
+            new Date(p.payoutDate).toLocaleDateString(),
+            `"${p.paymentMethod}"`,
+            `"${p.referenceNumber}"`,
             p.status
         ].join(','));
 
@@ -54,6 +83,14 @@ const VendorPayouts = () => {
             });
         });
     };
+
+    if (loading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <Spinner animation="border" variant="success" />
+            </div>
+        );
+    }
 
     return (
         <div className="p-2 p-md-4">
@@ -87,7 +124,7 @@ const VendorPayouts = () => {
                             </div>
                             <div>
                                 <div className="text-uppercase small fw-bold text-muted mb-1">Total Disbursed</div>
-                                <h3 className="fw-bold mb-0">₹1,85,900</h3>
+                                <h3 className="fw-bold mb-0">₹{stats.total.toLocaleString()}</h3>
                             </div>
                         </Card.Body>
                     </Card>
@@ -100,7 +137,7 @@ const VendorPayouts = () => {
                             </div>
                             <div>
                                 <div className="text-uppercase small fw-bold text-muted mb-1">In Processing</div>
-                                <h3 className="fw-bold mb-0 text-info">₹12,400</h3>
+                                <h3 className="fw-bold mb-0 text-info">₹{stats.processing.toLocaleString()}</h3>
                             </div>
                         </Card.Body>
                     </Card>
@@ -113,7 +150,7 @@ const VendorPayouts = () => {
                             </div>
                             <div>
                                 <div className="text-uppercase small fw-bold text-muted mb-1">Settled This Month</div>
-                                <h3 className="fw-bold mb-0">₹45,200</h3>
+                                <h3 className="fw-bold mb-0">₹{stats.settledMonth.toLocaleString()}</h3>
                             </div>
                         </Card.Body>
                     </Card>
@@ -138,22 +175,22 @@ const VendorPayouts = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {PAYOUTS_MOCK.map((p, idx) => (
-                                <tr key={idx} className="cursor-pointer" onClick={() => navigate(`${p.id}`)}>
+                            {payouts.length > 0 ? payouts.map((p, idx) => (
+                                <tr key={idx} className="cursor-pointer" onClick={() => navigate(`${p._id}`)}>
                                     <td className="ps-4">
-                                        <span className="fw-bold font-monospace text-primary">{p.id}</span>
+                                        <span className="fw-bold font-monospace text-primary text-xs">#{p._id.substring(p._id.length - 8)}</span>
                                     </td>
                                     <td>
-                                        <div className="fw-medium text-dark">{p.vendor}</div>
-                                        <div className="small text-muted d-none d-sm-block">{p.method}</div>
+                                        <div className="fw-medium text-dark">{p.vendor?.storeName || 'Unknown'}</div>
+                                        <div className="small text-muted d-none d-sm-block" style={{ fontSize: '10px' }}>{p.paymentMethod}</div>
                                     </td>
-                                    <td className="fw-bold text-dark">{p.amount}</td>
-                                    <td className="text-muted small">{p.date}</td>
+                                    <td className="fw-bold text-dark">₹{p.amount}</td>
+                                    <td className="text-muted small">{new Date(p.payoutDate).toLocaleDateString()}</td>
                                     <td className="small font-monospace">
-                                        {p.utr === '-' ? (
+                                        {p.referenceNumber === '-' ? (
                                             <span className="text-muted italic opacity-50">Pending</span>
                                         ) : (
-                                            <span className="bg-light border px-2 py-0.5 rounded text-secondary">{p.utr}</span>
+                                            <span className="bg-light border px-2 py-0.5 rounded text-secondary">{p.referenceNumber}</span>
                                         )}
                                     </td>
                                     <td>
@@ -171,14 +208,21 @@ const VendorPayouts = () => {
                                             className="btn-icon-soft text-primary px-3 border shadow-none"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                navigate(`${p.id}`);
+                                                navigate(`${p._id}`);
                                             }}
                                         >
                                             View Details
                                         </Button>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-5 text-muted">
+                                        <Download size={48} className="text-light mb-3" />
+                                        <p className="mb-0">No payout records found.</p>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>

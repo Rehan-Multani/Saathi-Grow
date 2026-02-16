@@ -1,30 +1,53 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
-import { Search, Filter, ExternalLink, X } from 'lucide-react';
-
-const VENDOR_PRODUCTS_MOCK = [
-    { id: 'VP-101', vendor: 'Fresh Farms Ltd', product: 'Organic Bananas', category: 'Groceries', price: '₹4.50', stock: 120, status: 'Active' },
-    { id: 'VP-102', vendor: 'Fresh Farms Ltd', product: 'Strawberries', category: 'Groceries', price: '₹6.00', stock: 50, status: 'Active' },
-    { id: 'VP-103', vendor: 'Tech World', product: 'Wireless Mouse', category: 'Electronics', price: '₹25.00', stock: 10, status: 'Low Stock' },
-    { id: 'VP-104', vendor: 'Urban Styles', product: 'Cotton T-Shirt', category: 'Clothing', price: '₹15.00', stock: 0, status: 'Out of Stock' },
-];
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Button, Form, InputGroup, Badge, Spinner, Image } from 'react-bootstrap';
+import { Search, Filter, ExternalLink, X, ShoppingBag } from 'lucide-react';
+import { getProducts } from '../../api/productApi';
+import { getVendors } from '../../api/vendorApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const VendorProducts = () => {
+    const { adminUser } = useAdminAuth();
+    const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState([]);
+    const [vendors, setVendors] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedVendor, setSelectedVendor] = useState('');
 
-    const uniqueCategories = [...new Set(VENDOR_PRODUCTS_MOCK.map(p => p.category))];
-    const uniqueVendors = [...new Set(VENDOR_PRODUCTS_MOCK.map(p => p.vendor))];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [productsData, vendorsData] = await Promise.all([
+                    getProducts(adminUser.token),
+                    getVendors(adminUser.token)
+                ]);
+                // Filter to only show products linked to vendors
+                const vendorProds = productsData.filter(p => p.vendor);
+                setProducts(vendorProds);
+                setVendors(vendorsData);
+            } catch (error) {
+                toast.error('Failed to fetch product data');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const filtered = VENDOR_PRODUCTS_MOCK.filter(p => {
-        const matchesSearch = p.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.id.toLowerCase().includes(searchTerm.toLowerCase());
+        if (adminUser?.token) {
+            fetchData();
+        }
+    }, [adminUser.token]);
+
+    const uniqueCategories = [...new Set(products.map(p => p.category))];
+
+    const filtered = products.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.vendor?.storeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.sku.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
-        const matchesVendor = selectedVendor ? p.vendor === selectedVendor : true;
+        const matchesVendor = selectedVendor ? p.vendor?._id === selectedVendor : true;
 
         return matchesSearch && matchesCategory && matchesVendor;
     });
@@ -34,6 +57,14 @@ const VendorProducts = () => {
         setSelectedVendor('');
         setShowFilterMenu(false);
     };
+
+    if (loading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <Spinner animation="border" variant="primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="p-2 p-md-4">
@@ -55,10 +86,10 @@ const VendorProducts = () => {
 
                         <div className="d-flex flex-column flex-md-row gap-2 gap-md-3 w-100 w-lg-auto align-items-stretch align-items-md-center">
                             <div className="flex-grow-1" style={{ maxWidth: '450px' }}>
-                                <InputGroup className="shadow-none border-0 overflow-hidden rounded-3">
+                                <InputGroup className="shadow-none border border-light overflow-hidden rounded-3">
                                     <InputGroup.Text className="bg-light border-0 text-muted ps-3"><Search size={18} /></InputGroup.Text>
                                     <Form.Control
-                                        placeholder="Search products by name, ID or vendor..."
+                                        placeholder="Search products, SKU or vendor..."
                                         className="bg-light border-0 ps-1 py-2 shadow-none font-small"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -110,7 +141,7 @@ const VendorProducts = () => {
                                                 onChange={(e) => setSelectedVendor(e.target.value)}
                                             >
                                                 <option value="">All Vendors</option>
-                                                {uniqueVendors.map(v => <option key={v} value={v}>{v}</option>)}
+                                                {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName}</option>)}
                                             </Form.Select>
                                         </div>
 
@@ -139,50 +170,61 @@ const VendorProducts = () => {
                                 <th className="ps-4 border-0 py-3">Product Info</th>
                                 <th className="border-0 py-3">Vendor</th>
                                 <th className="border-0 py-3">Category</th>
+                                <th className="border-0 py-3 text-center">Unit</th>
                                 <th className="border-0 py-3">Price</th>
                                 <th className="border-0 py-3">Stock</th>
                                 <th className="border-0 py-3">Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.length > 0 ? filtered.map((p, idx) => (
-                                <tr key={idx}>
-                                    <td className="ps-4 py-3">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div className="bg-light rounded p-2 text-primary d-none d-sm-block">
-                                                <ShoppingBag size={20} />
+                            {filtered.length > 0 ? filtered.map((p, idx) => {
+                                const totalStock = p.branchStocks?.reduce((acc, curr) => acc + curr.stock, 0) || 0;
+                                return (
+                                    <tr key={idx}>
+                                        <td className="ps-4 py-3">
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div className="bg-light rounded p-1 text-primary d-none d-sm-block overflow-hidden" style={{ width: '40px', height: '40px' }}>
+                                                    {p.image ? (
+                                                        <Image src={p.image} fluid />
+                                                    ) : (
+                                                        <ShoppingBag size={20} className="m-2" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div className="fw-bold text-dark">{p.name}</div>
+                                                    <div className="small text-muted font-monospace" style={{ fontSize: '11px' }}>{p.sku}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="fw-bold text-dark">{p.product}</div>
-                                                <div className="small text-muted">{p.id}</div>
+                                        </td>
+                                        <td>
+                                            <div className="d-flex align-items-center gap-2">
+                                                {p.vendor?.logo && <Image src={p.vendor.logo} roundedCircle width={20} height={20} />}
+                                                <span className="fw-medium text-primary" style={{ fontSize: '13px' }}>{p.vendor?.storeName || 'Unknown'}</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <Badge bg="info" className="bg-opacity-10 text-info fw-medium px-2 py-1 border border-info border-opacity-25">
-                                            {p.vendor}
-                                        </Badge>
-                                    </td>
-                                    <td><span className="text-secondary small fw-medium">{p.category}</span></td>
-                                    <td className="fw-bold text-dark">{p.price}</td>
-                                    <td>
-                                        <div className="d-flex flex-column">
-                                            <span className={`fw-bold ${p.stock <= 10 ? 'text-danger' : 'text-dark'}`}>{p.stock}</span>
-                                            <span className="text-muted" style={{ fontSize: '10px' }}>In Hand</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <Badge bg={
-                                            p.status === 'Active' ? 'success' :
-                                                p.status === 'Low Stock' ? 'warning' : 'danger'
-                                        } className="rounded-pill fw-normal px-3 py-1">
-                                            {p.status}
-                                        </Badge>
-                                    </td>
-                                </tr>
-                            )) : (
+                                        </td>
+                                        <td><span className="text-secondary small fw-medium">{p.category}</span></td>
+                                        <td className="text-center"><Badge bg="light" text="dark" className="border fw-normal uppercase">{p.unitType}</Badge></td>
+                                        <td className="fw-bold text-dark">₹{p.basePrice}</td>
+                                        <td>
+                                            <div className="d-flex flex-column">
+                                                <span className={`fw-bold ${totalStock <= 10 ? 'text-danger' : 'text-dark'}`}>{totalStock}</span>
+                                                <span className="text-muted" style={{ fontSize: '10px' }}>Total Items</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <Badge bg={
+                                                p.status === 'Active' ? 'success' :
+                                                    p.status === 'Low Stock' ? 'warning' : 'danger'
+                                            } className="rounded-pill fw-normal px-3 py-1">
+                                                {p.status}
+                                            </Badge>
+                                        </td>
+                                    </tr>
+                                );
+                            }) : (
                                 <tr>
                                     <td colSpan="7" className="text-center py-5 text-muted">
+                                        <div className="mb-2"><ShoppingBag size={48} className="text-light" /></div>
                                         No products found matching your filters.
                                     </td>
                                 </tr>
@@ -194,10 +236,5 @@ const VendorProducts = () => {
         </div>
     );
 };
-
-// Helper Icon for table
-const ShoppingBag = ({ size }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-bag"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-);
 
 export default VendorProducts;

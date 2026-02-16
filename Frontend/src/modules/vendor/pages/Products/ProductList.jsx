@@ -14,15 +14,17 @@ const ProductList = () => {
     const [priceRange, setPriceRange] = useState('all');
 
     // Get unique categories from products
-    const categories = ['all', ...new Set(products.map(p => p.category))];
+    const categories = ['all', ...new Set(products.map(p => typeof p.category === 'object' ? p.category.name : p.category))];
 
     const filteredProducts = products.filter(product => {
+        const categoryName = typeof product.category === 'object' ? product.category.name : (product.category || '');
+
         // Search filter
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.category.toLowerCase().includes(searchQuery.toLowerCase());
+            categoryName.toLowerCase().includes(searchQuery.toLowerCase());
 
         // Category filter
-        const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+        const matchesCategory = categoryFilter === 'all' || categoryName === categoryFilter;
 
         // Stock filter
         const matchesStock =
@@ -172,7 +174,7 @@ const ProductList = () => {
                         <tbody className="divide-y divide-gray-50">
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => (
-                                    <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
+                                    <tr key={product._id} className="hover:bg-gray-50 transition-colors group">
                                         <td className="px-4 py-2 lg:py-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded bg-white border border-gray-100 p-0.5 flex-shrink-0">
@@ -181,7 +183,9 @@ const ProductList = () => {
                                                 <span className="text-xs font-bold text-gray-800 tracking-tight">{product.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 lg:py-2 text-[11px] text-gray-500 font-medium">{product.category}</td>
+                                        <td className="px-4 py-2 lg:py-2 text-[11px] text-gray-500 font-medium">
+                                            {typeof product.category === 'object' ? product.category.name : product.category}
+                                        </td>
                                         <td className="px-4 py-2 lg:py-2 text-xs font-bold text-gray-900">{formatCurrency(product.price)}</td>
                                         <td className="px-4 py-2 lg:py-2">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${product.stock < 20
@@ -194,14 +198,14 @@ const ProductList = () => {
                                         <td className="px-4 py-2 lg:py-2 text-center">
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
-                                                    onClick={() => navigate(`edit/${product.id}`)}
+                                                    onClick={() => navigate(`edit/${product._id}`)}
                                                     className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-all"
                                                     title="Edit product"
                                                 >
                                                     <Edit2 size={12} />
                                                 </button>
                                                 <button
-                                                    onClick={() => navigate(`delete/${product.id}`)}
+                                                    onClick={() => navigate(`delete/${product._id}`)}
                                                     className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
                                                     title="Delete product"
                                                 >
@@ -230,7 +234,7 @@ const ProductList = () => {
             <div className="md:hidden divide-y divide-gray-100 bg-white rounded-lg border border-gray-100">
                 {filteredProducts.length > 0 ? (
                     filteredProducts.map((product) => (
-                        <div key={product.id} className="p-3 flex gap-3 hover:bg-gray-50 transition-colors">
+                        <div key={product._id} className="p-3 flex gap-3 hover:bg-gray-50 transition-colors">
                             {/* Image */}
                             <div className="w-16 h-16 bg-white rounded border border-gray-100 p-0.5 flex-shrink-0">
                                 <img src={product.image} alt="" className="w-full h-full object-contain" />
@@ -240,7 +244,9 @@ const ProductList = () => {
                             <div className="flex-1 min-w-0 flex flex-col justify-between">
                                 <div>
                                     <h3 className="text-[10px] font-bold text-gray-800 truncate tracking-tight">{product.name}</h3>
-                                    <p className="text-[10px] text-gray-400 font-bold">{product.category}</p>
+                                    <p className="text-[10px] text-gray-400 font-bold">
+                                        {typeof product.category === 'object' ? product.category.name : product.category}
+                                    </p>
                                 </div>
 
                                 <div className="flex items-center justify-between mt-1">
@@ -256,13 +262,13 @@ const ProductList = () => {
                                 {/* Mobile Actions */}
                                 <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-50/50">
                                     <button
-                                        onClick={() => navigate(`edit/${product.id}`)}
+                                        onClick={() => navigate(`edit/${product._id}`)}
                                         className="px-3 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold rounded hover:bg-gray-100 flex items-center gap-1"
                                     >
                                         <Edit2 size={10} /> Edit
                                     </button>
                                     <button
-                                        onClick={() => navigate(`delete/${product.id}`)}
+                                        onClick={() => navigate(`delete/${product._id}`)}
                                         className="px-3 py-1 bg-red-50 text-red-500 text-[10px] font-bold rounded hover:bg-red-100 flex items-center gap-1"
                                     >
                                         <Trash2 size={10} /> Delete

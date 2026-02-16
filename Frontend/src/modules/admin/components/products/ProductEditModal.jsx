@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Spinner, Image } from 'react-bootstrap';
 import { Save, X, Camera } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
+import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 
@@ -12,16 +14,18 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
+    const [branches, setBranches] = useState([]);
+    const [branchStocks, setBranchStocks] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
         brandName: '',
         category: '',
         basePrice: 0,
-        stockQuantity: 0,
         sku: '',
         status: 'Active',
         physicalLocation: '',
+        unitType: 'pcs',
         description: ''
     });
 
@@ -31,12 +35,14 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [categoriesData, brandsData] = await Promise.all([
+                const [categoriesData, brandsData, branchesData] = await Promise.all([
                     getCategories(adminUser.token),
-                    getBrands(adminUser.token)
+                    getBrands(adminUser.token),
+                    getBranches(adminUser.token)
                 ]);
-                setCategories(categoriesData);
-                setBrands(brandsData);
+                setCategories(categoriesData.filter(c => c.status === 'Active'));
+                setBrands(brandsData.filter(b => b.status === 'Active'));
+                setBranches(branchesData.filter(b => b.isActive));
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -45,27 +51,85 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     }, [show, adminUser]);
 
     useEffect(() => {
-        if (product) {
+        if (product && branches.length > 0) {
             setFormData({
                 name: product.name || '',
                 brandName: product.brandName || '',
                 category: product.category || '',
                 basePrice: product.basePrice || 0,
-                stockQuantity: product.stockQuantity || 0,
                 sku: product.sku || '',
                 status: product.status || 'Active',
                 physicalLocation: product.physicalLocation || '',
+                unitType: product.unitType || 'pcs',
+                description: product.description || ''
+            });
+
+            // Map existing stocks by branchId for quick lookup
+            const activeStocks = [];
+            if (product.branchStocks) {
+                product.branchStocks.forEach(bs => {
+                    const bid = bs.branchId?._id || bs.branchId;
+                    activeStocks.push({
+                        branchId: bid,
+                        name: bs.branchId?.name || branches.find(b => b._id === bid)?.name || 'Unknown',
+                        stock: bs.stock,
+                        lowStockThreshold: bs.lowStockThreshold
+                    });
+                });
+            }
+
+            setBranchStocks(activeStocks);
+            setImagePreview(product.image || null);
+            setImageFile(null);
+        } else if (product) {
+            // Initial load before branches are fetched
+            setFormData({
+                name: product.name || '',
+                brandName: product.brandName || '',
+                category: product.category || '',
+                basePrice: product.basePrice || 0,
+                sku: product.sku || '',
+                status: product.status || 'Active',
+                physicalLocation: product.physicalLocation || '',
+                unitType: product.unitType || 'pcs',
                 description: product.description || ''
             });
             setImagePreview(product.image || null);
-            setImageFile(null);
         }
-    }, [product]);
+    }, [product, branches]);
+
+    const handleBranchToggle = (branch) => {
+        const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
+        if (isSelected) {
+            setBranchStocks(prev => prev.filter(bs => bs.branchId !== branch._id));
+        } else {
+            setBranchStocks(prev => [...prev, {
+                branchId: branch._id,
+                name: branch.name,
+                stock: 0,
+                lowStockThreshold: 10
+            }]);
+        }
+    };
+
+    // Handle Branch Stock change
+    const handleBranchStockChange = (branchId, field, value) => {
+        setBranchStocks(prev => prev.map(bs =>
+            bs.branchId === branchId ? { ...bs, [field]: Number(value) } : bs
+        ));
+    };
 
     useEffect(() => {
-        if (formData.category) {
+        if (formData.category && brands.length > 0) {
             const matches = brands.filter(b => b.category === formData.category);
             setFilteredBrands(matches);
+
+            // Optional: reset brand if it doesn't match new category, 
+            // but in Edit we might want to keep it if it's already set correctly
+            if (formData.brandName && !matches.find(m => m.name === formData.brandName)) {
+                // Only reset if we are intentionally changing category
+                // This might trigger on initial load if brands aren't loaded yet, so check brands.length > 0
+            }
         } else {
             setFilteredBrands([]);
         }
@@ -75,7 +139,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'basePrice' || name === 'stockQuantity' ? parseFloat(value) : value
+            [name]: name === 'basePrice' ? parseFloat(value) : value
         }));
     };
 
@@ -93,12 +157,28 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (branchStocks.length === 0) {
+            return toast.error('Product must be available in at least one branch');
+        }
+
         setLoading(true);
         try {
             const data = new FormData();
+
+            const selectedBranchIds = branchStocks.map(bs => bs.branchId);
+            const isAll = selectedBranchIds.length === branches.length;
+
             Object.keys(formData).forEach(key => {
                 data.append(key, formData[key]);
             });
+
+            // Add branch selection info
+            data.append('specificBranches', selectedBranchIds.join(','));
+            data.append('isAllBranches', isAll);
+
+            // Add branch stocks
+            data.append('branchStocks', JSON.stringify(branchStocks));
+
             if (imageFile) {
                 data.append('image', imageFile);
             }
@@ -167,7 +247,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     </Form.Group>
                                 </Col>
 
-                                <Col md={4}>
+                                <Col md={8}>
                                     <Form.Group>
                                         <Form.Label className="small fw-medium text-muted">Price (₹)</Form.Label>
                                         <Form.Control
@@ -183,19 +263,25 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={4}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Stock</Form.Label>
-                                        <Form.Control
-                                            type="number"
-                                            name="stockQuantity"
-                                            value={formData.stockQuantity}
+                                        <Form.Label className="small fw-medium text-muted">Unit Type</Form.Label>
+                                        <Form.Select
+                                            name="unitType"
+                                            value={formData.unitType}
                                             onChange={handleChange}
-                                            className="bg-light border-0 py-2"
-                                            required
-                                        />
+                                            className="bg-light border-0 py-2 shadow-none"
+                                        >
+                                            <option value="pcs">Pcs</option>
+                                            <option value="kg">Kg</option>
+                                            <option value="gm">Gm</option>
+                                            <option value="ml">Ml</option>
+                                            <option value="ltr">Ltr</option>
+                                            <option value="pkt">Pkt</option>
+                                            <option value="box">Box</option>
+                                        </Form.Select>
                                     </Form.Group>
                                 </Col>
 
-                                <Col md={4}>
+                                <Col md={6}>
                                     <Form.Group>
                                         <Form.Label className="small fw-medium text-muted">Status</Form.Label>
                                         <Form.Select
@@ -207,8 +293,89 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             <option value="Active">Active</option>
                                             <option value="Draft">Draft</option>
                                             <option value="Out of Stock">Out of Stock</option>
+                                            <option value="Low Stock">Low Stock</option>
                                         </Form.Select>
                                     </Form.Group>
+                                </Col>
+
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="small fw-medium text-muted">Physical Location</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            name="physicalLocation"
+                                            value={formData.physicalLocation}
+                                            onChange={handleChange}
+                                            className="bg-light border-0 py-2 shadow-none"
+                                            placeholder="e.g. Aisle 4, Shelf B"
+                                        />
+                                    </Form.Group>
+                                </Col>
+
+                                <Col md={12}>
+                                    <h6 className="mt-3 mb-3 fw-bold border-bottom pb-2 text-primary">Branch Availability & Inventory</h6>
+
+                                    <div className="p-2 bg-light rounded border mb-3">
+                                        <Form.Label className="small fw-bold mb-2">Available In:</Form.Label>
+                                        <div className="d-flex flex-wrap gap-2">
+                                            {branches.map(branch => {
+                                                const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
+                                                return (
+                                                    <Form.Check
+                                                        key={branch._id}
+                                                        type="checkbox"
+                                                        id={`edit-branch-${branch._id}`}
+                                                        label={<span className="small">{branch.name}</span>}
+                                                        checked={isSelected}
+                                                        onChange={() => handleBranchToggle(branch)}
+                                                        className="fw-medium"
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
+                                        {branchStocks.length > 0 ? (
+                                            branchStocks.map((branch) => (
+                                                <div key={branch.branchId} className="p-2 border rounded mb-2 bg-white border-start border-3 border-primary shadow-sm">
+                                                    <Row className="align-items-center g-2">
+                                                        <Col xs={4}>
+                                                            <div className="small fw-bold text-truncate" title={branch.name}>{branch.name}</div>
+                                                        </Col>
+                                                        <Col xs={4}>
+                                                            <Form.Group>
+                                                                <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Current Stock</Form.Label>
+                                                                <Form.Control
+                                                                    size="sm"
+                                                                    type="number"
+                                                                    value={branch.stock}
+                                                                    onChange={(e) => handleBranchStockChange(branch.branchId, 'stock', e.target.value)}
+                                                                    className="bg-light border-0 shadow-none"
+                                                                />
+                                                            </Form.Group>
+                                                        </Col>
+                                                        <Col xs={4}>
+                                                            <Form.Group>
+                                                                <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Low Threshold</Form.Label>
+                                                                <Form.Control
+                                                                    size="sm"
+                                                                    type="number"
+                                                                    value={branch.lowStockThreshold}
+                                                                    onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
+                                                                    className="bg-light border-0 shadow-none"
+                                                                />
+                                                            </Form.Group>
+                                                        </Col>
+                                                    </Row>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-3 border border-dashed rounded bg-light">
+                                                <p className="text-muted mb-0 small">No branches selected.</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </Col>
                             </Row>
                         </Col>
@@ -244,6 +411,17 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         readOnly
                                     />
                                 </Form.Group>
+
+                                <div className="text-center mt-3 p-3 bg-white border rounded shadow-sm">
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Product QR</div>
+                                    <div className="d-inline-block p-2 border rounded bg-white">
+                                        {product?.qrCode ? (
+                                            <img src={product.qrCode} alt="Product QR" style={{ width: '120px', height: '120px' }} />
+                                        ) : (
+                                            <QRCodeSVG value={formData.sku} size={120} level="H" />
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </Col>
                     </Row>

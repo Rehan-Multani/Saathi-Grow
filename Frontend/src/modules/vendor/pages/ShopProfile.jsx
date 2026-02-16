@@ -10,67 +10,61 @@ const ShopProfile = () => {
 
     // Initial State
     const [formData, setFormData] = useState({
-        name: vendor.name,
-        owner: vendor.owner,
-        phone: vendor.phone || '+91 98765 43210',
-        email: vendor.email || 'store@saathigro.com',
-        address: vendor.address || '123, Main Market, Sector 18, Noida',
-        category: 'Grocery & Staples',
-        openingTime: '08:00 AM',
-        closingTime: '10:00 PM',
-        image: vendor.image
+        storeName: vendor?.storeName || '',
+        ownerName: vendor?.ownerName || '',
+        phone: vendor?.phone || '',
+        email: vendor?.email || '',
+        address: vendor?.address || '',
+        description: vendor?.description || '',
+        logo: vendor?.logo || ''
     });
 
     // Password change state
     const [passwordData, setPasswordData] = useState({
-        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
     const [showPasswords, setShowPasswords] = useState({
-        current: false,
         new: false,
         confirm: false
     });
     const [passwordError, setPasswordError] = useState('');
     const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-    const handleSave = () => {
-        updateVendorProfile({
-            name: formData.name,
-            owner: formData.owner,
-            phone: formData.phone,
-            email: formData.email,
+    const handleSave = async () => {
+        const success = await updateVendorProfile({
+            storeName: formData.storeName,
+            ownerName: formData.ownerName,
             address: formData.address,
-            image: formData.image
+            description: formData.description
         });
-        setIsEditing(false);
+        if (success) {
+            setIsEditing(false);
+        }
     };
 
     const handleCancel = () => {
         // Reset form to vendor values
         setFormData({
-            name: vendor.name,
-            owner: vendor.owner,
-            phone: vendor.phone || '+91 98765 43210',
-            email: vendor.email || 'store@saathigro.com',
-            address: vendor.address || '123, Main Market, Sector 18, Noida',
-            category: 'Grocery & Staples',
-            openingTime: '08:00 AM',
-            closingTime: '10:00 PM',
-            image: vendor.image
+            storeName: vendor?.storeName || '',
+            ownerName: vendor?.ownerName || '',
+            phone: vendor?.phone || '',
+            email: vendor?.email || '',
+            address: vendor?.address || '',
+            description: vendor?.description || '',
+            logo: vendor?.logo || ''
         });
         setIsEditing(false);
     };
 
-    const handlePasswordChange = (e) => {
+    const handlePasswordChange = async (e) => {
         e.preventDefault();
         setPasswordError('');
         setPasswordSuccess(false);
 
         // Validation
-        if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-            setPasswordError('All fields are required');
+        if (!passwordData.newPassword || !passwordData.confirmPassword) {
+            setPasswordError('Password fields are required');
             return;
         }
 
@@ -80,28 +74,32 @@ const ShopProfile = () => {
         }
 
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setPasswordError('New passwords do not match');
+            setPasswordError('Passwords do not match');
             return;
         }
 
-        // Change password using context
-        const result = changePassword(passwordData.currentPassword, passwordData.newPassword);
+        const success = await updateVendorProfile({ password: passwordData.newPassword });
 
-        if (result.success) {
+        if (success) {
             setPasswordSuccess(true);
             setPasswordData({
-                currentPassword: '',
                 newPassword: '',
                 confirmPassword: ''
             });
 
-            // Logout after 2 seconds to force re-login with new password
             setTimeout(() => {
                 logout();
                 navigate('/vendor/login');
-            }, 2000);
-        } else {
-            setPasswordError(result.error);
+            }, 3000);
+        }
+    };
+
+    const handleLogoUpload = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const uploadData = new FormData();
+            uploadData.append('logo', file);
+            await updateVendorProfile(uploadData);
         }
     };
 
@@ -116,7 +114,7 @@ const ShopProfile = () => {
                     <div className="flex flex-col md:flex-row items-center md:items-end gap-4 mb-6">
                         <div className="relative">
                             <div className="w-24 h-24 md:w-32 md:h-32 lg:w-28 lg:h-28 rounded-xl border-4 border-white bg-white shadow-md overflow-hidden">
-                                <img src={formData.image} alt="Store" className="w-full h-full object-cover" />
+                                <img src={formData.logo || 'https://via.placeholder.com/150'} alt="Store" className="w-full h-full object-cover" />
                             </div>
                             <button
                                 onClick={() => document.getElementById('profile-image-upload').click()}
@@ -129,27 +127,18 @@ const ShopProfile = () => {
                                 id="profile-image-upload"
                                 className="hidden"
                                 accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files[0];
-                                    if (file) {
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                            setFormData(prev => ({ ...prev, image: reader.result }));
-                                        };
-                                        reader.readAsDataURL(file);
-                                    }
-                                }}
+                                onChange={handleLogoUpload}
                             />
                         </div>
 
                         <div className="flex-1 w-full md:w-auto text-center md:text-left">
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight mb-1 md:mb-0">{formData.name}</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight mb-1 md:mb-0">{formData.storeName}</h1>
                             <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-gray-500 mt-1">
-                                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-md text-xs font-bold border border-green-100 flex items-center gap-1">
-                                    <CheckCircle size={12} /> Verified Seller
+                                <span className={`px-2 py-0.5 rounded-md text-xs font-bold border flex items-center gap-1 ${vendor?.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-gray-50 text-gray-700 border-gray-100'}`}>
+                                    {vendor?.status === 'Active' && <CheckCircle size={12} />} {vendor?.status}
                                 </span>
                                 <span>•</span>
-                                <span>{formData.category}</span>
+                                <span className="font-mono text-xs">#{vendor?._id?.substring(vendor._id.length - 8)}</span>
                             </div>
                         </div>
 
@@ -191,8 +180,9 @@ const ShopProfile = () => {
                                 <label className="text-xs font-bold text-gray-500 flex items-center gap-1"><Store size={12} /> Store Name</label>
                                 <input
                                     disabled={!isEditing}
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    name="storeName"
+                                    value={formData.storeName}
+                                    onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
                                     className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
                                 />
                             </div>
@@ -201,28 +191,23 @@ const ShopProfile = () => {
                                 <label className="text-xs font-bold text-gray-500 flex items-center gap-1"><User size={12} /> Owner Name</label>
                                 <input
                                     disabled={!isEditing}
-                                    value={formData.owner}
-                                    onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
+                                    name="ownerName"
+                                    value={formData.ownerName}
+                                    onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })}
                                     className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
                                 />
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-500 flex items-center gap-1"><Clock size={12} /> Opening Hours</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        disabled={!isEditing}
-                                        value={formData.openingTime}
-                                        onChange={(e) => setFormData({ ...formData, openingTime: e.target.value })}
-                                        className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
-                                    />
-                                    <input
-                                        disabled={!isEditing}
-                                        value={formData.closingTime}
-                                        onChange={(e) => setFormData({ ...formData, closingTime: e.target.value })}
-                                        className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
-                                    />
-                                </div>
+                                <label className="text-xs font-bold text-gray-500 flex items-center gap-1">Description</label>
+                                <textarea
+                                    disabled={!isEditing}
+                                    name="description"
+                                    value={formData.description}
+                                    rows={2}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors resize-none ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
+                                />
                             </div>
                         </div>
 
@@ -233,20 +218,20 @@ const ShopProfile = () => {
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-500 flex items-center gap-1"><Phone size={12} /> Mobile Number</label>
                                 <input
-                                    disabled={!isEditing}
+                                    disabled={true}
+                                    name="phone"
                                     value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
+                                    className="w-full px-3 py-2 border-transparent bg-transparent text-sm font-medium outline-none pl-0 opacity-70"
                                 />
                             </div>
 
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-500 flex items-center gap-1"><Mail size={12} /> Email Address</label>
                                 <input
-                                    disabled={!isEditing}
+                                    disabled={true}
+                                    name="email"
                                     value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}
+                                    className="w-full px-3 py-2 border-transparent bg-transparent text-sm font-medium outline-none pl-0 opacity-70"
                                 />
                             </div>
 
@@ -255,6 +240,7 @@ const ShopProfile = () => {
                                 <textarea
                                     rows="3"
                                     disabled={!isEditing}
+                                    name="address"
                                     value={formData.address}
                                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     className={`w-full px-3 py-2 border rounded-lg text-sm font-medium outline-none transition-colors resize-none ${isEditing ? 'border-gray-300 focus:border-[#0c831f] bg-white' : 'border-transparent bg-transparent pl-0'}`}

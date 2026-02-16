@@ -16,10 +16,26 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Base price is required'],
     min: 0
   },
-  stockQuantity: {
-    type: Number,
-    required: [true, 'Stock quantity is required'],
-    default: 0
+  branchStocks: [{
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+      required: true
+    },
+    stock: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    lowStockThreshold: {
+      type: Number,
+      default: 10
+    }
+  }],
+  unitType: {
+    type: String,
+    enum: ['pcs', 'kg', 'gm', 'ml', 'ltr', 'pkt', 'box'],
+    default: 'pcs'
   },
   physicalLocation: {
     type: String,
@@ -43,14 +59,22 @@ const productSchema = new mongoose.Schema({
     unique: true,
     required: [true, 'SKU is required']
   },
+  qrCode: {
+    type: String, // Data URL or Cloudinary URL
+    default: ''
+  },
   image: {
     type: String, // Cloudinary URL
     default: ''
   },
   status: {
     type: String,
-    enum: ['Active', 'Draft', 'Out of Stock'],
+    enum: ['Active', 'Draft', 'Out of Stock', 'Low Stock'],
     default: 'Active'
+  },
+  vendor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Vendor'
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
