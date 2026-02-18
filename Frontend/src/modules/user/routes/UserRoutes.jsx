@@ -41,6 +41,7 @@ const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPag
 const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
 const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
 const AddMoneyPage = lazy(() => import('../pages/profile/AddMoneyPage'));
+const WishlistPage = lazy(() => import('../pages/profile/WishlistPage'));
 const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage'));
 const OfferPage = lazy(() => import('../pages/offer/OfferPage'));
 const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
@@ -136,6 +137,7 @@ const UserRoutes = () => {
                     <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
                     <Route path="/wallet" element={<WalletPage />} />
                     <Route path="/wallet/add-money" element={<AddMoneyPage />} />
+                    <Route path="/wishlist" element={<WishlistPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />
                     <Route path="/offer/:id" element={<OfferPage />} />

@@ -80,13 +80,17 @@ const LowestPricesPage = () => {
                     {discountedProducts.map(product => (
                         <div key={product.id} className="relative">
                             {/* Discount Badge */}
-                            <div className="absolute top-2 right-2 z-50 bg-[#0c831f] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                            <div className="absolute top-2 right-2 z-50 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg">
                                 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                             </div>
                             <ProductCard
                                 product={product}
-                                customTheme={{ themeColor: themeColor, bgColor: bgColor }}
+                                customTheme={{
+                                    themeColor: themeColor,
+                                    bgColor: isDarkMode ? bgColor : `linear-gradient(to right, #e8f5e9, #ffffff)`
+                                }}
                                 imgPadding="p-4"
+                                wishlistPosition="top-8 right-2"
                             />
                         </div>
                     ))}

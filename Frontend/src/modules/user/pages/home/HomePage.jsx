@@ -327,6 +327,7 @@ const HomePage = () => {
                         bgColor="#fce4ec"
                         slug="valentine-week"
                         badgeText="💝 Best Gifts for Your Ones - Shop Now!"
+                        wishlistPosition="top-1 right-1"
                     />
                     <div className="h-4 sm:h-8" />
                 </>
@@ -433,7 +434,13 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                     ) : (
                         categoryProducts.map((product) => (
                             <div key={product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCard product={product} />
+                                <ProductCard
+                                    product={product}
+                                    customTheme={{
+                                        bgColor: 'linear-gradient(to right, #e8f5e9, #ffffff)',
+                                        themeColor: '#0c831f'
+                                    }}
+                                />
                             </div>
                         ))
                     )}
@@ -467,7 +474,7 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
 };
 
 // Reusable Occasion Section Component
-const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgColor, slug, badgeText, className }) => {
+const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgColor, slug, badgeText, className, ...props }) => {
     const { isDarkMode } = useTheme();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
@@ -560,6 +567,7 @@ const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgCol
                                         themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor,
                                         bgColor: isDarkMode ? '' : bgColor
                                     }}
+                                    wishlistPosition={props.wishlistPosition}
                                 />
                             </div>
                         ))

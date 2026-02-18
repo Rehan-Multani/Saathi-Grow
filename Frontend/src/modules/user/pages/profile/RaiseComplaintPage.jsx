@@ -42,7 +42,7 @@ const RaiseComplaintPage = () => {
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="max-w-2xl mx-auto px-4 pt-24 md:pt-28 pb-4 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
                     <div>
                         <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Select reason</p>
