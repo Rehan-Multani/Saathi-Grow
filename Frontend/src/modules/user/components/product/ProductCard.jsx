@@ -7,7 +7,7 @@ import { Plus, Minus, Heart } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useWishlist } from '../../context/WishlistContext';
 
-const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2" }) => {
+const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
   return (
     <div
-      className="rounded-2xl p-3 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-2 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0"
+      className="rounded-2xl p-3 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-2 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111]"
       style={{
         background: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
@@ -48,7 +48,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
         style={{ borderColor: customTheme ? `${customTheme.themeColor}20` : '#0c831f20' }}
       />
       {savings > 0 && (
-        <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
+        <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[7.5px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
           <span>Save ₹{savings}</span>
         </div>
       )}
@@ -109,7 +109,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
         <div className="text-gray-400 dark:text-zinc-500 text-[7.5px] sm:text-[10px] mb-1.5 font-bold uppercase tracking-widest">{product.weight}</div>
 
         {/* Bottom Row: Price & Action */}
-        <div className="flex items-center justify-between mt-auto z-10">
+        <div className={`flex items-center justify-between mt-auto z-10 ${isLowestPrice ? 'gap-1' : ''}`}>
           <div className="flex flex-col">
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-gray-400 dark:text-zinc-600 line-through text-[9px] font-medium leading-none">₹{product.originalPrice}</span>
@@ -131,7 +131,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
               >
                 <Minus className={`${isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3'} sm:w-4 sm:h-4`} strokeWidth={3} />
               </button>
-              <span className={`${isCompact ? 'text-[9px]' : 'text-[11px]'} sm:text-[14px] font-black w-4 sm:w-7 text-center select-none leading-none`}>
+              <span className={`${isLowestPrice ? 'text-[7px]' : isCompact ? 'text-[9px]' : 'text-[11px]'} sm:text-[14px] font-black w-4 sm:w-7 text-center select-none leading-none`}>
                 {quantity}
               </span>
               <button
@@ -144,7 +144,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
           ) : (
             <button
               onClick={handleAddToCart}
-              className={`${isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]'} py-1 text-white border border-transparent active:scale-95 transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center`}
+              className={`${isLowestPrice ? 'px-1.5 sm:px-3 h-[16px] sm:h-[30px] text-[5px]' : isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]'} py-1 text-white border border-transparent active:scale-95 transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center`}
               style={{ backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') }}
             >
               ADD

@@ -172,7 +172,12 @@ const CategoryPage = () => {
                 ) : displayedProducts.length > 0 ? (
                     <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 animate-in fade-in duration-500">
                         {displayedProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} isCompact={true} />
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                isCompact={true}
+                                customTheme={{ bgColor: '#e8f5e9', themeColor: '#0c831f' }}
+                            />
                         ))}
                     </div>
                 ) : (
@@ -199,9 +204,14 @@ const CategoryPage = () => {
                         <div className="w-1 h-4 bg-[#f7cb15] rounded-full"></div>
                         <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">You Might Also Like</h3>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
                         {products.filter(p => p.category !== slug).slice(0, 6).map((product) => (
-                            <ProductCard key={`rec-${product.id}`} product={product} isCompact={true} />
+                            <ProductCard
+                                key={`rec-${product.id}`}
+                                product={product}
+                                isCompact={true}
+                                customTheme={{ bgColor: '#e8f5e9', themeColor: '#0c831f' }}
+                            />
                         ))}
                     </div>
                 </div>
