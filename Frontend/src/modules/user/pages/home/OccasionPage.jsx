@@ -99,6 +99,7 @@ const OccasionPage = () => {
                             key={product.id}
                             product={product}
                             isValentine={slug === 'valentine-week'}
+                            isSaathiSignature={slug === 'saathi-select'}
                             customTheme={{
                                 themeColor: isDarkMode ? '#f7cb15' : occasionConfig.themeColor,
                                 bgColor: isDarkMode ? '' : occasionConfig.bgColor
