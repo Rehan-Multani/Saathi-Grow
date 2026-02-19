@@ -98,6 +98,7 @@ const OccasionPage = () => {
                         <ProductCard
                             key={product.id}
                             product={product}
+                            isValentine={slug === 'valentine-week'}
                             customTheme={{
                                 themeColor: isDarkMode ? '#f7cb15' : occasionConfig.themeColor,
                                 bgColor: isDarkMode ? '' : occasionConfig.bgColor

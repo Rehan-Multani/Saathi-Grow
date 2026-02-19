@@ -7,7 +7,7 @@ import { Plus, Minus, Heart } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useWishlist } from '../../context/WishlistContext';
 
-const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false }) => {
+const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -119,7 +119,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
           {quantity > 0 ? (
             <div
-              className={`flex items-center text-white !rounded-full shadow-lg ${isCompact ? 'h-[21px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : 'h-[25px] sm:h-[36px] min-w-[60px] sm:min-w-[85px]'} border quantity-selector`}
+              className={`flex items-center text-white !rounded-full shadow-lg ${(isLowestPrice || isValentine) ? 'h-[20px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : isCompact ? 'h-[21px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : 'h-[25px] sm:h-[36px] min-w-[60px] sm:min-w-[85px]'} border quantity-selector`}
               style={{
                 backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f'),
                 borderColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f')
@@ -131,7 +131,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
               >
                 <Minus className={`${isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3'} sm:w-4 sm:h-4`} strokeWidth={3} />
               </button>
-              <span className={`${isLowestPrice ? 'text-[7px]' : isCompact ? 'text-[9px]' : 'text-[11px]'} sm:text-[14px] font-black w-4 sm:w-7 text-center select-none leading-none`}>
+              <span className={`${(isLowestPrice || isValentine) ? 'text-[7px]' : isCompact ? 'text-[9px]' : 'text-[11px]'} sm:text-[14px] font-black w-4 sm:w-7 text-center select-none leading-none`}>
                 {quantity}
               </span>
               <button
@@ -144,7 +144,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
           ) : (
             <button
               onClick={handleAddToCart}
-              className={`${isLowestPrice ? 'px-1.5 sm:px-3 h-[16px] sm:h-[30px] text-[5px]' : isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]'} py-1 text-white border border-transparent active:scale-95 transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center`}
+              className={`${isValentine ? 'px-1.5 sm:px-3 h-[16px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-1.5 sm:px-3 h-[16px] sm:h-[30px] text-[5px]' : isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]'} py-1 text-white border border-transparent active:scale-95 transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center`}
               style={{ backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') }}
             >
               ADD
