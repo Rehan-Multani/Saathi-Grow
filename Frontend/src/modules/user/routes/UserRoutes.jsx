@@ -11,6 +11,7 @@ import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
+import { ShopProvider } from '../context/ShopContext';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -109,43 +110,45 @@ const UserLayout = () => {
 const UserRoutes = () => {
     return (
         <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-                {/* Routes with Navbar */}
-                <Route element={<UserLayout />}>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/occasion/:slug" element={<OccasionPage />} />
-                    <Route path="/lowest-prices" element={<LowestPricesPage />} />
-                    <Route path="/category" element={<CategoryPage />} />
-                    <Route path="/category/:slug" element={<CategoryPage />} />
-                    <Route path="/product/:id" element={<ProductDetailsPage />} />
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/address" element={<AddressPage />} />
-                    <Route path="/notifications" element={<NotificationsPage />} />
-                    <Route path="/help" element={<HelpPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/security" element={<SecurityPage />} />
-                    <Route path="/saved-addresses" element={<SavedAddressesPage />} />
-                    <Route path="/add-address" element={<AddressFormPage />} />
-                    <Route path="/edit-address/:id" element={<AddressFormPage />} />
-                    <Route path="/orders" element={<OrdersPage />} />
-                    <Route path="/orders/:id" element={<OrderDetailsPage />} />
-                    <Route path="/orders/:id/cancel" element={<CancelOrderPage />} />
-                    <Route path="/orders/:id/return" element={<ReturnOrderPage />} />
-                    <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />
-                    <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
-                    <Route path="/wallet" element={<WalletPage />} />
-                    <Route path="/wallet/add-money" element={<AddMoneyPage />} />
-                    <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/order-success" element={<OrderSuccessPage />} />
-                    <Route path="/offer/:id" element={<OfferPage />} />
+            <ShopProvider>
+                <Routes>
+                    {/* Routes with Navbar */}
+                    <Route element={<UserLayout />}>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/occasion/:slug" element={<OccasionPage />} />
+                        <Route path="/lowest-prices" element={<LowestPricesPage />} />
+                        <Route path="/category" element={<CategoryPage />} />
+                        <Route path="/category/:slug" element={<CategoryPage />} />
+                        <Route path="/product/:id" element={<ProductDetailsPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/address" element={<AddressPage />} />
+                        <Route path="/notifications" element={<NotificationsPage />} />
+                        <Route path="/help" element={<HelpPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/security" element={<SecurityPage />} />
+                        <Route path="/saved-addresses" element={<SavedAddressesPage />} />
+                        <Route path="/add-address" element={<AddressFormPage />} />
+                        <Route path="/edit-address/:id" element={<AddressFormPage />} />
+                        <Route path="/orders" element={<OrdersPage />} />
+                        <Route path="/orders/:id" element={<OrderDetailsPage />} />
+                        <Route path="/orders/:id/cancel" element={<CancelOrderPage />} />
+                        <Route path="/orders/:id/return" element={<ReturnOrderPage />} />
+                        <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />
+                        <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
+                        <Route path="/wallet" element={<WalletPage />} />
+                        <Route path="/wallet/add-money" element={<AddMoneyPage />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/order-success" element={<OrderSuccessPage />} />
+                        <Route path="/offer/:id" element={<OfferPage />} />
 
-                    {/* Auth Pages matching UserLayout for standard feel */}
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/logout-confirmation" element={<LogoutConfirmationPage />} />
-                </Route>
-            </Routes>
+                        {/* Auth Pages matching UserLayout for standard feel */}
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/logout-confirmation" element={<LogoutConfirmationPage />} />
+                    </Route>
+                </Routes>
+            </ShopProvider>
         </Suspense>
     );
 };

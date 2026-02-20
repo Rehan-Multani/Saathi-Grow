@@ -24,6 +24,14 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin', 'staff', 'rider'],
         default: 'user'
     },
+    profileImage: {
+        type: String,
+        default: null
+    },
+    profileImagePublicId: {
+        type: String,
+        default: null
+    },
     // OTP Fields for Login/Register
     otp: {
         type: String,

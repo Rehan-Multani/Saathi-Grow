@@ -104,8 +104,8 @@ const LowStockAlerts = () => {
                                 <tr key={`${item.id}-${idx}`}>
                                     <td className="ps-4">
                                         <div className="d-flex align-items-center gap-2">
-                                            <div className="w-10 h-10 bg-light rounded flex items-center justify-center text-secondary font-bold overflow-hidden border flex-shrink-0">
-                                                {item.product.image ? <img src={item.product.image} alt="" className="w-full h-full object-cover" /> : item.name.charAt(0)}
+                                            <div className="w-10 h-10 bg-white rounded flex items-center justify-center text-secondary font-bold overflow-hidden border border-gray-100 flex-shrink-0">
+                                                {item.product.image ? <img src={item.product.image} alt="" className="w-full h-full object-contain p-0.5" /> : item.name.charAt(0)}
                                             </div>
                                             <div>
                                                 <div className="fw-bold text-dark">{item.name}</div>

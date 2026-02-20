@@ -1,32 +1,44 @@
 import React from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { toast } from 'react-toastify';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, updateUser } = useAuth();
+    const auth = useAuth();
+    const { user, updateUser, loading, refreshProfile } = auth;
+
     const { isDarkMode, toggleTheme } = useTheme();
     const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
     const fileInputRef = React.useRef(null);
 
-    const handleImageUpload = (e) => {
+    React.useEffect(() => {
+        // Fetch fresh profile data once on mount
+        if (typeof refreshProfile === 'function') {
+            refreshProfile();
+        }
+    }, []); // Empty deps: run only once when the page mounts
+
+    const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                updateUser({ photoURL: reader.result });
-            };
-            reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const result = await updateUser(formData);
+            if (result.success) {
+                toast.success('Profile picture updated');
+            }
         }
     };
 
     const sections = [
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
-        { icon: CreditCard, label: "SaathiGro Wallet", subtitle: "₹0.00 Balance available", path: "/wallet" },
+        { icon: CreditCard, label: "SaathiGro Wallet", subtitle: `₹${user?.walletBalance || '0.00'} Balance available`, path: "/wallet" },
         { icon: Shield, label: "Security", subtitle: "Password and account security", path: "/security" },
         { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and Customer Support", path: "/help" }
     ];
@@ -42,8 +54,7 @@ const ProfilePage = () => {
                                 navigate('/');
                             } else {
                                 const from = location.state?.from || '/';
-                                const shouldOpenMenu = from !== '/settings';
-                                navigate(from, { state: { openMenu: shouldOpenMenu } });
+                                navigate(from);
                             }
                         }}
                         className="p-1.5 md:p-2 bg-white/50 dark:bg-[#141414] rounded-full hover:bg-gray-100 transition-colors md:bg-gray-50"
@@ -59,10 +70,14 @@ const ProfilePage = () => {
                         <div className="flex flex-col items-center pt-1 pb-2 md:py-0">
                             <div className="relative mb-1 md:mb-2">
                                 <div className="w-24 h-24 md:w-24 md:h-24 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center border-4 border-white md:border-gray-50 dark:border-white/5 overflow-hidden shadow-sm">
-                                    {user?.photoURL ? (
-                                        <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                                    {loading ? (
+                                        <Loader2 className="animate-spin text-[#0c831f]" size={30} />
                                     ) : (
-                                        <User size={36} className="text-[#556b2f] md:w-12 md:h-12" />
+                                        user?.profileImage ? (
+                                            <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={36} className="text-[#556b2f] md:w-12 md:h-12" />
+                                        )
                                     )}
                                 </div>
                                 <input
@@ -74,13 +89,14 @@ const ProfilePage = () => {
                                 />
                                 <button
                                     onClick={() => fileInputRef.current.click()}
-                                    className="absolute -bottom-1 -right-1 p-2 md:p-2.5 bg-[#556b2f] text-white rounded-full md:rounded-lg shadow-lg border-2 border-white dark:border-[#141414] active:scale-95 transition-transform hover:bg-[#0a6b19]"
+                                    disabled={loading}
+                                    className="absolute -bottom-1 -right-1 p-2 md:p-2.5 bg-[#556b2f] text-white rounded-full md:rounded-lg shadow-lg border-2 border-white dark:border-[#141414] active:scale-95 transition-transform hover:bg-[#0a6b19] disabled:opacity-50"
                                 >
                                     <Camera size={14} className="md:w-5 md:h-5" />
                                 </button>
                             </div>
-                            <h2 className="!text-[20px] md:!text-xl font-black text-gray-900 dark:text-gray-100">{user?.displayName || "Saathi Member"}</h2>
-                            <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-0.5 md:mt-0.5">{user?.email || "member@saathigro.com"}</p>
+                            <h2 className="!text-[20px] md:!text-xl font-black text-gray-900 dark:text-gray-100">{user?.name || "Saathi Member"}</h2>
+                            <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-0.5 md:mt-0.5">{user?.email || (user?.phone ? `+91 ${user.phone}` : "member@saathigro.com")}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 py-2 md:py-3 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
@@ -89,7 +105,7 @@ const ProfilePage = () => {
                                 <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Orders</p>
                             </div>
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹0</p>
+                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹{user?.walletBalance || 0}</p>
                                 <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Savings</p>
                             </div>
                         </div>

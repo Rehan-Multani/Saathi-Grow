@@ -55,9 +55,13 @@ import productRoutes from './routes/productRoutes.js';
 import branchRoutes from './routes/branchRoutes.js';
 import vendorRoutes from './routes/vendorRoutes.js';
 import vendorPortalRoutes from './routes/vendorPortalRoutes.js';
+import campaignRoutes from './routes/campaignRoutes.js';
+import offerRoutes from './routes/offerRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 // Use Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin/users', userRoutes);
 app.use('/api/admin/branches', branchRoutes);
 app.use('/api/admin/vendors', vendorRoutes);
 app.use('/api/vendors', vendorPortalRoutes);
@@ -65,6 +69,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin/brands', brandRoutes);
 app.use('/api/admin/categories', categoryRoutes);
 app.use('/api/admin/products', productRoutes);
+app.use('/api/admin/campaigns', campaignRoutes);
+app.use('/api/admin/offer-deals', offerRoutes);
 
 // Socket logic placeholder
 io.on('connection', (socket) => {

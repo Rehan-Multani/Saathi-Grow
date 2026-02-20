@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Spinner, Image } from 'react-bootstrap';
-import { Save, X, Camera } from 'lucide-react';
+import { Save, X, Camera, Plus, Sparkles } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { getAISuggestions } from '../../api/productApi';
 import { toast } from 'react-toastify';
 
 const ProductEditModal = ({ show, onHide, product, onSave }) => {
@@ -16,21 +17,30 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [filteredBrands, setFilteredBrands] = useState([]);
     const [branches, setBranches] = useState([]);
     const [branchStocks, setBranchStocks] = useState([]);
+    const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
+    const [tagInput, setTagInput] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
         brandName: '',
         category: '',
         basePrice: 0,
+        mrp: 0,
+        isVeg: true,
         sku: '',
         status: 'Active',
         physicalLocation: '',
         unitType: 'pcs',
-        description: ''
+        unitValue: 1,
+        description: '',
+        tags: []
     });
 
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [galleryFiles, setGalleryFiles] = useState([]);
+    const [existingGallery, setExistingGallery] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -57,11 +67,15 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                 brandName: product.brandName || '',
                 category: product.category || '',
                 basePrice: product.basePrice || 0,
+                mrp: product.mrp || 0,
+                isVeg: product.isVeg !== undefined ? product.isVeg : true,
                 sku: product.sku || '',
                 status: product.status || 'Active',
                 physicalLocation: product.physicalLocation || '',
                 unitType: product.unitType || 'pcs',
-                description: product.description || ''
+                unitValue: product.unitValue || 1,
+                description: product.description || '',
+                tags: product.tags || []
             });
 
             // Map existing stocks by branchId for quick lookup
@@ -81,6 +95,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             setBranchStocks(activeStocks);
             setImagePreview(product.image || null);
             setImageFile(null);
+            setExistingGallery(product.gallery || []);
+            setGalleryPreviews(product.gallery || []);
+            setGalleryFiles([]);
         } else if (product) {
             // Initial load before branches are fetched
             setFormData({
@@ -139,8 +156,45 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'basePrice' ? parseFloat(value) : value
+            [name]: (name === 'basePrice' || name === 'mrp' || name === 'unitValue') ? parseFloat(value) : value
         }));
+    };
+
+    const handleAISuggestion = async (type) => {
+        if (!formData.name) {
+            return toast.warning('Please enter a product name first');
+        }
+
+        setAiLoading(prev => ({ ...prev, [type]: true }));
+        try {
+            const data = await getAISuggestions(adminUser.token, formData.name, type);
+            if (type === 'description') {
+                setFormData(prev => ({ ...prev, description: data.suggestion }));
+                toast.success('Description generated!');
+            } else if (type === 'tags') {
+                const newTags = data.suggestion.split(',').map(t => t.trim()).filter(t => t);
+                setFormData(prev => ({
+                    ...prev,
+                    tags: [...new Set([...prev.tags, ...newTags])]
+                }));
+                toast.success('Tags generated!');
+            }
+        } catch (error) {
+            toast.error(error.message || `Failed to generate ${type}`);
+        } finally {
+            setAiLoading(prev => ({ ...prev, [type]: false }));
+        }
+    };
+
+    const addTag = (newTag) => {
+        const trimmedTag = (newTag || tagInput).trim();
+        if (trimmedTag && !formData.tags.includes(trimmedTag)) {
+            setFormData(prev => ({
+                ...prev,
+                tags: [...prev.tags, trimmedTag]
+            }));
+            if (!newTag) setTagInput('');
+        }
     };
 
     const handleImageChange = (e) => {
@@ -152,6 +206,24 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                 setImagePreview(reader.result);
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const handleGalleryChange = (e) => {
+        const files = Array.from(e.target.files);
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setGalleryPreviews(prev => [...prev, ...newPreviews]);
+        setGalleryFiles(prev => [...prev, ...files]);
+    };
+
+    const removeGalleryImage = (index, isExisting) => {
+        if (isExisting) {
+            setExistingGallery(prev => prev.filter((_, i) => i !== index));
+            setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+        } else {
+            const fileIndex = index - existingGallery.length;
+            setGalleryFiles(prev => prev.filter((_, i) => i !== fileIndex));
+            setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
         }
     };
 
@@ -169,7 +241,11 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             const isAll = selectedBranchIds.length === branches.length;
 
             Object.keys(formData).forEach(key => {
-                data.append(key, formData[key]);
+                if (key === 'tags') {
+                    data.append(key, formData.tags.join(','));
+                } else {
+                    data.append(key, formData[key]);
+                }
             });
 
             // Add branch selection info
@@ -182,6 +258,18 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             if (imageFile) {
                 data.append('image', imageFile);
             }
+
+            if (galleryFiles.length > 0) {
+                galleryFiles.forEach(file => {
+                    data.append('gallery', file);
+                });
+            }
+
+            // If we want to keep some existing gallery images and remove others, 
+            // we should probably send the remaining existing gallery URLs as well.
+            // For now, the backend logic replaces the gallery if new ones are sent.
+            // Let's adjust backend to handle this better if needed, but for now 
+            // we'll assume replacing with new set if provided.
             await onSave(data);
         } catch (error) {
             // Error handled in parent
@@ -247,7 +335,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     </Form.Group>
                                 </Col>
 
-                                <Col md={8}>
+                                <Col md={3}>
                                     <Form.Group>
                                         <Form.Label className="small fw-medium text-muted">Price (₹)</Form.Label>
                                         <Form.Control
@@ -256,6 +344,57 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             value={formData.basePrice}
                                             onChange={handleChange}
                                             className="bg-light border-0 py-2"
+                                            required
+                                        />
+                                    </Form.Group>
+                                </Col>
+
+                                <Col md={3}>
+                                    <Form.Group>
+                                        <Form.Label className="small fw-medium text-muted">MRP (₹)</Form.Label>
+                                        <Form.Control
+                                            type="number"
+                                            name="mrp"
+                                            value={formData.mrp}
+                                            onChange={handleChange}
+                                            className="bg-light border-0 py-2"
+                                        />
+                                    </Form.Group>
+                                </Col>
+
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="small fw-medium text-muted">Food Type</Form.Label>
+                                        <div className="d-flex gap-2">
+                                            <Button
+                                                variant={formData.isVeg ? "success" : "outline-success"}
+                                                size="sm"
+                                                className="flex-fill py-2 fw-bold text-[10px]"
+                                                onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
+                                            >
+                                                VEG
+                                            </Button>
+                                            <Button
+                                                variant={!formData.isVeg ? "danger" : "outline-danger"}
+                                                size="sm"
+                                                className="flex-fill py-2 fw-bold text-[10px]"
+                                                onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
+                                            >
+                                                NON-VEG
+                                            </Button>
+                                        </div>
+                                    </Form.Group>
+                                </Col>
+
+                                <Col md={3}>
+                                    <Form.Group>
+                                        <Form.Label className="small fw-medium text-muted">Amount</Form.Label>
+                                        <Form.Control
+                                            type="number"
+                                            name="unitValue"
+                                            value={formData.unitValue}
+                                            onChange={handleChange}
+                                            className="bg-light border-0 py-2 shadow-none"
                                             required
                                         />
                                     </Form.Group>
@@ -277,6 +416,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             <option value="ltr">Ltr</option>
                                             <option value="pkt">Pkt</option>
                                             <option value="box">Box</option>
+                                            <option value="100g">100g</option>
+                                            <option value="250g">250g</option>
+                                            <option value="500g">500g</option>
                                         </Form.Select>
                                     </Form.Group>
                                 </Col>
@@ -294,6 +436,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             <option value="Draft">Draft</option>
                                             <option value="Out of Stock">Out of Stock</option>
                                             <option value="Low Stock">Low Stock</option>
+                                            <option value="Pending Approval">Pending Approval</option>
                                         </Form.Select>
                                     </Form.Group>
                                 </Col>
@@ -422,20 +565,98 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         )}
                                     </div>
                                 </div>
+
+                                <div className="mt-4">
+                                    <Form.Label className="small fw-medium text-muted">Gallery Images</Form.Label>
+                                    <div className="d-flex flex-wrap gap-2 mb-2">
+                                        {galleryPreviews.map((preview, index) => (
+                                            <div key={index} className="position-relative" style={{ width: '60px', height: '60px' }}>
+                                                <Image src={preview} thumbnail className="w-100 h-100 object-fit-cover" />
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    className="position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-center"
+                                                    style={{ width: '18px', height: '18px', marginTop: '-5px', marginRight: '-5px' }}
+                                                    onClick={() => removeGalleryImage(index, index < existingGallery.length)}
+                                                >
+                                                    <X size={10} />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <label
+                                            className="border border-dashed rounded d-flex align-items-center justify-center cursor-pointer hover-bg-light text-muted"
+                                            style={{ width: '60px', height: '60px' }}
+                                        >
+                                            <Plus size={20} />
+                                            <input type="file" multiple className="d-none" onChange={handleGalleryChange} accept="image/*" />
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </Col>
                     </Row>
 
-                    <Form.Group className="mt-3">
-                        <Form.Label className="small fw-medium text-muted">Description</Form.Label>
-                        <Form.Control
-                            as="textarea" rows={3}
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            className="bg-light border-0 py-2"
-                        />
-                    </Form.Group>
+                    <Row className="g-3 mt-1">
+                        <Col md={12}>
+                            <Form.Group>
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <Form.Label className="small fw-medium text-muted mb-0">Description</Form.Label>
+                                    <Button
+                                        variant="link"
+                                        className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
+                                        onClick={() => handleAISuggestion('description')}
+                                        disabled={aiLoading.description}
+                                    >
+                                        {aiLoading.description ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
+                                        <span style={{ fontSize: '11px' }}>AI Write</span>
+                                    </Button>
+                                </div>
+                                <Form.Control
+                                    as="textarea" rows={3}
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className="bg-light border-0 py-2"
+                                />
+                            </Form.Group>
+                        </Col>
+
+                        <Col md={12}>
+                            <Form.Group>
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <Form.Label className="small fw-medium text-muted mb-0">Tags</Form.Label>
+                                    <Button
+                                        variant="link"
+                                        className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
+                                        onClick={() => handleAISuggestion('tags')}
+                                        disabled={aiLoading.tags}
+                                    >
+                                        {aiLoading.tags ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
+                                        <span style={{ fontSize: '11px' }}>AI Tags</span>
+                                    </Button>
+                                </div>
+                                <div className="d-flex flex-wrap gap-1 mb-2">
+                                    {formData.tags?.map((tag, index) => (
+                                        <span key={index} className="badge rounded-pill bg-white text-dark border px-2 py-1 d-flex align-items-center gap-1">
+                                            {tag}
+                                            <X size={10} className="cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))} />
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="input-group input-group-sm">
+                                    <input
+                                        type="text"
+                                        className="form-control bg-light border-0 shadow-none"
+                                        placeholder="Add tag..."
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                                    />
+                                    <button className="btn btn-outline-secondary border-0" type="button" onClick={() => addTag()}>Add</button>
+                                </div>
+                            </Form.Group>
+                        </Col>
+                    </Row>
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium" disabled={loading}>
@@ -447,8 +668,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                         </Button>
                     </div>
                 </Form>
-            </Modal.Body>
-        </Modal>
+            </Modal.Body >
+        </Modal >
     );
 };
 

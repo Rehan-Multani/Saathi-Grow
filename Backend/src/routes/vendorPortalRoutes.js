@@ -27,10 +27,10 @@ router.put('/profile', protectVendor, upload.single('logo'), updateProfile);
 // Product management for vendor
 router.route('/products')
   .get(protectVendor, getVendorProducts)
-  .post(protectVendor, upload.single('image'), addVendorProduct);
+  .post(protectVendor, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), addVendorProduct);
 
 router.route('/products/:id')
-  .put(protectVendor, upload.single('image'), updateVendorProduct)
+  .put(protectVendor, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateVendorProduct)
   .delete(protectVendor, deleteVendorProduct);
 
 export default router;

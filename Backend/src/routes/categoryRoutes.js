@@ -11,16 +11,14 @@ import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-// All brand routes are protected (Admin/Staff)
+// Public routes
+router.get('/', getCategories);
+router.get('/:id', getCategoryById);
+
+// Admin only routes
 router.use(protectAdmin);
-
-router.route('/')
-  .get(getCategories)
-  .post(upload.single('image'), createCategory);
-
-router.route('/:id')
-  .get(getCategoryById)
-  .put(upload.single('image'), updateCategory)
-  .delete(restrictTo('Admin', 'Branch Manager'), deleteCategory);
+router.post('/', upload.single('image'), createCategory);
+router.put('/:id', upload.single('image'), updateCategory);
+router.delete('/:id', restrictTo('Admin', 'Branch Manager'), deleteCategory);
 
 export default router;

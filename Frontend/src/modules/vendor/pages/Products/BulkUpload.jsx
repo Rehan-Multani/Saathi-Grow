@@ -20,10 +20,10 @@ const BulkUpload = () => {
     const downloadTemplate = () => {
         // Create CSV content with headers and sample data
         const csvContent = [
-            ['SKU', 'Product Name', 'Category', 'Price', 'Stock', 'Weight', 'Description', 'Image URL'],
-            ['SG-001', 'Sample Product 1', 'Groceries', '99.00', '50', '100g', 'This is a sample product description', 'https://example.com/image1.jpg'],
-            ['SG-002', 'Sample Product 2', 'Dairy', '149.00', '30', '1L', 'Another sample product', 'https://example.com/image2.jpg'],
-            ['SG-003', 'Sample Product 3', 'Snacks', '49.00', '100', '250g', 'Sample snack item', 'https://example.com/image3.jpg']
+            ['SKU', 'Product Name', 'Category', 'Price', 'Stock', 'Unit Amount', 'Unit Type', 'Description', 'Image URL'],
+            ['SG-001', 'Sample Product 1', 'Groceries', '99.00', '50', '500', 'gm', 'This is a sample product description', 'https://example.com/image1.jpg'],
+            ['SG-002', 'Sample Product 2', 'Dairy', '149.00', '30', '1', 'ltr', 'Another sample product', 'https://example.com/image2.jpg'],
+            ['SG-003', 'Sample Product 3', 'Snacks', '49.00', '100', '250', 'gm', 'Sample snack item', 'https://example.com/image3.jpg']
         ].map(row => row.join(',')).join('\n');
 
         // Create blob and download

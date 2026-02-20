@@ -10,7 +10,9 @@ const AddProduct = () => {
     const otherFilesRef = useRef(null);
 
     const [mainImage, setMainImage] = useState(null);
+    const [mainImageFile, setMainImageFile] = useState(null);
     const [otherImages, setOtherImages] = useState([]);
+    const [otherImageFiles, setOtherImageFiles] = useState([]);
     const [variants, setVariants] = useState([]);
 
     const [formData, setFormData] = useState({
@@ -20,6 +22,7 @@ const AddProduct = () => {
         mrp: '',
         price: '',
         unit: '',
+        unitValue: 1,
         description: '',
         isVeg: true,
         stock: 10
@@ -30,29 +33,64 @@ const AddProduct = () => {
 
     const handleMainUpload = (e) => {
         const file = e.target.files[0];
-        if (file) setMainImage(URL.createObjectURL(file));
+        if (file) {
+            setMainImage(URL.createObjectURL(file));
+            setMainImageFile(file);
+        }
     };
 
     const handleOtherUpload = (e) => {
         const files = Array.from(e.target.files);
-        const newImages = files.map(file => URL.createObjectURL(file));
-        setOtherImages([...otherImages, ...newImages]);
+        if (files.length + otherImageFiles.length > 10) {
+            return alert('Maximum 10 gallery images allowed');
+        }
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setOtherImages([...otherImages, ...newPreviews]);
+        setOtherImageFiles([...otherImageFiles, ...files]);
     };
 
-    const handleSubmit = (e) => {
+    const removeOtherImage = (index) => {
+        setOtherImages(prev => prev.filter((_, i) => i !== index));
+        setOtherImageFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        addProduct({
-            ...formData,
-            price: Number(formData.price),
-            image: mainImage || 'https://via.placeholder.com/150',
-            images: otherImages,
-            variants: variants.map(v => ({
-                ...v,
-                stock: Number(v.stock) || 0,
-                price: Number(v.price) || Number(formData.price)
-            }))
-        });
-        navigate('/vendor/products');
+
+        const data = new FormData();
+        data.append('name', formData.name);
+        data.append('brand', formData.brand);
+        data.append('category', formData.category);
+        data.append('mrp', formData.mrp);
+        data.append('price', formData.price);
+        data.append('unit', formData.unit);
+        data.append('unitValue', formData.unitValue);
+        data.append('description', formData.description);
+        data.append('isVeg', formData.isVeg);
+        data.append('stock', formData.stock);
+
+        // Handle images
+        if (mainImageFile) {
+            data.append('image', mainImageFile);
+        }
+
+        if (otherImageFiles.length > 0) {
+            otherImageFiles.forEach(file => {
+                data.append('gallery', file);
+            });
+        }
+
+        // Handle variants
+        data.append('variants', JSON.stringify(variants.map(v => ({
+            ...v,
+            stock: Number(v.stock) || 0,
+            price: Number(v.price) || Number(formData.price)
+        }))));
+
+        const success = await addProduct(data);
+        if (success) {
+            navigate('/vendor/products');
+        }
     };
 
     return (
@@ -91,7 +129,7 @@ const AddProduct = () => {
                     <div className="space-y-2 md:space-y-3 lg:space-y-3">
                         <h3 className="text-[10px] md:text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Basic information</h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 md:gap-x-6 lg:gap-x-5 gap-y-2 md:gap-y-3 lg:gap-y-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 md:gap-x-6 lg:gap-x-5 gap-y-2 md:gap-y-3 lg:gap-y-3">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-semibold text-gray-500">Product name *</label>
                                 <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -99,10 +137,16 @@ const AddProduct = () => {
                                     placeholder="Enter product name" />
                             </div>
                             <div className="space-y-0.5">
+                                <label className="text-[10px] font-semibold text-gray-500">Unit Amount</label>
+                                <input type="number" value={formData.unitValue} onChange={(e) => setFormData({ ...formData, unitValue: e.target.value })}
+                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
+                                    placeholder="Amount (e.g. 500, 1)" />
+                            </div>
+                            <div className="space-y-0.5">
                                 <label className="text-[10px] font-semibold text-gray-500">Unit</label>
                                 <input value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                                     className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
-                                    placeholder="e.g., 1kg, 500g" />
+                                    placeholder="e.g., kg, gm, pcs" />
                             </div>
                             <div className="space-y-0.5">
                                 <label className="text-[10px] font-semibold text-gray-500">Category *</label>
@@ -280,7 +324,7 @@ const AddProduct = () => {
                                     {otherImages.map((img, i) => (
                                         <div key={i} className="relative aspect-square rounded-md overflow-hidden border border-[#e5e0ff] bg-gray-50 p-1 group">
                                             <img src={img} alt="" className="w-full h-full object-contain" />
-                                            <button type="button" onClick={(e) => { e.stopPropagation(); setOtherImages(otherImages.filter((_, idx) => idx !== i)); }}
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); removeOtherImage(i); }}
                                                 className="absolute top-0 right-0 p-0.5 bg-white border border-gray-100 rounded-bl-md text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all">
                                                 <X size={8} />
                                             </button>

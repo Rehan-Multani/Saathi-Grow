@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, RefreshCw, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import * as authApi from '../../api/userAuthApi';
+import { toast } from 'react-toastify';
+
 const LoginPage = () => {
     const { login, user } = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState('');
     const [showOTP, setShowOTP] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [resendTimer, setResendTimer] = useState(0);
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -14,29 +20,63 @@ const LoginPage = () => {
     const queryParams = new URLSearchParams(location.search);
     const redirectPath = queryParams.get('redirect') || '/';
 
-    // Robust Redirection: Watch for user change
-    React.useEffect(() => {
+    useEffect(() => {
         if (user) {
             navigate(redirectPath, { replace: true });
         }
     }, [user, navigate, redirectPath]);
 
-    const handleSendOTP = (e) => {
+    useEffect(() => {
+        let timer;
+        if (resendTimer > 0) {
+            timer = setInterval(() => setResendTimer(prev => prev - 1), 1000);
+        }
+        return () => clearInterval(timer);
+    }, [resendTimer]);
+
+    const handleSendOTP = async (e) => {
         e.preventDefault();
-        if (phoneNumber.length === 10) {
+        if (phoneNumber.length !== 10) {
+            return toast.error('Please enter a valid 10-digit number');
+        }
+
+        setLoading(true);
+        try {
+            await authApi.requestOTP(phoneNumber, 'login');
             setShowOTP(true);
-        } else {
-            alert('Please enter a valid 10-digit number');
+            setResendTimer(60);
+            toast.success('OTP sent successfully');
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleVerifyOTP = (e) => {
+    const handleVerifyOTP = async (e) => {
         e.preventDefault();
-        if (otp === '1234') {
-            login(phoneNumber);
+        if (otp.length !== 6) {
+            return toast.error('Please enter a 6-digit OTP');
+        }
+
+        const result = await login({ phone: phoneNumber, otp });
+        if (result.success) {
             navigate(redirectPath, { replace: true });
-        } else {
-            alert('Invalid OTP. Use 1234');
+        }
+    };
+
+    const handleResendOTP = async () => {
+        if (resendTimer > 0) return;
+
+        setLoading(true);
+        try {
+            await authApi.resendOTP(phoneNumber);
+            setResendTimer(60);
+            toast.success('OTP resent successfully');
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -51,7 +91,7 @@ const LoginPage = () => {
                     transform: 'scale(1.1)'
                 }}
             ></div>
-            {/* Overlay for better text readability */}
+            {/* Overlay */}
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
             <div className="bg-white dark:bg-black rounded-xl shadow-xl w-full max-w-[340px] overflow-hidden border border-gray-100 dark:border-gray-800 animate-in fade-in zoom-in duration-300 relative z-10">
@@ -80,16 +120,17 @@ const LoginPage = () => {
                                         className="block w-full pl-11 pr-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none transition-all bg-gray-50/50 dark:bg-white/5 dark:text-white text-xs font-bold"
                                         placeholder="98765 43210"
                                         required
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
                             <button
                                 type="submit"
-                                disabled={phoneNumber.length !== 10}
+                                disabled={phoneNumber.length !== 10 || loading}
                                 style={{ borderRadius: '16px' }}
-                                className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
+                                className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
-                                <Lock size={14} className="mr-2" />
+                                {loading ? <Loader2 className="animate-spin mr-2" size={14} /> : <Lock size={14} className="mr-2" />}
                                 Send OTP
                             </button>
                         </form>
@@ -99,29 +140,42 @@ const LoginPage = () => {
                                 <label className="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1">Enter OTP</label>
                                 <input
                                     type="text"
-                                    maxLength="4"
+                                    maxLength="6"
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                                    className="block w-full px-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl text-center text-xl tracking-[0.5em] focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none bg-gray-50/50 dark:bg-white/5 dark:text-white font-black"
-                                    placeholder="••••"
+                                    className="block w-full px-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl text-center text-xl tracking-[0.2em] focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none bg-gray-50/50 dark:bg-white/5 dark:text-white font-black"
+                                    placeholder="••••••"
                                     required
+                                    disabled={loading}
                                 />
                             </div>
                             <button
                                 type="submit"
-                                disabled={otp.length !== 4}
+                                disabled={otp.length !== 6 || loading}
                                 style={{ borderRadius: '16px' }}
-                                className="w-full flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
+                                className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent shadow-sm text-xs font-black text-white bg-[#0c831f] hover:bg-[#0a6b19] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none transition-all shadow-lg shadow-green-500/10 active:scale-[0.98]"
                             >
+                                {loading ? <Loader2 className="animate-spin mr-2" size={14} /> : null}
                                 Verify & Login
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowOTP(false)}
-                                className="w-full text-center text-[10px] text-[#0c831f] dark:text-[#10b981] hover:underline font-bold uppercase tracking-wider"
-                            >
-                                Change Phone Number
-                            </button>
+
+                            <div className="flex flex-col gap-2 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={handleResendOTP}
+                                    disabled={resendTimer > 0 || loading}
+                                    className="text-center text-[10px] text-[#0c831f] dark:text-[#10b981] hover:underline font-bold uppercase tracking-wider disabled:opacity-50 disabled:no-underline"
+                                >
+                                    {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowOTP(false)}
+                                    className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-wider hover:text-gray-600"
+                                >
+                                    Change Phone Number
+                                </button>
+                            </div>
                         </form>
                     )}
                 </div>

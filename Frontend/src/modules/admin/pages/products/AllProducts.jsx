@@ -18,7 +18,8 @@ const ProductStatusBadge = ({ status }) => {
         Active: 'bg-green-100 text-green-700',
         'Low Stock': 'bg-red-100 text-red-700 border border-red-200 animate-pulse',
         'Out of Stock': 'bg-gray-100 text-gray-500 border border-gray-200',
-        Draft: 'bg-blue-50 text-blue-600'
+        Draft: 'bg-blue-50 text-blue-600',
+        'Pending Approval': 'bg-amber-100 text-amber-700 border border-amber-200'
     };
     return (
         <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${variants[status] || 'bg-gray-100 text-gray-600'}`}>
@@ -247,8 +248,18 @@ const AllProducts = () => {
                                     <tr key={p._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-500 font-bold overflow-hidden border">
-                                                    {p.image ? <img src={p.image} alt="" className="w-full h-full object-cover" /> : p.name.charAt(0)}
+                                                <div className="w-10 h-10 bg-white rounded border border-gray-100 flex items-center justify-center text-gray-500 font-bold overflow-hidden flex-shrink-0 relative">
+                                                    {p.image
+                                                        ? <img src={p.image} alt="" className="w-full h-full object-contain p-0.5" />
+                                                        : <span className="text-sm font-bold text-gray-400">{p.name.charAt(0)}</span>
+                                                    }
+                                                    <div
+                                                        className={`position-absolute bottom-0 right-0 p-1 border rounded-sm ${p.isVeg ? 'bg-white' : 'bg-white'}`}
+                                                        style={{ width: '12px', height: '12px', margin: '2px', border: p.isVeg ? '1.5px solid #198754' : '1.5px solid #dc3545', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                        title={p.isVeg ? "Vegetarian" : "Non-Vegetarian"}
+                                                    >
+                                                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: p.isVeg ? '#198754' : '#dc3545' }}></div>
+                                                    </div>
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-medium text-gray-800">{p.name}</span>
@@ -271,7 +282,14 @@ const AllProducts = () => {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-gray-800 text-center">₹{p.basePrice?.toFixed(2)}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-gray-800">₹{p.basePrice?.toFixed(2)}</span>
+                                                {p.mrp && p.mrp > p.basePrice && (
+                                                    <span className="text-[10px] text-gray-400 text-decoration-line-through">₹{p.mrp.toFixed(2)}</span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={`font-medium ${getTotalStock(p) === 0 ? 'text-red-600' : 'text-gray-700'}`}>
                                                 {getTotalStock(p)}

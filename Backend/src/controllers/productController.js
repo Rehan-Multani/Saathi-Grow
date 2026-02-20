@@ -62,7 +62,11 @@ export const createProduct = async (req, res) => {
       specificBranches,
       sku,
       status,
-      vendor
+      vendor,
+      mrp,
+      isVeg,
+      variants,
+      unitValue
     } = req.body;
 
     const productExists = await Product.findOne({ sku });
@@ -71,8 +75,14 @@ export const createProduct = async (req, res) => {
     }
 
     let image = '';
-    if (req.file) {
-      image = req.file.path;
+    let gallery = [];
+    if (req.files) {
+      if (req.files.image && req.files.image[0]) {
+        image = req.files.image[0].path;
+      }
+      if (req.files.gallery) {
+        gallery = req.files.gallery.map(file => file.path);
+      }
     }
 
     // Parse branchStocks if it's sent as a string (from FormData)
@@ -107,6 +117,7 @@ export const createProduct = async (req, res) => {
       basePrice,
       branchStocks: parsedBranchStocks,
       unitType: unitType || 'pcs',
+      unitValue: Number(unitValue) || 1,
       physicalLocation,
       category,
       brandName,
@@ -116,7 +127,11 @@ export const createProduct = async (req, res) => {
       qrCode: qrCodeDataUrl,
       status: finalStatus,
       image,
+      gallery,
       vendor: vendor || null,
+      mrp: Number(mrp) || Number(basePrice),
+      isVeg: isVeg === 'true' || isVeg === true,
+      variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
       createdBy: req.admin._id
     });
 
@@ -143,13 +158,43 @@ export const createProduct = async (req, res) => {
 
 // @desc    Get all products
 // @route   GET /api/admin/products
-// @access  Private (Admin/Staff)
+// @access  Public (Enhanced with filtering)
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find({})
+    const { category, search, status, brand } = req.query;
+
+    // Build query object
+    let query = {};
+
+    // If not specified, and not an admin request, show only Active products
+    // (A simple check for now, can be refined with auth)
+    if (status) {
+      query.status = status;
+    } else if (!req.admin) {
+      query.status = 'Active';
+    }
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (brand) {
+      query.brandName = brand;
+    }
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } }
+      ];
+    }
+
+    const products = await Product.find(query)
       .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo')
       .sort('-createdAt');
+
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -188,10 +233,17 @@ export const updateProduct = async (req, res) => {
       }
       product.basePrice = req.body.basePrice || product.basePrice;
       product.unitType = req.body.unitType || product.unitType;
+      product.unitValue = req.body.unitValue !== undefined ? Number(req.body.unitValue) : product.unitValue;
       product.physicalLocation = req.body.physicalLocation || product.physicalLocation;
       product.category = req.body.category || product.category;
       product.brandName = req.body.brandName || product.brandName;
       product.vendor = req.body.vendor !== undefined ? (req.body.vendor || null) : product.vendor;
+      product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
+      product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
+
+      if (req.body.variants) {
+        product.variants = typeof req.body.variants === 'string' ? JSON.parse(req.body.variants) : req.body.variants;
+      }
 
       if (req.body.sku && req.body.sku !== product.sku) {
         product.sku = req.body.sku;
@@ -277,8 +329,19 @@ export const updateProduct = async (req, res) => {
         product.status = 'Draft';
       }
 
-      if (req.file) {
-        product.image = req.file.path;
+      if (req.files) {
+        if (req.files.image && req.files.image[0]) {
+          product.image = req.files.image[0].path;
+        }
+        if (req.files.gallery) {
+          const newGalleryPaths = req.files.gallery.map(file => file.path);
+          // If we want to append or replace: let's replace for now or append if provided
+          // Usually in edit, we might want to keep old ones, but if new ones are uploaded via 'gallery' field, 
+          // we might want to either replace or append. Let's append for now to be safe, 
+          // or replace if the user intends to reset. 
+          // Given typical behavior, let's replace if gallery files are present.
+          product.gallery = newGalleryPaths;
+        }
       }
 
       const updatedProduct = await product.save();

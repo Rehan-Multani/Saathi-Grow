@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
-import { RefreshCw, Save, Upload, X, Sparkles } from 'lucide-react';
+import { RefreshCw, Save, Upload, X, Sparkles, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
@@ -31,7 +31,10 @@ const AddProduct = () => {
         category: '',
         brandName: '',
         basePrice: '',
+        mrp: '',
+        isVeg: true,
         unitType: 'pcs',
+        unitValue: 1,
         physicalLocation: '',
         description: '',
         isAllBranches: true,
@@ -46,6 +49,8 @@ const AddProduct = () => {
 
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [galleryFiles, setGalleryFiles] = useState([]);
     const [showCropper, setShowCropper] = useState(false);
     const [tempImage, setTempImage] = useState(null);
     const [tagInput, setTagInput] = useState('');
@@ -165,6 +170,22 @@ const AddProduct = () => {
         setImageFile(new File([blob], 'product.jpg', { type: 'image/jpeg' }));
     };
 
+    const handleGalleryChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length + galleryFiles.length > 10) {
+            return toast.warning('Maximum 10 gallery images allowed');
+        }
+
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setGalleryPreviews(prev => [...prev, ...newPreviews]);
+        setGalleryFiles(prev => [...prev, ...files]);
+    };
+
+    const removeGalleryImage = (index) => {
+        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+        setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -248,6 +269,12 @@ const AddProduct = () => {
 
             if (imageFile) {
                 data.append('image', imageFile);
+            }
+
+            if (galleryFiles.length > 0) {
+                galleryFiles.forEach(file => {
+                    data.append('gallery', file);
+                });
             }
 
             await createProduct(adminUser.token, data);
@@ -349,8 +376,8 @@ const AddProduct = () => {
                                 </Form.Group>
 
                                 <h6 className="mb-3 fw-bold mt-4">Pricing & Units</h6>
-                                <Row>
-                                    <Col md={6}>
+                                <Row className="align-items-end">
+                                    <Col md={3}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Base Price (₹) <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
@@ -363,7 +390,19 @@ const AddProduct = () => {
                                             />
                                         </Form.Group>
                                     </Col>
-                                    <Col md={6}>
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>MRP (₹)</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                placeholder="0.00"
+                                                name="mrp"
+                                                value={formData.mrp}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
                                         <Form.Group className="mb-3">
                                             <Form.Label>Unit Type</Form.Label>
                                             <Form.Select name="unitType" value={formData.unitType} onChange={handleChange}>
@@ -374,7 +413,62 @@ const AddProduct = () => {
                                                 <option value="ltr">Ltr</option>
                                                 <option value="pkt">Pkt</option>
                                                 <option value="box">Box</option>
+                                                <option value="100g">100g</option>
+                                                <option value="250g">250g</option>
+                                                <option value="500g">500g</option>
                                             </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                                <Form.Label className="mb-0">Food Type</Form.Label>
+                                            </div>
+                                            <div className="d-flex gap-2">
+                                                <Button
+                                                    variant={formData.isVeg ? "success" : "outline-success"}
+                                                    size="sm"
+                                                    className="flex-fill py-2 fw-bold text-[10px]"
+                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
+                                                >
+                                                    VEG
+                                                </Button>
+                                                <Button
+                                                    variant={!formData.isVeg ? "danger" : "outline-danger"}
+                                                    size="sm"
+                                                    className="flex-fill py-2 fw-bold text-[10px]"
+                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
+                                                >
+                                                    NON-VEG
+                                                </Button>
+                                            </div>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+
+                                <Row>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Physical Location (Storage)</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="e.g. Aisle 4, Shelf B"
+                                                name="physicalLocation"
+                                                value={formData.physicalLocation}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Unit Amount</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                placeholder="1"
+                                                name="unitValue"
+                                                value={formData.unitValue}
+                                                onChange={handleChange}
+                                            />
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -548,6 +642,47 @@ const AddProduct = () => {
                                     onCropComplete={handleCropComplete}
                                     aspect={1}
                                 />
+                            </Card.Body>
+                        </Card>
+
+                        <Card className="border-0 shadow-sm mb-4">
+                            <Card.Body>
+                                <h6 className="mb-3 fw-bold">Gallery Images (Up to 10)</h6>
+                                <div className="d-flex flex-wrap gap-2 mb-3">
+                                    {galleryPreviews.map((preview, index) => (
+                                        <div key={index} className="position-relative" style={{ width: '80px', height: '80px' }}>
+                                            <Image src={preview} alt={`Gallery ${index}`} thumbnail className="w-100 h-100 object-fit-cover" />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                className="position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-center shadow-sm"
+                                                style={{ width: '20px', height: '20px', marginTop: '-8px', marginRight: '-8px' }}
+                                                onClick={() => removeGalleryImage(index)}
+                                            >
+                                                <X size={12} />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {galleryFiles.length < 10 && (
+                                        <div
+                                            className="border border-dashed rounded d-flex flex-column align-items-center justify-center cursor-pointer hover-bg-light transition-all text-muted"
+                                            style={{ width: '80px', height: '80px' }}
+                                            onClick={() => document.getElementById('gallery-input').click()}
+                                        >
+                                            <Plus size={24} />
+                                            <span style={{ fontSize: '10px' }}>Add</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <Form.Control
+                                    id="gallery-input"
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    className="d-none"
+                                    onChange={handleGalleryChange}
+                                />
+                                <p className="text-muted small mb-0 mt-2">Upload multiple images to showcase different angles of your product.</p>
                             </Card.Body>
                         </Card>
                     </Col>
