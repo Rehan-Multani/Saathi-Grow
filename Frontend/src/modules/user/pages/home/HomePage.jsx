@@ -7,7 +7,6 @@ import { useShop } from '../../context/ShopContext';
 import { ChevronRight, ArrowRight, ArrowLeft, TrendingDown } from 'lucide-react';
 import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../components/common/Skeleton';
 import { useTheme } from '../../context/ThemeContext';
-import { offerBanners } from '../../data/offers';
 import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const categoryColors = {
@@ -27,11 +26,11 @@ const categoryColors = {
     'beauty-grooming': '#fce4ec'
 };
 
-const HomePage = () => {
+const HomePage = ({ }) => {
     const navigate = useNavigate();
     const { searchQuery } = useSearch();
     const { isDarkMode } = useTheme();
-    const { categories, products, campaigns, loading, getProductsByCategory } = useShop();
+    const { categories, products, campaigns, offers, loading, getProductsByCategory } = useShop();
     const scrollContainerRef = useRef(null);
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
@@ -42,41 +41,44 @@ const HomePage = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const itemsToShow = windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : 3;
-
-
+    const activeOffers = offers.length > 0 ? offers : [];
+    const maxItemsToShow = windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : 3;
+    const itemsToShow = Math.min(maxItemsToShow, activeOffers.length || 1);
+    const isCarousel = activeOffers.length > itemsToShow;
 
     // Manual & Infinite Scroll Logic - Starts at middle set to allow bidirectional scrolling
-    const [offerIndex, setOfferIndex] = useState(offerBanners.length);
+    const [offerIndex, setOfferIndex] = useState(isCarousel ? activeOffers.length : 0);
     const [isTransitioning, setIsTransitioning] = useState(true);
 
     // Initial positioning check
     useEffect(() => {
         // If loaded with 0 (from previous state or SSR mismatch), jump to middle
-        if (offerIndex === 0 && offerBanners.length > 0) {
-            setOfferIndex(offerBanners.length);
+        if (isCarousel && offerIndex === 0 && activeOffers.length > 0) {
+            setOfferIndex(activeOffers.length);
         }
-    }, []);
+    }, [activeOffers.length, isCarousel]);
 
     // Handle Infinite Loop Reset (Bidirectional)
     useEffect(() => {
-        const totalItems = offerBanners.length * 3;
+        if (!isCarousel || activeOffers.length === 0) return;
+
+        const totalItems = activeOffers.length * 3;
         // If we reach the end of the 2nd set (start of 3rd set visually) or start of 1st set
-        if (offerIndex >= offerBanners.length * 2) {
+        if (offerIndex >= activeOffers.length * 2) {
             const timer = setTimeout(() => {
                 setIsTransitioning(false);
-                setOfferIndex(offerBanners.length + (offerIndex % offerBanners.length));
+                setOfferIndex(activeOffers.length + (offerIndex % activeOffers.length));
             }, 1000);
             return () => clearTimeout(timer);
-        } else if (offerIndex < offerBanners.length) {
+        } else if (offerIndex < activeOffers.length) {
             // If we are in the first set, we want to snap to the second set
             const timer = setTimeout(() => {
                 setIsTransitioning(false);
-                setOfferIndex(offerBanners.length + (offerIndex % offerBanners.length));
+                setOfferIndex(activeOffers.length + ((offerIndex % activeOffers.length + activeOffers.length) % activeOffers.length));
             }, 1000);
             return () => clearTimeout(timer);
         }
-    }, [offerIndex]);
+    }, [offerIndex, activeOffers.length]);
 
     // Restore transition capability after a snap reset
     useEffect(() => {
@@ -102,7 +104,7 @@ const HomePage = () => {
 
     const handleDotClick = (index) => {
         setIsTransitioning(true);
-        setOfferIndex(offerBanners.length + index);
+        setOfferIndex(activeOffers.length + index);
     };
 
     const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -152,34 +154,34 @@ const HomePage = () => {
 
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
-            {!isSearching && !loading && (
+            {!isSearching && !loading && activeOffers.length > 0 && (
                 <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 group/offers relative">
                     <div className="relative overflow-hidden rounded-none sm:rounded-2xl">
                         <div
-                            className={`flex ${isTransitioning ? 'transition-transform duration-1000 ease-in-out' : ''}`}
+                            className={`flex ${isTransitioning && isCarousel ? 'transition-transform duration-1000 ease-in-out' : ''}`}
                             style={{
-                                transform: `translateX(-${offerIndex * (100 / itemsToShow)}%)`,
+                                transform: isCarousel ? `translateX(-${offerIndex * (100 / itemsToShow)}%)` : 'none',
                                 gap: itemsToShow === 1 ? '0px' : '16px'
                             }}
                         >
-                            {[...offerBanners, ...offerBanners, ...offerBanners].map((offer, idx) => (
+                            {(isCarousel ? [...activeOffers, ...activeOffers, ...activeOffers] : activeOffers).map((offer, idx) => (
                                 <div
-                                    key={`${offer.id}-${idx}`}
+                                    key={`${offer._id || offer.id}-${idx}`}
                                     className="flex-shrink-0"
                                     style={{
                                         width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(16 * (itemsToShow - 1)) / itemsToShow}px)`
                                     }}
                                 >
                                     <div
-                                        onClick={() => navigate(`/offer/${offer.id}`)}
+                                        onClick={() => navigate(`/offer/${offer._id || offer.id}`)}
                                         className="relative cursor-pointer transition-all duration-300 mx-0 border-none group/banner block z-10"
                                         role="button"
                                         tabIndex={0}
                                     >
                                         <div className="aspect-[16/7.5] sm:aspect-[16/7] overflow-hidden rounded-lg sm:rounded-2xl shadow-sm border border-gray-100/10 pointer-events-none">
                                             <img
-                                                src={offer.image}
-                                                alt="Special Offer"
+                                                src={offer.bannerImage || offer.image}
+                                                alt={offer.title || "Special Offer"}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover/banner:scale-105"
                                                 loading="lazy"
                                             />
@@ -190,35 +192,41 @@ const HomePage = () => {
                         </div>
 
                         {/* Navigation Arrows */}
-                        <button
-                            onClick={handlePrevOffer}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
-                            aria-label="Previous Offer"
-                        >
-                            <ArrowLeft size={20} className="md:w-6 md:h-6" />
-                        </button>
-                        <button
-                            onClick={handleNextOffer}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
-                            aria-label="Next Offer"
-                        >
-                            <ArrowRight size={20} className="md:w-6 md:h-6" />
-                        </button>
+                        {isCarousel && (
+                            <>
+                                <button
+                                    onClick={handlePrevOffer}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
+                                    aria-label="Previous Offer"
+                                >
+                                    <ArrowLeft size={20} className="md:w-6 md:h-6" />
+                                </button>
+                                <button
+                                    onClick={handleNextOffer}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
+                                    aria-label="Next Offer"
+                                >
+                                    <ArrowRight size={20} className="md:w-6 md:h-6" />
+                                </button>
+                            </>
+                        )}
                     </div>
 
                     {/* Pagination Lines (Blinkit Style) - Moved below image */}
-                    <div className="flex justify-center gap-2.5 mt-4">
-                        {offerBanners.map((_, idx) => (
-                            <div
-                                key={idx}
-                                onClick={() => handleDotClick(idx)}
-                                className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer hover:scale-110 ${(offerIndex % offerBanners.length) === idx
-                                    ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
-                                    : 'w-4 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
-                                    }`}
-                            />
-                        ))}
-                    </div>
+                    {isCarousel && (
+                        <div className="flex justify-center gap-2.5 mt-4">
+                            {activeOffers.map((_, idx) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => handleDotClick(idx)}
+                                    className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer hover:scale-110 ${(offerIndex % activeOffers.length) === idx
+                                        ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
+                                        : 'w-4 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
+                                        }`}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -442,8 +450,7 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                     ) : (
                         categoryProducts.map((product) => (
                             <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCard product={normalizeProduct(product)}
-                                    wishlistPosition={props.wishlistPosition} />
+                                <ProductCard product={normalizeProduct(product)} />
                             </div>
                         ))
                     )}
@@ -487,7 +494,8 @@ const OccasionSection = ({
     slug,
     badgeText,
     className,
-    campaignId
+    campaignId,
+    wishlistPosition
 }) => {
     const { isDarkMode } = useTheme();
     const sectionRef = useRef(null);
@@ -583,7 +591,7 @@ const OccasionSection = ({
                                         themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor,
                                         bgColor: isDarkMode ? '' : bgColor
                                     }}
-                                    wishlistPosition={props.wishlistPosition}
+                                    wishlistPosition={wishlistPosition}
                                 />
                             </div>
                         ))

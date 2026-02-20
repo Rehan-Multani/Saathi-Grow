@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchCategories, fetchProducts, fetchActiveCampaigns } from '../api/shopApi';
+import { fetchCategories, fetchProducts, fetchActiveCampaigns, fetchActiveOfferDeals } from '../api/shopApi';
 
 const ShopContext = createContext();
 
@@ -15,20 +15,23 @@ export const ShopProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const refreshShopData = async () => {
     setLoading(true);
     try {
-      const [categoriesData, productsData, campaignsData] = await Promise.all([
+      const [categoriesData, productsData, campaignsData, offersData] = await Promise.all([
         fetchCategories(),
         fetchProducts({ status: 'Active' }),
-        fetchActiveCampaigns().catch(() => []) // Don't fail if no campaigns
+        fetchActiveCampaigns().catch(() => []), // Don't fail if no campaigns
+        fetchActiveOfferDeals().catch(() => []) // Don't fail if no offers
       ]);
       setCategories(categoriesData);
       setProducts(productsData);
       setCampaigns(campaignsData);
+      setOffers(offersData);
       setError(null);
     } catch (err) {
       console.error('Error fetching shop data:', err);
@@ -56,6 +59,7 @@ export const ShopProvider = ({ children }) => {
         categories,
         products,
         campaigns,
+        offers,
         loading,
         error,
         refreshShopData,
