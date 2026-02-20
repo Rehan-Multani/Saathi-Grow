@@ -213,7 +213,7 @@ const CategoryPage = () => {
                                 <ProductCard key={`rec-${product._id || product.id}`} product={product} isCompact={true} />
                             ))}
                         </div>
-                    </div>
+                        </div>
                 </div>
             )}
         </div>

@@ -45,7 +45,7 @@ const CancelOrderPage = () => {
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 py-4 md:py-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="max-w-2xl mx-auto px-4 pt-24 md:pt-28 pb-4 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
                     <div className="bg-red-500/10 dark:bg-red-500/5 p-4 md:rounded-2xl md:border border-red-100 dark:border-red-500/10 mb-2">
                         <p className="text-[10px] md:text-base text-red-600 font-bold tracking-tight">Are you sure you want to cancel? This action cannot be undone.</p>

@@ -76,20 +76,46 @@ const LowestPricesPage = () => {
 
             {/* Product Grid */}
             <div className="max-w-7xl mx-auto px-4 pb-12 pt-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
                     {discountedProducts.map(product => (
                         <div key={product.id} className="relative">
                             {/* Discount Badge */}
-                            <div className="absolute top-2 right-2 z-50 bg-[#0c831f] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                            <div className="absolute top-1.5 right-1.5 z-50 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[7.5px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-lg">
                                 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                             </div>
                             <ProductCard
                                 product={product}
-                                customTheme={{ themeColor: themeColor, bgColor: bgColor }}
+                                customTheme={{
+                                    themeColor: themeColor,
+                                    bgColor: isDarkMode ? bgColor : `linear-gradient(to right, #e8f5e9, #ffffff)`
+                                }}
                                 imgPadding="p-4"
+                                wishlistPosition="top-8 right-2"
+                                isLowestPrice={true}
                             />
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* Recommendations Section */}
+            <div className="max-w-7xl mx-auto px-4 pb-12">
+                <div className="border-t border-dashed border-gray-200 dark:border-white/10 pt-8 mt-4">
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="w-1 h-4 bg-[#f7cb15] rounded-full"></div>
+                        <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">You Might Also Like</h3>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
+                        {products.filter(p => !p.originalPrice || p.originalPrice <= p.price).slice(0, 6).map((product) => (
+                            <ProductCard
+                                key={`rec-${product.id}`}
+                                product={product}
+                                isCompact={true}
+                                customTheme={{ bgColor: '#e8f5e9', themeColor: '#0c831f' }}
+                                isLowestPrice={true}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

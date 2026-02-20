@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -38,13 +38,14 @@ const ProfilePage = () => {
     const sections = [
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
+        { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
         { icon: CreditCard, label: "SaathiGro Wallet", subtitle: `₹${user?.walletBalance || '0.00'} Balance available`, path: "/wallet" },
         { icon: Shield, label: "Security", subtitle: "Password and account security", path: "/security" },
         { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and Customer Support", path: "/help" }
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black p-0 md:p-2">
+        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black pt-24 px-0 pb-0 md:p-2">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="hidden md:flex items-center gap-3 p-4 md:p-0 mb-0 md:mb-1 bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white md:dark:bg-black border-b border-gray-50 md:border-none">

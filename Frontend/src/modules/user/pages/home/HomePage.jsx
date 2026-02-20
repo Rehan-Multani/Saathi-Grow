@@ -306,7 +306,6 @@ const HomePage = () => {
                     </div>
                 </div>
             )}
-
             {/* Dynamic Campaign Sections — admin-controlled (festive + lowest prices) */}
             {!isSearching && campaigns.map((campaign) => {
                 // Build normalized product list for this campaign
@@ -320,7 +319,6 @@ const HomePage = () => {
                         // Keep mrp for discount % calculation
                         mrp: cp.productId.mrp || cp.productId.basePrice,
                     }));
-
                 return (
                     <React.Fragment key={campaign._id}>
                         {campaign.displayType === 'lowest_prices' ? (
@@ -444,7 +442,8 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                     ) : (
                         categoryProducts.map((product) => (
                             <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCard product={normalizeProduct(product)} />
+                                <ProductCard product={normalizeProduct(product)}
+                                    wishlistPosition={props.wishlistPosition} />
                             </div>
                         ))
                     )}
@@ -478,7 +477,18 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
 };
 
 // Reusable Occasion Section Component
-const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgColor, slug, badgeText, className, campaignId }) => {
+const OccasionSection = ({
+    title,
+    subtitle,
+    products,
+    loading,
+    themeColor,
+    bgColor,
+    slug,
+    badgeText,
+    className,
+    campaignId
+}) => {
     const { isDarkMode } = useTheme();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
@@ -573,6 +583,7 @@ const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgCol
                                         themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor,
                                         bgColor: isDarkMode ? '' : bgColor
                                     }}
+                                    wishlistPosition={props.wishlistPosition}
                                 />
                             </div>
                         ))

@@ -6,6 +6,7 @@ import { LocationProvider } from './modules/user/context/LocationContext';
 import { SearchProvider } from './modules/user/context/SearchContext';
 import { ThemeProvider } from './modules/user/context/ThemeContext';
 import { ReturnRequestsProvider } from './common/contexts/ReturnRequestsContext';
+import { WishlistProvider } from './modules/user/context/WishlistContext';
 import "./App.css";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,6 +16,7 @@ const UserRoutes = lazy(() => import('./modules/user/routes/UserRoutes'));
 const VendorRoutes = lazy(() => import('./modules/vendor/routes/VendorRoutes'));
 const StaffRoutes = lazy(() => import('./modules/staff/routes/StaffRoutes'));
 const AdminRoutes = lazy(() => import('./modules/admin/routes/AdminRoutes'));
+const StoreManagerRoutes = lazy(() => import('./modules/store-manager/routes/StoreManagerRoutes'));
 
 
 
@@ -44,32 +46,35 @@ function App() {
                 <LocationProvider>
                     <SearchProvider>
                         <CartProvider>
-                            <ReturnRequestsProvider>
-                                <BrowserRouter>
-                                    <Suspense fallback={<GlobalLoading />}>
-                                        <Routes>
-                                            <Route path="/staff/*" element={<StaffRoutes />} />
-                                            <Route path="/admin/*" element={<AdminRoutes />} />
-                                            <Route path="/vendor/*" element={<VendorRoutes />} />
-                                            <Route path="/*" element={<UserRoutes />} />
-                                        </Routes>
+                            <WishlistProvider>
+                                <ReturnRequestsProvider>
+                                    <BrowserRouter>
+                                        <Suspense fallback={<GlobalLoading />}>
+                                            <Routes>
+                                                <Route path="/staff/*" element={<StaffRoutes />} />
+                                                <Route path="/admin/*" element={<AdminRoutes />} />
+                                                <Route path="/store-manager/*" element={<StoreManagerRoutes />} />
+                                                <Route path="/vendor/*" element={<VendorRoutes />} />
+                                                <Route path="/*" element={<UserRoutes />} />
+                                            </Routes>
 
 
-                                        <ToastContainer
-                                            position="bottom-center"
-                                            autoClose={2000}
-                                            hideProgressBar={false}
-                                            newestOnTop={false}
-                                            closeOnClick
-                                            rtl={false}
-                                            pauseOnFocusLoss
-                                            draggable
-                                            pauseOnHover
-                                            theme="colored"
-                                        />
-                                    </Suspense>
-                                </BrowserRouter>
-                            </ReturnRequestsProvider>
+                                            <ToastContainer
+                                                position="bottom-center"
+                                                autoClose={2000}
+                                                hideProgressBar={false}
+                                                newestOnTop={false}
+                                                closeOnClick
+                                                rtl={false}
+                                                pauseOnFocusLoss
+                                                draggable
+                                                pauseOnHover
+                                                theme="colored"
+                                            />
+                                        </Suspense>
+                                    </BrowserRouter>
+                                </ReturnRequestsProvider>
+                            </WishlistProvider>
                         </CartProvider>
                     </SearchProvider>
                 </LocationProvider>

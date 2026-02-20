@@ -124,7 +124,11 @@ const LowestPricesSection = ({
                                 )}
                                 <ProductCard
                                     product={product}
-                                    customTheme={{ themeColor: isDarkMode ? '#f7cb15' : '#0c831f' }}
+                                    customTheme={{
+                                        themeColor: isDarkMode ? '#f7cb15' : '#0c831f',
+                                        bgColor: isDarkMode ? undefined : 'linear-gradient(to right, #e8f5e9, #ffffff)'
+                                    }}
+                                    wishlistPosition="top-6 right-2"
                                 />
                             </div>
                         ))
