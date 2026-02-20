@@ -75,8 +75,8 @@ const LowestPricesPage = () => {
             </div>
 
             {/* Product Grid */}
-            <div className="max-w-7xl mx-auto px-4 pb-12 pt-4">
-                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+            <div className="max-w-7xl mx-auto px-6 sm:px-4 pb-12 pt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-6 gap-x-5 sm:gap-4">
                     {discountedProducts.map(product => (
                         <div key={product.id} className="relative">
                             {/* Discount Badge */}
@@ -86,12 +86,13 @@ const LowestPricesPage = () => {
                             <ProductCard
                                 product={product}
                                 customTheme={{
-                                    themeColor: themeColor,
-                                    bgColor: isDarkMode ? bgColor : `linear-gradient(to right, #e8f5e9, #ffffff)`
+                                    themeColor: '#0c831f',
+                                    bgColor: isDarkMode ? bgColor : `#e8f5e9`
                                 }}
-                                imgPadding="p-4"
+                                imgPadding="p-5 sm:p-4"
                                 wishlistPosition="top-8 right-2"
                                 isLowestPrice={true}
+                                isLargeButton={true}
                             />
                         </div>
                     ))}
@@ -99,13 +100,13 @@ const LowestPricesPage = () => {
             </div>
 
             {/* Recommendations Section */}
-            <div className="max-w-7xl mx-auto px-4 pb-12">
+            <div className="max-w-7xl mx-auto px-6 sm:px-4 pb-12">
                 <div className="border-t border-dashed border-gray-200 dark:border-white/10 pt-8 mt-4">
                     <div className="flex items-center gap-2 mb-6">
                         <div className="w-1 h-4 bg-[#f7cb15] rounded-full"></div>
                         <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">You Might Also Like</h3>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4">
                         {products.filter(p => !p.originalPrice || p.originalPrice <= p.price).slice(0, 6).map((product) => (
                             <ProductCard
                                 key={`rec-${product.id}`}
@@ -113,6 +114,7 @@ const LowestPricesPage = () => {
                                 isCompact={true}
                                 customTheme={{ bgColor: '#e8f5e9', themeColor: '#0c831f' }}
                                 isLowestPrice={true}
+                                isLargeButton={true}
                             />
                         ))}
                     </div>

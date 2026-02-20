@@ -7,7 +7,7 @@ import { Plus, Minus, Heart } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useWishlist } from '../../context/WishlistContext';
 
-const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false }) => {
+const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false, isLargeButton = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
   return (
     <div
-      className="rounded-2xl p-3 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-2 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111]"
+      className="rounded-2xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111]"
       style={{
         background: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
@@ -79,7 +79,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
           <img
             src={product.image || categoryPlaceholder}
             alt={product.name}
-            className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${!product.image ? 'object-cover' : `object-contain ${imgPadding || 'p-1.5'}`}`}
+            className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${!product.image ? 'object-cover' : `object-contain ${imgPadding || 'p-4 sm:p-1.5'}`}`}
             onError={(e) => {
               e.target.src = categoryPlaceholder;
               e.target.classList.remove('p-1.5');
@@ -96,7 +96,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
         {/* Title */}
         <Link to={`/product/${product.id}`} className="z-10">
           <div
-            className="font-extrabold text-gray-800 dark:text-zinc-100 text-[9px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[24px] sm:min-h-[32px] transition-colors tracking-tight"
+            className="font-extrabold text-gray-800 dark:text-zinc-100 text-[8.5px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[20px] sm:min-h-[32px] transition-colors tracking-tight"
             style={{ color: 'inherit' }}
             onMouseEnter={(e) => e.target.style.color = customTheme ? customTheme.themeColor : '#0c831f'}
             onMouseLeave={(e) => e.target.style.color = ''}
@@ -119,7 +119,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
           {quantity > 0 ? (
             <div
-              className={`flex items-center text-white !rounded-full shadow-lg ${(isLowestPrice || isValentine || isSaathiSignature) ? 'h-[20px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : isCompact ? 'h-[21px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : 'h-[25px] sm:h-[36px] min-w-[60px] sm:min-w-[85px]'} border quantity-selector`}
+              className={`flex items-center text-white !rounded-full shadow-lg ${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isLowestPrice || isValentine || isSaathiSignature) ? 'h-[24px] sm:h-[30px] min-w-[65px] sm:min-w-[70px]' : 'h-[28px] sm:h-[36px] min-w-[75px] sm:min-w-[85px]') : (isCompact ? 'h-[21px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : 'h-[25px] sm:h-[36px] min-w-[60px] sm:min-w-[85px]')} border quantity-selector`}
               style={{
                 backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f'),
                 borderColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f')
@@ -144,7 +144,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
           ) : (
             <button
               onClick={handleAddToCart}
-              className={`${(isValentine || isSaathiSignature) ? 'px-1.5 sm:px-3 h-[16px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-1.5 sm:px-3 h-[16px] sm:h-[30px] text-[5px]' : isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]'} py-1 text-white border border-transparent active:scale-95 transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center`}
+              className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[5px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[8px]') : (isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]')} py-1 text-white border border-transparent active:scale-95 transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center`}
               style={{ backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') }}
             >
               ADD
