@@ -17,6 +17,7 @@ const VendorRoutes = lazy(() => import('./modules/vendor/routes/VendorRoutes'));
 const StaffRoutes = lazy(() => import('./modules/staff/routes/StaffRoutes'));
 const AdminRoutes = lazy(() => import('./modules/admin/routes/AdminRoutes'));
 const StoreManagerRoutes = lazy(() => import('./modules/store-manager/routes/StoreManagerRoutes'));
+const DeliveryRoutes = lazy(() => import('./modules/delivery/routes/DeliveryRoutes'));
 
 
 
@@ -55,6 +56,7 @@ function App() {
                                                 <Route path="/admin/*" element={<AdminRoutes />} />
                                                 <Route path="/store-manager/*" element={<StoreManagerRoutes />} />
                                                 <Route path="/vendor/*" element={<VendorRoutes />} />
+                                                <Route path="/delivery/*" element={<DeliveryRoutes />} />
                                                 <Route path="/*" element={<UserRoutes />} />
                                             </Routes>
 
