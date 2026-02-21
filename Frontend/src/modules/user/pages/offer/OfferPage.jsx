@@ -5,8 +5,7 @@ import {
     Copy, Check, Zap, ShoppingBag, Info, ShoppingCart, Truck,
     TrendingUp, Gift, Percent, Plus, Minus
 } from 'lucide-react';
-import { offerBanners } from '../../data/offers';
-import { products } from '../../data/products';
+import { useShop } from '../../context/ShopContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 import categoryPlaceholder from '../../assets/images/category-placeholder.png';
@@ -29,10 +28,14 @@ const useCountdown = (targetDate) => {
 // Flyer-Style Product Card (Matched to app styling)
 const FlyerProductCard = ({ product, badgeText }) => {
     const { cart, addToCart, updateQuantity } = useCart();
-    const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-
-    const cartItem = cart.find(item => item.id === product.id);
+    const cartItem = cart.find(item => item.id === (product._id || product.id));
     const quantity = cartItem ? cartItem.quantity : 0;
+
+    // Safety check for discount
+    const validOriginal = product.originalPrice || product.price;
+    const computedDiscount = validOriginal > product.price
+        ? Math.round(((validOriginal - product.price) / validOriginal) * 100)
+        : 0;
 
     return (
         <div className="bg-white dark:bg-[#111111] rounded-xl md:rounded-2xl p-1 md:p-2 shadow-[0_8px_24px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-none border border-gray-200/60 dark:border-white/20 hover:border-[#0c831f]/40 dark:hover:border-white/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-col gap-0 h-auto md:h-full group relative overflow-hidden">
@@ -59,9 +62,11 @@ const FlyerProductCard = ({ product, badgeText }) => {
                 />
 
                 {/* Sale Percentage Tag (Matched to Home Reference) */}
-                <div className="absolute top-1 right-1 bg-gradient-to-r from-red-600 to-red-500 text-white text-[6.5px] md:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg border border-white/20 z-20 transform hover:scale-110 transition-transform">
-                    {discount}% OFF
-                </div>
+                {computedDiscount > 0 && (
+                    <div className="absolute top-1 right-1 bg-gradient-to-r from-red-600 to-red-500 text-white text-[6.5px] md:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg border border-white/20 z-20 transform hover:scale-110 transition-transform">
+                        {computedDiscount}% OFF
+                    </div>
+                )}
             </Link>
 
             {/* Product Details */}
@@ -71,13 +76,15 @@ const FlyerProductCard = ({ product, badgeText }) => {
                         {product.name}
                     </h4>
                 </Link>
-                <div className="text-gray-500 dark:text-gray-400 text-[7px] md:text-[9px] mb-1 font-medium italic opacity-80">
-                    {product.weight} • {product.subCategory || "Premium"}
+                <div className="text-gray-500 dark:text-gray-400 text-[7px] md:text-[9px] mb-1 font-medium italic opacity-80 line-clamp-1">
+                    {product.weight || product.unitValue + ' ' + (product.unitType || '')} • {product.category || product.subCategory || "Premium"}
                 </div>
 
                 <div className="flex items-center justify-between mt-auto pt-1">
                     <div className="flex flex-col justify-end">
-                        <span className="text-gray-400 dark:text-gray-500 line-through text-[8px] leading-[1] mb-0.5">₹{product.originalPrice}</span>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                            <span className="text-gray-400 dark:text-gray-500 line-through text-[8px] leading-[1] mb-0.5">₹{product.originalPrice}</span>
+                        )}
                         <div className="flex items-baseline">
                             <span className="text-[12px] sm:text-[16px] font-black text-gray-900 dark:text-[#f8fafc] leading-none">₹{product.price}</span>
                         </div>
@@ -86,7 +93,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                     {quantity > 0 ? (
                         <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[26px] sm:h-[40px] min-w-[70px] sm:min-w-[95px] border border-[#0c831f]">
                             <button
-                                onClick={() => updateQuantity(product.id, -1)}
+                                onClick={() => updateQuantity(product._id || product.id, -1)}
                                 className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform"
                             >
                                 <Minus size={12} sm:size={16} strokeWidth={2.5} />
@@ -95,7 +102,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                                 {quantity}
                             </span>
                             <button
-                                onClick={() => updateQuantity(product.id, 1)}
+                                onClick={() => updateQuantity(product._id || product.id, 1)}
                                 className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-r-full will-change-transform"
                             >
                                 <Plus size={12} sm:size={16} strokeWidth={2.5} />
@@ -123,11 +130,16 @@ const OfferPage = () => {
     const [copied, setCopied] = useState(false);
     const [activeFilter, setActiveFilter] = useState('Hot Deals');
 
+    const { offers, loading } = useShop();
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [id]);
 
-    const offer = useMemo(() => offerBanners.find(o => o.id === parseInt(id)), [id]);
+    const offer = useMemo(() => {
+        // Find offer by _id (string) or fallback to id (number) if needed
+        return offers.find(o => o._id === id || String(o.id) === id);
+    }, [id, offers]);
 
     const timeLeft = useCountdown(offer?.expiry || new Date().setDate(new Date().getDate() + 1));
     const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -135,19 +147,37 @@ const OfferPage = () => {
     const seconds = Math.floor((timeLeft / 1000) % 60);
 
     const dealProducts = useMemo(() => {
-        if (!offer) return [];
-        let base = products.filter(p => p.category === offer.category).slice(0, 15);
-        if (base.length === 0) base = products.slice(0, 15);
+        if (!offer || !offer.products) return [];
+
+        // Normalize products from the offer
+        const normalized = offer.products
+            .filter(cp => cp.productId) // Guard against null populates
+            .map(cp => ({
+                ...cp.productId,
+                id: cp.productId._id, // Ensure id is present for cart 
+                price: cp.dealPrice || cp.productId.basePrice,
+                originalPrice: cp.productId.mrp || cp.productId.basePrice,
+                weight: cp.productId.unitValue && cp.productId.unitType
+                    ? `${cp.productId.unitValue} ${cp.productId.unitType}`
+                    : undefined
+            }));
+
+        const base = normalized;
+        if (base.length === 0) return [];
 
         if (activeFilter === 'Hot Deals') return base;
         if (activeFilter === 'Under ₹99') return base.filter(p => p.price < 99);
-        if (activeFilter === 'Buy 1 Get 1') return base.slice(0, 6);
+        if (activeFilter === 'Buy 1 Get 1') return base.slice(0, 6); // Just visual trick for now
         if (activeFilter === 'Best Price') return [...base].sort((a, b) => a.price - b.price);
 
         return base;
     }, [offer, activeFilter]);
 
-    if (!offer) return null;
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">Loading...</div>;
+    if (!offer) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">Offer not found</div>;
+
+    const offerBadge = offer.discountPercentage ? `DISC. ${offer.discountPercentage}%` : 'SPECIAL DEAL';
+    const offerDiscountDisplay = offer.discountPercentage ? `${offer.discountPercentage}%` : 'HOT';
 
     return (
         <>
@@ -178,8 +208,9 @@ const OfferPage = () => {
                                     <span className="bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">{seconds}s</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 bg-[#0c831f] text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-green-500/20 active:scale-95 cursor-pointer">
-                                {offer.discount} OFF
+                            <div className="flex items-center gap-2 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-lg active:scale-95 cursor-pointer"
+                                style={{ backgroundColor: offer.accentColor || '#0c831f', boxShadow: `0 4px 14px 0 ${offer.accentColor || '#0c831f'}40` }}>
+                                {offerDiscountDisplay} OFF
                             </div>
                         </div>
                     </div>
@@ -192,58 +223,36 @@ const OfferPage = () => {
                             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 dark:bg-green-500/5 blur-[100px] rounded-full"></div>
 
                             <div className="relative space-y-4">
-                                <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-[#0c831f]/10 text-[#0c831f] px-3 py-1 rounded-full border border-green-100 dark:border-[#0c831f]/20">
-                                    <Zap size={14} className="fill-[#0c831f]" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Mega Savings Day</span>
+                                <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-[#0c831f]/10 px-3 py-1 rounded-full border border-green-100 dark:border-[#0c831f]/20"
+                                    style={{ color: offer.accentColor || '#0c831f' }}>
+                                    <Zap size={14} style={{ fill: offer.accentColor || '#0c831f' }} />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{offer.subtitle || 'Mega Savings Day'}</span>
                                 </div>
                                 <h2 className="text-7xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter capitalize">
                                     {offer.title.split(' ')[0]}<br />
-                                    <span className="text-[#0c831f]">{offer.discount}</span>
+                                    <span style={{ color: offer.accentColor || '#0c831f' }}>{offer.title.split(' ').slice(1).join(' ') || offerDiscountDisplay}</span>
                                 </h2>
                                 <p className="text-lg text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-[90%]">
                                     "{offer.description}"
                                 </p>
                             </div>
-
-                            <div className="relative group/coupon max-w-sm">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-[#0c831f] rounded-2xl blur opacity-20 group-hover/coupon:opacity-40 transition duration-1000"></div>
-                                <div className="relative flex items-center justify-between bg-white dark:bg-[#111] border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-5 overflow-hidden">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-gray-900 dark:bg-[#0c831f] flex items-center justify-center text-white shadow-xl">
-                                            <Tag size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Unlock with Code</p>
-                                            <p className="text-3xl font-mono font-black text-gray-900 dark:text-white uppercase tracking-tighter">{offer.couponCode}</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(offer.couponCode);
-                                            setCopied(true);
-                                            setTimeout(() => setCopied(false), 2000);
-                                        }}
-                                        className={`h-12 px-8 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${copied ? 'bg-[#0c831f] text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-200'}`}
-                                    >
-                                        {copied ? 'Copied!' : 'Copy'}
-                                    </button>
-                                </div>
-                            </div>
                         </div>
 
                         <div className="relative h-full overflow-hidden group bg-white dark:bg-[#0a0a0a] flex items-center justify-center p-8">
                             <img
-                                src={offer.image}
+                                src={offer.bannerImage || offer.image}
                                 alt={offer.title}
                                 className="w-full h-full object-contain transition-transform duration-[3s] group-hover:scale-105"
                             />
                             {/* Smooth Blend Edge */}
                             <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white dark:from-[#0a0a0a] to-transparent"></div>
 
-                            <div className="absolute top-10 right-10 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full w-24 h-24 flex flex-col items-center justify-center text-white scale-100 group-hover:scale-110 transition-transform duration-700">
-                                <span className="text-[10px] font-black uppercase">Save</span>
-                                <span className="text-2xl font-black leading-none">{offer.discount}</span>
-                            </div>
+                            {offer.discountPercentage > 0 && (
+                                <div className="absolute top-10 right-10 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full w-24 h-24 flex flex-col items-center justify-center text-white scale-100 group-hover:scale-110 transition-transform duration-700" style={{ backgroundColor: offer.accentColor || '#0c831f' }}>
+                                    <span className="text-[10px] font-black uppercase">Save</span>
+                                    <span className="text-2xl font-black leading-none">{offerDiscountDisplay}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -297,9 +306,9 @@ const OfferPage = () => {
                         <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             {dealProducts.map(product => (
                                 <FlyerProductCard
-                                    key={product.id}
+                                    key={product.id || product._id}
                                     product={product}
-                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offer.badge}
+                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offerBadge}
                                 />
                             ))}
                         </div>
@@ -339,17 +348,7 @@ const OfferPage = () => {
                                 {offer.title.split(' ')[0]}<br />
                                 <span className="text-[#e2e8db]">{offer.discount}</span>
                             </h1>
-                            <p
-                                onClick={() => {
-                                    navigator.clipboard.writeText(offer.couponCode);
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 2000);
-                                }}
-                                className={`text-[10px] font-bold mb-3 px-2 py-0.5 rounded-full inline-block line-clamp-1 border border-white/10 backdrop-blur-sm cursor-pointer active:scale-95 transition-all ${copied ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-black/20 dark:bg-white/5 text-white/80 dark:text-gray-400'}`}
-                            >
-                                {copied ? 'Code Copied!' : `Code: ${offer.couponCode} • Tap to Apply`}
-                            </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mt-3">
                                 <div className="bg-white dark:bg-zinc-800 text-[#556b2f] dark:text-gray-200 px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1 border border-white/20">
                                     Live <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
                                 </div>
@@ -362,14 +361,7 @@ const OfferPage = () => {
                         {/* Floating Hero Icons (Dynamic Matching Home) */}
                         <div className="absolute right-[-10px] top-[15px] w-[110px] h-[110px] z-0 pointer-events-none">
                             {(() => {
-                                const getIcons = (id) => {
-                                    if (id === 1) return ['🥬', '🥕', '🥦'];
-                                    if (id === 2) return ['🍎', '🍌', '🍇'];
-                                    if (id === 3) return ['🍚', '🌾', '🥛'];
-                                    if (id === 4) return ['🧹', '🧽', '🧼'];
-                                    return ['🎁', '✨', '🛍️'];
-                                };
-                                const icons = getIcons(offer.id);
+                                const icons = ['🎁', '✨', '🛍️']; // Simplified for dynamic
                                 return (
                                     <>
                                         <div className="absolute top-0 right-0 text-[60px] drop-shadow-xl animate-bounce duration-[3000ms] select-none text-opacity-90">{icons[0]}</div>
@@ -413,9 +405,9 @@ const OfferPage = () => {
                         <div className="grid grid-cols-2 gap-x-2 gap-y-4">
                             {dealProducts.map(product => (
                                 <FlyerProductCard
-                                    key={product.id}
+                                    key={product.id || product._id}
                                     product={product}
-                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offer.badge}
+                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offerBadge}
                                 />
                             ))}
                         </div>

@@ -28,3 +28,10 @@ export const fetchActiveCampaigns = async () => {
   if (!response.ok) throw new Error(data.message || 'Failed to fetch campaigns');
   return data;
 };
+
+export const fetchActiveOfferDeals = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/offer-deals/public`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch active offers');
+  return data;
+};
