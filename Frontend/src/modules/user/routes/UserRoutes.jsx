@@ -11,6 +11,7 @@ import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
+import { ShopProvider } from '../context/ShopContext';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -109,46 +110,60 @@ const UserLayout = () => {
 
 const UserRoutes = () => {
     return (
-        <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-                {/* Routes with Navbar */}
-                <Route element={<UserLayout />}>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/occasion/:slug" element={<OccasionPage />} />
-                    <Route path="/lowest-prices" element={<LowestPricesPage />} />
-                    <Route path="/category" element={<CategoryPage />} />
-                    <Route path="/category/:slug" element={<CategoryPage />} />
-                    <Route path="/product/:id" element={<ProductDetailsPage />} />
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/address" element={<AddressPage />} />
-                    <Route path="/notifications" element={<NotificationsPage />} />
-                    <Route path="/help" element={<HelpPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/security" element={<SecurityPage />} />
-                    <Route path="/saved-addresses" element={<SavedAddressesPage />} />
-                    <Route path="/add-address" element={<AddressFormPage />} />
-                    <Route path="/edit-address/:id" element={<AddressFormPage />} />
-                    <Route path="/orders" element={<OrdersPage />} />
-                    <Route path="/orders/:id" element={<OrderDetailsPage />} />
-                    <Route path="/orders/:id/cancel" element={<CancelOrderPage />} />
-                    <Route path="/orders/:id/return" element={<ReturnOrderPage />} />
-                    <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />
-                    <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
-                    <Route path="/wallet" element={<WalletPage />} />
-                    <Route path="/wallet/add-money" element={<AddMoneyPage />} />
-                    <Route path="/wishlist" element={<WishlistPage />} />
-                    <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/order-success" element={<OrderSuccessPage />} />
-                    <Route path="/offer/:id" element={<OfferPage />} />
+        <ShopProvider>
+            <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                    <Route element={<UserLayout />}>
+                        {/* Home & Listing */}
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/occasion/:slug" element={<OccasionPage />} />
+                        <Route path="/lowest-prices" element={<LowestPricesPage />} />
+                        <Route path="/category" element={<CategoryPage />} />
+                        <Route path="/category/:slug" element={<CategoryPage />} />
+                        <Route path="/product/:id" element={<ProductDetailsPage />} />
 
-                    {/* Auth Pages matching UserLayout for standard feel */}
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/logout-confirmation" element={<LogoutConfirmationPage />} />
-                </Route>
-            </Routes>
-        </Suspense>
+                        {/* Cart & Checkout */}
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/order-success" element={<OrderSuccessPage />} />
+
+                        {/* Address */}
+                        <Route path="/address" element={<AddressPage />} />
+                        <Route path="/saved-addresses" element={<SavedAddressesPage />} />
+                        <Route path="/add-address" element={<AddressFormPage />} />
+                        <Route path="/edit-address/:id" element={<AddressFormPage />} />
+
+                        {/* Profile */}
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/security" element={<SecurityPage />} />
+                        <Route path="/wallet" element={<WalletPage />} />
+                        <Route path="/wallet/add-money" element={<AddMoneyPage />} />
+                        <Route path="/wishlist" element={<WishlistPage />} />
+
+                        {/* Orders */}
+                        <Route path="/orders" element={<OrdersPage />} />
+                        <Route path="/orders/:id" element={<OrderDetailsPage />} />
+                        <Route path="/orders/:id/cancel" element={<CancelOrderPage />} />
+                        <Route path="/orders/:id/return" element={<ReturnOrderPage />} />
+                        <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />
+                        <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
+
+                        {/* Support */}
+                        <Route path="/notifications" element={<NotificationsPage />} />
+                        <Route path="/help" element={<HelpPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+
+                        {/* Offers */}
+                        <Route path="/offer/:id" element={<OfferPage />} />
+
+                        {/* Auth */}
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/logout-confirmation" element={<LogoutConfirmationPage />} />
+                    </Route>
+                </Routes>
+            </Suspense>
+        </ShopProvider>
     );
 };
 

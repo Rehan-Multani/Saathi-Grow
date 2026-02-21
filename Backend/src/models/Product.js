@@ -16,6 +16,14 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Base price is required'],
     min: 0
   },
+  mrp: {
+    type: Number,
+    min: 0
+  },
+  isVeg: {
+    type: Boolean,
+    default: true
+  },
   branchStocks: [{
     branchId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -34,9 +42,20 @@ const productSchema = new mongoose.Schema({
   }],
   unitType: {
     type: String,
-    enum: ['pcs', 'kg', 'gm', 'ml', 'ltr', 'pkt', 'box'],
+    enum: ['pcs', 'kg', 'gm', 'ml', 'ltr', 'pkt', 'box', '500g', '250g', '100g'],
     default: 'pcs'
   },
+  unitValue: {
+    type: Number,
+    default: 1
+  },
+  gallery: [String],
+  variants: [{
+    type: { type: String },
+    value: String,
+    stock: Number,
+    price: Number
+  }],
   physicalLocation: {
     type: String,
     trim: true
@@ -69,7 +88,7 @@ const productSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Active', 'Draft', 'Out of Stock', 'Low Stock'],
+    enum: ['Active', 'Draft', 'Out of Stock', 'Low Stock', 'Pending Approval'],
     default: 'Active'
   },
   vendor: {

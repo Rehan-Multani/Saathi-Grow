@@ -69,7 +69,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
       </button>
 
       {/* Product Image */}
-      <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#0a0a0a] z-10 transition-all duration-500 group-hover:bg-white dark:group-hover:bg-zinc-800/40">
+      <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-white dark:bg-zinc-800 z-10 transition-all duration-500">
 
         {/* Shine Effect on Hover - Image Only */}
         <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden dark:hidden rounded-xl">
@@ -79,11 +79,9 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
           <img
             src={product.image || categoryPlaceholder}
             alt={product.name}
-            className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${!product.image ? 'object-cover' : `object-contain ${imgPadding || 'p-4 sm:p-1.5'}`}`}
+            className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${imgPadding || 'p-2'}`}
             onError={(e) => {
               e.target.src = categoryPlaceholder;
-              e.target.classList.remove('p-1.5');
-              e.target.classList.add('opacity-80');
               e.target.style.objectFit = 'cover';
             }}
             loading="lazy"

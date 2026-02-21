@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { categories } from '../../data/categories';
-import { products } from '../../data/products';
 import ProductCard from '../../components/product/ProductCard';
 import LowestPricesSection from '../../components/product/LowestPricesSection';
 import { useSearch } from '../../context/SearchContext';
-import { ChevronRight, ArrowRight, ArrowLeft, Carrot, Milk, Cookie, CupSoda, Snowflake, Coffee, Croissant, Wheat, SprayCan, Sparkles } from 'lucide-react';
+import { useShop } from '../../context/ShopContext';
+import { ChevronRight, ArrowRight, ArrowLeft, TrendingDown } from 'lucide-react';
 import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../components/common/Skeleton';
 import { useTheme } from '../../context/ThemeContext';
 import { offerBanners } from '../../data/offers';
@@ -32,8 +31,8 @@ const HomePage = () => {
     const navigate = useNavigate();
     const { searchQuery } = useSearch();
     const { isDarkMode } = useTheme();
+    const { categories, products, campaigns, loading, getProductsByCategory } = useShop();
     const scrollContainerRef = useRef(null);
-    const [loading, setLoading] = useState(true);
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
     // Update window width on resize
@@ -44,14 +43,6 @@ const HomePage = () => {
     }, []);
 
     const itemsToShow = windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : 3;
-
-    // Simulate initial data loading
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1200);
-        return () => clearTimeout(timer);
-    }, []);
 
 
 
@@ -151,8 +142,9 @@ const HomePage = () => {
         cat.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const getProductsByCategory = (categorySlug) => {
-        return products.filter(p => p.category === categorySlug);
+    // getProductsByCategory comes from ShopContext, uses live backend data
+    const getProductsByCategoryLocal = (categoryName) => {
+        return getProductsByCategory(categoryName);
     };
 
     return (
@@ -261,7 +253,7 @@ const HomePage = () => {
                                 filteredCategories.map((cat) => {
                                     const bgColor = categoryColors[cat.slug] || '#f3f4f6';
                                     return (
-                                        <Link key={cat.id} to={`/category/${cat.slug}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200">
+                                        <Link key={cat._id || cat.id} to={`/category/${cat.slug || cat.name}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200">
                                             <div
                                                 className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-2xl sm:rounded-3xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
                                                 style={{ backgroundColor: isDarkMode ? 'var(--bg-surface)' : bgColor }}
@@ -314,57 +306,55 @@ const HomePage = () => {
                     </div>
                 </div>
             )}
-
-            {/* Valentine's Week Special Section */}
-            {!isSearching && (
-                <>
-                    <OccasionSection
-                        title="Valentine's Week Special"
-                        subtitle="Gifts for your loved ones"
-                        products={products.filter(p => [1201, 1202, 1203, 1205, 1206, 1802, 1104].includes(p.id))}
-                        loading={loading}
-                        themeColor="#e91e63"
-                        bgColor="#fce4ec"
-                        slug="valentine-week"
-                        badgeText="💝 Best Gifts for Your Ones - Shop Now!"
-                        wishlistPosition="top-1 right-1"
-                    />
-                    <div className="h-4 sm:h-8" />
-                </>
-            )}
-
-
-            {/* Lowest Prices Ever Section */}
-            {!isSearching && (
-                <>
-                    <LowestPricesSection products={products} loading={loading} />
-                    <div className="h-4 sm:h-8" />
-                </>
-            )}
-
-            {/* Saathi Select Section */}
-            {!isSearching && (
-                <OccasionSection
-                    title="Saathi Signature"
-                    subtitle="Our Premium Collection"
-                    products={products.filter(p => [101, 102, 103, 104, 105, 106].includes(p.id))}
-                    loading={loading}
-                    themeColor="#15803d"
-                    bgColor="#f0fdf4"
-                    slug="saathi-select"
-                    badgeText="🌿 Exclusive to Saathi Gro"
-                />
-            )}
+            {/* Dynamic Campaign Sections — admin-controlled (festive + lowest prices) */}
+            {!isSearching && campaigns.map((campaign) => {
+                // Build normalized product list for this campaign
+                const campaignProducts = campaign.products
+                    .filter(cp => cp.productId)
+                    .map(cp => ({
+                        ...cp.productId,
+                        // Campaign deal price overrides base price
+                        basePrice: cp.dealPrice || cp.productId.basePrice,
+                        price: cp.dealPrice || cp.productId.basePrice,
+                        // Keep mrp for discount % calculation
+                        mrp: cp.productId.mrp || cp.productId.basePrice,
+                    }));
+                return (
+                    <React.Fragment key={campaign._id}>
+                        {campaign.displayType === 'lowest_prices' ? (
+                            <LowestPricesSection
+                                campaignProducts={campaignProducts}
+                                loading={loading}
+                                sectionTitle={campaign.title}
+                                highlightText={campaign.highlightText || '🔥 Massive Discounts - Limited Time Only!'}
+                            />
+                        ) : (
+                            <OccasionSection
+                                title={campaign.title}
+                                subtitle={campaign.subtitle || ''}
+                                badgeText={campaign.highlightText || ''}
+                                products={campaignProducts}
+                                loading={loading}
+                                themeColor={campaign.accentColor || '#0c831f'}
+                                bgColor={campaign.bgColor || '#f0fdf4'}
+                                slug={null}
+                                campaignId={campaign._id}
+                            />
+                        )}
+                        <div className="h-4 sm:h-8" />
+                    </React.Fragment>
+                );
+            })}
 
             {/* Category Sections */}
             {!isSearching && (
                 <div className="pb-12">
                     {categories.map((category) => (
                         <ProductRow
-                            key={category.id}
+                            key={category._id || category.id}
                             category={category}
                             loading={loading}
-                            getProductsByCategory={getProductsByCategory}
+                            getProductsByCategory={getProductsByCategoryLocal}
                         />
                     ))}
                 </div>
@@ -373,15 +363,30 @@ const HomePage = () => {
     );
 };
 
+/**
+ * Normalizes a backend product object to the format expected by ProductCard.
+ * Backend:  { _id, name, basePrice, mrp, image, unitType, unitValue, category, status }
+ * Frontend: { id, name, price, originalPrice, image, weight, category, status }
+ */
+export const normalizeProduct = (product) => ({
+    ...product,
+    id: product._id || product.id,
+    price: product.basePrice ?? product.price,
+    originalPrice: (product.mrp && product.mrp > product.basePrice) ? product.mrp : (product.originalPrice || null),
+    weight: product.unitValue ? `${product.unitValue} ${product.unitType || ''}`.trim() : (product.weight || ''),
+    image: product.image || null,
+    status: product.status,
+});
+
 // Sub-component for individual product rows to manage scroll state
 const ProductRow = ({ category, loading, getProductsByCategory }) => {
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
-    const categoryProducts = getProductsByCategory(category.slug);
+    // Backend stores category as a string (the category name)
+    const categoryProducts = getProductsByCategory(category.name || category.slug);
 
-    if (categoryProducts.length === 0) return null;
-
+    // ✅ useEffect MUST be before any early return (Rules of Hooks)
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
@@ -397,6 +402,9 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
         }
     }, [loading]);
 
+    // Early return AFTER all hooks
+    if (!categoryProducts || categoryProducts.length === 0) return null;
+
     const sectionScroll = (dir) => {
         if (sectionRef.current) {
             const scrollAmt = dir === 'left' ? -400 : 400;
@@ -411,7 +419,7 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                     {category.name}
                 </h2>
                 <Link
-                    to={`/category/${category.slug}`}
+                    to={`/category/${category.slug || category.name}`}
                     className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all"
                 >
                     See all
@@ -433,14 +441,9 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                         ))
                     ) : (
                         categoryProducts.map((product) => (
-                            <div key={product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCard
-                                    product={product}
-                                    customTheme={{
-                                        bgColor: 'linear-gradient(to right, #e8f5e9, #ffffff)',
-                                        themeColor: '#0c831f'
-                                    }}
-                                />
+                            <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                                <ProductCard product={normalizeProduct(product)}
+                                    wishlistPosition={props.wishlistPosition} />
                             </div>
                         ))
                     )}
@@ -474,14 +477,24 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
 };
 
 // Reusable Occasion Section Component
-const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgColor, slug, badgeText, className, ...props }) => {
+const OccasionSection = ({
+    title,
+    subtitle,
+    products,
+    loading,
+    themeColor,
+    bgColor,
+    slug,
+    badgeText,
+    className,
+    campaignId
+}) => {
     const { isDarkMode } = useTheme();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
 
-    if (products.length === 0) return null;
-
+    // ✅ useEffect MUST be before any early return (Rules of Hooks)
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
@@ -493,6 +506,9 @@ const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgCol
     useEffect(() => {
         if (!loading) setTimeout(handleScroll, 100);
     }, [loading]);
+
+    // Early return AFTER all hooks
+    if (!products || products.length === 0) return null;
 
     const sectionScroll = (dir) => {
         if (sectionRef.current) {
@@ -560,9 +576,9 @@ const OccasionSection = ({ title, subtitle, products, loading, themeColor, bgCol
                         ))
                     ) : (
                         products.map((product) => (
-                            <div key={product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                            <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
                                 <ProductCard
-                                    product={product}
+                                    product={normalizeProduct(product)}
                                     customTheme={{
                                         themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor,
                                         bgColor: isDarkMode ? '' : bgColor

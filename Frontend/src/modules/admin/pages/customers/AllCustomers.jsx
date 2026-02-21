@@ -1,28 +1,44 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Dropdown } from 'react-bootstrap';
-import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
+import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send, Plus } from 'lucide-react';
 import CustomerDetailsModal from '../../components/customers/CustomerDetailsModal';
 import SendMessageModal from '../../components/customers/SendMessageModal';
 import { showSuccessAlert } from '../../../../common/utils/alertUtils';
-
-const CUSTOMERS_MOCK = [
-    { id: 'CUST-001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+1 555-0101', city: 'New York', orders: 24, spent: '₹1,240.50', status: 'Active', points: 450 },
-    { id: 'CUST-002', name: 'Bob Smith', email: 'bob.smith@test.com', phone: '+1 555-0102', city: 'Los Angeles', orders: 5, spent: '₹200.00', status: 'Blocked', points: 10 },
-    { id: 'CUST-003', name: 'Carol Williams', email: 'carol.w@demo.com', phone: '+1 555-0103', city: 'Chicago', orders: 12, spent: '₹850.75', status: 'Active', points: 120 },
-    { id: 'CUST-004', name: 'David Brown', email: 'david.b@sample.com', phone: '+1 555-0104', city: 'Houston', orders: 1, spent: '₹45.00', status: 'Active', points: 5 },
-];
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import * as customerApi from '../../api/customerManagementApi';
+import { toast } from 'react-toastify';
 
 const AllCustomers = () => {
+    const { adminUser } = useAdminAuth();
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showMessageModal, setShowMessageModal] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
-    const [messageType, setMessageType] = useState('Message'); // 'Message' or 'Email'
+    const [messageType, setMessageType] = useState('Message');
 
-    const filtered = CUSTOMERS_MOCK.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.phone.includes(searchTerm)
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            try {
+                const data = await customerApi.getAllCustomers(adminUser.token);
+                setCustomers(data);
+            } catch (error) {
+                toast.error(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (adminUser?.token) {
+            fetchCustomers();
+        }
+    }, [adminUser.token]);
+
+    const filtered = customers.filter(c =>
+        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.phone || '').includes(searchTerm)
     );
 
     const handleViewProfile = (customer) => {
@@ -36,10 +52,30 @@ const AllCustomers = () => {
         setShowMessageModal(true);
     };
 
+    const handleStatusToggle = async (customer) => {
+        try {
+            const formData = new FormData();
+            formData.append('isActive', !customer.isActive);
+            await customerApi.updateCustomer(adminUser.token, customer._id, formData);
+            setCustomers(prev => prev.map(c => c._id === customer._id ? { ...c, isActive: !c.isActive } : c));
+            toast.success(`User ${customer.isActive ? 'blocked' : 'unblocked'} successfully`);
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
     const onMessageSent = async () => {
         setShowMessageModal(false);
         await showSuccessAlert(`${messageType} Sent!`, `Your ${messageType.toLowerCase()} has been delivered successfully to ${selectedCustomer?.name}.`);
     };
+
+    if (loading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <Spinner animation="border" variant="primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="p-3">
@@ -77,49 +113,52 @@ const AllCustomers = () => {
                                 <th className="ps-4 border-0 py-3">Customer</th>
                                 <th className="border-0 py-3">Contact Info</th>
                                 <th className="border-0 py-3">Location</th>
-                                <th className="border-0 py-3">Orders</th>
-                                <th className="border-0 py-3">Total Spent</th>
-                                <th className="border-0 py-3">Status</th>
+                                <th className="border-0 py-3 text-center">Wallet</th>
+                                <th className="border-0 py-3 text-center">Status</th>
                                 <th className="border-0 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map((c, idx) => (
+                            {filtered.length > 0 ? filtered.map((c, idx) => (
                                 <tr key={idx}>
                                     <td className="ps-4">
                                         <div className="d-flex align-items-center gap-3">
-                                            <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: 40, height: 40 }}>
-                                                {c.name.charAt(0)}
-                                            </div>
+                                            {c.profileImage ? (
+                                                <img src={c.profileImage} alt={c.name} className="rounded-circle object-fit-cover" style={{ width: 40, height: 40 }} />
+                                            ) : (
+                                                <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: 40, height: 40 }}>
+                                                    {c.name ? c.name.charAt(0) : 'U'}
+                                                </div>
+                                            )}
                                             <div>
-                                                <div className="fw-bold text-dark">{c.name}</div>
-                                                <div className="small text-muted">ID: {c.id}</div>
+                                                <div className="fw-bold text-dark">{c.name || 'Anonymous'}</div>
+                                                <div className="small text-muted">{c._id}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div className="d-flex flex-column gap-1 small text-muted">
+                                            {c.email && (
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <Mail size={14} /> {c.email}
+                                                </div>
+                                            )}
                                             <div className="d-flex align-items-center gap-2">
-                                                <Mail size={14} /> {c.email}
-                                            </div>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <Phone size={14} /> {c.phone}
+                                                <Phone size={14} /> +91 {c.phone}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="text-secondary">
                                         <div className="d-flex align-items-center gap-2 small">
-                                            <MapPin size={14} /> {c.city}
+                                            <MapPin size={14} /> {c.addresses?.[0]?.city || 'N/A'}
                                         </div>
                                     </td>
-                                    <td>
-                                        <div className="fw-bold">{c.orders}</div>
-                                        <div className="small text-success">{c.points} Pts</div>
+                                    <td className="text-center font-bold">
+                                        <div className="fw-bold">₹{c.walletBalance || 0}</div>
                                     </td>
-                                    <td className="fw-bold text-dark">{c.spent}</td>
-                                    <td>
-                                        <Badge bg={c.status === 'Active' ? 'success' : 'danger'} className="rounded-pill fw-normal px-3">
-                                            {c.status}
+                                    <td className="text-center">
+                                        <Badge bg={c.isActive ? 'success' : 'danger'} className="rounded-pill fw-normal px-3">
+                                            {c.isActive ? 'Active' : 'Blocked'}
                                         </Badge>
                                     </td>
                                     <td className="text-center">
@@ -127,7 +166,7 @@ const AllCustomers = () => {
                                             <Dropdown.Toggle variant="link" className="text-muted p-0 shadow-none no-caret">
                                                 <MoreHorizontal size={20} />
                                             </Dropdown.Toggle>
-                                            <Dropdown.Menu className="border-0 shadow-sm shadow-indigo-100">
+                                            <Dropdown.Menu className="border-0 shadow-sm">
                                                 <Dropdown.Item onClick={() => handleViewProfile(c)}>
                                                     <Eye size={16} className="me-2 text-primary" /> View Profile
                                                 </Dropdown.Item>
@@ -138,16 +177,22 @@ const AllCustomers = () => {
                                                     <Send size={16} className="me-2 text-primary" /> Send Message
                                                 </Dropdown.Item>
                                                 <Dropdown.Divider />
-                                                {c.status === 'Active' ? (
-                                                    <Dropdown.Item href="#" className="text-danger"><Ban size={16} className="me-2" /> Block User</Dropdown.Item>
-                                                ) : (
-                                                    <Dropdown.Item href="#" className="text-success"><CheckCircle size={16} className="me-2" /> Unblock User</Dropdown.Item>
-                                                )}
+                                                <Dropdown.Item onClick={() => handleStatusToggle(c)} className={c.isActive ? 'text-danger' : 'text-success'}>
+                                                    {c.isActive ? (
+                                                        <><Ban size={16} className="me-2" /> Block User</>
+                                                    ) : (
+                                                        <><CheckCircle size={16} className="me-2" /> Unblock User</>
+                                                    )}
+                                                </Dropdown.Item>
                                             </Dropdown.Menu>
                                         </Dropdown>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-4 text-muted">No customers found</td>
+                                </tr>
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>

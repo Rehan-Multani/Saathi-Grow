@@ -15,21 +15,22 @@ import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-router.use(protectAdmin);
-
-router.post('/ai-suggestions', getAISuggestions);
+// Public routes for products
+router.get('/', getProducts);
 router.get('/inventory-logs', getAllInventoryLogs);
+router.get('/:id', getProductById);
+router.get('/:id/inventory-logs', getInventoryLogs);
 
-router.route('/')
-  .get(getProducts)
-  .post(upload.single('image'), createProduct);
+// Admin Only Routes
+router.use(protectAdmin);
+router.post('/ai-suggestions', getAISuggestions);
+
+router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), createProduct);
 
 router.route('/:id')
-  .get(getProductById)
-  .put(upload.single('image'), updateProduct)
+  .put(upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateProduct)
   .delete(restrictTo('Admin', 'Branch Manager'), deleteProduct);
 
 router.post('/:id/inventory', adjustInventory);
-router.get('/:id/inventory-logs', getInventoryLogs);
 
 export default router;

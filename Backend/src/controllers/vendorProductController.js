@@ -1,5 +1,7 @@
 import Product from '../models/Product.js';
+import Branch from '../models/Branch.js';
 import { cloudinary } from '../config/cloudinary.js';
+import QRCode from 'qrcode';
 
 // @desc    Get products belonging to the logged-in vendor
 // @route   GET /api/vendors/products
@@ -7,8 +9,7 @@ import { cloudinary } from '../config/cloudinary.js';
 export const getVendorProducts = async (req, res) => {
   try {
     const products = await Product.find({ vendor: req.vendor._id })
-      .populate('category', 'name')
-      .populate('brand', 'name')
+      .populate('branchStocks.branchId', 'name')
       .sort('-createdAt');
     res.json(products);
   } catch (error) {
@@ -21,23 +22,62 @@ export const getVendorProducts = async (req, res) => {
 // @access  Private (Vendor)
 export const addVendorProduct = async (req, res) => {
   try {
-    const { name, description, price, category, brand, sku, stock, unit } = req.body;
+    const {
+      name,
+      description,
+      price,
+      mrp,
+      category,
+      brand,
+      sku,
+      stock,
+      unit,
+      isVeg,
+      variants,
+      tags,
+      unitValue
+    } = req.body;
 
-    // Logic to calculate initial stock across branches might be needed, 
-    // but for now, we'll just create the product.
+    // Check if product with SKU already exists
+    const productExists = await Product.findOne({ sku });
+    if (productExists) {
+      return res.status(400).json({ message: 'Product with this SKU already exists' });
+    }
+
+    // Generate QR Code from SKU
+    const qrCodeDataUrl = await QRCode.toDataURL(sku, {
+      color: { dark: '#000000', light: '#ffffff' },
+      margin: 1
+    });
+
+    // Initialize branch stocks for all active branches
+    const activeBranches = await Branch.find({ isActive: true });
+    const branchStocks = activeBranches.map(branch => ({
+      branchId: branch._id,
+      stock: Number(stock) || 0, // For now assigning initial stock to all branches or just first? 
+      // Let's just put it in all branches for simplicity in this mvp, or just 0
+      lowStockThreshold: 10
+    }));
 
     const product = await Product.create({
       name,
       description,
-      price,
+      basePrice: Number(price),
+      mrp: Number(mrp) || Number(price),
       category,
-      brand,
+      brandName: brand,
       sku,
-      unit: unit || 'pcs',
+      unitType: unit || 'pcs',
+      unitValue: Number(unitValue) || 1,
+      isVeg: isVeg === 'true' || isVeg === true,
       vendor: req.vendor._id,
-      image: req.file ? req.file.path : '',
-      status: 'Pending Approval', // Vendors products usually need admin approval
-      createdBy: req.vendor._id // Can store ID here as well if we adjust model to allow Vendor ref or just store ID
+      image: req.files?.image ? req.files.image[0].path : '',
+      gallery: req.files?.gallery ? req.files.gallery.map(f => f.path) : [],
+      qrCode: qrCodeDataUrl,
+      status: 'Pending Approval',
+      branchStocks,
+      variants: typeof variants === 'string' ? JSON.parse(variants) : variants,
+      tags: typeof tags === 'string' ? tags.split(',') : tags,
     });
 
     res.status(201).json(product);
@@ -56,13 +96,25 @@ export const updateVendorProduct = async (req, res) => {
     if (product) {
       product.name = req.body.name || product.name;
       product.description = req.body.description || product.description;
-      product.price = req.body.price || product.price;
+      product.basePrice = req.body.price ? Number(req.body.price) : product.basePrice;
+      product.mrp = req.body.mrp ? Number(req.body.mrp) : product.mrp;
       product.category = req.body.category || product.category;
-      product.brand = req.body.brand || product.brand;
-      product.unit = req.body.unit || product.unit;
+      product.brandName = req.body.brand || product.brandName;
+      product.unitType = req.body.unit || product.unitType;
+      product.unitValue = req.body.unitValue !== undefined ? Number(req.body.unitValue) : product.unitValue;
+      product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
 
-      if (req.file) {
-        product.image = req.file.path;
+      if (req.body.variants) {
+        product.variants = typeof req.body.variants === 'string' ? JSON.parse(req.body.variants) : req.body.variants;
+      }
+
+      if (req.files) {
+        if (req.files.image && req.files.image[0]) {
+          product.image = req.files.image[0].path;
+        }
+        if (req.files.gallery) {
+          product.gallery = req.files.gallery.map(f => f.path);
+        }
       }
 
       const updatedProduct = await product.save();

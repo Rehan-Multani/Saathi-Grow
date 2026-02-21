@@ -67,6 +67,10 @@ import AppSettings from '../pages/settings/AppSettings';
 import SocialProfile from '../pages/settings/SocialProfile';
 import AllStaff from '../pages/staff/AllStaff';
 import AddStaff from '../pages/staff/AddStaff';
+import AllCampaigns from '../pages/campaigns/AllCampaigns';
+import ManageCampaign from '../pages/campaigns/ManageCampaign';
+import AllOfferDeals from '../pages/offers/AllOffers';
+import ManageOfferDeal from '../pages/offers/ManageOffer';
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
         <div className="mb-3 bg-light rounded-circle p-4">
@@ -170,11 +174,17 @@ const AdminRoutes = () => {
 
                         {/* Offers & Sliders */}
                         <Route path="offers" element={<Offers />} />
+                        <Route path="offers/deals" element={<AllOfferDeals />} />
+                        <Route path="offers/deals/add" element={<ManageOfferDeal />} />
+                        <Route path="offers/deals/edit/:id" element={<ManageOfferDeal />} />
                         <Route path="offers/create" element={<CreateOffer />} />
                         <Route path="sliders" element={<Sliders />} />
                         <Route path="sliders/add" element={<AddSlider />} />
                         <Route path="banners" element={<Banners />} />
                         <Route path="banners/add" element={<AddBanner />} />
+                        <Route path="campaigns" element={<AllCampaigns />} />
+                        <Route path="campaigns/add" element={<ManageCampaign />} />
+                        <Route path="campaigns/edit/:id" element={<ManageCampaign />} />
 
                         {/* Promo Codes */}
                         <Route path="promocodes" element={<AllPromoCodes />} />

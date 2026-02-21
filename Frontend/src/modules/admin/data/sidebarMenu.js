@@ -91,6 +91,8 @@ export const adminSidebarMenu = [
         icon: 'Percent',
         submenu: [
             { title: 'Offers', path: '/admin/offers' },
+            { title: 'Banner Deals', path: '/admin/offers/deals' },
+            { title: 'Festive Campaigns', path: '/admin/campaigns' },
             { title: 'Sliders', path: '/admin/sliders' },
             { title: 'Banners', path: '/admin/banners' },
         ],

@@ -74,7 +74,7 @@ const StockAdjustments = () => {
                                         <td>
                                             <div className="d-flex align-items-center gap-2">
                                                 <div className="w-8 h-8 rounded bg-light overflow-hidden border">
-                                                    {log.product?.image ? <img src={log.product.image} className="w-full h-full object-cover" alt="" /> : <span className="flex items-center justify-center h-full text-[10px]">{log.product?.name?.charAt(0)}</span>}
+                                                    {log.product?.image ? <img src={log.product.image} className="w-full h-full object-contain p-0.5" alt="" /> : <span className="flex items-center justify-center h-full text-[10px]">{log.product?.name?.charAt(0)}</span>}
                                                 </div>
                                                 <div className="fw-bold text-dark">{log.product?.name || 'Unknown Product'}</div>
                                             </div>

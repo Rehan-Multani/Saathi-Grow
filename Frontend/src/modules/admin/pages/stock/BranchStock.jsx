@@ -103,8 +103,8 @@ const BranchStock = () => {
                                     </td>
                                     <td>
                                         <div className="d-flex align-items-center gap-2">
-                                            <div className="w-8 h-8 bg-light rounded flex items-center justify-center text-secondary font-bold overflow-hidden border">
-                                                {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : row.productName.charAt(0)}
+                                            <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-secondary font-bold overflow-hidden border border-gray-100">
+                                                {row.image ? <img src={row.image} alt="" className="w-full h-full object-contain p-0.5" /> : row.productName.charAt(0)}
                                             </div>
                                             <div>
                                                 <div className="fw-medium text-dark">{row.productName}</div>

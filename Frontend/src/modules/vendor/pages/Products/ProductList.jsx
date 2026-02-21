@@ -16,7 +16,10 @@ const ProductList = () => {
     // Get unique categories from products
     const categories = ['all', ...new Set(products.map(p => typeof p.category === 'object' ? p.category.name : p.category))];
 
-    const filteredProducts = products.filter(product => {
+    const filteredProducts = products.map(p => ({
+        ...p,
+        totalStock: p.branchStocks?.reduce((acc, bs) => acc + bs.stock, 0) || 0
+    })).filter(product => {
         const categoryName = typeof product.category === 'object' ? product.category.name : (product.category || '');
 
         // Search filter
@@ -29,16 +32,16 @@ const ProductList = () => {
         // Stock filter
         const matchesStock =
             stockFilter === 'all' ? true :
-                stockFilter === 'low' ? product.stock < 20 :
-                    stockFilter === 'instock' ? product.stock >= 20 :
-                        stockFilter === 'outofstock' ? product.stock === 0 : true;
+                stockFilter === 'low' ? product.totalStock < 20 :
+                    stockFilter === 'instock' ? product.totalStock >= 20 :
+                        stockFilter === 'outofstock' ? product.totalStock === 0 : true;
 
         // Price filter
         const matchesPrice =
             priceRange === 'all' ? true :
-                priceRange === 'under50' ? product.price < 50 :
-                    priceRange === '50-100' ? product.price >= 50 && product.price <= 100 :
-                        priceRange === 'over100' ? product.price > 100 : true;
+                priceRange === 'under50' ? product.basePrice < 50 :
+                    priceRange === '50-100' ? product.basePrice >= 50 && product.basePrice <= 100 :
+                        priceRange === 'over100' ? product.basePrice > 100 : true;
 
         return matchesSearch && matchesCategory && matchesStock && matchesPrice;
     });
@@ -186,13 +189,13 @@ const ProductList = () => {
                                         <td className="px-4 py-2 lg:py-2 text-[11px] text-gray-500 font-medium">
                                             {typeof product.category === 'object' ? product.category.name : product.category}
                                         </td>
-                                        <td className="px-4 py-2 lg:py-2 text-xs font-bold text-gray-900">{formatCurrency(product.price)}</td>
+                                        <td className="px-4 py-2 lg:py-2 text-xs font-bold text-gray-900">{formatCurrency(product.basePrice)}</td>
                                         <td className="px-4 py-2 lg:py-2">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${product.stock < 20
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${product.totalStock < 20
                                                 ? 'bg-red-50 text-red-600 border border-red-100/50'
                                                 : 'bg-green-50 text-green-700 border border-green-100/50'
                                                 }`}>
-                                                {product.stock} units
+                                                {product.totalStock} units
                                             </span>
                                         </td>
                                         <td className="px-4 py-2 lg:py-2 text-center">
@@ -250,12 +253,12 @@ const ProductList = () => {
                                 </div>
 
                                 <div className="flex items-center justify-between mt-1">
-                                    <span className="text-xs font-bold text-gray-900">{formatCurrency(product.price)}</span>
-                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${product.stock < 20
+                                    <span className="text-xs font-bold text-gray-900">{formatCurrency(product.basePrice)}</span>
+                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${product.totalStock < 20
                                         ? 'bg-red-50 text-red-600'
                                         : 'bg-green-50 text-green-700'
                                         }`}>
-                                        {product.stock} units
+                                        {product.totalStock} units
                                     </span>
                                 </div>
 

@@ -1,29 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
+import { normalizeProduct } from '../../pages/home/HomePage';
 import { ProductCardSkeleton } from '../common/Skeleton';
 import { ChevronRight, ArrowLeft, ArrowRight, TrendingDown } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
-const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest Prices Ever" }) => {
+/**
+ * LowestPricesSection
+ *
+ * Two modes:
+ *  1. campaignProducts prop is given (array) → use those curated products directly (admin-driven)
+ *  2. products prop is given → auto-filter products with mrp > basePrice (legacy auto-mode, no longer used on HomePage)
+ */
+const LowestPricesSection = ({
+    products = [],
+    campaignProducts,        // Pre-curated from admin campaign (with dealPrice already applied)
+    loading = false,
+    sectionTitle = "Lowest Prices Ever",
+    highlightText = "🔥 Massive Discounts - Limited Time Only!"
+}) => {
     const { isDarkMode } = useTheme();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
 
-    // Filter products with significant discounts and sort by absolute discount amount
-    const lowestPriceProducts = products
-        .filter(p => p.originalPrice && p.originalPrice > p.price)
-        .map(p => ({
-            ...p,
-            discountAmount: p.originalPrice - p.price,
-            discountPercentage: Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
-        }))
-        .sort((a, b) => b.discountPercentage - a.discountPercentage)
-        .slice(0, 12); // Show top 12 products with best discounts
-
-    if (!loading && lowestPriceProducts.length === 0) return null;
-
+    // ✅ useEffect MUST be before any early return (Rules of Hooks)
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
@@ -37,6 +38,36 @@ const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest
             setTimeout(handleScroll, 100);
         }
     }, [loading]);
+
+    // Determine which products to show
+    let displayProducts;
+    if (campaignProducts && campaignProducts.length > 0) {
+        // Admin-curated mode: normalize and add discount info
+        displayProducts = campaignProducts
+            .map(normalizeProduct)
+            .map(p => ({
+                ...p,
+                discountAmount: p.originalPrice ? p.originalPrice - p.price : 0,
+                discountPercentage: p.originalPrice && p.originalPrice > p.price
+                    ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
+                    : 0
+            }));
+    } else {
+        // Auto-filter mode: from all products, pick discounted ones
+        displayProducts = products
+            .map(normalizeProduct)
+            .filter(p => p.originalPrice && p.originalPrice > p.price)
+            .map(p => ({
+                ...p,
+                discountAmount: p.originalPrice - p.price,
+                discountPercentage: Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
+            }))
+            .sort((a, b) => b.discountPercentage - a.discountPercentage)
+            .slice(0, 12);
+    }
+
+    // Early return AFTER all hooks
+    if (!loading && displayProducts.length === 0) return null;
 
     const sectionScroll = (dir) => {
         if (sectionRef.current) {
@@ -57,13 +88,6 @@ const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest
                         {sectionTitle}
                     </h2>
                 </div>
-                <Link
-                    to="/lowest-prices"
-                    className="flex items-center gap-1 text-[#0c831f] dark:text-[#f7cb15] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all"
-                >
-                    See all
-                    <ChevronRight size={14} />
-                </Link>
             </div>
 
             {/* Promotional Badge */}
@@ -71,7 +95,7 @@ const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-red-200/50 dark:border-red-800/50">
                     <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-red-500 rounded-full animate-pulse"></div>
                     <span className="text-[9px] md:text-xs font-bold text-red-700 dark:text-red-400 tracking-wide uppercase">
-                        🔥 Massive Discounts - Limited Time Only!
+                        {highlightText}
                     </span>
                 </div>
             </div>
@@ -90,12 +114,14 @@ const LowestPricesSection = ({ products, loading = false, sectionTitle = "Lowest
                             </div>
                         ))
                     ) : (
-                        lowestPriceProducts.map((product) => (
-                            <div key={product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] relative">
-                                {/* Discount Badge */}
-                                <div className="absolute top-1 right-1 z-40 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-black shadow-lg">
-                                    {product.discountPercentage}% OFF
-                                </div>
+                        displayProducts.map((product) => (
+                            <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] relative">
+                                {/* Discount Badge — only show if there's a real discount */}
+                                {product.discountPercentage > 0 && (
+                                    <div className="absolute top-1 right-1 z-40 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-black shadow-lg">
+                                        {product.discountPercentage}% OFF
+                                    </div>
+                                )}
                                 <ProductCard
                                     product={product}
                                     customTheme={{
