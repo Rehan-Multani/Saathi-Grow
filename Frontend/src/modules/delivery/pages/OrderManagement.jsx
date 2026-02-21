@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search,
@@ -43,7 +43,7 @@ const OrderManagement = () => {
                     <h1 className="text-3xl font-black tracking-tight mb-2">Order Management</h1>
                     <p className="text-slate-500 font-medium">Manage and track your delivery lifecycle</p>
                 </div>
-                {loading && <Loader2 className="animate-spin text-pink-500" size={24} />}
+                {loading && <Loader2 className="animate-spin text-lime-500" size={24} />}
             </div>
 
             {/* Sticky Tabs */}
@@ -56,7 +56,7 @@ const OrderManagement = () => {
                             className={`
                                 flex items-center gap-2 px-6 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 font-bold text-sm
                                 ${activeTab === tab.id
-                                    ? 'bg-gradient-to-r from-pink-500 to-red-600 text-white shadow-lg shadow-pink-500/20'
+                                    ? 'bg-gradient-to-r from-lime-500 to-lime-600 text-white shadow-lg shadow-lime-500/20'
                                     : 'bg-white dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border border-slate-100 dark:border-zinc-800'}
                             `}
                         >
@@ -88,7 +88,7 @@ const OrderManagement = () => {
                             {/* Card Header */}
                             <div className="p-6 pb-4 flex justify-between items-start">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-zinc-800 flex items-center justify-center text-pink-600">
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-zinc-800 flex items-center justify-center text-lime-600">
                                         <Package size={24} />
                                     </div>
                                     <div>
@@ -99,7 +99,7 @@ const OrderManagement = () => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <h5 className="font-black text-xl text-slate-900 dark:text-white">₹{delivery.order?.totalAmount || '0'}</h5>
+                                    <h5 className="font-black text-xl text-slate-900 dark:text-white">â‚¹{delivery.order?.totalAmount || '0'}</h5>
                                     <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">{delivery.deliveryFee || 40} fee</p>
                                 </div>
                             </div>
@@ -107,7 +107,7 @@ const OrderManagement = () => {
                             {/* Info Section */}
                             <div className="px-6 py-4 space-y-4">
                                 <div className="flex gap-3">
-                                    <div className="mt-1 p-2 bg-pink-50 dark:bg-pink-500/5 text-pink-600 rounded-lg">
+                                    <div className="mt-1 p-2 bg-lime-50 dark:bg-lime-500/5 text-lime-600 rounded-lg">
                                         <MapPin size={16} />
                                     </div>
                                     <div className="flex-1">
@@ -131,13 +131,13 @@ const OrderManagement = () => {
 
                             {/* Actions */}
                             <div className="p-6 pt-2">
-                                <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-black text-sm tracking-tight shadow-lg shadow-pink-500/20 active:scale-[0.98] transition-all uppercase flex items-center justify-center gap-2">
+                                <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-lime-500 to-lime-600 text-white font-black text-sm tracking-tight shadow-lg shadow-lime-500/20 active:scale-[0.98] transition-all uppercase flex items-center justify-center gap-2">
                                     <Navigation size={18} />
                                     View on Map
                                 </button>
                             </div>
 
-                            <div className="absolute inset-0 bg-pink-600 opacity-0 group-hover:opacity-[0.02] transition-opacity pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-lime-600 opacity-0 group-hover:opacity-[0.02] transition-opacity pointer-events-none"></div>
                         </motion.div>
                     )) : (
                         <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-300 opacity-50">
@@ -153,3 +153,4 @@ const OrderManagement = () => {
 };
 
 export default OrderManagement;
+

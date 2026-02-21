@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+﻿import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './modules/user/context/AuthContext';
 import { CartProvider } from './modules/user/context/CartContext';
@@ -29,7 +29,7 @@ const GlobalLoading = () => (
                 <div className="absolute top-0 left-0 w-16 h-16 border-[3px] border-t-[var(--saathi-green)] rounded-full animate-spin"></div>
             </div>
             <div className="flex flex-col items-center gap-1">
-                <span className="text-xl font-black text-[var(--saathi-green)] tracking-[0.3em] uppercase ml-1">SaathiGro</span>
+                <span className="text-xl font-black text-[var(--saathi-green)] tracking-[0.3em] uppercase ml-1">sathiGro</span>
                 <div className="w-12 h-1 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full bg-[var(--saathi-green)] w-1/2 animate-shimmer"></div>
                 </div>
@@ -86,3 +86,4 @@ function App() {
 }
 
 export default App;
+

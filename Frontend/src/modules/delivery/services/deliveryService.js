@@ -1,96 +1,89 @@
-const API_URL = 'http://localhost:5000/api/delivery';
+import {
+    mockProfile,
+    mockOrders,
+    mockHistory,
+    mockWallet,
+    mockTransactions,
+    createDummyOrder,
+} from '../data/mockDeliveryData';
 
-const getHeaders = (token) => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-});
+let profile = JSON.parse(JSON.stringify(mockProfile));
+let orders = JSON.parse(JSON.stringify(mockOrders));
+let history = JSON.parse(JSON.stringify(mockHistory));
+let wallet = JSON.parse(JSON.stringify(mockWallet));
+let transactions = JSON.parse(JSON.stringify(mockTransactions));
 
-export const getDeliveryProfile = async (token) => {
-    const response = await fetch(`${API_URL}/profile`, {
-        headers: getHeaders(token)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch profile');
-    return data;
+const wait = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
+const clone = (value) => {
+    if (value === undefined || value === null) return value;
+    return JSON.parse(JSON.stringify(value));
 };
 
-export const updateDeliveryProfile = async (token, profileData) => {
-    const response = await fetch(`${API_URL}/profile`, {
-        method: 'POST',
-        headers: getHeaders(token),
-        body: JSON.stringify(profileData)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to update profile');
-    return data;
+export const getDeliveryProfile = async () => {
+    await wait();
+    return clone(profile);
 };
 
-export const updatePartnerStatus = async (token, status) => {
-    const response = await fetch(`${API_URL}/status`, {
-        method: 'PATCH',
-        headers: getHeaders(token),
-        body: JSON.stringify({ status })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to update status');
-    return data;
+export const updateDeliveryProfile = async (_token, profileData) => {
+    await wait();
+    profile = { ...profile, ...profileData };
+    return clone(profile);
 };
 
-export const updatePartnerLocation = async (token, longitude, latitude) => {
-    const response = await fetch(`${API_URL}/location`, {
-        method: 'POST',
-        headers: getHeaders(token),
-        body: JSON.stringify({ longitude, latitude })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to update location');
-    return data;
+export const updatePartnerStatus = async (_token, status) => {
+    await wait();
+    profile = { ...profile, status };
+    return clone(profile);
 };
 
-export const getDeliveryOrders = async (token, type = 'active') => {
-    const response = await fetch(`${API_URL}/orders?type=${type}`, {
-        headers: getHeaders(token)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch orders');
-    return data;
+export const updatePartnerLocation = async (_token, longitude, latitude) => {
+    await wait();
+    profile = {
+        ...profile,
+        currentLocation: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+        },
+    };
+    return clone(profile.currentLocation);
 };
 
-export const updateDeliveryStatus = async (token, deliveryId, status) => {
-    const response = await fetch(`${API_URL}/orders/${deliveryId}/status`, {
-        method: 'PATCH',
-        headers: getHeaders(token),
-        body: JSON.stringify({ status })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to update delivery status');
-    return data;
+export const getDeliveryOrders = async (_token, type = 'active') => {
+    await wait();
+    if (type === 'history' || type === 'completed') return clone(history);
+    if (type === 'pending') return clone(orders.filter((order) => order.status === 'assigned'));
+    return clone(orders);
 };
 
-export const getWalletTransactions = async (token) => {
-    const response = await fetch(`${API_URL}/wallet`, {
-        headers: getHeaders(token)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch wallet info');
-    return data;
+export const updateDeliveryStatus = async (_token, deliveryId, status) => {
+    await wait();
+    orders = orders.map((order) => (order._id === deliveryId ? { ...order, status } : order));
+    return clone(orders.find((order) => order._id === deliveryId) || null);
 };
 
-export const getDashboardStats = async (token) => {
-    const response = await fetch(`${API_URL}/stats`, {
-        headers: getHeaders(token)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch stats');
-    return data;
+export const getWalletTransactions = async () => {
+    await wait();
+    return { wallet: clone(wallet), transactions: clone(transactions) };
 };
 
-export const simulateOrder = async (token) => {
-    const response = await fetch(`${API_URL}/simulate-order`, {
-        method: 'POST',
-        headers: getHeaders(token)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Failed to simulate order');
-    return data;
+export const getDashboardStats = async () => {
+    await wait();
+    const today = new Date().toDateString();
+    const todayCredits = transactions.filter((tx) => tx.type === 'credit' && new Date(tx.createdAt).toDateString() === today);
+
+    return {
+        walletBalance: wallet.balance,
+        totalEarnings: wallet.totalEarnings,
+        todayEarnings: todayCredits.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0),
+        activeOrders: orders.length,
+        pendingOrders: orders.filter((order) => order.status === 'assigned').length,
+        todayDeliveries: history.filter((order) => new Date(order.createdAt).toDateString() === today).length,
+    };
+};
+
+export const simulateOrder = async () => {
+    await wait();
+    const order = createDummyOrder();
+    orders = [order, ...orders];
+    return clone(order);
 };

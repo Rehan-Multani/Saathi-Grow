@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Upload, FileText, CheckCircle2, Download, ArrowRight, FileSpreadsheet, Info, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -32,7 +32,7 @@ const BulkUpload = () => {
         const url = URL.createObjectURL(blob);
 
         link.setAttribute('href', url);
-        link.setAttribute('download', 'saathigro_product_template.csv');
+        link.setAttribute('download', 'sathiGro_product_template.csv');
         link.style.visibility = 'hidden';
 
         document.body.appendChild(link);
@@ -136,7 +136,7 @@ const BulkUpload = () => {
                                     </div>
                                     <div>
                                         <p className="text-xs font-bold text-gray-800">{file?.name}</p>
-                                        <p className="text-[9px] text-gray-400 font-bold tracking-tight">Ready to import • {(file?.size / 1024).toFixed(1)} KB</p>
+                                        <p className="text-[9px] text-gray-400 font-bold tracking-tight">Ready to import â€¢ {(file?.size / 1024).toFixed(1)} KB</p>
                                     </div>
                                 </div>
                                 <button onClick={() => setStep(3)} className="px-4 py-1.5 bg-[#0c831f] text-white rounded-lg text-xs font-bold hover:bg-[#0a6b19] transition-all flex items-center gap-2 shadow-md shadow-green-900/10">
@@ -159,7 +159,7 @@ const BulkUpload = () => {
                                                 <td className="px-4 py-2.5 text-gray-400 font-mono">SG-B-{i + 100}</td>
                                                 <td className="px-4 py-2.5 font-bold text-gray-800">Sample row {i} - Bulk item</td>
                                                 <td className="px-4 py-2.5 text-gray-500">Groceries</td>
-                                                <td className="px-4 py-2.5 font-bold">₹199.00</td>
+                                                <td className="px-4 py-2.5 font-bold">â‚¹199.00</td>
                                                 <td className="px-4 py-2.5">
                                                     <span className="px-1.5 py-0.5 bg-green-50 text-green-700 border border-green-100 rounded-[4px] text-[8px] font-bold tracking-tighter">VALID</span>
                                                 </td>
@@ -197,3 +197,4 @@ const BulkUpload = () => {
 };
 
 export default BulkUpload;
+

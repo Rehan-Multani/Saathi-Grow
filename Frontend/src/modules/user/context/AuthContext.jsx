@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+﻿import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import * as authApi from '../api/userAuthApi';
 import { toast } from 'react-toastify';
 
@@ -14,22 +14,22 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem('saathigro_user');
+        const savedUser = localStorage.getItem('sathiGro_user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
 
-    const [token, setToken] = useState(localStorage.getItem('saathigro_token') || null);
+    const [token, setToken] = useState(localStorage.getItem('sathiGro_token') || null);
     const [loading, setLoading] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [loginView, setLoginView] = useState('login'); // 'login' or 'register'
 
     useEffect(() => {
         if (user && token) {
-            localStorage.setItem('saathigro_user', JSON.stringify(user));
-            localStorage.setItem('saathigro_token', token);
+            localStorage.setItem('sathiGro_user', JSON.stringify(user));
+            localStorage.setItem('sathiGro_token', token);
         } else {
-            localStorage.removeItem('saathigro_user');
-            localStorage.removeItem('saathigro_token');
+            localStorage.removeItem('sathiGro_user');
+            localStorage.removeItem('sathiGro_token');
         }
     }, [user, token]);
 
@@ -143,3 +143,4 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+

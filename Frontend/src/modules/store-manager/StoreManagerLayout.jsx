@@ -128,7 +128,7 @@ const StoreManagerLayout = () => {
                 <footer className="py-4 px-6 border-t border-slate-200 bg-white">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
                         <p className="text-[11px] text-slate-400 font-medium">
-                            © 2024 SaathiGro Store Management System
+                            Â© 2024 sathiGro Store Management System
                         </p>
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
@@ -144,3 +144,4 @@ const StoreManagerLayout = () => {
 };
 
 export default StoreManagerLayout;
+

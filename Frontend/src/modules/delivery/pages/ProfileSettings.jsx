@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     User,
@@ -31,26 +31,26 @@ const ProfileSettings = () => {
             {/* Header / Avatar */}
             <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative">
-                    <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-pink-500 to-red-600 p-1 shadow-2xl shadow-pink-500/30">
+                    <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-lime-500 to-lime-600 p-1 shadow-2xl shadow-lime-500/30">
                         <img
                             src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
                             className="w-full h-full rounded-[2.3rem] object-cover bg-white"
                             alt="avatar"
                         />
                     </div>
-                    <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl flex items-center justify-center text-pink-600 border border-slate-100 dark:border-zinc-700 hover:scale-110 transition-transform">
+                    <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl flex items-center justify-center text-lime-600 border border-slate-100 dark:border-zinc-700 hover:scale-110 transition-transform">
                         <Camera size={20} />
                     </button>
                 </div>
                 <div>
                     <h2 className="text-3xl font-black tracking-tight">Rahul Kumar</h2>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-1">Professional Partner • Indore</p>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-1">Professional Partner â€¢ Indore</p>
                 </div>
 
                 <div className="flex gap-4">
-                    <div className="px-5 py-2 bg-pink-50 dark:bg-pink-500/10 rounded-full flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-pink-500"></span>
-                        <span className="text-xs font-bold text-pink-600 uppercase tracking-wider">Level 4</span>
+                    <div className="px-5 py-2 bg-lime-50 dark:bg-lime-500/10 rounded-full flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-lime-500"></span>
+                        <span className="text-xs font-bold text-lime-600 uppercase tracking-wider">Level 4</span>
                     </div>
                     <div className="px-5 py-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -73,7 +73,7 @@ const ProfileSettings = () => {
                         {item.toggle ? (
                             <button
                                 onClick={(e) => { e.stopPropagation(); setNotifications(!notifications); }}
-                                className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${notifications ? 'bg-pink-500' : 'bg-slate-200 dark:bg-zinc-800'}`}
+                                className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${notifications ? 'bg-lime-500' : 'bg-slate-200 dark:bg-zinc-800'}`}
                             >
                                 <motion.div
                                     animate={{ x: notifications ? 22 : 4 }}
@@ -81,7 +81,7 @@ const ProfileSettings = () => {
                                 />
                             </button>
                         ) : (
-                            <ChevronRight size={20} className="text-slate-300 group-hover:text-pink-500 transition-colors" />
+                            <ChevronRight size={20} className="text-slate-300 group-hover:text-lime-500 transition-colors" />
                         )}
                     </div>
                 ))}
@@ -112,10 +112,11 @@ const ProfileSettings = () => {
                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Saathi Care</span>
                     </div>
                 </div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Designed with ❤️ in Indore</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Designed with â¤ï¸ in Indore</p>
             </div>
         </div>
     );
 };
 
 export default ProfileSettings;
+

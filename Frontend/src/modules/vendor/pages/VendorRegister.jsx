@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, ArrowRight, CheckCircle, MapPin, Mail, Lock, Phone, User } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
@@ -44,7 +44,7 @@ const VendorRegister = () => {
                 <div className="p-6 md:p-10">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Register Your Store</h1>
-                        <p className="text-gray-500 text-sm mt-1">Join SaathiGro and start selling online.</p>
+                        <p className="text-gray-500 text-sm mt-1">Join sathiGro and start selling online.</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,7 +74,7 @@ const VendorRegister = () => {
                                 <label className="text-xs font-bold text-gray-700 ml-1">Password</label>
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="••••••••" />
+                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
                                 </div>
                             </div>
                         </div>
@@ -126,3 +126,4 @@ const VendorRegister = () => {
 };
 
 export default VendorRegister;
+

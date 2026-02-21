@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -107,24 +107,24 @@ const LiveTracking = () => {
                     {/* Status Timeline */}
                     <div className="flex justify-between items-center mb-6 px-2">
                         <div className="flex flex-col items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${status === 'assigned' || status === 'picked_up' || status === 'delivered' ? 'bg-pink-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${status === 'assigned' || status === 'picked_up' || status === 'delivered' ? 'bg-lime-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
                                 <Package size={14} />
                             </div>
-                            <span className={`text-[10px] font-bold ${status === 'assigned' ? 'text-pink-600' : 'text-slate-400'}`}>Assigned</span>
+                            <span className={`text-[10px] font-bold ${status === 'assigned' ? 'text-lime-600' : 'text-slate-400'}`}>Assigned</span>
                         </div>
-                        <div className={`flex-1 h-[2px] mx-2 mb-4 transition-colors ${status === 'picked_up' || status === 'delivered' ? 'bg-pink-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
+                        <div className={`flex-1 h-[2px] mx-2 mb-4 transition-colors ${status === 'picked_up' || status === 'delivered' ? 'bg-lime-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
                         <div className="flex flex-col items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${status === 'picked_up' || status === 'delivered' ? 'bg-pink-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${status === 'picked_up' || status === 'delivered' ? 'bg-lime-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
                                 <Flag size={14} />
                             </div>
-                            <span className={`text-[10px] font-bold ${status === 'picked_up' ? 'text-pink-600' : 'text-slate-400'}`}>Picked</span>
+                            <span className={`text-[10px] font-bold ${status === 'picked_up' ? 'text-lime-600' : 'text-slate-400'}`}>Picked</span>
                         </div>
-                        <div className={`flex-1 h-[2px] mx-2 mb-4 transition-colors ${status === 'delivered' ? 'bg-pink-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
+                        <div className={`flex-1 h-[2px] mx-2 mb-4 transition-colors ${status === 'delivered' ? 'bg-lime-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
                         <div className="flex flex-col items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${status === 'delivered' ? 'bg-pink-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${status === 'delivered' ? 'bg-lime-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
                                 <CheckCircle2 size={14} />
                             </div>
-                            <span className={`text-[10px] font-bold ${status === 'delivered' ? 'text-pink-600' : 'text-slate-400'}`}>Delivered</span>
+                            <span className={`text-[10px] font-bold ${status === 'delivered' ? 'text-lime-600' : 'text-slate-400'}`}>Delivered</span>
                         </div>
                     </div>
 
@@ -152,7 +152,7 @@ const LiveTracking = () => {
 
                     <div className="space-y-4 mb-8">
                         <div className="flex items-start gap-4">
-                            <div className={`mt-2 w-2 h-2 rounded-full ${status === 'picked_up' || status === 'delivered' ? 'bg-slate-300' : 'bg-pink-500'}`}></div>
+                            <div className={`mt-2 w-2 h-2 rounded-full ${status === 'picked_up' || status === 'delivered' ? 'bg-slate-300' : 'bg-lime-500'}`}></div>
                             <div>
                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Store Pickup</p>
                                 <p className={`text-sm font-bold ${status === 'picked_up' || status === 'delivered' ? 'text-slate-400 line-through' : ''}`}>Nature Fresh Mart, Vijay Nagar</p>
@@ -172,7 +172,7 @@ const LiveTracking = () => {
                         disabled={loading}
                         className={`w-full py-5 rounded-[1.5rem] text-white font-black tracking-widest uppercase shadow-xl transition-all flex items-center justify-center gap-3 ${status === 'delivered'
                                 ? 'bg-emerald-500 shadow-emerald-500/30'
-                                : 'bg-gradient-to-r from-pink-500 to-red-600 shadow-pink-500/30 active:scale-[0.98]'
+                                : 'bg-gradient-to-r from-lime-500 to-lime-600 shadow-lime-500/30 active:scale-[0.98]'
                             }`}
                     >
                         {loading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
@@ -187,3 +187,4 @@ const LiveTracking = () => {
 };
 
 export default LiveTracking;
+

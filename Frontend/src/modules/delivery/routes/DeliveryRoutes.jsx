@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+﻿import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DeliveryLayout from '../components/DeliveryLayout';
 import { NotificationProvider } from '../components/NotificationProvider';
@@ -12,7 +12,7 @@ const Tracking = lazy(() => import('../pages/LiveTracking'));
 
 const Loading = () => (
     <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-pink-100 border-t-pink-500 rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-lime-100 border-t-pink-500 rounded-full animate-spin"></div>
     </div>
 );
 
@@ -39,3 +39,4 @@ const DeliveryRoutes = () => {
 };
 
 export default DeliveryRoutes;
+

@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import * as cartApi from '../api/userCartApi';
+=======
+﻿import { createContext, useContext, useState, useEffect } from 'react';
+>>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
 
 const CartContext = createContext();
 
@@ -9,7 +13,7 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState(() => {
         try {
-            const saved = localStorage.getItem('saathigro_cart');
+            const saved = localStorage.getItem('sathiGro_cart');
             return saved ? JSON.parse(saved) : [];
         } catch (e) {
             return [];
@@ -55,6 +59,7 @@ export const CartProvider = ({ children }) => {
 
     // Continually backup to Local Storage and optionally Sync to Cloud if authenticated
     useEffect(() => {
+<<<<<<< HEAD
         localStorage.setItem('saathigro_cart', JSON.stringify(cart));
 
         let timeoutId;
@@ -67,6 +72,10 @@ export const CartProvider = ({ children }) => {
 
         return () => clearTimeout(timeoutId);
     }, [cart, token]);
+=======
+        localStorage.setItem('sathiGro_cart', JSON.stringify(cart));
+    }, [cart]);
+>>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
 
     const addToCart = (product) => {
         setCart((prevCart) => {
@@ -125,3 +134,4 @@ export const CartProvider = ({ children }) => {
         </CartContext.Provider>
     );
 };
+

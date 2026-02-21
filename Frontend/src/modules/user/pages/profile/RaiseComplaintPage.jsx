@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, ShieldCheck, CheckCircle } from 'lucide-react';
 
@@ -77,7 +77,7 @@ const RaiseComplaintPage = () => {
                     <div className="bg-blue-50 dark:bg-blue-500/10 p-3.5 rounded-xl flex gap-3 text-blue-600 border border-blue-100 dark:border-blue-500/10">
                         <ShieldCheck size={18} className="flex-shrink-0" />
                         <p className="text-[9.5px] md:text-base font-medium leading-relaxed italic">
-                            Your request will be processed according to our SaathiGro protection policy. Support will contact you within 24 hours.
+                            Your request will be processed according to our sathiGro protection policy. Support will contact you within 24 hours.
                         </p>
                     </div>
 
@@ -98,3 +98,4 @@ const RaiseComplaintPage = () => {
 };
 
 export default RaiseComplaintPage;
+

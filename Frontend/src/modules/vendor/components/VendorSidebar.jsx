@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
@@ -72,7 +72,7 @@ const VendorSidebar = () => {
                         <div className="w-8 h-8 bg-[#0c831f] rounded-lg flex items-center justify-center shadow-sm">
                             <span className="text-[#f7cb15] font-extrabold text-xl">S</span>
                         </div>
-                        <span className="text-xl font-extrabold text-[#0c831f] tracking-tight">SaathiGro</span>
+                        <span className="text-xl font-extrabold text-[#0c831f] tracking-tight">sathiGro</span>
                     </div>
                 </div>
 
@@ -138,7 +138,7 @@ const VendorSidebar = () => {
                         <LogOut size={18} />
                         Logout
                     </button>
-                    <p className="mt-4 text-[10px] text-gray-400 text-center">v1.2.0 • SaathiGro Vendor</p>
+                    <p className="mt-4 text-[10px] text-gray-400 text-center">v1.2.0 â€¢ sathiGro Vendor</p>
                 </div>
             </div>
 
@@ -177,3 +177,4 @@ const VendorSidebar = () => {
 };
 
 export default VendorSidebar;
+

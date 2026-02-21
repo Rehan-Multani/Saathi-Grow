@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, User, RefreshCw, Loader2, Phone, Mail } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -111,7 +111,7 @@ const RegisterPage = () => {
                 <div className="p-6">
                     <div className="text-center mb-6">
                         <h1 className="text-lg font-black text-gray-900 dark:text-white mb-1 tracking-tight">Create Account</h1>
-                        <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium font-bold uppercase tracking-wider">Join SaathiGro Family</p>
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium font-bold uppercase tracking-wider">Join sathiGro Family</p>
                     </div>
 
                     {!showOTP ? (
@@ -188,7 +188,7 @@ const RegisterPage = () => {
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                     className="block w-full px-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl text-center text-xl tracking-[0.2em] focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none bg-gray-50/50 dark:bg-white/5 dark:text-white font-black"
-                                    placeholder="••••••"
+                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
                                     required
                                     disabled={loading}
                                 />
@@ -235,3 +235,4 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+

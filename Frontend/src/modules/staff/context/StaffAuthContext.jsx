@@ -7,7 +7,7 @@ export const useStaffAuth = () => useContext(StaffAuthContext);
 
 export const StaffAuthProvider = ({ children }) => {
     const [staffUser, setStaffUser] = useState(() => {
-        const saved = localStorage.getItem('saathigro_staff');
+        const saved = localStorage.getItem('sathiGro_staff');
         return saved ? JSON.parse(saved) : null;
     });
 
@@ -28,7 +28,7 @@ export const StaffAuthProvider = ({ children }) => {
 
     const staffLogout = () => {
         setStaffUser(null);
-        localStorage.removeItem('saathigro_staff');
+        localStorage.removeItem('sathiGro_staff');
     };
 
     return (
@@ -37,3 +37,4 @@ export const StaffAuthProvider = ({ children }) => {
         </StaffAuthContext.Provider>
     );
 };
+

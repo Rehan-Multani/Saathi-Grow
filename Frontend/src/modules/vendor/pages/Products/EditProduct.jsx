@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Save, X, ArrowLeft, Package, Upload, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
@@ -147,7 +147,7 @@ const EditProduct = () => {
                     </button>
                     <div>
                         <h1 className="text-sm md:text-base font-bold text-gray-900 tracking-tight">Edit product</h1>
-                        <p className="text-[9px] md:text-[10px] text-gray-500 font-medium tracking-tight">Update your item on SaathiGro</p>
+                        <p className="text-[9px] md:text-[10px] text-gray-500 font-medium tracking-tight">Update your item on sathiGro</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5 md:gap-2">
@@ -296,7 +296,7 @@ const EditProduct = () => {
                                                     newVariants[index].price = e.target.value;
                                                     setVariants(newVariants);
                                                 }}
-                                                placeholder="₹ 0.00"
+                                                placeholder="â‚¹ 0.00"
                                                 className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
                                             />
                                         </div>
@@ -398,3 +398,4 @@ const EditProduct = () => {
 };
 
 export default EditProduct;
+

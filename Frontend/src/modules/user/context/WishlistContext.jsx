@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Heart } from 'lucide-react';
 import { useAuth } from './AuthContext';
@@ -11,7 +11,7 @@ export const useWishlist = () => useContext(WishlistContext);
 export const WishlistProvider = ({ children }) => {
     const [wishlist, setWishlist] = useState(() => {
         try {
-            const savedWishlist = localStorage.getItem('saathigro_wishlist');
+            const savedWishlist = localStorage.getItem('sathiGro_wishlist');
             return savedWishlist ? JSON.parse(savedWishlist) : [];
         } catch (error) {
             console.error('Error loading wishlist from localStorage:', error);
@@ -19,7 +19,17 @@ export const WishlistProvider = ({ children }) => {
         }
     });
 
+<<<<<<< HEAD
     const { token } = useAuth();
+=======
+    useEffect(() => {
+        try {
+            localStorage.setItem('sathiGro_wishlist', JSON.stringify(wishlist));
+        } catch (error) {
+            console.error('Error saving wishlist to localStorage:', error);
+        }
+    }, [wishlist]);
+>>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
 
     // Fetch wishlist from backend on mount or login
     useEffect(() => {
@@ -140,3 +150,4 @@ export const WishlistProvider = ({ children }) => {
         </WishlistContext.Provider>
     );
 };
+
