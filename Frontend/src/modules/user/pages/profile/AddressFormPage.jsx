@@ -10,6 +10,7 @@ const AddressFormPage = () => {
     const { savedAddresses, addAddress, editAddress } = useAppLocation();
 
     const isEditMode = !!id;
+    const isOriginallyDefault = isEditMode ? savedAddresses.find(addr => String(addr.id) === String(id))?.isDefault : false;
     const [formData, setFormData] = useState({
         type: 'Home',
         address: '',
@@ -21,7 +22,7 @@ const AddressFormPage = () => {
 
     useEffect(() => {
         if (isEditMode) {
-            const addressToEdit = savedAddresses.find(addr => addr.id === parseInt(id));
+            const addressToEdit = savedAddresses.find(addr => String(addr.id) === String(id));
             if (addressToEdit) {
                 setFormData({
                     ...addressToEdit,
@@ -35,7 +36,7 @@ const AddressFormPage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEditMode) {
-            editAddress(parseInt(id), formData);
+            editAddress(id, formData);
         } else {
             addAddress(formData);
         }
@@ -154,13 +155,17 @@ const AddressFormPage = () => {
                         <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100">Set as default</h4>
                         <p className="!text-[8px] text-gray-400 font-bold uppercase tracking-tight">Make this your primary delivery address</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <label className={`relative inline-flex items-center ${isOriginallyDefault ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
                         <input
                             type="checkbox"
                             className="sr-only peer"
                             name="isDefault"
                             checked={formData.isDefault}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                                if (isOriginallyDefault) return; // Prevent unlocking original default
+                                handleChange(e);
+                            }}
+                            disabled={isOriginallyDefault}
                         />
                         <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-white/10 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0c831f]"></div>
                     </label>

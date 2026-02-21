@@ -14,7 +14,9 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const { isDarkMode } = useTheme();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
-  const cartItem = cart.find(item => item.id === product.id);
+  const productId = product.id || product._id;
+
+  const cartItem = cart.find(item => item.id === productId);
   const quantity = cartItem ? cartItem.quantity : 0;
   const savings = product.originalPrice ? product.originalPrice - product.price : 0;
 
@@ -27,7 +29,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const handleUpdateQuantity = (e, delta) => {
     e.preventDefault();
     e.stopPropagation();
-    updateQuantity(product.id, delta);
+    updateQuantity(productId, delta);
   };
 
   return (
@@ -64,7 +66,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
       >
         <Heart
           size={16}
-          className={`transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-gray-200 group-hover/wishlist:text-red-500'}`}
+          className={`transition-colors ${isInWishlist(productId) ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-gray-200 group-hover/wishlist:text-red-500'}`}
         />
       </button>
 
@@ -75,7 +77,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
         <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden dark:hidden rounded-xl">
           <div className="absolute top-0 -left-[100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-25deg] group-hover:animate-[shine-sweep-fast_0.75s_ease-in-out]" />
         </div>
-        <Link to={`/product/${product.id}`} className="block w-full h-full">
+        <Link to={`/product/${productId}`} className="block w-full h-full">
           <img
             src={product.image || categoryPlaceholder}
             alt={product.name}
@@ -92,7 +94,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
       <div className="flex flex-col flex-grow px-1.5 sm:px-2">
         {/* Title */}
-        <Link to={`/product/${product.id}`} className="z-10">
+        <Link to={`/product/${productId}`} className="z-10">
           <div
             className="font-extrabold text-gray-800 dark:text-zinc-100 text-[9px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[24px] sm:min-h-[32px] transition-colors tracking-tight"
             style={{ color: 'inherit' }}

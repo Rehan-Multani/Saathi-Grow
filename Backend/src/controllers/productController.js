@@ -1,6 +1,6 @@
 import Product from '../models/Product.js';
 import InventoryLog from '../models/InventoryLog.js';
-import { generateProductDescription, generateProductTags } from '../utils/aiService.js';
+import { generateProductDescription, generateProductTags, analyzeSearchQuery } from '../utils/aiService.js';
 import QRCode from 'qrcode';
 
 // Helper to determine status based on total stock
@@ -194,6 +194,81 @@ export const getProducts = async (req, res) => {
       .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo')
       .sort('-createdAt');
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Smart Search (AI-Powered)
+// @route   GET /api/admin/products/search/ai
+// @access  Public
+export const searchProductsWithAI = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.json([]);
+    }
+
+    let searchKeywords = [];
+
+    // Attempt AI Analysis to extract ingredients/components
+    try {
+      const aiResponse = await analyzeSearchQuery(q);
+      if (aiResponse) {
+        // Strip out any weird characters and split by comma
+        const cleaned = aiResponse.replace(/[^a-zA-Z0-9,\s]/g, '');
+        searchKeywords = cleaned.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
+      }
+    } catch (aiError) {
+      console.error('[AI-SEARCH] Failed to analyze query, falling back to standard search:', aiError.message);
+    }
+
+    // Always include the original query's words as base keywords to ensure direct matches work too
+    const originalWords = q.split(' ').map(s => s.trim().toLowerCase()).filter(s => s);
+    searchKeywords = [...new Set([...searchKeywords, ...originalWords])];
+
+    // Filter out common short noise words to prevent false-positive substring matches
+    const stopWords = ['is', 'ki', 'ka', 'ke', 'ko', 'me', 'se', 'the', 'a', 'an', 'and', 'for', 'with', 'in', 'of', 'to', 'on'];
+    searchKeywords = searchKeywords.filter(k => !stopWords.includes(k) && k.length > 1);
+
+    if (searchKeywords.length === 0 && q) {
+      searchKeywords = [q.toLowerCase()];
+    }
+
+    console.log(`[SMART-SEARCH] Keywords for "${q}":`, searchKeywords);
+
+    // Build Regex array for multiple keywords
+    const regexArray = searchKeywords.map(k => {
+      // Escape special characters so they don't break regex
+      const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      // For very short words (<= 3 chars like "dal", "oil"), enforce word boundaries 
+      // so "dal" doesn't accidentally match "pedal" or "oil" doesn't match "spoil"
+      if (escaped.length <= 3) {
+        return new RegExp(`\\b${escaped}\\b`, 'i');
+      }
+
+      // For longer words, allow partial matching (e.g. "tomat" catches "tomato")
+      return new RegExp(escaped, 'i');
+    });
+
+    // Find products matching ANY of the keywords in name, tags, or description
+    // using $or combined with $in pattern matching
+    const products = await Product.find({
+      status: 'Active',
+      $or: [
+        { name: { $in: regexArray } },
+        { tags: { $in: regexArray } },
+        { description: { $in: regexArray } },
+        { brandName: { $in: regexArray } },
+        { category: { $in: regexArray } }
+      ]
+    })
+      .populate('vendor', 'storeName logo')
+      .sort('-createdAt')
+      .limit(30);
 
     res.json(products);
   } catch (error) {

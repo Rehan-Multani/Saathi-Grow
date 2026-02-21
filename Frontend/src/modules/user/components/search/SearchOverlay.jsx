@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
-import { products } from '../../data/products';
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton, SuggestionSkeleton } from '../common/Skeleton';
 import logo from '../../../../assets/logo.png';
 import { useTheme } from '../../context/ThemeContext';
+import { normalizeProduct } from '../../pages/home/HomePage';
 
 const SearchOverlay = () => {
     const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
@@ -19,6 +19,8 @@ const SearchOverlay = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [micError, setMicError] = useState(null);
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [suggestions, setSuggestions] = useState([]);
 
     const recognitionRef = React.useRef(null);
 
@@ -80,34 +82,52 @@ const SearchOverlay = () => {
         }
     };
 
-    // Filter products based on search query
-    const filteredProducts = searchQuery
-        ? products.filter(p =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.category.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        : [];
-
-    // Generate autocomplete suggestions with images
-    const suggestions = searchQuery
-        ? products
-            .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-            .slice(0, 5)
-            .map(p => ({
-                id: p.id,
-                name: p.name,
-                image: p.image,
-                category: p.category
-            }))
-        : [];
-
-    // Simulate loading when typing
+    // Search Debouncer & Backend Integration
     useEffect(() => {
-        if (searchQuery) {
-            setIsLoading(true);
-            const timer = setTimeout(() => setIsLoading(false), 600);
-            return () => clearTimeout(timer);
+        if (!searchQuery.trim()) {
+            setFilteredProducts([]);
+            setSuggestions([]);
+            setIsLoading(false);
+            return;
         }
+
+        const runSearch = async () => {
+            setIsLoading(true);
+            try {
+                // Determine if we should use smart AI search or standard search
+                // For simplicity, any search can pass through AI keyword parsing
+                const baseUrl = 'http://localhost:5000/api'; // Or import from API config
+                const response = await fetch(`${baseUrl}/admin/products/search/ai?q=${encodeURIComponent(searchQuery)}`);
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    setFilteredProducts(data);
+
+                    // Generate basic suggestions based on top results
+                    setSuggestions(data.slice(0, 5).map(p => ({
+                        id: p._id || p.id,
+                        name: p.name,
+                        image: p.image,
+                        category: p.category
+                    })));
+                } else {
+                    setFilteredProducts([]);
+                    setSuggestions([]);
+                }
+            } catch (err) {
+                console.error("Search failed:", err);
+                setFilteredProducts([]);
+                setSuggestions([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            runSearch();
+        }, 600); // 600ms debounce
+
+        return () => clearTimeout(timer);
     }, [searchQuery]);
 
     const addToHistory = (query) => {
@@ -341,11 +361,11 @@ const SearchOverlay = () => {
                             ) : filteredProducts.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
                                     {filteredProducts.map((product) => (
-                                        <div key={product.id} onClick={() => {
+                                        <div key={product._id || product.id} onClick={() => {
                                             addToHistory(searchQuery);
                                             setIsSearchOverlayOpen(false);
                                         }}>
-                                            <ProductCard product={product} />
+                                            <ProductCard product={normalizeProduct(product)} />
                                         </div>
                                     ))}
                                 </div>

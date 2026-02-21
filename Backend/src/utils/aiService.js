@@ -92,3 +92,14 @@ export const generateProductTags = async (productName) => {
     Return ONLY the comma-separated tags, no other text or explanation.`;
   return await generateWithFallback(prompt, 'tags');
 };
+
+export const analyzeSearchQuery = async (query) => {
+  const prompt = `You are a smart e-commerce search assistant for an Indian grocery and quick commerce app. 
+    The user searched for: "${query}". 
+    Identify the actual products or ingredients the user is likely looking for. 
+    - If the query is a recipe or dish (e.g., "pakoda", "matar paneer", "chai"), return the core ingredients needed to make it (e.g., "besan, oil, onion, potato, spices" or "paneer, peas, tomato, masala" or "tea leaves, milk, sugar, ginger").
+    - If it's a generic category (e.g., "snack", "drink", "cleaning"), return related specific product types (e.g., "chips, biscuits, namkeen, cold drink" or "detergent, floor cleaner, dish wash").
+    - If it's a specific product, just return that product and closely related terms.
+    Return ONLY a comma-separated list of 1 to 10 keywords. Do NOT include any intro text, quotes, or markdown.`;
+  return await generateWithFallback(prompt, 'search completion');
+};

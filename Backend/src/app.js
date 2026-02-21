@@ -58,6 +58,8 @@ import vendorPortalRoutes from './routes/vendorPortalRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
 import offerRoutes from './routes/offerRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import userAddressRoutes from './routes/userAddressRoutes.js';
+import userWishlistRoutes from './routes/userWishlistRoutes.js';
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -71,6 +73,10 @@ app.use('/api/admin/categories', categoryRoutes);
 app.use('/api/admin/products', productRoutes);
 app.use('/api/admin/campaigns', campaignRoutes);
 app.use('/api/admin/offer-deals', offerRoutes);
+
+// User Profile/Front-End Routes
+app.use('/api/user/addresses', userAddressRoutes);
+app.use('/api/user/wishlist', userWishlistRoutes);
 
 // Socket logic placeholder
 io.on('connection', (socket) => {

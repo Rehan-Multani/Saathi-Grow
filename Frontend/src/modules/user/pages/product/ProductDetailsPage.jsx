@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { products } from '../../data/products';
+import { fetchProductById, fetchProducts } from '../../api/shopApi';
 import { useCart } from '../../context/CartContext';
 import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
@@ -10,51 +10,82 @@ import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 const ProductDetailsPage = () => {
     const { id } = useParams();
     const { addToCart, updateQuantity, cart } = useCart();
+    const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
-
-    const product = products.find(p => p.id === parseInt(id));
-    const [selectedImage, setSelectedImage] = useState(product?.image);
-    const productImages = product?.images || [
-        product?.image,
-        product?.image,
-        product?.image
-    ];
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [productImages, setProductImages] = useState([]);
+    const [similarProducts, setSimilarProducts] = useState([]);
+    const [recommendedProducts, setRecommendedProducts] = useState([]);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
-        window.scrollTo(0, 0);
-        setLoading(true);
-        setSelectedImage(product?.image);
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 800);
-        return () => clearTimeout(timer);
-    }, [id, product]);
+        const loadProduct = async () => {
+            try {
+                setLoading(true);
+                setError(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Scroll to top on every product change
-    useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Fetch product details
+                const data = await fetchProductById(id);
+
+                // Standardize mapping to frontend model
+                const p = {
+                    id: data._id,
+                    name: data.name,
+                    image: data.image || (data.gallery && data.gallery.length > 0 ? data.gallery[0] : ''),
+                    images: data.gallery && data.gallery.length > 0 ? data.gallery : [data.image],
+                    price: data.basePrice,
+                    mrp: data.mrp,
+                    category: data.category?.name || data.category,
+                    description: data.description,
+                    weight: `${data.unitValue} ${data.unitType}`,
+                    tags: data.tags
+                };
+
+                setProduct(p);
+                setSelectedImage(p.image);
+                setProductImages(p.images.length >= 3 ? p.images : [p.image, p.image, p.image]); // Fill layout if few images
+
+                // Fetch relative products
+                if (p.category) {
+                    const simres = await fetchProducts({ category: p.category, limit: 10 });
+                    const sim = simres.products.filter(simP => simP._id !== id).map(simP => ({
+                        id: simP._id,
+                        name: simP.name,
+                        image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
+                        price: simP.basePrice,
+                        mrp: simP.mrp,
+                        weight: `${simP.unitValue} ${simP.unitType}`
+                    }));
+                    setSimilarProducts(sim);
+                }
+
+                // General Recommendations
+                const recres = await fetchProducts({ limit: 12 });
+                const rec = recres.products.filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
+                    id: recP._id,
+                    name: recP.name,
+                    image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
+                    price: recP.basePrice,
+                    mrp: recP.mrp,
+                    weight: `${recP.unitValue} ${recP.unitType}`
+                }));
+                setRecommendedProducts(rec);
+
+            } catch (err) {
+                console.error("Failed to load product details:", err);
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadProduct();
     }, [id]);
 
-    const similarProducts = useMemo(() => {
-        if (!product) return [];
-        return products
-            .filter(p => p.category === product.category && p.id !== product.id)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 8);
-    }, [product]);
+    if (error || (!loading && !product)) return <div className="p-8 text-center text-gray-500">Product not found. <Link to="/" className="text-green-600 underline">Return Home</Link></div>;
 
-    const recommendedProducts = useMemo(() => {
-        if (!product) return [];
-        return products
-            .filter(p => p.subCategory === product.subCategory && p.id !== product.id && !similarProducts.find(sp => sp.id === p.id))
-            .concat(products.filter(p => p.category !== product.category))
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 8);
-    }, [product, similarProducts]);
-
-    if (!product) return <div className="p-8 text-center text-gray-500">Product not found</div>;
-
-    const cartItem = cart.find(item => item.id === product.id);
+    const cartItem = cart.find(item => item.id === (product?.id || id));
     const quantity = cartItem ? cartItem.quantity : 0;
 
     if (loading) return (

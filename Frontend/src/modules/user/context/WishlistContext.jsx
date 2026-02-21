@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Heart } from 'lucide-react';
+import { useAuth } from './AuthContext';
+import * as wishlistApi from '../api/userWishlistApi';
 
 const WishlistContext = createContext();
 
@@ -17,17 +19,63 @@ export const WishlistProvider = ({ children }) => {
         }
     });
 
-    useEffect(() => {
-        try {
-            localStorage.setItem('saathigro_wishlist', JSON.stringify(wishlist));
-        } catch (error) {
-            console.error('Error saving wishlist to localStorage:', error);
-        }
-    }, [wishlist]);
+    const { token } = useAuth();
 
-    const addToWishlist = (product) => {
-        if (!isInWishlist(product.id)) {
+    // Fetch wishlist from backend on mount or login
+    useEffect(() => {
+        const fetchRemoteWishlist = async () => {
+            if (token) {
+                try {
+                    const data = await wishlistApi.getWishlist(token);
+                    // the backend returns full populated Product objects
+                    // Map to Match frontend expectations (e.g. `_id` to `id`, `name`, `image`)
+                    const formatted = data.map(p => ({
+                        id: p._id || p.id,
+                        name: p.name,
+                        image: p.image || (p.gallery && p.gallery.length > 0 ? p.gallery[0] : ''),
+                        basePrice: p.basePrice,
+                        mrp: p.mrp,
+                        category: p.category,
+                        unitValue: p.unitValue,
+                        unitType: p.unitType
+                    }));
+                    setWishlist(formatted);
+                } catch (err) {
+                    console.error('Failed to fetch user wishlist:', err);
+                }
+            }
+        };
+        fetchRemoteWishlist();
+    }, [token]);
+
+    useEffect(() => {
+        if (!token) {
+            try {
+                localStorage.setItem('saathigro_wishlist', JSON.stringify(wishlist));
+            } catch (error) {
+                console.error('Error saving wishlist to localStorage:', error);
+            }
+        }
+    }, [wishlist, token]);
+
+    const addToWishlist = async (product) => {
+        if (!isInWishlist(product.id || product._id)) {
+            const prodId = product.id || product._id;
+
+            // Optimistic UI update
             setWishlist(prev => [...prev, product]);
+
+            if (token) {
+                try {
+                    await wishlistApi.addToWishlist(token, prodId);
+                } catch (error) {
+                    console.error('Failed to add to remote wishlist', error);
+                    // Revert on failure
+                    setWishlist(prev => prev.filter(item => (item.id || item._id) !== prodId));
+                    return;
+                }
+            }
+
             toast.success(`${product.name} added to wishlist!`, {
                 icon: <Heart size={16} className="text-red-500 fill-red-500" />,
                 style: {
@@ -42,8 +90,16 @@ export const WishlistProvider = ({ children }) => {
         }
     };
 
-    const removeFromWishlist = (productId) => {
-        setWishlist(prev => prev.filter(item => item.id !== productId));
+    const removeFromWishlist = async (productId) => {
+        if (token) {
+            try {
+                await wishlistApi.removeFromWishlist(token, productId);
+            } catch (error) {
+                console.error('Failed to remove from remote wishlist', error);
+            }
+        }
+        setWishlist(prev => prev.filter(item => (item.id || item._id) !== productId));
+
         toast.info(`Item removed from wishlist`, {
             icon: <Heart size={16} className="text-gray-400" />,
             style: {
@@ -58,12 +114,13 @@ export const WishlistProvider = ({ children }) => {
     };
 
     const isInWishlist = (productId) => {
-        return wishlist.some(item => item.id === productId);
+        return wishlist.some(item => (item.id === productId || item._id === productId));
     };
 
     const toggleWishlist = (product) => {
-        if (isInWishlist(product.id)) {
-            removeFromWishlist(product.id);
+        const prodId = product.id || product._id;
+        if (isInWishlist(prodId)) {
+            removeFromWishlist(prodId);
         } else {
             addToWishlist(product);
         }

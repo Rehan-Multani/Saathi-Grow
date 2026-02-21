@@ -98,6 +98,19 @@ const SavedAddressesPage = () => {
                             </div>
                         </div>
                     ))}
+
+                    {/* Add New Address Card - Visible on Mobile and Desktop */}
+                    {savedAddresses.length > 0 && (
+                        <button
+                            onClick={() => navigate('/add-address')}
+                            className="bg-transparent md:bg-gray-50 dark:md:bg-[#141414]/50 border-dashed border-2 border-gray-200 dark:border-white/10 rounded-none md:rounded-3xl p-6 flex flex-col items-center justify-center gap-3 text-gray-500 hover:text-[#0c831f] hover:border-[#0c831f] hover:bg-green-50/50 dark:hover:bg-[#0c831f]/10 transition-all min-h-[150px] md:min-h-[200px] group"
+                        >
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-1 group-hover:bg-[#0c831f]/20 group-hover:scale-110 transition-all">
+                                <Plus size={20} className="md:w-6 md:h-6 group-hover:text-[#0c831f]" />
+                            </div>
+                            <span className="font-bold !text-[12px] md:!text-sm tracking-tight text-gray-500 group-hover:text-[#0c831f]">Add New Address</span>
+                        </button>
+                    )}
                 </div>
 
                 {/* Empty State Help */}

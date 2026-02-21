@@ -43,6 +43,8 @@ const userSchema = new mongoose.Schema({
     },
     addresses: [{
         label: { type: String, default: 'Home' }, // Home, Work, etc.
+        name: String,
+        phone: String,
         street: String,
         city: String,
         state: String,
@@ -57,6 +59,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    wishlist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+    }],
     isActive: {
         type: Boolean,
         default: true
