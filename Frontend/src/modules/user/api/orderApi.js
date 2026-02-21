@@ -1,0 +1,61 @@
+const API_URL = 'http://localhost:5000/api/orders';
+
+export const createRazorpayOrder = async (token, amount) => {
+  const response = await fetch(`${API_URL}/razorpay`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ amount })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to create Razorpay secure window');
+  return data;
+};
+
+export const verifyRazorpayPayment = async (token, paymentPayload) => {
+  const response = await fetch(`${API_URL}/verify`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(paymentPayload)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to verify exact transaction logic');
+  return data;
+};
+
+export const createCODOrder = async (token, orderData) => {
+  const response = await fetch(`${API_URL}/cod`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ orderData })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to generate COD order layout');
+  return data;
+};
+
+export const fetchMyOrders = async (token) => {
+  const response = await fetch(`${API_URL}/myorders`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Can't load transaction history currently");
+  return data;
+};
+
+export const fetchOrderDetails = async (token, orderId) => {
+  const response = await fetch(`${API_URL}/${orderId}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Error syncing single historical layout');
+  return data;
+};

@@ -28,6 +28,10 @@ const ProtectedStaffRoute = () => {
     if (!staffUser) {
         return <Navigate to="/staff/login" replace />;
     }
+    // Only 'Staff' role can access the /staff portal
+    if (staffUser.role !== 'Staff') {
+        return <Navigate to="/staff/login" replace />;
+    }
     return <Outlet />;
 };
 

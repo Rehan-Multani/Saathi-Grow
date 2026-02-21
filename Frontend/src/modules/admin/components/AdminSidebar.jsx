@@ -5,7 +5,7 @@ import { adminSidebarMenu } from '../data/sidebarMenu';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const AdminSidebar = ({ showMobile, onClose }) => {
-    const { adminLogout } = useAdminAuth();
+    const { adminUser, adminLogout } = useAdminAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [openSubmenus, setOpenSubmenus] = useState({});
@@ -13,6 +13,14 @@ const AdminSidebar = ({ showMobile, onClose }) => {
     const handleLogout = () => {
         adminLogout();
         navigate('/admin/login');
+    };
+
+    const hasAccess = (permissionCode) => {
+        if (!adminUser) return false;
+        // Role 'Admin' is Super Admin and has all permissions
+        if (adminUser.role === 'Admin') return true;
+        if (!permissionCode) return true;
+        return Array.isArray(adminUser.permissions) && adminUser.permissions.includes(permissionCode);
     };
 
     useEffect(() => {
@@ -56,6 +64,9 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                 <nav className="py-3 flex-grow">
                     <div className="flex flex-col gap-1">
                         {adminSidebarMenu.map((item, index) => {
+                            // Enact role-based filtration check securely against this sidebar option mapping
+                            if (!hasAccess(item.permission)) return null;
+
                             const hasChildActive = item.submenu?.some(sub => location.pathname === sub.path);
                             const isMenuOpen = openSubmenus[item.title];
 

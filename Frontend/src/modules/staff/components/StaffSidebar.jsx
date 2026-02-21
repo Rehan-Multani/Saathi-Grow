@@ -7,8 +7,14 @@ import { useStaffAuth } from '../context/StaffAuthContext';
 const StaffSidebar = ({ showMobile, onClose }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { staffLogout } = useStaffAuth();
+    const { staffUser, staffLogout } = useStaffAuth();
     const [openSubmenus, setOpenSubmenus] = useState({});
+
+    const hasAccess = (permissionCode) => {
+        if (!staffUser) return false;
+        if (!permissionCode) return true;
+        return Array.isArray(staffUser.permissions) && staffUser.permissions.includes(permissionCode);
+    };
 
     useEffect(() => {
         // Auto-expand menu if active link is inside
@@ -56,6 +62,8 @@ const StaffSidebar = ({ showMobile, onClose }) => {
                 <nav className="py-3">
                     <div className="flex flex-col gap-1">
                         {staffSidebarMenu.map((item, index) => {
+                            if (!hasAccess(item.permission)) return null;
+
                             const hasChildActive = item.submenu?.some(sub => location.pathname === sub.path);
                             const isMenuOpen = openSubmenus[item.title];
 
@@ -78,20 +86,23 @@ const StaffSidebar = ({ showMobile, onClose }) => {
 
                                             <div className={`overflow-hidden transition-all duration-300 ${isMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
                                                 <div className="bg-black/20 py-1">
-                                                    {item.submenu.map((subItem, subIndex) => (
-                                                        <NavLink
-                                                            key={subIndex}
-                                                            to={subItem.path}
-                                                            end={true}
-                                                            className={({ isActive }) =>
-                                                                `flex items-center pl-12 pr-4 py-2 my-1 mx-3 rounded-lg text-sm transition-all duration-200
-                                                                ${isActive ? 'bg-green-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`
-                                                            }
-                                                            onClick={() => showMobile && onClose()}
-                                                        >
-                                                            {subItem.title}
-                                                        </NavLink>
-                                                    ))}
+                                                    {item.submenu.map((subItem, subIndex) => {
+                                                        if (subItem.permission && !hasAccess(subItem.permission)) return null;
+                                                        return (
+                                                            <NavLink
+                                                                key={subIndex}
+                                                                to={subItem.path}
+                                                                end={true}
+                                                                className={({ isActive }) =>
+                                                                    `flex items-center pl-12 pr-4 py-2 my-1 mx-3 rounded-lg text-sm transition-all duration-200
+                                                                    ${isActive ? 'bg-green-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`
+                                                                }
+                                                                onClick={() => showMobile && onClose()}
+                                                            >
+                                                                {subItem.title}
+                                                            </NavLink>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         </>

@@ -46,6 +46,9 @@ export const AdminAuthProvider = ({ children }) => {
         setLoading(true);
         try {
             const data = await loginAdmin(email, password);
+            if (data.role !== 'Admin') {
+                throw new Error('Access denied. This portal is only for Super Admins.');
+            }
             setAdminUser(data);
             localStorage.setItem('saathigro_admin', JSON.stringify(data));
             return data;

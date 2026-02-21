@@ -90,6 +90,10 @@ const ProtectedAdminRoute = () => {
     if (!adminUser) {
         return <Navigate to="/admin/login" replace />;
     }
+    // Only 'Admin' role can access the /admin portal
+    if (adminUser.role !== 'Admin') {
+        return <Navigate to="/admin/login" replace />;
+    }
     return <Outlet />;
 };
 

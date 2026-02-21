@@ -190,10 +190,21 @@ export const getProducts = async (req, res) => {
       ];
     }
 
+    // Branch Scoping: If user is Staff or Branch Manager, they should ideally see products relevant to their branch
+    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+      query.$or = [
+        { isAllBranches: true },
+        { specificBranches: req.admin.branchId }
+      ];
+    }
+
     const products = await Product.find(query)
       .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo')
       .sort('-createdAt');
+
+    // If branch scoped, we might want to transform the output to show only the relevant branch stock at the top level
+    // for easier frontend consumption, but let's keep it standard for now and handle UI logic in frontend.
 
     res.json(products);
   } catch (error) {
@@ -434,9 +445,23 @@ export const updateProduct = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const adjustInventory = async (req, res) => {
   try {
-    const { amount, type, reason, branchId } = req.body;
+    let finalBranchId = branchId;
 
-    if (!branchId) {
+    // Security check: Staff and Branch Managers can ONLY adjust their own branch's inventory
+    if (req.admin.role !== 'Admin') {
+      if (!req.admin.branchId) {
+        return res.status(403).json({ message: 'You are not assigned to any branch. Cannot adjust inventory.' });
+      }
+
+      // If they provided a branchId, it MUST match their assigned branch
+      if (branchId && branchId.toString() !== req.admin.branchId.toString()) {
+        return res.status(403).json({ message: 'You can only adjust inventory for your own branch.' });
+      }
+
+      finalBranchId = req.admin.branchId;
+    }
+
+    if (!finalBranchId) {
       return res.status(400).json({ message: 'Branch ID is required for inventory adjustment' });
     }
 
@@ -445,7 +470,7 @@ export const adjustInventory = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const branchStockIndex = product.branchStocks.findIndex(bs => bs.branchId.toString() === branchId.toString());
+    const branchStockIndex = product.branchStocks.findIndex(bs => bs.branchId.toString() === finalBranchId.toString());
 
     if (branchStockIndex === -1) {
       // Branch not found in product stocks, add it

@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StoreManagerSidebar from './components/StoreManagerSidebar';
-import { Menu, Bell, Search, User, Settings, LogOut, ChevronDown, MapPin, Command } from 'lucide-react';
+import { Menu, Bell, Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 
 const StoreManagerLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
+    const { managerUser, managerLogout } = useStoreManagerAuth();
+
+    const handleLogout = () => {
+        managerLogout();
+        navigate('/store-manager/login');
+    };
 
     const getPageTitle = () => {
         const path = location.pathname;
@@ -66,12 +74,12 @@ const StoreManagerLayout = () => {
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 className="flex items-center gap-3 p-1 rounded-lg hover:bg-slate-50 transition-all"
                             >
-                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs">
-                                    RK
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs uppercase">
+                                    {(managerUser?.name || 'M').charAt(0)}
                                 </div>
                                 <div className="text-left hidden lg:block">
                                     <div className="flex items-center gap-1">
-                                        <span className="text-sm font-semibold text-slate-800">Rehan Khan</span>
+                                        <span className="text-sm font-semibold text-slate-800">{managerUser?.name || 'Manager'}</span>
                                         <ChevronDown size={14} className={`text-slate-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
                                     </div>
                                 </div>
@@ -83,7 +91,7 @@ const StoreManagerLayout = () => {
                                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
                                         <div className="px-4 py-3 border-b border-slate-100 mb-1">
                                             <p className="text-xs font-medium text-slate-500">Logged in as</p>
-                                            <p className="text-sm font-semibold text-slate-800 truncate">rehan.khan@saathigro.corp</p>
+                                            <p className="text-sm font-semibold text-slate-800 truncate">{managerUser?.email || 'manager@saathigro.corp'}</p>
                                         </div>
                                         <div className="px-1">
                                             {[
@@ -95,7 +103,10 @@ const StoreManagerLayout = () => {
                                                 </button>
                                             ))}
                                             <div className="my-1 border-t border-slate-100"></div>
-                                            <button className="w-full flex items-center px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full flex items-center px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                            >
                                                 <LogOut size={16} className="mr-2" /> Logout
                                             </button>
                                         </div>
@@ -128,7 +139,6 @@ const StoreManagerLayout = () => {
                     </div>
                 </footer>
             </div>
-
         </div>
     );
 };

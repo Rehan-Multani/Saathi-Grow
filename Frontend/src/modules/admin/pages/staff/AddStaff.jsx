@@ -31,13 +31,22 @@ const AddStaff = () => {
     const ROLES = isBranchManager ? ['Staff'] : ['Admin', 'Branch Manager', 'Staff'];
 
     const PERMISSIONS_LIST = [
-        { id: 'dashboard_view', label: 'View Dashboard' },
-        { id: 'orders_manage', label: 'Manage Orders' },
-        { id: 'products_manage', label: 'Manage Products' },
-        { id: 'customers_view', label: 'View Customers' },
-        { id: 'staff_manage', label: 'Manage Staff' },
-        { id: 'settings_edit', label: 'Edit Settings' },
-        { id: 'returns_approve', label: 'Return Policy: Approve/Deny' }
+        { id: 'VIEW_DASHBOARD', label: 'View Dashboard Analytics' },
+        { id: 'VIEW_ORDERS', label: 'View Orders List' },
+        { id: 'MANAGE_ORDERS', label: 'Manage/Change Order Status' },
+        { id: 'MANAGE_REFUNDS_RETURNS', label: 'Approve Refunds & Returns' },
+        { id: 'VIEW_PRODUCTS', label: 'View Products Catalog' },
+        { id: 'MANAGE_PRODUCTS', label: 'Add/Edit/Delete Products' },
+        { id: 'MANAGE_CATEGORIES_BRANDS', label: 'Add/Edit Categories & Brands' },
+        { id: 'MANAGE_INVENTORY', label: 'Update Stock/Inventory' },
+        { id: 'MANAGE_DELIVERY_BOYS', label: 'Manage Delivery Partners' },
+        { id: 'VIEW_CUSTOMERS', label: 'View Customer Info' },
+        { id: 'MANAGE_CUSTOMERS', label: 'Block/Unblock/Wallet Edit' },
+        { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' },
+        { id: 'MANAGE_BRANCHES', label: 'Manage Branch Locations' },
+        { id: 'MANAGE_CAMPAIGNS', label: 'Manage Promo Banners & Deals' },
+        { id: 'MANAGE_VENDORS', label: 'Manage Vendors & Payouts' },
+        { id: 'MANAGE_SETTINGS', label: 'App Global Settings (Taxes, Delivery)' }
     ];
 
     useEffect(() => {

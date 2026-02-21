@@ -92,8 +92,8 @@ const OccasionPage = () => {
             </div>
 
             {/* Product Grid */}
-            <div className="max-w-7xl mx-auto px-4 pb-12">
-                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+            <div className="max-w-7xl mx-auto px-6 sm:px-4 pb-12">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-6 gap-x-5 sm:gap-4">
                     {displayProducts.map(product => (
                         <ProductCard
                             key={product.id}
@@ -104,19 +104,20 @@ const OccasionPage = () => {
                                 themeColor: isDarkMode ? '#f7cb15' : occasionConfig.themeColor,
                                 bgColor: isDarkMode ? '' : occasionConfig.bgColor
                             }}
+                            isLargeButton={true}
                         />
                     ))}
                 </div>
             </div>
 
             {/* Recommendations Section */}
-            <div className="max-w-7xl mx-auto px-4 pb-12">
+            <div className="max-w-7xl mx-auto px-6 sm:px-4 pb-12">
                 <div className="border-t border-dashed border-gray-200 dark:border-white/10 pt-8 mt-4">
                     <div className="flex items-center gap-2 mb-6">
                         <div className="w-1 h-4 bg-[#f7cb15] rounded-full"></div>
                         <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">You Might Also Like</h3>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4">
                         {products.filter(p => !occasionConfig.productIds.includes(p.id)).slice(0, 6).map((product) => (
                             <ProductCard
                                 key={`rec-${product.id}`}
@@ -126,6 +127,7 @@ const OccasionPage = () => {
                                     themeColor: isDarkMode ? '#f7cb15' : occasionConfig.themeColor,
                                     bgColor: isDarkMode ? '' : occasionConfig.bgColor
                                 }}
+                                isLargeButton={true}
                             />
                         ))}
                     </div>

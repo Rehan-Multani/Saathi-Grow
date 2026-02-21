@@ -20,10 +20,24 @@ import {
 // CelebrationBurst moved to OrderSuccessPage.jsx
 
 import { useLocation as useGlobalLocation } from '../../context/LocationContext';
+import { useAuth } from '../../context/AuthContext';
+import * as orderApi from '../../api/orderApi';
+import { toast } from 'react-toastify';
+
+const loadRazorpaySDK = () => {
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
 
 const CheckoutPage = () => {
     const { cartTotal = 0, clearCart, cartCount = 0, cart = [] } = useCart();
     const { location: globalLocation, openLocationModal } = useGlobalLocation();
+    const { user, token } = useAuth();
     const [isPlacing, setIsPlacing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [onlineMethod, setOnlineMethod] = useState('phonepe'); // phonepe, gpay
@@ -38,21 +52,103 @@ const CheckoutPage = () => {
     const handlingFee = 5;
     const finalTotal = cartTotal + deliveryFee + handlingFee;
 
-    const handlePlaceOrder = () => {
+    const handlePlaceOrder = async () => {
         if (cart.length === 0) return;
+        if (!globalLocation.address) {
+            toast.error("Please select a valid delivery address first.");
+            return;
+        }
 
         setIsPlacing(true);
 
-        // Simulation delay
-        const delay = paymentMethod === 'online' ? 3000 : 1500;
+        const orderData = {
+            items: cart.map(item => ({
+                product: item.id || item._id, // Clean mapping fallback
+                quantity: item.quantity,
+                price: item.price,
+                name: item.name,
+                image: item.image
+            })),
+            shippingAddress: {
+                name: user?.name,
+                phone: user?.phone,
+                street: globalLocation.address,
+                city: '', // Advanced parsing could happen here depending on bounds
+                state: '',
+                zipCode: '',
+                location: globalLocation.coordinates ? { type: 'Point', coordinates: [globalLocation.coordinates.lng, globalLocation.coordinates.lat] } : undefined
+            },
+            totalAmount: finalTotal
+        };
 
-        setTimeout(() => {
-            setIsPlacing(false);
-            setTimeout(() => {
+        try {
+            if (paymentMethod === 'cod') {
+                await orderApi.createCODOrder(token, orderData);
                 clearCart();
                 navigate('/order-success');
-            }, 500);
-        }, delay);
+            } else {
+                // Online Payment Workflow leveraging Razorpay
+                const isSdkReady = await loadRazorpaySDK();
+                if (!isSdkReady) {
+                    toast.error("Network issue: Unable to load secure payment gateway");
+                    setIsPlacing(false);
+                    return;
+                }
+
+                // Call Backend for Order Initiation Payload
+                const rpPayload = await orderApi.createRazorpayOrder(token, finalTotal);
+
+                const options = {
+                    key: 'rzp_test_8sYbzHWidwe5Zw', // Test API Key (safe to expose publicly on frontend since it's just public mapping)
+                    amount: rpPayload.amount,
+                    currency: rpPayload.currency,
+                    name: "SaathiGrow Rapid",
+                    description: "Your Lightning Fast Grocery Checkout",
+                    order_id: rpPayload.razorpayOrderId,
+                    handler: async function (response) {
+                        try {
+                            await orderApi.verifyRazorpayPayment(token, {
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpaySignature: response.razorpay_signature,
+                                orderData
+                            });
+                            clearCart();
+                            navigate('/order-success');
+                        } catch (verifyErr) {
+                            toast.error("Payment was blocked or untrusted signature failed");
+                        }
+                    },
+                    prefill: {
+                        name: user?.name || "Shopper",
+                        email: user?.email || "payment@saathigrow.com",
+                        contact: user?.phone || "9999999999"
+                    },
+                    theme: {
+                        color: "#0c831f"
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            setIsPlacing(false);
+                        }
+                    }
+                };
+
+                const razorpayWindow = new window.Razorpay(options);
+                razorpayWindow.on('payment.failed', function (res) {
+                    toast.error(res.error.description);
+                    setIsPlacing(false);
+                });
+
+                razorpayWindow.open();
+                return; // Wait for active JS UI payload to finish
+            }
+        } catch (error) {
+            console.error("Failure checking out:", error);
+            toast.error(error.message);
+        }
+
+        setIsPlacing(false);
     };
 
 

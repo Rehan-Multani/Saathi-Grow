@@ -58,8 +58,11 @@ import vendorPortalRoutes from './routes/vendorPortalRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
 import offerRoutes from './routes/offerRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import deliveryRoutes from './routes/deliveryRoutes.js';
 import userAddressRoutes from './routes/userAddressRoutes.js';
 import userWishlistRoutes from './routes/userWishlistRoutes.js';
+import userCartRoutes from './routes/userCartRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -73,10 +76,13 @@ app.use('/api/admin/categories', categoryRoutes);
 app.use('/api/admin/products', productRoutes);
 app.use('/api/admin/campaigns', campaignRoutes);
 app.use('/api/admin/offer-deals', offerRoutes);
+app.use('/api/delivery', deliveryRoutes);
 
 // User Profile/Front-End Routes
 app.use('/api/user/addresses', userAddressRoutes);
 app.use('/api/user/wishlist', userWishlistRoutes);
+app.use('/api/user/cart', userCartRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Socket logic placeholder
 io.on('connection', (socket) => {
@@ -96,6 +102,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
 
 httpServer.listen(PORT, () => {

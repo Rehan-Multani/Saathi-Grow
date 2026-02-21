@@ -9,13 +9,22 @@ import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../
 import { toast } from 'react-toastify';
 
 const AVAILABLE_PERMISSIONS = [
-    'All Access',
-    'Return Policy: Approve/Deny',
-    'Order View',
-    'Support Tickets',
-    'Chat',
-    'Inventory Edit',
-    'User Management'
+    { id: 'VIEW_DASHBOARD', label: 'View Dashboard Analytics' },
+    { id: 'VIEW_ORDERS', label: 'View Orders List' },
+    { id: 'MANAGE_ORDERS', label: 'Manage/Change Order Status' },
+    { id: 'MANAGE_REFUNDS_RETURNS', label: 'Approve Refunds & Returns' },
+    { id: 'VIEW_PRODUCTS', label: 'View Products Catalog' },
+    { id: 'MANAGE_PRODUCTS', label: 'Add/Edit/Delete Products' },
+    { id: 'MANAGE_CATEGORIES_BRANDS', label: 'Add/Edit Categories & Brands' },
+    { id: 'MANAGE_INVENTORY', label: 'Update Stock/Inventory' },
+    { id: 'MANAGE_DELIVERY_BOYS', label: 'Manage Delivery Partners' },
+    { id: 'VIEW_CUSTOMERS', label: 'View Customer Info' },
+    { id: 'MANAGE_CUSTOMERS', label: 'Block/Unblock/Wallet Edit' },
+    { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' },
+    { id: 'MANAGE_BRANCHES', label: 'Manage Branch Locations' },
+    { id: 'MANAGE_CAMPAIGNS', label: 'Manage Promo Banners & Deals' },
+    { id: 'MANAGE_VENDORS', label: 'Manage Vendors & Payouts' },
+    { id: 'MANAGE_SETTINGS', label: 'App Global Settings (Taxes, Delivery)' }
 ];
 
 const AllStaff = () => {
@@ -233,16 +242,16 @@ const AllStaff = () => {
                             <h6 className="fw-bold mb-3 text-muted small text-uppercase">Access Control</h6>
                             <div className="d-flex flex-column gap-2">
                                 {AVAILABLE_PERMISSIONS.map((perm) => (
-                                    <div key={perm} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light">
+                                    <div key={perm.id} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light">
                                         <div className="d-flex align-items-center gap-2">
-                                            {perm.includes('Return Policy') ? <Shield size={16} className="text-primary" /> : <div style={{ width: 16 }} />}
-                                            <span className={perm.includes('Return Policy') ? 'fw-medium text-primary' : 'text-dark'}>{perm}</span>
+                                            {perm.id.includes('MANAGE') ? <Shield size={16} className="text-primary" /> : <div style={{ width: 16 }} />}
+                                            <span className={perm.id.includes('MANAGE') ? 'fw-medium text-primary' : 'text-dark'}>{perm.label}</span>
                                         </div>
                                         <Form.Check
                                             type="switch"
-                                            id={`perm-switch-${perm}`}
-                                            checked={tempPermissions.includes(perm)}
-                                            onChange={() => handlePermissionToggle(perm)}
+                                            id={`perm-switch-${perm.id}`}
+                                            checked={tempPermissions.includes(perm.id)}
+                                            onChange={() => handlePermissionToggle(perm.id)}
                                         />
                                     </div>
                                 ))}

@@ -64,3 +64,24 @@ export const restrictTo = (...roles) => {
     next();
   };
 };
+
+// RBAC Middleware
+export const requirePermission = (requiredPermission) => {
+  return (req, res, next) => {
+    // Super Admins ('Admin' role) bypass all permission checks
+    if (req.admin.role === 'Admin') {
+      return next();
+    }
+
+    // Branch Managers and Staff must possess the required permission in their array
+    const hasPermission = Array.isArray(req.admin.permissions) && req.admin.permissions.includes(requiredPermission);
+
+    if (hasPermission) {
+      return next();
+    }
+
+    return res.status(403).json({
+      message: `Access Denied: You do not have the ${requiredPermission} permission.`
+    });
+  };
+};

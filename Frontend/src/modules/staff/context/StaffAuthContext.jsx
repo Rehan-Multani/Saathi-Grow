@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { loginAdmin } from '../../admin/api/adminApi';
 
 const StaffAuthContext = createContext();
 
@@ -11,23 +12,18 @@ export const StaffAuthProvider = ({ children }) => {
     });
 
     // Mock login function
-    const staffLogin = (email, password) => {
-        return new Promise((resolve, reject) => {
-            // Mock credentials check for Staff
-            if (email === 'staff@sathigro.com' && password === 'staff123') {
-                const mockStaff = {
-                    id: 'staff_1',
-                    name: 'John Staff',
-                    email: email,
-                    role: 'Store Associate'
-                };
-                setStaffUser(mockStaff);
-                localStorage.setItem('saathigro_staff', JSON.stringify(mockStaff));
-                resolve(mockStaff);
-            } else {
-                reject(new Error('Invalid email or password'));
+    const staffLogin = async (email, password) => {
+        try {
+            const data = await loginAdmin(email, password);
+            if (data.role !== 'Staff') {
+                throw new Error('Access denied. This portal is only for Staff.');
             }
-        });
+            setStaffUser(data);
+            localStorage.setItem('saathigro_staff', JSON.stringify(data));
+            return data;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const staffLogout = () => {

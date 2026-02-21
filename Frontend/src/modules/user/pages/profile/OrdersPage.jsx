@@ -1,37 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ShoppingBag, Package, ChevronRight, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import * as orderApi from '../../api/orderApi';
+import { toast } from 'react-toastify';
 
 const OrdersPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { token } = useAuth();
 
-    const orders = [
-        {
-            id: 'SG-1234',
-            status: 'Delivered',
-            date: '24 May 2024, 10:30 AM',
-            amount: '₹450',
-            items: 'Bread, Milk, Eggs',
-            color: 'text-green-600 bg-green-50'
-        },
-        {
-            id: 'SG-1235',
-            status: 'In Transit',
-            date: '25 May 2024, 02:15 PM',
-            amount: '₹890',
-            items: 'Atta, Rice, Oil',
-            color: 'text-blue-600 bg-blue-50'
-        },
-        {
-            id: 'SG-1236',
-            status: 'Processing',
-            date: 'Today, 09:00 AM',
-            amount: '₹320',
-            items: 'Fruits, Vegetables',
-            color: 'text-orange-600 bg-orange-50'
-        }
-    ];
+    const [orders, setOrders] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            if (token) {
+                try {
+                    setIsLoading(true);
+                    const data = await orderApi.fetchMyOrders(token);
+
+                    const mappedOrders = data.map(o => {
+                        const d = new Date(o.createdAt);
+                        const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+                        // Determine Color 
+                        let colorClass = 'text-green-600 bg-green-50';
+                        if (o.status === "Pending" || o.status === "Processing") colorClass = 'text-orange-600 bg-orange-50';
+                        if (o.status === "In Transit" || o.status === "Out for Delivery") colorClass = 'text-blue-600 bg-blue-50';
+                        if (o.status === "Cancelled" || o.status === "Returned") colorClass = 'text-red-600 bg-red-50';
+
+                        return {
+                            id: o._id,
+                            status: o.status,
+                            date: formattedDate,
+                            amount: '₹' + o.totalAmount.toFixed(2),
+                            items: o.items.map(item => item.name).join(', '),
+                            color: colorClass
+                        }
+                    });
+
+                    setOrders(mappedOrders);
+                } catch (err) {
+                    toast.error("Failed to load secure transaction history");
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
+        fetchOrders();
+    }, [token]);
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-20 md:p-8 md:pb-8">
@@ -63,7 +81,7 @@ const OrdersPage = () => {
                                             <Package size={18} className="md:w-7 md:h-7" />
                                         </div>
                                         <div>
-                                            <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-1.5">Order #{order.id}</div>
+                                            <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-1.5">Order #{order.id.slice(-6).toUpperCase()}</div>
                                             <div className="!text-[10px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider">{order.date}</div>
                                         </div>
                                     </div>

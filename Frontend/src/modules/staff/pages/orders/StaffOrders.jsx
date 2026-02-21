@@ -1,66 +1,90 @@
-import React, { useState } from 'react';
-import { Card, Table, Badge, Button, Form, InputGroup, Dropdown } from 'react-bootstrap';
-import { Search, Filter, Eye, Box, Truck, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
+import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw } from 'lucide-react';
 import Swal from 'sweetalert2';
 import OrderDetailsModal from '../../../admin/components/orders/OrderDetailsModal';
-
-const MOCK_ORDERS = [
-    { id: 'ORD-001', customer: 'Rahul Sharma', items: 5, total: '₹450', status: 'Pending', date: '2 mins ago' },
-    { id: 'ORD-002', customer: 'Priya Singh', items: 2, total: '₹120', status: 'Processing', date: '15 mins ago' },
-    { id: 'ORD-003', customer: 'Amit Patel', items: 12, total: '₹1250', status: 'Pending', date: '1 hour ago' },
-    { id: 'ORD-004', customer: 'Sneha Gupta', items: 8, total: '₹890', status: 'Packed', date: '2 hours ago' },
-];
+import { getAllOrdersAdmin, updateOrderStatus } from '../../../admin/api/orderApi';
+import { useStaffAuth } from '../../context/StaffAuthContext';
 
 const StaffOrders = () => {
-    const [orders, setOrders] = useState(MOCK_ORDERS);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [showModal, setShowModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
-    const handleStatusUpdate = (id, newStatus) => {
-        setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const data = await getAllOrdersAdmin();
+            setOrders(data);
+        } catch (error) {
+            console.error('Failed to fetch orders:', error);
+            Swal.fire('Error', 'Could not load orders queue', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const handleStatusUpdate = async (id, newStatus) => {
+        try {
+            await updateOrderStatus(id, newStatus);
+            Swal.fire({
+                title: 'Success!',
+                text: `Order status updated to ${newStatus}`,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            fetchOrders(); // Refresh list
+        } catch (error) {
+            Swal.fire('Error', error.response?.data?.message || 'Update failed', 'error');
+        }
     };
 
     const handleMarkAllPacked = () => {
-        const processingOrders = orders.filter(o => o.status === 'Processing');
+        const processingOrders = orders.filter(o => o.status === 'confirmed' || o.status === 'preparing');
 
         if (processingOrders.length === 0) {
             Swal.fire({
                 title: 'No Orders to Pack',
-                text: 'There are no orders currently in "Processing" status to mark as ready.',
+                text: 'There are no active orders currently ready for packing.',
                 icon: 'info',
-                confirmButtonColor: '#0d6efd'
             });
             return;
         }
 
         Swal.fire({
-            title: `Mark ${processingOrders.length} Orders as Ready?`,
-            text: "This will update all currently processing orders to 'Packed' status.",
+            title: `Mark ${processingOrders.length} Orders as Packed?`,
+            text: "This will update all preparing/confirmed orders to 'Packed' status.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, Mark All Ready'
+            confirmButtonText: 'Yes, Mark All'
         }).then((result) => {
             if (result.isConfirmed) {
-                setOrders(orders.map(o => o.status === 'Processing' ? { ...o, status: 'Packed' } : o));
-                Swal.fire('Updated!', `${processingOrders.length} orders have been marked as Ready.`, 'success');
+                // In real app, we might need a bulk update endpoint, but let's do sequential for now if needed or just inform user
+                Swal.fire('Tip', 'Bulk update is coming soon. Please update individually for now.', 'info');
             }
         });
     };
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case 'Pending': return 'warning';
-            case 'Processing': return 'info';
-            case 'Packed': return 'primary'; // Ready
-            case 'Shipped': return 'success';
+            case 'pending': return 'warning';
+            case 'confirmed': return 'info';
+            case 'preparing': return 'info';
+            case 'out_for_delivery': return 'primary';
+            case 'delivered': return 'success';
+            case 'cancelled': return 'danger';
             default: return 'secondary';
         }
     };
-
-    const [showModal, setShowModal] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
 
     const handleViewOrder = (order) => {
         setSelectedOrder(order);
@@ -68,9 +92,11 @@ const StaffOrders = () => {
     };
 
     const filteredOrders = orders.filter(order => {
+        const orderId = order.orderId || order._id;
+        const customerName = order.user?.name || 'Guest';
         const matchesSearch =
-            order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+            orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customerName.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
 
@@ -108,15 +134,17 @@ const StaffOrders = () => {
                         </InputGroup>
                         <Dropdown align="end" onSelect={(key) => setStatusFilter(key)}>
                             <Dropdown.Toggle variant="outline-light" className="text-dark border d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto shadow-none">
-                                <Filter size={16} /> {statusFilter === 'All' ? 'Filter Status' : statusFilter === 'Packed' ? 'Ready (Packed)' : statusFilter}
+                                <Filter size={16} /> {statusFilter === 'All' ? 'Filter Status' : statusFilter.replace(/_/g, ' ').toUpperCase()}
                             </Dropdown.Toggle>
                             <Dropdown.Menu>
                                 <Dropdown.Item eventKey="All" active={statusFilter === 'All'}>All Orders</Dropdown.Item>
                                 <Dropdown.Divider />
-                                <Dropdown.Item eventKey="Pending" active={statusFilter === 'Pending'}>Pending</Dropdown.Item>
-                                <Dropdown.Item eventKey="Processing" active={statusFilter === 'Processing'}>Processing</Dropdown.Item>
-                                <Dropdown.Item eventKey="Packed" active={statusFilter === 'Packed'}>Ready (Packed)</Dropdown.Item>
-                                <Dropdown.Item eventKey="Shipped" active={statusFilter === 'Shipped'}>Shipped</Dropdown.Item>
+                                <Dropdown.Item eventKey="pending" active={statusFilter === 'pending'}>Pending</Dropdown.Item>
+                                <Dropdown.Item eventKey="confirmed" active={statusFilter === 'confirmed'}>Confirmed</Dropdown.Item>
+                                <Dropdown.Item eventKey="preparing" active={statusFilter === 'preparing'}>Preparing</Dropdown.Item>
+                                <Dropdown.Item eventKey="out_for_delivery" active={statusFilter === 'out_for_delivery'}>Out for Delivery</Dropdown.Item>
+                                <Dropdown.Item eventKey="delivered" active={statusFilter === 'delivered'}>Delivered (Historic)</Dropdown.Item>
+                                <Dropdown.Item eventKey="cancelled" active={statusFilter === 'cancelled'}>Cancelled</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                     </div>
@@ -134,55 +162,62 @@ const StaffOrders = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredOrders.length > 0 ? (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-5">
+                                        <Spinner animation="border" variant="primary" size="sm" className="me-2" />
+                                        Loading orders...
+                                    </td>
+                                </tr>
+                            ) : filteredOrders.length > 0 ? (
                                 filteredOrders.map((order) => (
-                                    <tr key={order.id}>
-                                        <td className="ps-4 fw-bold">{order.id}</td>
+                                    <tr key={order._id}>
+                                        <td className="ps-4 fw-bold">{order.orderId}</td>
                                         <td>
-                                            <div>{order.customer}</div>
-                                            <small className="text-muted">{order.date}</small>
+                                            <div>{order.user?.name || 'Guest'}</div>
+                                            <small className="text-muted">{new Date(order.createdAt).toLocaleString()}</small>
                                         </td>
                                         <td>
                                             <Badge bg="light" text="dark" className="border">
-                                                {order.items} Items
+                                                {order.items?.length || 0} Items
                                             </Badge>
                                         </td>
-                                        <td className="fw-bold">{order.total}</td>
+                                        <td className="fw-bold">₹{order.totalAmount}</td>
                                         <td>
-                                            <Badge bg={getStatusBadge(order.status)} className="rounded-pill px-3 fw-normal">
-                                                {order.status === 'Packed' ? 'Ready' : order.status}
+                                            <Badge bg={getStatusBadge(order.status)} className="rounded-pill px-3 fw-normal uppercase">
+                                                {order.status.replace(/_/g, ' ')}
                                             </Badge>
                                         </td>
                                         <td className="text-end pe-4">
                                             <div className="d-flex justify-content-end gap-2">
-                                                {order.status === 'Pending' && (
+                                                {(order.status === 'confirmed' || order.status === 'pending') && (
                                                     <Button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        title="Start Processing"
-                                                        onClick={() => handleStatusUpdate(order.id, 'Processing')}
+                                                        title="Start Preparing"
+                                                        onClick={() => handleStatusUpdate(order._id, 'preparing')}
                                                     >
                                                         <Box size={16} /> Process
                                                     </Button>
                                                 )}
-                                                {order.status === 'Processing' && (
+                                                {order.status === 'preparing' && (
                                                     <Button
                                                         variant="success"
                                                         size="sm"
                                                         className="d-flex align-items-center gap-1"
-                                                        onClick={() => handleStatusUpdate(order.id, 'Packed')}
+                                                        onClick={() => handleStatusUpdate(order._id, 'out_for_delivery')}
                                                     >
-                                                        <CheckCircle size={16} /> Ready
+                                                        <CheckCircle size={16} /> Dispatch
                                                     </Button>
                                                 )}
-                                                {order.status === 'Packed' && (
+                                                {order.status === 'out_for_delivery' && (
                                                     <Button
-                                                        variant="outline-secondary"
+                                                        variant="outline-success"
                                                         size="sm"
-                                                        title="Mark Shipped"
-                                                        onClick={() => handleStatusUpdate(order.id, 'Shipped')}
+                                                        title="Mark Delivered"
+                                                        onClick={() => handleStatusUpdate(order._id, 'delivered')}
                                                     >
-                                                        <Truck size={16} /> Ship
+                                                        <Truck size={16} /> Delivered
                                                     </Button>
                                                 )}
                                                 <Button

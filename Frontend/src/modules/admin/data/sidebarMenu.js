@@ -3,10 +3,12 @@ export const adminSidebarMenu = [
         title: 'Dashboard',
         path: '/admin/dashboard',
         icon: 'LayoutDashboard',
+        permission: 'VIEW_DASHBOARD'
     },
     {
         title: 'Orders',
         icon: 'ShoppingCart',
+        permission: 'VIEW_ORDERS',
         submenu: [
             { title: 'All Orders', path: '/admin/orders' },
             { title: 'POS Orders', path: '/admin/orders/pos' },
@@ -17,6 +19,7 @@ export const adminSidebarMenu = [
     {
         title: 'Products',
         icon: 'Package',
+        permission: 'VIEW_PRODUCTS',
         submenu: [
             { title: 'All Products', path: '/admin/products' },
             { title: 'Add Product', path: '/admin/products/add' },
@@ -25,6 +28,7 @@ export const adminSidebarMenu = [
     {
         title: 'Categories & Brands',
         icon: 'Tag',
+        permission: 'MANAGE_CATEGORIES_BRANDS',
         submenu: [
             { title: 'All Categories', path: '/admin/categories' },
             { title: 'Add Category', path: '/admin/categories/add' },
@@ -35,6 +39,7 @@ export const adminSidebarMenu = [
     {
         title: 'Customers',
         icon: 'Users',
+        permission: 'VIEW_CUSTOMERS',
         submenu: [
             { title: 'All Customers', path: '/admin/customers' },
             { title: 'Customer Orders', path: '/admin/customers/orders' },
@@ -43,6 +48,7 @@ export const adminSidebarMenu = [
     {
         title: 'Staff Management',
         icon: 'Briefcase',
+        permission: 'MANAGE_STAFF',
         submenu: [
             { title: 'All Staff', path: '/admin/staff' },
             { title: 'Add Staff', path: '/admin/staff/add' },
@@ -51,6 +57,7 @@ export const adminSidebarMenu = [
     {
         title: 'Stock Management',
         icon: 'Boxes',
+        permission: 'MANAGE_INVENTORY',
         submenu: [
             { title: 'Stock Overview', path: '/admin/stock' },
             { title: 'Branch-wise Stock', path: '/admin/stock/branches' },
@@ -61,6 +68,7 @@ export const adminSidebarMenu = [
     {
         title: 'Delivery Management',
         icon: 'Truck',
+        permission: 'MANAGE_DELIVERY_BOYS',
         submenu: [
             { title: 'Delivery Partners', path: '/admin/delivery/partners' },
             { title: 'Assign Deliveries', path: '/admin/delivery/assign' },
@@ -70,6 +78,7 @@ export const adminSidebarMenu = [
     {
         title: 'Vendors',
         icon: 'Store',
+        permission: 'MANAGE_VENDORS',
         submenu: [
             { title: 'All Vendors', path: '/admin/vendors' },
             { title: 'Add Vendor', path: '/admin/vendors/add' },
@@ -80,6 +89,7 @@ export const adminSidebarMenu = [
     {
         title: 'Locations',
         icon: 'MapPin',
+        permission: 'MANAGE_BRANCHES',
         submenu: [
             { title: 'Branches', path: '/admin/locations/branches' },
             { title: 'Add Branch', path: '/admin/locations/branches/add' },
@@ -89,6 +99,7 @@ export const adminSidebarMenu = [
     {
         title: 'Offers & Sliders',
         icon: 'Percent',
+        permission: 'MANAGE_CAMPAIGNS',
         submenu: [
             { title: 'Offers', path: '/admin/offers' },
             { title: 'Banner Deals', path: '/admin/offers/deals' },
@@ -100,6 +111,7 @@ export const adminSidebarMenu = [
     {
         title: 'Promo Codes',
         icon: 'Ticket',
+        permission: 'MANAGE_CAMPAIGNS',
         submenu: [
             { title: 'All Promo Codes', path: '/admin/promocodes' },
             { title: 'Create Promo Code', path: '/admin/promocodes/create' },
@@ -108,6 +120,7 @@ export const adminSidebarMenu = [
     {
         title: 'Notifications',
         icon: 'Bell',
+        permission: 'MANAGE_SETTINGS',
         submenu: [
             { title: 'Push Notification', path: '/admin/notifications/push' }
         ]
@@ -115,6 +128,7 @@ export const adminSidebarMenu = [
     {
         title: 'Support Desk',
         icon: 'Headphones',
+        permission: 'VIEW_CUSTOMERS',
         submenu: [
             { title: 'Tickets', path: '/admin/support/tickets' },
             { title: 'Live Chat', path: '/admin/support/chat' },

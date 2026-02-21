@@ -172,13 +172,13 @@ const CategoryPage = () => {
                 </div>
 
                 {loading ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4">
                         {Array.from({ length: 12 }).map((_, i) => (
                             <ProductCardSkeleton key={i} />
                         ))}
                     </div>
                 ) : displayedProducts.length > 0 ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 animate-in fade-in duration-500">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4 animate-in fade-in duration-500">
                         {displayedProducts.map((product) => (
                             <ProductCard key={product._id || product.id} product={product} isCompact={true} />
                         ))}
@@ -213,7 +213,7 @@ const CategoryPage = () => {
                                 <ProductCard key={`rec-${product._id || product.id}`} product={product} isCompact={true} />
                             ))}
                         </div>
-                        </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -48,29 +48,37 @@ const ProductDetailsPage = () => {
 
                 // Fetch relative products
                 if (p.category) {
-                    const simres = await fetchProducts({ category: p.category, limit: 10 });
-                    const sim = simres.products.filter(simP => simP._id !== id).map(simP => ({
-                        id: simP._id,
-                        name: simP.name,
-                        image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
-                        price: simP.basePrice,
-                        mrp: simP.mrp,
-                        weight: `${simP.unitValue} ${simP.unitType}`
-                    }));
-                    setSimilarProducts(sim);
+                    try {
+                        const simres = await fetchProducts({ category: p.category, limit: 10 });
+                        const sim = (Array.isArray(simres) ? simres : (simres?.products || [])).filter(simP => simP._id !== id).map(simP => ({
+                            id: simP._id,
+                            name: simP.name,
+                            image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
+                            price: simP.basePrice,
+                            mrp: simP.mrp,
+                            weight: `${simP.unitValue} ${simP.unitType}`
+                        }));
+                        setSimilarProducts(sim);
+                    } catch (simErr) {
+                        console.error("Failed to load similar products:", simErr);
+                    }
                 }
 
                 // General Recommendations
-                const recres = await fetchProducts({ limit: 12 });
-                const rec = recres.products.filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
-                    id: recP._id,
-                    name: recP.name,
-                    image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
-                    price: recP.basePrice,
-                    mrp: recP.mrp,
-                    weight: `${recP.unitValue} ${recP.unitType}`
-                }));
-                setRecommendedProducts(rec);
+                try {
+                    const recres = await fetchProducts({ limit: 12 });
+                    const rec = (Array.isArray(recres) ? recres : (recres?.products || [])).filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
+                        id: recP._id,
+                        name: recP.name,
+                        image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
+                        price: recP.basePrice,
+                        mrp: recP.mrp,
+                        weight: `${recP.unitValue} ${recP.unitType}`
+                    }));
+                    setRecommendedProducts(rec);
+                } catch (recErr) {
+                    console.error("Failed to load recommended products:", recErr);
+                }
 
             } catch (err) {
                 console.error("Failed to load product details:", err);

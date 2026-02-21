@@ -1,50 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import * as orderApi from '../../api/orderApi';
+import { toast } from 'react-toastify';
 
 const OrderDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { token } = useAuth();
 
-    // Mock orders database matching OrdersPage
-    const ordersDB = {
-        'SG-1234': {
-            id: 'SG-1234',
-            status: 'Delivered',
-            date: '24 May 2024',
-            total: '₹450',
-            items: [
-                { name: 'Amul Taaza Milk', qty: 2, price: '₹108', img: 'https://pngimg.com/uploads/milk/milk_PNG12760.png' },
-                { name: 'Britannia Cheese', qty: 1, price: '₹90', img: 'https://pngimg.com/uploads/cheese/cheese_PNG25299.png' },
-                { name: 'Fresh White Bread', qty: 1, price: '₹45', img: 'https://pngimg.com/uploads/bread/bread_PNG421.png' }
-            ]
-        },
-        'SG-1235': {
-            id: 'SG-1235',
-            status: 'In Transit',
-            date: '25 May 2024',
-            total: '₹890',
-            items: [
-                { name: 'Fortune Chakki Atta', qty: 1, price: '₹450', img: 'https://pngimg.com/uploads/flour/flour_PNG35.png' },
-                { name: 'Basmati Rice', qty: 2, price: '₹320', img: 'https://pngimg.com/uploads/rice/rice_PNG18.png' },
-                { name: 'Mustard Oil', qty: 1, price: '₹120', img: 'https://pngimg.com/uploads/oil/oil_PNG62.png' }
-            ]
-        },
-        'SG-1236': {
-            id: 'SG-1236',
-            status: 'Processing',
-            date: 'Today',
-            total: '₹320',
-            items: [
-                { name: 'Fresh Apple', qty: 6, price: '₹120', img: 'https://pngimg.com/uploads/apple/apple_PNG12458.png' },
-                { name: 'Ripe Banana', qty: 12, price: '₹60', img: 'https://pngimg.com/uploads/banana/banana_PNG827.png' },
-                { name: 'Green Vegetables Mix', qty: 1, price: '₹140', img: 'https://pngimg.com/uploads/vegetables/vegetables_PNG11811.png' }
-            ]
-        }
-    };
+    const [order, setOrder] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Get the specific order or fallback to the first one
-    const order = ordersDB[id] || ordersDB['SG-1234'];
+    useEffect(() => {
+        const loadOrder = async () => {
+            if (token && id) {
+                try {
+                    setIsLoading(true);
+                    const data = await orderApi.fetchOrderDetails(token, id);
+
+                    const d = new Date(data.createdAt);
+                    const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+                    const processedOrder = {
+                        id: data._id,
+                        status: data.status,
+                        date: formattedDate,
+                        total: '₹' + data.totalAmount.toFixed(2),
+                        items: data.items.map(item => ({
+                            name: item.name || item.product?.name || "Unknown Product",
+                            qty: item.quantity,
+                            price: '₹' + item.price,
+                            img: item.image || (item.product?.image && item.product.image) || 'https://via.placeholder.com/150'
+                        }))
+                    };
+                    setOrder(processedOrder);
+                } catch (err) {
+                    toast.error("Failed to load secure order details.");
+                    navigate('/orders');
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
+        loadOrder();
+    }, [token, id, navigate]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex justify-center items-center bg-[#f4f6f8] dark:bg-[#141414]">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0c831f]"></div>
+            </div>
+        );
+    }
+
+    if (!order) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-24">
@@ -56,7 +67,7 @@ const OrderDetailsPage = () => {
                     </button>
                     <div>
                         <div className="!text-[11.5px] md:!text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1">Order Summary</div>
-                        <p className="!text-[7.5px] md:!text-base text-gray-400 font-bold tracking-widest uppercase">#{order.id} • {order.date}</p>
+                        <p className="!text-[7.5px] md:!text-base text-gray-400 font-bold tracking-widest uppercase">#{order.id.slice(-6).toUpperCase()} • {order.date}</p>
                     </div>
                 </div>
             </div>
@@ -67,16 +78,16 @@ const OrderDetailsPage = () => {
                     <div className="flex items-center justify-between relative text-center">
                         <div className="absolute top-3.5 left-[15%] right-[15%] h-[1px] bg-gray-200 dark:bg-white/10 -z-0"></div>
                         <div className="flex flex-col items-center gap-1 z-10 relative">
-                            <div className="w-6 h-6 rounded-full bg-[#0c831f] text-white flex items-center justify-center shadow-md shadow-green-500/10"><Package size={10} /></div>
-                            <span className="text-[7px] md:text-sm font-black text-gray-400 uppercase tracking-tight">Placed</span>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${order.status === 'cancelled' ? 'bg-red-600 text-white shadow-red-500/10' : 'bg-[#0c831f] text-white shadow-green-500/10'}`}><Package size={10} /></div>
+                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${order.status === 'cancelled' ? 'text-red-500' : 'text-gray-400'}`}>Placed</span>
                         </div>
                         <div className="flex flex-col items-center gap-1 z-10 relative">
-                            <div className="w-6 h-6 rounded-full bg-[#0c831f] text-white flex items-center justify-center shadow-md shadow-green-500/10"><Truck size={10} /></div>
-                            <span className="text-[7px] md:text-sm font-black text-gray-400 uppercase tracking-tight">Shipped</span>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${['out_for_delivery', 'delivered'].includes(order.status) ? 'bg-[#0c831f] text-white shadow-green-500/10' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}><Truck size={10} /></div>
+                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${['out_for_delivery', 'delivered'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>Shipped</span>
                         </div>
                         <div className="flex flex-col items-center gap-1 z-10 relative">
-                            <div className="w-6 h-6 rounded-full bg-[#0c831f] text-white flex items-center justify-center shadow-md shadow-green-500/10"><CheckCircle size={10} /></div>
-                            <span className="text-[7px] md:text-sm font-black text-[#0c831f] uppercase tracking-tight">Delivered</span>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${order.status === 'delivered' ? 'bg-[#0c831f] text-white shadow-green-500/10' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}><CheckCircle size={10} /></div>
+                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${order.status === 'delivered' ? 'text-[#0c831f]' : 'text-gray-400'}`}>Delivered</span>
                         </div>
                     </div>
                 </div>
