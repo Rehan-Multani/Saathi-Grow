@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Bell, ShoppingBag, Tag, Info, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -25,7 +25,7 @@ const NotificationsPage = () => {
         },
         {
             id: 3,
-            title: "Welcome to SaathiGro!",
+            title: "Welcome to sathiGro!",
             message: "Thank you for joining us. Complete your profile to get a free delivery coupon.",
             time: "1 day ago",
             icon: Bell,
@@ -93,3 +93,4 @@ const NotificationsPage = () => {
 };
 
 export default NotificationsPage;
+

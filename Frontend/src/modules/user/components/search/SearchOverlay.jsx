@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
@@ -160,7 +160,7 @@ const SearchOverlay = () => {
                         >
                             <img
                                 src={logo}
-                                alt="SaathiGro Logo"
+                                alt="sathiGro Logo"
                                 className={`h-8 w-auto object-contain transition-all duration-300 hover:scale-105 ${isDarkMode
                                     ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
                                     : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
@@ -367,3 +367,4 @@ const SearchOverlay = () => {
 };
 
 export default SearchOverlay;
+

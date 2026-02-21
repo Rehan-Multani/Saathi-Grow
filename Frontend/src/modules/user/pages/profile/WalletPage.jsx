@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Wallet, ArrowLeft, Plus, TrendingUp, History, ChevronRight, CreditCard, ShieldCheck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -37,7 +37,7 @@ const WalletPage = () => {
                 <div className="px-6 py-4 bg-transparent md:bg-gray-50 dark:md:bg-white/5 mb-0 md:mb-6 md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                         <span className="!text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Total Balance</span>
-                        <h2 className="!text-[36px] md:!text-[28px] font-black text-gray-900 dark:text-white leading-none tracking-tighter mb-4">₹{balance.toFixed(2)}</h2>
+                        <h2 className="!text-[36px] md:!text-[28px] font-black text-gray-900 dark:text-white leading-none tracking-tighter mb-4">â‚¹{balance.toFixed(2)}</h2>
 
                         <div className="flex gap-4 w-full max-w-[280px]">
                             <button
@@ -57,7 +57,7 @@ const WalletPage = () => {
                 <div className="grid grid-cols-2 divide-x divide-gray-200/50 dark:divide-white/5 border-y border-gray-100 dark:border-white/5 mb-8 bg-transparent md:bg-transparent">
                     <div className="py-4 md:py-4 flex flex-col items-center">
                         <p className="!text-[9px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Spent this month</p>
-                        <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹1,240.00</p>
+                        <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">â‚¹1,240.00</p>
                     </div>
                     <div className="py-4 md:py-4 flex flex-col items-center">
                         <p className="!text-[9px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Saathi Points</p>
@@ -86,7 +86,7 @@ const WalletPage = () => {
                                 </div>
                                 <div className="text-right flex flex-col items-end">
                                     <p className={`!text-[14px] md:!text-lg font-black ${tx.type === 'credited' ? 'text-green-500' : 'text-gray-900 dark:text-gray-100'}`}>
-                                        {tx.type === 'credited' ? '+' : '-'}₹{tx.amount.toFixed(2)}
+                                        {tx.type === 'credited' ? '+' : '-'}â‚¹{tx.amount.toFixed(2)}
                                     </p>
                                     <span className="!text-[8px] md:!text-[10px] font-black text-white px-1.5 py-0.5 md:px-1.5 md:py-0.5 bg-[#0c831f] rounded uppercase tracking-tighter leading-none mt-1">Success</span>
                                 </div>
@@ -99,7 +99,7 @@ const WalletPage = () => {
                 <div className="mt-6 md:mt-8 px-6 md:px-0 py-4 md:py-0 md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl md:bg-white dark:md:bg-[#141414] md:p-6 flex flex-col items-center">
                     <ShieldCheck size={24} className="text-[#0c831f] opacity-30 mb-2" />
                     <p className="!text-[10px] md:!text-sm text-gray-400 font-bold text-center leading-relaxed max-w-[240px] md:max-w-none">
-                        SaathiGro uses bank-grade security for all your transactions.
+                        sathiGro uses bank-grade security for all your transactions.
                     </p>
                 </div>
             </div>
@@ -108,4 +108,5 @@ const WalletPage = () => {
 };
 
 export default WalletPage;
+
 

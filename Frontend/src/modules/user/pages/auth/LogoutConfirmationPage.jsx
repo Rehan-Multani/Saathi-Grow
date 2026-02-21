@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut, ArrowLeft, ShieldAlert } from 'lucide-react';
@@ -19,7 +19,7 @@ const LogoutConfirmationPage = () => {
                     <ShieldAlert size={32} />
                 </div>
 
-                <h1 className="text-xl font-black text-gray-900 dark:text-white mb-2 leading-tight">Sign out of SaathiGro?</h1>
+                <h1 className="text-xl font-black text-gray-900 dark:text-white mb-2 leading-tight">Sign out of sathiGro?</h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-8 leading-relaxed">
                     You'll need to sign in again to access your orders, saved addresses, and profile settings.
                 </p>
@@ -48,3 +48,4 @@ const LogoutConfirmationPage = () => {
 };
 
 export default LogoutConfirmationPage;
+

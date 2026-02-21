@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import {
     Search,
@@ -13,11 +13,11 @@ import {
 
 const DeliveryHistory = () => {
     const historicalOrders = [
-        { id: 'SG-0841', date: '21 Feb 2024', status: 'Delivered', amount: '₹45.00', items: '2 Items', customer: 'Rohan J.', location: 'Palasia' },
-        { id: 'SG-0842', date: '21 Feb 2024', status: 'Cancelled', amount: '₹0.00', items: '1 Item', customer: 'Sneha M.', location: 'LIG Sq.' },
-        { id: 'SG-0835', date: '20 Feb 2024', status: 'Delivered', amount: '₹38.00', items: '5 Items', customer: 'Vikas T.', location: 'Bhawarkua' },
-        { id: 'SG-0830', date: '20 Feb 2024', status: 'Delivered', amount: '₹42.00', items: '3 Items', customer: 'Anjali R.', location: 'Annapurna' },
-        { id: 'SG-0824', date: '19 Feb 2024', status: 'Delivered', amount: '₹55.00', items: '7 Items', customer: 'Kunal S.', location: 'Geeta Bhawan' },
+        { id: 'SG-0841', date: '21 Feb 2024', status: 'Delivered', amount: 'â‚¹45.00', items: '2 Items', customer: 'Rohan J.', location: 'Palasia' },
+        { id: 'SG-0842', date: '21 Feb 2024', status: 'Cancelled', amount: 'â‚¹0.00', items: '1 Item', customer: 'Sneha M.', location: 'LIG Sq.' },
+        { id: 'SG-0835', date: '20 Feb 2024', status: 'Delivered', amount: 'â‚¹38.00', items: '5 Items', customer: 'Vikas T.', location: 'Bhawarkua' },
+        { id: 'SG-0830', date: '20 Feb 2024', status: 'Delivered', amount: 'â‚¹42.00', items: '3 Items', customer: 'Anjali R.', location: 'Annapurna' },
+        { id: 'SG-0824', date: '19 Feb 2024', status: 'Delivered', amount: 'â‚¹55.00', items: '7 Items', customer: 'Kunal S.', location: 'Geeta Bhawan' },
     ];
 
     return (
@@ -76,7 +76,7 @@ const DeliveryHistory = () => {
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
                                             <span className="font-bold text-slate-700 dark:text-slate-200">{order.customer}</span>
-                                            <span className="text-xs font-medium text-slate-400">{order.date} • {order.location}</span>
+                                            <span className="text-xs font-medium text-slate-400">{order.date} â€¢ {order.location}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
@@ -92,7 +92,7 @@ const DeliveryHistory = () => {
                                         <span className="font-black text-slate-900 dark:text-white text-lg">{order.amount}</span>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <ChevronRight size={20} className="text-slate-300 group-hover:text-pink-500 transition-colors inline" />
+                                        <ChevronRight size={20} className="text-slate-300 group-hover:text-lime-500 transition-colors inline" />
                                     </td>
                                 </tr>
                             ))}
@@ -113,3 +113,4 @@ const DeliveryHistory = () => {
 };
 
 export default DeliveryHistory;
+

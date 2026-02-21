@@ -1,4 +1,4 @@
-export const getOccasionConfig = (slug) => {
+﻿export const getOccasionConfig = (slug) => {
     switch (slug) {
         case 'valentine-week':
             return {
@@ -9,20 +9,21 @@ export const getOccasionConfig = (slug) => {
                 bgColor: "#fce4ec", // Light Pink
                 accentColor: "#f8bbd0",
                 productIds: [1201, 1202, 1203, 1205, 1206, 1802, 1104], // Chocolates, Grooming
-                icon: "💖"
+                icon: "ðŸ’–"
             };
         case 'saathi-select':
             return {
                 title: "Saathi Signature",
                 subtitle: "Our Premium Collection",
-                description: "Experience the finest quality with Saathi Gro's exclusive signature range.",
+                description: "Experience the finest quality with sathiGro's exclusive signature range.",
                 themeColor: "#15803d", // Brand Green (green-700)
                 bgColor: "#f0fdf4", // Light Green (green-50)
                 accentColor: "#dcfce7", // green-100
                 productIds: [101, 102, 103, 104, 105, 106], // Staples: Tomato, Onion, Potato, Banana, etc.
-                icon: "🌿"
+                icon: "ðŸŒ¿"
             };
         default:
             return null;
     }
 };
+

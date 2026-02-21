@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Heart } from 'lucide-react';
 
@@ -9,7 +9,7 @@ export const useWishlist = () => useContext(WishlistContext);
 export const WishlistProvider = ({ children }) => {
     const [wishlist, setWishlist] = useState(() => {
         try {
-            const savedWishlist = localStorage.getItem('saathigro_wishlist');
+            const savedWishlist = localStorage.getItem('sathiGro_wishlist');
             return savedWishlist ? JSON.parse(savedWishlist) : [];
         } catch (error) {
             console.error('Error loading wishlist from localStorage:', error);
@@ -19,7 +19,7 @@ export const WishlistProvider = ({ children }) => {
 
     useEffect(() => {
         try {
-            localStorage.setItem('saathigro_wishlist', JSON.stringify(wishlist));
+            localStorage.setItem('sathiGro_wishlist', JSON.stringify(wishlist));
         } catch (error) {
             console.error('Error saving wishlist to localStorage:', error);
         }
@@ -83,3 +83,4 @@ export const WishlistProvider = ({ children }) => {
         </WishlistContext.Provider>
     );
 };
+

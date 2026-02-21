@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -25,14 +25,14 @@
   /* Saathi Dashboard Theme Tokens */
   --dashboard-bg: #f8fafc;
   --dashboard-sidebar: #0f172a;
-  --dashboard-primary: #2563eb;
+  --dashboard-primary: #CCFF00;
   --dashboard-secondary: #64748b;
   --dashboard-text-main: #0f172a;
   --dashboard-text-muted: #64748b;
   --dashboard-border: #e2e8f0;
 
   /* Saathi Brand Colors */
-  --saathi-green: #0c831f;
+  --saathi-green: #CCFF00;
   --saathi-yellow: #fbbf24;
 }
 

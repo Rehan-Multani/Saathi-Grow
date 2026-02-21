@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
 import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map, Mic, Globe } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
@@ -161,7 +161,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
           <Link to="/" className="flex-shrink-0 flex items-center">
             <img
               src={logo}
-              alt="SaathiGro"
+              alt="sathiGro"
               className={`h-9 w-auto object-contain transition-all duration-300 ${isDarkMode
                 ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
                 : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
@@ -247,7 +247,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
                   <div className="p-1.5 space-y-0.5">
                     {[
                       { name: 'English', sub: 'Default' },
-                      { name: 'Hindi', sub: 'हिंदी' }
+                      { name: 'Hindi', sub: 'à¤¹à¤¿à¤‚à¤¦à¥€' }
                     ].map((lang) => (
                       <button
                         key={lang.name}
@@ -294,7 +294,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
               <Link to="/" className="flex-shrink-0 flex items-center group">
                 <img
                   src={logo}
-                  alt="SaathiGro Logo"
+                  alt="sathiGro Logo"
                   className={`h-10 w-auto object-contain transition-all duration-300 hover:scale-105 ${isDarkMode
                     ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
                     : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
@@ -388,3 +388,4 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
 };
 
 export default Navbar;
+

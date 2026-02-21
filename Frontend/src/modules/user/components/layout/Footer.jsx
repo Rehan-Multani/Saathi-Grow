@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 
@@ -20,7 +20,7 @@ const Footer = ({ customTheme }) => {
 
           {/* Brand Section */}
           <div className="flex flex-col items-start text-left min-w-fit">
-            <Link to="/" className="text-[9px] sm:text-2xl font-black text-[#0c831f] tracking-tighter mb-2 sm:mb-4">SaathiGro</Link>
+            <Link to="/" className="text-[9px] sm:text-2xl font-black text-[#0c831f] tracking-tighter mb-2 sm:mb-4">sathiGro</Link>
             <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed max-w-[100px] hidden lg:block">
               Fresh groceries delivered to your home in minutes.
             </p>
@@ -66,12 +66,12 @@ const Footer = ({ customTheme }) => {
         {/* Copyright Bar */}
         <div className="pt-2 border-t border-gray-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-1">
           <p className="text-gray-400 dark:text-gray-500 text-[8px] md:text-xs font-medium">
-            © {new Date().getFullYear()} SaathiGro Technologies Pvt. Ltd. All rights reserved.
+            Â© {new Date().getFullYear()} sathiGro Technologies Pvt. Ltd. All rights reserved.
           </p>
           <div className="flex items-center gap-1 text-gray-400 dark:text-gray-500 text-[10px] md:text-xs font-medium">
             <span>Built with</span>
-            <span className="text-red-500">❤️</span>
-            <span>for SaathiGro Users</span>
+            <span className="text-red-500">â¤ï¸</span>
+            <span>for sathiGro Users</span>
           </div>
         </div>
       </div>
@@ -80,3 +80,4 @@ const Footer = ({ customTheme }) => {
 };
 
 export default Footer;
+

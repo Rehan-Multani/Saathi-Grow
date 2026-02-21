@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+﻿import { createContext, useContext, useState, useEffect } from 'react';
 
 const StaffAuthContext = createContext();
 
@@ -6,7 +6,7 @@ export const useStaffAuth = () => useContext(StaffAuthContext);
 
 export const StaffAuthProvider = ({ children }) => {
     const [staffUser, setStaffUser] = useState(() => {
-        const saved = localStorage.getItem('saathigro_staff');
+        const saved = localStorage.getItem('sathiGro_staff');
         return saved ? JSON.parse(saved) : null;
     });
 
@@ -22,7 +22,7 @@ export const StaffAuthProvider = ({ children }) => {
                     role: 'Store Associate'
                 };
                 setStaffUser(mockStaff);
-                localStorage.setItem('saathigro_staff', JSON.stringify(mockStaff));
+                localStorage.setItem('sathiGro_staff', JSON.stringify(mockStaff));
                 resolve(mockStaff);
             } else {
                 reject(new Error('Invalid email or password'));
@@ -32,7 +32,7 @@ export const StaffAuthProvider = ({ children }) => {
 
     const staffLogout = () => {
         setStaffUser(null);
-        localStorage.removeItem('saathigro_staff');
+        localStorage.removeItem('sathiGro_staff');
     };
 
     return (
@@ -41,3 +41,4 @@ export const StaffAuthProvider = ({ children }) => {
         </StaffAuthContext.Provider>
     );
 };
+

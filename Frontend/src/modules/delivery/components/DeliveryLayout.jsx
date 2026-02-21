@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNotifications } from './NotificationProvider';
+
+const OPEN_ORDER_EVENT = 'delivery:open-order';
 
 const DeliveryLayout = ({ children }) => {
     const navigate = useNavigate();
@@ -58,8 +60,9 @@ const DeliveryLayout = ({ children }) => {
     const handleNotificationClick = (notification) => {
         markAsRead(notification.id);
         setIsNotificationOpen(false);
-        if (notification.id) {
-            navigate(`/delivery/tracking/${notification.id}`);
+        if (notification.order) {
+            window.dispatchEvent(new CustomEvent(OPEN_ORDER_EVENT, { detail: notification.order }));
+            navigate('/delivery/dashboard');
             return;
         }
         navigate('/delivery/orders');
@@ -78,8 +81,8 @@ const DeliveryLayout = ({ children }) => {
             {/* Mobile Header */}
             <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-4 z-40 md:hidden">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-red-600 flex items-center justify-center text-white font-bold">S</div>
-                    <span className="font-bold text-lg tracking-tight">Saathi<span className="text-pink-600">Grow</span></span>
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center text-white font-bold">S</div>
+                    <span className="font-bold text-lg tracking-tight">sathiGro</span>
                 </div>
                 <div className="flex items-center gap-4">
                     <button
@@ -89,7 +92,7 @@ const DeliveryLayout = ({ children }) => {
                     >
                         <Bell size={20} />
                         {unreadCount > 0 && (
-                            <span className="absolute top-1 right-1 w-4 h-4 bg-pink-600 text-[8px] font-black text-white rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900">
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-lime-600 text-[8px] font-black text-white rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900">
                                 {Math.min(unreadCount, 9)}
                             </span>
                         )}
@@ -136,7 +139,7 @@ const DeliveryLayout = ({ children }) => {
                         {notifications.map((notification) => (
                             <div
                                 key={notification.id}
-                                className={`px-4 py-3 border-b border-slate-100 dark:border-zinc-800/80 flex items-start gap-3 ${notification.read ? 'bg-transparent' : 'bg-pink-50/60 dark:bg-pink-500/10'}`}
+                                className={`px-4 py-3 border-b border-slate-100 dark:border-zinc-800/80 flex items-start gap-3 ${notification.read ? 'bg-transparent' : 'bg-lime-50/60 dark:bg-lime-500/10'}`}
                             >
                                 <button
                                     onClick={() => handleNotificationClick(notification)}
@@ -170,8 +173,8 @@ const DeliveryLayout = ({ children }) => {
             <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 hidden md:flex flex-col z-40">
                 <div className="p-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-red-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-pink-500/20">S</div>
-                        <span className="font-bold text-xl tracking-tight">Saathi<span className="text-pink-600 font-black">Grow</span></span>
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-lime-500/20">S</div>
+                        <span className="font-bold text-xl tracking-tight">sathiGro</span>
                     </div>
                 </div>
 
@@ -183,7 +186,7 @@ const DeliveryLayout = ({ children }) => {
                             className={({ isActive }) => `
                                 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                                 ${isActive
-                                    ? 'bg-gradient-to-r from-pink-500 to-red-600 text-white shadow-md shadow-pink-500/20 font-medium'
+                                    ? 'bg-gradient-to-r from-lime-500 to-lime-600 text-white shadow-md shadow-lime-500/20 font-medium'
                                     : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'}
                             `}
                         >
@@ -196,7 +199,7 @@ const DeliveryLayout = ({ children }) => {
                 <div className="p-4 border-t border-slate-200 dark:border-zinc-800">
                     <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-2xl p-4 mb-4">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full border-2 border-pink-500 p-0.5">
+                            <div className="w-10 h-10 rounded-full border-2 border-lime-500 p-0.5">
                                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className="w-full h-full rounded-full" alt="profile" />
                             </div>
                             <div>
@@ -233,14 +236,14 @@ const DeliveryLayout = ({ children }) => {
                         to={item.path}
                         className={({ isActive }) => `
                             flex flex-col items-center gap-1 transition-all duration-200
-                            ${isActive ? 'text-pink-600' : 'text-slate-400 dark:text-zinc-500'}
+                            ${isActive ? 'text-lime-600' : 'text-slate-400 dark:text-zinc-500'}
                         `}
                     >
                         {({ isActive }) => (
                             <>
                                 <motion.div
                                     whileTap={{ scale: 0.9 }}
-                                    className={`p-2 rounded-xl ${isActive ? 'bg-pink-50 dark:bg-pink-500/10' : ''}`}
+                                    className={`p-2 rounded-xl ${isActive ? 'bg-lime-50 dark:bg-lime-500/10' : ''}`}
                                 >
                                     {React.cloneElement(item.icon, { size: 24, strokeWidth: isActive ? 2.5 : 2 })}
                                 </motion.div>
@@ -257,3 +260,4 @@ const DeliveryLayout = ({ children }) => {
 };
 
 export default DeliveryLayout;
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import StoreManagerSidebar from './components/StoreManagerSidebar';
 import { Menu, Bell, Search, User, Settings, LogOut, ChevronDown, MapPin, Command } from 'lucide-react';
@@ -83,7 +83,7 @@ const StoreManagerLayout = () => {
                                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
                                         <div className="px-4 py-3 border-b border-slate-100 mb-1">
                                             <p className="text-xs font-medium text-slate-500">Logged in as</p>
-                                            <p className="text-sm font-semibold text-slate-800 truncate">rehan.khan@saathigro.corp</p>
+                                            <p className="text-sm font-semibold text-slate-800 truncate">rehan.khan@sathiGro.corp</p>
                                         </div>
                                         <div className="px-1">
                                             {[
@@ -117,7 +117,7 @@ const StoreManagerLayout = () => {
                 <footer className="py-4 px-6 border-t border-slate-200 bg-white">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
                         <p className="text-[11px] text-slate-400 font-medium">
-                            © 2024 SaathiGro Store Management System
+                            Â© 2024 sathiGro Store Management System
                         </p>
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
@@ -134,3 +134,4 @@ const StoreManagerLayout = () => {
 };
 
 export default StoreManagerLayout;
+

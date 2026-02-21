@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Headset, MessageCircle, HelpCircle, Phone, Mail, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -13,8 +13,8 @@ const HelpPage = () => {
             a: "You can track your order in real-time by going to 'My Orders' section in your profile. Once an order is placed, you'll see a 'Track Order' button with the delivery partner's details."
         },
         {
-            q: "What is SaathiGro Wallet?",
-            a: "SaathiGro Wallet is a secure digital wallet where you can store money for faster checkouts. All refunds are credited instantly to your wallet, and you can also use it to earn and redeem loyalty points."
+            q: "What is sathiGro Wallet?",
+            a: "sathiGro Wallet is a secure digital wallet where you can store money for faster checkouts. All refunds are credited instantly to your wallet, and you can also use it to earn and redeem loyalty points."
         },
         {
             q: "What are the delivery hours?",
@@ -22,13 +22,13 @@ const HelpPage = () => {
         },
         {
             q: "Is there a minimum order value?",
-            a: "No, there is no minimum order value. However, orders below ₹99 may incur a nominal delivery fee unless you are a Saathi Plus member."
+            a: "No, there is no minimum order value. However, orders below â‚¹99 may incur a nominal delivery fee unless you are a Saathi Plus member."
         }
     ];
 
     const handleChat = () => {
         // Mock WhatsApp integration or live chat
-        window.open("https://wa.me/911234567890?text=Hello SaathiGro Support, I need help with my order.", "_blank");
+        window.open("https://wa.me/911234567890?text=Hello sathiGro Support, I need help with my order.", "_blank");
     };
 
     return (
@@ -124,9 +124,9 @@ const HelpPage = () => {
                         <Mail size={22} className="text-[#0c831f]" />
                     </div>
                     <h4 className="!text-[12px] font-black text-gray-900 dark:text-gray-100 mb-1 tracking-tight">Prefer Email?</h4>
-                    <p className="!text-[9px] text-gray-500 mb-5 font-bold uppercase tracking-widest opacity-70">Reach out at support@saathigro.com</p>
+                    <p className="!text-[9px] text-gray-500 mb-5 font-bold uppercase tracking-widest opacity-70">Reach out at support@sathiGro.com</p>
                     <a
-                        href="mailto:support@saathigro.com?subject=Support Request - SaathiGro"
+                        href="mailto:support@sathiGro.com?subject=Support Request - sathiGro"
                         className="w-full inline-flex items-center justify-center bg-[#0c831f] text-white py-3 rounded-xl font-black !text-[11px] shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all uppercase tracking-widest"
                     >
                         Compose Message
@@ -138,3 +138,4 @@ const HelpPage = () => {
 };
 
 export default HelpPage;
+

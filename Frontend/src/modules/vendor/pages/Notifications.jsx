@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Bell, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,9 +9,9 @@ const Notifications = () => {
     const notifications = [
         { id: 1, title: 'New Order Received', message: 'Order #ORD-003 received from Customer.', time: '2 mins ago', type: 'order', read: false },
         { id: 2, title: 'Low Stock Alert', message: 'Amul Taaza Milk is running low. Restock now.', time: '1 hour ago', type: 'alert', read: false },
-        { id: 3, title: 'Payout Processed', message: 'Weekly payout of ₹15,400 has been processed.', time: 'Yesterday', type: 'info', read: true },
+        { id: 3, title: 'Payout Processed', message: 'Weekly payout of â‚¹15,400 has been processed.', time: 'Yesterday', type: 'info', read: true },
         { id: 4, title: 'Order Delivered', message: 'Order #ORD-001 has been successfully delivered.', time: 'Yesterday', type: 'order', read: true },
-        { id: 5, title: 'Welcome to SaathiGro', message: 'Your shop is live! Start adding products to get orders.', time: '2 days ago', type: 'info', read: true },
+        { id: 5, title: 'Welcome to sathiGro', message: 'Your shop is live! Start adding products to get orders.', time: '2 days ago', type: 'info', read: true },
     ];
 
     return (
@@ -66,3 +66,4 @@ const Notifications = () => {
 };
 
 export default Notifications;
+

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Wallet as WalletIcon,
@@ -32,7 +32,7 @@ const WalletPage = () => {
                     <h1 className="text-3xl font-black tracking-tight mb-2">My Wallet</h1>
                     <p className="text-slate-500 font-medium">Manage your earnings and payouts</p>
                 </div>
-                {loading && <Loader2 className="animate-spin text-pink-500" size={24} />}
+                {loading && <Loader2 className="animate-spin text-lime-500" size={24} />}
             </div>
 
             {/* Wallet Header Card */}
@@ -42,7 +42,7 @@ const WalletPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="relative bg-zinc-900 rounded-[3rem] p-10 text-white overflow-hidden shadow-2xl shadow-black/30"
                 >
-                    <div className="absolute top-0 right-0 w-80 h-80 bg-pink-600/20 rounded-full blur-[80px] -mr-20 -mt-20"></div>
+                    <div className="absolute top-0 right-0 w-80 h-80 bg-lime-600/20 rounded-full blur-[80px] -mr-20 -mt-20"></div>
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[60px] -ml-20 -mb-20"></div>
 
                     <div className="relative z-10">
@@ -54,13 +54,13 @@ const WalletPage = () => {
                                     <span className="text-2xl text-slate-500">.{(wallet?.balance % 1).toFixed(2).substring(2) || '00'}</span>
                                 </h2>
                             </div>
-                            <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/10 text-pink-500">
+                            <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/10 text-lime-500">
                                 <WalletIcon size={28} />
                             </div>
                         </div>
 
                         <div className="flex gap-4">
-                            <button className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-red-600 rounded-2xl font-black text-sm tracking-widest uppercase shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+                            <button className="flex-1 py-4 bg-gradient-to-r from-lime-500 to-lime-600 rounded-2xl font-black text-sm tracking-widest uppercase shadow-lg shadow-lime-500/20 active:scale-95 transition-all">
                                 Request Payout
                             </button>
                             <button className="flex-1 py-4 bg-white/10 backdrop-blur-md rounded-2xl font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all border border-white/10">
@@ -85,7 +85,7 @@ const WalletPage = () => {
                     </div>
 
                     <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-zinc-800 shadow-sm">
-                        <div className="w-12 h-12 bg-pink-50 dark:bg-pink-500/10 text-pink-500 rounded-2xl flex items-center justify-center mb-6">
+                        <div className="w-12 h-12 bg-lime-50 dark:bg-lime-500/10 text-lime-500 rounded-2xl flex items-center justify-center mb-6">
                             <CreditCard size={24} />
                         </div>
                         <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Pending Payouts</p>
@@ -115,7 +115,7 @@ const WalletPage = () => {
                             <div className="flex-1">
                                 <h5 className="font-bold text-slate-900 dark:text-white uppercase text-sm mb-1">{tx.category.replace('_', ' ')}</h5>
                                 <p className="text-xs text-slate-500 font-medium">
-                                    {new Date(tx.createdAt).toLocaleDateString()} • {new Date(tx.createdAt).toLocaleTimeString()}
+                                    {new Date(tx.createdAt).toLocaleDateString()} â€¢ {new Date(tx.createdAt).toLocaleTimeString()}
                                 </p>
                             </div>
                             <div className="text-right">
@@ -149,3 +149,4 @@ const WalletPage = () => {
 };
 
 export default WalletPage;
+

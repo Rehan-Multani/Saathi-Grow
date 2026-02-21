@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Clock,
@@ -21,9 +21,14 @@ import { useAuth } from '../../user/context/AuthContext';
 import useDelivery from '../hooks/useDelivery';
 import { useNavigate } from 'react-router-dom';
 import useLocationTracking from '../hooks/useLocationTracking';
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { createDummyOrder } from '../data/mockDeliveryData';
+
+const NEW_ORDER_EVENT = 'delivery:new-order';
+const OPEN_ORDER_EVENT = 'delivery:open-order';
+const ORDER_ACCEPTED_EVENT = 'delivery:order-accepted';
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -78,13 +83,29 @@ const DeliveryDashboard = () => {
         loading,
         updateLocation,
         toggleStatus,
-        refreshAll,
-        simulate
+        refreshAll
     } = useDelivery(token);
 
     const [incomingOrder, setIncomingOrder] = useState(null);
     const [acceptedOrder, setAcceptedOrder] = useState(null);
     const [mapStatus, setMapStatus] = useState('assigned'); // assigned -> picked -> delivered
+
+    useEffect(() => {
+        const handleIncomingOrder = (event) => {
+            const order = event.detail;
+            if (order?._id) {
+                setIncomingOrder(order);
+            }
+        };
+
+        window.addEventListener(NEW_ORDER_EVENT, handleIncomingOrder);
+        window.addEventListener(OPEN_ORDER_EVENT, handleIncomingOrder);
+
+        return () => {
+            window.removeEventListener(NEW_ORDER_EVENT, handleIncomingOrder);
+            window.removeEventListener(OPEN_ORDER_EVENT, handleIncomingOrder);
+        };
+    }, []);
 
 
     const isOnline = profile?.status === 'online';
@@ -131,29 +152,27 @@ const DeliveryDashboard = () => {
     }, [transactions, chartRange]);
 
     const handleToggle = async () => {
-        await toggleStatus(profile?.status);
-        await refreshAll();
+        try {
+            await toggleStatus(profile?.status);
+            await refreshAll();
+        } catch (error) {
+            console.error('Failed to toggle partner status:', error);
+        }
     };
 
-    const handleSimulate = async () => {
-        // Instead of API simulation, we'll show our dummy frontend notification
-        setIncomingOrder({
-            id: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            customer: 'Rajesh Kumar',
-            restaurant: 'Spice Garden (Vijay Nagar)',
-            distance: '3.2 km',
-            fare: '₹45.00',
-            time: '12-15 mins',
-            items: ['Butter Chicken x1', 'Garlic Naan x2'],
-            coords: {
-                pickup: [22.7533, 75.8937],
-                delivery: [22.7244, 75.8839]
-            }
-        });
+    const handleSimulate = () => {
+        try {
+            const order = createDummyOrder();
+            window.dispatchEvent(new CustomEvent(NEW_ORDER_EVENT, { detail: order }));
+        } catch (error) {
+            console.error('Failed to simulate order:', error);
+        }
     };
 
     const handleAcceptOrder = () => {
+        if (!incomingOrder?._id) return;
         setAcceptedOrder(incomingOrder);
+        window.dispatchEvent(new CustomEvent(ORDER_ACCEPTED_EVENT, { detail: { id: incomingOrder._id } }));
         setIncomingOrder(null);
         setMapStatus('assigned');
     };
@@ -169,16 +188,23 @@ const DeliveryDashboard = () => {
     };
 
 
-    const handleUpdateCenter = async () => {
+    const handleUpdateCenter = () => {
         if (!navigator.geolocation) return;
         setLocationUpdating(true);
 
         navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { longitude, latitude } = position.coords;
-                await updateLocation(longitude, latitude);
-                await refreshAll();
-                setLocationUpdating(false);
+            (position) => {
+                (async () => {
+                    try {
+                        const { longitude, latitude } = position.coords;
+                        await updateLocation(longitude, latitude);
+                        await refreshAll();
+                    } catch (error) {
+                        console.error('Failed to update current location:', error);
+                    } finally {
+                        setLocationUpdating(false);
+                    }
+                })();
             },
             () => setLocationUpdating(false),
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -190,7 +216,7 @@ const DeliveryDashboard = () => {
             {/* Top Greeting & Toggle */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Rider'}! 👋</h1>
+                    <h1 className="text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Rider'}! ðŸ‘‹</h1>
                     <p className="text-slate-500 dark:text-zinc-400 font-medium">Ready for today's deliveries?</p>
                 </div>
 
@@ -198,14 +224,18 @@ const DeliveryDashboard = () => {
                     {/* Test Button */}
                     <button
                         onClick={handleSimulate}
-                        className="flex items-center gap-2 px-4 py-2 bg-pink-100 dark:bg-pink-500/10 text-pink-600 rounded-2xl text-xs font-bold hover:bg-pink-200 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-lime-100 dark:bg-lime-500/10 text-lime-600 rounded-2xl text-xs font-bold hover:bg-lime-200 transition-colors"
                     >
                         <Play size={14} fill="currentColor" />
                         Simulate Order
                     </button>
 
                     <button
-                        onClick={refreshAll}
+                        onClick={() => {
+                            refreshAll().catch((error) => {
+                                console.error('Failed to refresh dashboard data:', error);
+                            });
+                        }}
                         className={`p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 shadow-sm ${loading ? 'animate-spin' : ''}`}
                     >
                         <RefreshCw size={20} />
@@ -235,7 +265,7 @@ const DeliveryDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="lg:col-span-2 bg-gradient-to-br from-pink-600 to-red-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-pink-500/30 relative overflow-hidden"
+                    className="lg:col-span-2 bg-gradient-to-br from-lime-600 to-lime-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-lime-500/30 relative overflow-hidden"
                 >
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
                     <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full -ml-20 -mb-20 blur-2xl"></div>
@@ -243,13 +273,13 @@ const DeliveryDashboard = () => {
                     <div className="relative z-10 flex flex-col h-full justify-between gap-12">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-pink-100/80 font-bold uppercase tracking-widest text-[10px] mb-1">Your Wallet Balance</p>
+                                <p className="text-lime-100/80 font-bold uppercase tracking-widest text-[10px] mb-1">Your Wallet Balance</p>
                                 <h2 className="text-5xl font-black mb-1">
-                                    ₹{stats?.walletBalance?.toFixed(2) || '0.00'}
+                                    â‚¹{stats?.walletBalance?.toFixed(2) || '0.00'}
                                 </h2>
-                                <div className="flex items-center gap-2 text-pink-100 text-sm font-medium">
+                                <div className="flex items-center gap-2 text-lime-100 text-sm font-medium">
                                     <TrendingUp size={16} />
-                                    <span>Total Lifetime: ₹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
+                                    <span>Total Lifetime: â‚¹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
                                 </div>
                             </div>
                             <button
@@ -262,11 +292,11 @@ const DeliveryDashboard = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
-                                <p className="text-pink-100/60 text-xs font-bold uppercase tracking-wider mb-1">Today's Earnings</p>
-                                <h4 className="text-xl font-black">₹{stats?.todayEarnings || '0'}</h4>
+                                <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Today's Earnings</p>
+                                <h4 className="text-xl font-black">â‚¹{stats?.todayEarnings || '0'}</h4>
                             </div>
                             <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
-                                <p className="text-pink-100/60 text-xs font-bold uppercase tracking-wider mb-1">Active Orders</p>
+                                <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Active Orders</p>
                                 <h4 className="text-xl font-black">{stats?.activeOrders || '0'}</h4>
                             </div>
                         </div>
@@ -280,7 +310,11 @@ const DeliveryDashboard = () => {
                         <motion.button
                             animate={loading ? { rotate: 360 } : {}}
                             transition={loading ? { repeat: Infinity, duration: 2, ease: "linear" } : {}}
-                            onClick={refreshAll}
+                            onClick={() => {
+                                refreshAll().catch((error) => {
+                                    console.error('Failed to refresh service area:', error);
+                                });
+                            }}
                             className="p-2 bg-slate-100 dark:bg-zinc-800 rounded-full"
                         >
                             <RotateCcw size={16} />
@@ -288,7 +322,7 @@ const DeliveryDashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-500/10 flex items-center justify-center text-pink-600">
+                        <div className="w-12 h-12 rounded-2xl bg-lime-100 dark:bg-lime-500/10 flex items-center justify-center text-lime-600">
                             <MapPin size={24} />
                         </div>
                         <div>
@@ -303,7 +337,7 @@ const DeliveryDashboard = () => {
                             <span className="text-green-500 font-bold">{profile?.serviceArea?.radius || 5}.0 km</span>
                         </div>
                         <div className="w-full h-2 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                            <div className="w-[85%] h-full bg-pink-500 rounded-full"></div>
+                            <div className="w-[85%] h-full bg-lime-500 rounded-full"></div>
                         </div>
                     </div>
 
@@ -344,7 +378,7 @@ const DeliveryDashboard = () => {
                 <StatCard
                     icon={<Wallet size={24} />}
                     label="Today's Earnings"
-                    value={`₹${stats?.todayEarnings || '0'}`}
+                    value={`â‚¹${stats?.todayEarnings || '0'}`}
                     color="from-blue-400 to-indigo-500"
                     isLoading={loading}
                 />
@@ -413,7 +447,7 @@ const DeliveryDashboard = () => {
                         <h4 className="font-bold text-xl tracking-tight">Active Deliveries</h4>
                         <button
                             onClick={() => navigate('/delivery/orders')}
-                            className="text-pink-600 text-sm font-bold flex items-center gap-1 group"
+                            className="text-lime-600 text-sm font-bold flex items-center gap-1 group"
                         >
                             View All <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                         </button>
@@ -426,7 +460,7 @@ const DeliveryDashboard = () => {
                                 onClick={() => navigate(`/delivery/tracking/${order._id}`)}
                                 className="flex items-center gap-4 p-4 rounded-3xl border border-slate-50 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                             >
-                                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-pink-500 font-bold">
+                                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-lime-500 font-bold">
                                     <Clock size={20} />
                                 </div>
                                 <div className="flex-1">
@@ -437,7 +471,7 @@ const DeliveryDashboard = () => {
                                     <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider mb-1">
                                         {order.status}
                                     </span>
-                                    <p className="font-black text-sm">₹{order.deliveryFee}</p>
+                                    <p className="font-black text-sm">â‚¹{order.deliveryFee}</p>
                                 </div>
                             </div>
                         )) : (
@@ -460,7 +494,7 @@ const DeliveryDashboard = () => {
                         className="fixed bottom-6 left-4 right-4 md:left-auto md:right-8 md:w-[400px] z-[100]"
                     >
                         <div className="bg-white dark:bg-zinc-900 rounded-[2rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-zinc-800 overflow-hidden">
-                            <div className="bg-pink-500 p-4 text-white flex items-center justify-between">
+                            <div className="bg-lime-500 p-4 text-white flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-white animate-ping"></div>
                                     <span className="font-black text-xs uppercase tracking-widest">New Order Request</span>
@@ -473,19 +507,19 @@ const DeliveryDashboard = () => {
                                     <div>
                                         <h4 className="font-black text-xl mb-1">{incomingOrder.restaurant}</h4>
                                         <p className="text-slate-500 text-sm font-medium flex items-center gap-1">
-                                            <MapPin size={14} className="text-pink-500" />
-                                            {incomingOrder.distance} away • {incomingOrder.time}
+                                            <MapPin size={14} className="text-lime-500" />
+                                            {incomingOrder.distance} away â€¢ {incomingOrder.time}
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-black text-pink-600">{incomingOrder.fare}</div>
+                                        <div className="text-2xl font-black text-lime-600">{incomingOrder.fare}</div>
                                         <p className="text-[10px] text-slate-400 font-bold uppercase">Estimated Fare</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3 mb-8">
                                     <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-zinc-800/50 rounded-2xl">
-                                        <div className="w-8 h-8 rounded-xl bg-pink-100 dark:bg-pink-500/10 flex items-center justify-center text-pink-600">
+                                        <div className="w-8 h-8 rounded-xl bg-lime-100 dark:bg-lime-500/10 flex items-center justify-center text-lime-600">
                                             <Clock size={16} />
                                         </div>
                                         <div>
@@ -513,7 +547,7 @@ const DeliveryDashboard = () => {
                                     </button>
                                     <button
                                         onClick={handleAcceptOrder}
-                                        className="py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-600 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-pink-500/30 active:scale-95 transition-all"
+                                        className="py-4 rounded-2xl bg-gradient-to-r from-lime-500 to-rose-600 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-lime-500/30 active:scale-95 transition-all"
                                     >
                                         Accept Order
                                     </button>
@@ -579,11 +613,11 @@ const DeliveryDashboard = () => {
                             <div className="max-w-4xl mx-auto">
                                 <div className="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-3xl bg-pink-100 dark:bg-pink-500/10 flex items-center justify-center text-pink-600">
+                                        <div className="w-16 h-16 rounded-3xl bg-lime-100 dark:bg-lime-500/10 flex items-center justify-center text-lime-600">
                                             <Play size={24} fill="currentColor" />
                                         </div>
                                         <div>
-                                            <h4 className="font-black text-2xl">Order #{acceptedOrder.id}</h4>
+                                            <h4 className="font-black text-2xl">Order #{acceptedOrder.order?.orderId || acceptedOrder._id}</h4>
                                             <p className="text-slate-500 font-medium">Earn {acceptedOrder.fare} on completion</p>
                                         </div>
                                     </div>
@@ -604,18 +638,18 @@ const DeliveryDashboard = () => {
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-4 mb-8">
-                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'assigned' ? 'bg-pink-500' : 'bg-green-500'}`}></div>
-                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'picked_up' ? 'bg-pink-500' : (mapStatus === 'delivered' ? 'bg-green-500' : 'bg-slate-100 dark:bg-zinc-800')}`}></div>
-                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'delivered' ? 'bg-pink-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
+                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'assigned' ? 'bg-lime-500' : 'bg-green-500'}`}></div>
+                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'picked_up' ? 'bg-lime-500' : (mapStatus === 'delivered' ? 'bg-green-500' : 'bg-slate-100 dark:bg-zinc-800')}`}></div>
+                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'delivered' ? 'bg-lime-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'assigned' ? 'border-pink-500 bg-pink-50/50 dark:bg-pink-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
+                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'assigned' ? 'border-lime-500 bg-lime-50/50 dark:bg-lime-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Pickup From</p>
                                         <p className="font-black">{acceptedOrder.restaurant}</p>
                                         <p className="text-xs text-slate-500">Vijay Nagar, Sector B</p>
                                     </div>
-                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'picked_up' ? 'border-pink-500 bg-pink-50/50 dark:bg-pink-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
+                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'picked_up' ? 'border-lime-500 bg-lime-50/50 dark:bg-lime-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Deliver To</p>
                                         <p className="font-black">{acceptedOrder.customer}</p>
                                         <p className="text-xs text-slate-500">Sapphire Heights, Apt 402</p>
@@ -624,7 +658,7 @@ const DeliveryDashboard = () => {
 
                                 <button
                                     onClick={handleUpdateMapStatus}
-                                    className="w-full py-5 bg-gradient-to-r from-pink-600 to-red-700 text-white font-black tracking-[0.2em] uppercase rounded-[1.5rem] shadow-2xl shadow-pink-500/40 active:scale-[0.98] transition-all"
+                                    className="w-full py-5 bg-gradient-to-r from-lime-600 to-lime-700 text-white font-black tracking-[0.2em] uppercase rounded-[1.5rem] shadow-2xl shadow-lime-500/40 active:scale-[0.98] transition-all"
                                 >
                                     {mapStatus === 'assigned' && 'Confirm Pickup'}
                                     {mapStatus === 'picked_up' && 'Confirm Delivery'}
@@ -640,3 +674,4 @@ const DeliveryDashboard = () => {
 };
 
 export default DeliveryDashboard;
+
