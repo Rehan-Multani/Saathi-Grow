@@ -3,6 +3,7 @@ import {
   createRazorpayOrder,
   verifyRazorpayPayment,
   createCODOrder,
+  calculateBill,
   getMyOrders,
   getOrderById,
   getAllOrdersAdmin,
@@ -19,6 +20,7 @@ router.get('/:id', protect, getOrderById);
 router.post('/razorpay', protect, createRazorpayOrder);
 router.post('/verify', protect, verifyRazorpayPayment);
 router.post('/cod', protect, createCODOrder);
+router.post('/calculate-bill', protect, calculateBill);
 
 // --- Admin/Staff Order Routes ---
 router.get('/admin/list', protectAdmin, requirePermission('VIEW_ORDERS'), getAllOrdersAdmin);

@@ -63,6 +63,7 @@ import userAddressRoutes from './routes/userAddressRoutes.js';
 import userWishlistRoutes from './routes/userWishlistRoutes.js';
 import userCartRoutes from './routes/userCartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import settingRoutes from './routes/settingRoutes.js';
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -83,6 +84,7 @@ app.use('/api/user/addresses', userAddressRoutes);
 app.use('/api/user/wishlist', userWishlistRoutes);
 app.use('/api/user/cart', userCartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/settings', settingRoutes);
 
 // Socket logic placeholder
 io.on('connection', (socket) => {

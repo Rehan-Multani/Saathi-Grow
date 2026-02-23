@@ -41,6 +41,8 @@ const CheckoutPage = () => {
     const [isPlacing, setIsPlacing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [onlineMethod, setOnlineMethod] = useState('phonepe'); // phonepe, gpay
+    const [billDetails, setBillDetails] = useState(null);
+    const [isCalculating, setIsCalculating] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -48,9 +50,29 @@ const CheckoutPage = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    const deliveryFee = cartTotal >= 500 ? 0 : 25;
-    const handlingFee = 5;
-    const finalTotal = cartTotal + deliveryFee + handlingFee;
+    useEffect(() => {
+        const fetchBill = async () => {
+            if (cart.length === 0) return;
+            setIsCalculating(true);
+            try {
+                const items = cart.map(item => ({
+                    product: item.id || item._id,
+                    quantity: item.quantity,
+                    price: item.price,
+                    name: item.name,
+                    image: item.image
+                }));
+                const computed = await orderApi.calculateBill(token, items);
+                setBillDetails(computed);
+            } catch (error) {
+                console.error(error);
+                toast.error("Pricing sync error");
+            } finally {
+                setIsCalculating(false);
+            }
+        };
+        fetchBill();
+    }, [cart, token]);
 
     const handlePlaceOrder = async () => {
         if (cart.length === 0) return;
@@ -78,7 +100,7 @@ const CheckoutPage = () => {
                 zipCode: '',
                 location: globalLocation.coordinates ? { type: 'Point', coordinates: [globalLocation.coordinates.lng, globalLocation.coordinates.lat] } : undefined
             },
-            totalAmount: finalTotal
+            totalAmount: billDetails?.totalAmount || cartTotal
         };
 
         try {
@@ -96,7 +118,14 @@ const CheckoutPage = () => {
                 }
 
                 // Call Backend for Order Initiation Payload
-                const rpPayload = await orderApi.createRazorpayOrder(token, finalTotal);
+                const itemsToCheckout = cart.map(item => ({
+                    product: item.id || item._id,
+                    quantity: item.quantity,
+                    price: item.price,
+                    name: item.name,
+                    image: item.image
+                }));
+                const rpPayload = await orderApi.createRazorpayOrder(token, itemsToCheckout);
 
                 const options = {
                     key: 'rzp_test_8sYbzHWidwe5Zw', // Test API Key (safe to expose publicly on frontend since it's just public mapping)
@@ -192,7 +221,7 @@ const CheckoutPage = () => {
                     </button>
                     <div>
                         <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight capitalize leading-none">Checkout</h1>
-                        <p className="!text-[8px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items • ₹{finalTotal}</p>
+                        <p className="!text-[8px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items • ₹{billDetails?.totalAmount || cartTotal}</p>
                     </div>
                 </div>
 
@@ -288,7 +317,13 @@ const CheckoutPage = () => {
                 </div>
 
                 {/* Bill Details */}
-                <div className="mb-8">
+                <div className="mb-8 relative min-h-[160px]">
+                    {isCalculating && (
+                        <div className="absolute inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-xl">
+                            <div className="w-5 h-5 border-2 border-green-200 border-t-[#0c831f] rounded-full animate-spin"></div>
+                            <span className="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-widest">Calculating Securely</span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-2 mb-4 px-1">
                         <ShoppingBag size={14} className="text-[#0c831f]" />
                         <h3 className="!text-[10px] font-black text-gray-400 tracking-widest">Bill details</h3>
@@ -300,17 +335,25 @@ const CheckoutPage = () => {
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[11px] text-gray-500 font-medium capitalize">Delivery fee</span>
-                            <span className={`text-[11px] font-black ${deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
-                                {deliveryFee === 0 ? 'Free' : `₹${deliveryFee}`}
+                            <span className={`text-[11px] font-black ${billDetails?.deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                {billDetails?.deliveryFee === 0 ? 'Free' : `₹${billDetails?.deliveryFee || '-'}`}
                             </span>
                         </div>
-                        <div className="flex justify-between items-center pb-4">
+                        <div className="flex justify-between items-center">
                             <span className="text-[11px] text-gray-500 font-medium capitalize">Handling fee</span>
-                            <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{handlingFee}</span>
+                            <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{billDetails?.handlingFee || '-'}</span>
                         </div>
+
+                        {billDetails?.taxAmount > 0 && (
+                            <div className="flex justify-between items-center pb-2">
+                                <span className="text-[11px] text-gray-500 font-medium capitalize">Taxes (GST)</span>
+                                <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{billDetails?.taxAmount}</span>
+                            </div>
+                        )}
+
                         <div className="pt-5 border-t border-dashed border-gray-100 dark:border-white/10 flex justify-between items-center">
                             <span className="text-[14px] font-black text-gray-900 dark:text-white">To pay</span>
-                            <span className="text-[20px] font-black text-gray-900 dark:text-white tracking-tighter">₹{finalTotal}</span>
+                            <span className="text-[20px] font-black text-gray-900 dark:text-white tracking-tighter">₹{billDetails?.totalAmount || '-'}</span>
                         </div>
                     </div>
                 </div>
@@ -322,7 +365,7 @@ const CheckoutPage = () => {
                 <div className="max-w-2xl mx-auto flex items-center justify-between gap-5 px-1">
                     <div className="flex flex-col">
                         <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Total Pay</span>
-                        <span className="text-[18px] font-black text-gray-900 dark:text-white tracking-tighter leading-none">₹{finalTotal}</span>
+                        <span className="text-[18px] font-black text-gray-900 dark:text-white tracking-tighter leading-none">₹{billDetails?.totalAmount || '-'}</span>
                     </div>
                     <button
                         onClick={handlePlaceOrder}

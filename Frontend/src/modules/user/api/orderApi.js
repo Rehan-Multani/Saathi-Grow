@@ -1,16 +1,30 @@
 const API_URL = 'http://localhost:5000/api/orders';
 
-export const createRazorpayOrder = async (token, amount) => {
+export const createRazorpayOrder = async (token, items) => {
   const response = await fetch(`${API_URL}/razorpay`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ amount })
+    body: JSON.stringify({ items })
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to create Razorpay secure window');
+  return data;
+};
+
+export const calculateBill = async (token, items) => {
+  const response = await fetch(`${API_URL}/calculate-bill`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ items })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to calculate secure bill summary');
   return data;
 };
 

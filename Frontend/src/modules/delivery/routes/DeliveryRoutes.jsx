@@ -1,7 +1,7 @@
 ﻿import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DeliveryLayout from '../components/DeliveryLayout';
-import { NotificationProvider } from '../components/NotificationProvider';
+import DeliveryLayout from '../hooks/components/DeliveryLayout';
+import { NotificationProvider } from '../hooks/components/NotificationProvider';
 
 const Dashboard = lazy(() => import('../pages/DeliveryDashboard'));
 const Orders = lazy(() => import('../pages/OrderManagement'));

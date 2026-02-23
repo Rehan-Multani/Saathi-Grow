@@ -18,9 +18,33 @@ const orderSchema = new mongoose.Schema({
         name: String,
         image: String
     }],
+    subTotal: {
+        type: Number,
+        default: 0
+    },
+    taxAmount: {
+        type: Number,
+        default: 0
+    },
+    deliveryFee: {
+        type: Number,
+        default: 0
+    },
+    handlingFee: {
+        type: Number,
+        default: 0
+    },
     totalAmount: {
         type: Number,
         required: true
+    },
+    platformCommission: {
+        type: Number,
+        default: 0
+    },
+    vendorPayoutAmount: {
+        type: Number,
+        default: 0
     },
     status: {
         type: String,

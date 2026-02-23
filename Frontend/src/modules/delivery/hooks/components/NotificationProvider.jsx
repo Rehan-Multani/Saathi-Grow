@@ -2,7 +2,7 @@
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
-import { createDummyOrder } from '../data/mockDeliveryData';
+import { createDummyOrder } from '../../data/mockDeliveryData';
 
 const NotificationContext = createContext();
 

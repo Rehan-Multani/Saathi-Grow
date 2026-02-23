@@ -53,7 +53,7 @@ const ManageCampaign = () => {
             name: p.productId?.name,
             image: p.productId?.image,
             mrp: p.productId?.mrp || p.productId?.basePrice,
-            dealPrice: p.dealPrice
+            basePrice: p.productId?.basePrice
           })));
         }
       } catch (error) {
@@ -83,7 +83,7 @@ const ManageCampaign = () => {
       name: product.name,
       image: product.image,
       mrp: product.mrp || product.basePrice,
-      dealPrice: product.basePrice
+      basePrice: product.basePrice
     }]);
   };
 
@@ -93,9 +93,11 @@ const ManageCampaign = () => {
 
   const handlePriceChange = (id, price) => {
     setSelectedProducts(selectedProducts.map(p =>
-      p.productId === id ? { ...p, dealPrice: Number(price) } : p
+      p.productId === id ? { ...p, basePrice: Number(price) } : p
     ));
   };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -110,7 +112,7 @@ const ManageCampaign = () => {
 
       const productsPayload = selectedProducts.map(p => ({
         productId: p.productId,
-        dealPrice: p.dealPrice
+        basePrice: p.basePrice
       }));
       data.append('products', JSON.stringify(productsPayload));
 
@@ -350,7 +352,7 @@ const ManageCampaign = () => {
                       <tr>
                         <th className="small fw-bold text-blue-800 border-0 px-3 py-3 rounded-start">Product Details</th>
                         <th className="small fw-bold text-blue-800 border-0 text-center py-3">MRP (₹)</th>
-                        <th className="small fw-bold text-blue-800 border-0 text-center py-3">Campaign Price (₹)</th>
+                        <th className="small fw-bold text-blue-800 border-0 text-center py-3">Current Price (₹)</th>
                         <th className="small fw-bold text-blue-800 border-0 text-center py-3">Savings</th>
                         <th className="small fw-bold text-blue-800 border-0 text-center py-3 rounded-end">Action</th>
                       </tr>
@@ -366,19 +368,19 @@ const ManageCampaign = () => {
                               <div className="small fw-bold text-gray-800">{p.name}</div>
                             </div>
                           </td>
-                          <td className="text-center font-monospace text-gray-400 border-0 py-3">₹{p.mrp}</td>
+                          <td className="text-center text-gray-400 border-0 py-3">₹{p.mrp}</td>
                           <td className="text-center border-0 py-3" style={{ width: '130px' }}>
                             <Form.Control
                               size="sm"
                               type="number"
-                              value={p.dealPrice}
+                              value={p.basePrice}
                               onChange={(e) => handlePriceChange(p.productId, e.target.value)}
                               className="text-center border shadow-sm fw-bold text-primary bg-white rounded-lg py-1.5"
                             />
                           </td>
                           <td className="text-center border-0 py-3">
                             <div className="px-2 py-1 rounded bg-green-50 text-green-600 text-[10px] font-bold d-inline-block border border-green-100">
-                              SAVE ₹{p.mrp - p.dealPrice}
+                              SAVE ₹{p.mrp - p.basePrice}
                             </div>
                           </td>
                           <td className="text-center border-0 py-3">

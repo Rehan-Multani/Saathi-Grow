@@ -19,17 +19,8 @@ export const WishlistProvider = ({ children }) => {
         }
     });
 
-<<<<<<< HEAD
     const { token } = useAuth();
-=======
-    useEffect(() => {
-        try {
-            localStorage.setItem('sathiGro_wishlist', JSON.stringify(wishlist));
-        } catch (error) {
-            console.error('Error saving wishlist to localStorage:', error);
-        }
-    }, [wishlist]);
->>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
+
 
     // Fetch wishlist from backend on mount or login
     useEffect(() => {

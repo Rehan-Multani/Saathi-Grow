@@ -77,7 +77,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                     </h4>
                 </Link>
                 <div className="text-gray-500 dark:text-gray-400 text-[7px] md:text-[9px] mb-1 font-medium italic opacity-80 line-clamp-1">
-                    {product.weight || product.unitValue + ' ' + (product.unitType || '')} • {product.category || product.subCategory || "Premium"}
+                    {product.weight || (product.unitValue ? product.unitValue + ' ' + (product.unitType || '') : '1 pcs')} • {product.category || product.subCategory || "Premium"}
                 </div>
 
                 <div className="flex items-center justify-between mt-auto pt-1">
@@ -155,11 +155,11 @@ const OfferPage = () => {
             .map(cp => ({
                 ...cp.productId,
                 id: cp.productId._id, // Ensure id is present for cart 
-                price: cp.dealPrice || cp.productId.basePrice,
+                price: cp.productId.basePrice,
                 originalPrice: cp.productId.mrp || cp.productId.basePrice,
                 weight: cp.productId.unitValue && cp.productId.unitType
                     ? `${cp.productId.unitValue} ${cp.productId.unitType}`
-                    : undefined
+                    : (cp.productId.unitValue ? String(cp.productId.unitValue) : '1 pcs')
             }));
 
         const base = normalized;

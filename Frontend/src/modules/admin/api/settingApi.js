@@ -1,0 +1,17 @@
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api/settings';
+
+export const getAdminSettings = async (token) => {
+  const response = await axios.get(API_URL, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+};
+
+export const updateAdminSettings = async (token, settingsData) => {
+  const response = await axios.put(API_URL, settingsData, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+};

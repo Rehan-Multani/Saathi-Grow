@@ -1,6 +1,48 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import Order from '../models/Order.js';
+import GlobalSetting from '../models/GlobalSetting.js';
+import Product from '../models/Product.js';
+
+const computeBillDetails = async (items) => {
+  let subTotal = 0;
+
+  // Validate each item against the actual database to prevent frontend price manipulation
+  for (const item of items) {
+    const product = await Product.findById(item.product);
+    if (!product) throw new Error(`Product mapping failed for: ${item.name}`);
+
+    const verifiedPrice = product.basePrice || product.price || 0;
+    subTotal += verifiedPrice * item.quantity;
+  }
+
+  // Get live global settings
+  let settings = await GlobalSetting.findOne() || new GlobalSetting();
+
+  const taxAmount = (subTotal * settings.defaultTaxRate) / 100;
+
+  let deliveryFee = settings.baseDeliveryFee * settings.surgeMultiplier;
+  if (subTotal >= settings.freeDeliveryThreshold) {
+    deliveryFee = 0;
+  }
+
+  const handlingFee = settings.handlingFee;
+  const totalAmount = subTotal + taxAmount + deliveryFee + handlingFee;
+
+  // Vendor Commission logic
+  const platformCommission = (subTotal * settings.platformCommissionRate) / 100;
+  const vendorPayoutAmount = (subTotal + taxAmount) - platformCommission;
+
+  return {
+    subTotal: parseFloat(subTotal.toFixed(2)),
+    taxAmount: parseFloat(taxAmount.toFixed(2)),
+    deliveryFee: parseFloat(deliveryFee.toFixed(2)),
+    handlingFee: parseFloat(handlingFee.toFixed(2)),
+    totalAmount: parseFloat(totalAmount.toFixed(2)),
+    platformCommission: parseFloat(platformCommission.toFixed(2)),
+    vendorPayoutAmount: parseFloat(vendorPayoutAmount.toFixed(2))
+  };
+};
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'dummy_id',
@@ -12,14 +54,17 @@ const razorpayInstance = new Razorpay({
 // @access  Private
 export const createRazorpayOrder = async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { items } = req.body;
 
-    if (!amount) {
-      return res.status(400).json({ message: 'Amount is required' });
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'Cart items are required to calculate bill' });
     }
 
+    // Always recompute on backend. NEVER trust frontend amount.
+    const computedBill = await computeBillDetails(items);
+
     const options = {
-      amount: amount * 100, // Razorpay strictly takes format in paise
+      amount: parseInt(computedBill.totalAmount * 100), // Razorpay strictly takes format in paise
       currency: 'INR',
       receipt: `sg_rcpt_${Date.now()}`
     };
@@ -69,6 +114,9 @@ export const verifyRazorpayPayment = async (req, res) => {
       delete orderData.shippingAddress.location;
     }
 
+    // Recompute bill to guarantee no manipulation during payment verify leap
+    const computedBill = await computeBillDetails(orderData.items);
+
     // Setup Document safely
     const order = new Order({
       orderId: 'SG-' + Date.now().toString(),
@@ -78,7 +126,13 @@ export const verifyRazorpayPayment = async (req, res) => {
       paymentMethod: 'online',
       paymentStatus: 'paid',
       status: 'confirmed',
-      totalAmount: orderData.totalAmount,
+      totalAmount: computedBill.totalAmount, // Securely injected
+      subTotal: computedBill.subTotal,
+      taxAmount: computedBill.taxAmount,
+      deliveryFee: computedBill.deliveryFee,
+      handlingFee: computedBill.handlingFee,
+      platformCommission: computedBill.platformCommission,
+      vendorPayoutAmount: computedBill.vendorPayoutAmount,
       razorpayOrderId: razorpayOrderId,
       razorpayPaymentId: razorpayPaymentId,
       razorpaySignature: razorpaySignature
@@ -105,6 +159,9 @@ export const createCODOrder = async (req, res) => {
       delete orderData.shippingAddress.location;
     }
 
+    // Always recompute on backend. NEVER trust frontend amount
+    const computedBill = await computeBillDetails(orderData.items);
+
     const order = new Order({
       orderId: 'SG-' + Date.now().toString(),
       user: req.user._id,
@@ -113,7 +170,13 @@ export const createCODOrder = async (req, res) => {
       paymentMethod: 'cod',
       paymentStatus: 'pending',
       status: 'pending',
-      totalAmount: orderData.totalAmount
+      totalAmount: computedBill.totalAmount, // Securely injected
+      subTotal: computedBill.subTotal,
+      taxAmount: computedBill.taxAmount,
+      deliveryFee: computedBill.deliveryFee,
+      handlingFee: computedBill.handlingFee,
+      platformCommission: computedBill.platformCommission,
+      vendorPayoutAmount: computedBill.vendorPayoutAmount,
     });
 
     const createdOrder = await order.save();
@@ -121,6 +184,21 @@ export const createCODOrder = async (req, res) => {
   } catch (error) {
     console.error('COD Order Error:', error);
     res.status(500).json({ message: error.message || 'Internal COD Error' });
+  }
+};
+
+// @desc    Calculate Bill Summary to display securely to User 
+// @route   POST /api/orders/calculate-bill
+// @access  Private
+export const calculateBill = async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!items || items.length === 0) return res.status(400).json({ message: 'Cart is empty' });
+
+    const bill = await computeBillDetails(items);
+    res.json(bill);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

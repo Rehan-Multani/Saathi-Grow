@@ -1,4 +1,5 @@
 import OfferDeal from '../models/OfferDeal.js';
+import Product from '../models/Product.js';
 
 // @desc    Get all offer deals
 // @route   GET /api/admin/offers
@@ -36,6 +37,14 @@ export const createOfferDeal = async (req, res) => {
         parsedProducts = JSON.parse(products);
       } catch (e) {
         parsedProducts = [];
+      }
+    }
+
+    if (parsedProducts && parsedProducts.length > 0) {
+      for (const p of parsedProducts) {
+        if (p.basePrice !== undefined) {
+          await Product.findByIdAndUpdate(p.productId, { basePrice: p.basePrice });
+        }
       }
     }
 
@@ -85,7 +94,16 @@ export const updateOfferDeal = async (req, res) => {
     offer.discountPercentage = discountPercentage !== undefined ? discountPercentage : offer.discountPercentage;
 
     if (products) {
-      offer.products = typeof products === 'string' ? JSON.parse(products) : products;
+      const parsedProducts = typeof products === 'string' ? JSON.parse(products) : products;
+      offer.products = parsedProducts;
+
+      if (parsedProducts && parsedProducts.length > 0) {
+        for (const p of parsedProducts) {
+          if (p.basePrice !== undefined) {
+            await Product.findByIdAndUpdate(p.productId, { basePrice: p.basePrice });
+          }
+        }
+      }
     }
 
     if (req.file) {
@@ -116,7 +134,7 @@ export const deleteOfferDeal = async (req, res) => {
 export const getActiveOfferDeals = async (req, res) => {
   try {
     const offers = await OfferDeal.find({ isActive: true })
-      .populate('products.productId', 'name image basePrice mrp sku unitType')
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue')
       .sort('order');
     res.json(offers);
   } catch (error) {

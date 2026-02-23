@@ -1,161 +1,286 @@
-import React, { useState } from 'react';
-import { Card, Form, Button, Row, Col, Alert, Table } from 'react-bootstrap';
-import { CreditCard, IndianRupee, Receipt, Info, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { IndianRupee, Info, Plus, CreditCard, Receipt, Loader } from 'lucide-react';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import * as settingApi from '../../api/settingApi';
+import { toast } from 'react-toastify';
 
 const BillingSettings = () => {
+    const { adminUser } = useAdminAuth();
+    const token = adminUser?.token;
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // UI State for Settings mapping directly to GlobalSettings schema
+    const [settings, setSettings] = useState({
+        organizationTIN: '',
+        taxIdType: 'GST (India)',
+        defaultTaxRate: 18,
+        taxCalculation: 'Exclusive',
+        baseDeliveryFee: 25,
+        freeDeliveryThreshold: 500,
+        handlingFee: 5,
+        surgeMultiplier: 1.0,
+        platformCommissionRate: 12,
+        platformWalletBalance: 0,
+        autoInvoicingEnabled: true
+    });
+
+    useEffect(() => {
+        if (token) fetchSettings();
+    }, [token]);
+
+    const fetchSettings = async () => {
+        try {
+            const data = await settingApi.getAdminSettings(token);
+            setSettings(data);
+        } catch (error) {
+            toast.error('Failed to load billing configuration.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setSettings(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
+        }));
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const updated = await settingApi.updateAdminSettings(token, settings);
+            setSettings(updated);
+            toast.success('Billing & Platform taxes updated successfully!');
+        } catch (error) {
+            toast.error('Failed to update configurations.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center py-20">
+                <Loader className="animate-spin text-blue-600" size={32} />
+            </div>
+        );
+    }
     return (
-        <div className="p-3">
-            <h4 className="fw-bold mb-4">Tax & Billing Settings</h4>
+        <div className="p-2 sm:p-4 max-w-7xl mx-auto space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Tax & Billing Settings</h1>
 
-            <Row className="g-4">
-                <Col lg={7}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Header className="bg-white py-3 border-0">
-                            <h6 className="mb-0 fw-bold">Tax Information</h6>
-                        </Card.Header>
-                        <Card.Body>
-                            <Form>
-                                <Row className="mb-3">
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted">Organization TIN/GSTIN</Form.Label>
-                                            <Form.Control type="text" defaultValue="GST29AABCS1234Z" />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted">Tax ID Type</Form.Label>
-                                            <Form.Select>
-                                                <option>GST (India)</option>
-                                                <option>VAT (UK/EU)</option>
-                                                <option>Sales Tax (US)</option>
-                                            </Form.Select>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                                <Row className="mb-3">
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted">Default Tax Rate (%)</Form.Label>
-                                            <Form.Control type="number" defaultValue="18" />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted">Tax Calculation</Form.Label>
-                                            <Form.Select>
-                                                <option>Exclusive</option>
-                                                <option>Inclusive</option>
-                                            </Form.Select>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                                <Button variant="primary" className="mt-2">Update Tax Profile</Button>
-                            </Form>
-                        </Card.Body>
-                    </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                    <Card className="border-0 shadow-sm">
-                        <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                            <h6 className="mb-0 fw-bold">Payment Methods (Incoming)</h6>
-                            <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-1">
-                                <Plus size={14} /> Add Method
-                            </Button>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <Table responsive className="mb-0">
-                                <thead>
-                                    <tr className="bg-light small">
-                                        <th className="ps-4">Method</th>
-                                        <th>Provider</th>
-                                        <th>Status</th>
-                                        <th className="text-end pe-4">Actions</th>
+                {/* Left Column (Tax Info & Payment Methods) */}
+                <div className="lg:col-span-8 space-y-6">
+                    {/* Tax Information Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h2 className="text-base font-bold text-gray-900 mb-6">Tax Information</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label className="block text-xs text-gray-500 mb-2">Organization TIN/GSTIN</label>
+                                <input
+                                    type="text"
+                                    name="organizationTIN"
+                                    value={settings.organizationTIN}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-500 mb-2">Tax ID Type</label>
+                                <select
+                                    name="taxIdType"
+                                    value={settings.taxIdType}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                                >
+                                    <option value="GST (India)">GST (India)</option>
+                                    <option value="VAT (UK/EU)">VAT (UK/EU)</option>
+                                    <option value="Sales Tax (US)">Sales Tax (US)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label className="block text-xs text-gray-500 mb-2">Default Tax Rate (%)</label>
+                                <input
+                                    type="number"
+                                    name="defaultTaxRate"
+                                    value={settings.defaultTaxRate}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-200 text-sm text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-500 mb-2">Tax Calculation Logic</label>
+                                <select
+                                    name="taxCalculation"
+                                    value={settings.taxCalculation}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-blue-200 text-sm text-gray-800 rounded-lg outline-none transition-all bg-white ring-[3px] ring-blue-50"
+                                >
+                                    <option value="Exclusive">Exclusive</option>
+                                    <option value="Inclusive">Inclusive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Q-Commerce Fees Segment */}
+                        <div className="border-t border-gray-100 pt-5 mt-2 mb-6">
+                            <h3 className="text-sm font-bold text-gray-800 mb-4">Q-Commerce Fulfillment Fees</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-2">Base Delivery Fee (₹)</label>
+                                    <input type="number" name="baseDeliveryFee" value={settings.baseDeliveryFee} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-200 text-sm text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-2">Free Delivery Above (₹)</label>
+                                    <input type="number" name="freeDeliveryThreshold" value={settings.freeDeliveryThreshold} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-200 text-sm text-gray-800 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-2">Dynamic Surge Multiplier</label>
+                                    <input type="number" step="0.1" name="surgeMultiplier" value={settings.surgeMultiplier} onChange={handleInputChange} className="w-full px-3 py-2 border border-rose-200 bg-rose-50 text-sm text-gray-800 rounded-lg focus:ring-2 focus:ring-rose-500 outline-none font-medium" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-2">Handling Fee (₹)</label>
+                                    <input type="number" name="handlingFee" value={settings.handlingFee} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-200 text-sm text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-blue-600 mb-2">Platform Engine Commission (%)</label>
+                                    <input type="number" name="platformCommissionRate" value={settings.platformCommissionRate} onChange={handleInputChange} className="w-full px-3 py-2 border border-blue-200 bg-blue-50 text-sm text-gray-800 rounded-lg outline-none font-bold" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className={`px-5 py-2.5 rounded-md text-[13px] font-bold text-white transition-all ${isSaving ? 'bg-blue-400 cursor-not-allowed' : 'bg-[#1a56db] hover:bg-blue-700 shadow-md shadow-blue-500/20'}`}
+                        >
+                            {isSaving ? 'Synchronizing Engine...' : 'Save Unified Configurations'}
+                        </button>
+                    </div>
+
+                    {/* Payment Methods Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-base font-bold text-gray-900">Payment Methods (Incoming)</h2>
+                            <button className="flex items-center gap-1.5 text-blue-600 bg-white border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors">
+                                <Plus size={14} strokeWidth={2.5} /> Add Method
+                            </button>
+                        </div>
+
+                        <div className="overflow-x-auto -mx-6 px-6">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-[13px] text-gray-800 font-bold border-b border-gray-100">
+                                    <tr>
+                                        <th className="py-3 font-semibold w-[35%]">Method</th>
+                                        <th className="py-3 font-semibold w-[25%]">Provider</th>
+                                        <th className="py-3 font-semibold w-[20%]">Status</th>
+                                        <th className="py-3 font-semibold text-right w-[20%]">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr className="align-middle">
-                                        <td className="ps-4 py-3">
-                                            <div className="d-flex align-items-center gap-2">
-                                                <CreditCard size={18} className="text-primary" />
-                                                <span className="fw-medium">UPI / GPay</span>
+                                    <tr className="border-b border-gray-100 last:border-0">
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <CreditCard size={16} className="text-blue-500" />
+                                                <span className="font-semibold text-[13px] text-gray-800">UPI / GPay</span>
                                             </div>
                                         </td>
-                                        <td>Razorpay</td>
-                                        <td><span className="badge bg-success-soft text-success rounded-pill px-3">Connected</span></td>
-                                        <td className="text-end pe-4">
-                                            <Button variant="link" size="sm" className="text-muted">Configure</Button>
+                                        <td className="py-4 text-[13px] text-gray-600">Razorpay</td>
+                                        <td className="py-4">
+                                            <span className="text-[12px] font-medium text-emerald-600">Connected</span>
+                                        </td>
+                                        <td className="py-4 text-right">
+                                            <button className="text-[13px] text-gray-500 hover:text-gray-900 transition-colors">Configure</button>
                                         </td>
                                     </tr>
-                                    <tr className="align-middle">
-                                        <td className="ps-4 py-3">
-                                            <div className="d-flex align-items-center gap-2">
-                                                <Receipt size={18} className="text-primary" />
-                                                <span className="fw-medium">Cards Checkout</span>
+                                    <tr>
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <Receipt size={16} className="text-blue-500" />
+                                                <span className="font-semibold text-[13px] text-gray-800">Cards Checkout</span>
                                             </div>
                                         </td>
-                                        <td>Stripe</td>
-                                        <td><span className="badge bg-warning-soft text-warning rounded-pill px-3">Setup Required</span></td>
-                                        <td className="text-end pe-4">
-                                            <Button variant="link" size="sm" className="text-primary">Connect</Button>
+                                        <td className="py-4 text-[13px] text-gray-600">Stripe</td>
+                                        <td className="py-4">
+                                            <span className="text-[12px] font-medium text-amber-500">Setup Required</span>
+                                        </td>
+                                        <td className="py-4 text-right">
+                                            <button className="text-[13px] text-blue-600 hover:text-blue-700 transition-colors">Connect</button>
                                         </td>
                                     </tr>
                                 </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-                <Col lg={5}>
-                    <Card className="border-0 shadow-sm bg-light mb-4">
-                        <Card.Body className="p-4">
-                            <div className="d-flex align-items-center gap-3 mb-4">
-                                <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-                                    <IndianRupee size={24} />
-                                </div>
-                                <div>
-                                    <h6 className="fw-bold mb-0">Platform Wallet Balance</h6>
-                                    <h3 className="fw-bold mb-0 text-primary">₹45,280.50</h3>
-                                </div>
+                {/* Right Column (Wallet & Invoices) */}
+                <div className="lg:col-span-4 space-y-6">
+                    {/* Wallet Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center gap-4 mb-5">
+                            <div className="w-12 h-12 rounded-full bg-blue-50/80 flex items-center justify-center text-blue-600 flex-shrink-0">
+                                <IndianRupee size={22} />
                             </div>
-                            <Button variant="primary" className="w-100 py-2 mb-2">Withdraw to Bank</Button>
-                            <p className="text-muted small text-center mb-0">Bank processing takes 2-3 business days.</p>
-                        </Card.Body>
-                    </Card>
-
-                    <Alert variant="info" className="border-0 shadow-sm">
-                        <div className="d-flex gap-2">
-                            <Info size={20} className="flex-shrink-0" />
-                            <div className="small">
-                                <strong>Auto-Invoicing is enabled.</strong> Invoices are automatically generated and sent to customers upon order completion.
+                            <div>
+                                <h3 className="text-[13px] font-medium text-gray-900 mb-0.5">Platform Wallet Balance</h3>
+                                <p className="text-[26px] font-bold text-[#1a56db] tracking-tight leading-none">₹{settings.platformWalletBalance?.toFixed(2) || '0.00'}</p>
                             </div>
                         </div>
-                    </Alert>
+                        <button className="w-full bg-[#1a56db] hover:bg-blue-700 text-white py-2 rounded-md text-[14px] font-medium transition-colors mb-3">
+                            Withdraw to Bank
+                        </button>
+                        <p className="text-[11px] text-gray-500 text-center">Bank processing takes 2-3 business days.</p>
+                    </div>
 
-                    <Card className="border-0 shadow-sm">
-                        <Card.Header className="bg-white py-3 border-0">
-                            <h6 className="mb-0 fw-bold">Recent Invoices Generated</h6>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <div className="list-group list-group-flush small">
-                                <div className="list-group-item d-flex justify-content-between align-items-center px-4 py-3 border-0">
-                                    <div>
-                                        <div className="fw-bold">INV-9821</div>
-                                        <div className="text-muted">John Doe - ₹120.00</div>
-                                    </div>
-                                    <Button variant="outline-dark" size="sm">PDF</Button>
+                    {/* Info Alert */}
+                    <div className="bg-[#f0f9fb] border border-[#d2eefa] rounded-xl p-4 flex gap-3 shadow-sm">
+                        <Info className="flex-shrink-0 text-[#218099] mt-0.5" size={18} strokeWidth={2.5} />
+                        <p className="text-[12px] text-[#256c80] leading-[1.6]">
+                            <span className="font-semibold text-[#185566]">Auto-Invoicing is enabled.</span> Invoices are automatically generated and sent to customers upon order completion.
+                        </p>
+                    </div>
+
+                    {/* Recent Invoices Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div className="p-4 border-b border-gray-100">
+                            <h2 className="text-[14px] font-bold text-gray-900">Recent Invoices Generated</h2>
+                        </div>
+                        <div className="divide-y divide-gray-100">
+                            <div className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                <div>
+                                    <h4 className="font-bold text-gray-800 text-[13px]">INV-9821</h4>
+                                    <p className="text-gray-500 text-[12px] mt-0.5">John Doe - ₹120.00</p>
                                 </div>
-                                <div className="list-group-item d-flex justify-content-between align-items-center px-4 py-3 border-0">
-                                    <div>
-                                        <div className="fw-bold">INV-9820</div>
-                                        <div className="text-muted">Sarah Smith - ₹45.00</div>
-                                    </div>
-                                    <Button variant="outline-dark" size="sm">PDF</Button>
-                                </div>
+                                <button className="px-3 py-1.5 border border-gray-200 rounded font-medium text-[11px] text-gray-600 bg-white hover:bg-gray-50 transition-colors shadow-sm uppercase tracking-wide">
+                                    PDF
+                                </button>
                             </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                            <div className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                <div>
+                                    <h4 className="font-bold text-gray-800 text-[13px]">INV-9820</h4>
+                                    <p className="text-gray-500 text-[12px] mt-0.5">Sarah Smith - ₹45.00</p>
+                                </div>
+                                <button className="px-3 py-1.5 border border-gray-200 rounded font-medium text-[11px] text-gray-600 bg-white hover:bg-gray-50 transition-colors shadow-sm uppercase tracking-wide">
+                                    PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     );
 };

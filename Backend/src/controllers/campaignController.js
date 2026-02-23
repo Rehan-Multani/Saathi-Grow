@@ -1,4 +1,5 @@
 import CampaignSection from '../models/CampaignSection.js';
+import Product from '../models/Product.js';
 
 // @desc    Get all campaign sections
 // @route   GET /api/admin/campaigns
@@ -58,6 +59,14 @@ export const createCampaignSection = async (req, res) => {
       }
     }
 
+    if (parsedProducts && parsedProducts.length > 0) {
+      for (const p of parsedProducts) {
+        if (p.basePrice !== undefined) {
+          await Product.findByIdAndUpdate(p.productId, { basePrice: p.basePrice });
+        }
+      }
+    }
+
     const section = await CampaignSection.create({
       title,
       subtitle,
@@ -102,7 +111,16 @@ export const updateCampaignSection = async (req, res) => {
     if (displayType) section.displayType = displayType;
 
     if (products) {
-      section.products = typeof products === 'string' ? JSON.parse(products) : products;
+      const parsedProducts = typeof products === 'string' ? JSON.parse(products) : products;
+      section.products = parsedProducts;
+
+      if (parsedProducts && parsedProducts.length > 0) {
+        for (const p of parsedProducts) {
+          if (p.basePrice !== undefined) {
+            await Product.findByIdAndUpdate(p.productId, { basePrice: p.basePrice });
+          }
+        }
+      }
     }
 
     if (req.file) {

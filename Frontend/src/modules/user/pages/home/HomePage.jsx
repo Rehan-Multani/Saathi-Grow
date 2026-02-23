@@ -321,10 +321,8 @@ const HomePage = ({ }) => {
                     .filter(cp => cp.productId)
                     .map(cp => ({
                         ...cp.productId,
-                        // Campaign deal price overrides base price
-                        basePrice: cp.dealPrice || cp.productId.basePrice,
-                        price: cp.dealPrice || cp.productId.basePrice,
-                        // Keep mrp for discount % calculation
+                        basePrice: cp.productId.basePrice,
+                        price: cp.productId.basePrice,
                         mrp: cp.productId.mrp || cp.productId.basePrice,
                     }));
                 return (

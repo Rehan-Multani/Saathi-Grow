@@ -60,7 +60,7 @@ const ManageOffer = () => {
             name: p.productId?.name,
             image: p.productId?.image,
             mrp: p.productId?.mrp || p.productId?.basePrice,
-            dealPrice: p.dealPrice
+            basePrice: p.productId?.basePrice
           })));
         }
       } catch (error) {
@@ -85,11 +85,10 @@ const ManageOffer = () => {
     const percent = Number(e.target.value);
     setFormData(prev => ({ ...prev, discountPercentage: percent }));
 
-    // Auto-calculate all product prices
     if (selectedProducts.length > 0) {
       setSelectedProducts(prev => prev.map(p => ({
         ...p,
-        dealPrice: Math.round(p.mrp * (1 - percent / 100))
+        basePrice: Math.round(p.mrp * (1 - percent / 100))
       })));
     }
   };
@@ -111,7 +110,7 @@ const ManageOffer = () => {
     }
 
     const mrp = product.mrp || product.basePrice;
-    const dealPrice = formData.discountPercentage > 0
+    const initialBasePrice = formData.discountPercentage > 0
       ? Math.round(mrp * (1 - formData.discountPercentage / 100))
       : product.basePrice;
 
@@ -120,7 +119,7 @@ const ManageOffer = () => {
       name: product.name,
       image: product.image,
       mrp: mrp,
-      dealPrice: dealPrice
+      basePrice: initialBasePrice
     }]);
   };
 
@@ -130,9 +129,11 @@ const ManageOffer = () => {
 
   const handlePriceChange = (productId, price) => {
     setSelectedProducts(selectedProducts.map(p =>
-      p.productId === productId ? { ...p, dealPrice: Number(price) } : p
+      p.productId === productId ? { ...p, basePrice: Number(price) } : p
     ));
   };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -152,7 +153,7 @@ const ManageOffer = () => {
 
       const productsPayload = selectedProducts.map(p => ({
         productId: p.productId,
-        dealPrice: p.dealPrice
+        basePrice: p.basePrice
       }));
       data.append('products', JSON.stringify(productsPayload));
 
@@ -400,7 +401,7 @@ const ManageOffer = () => {
                       <tr>
                         <th className="small fw-bold text-gray-400 border-0 ps-3 py-3">Product Name</th>
                         <th className="small fw-bold text-gray-400 border-0 text-center py-3">Market Price</th>
-                        <th className="small fw-bold text-gray-400 border-0 text-center py-3">Deal Offer (₹)</th>
+                        <th className="small fw-bold text-gray-400 border-0 text-center py-3">Selling Price (₹)</th>
                         <th className="small fw-bold text-gray-400 border-0 text-center py-3">Benefit</th>
                         <th className="small fw-bold text-gray-400 border-0 text-end pe-3 py-3">Remove</th>
                       </tr>
@@ -421,14 +422,14 @@ const ManageOffer = () => {
                             <Form.Control
                               type="number"
                               size="sm"
-                              value={p.dealPrice}
+                              value={p.basePrice}
                               onChange={(e) => handlePriceChange(p.productId, e.target.value)}
                               className="text-center fw-bold text-blue-600 bg-blue-50 border-0 rounded-lg py-1.5 shadow-none"
                             />
                           </td>
                           <td className="text-center">
                             <span className="px-2 py-1 rounded-sm font-bold text-[10px] bg-green-50 text-green-700 border border-green-100 shadow-sm d-inline-block">
-                              SAVE ₹{p.mrp - p.dealPrice} ({Math.round(((p.mrp - p.dealPrice) / p.mrp) * 100)}%)
+                              SAVE ₹{p.mrp - p.basePrice} ({Math.round(((p.mrp - p.basePrice) / p.mrp) * 100)}%)
                             </span>
                           </td>
                           <td className="text-end pe-3">
