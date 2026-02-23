@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import * as addressApi from '../api/userAddressApi';
-=======
-﻿import { createContext, useContext, useState, useEffect } from 'react';
->>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
+
 
 const LocationContext = createContext();
 
@@ -17,30 +14,8 @@ export const LocationProvider = ({ children }) => {
     });
 
     const [savedAddresses, setSavedAddresses] = useState(() => {
-<<<<<<< HEAD
         const saved = localStorage.getItem('saathigro_saved_addresses');
         return saved ? JSON.parse(saved) : [];
-=======
-        const saved = localStorage.getItem('sathiGro_saved_addresses');
-        return saved ? JSON.parse(saved) : [
-            {
-                id: 1,
-                type: 'Home',
-                address: 'H.No 45, Green Valley Apartments, Civil Lines',
-                city: 'Delhi, 110054',
-                isDefault: true,
-                lastOrder: { date: '24 Jan 2024', items: 5, total: 'â‚¹540' }
-            },
-            {
-                id: 2,
-                type: 'Office',
-                address: 'Tower B, Tech Park, Sector 62',
-                city: 'Noida, 201309',
-                isDefault: false,
-                lastOrder: { date: '02 Feb 2024', items: 2, total: 'â‚¹210' }
-            }
-        ];
->>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
     });
 
     const { token, user } = useAuth();
@@ -77,24 +52,17 @@ export const LocationProvider = ({ children }) => {
     }, [location]);
 
     useEffect(() => {
-<<<<<<< HEAD
         // Only save to localStorage offline sync if user is NOT logged in.
         // Or keep sync active, since it safely overwrites on remote fetch
         if (!token) {
             localStorage.setItem('saathigro_saved_addresses', JSON.stringify(savedAddresses));
         }
     }, [savedAddresses, token]);
-=======
-        localStorage.setItem('sathiGro_saved_addresses', JSON.stringify(savedAddresses));
-    }, [savedAddresses]);
->>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
 
     const updateLocation = (newLocation) => {
         setLocation(newLocation);
         setShowLocationModal(false);
     };
-
-<<<<<<< HEAD
     const addAddress = async (address) => {
         if (token) {
             try {
@@ -129,11 +97,6 @@ export const LocationProvider = ({ children }) => {
                 setSavedAddresses([...savedAddresses, newAddress]);
             }
         }
-=======
-    const addAddress = (address) => {
-        const newAddress = { ...address, id: Date.now(), lastOrder: { date: 'No orders', items: 0, total: 'â‚¹0' } };
-        setSavedAddresses([...savedAddresses, newAddress]);
->>>>>>> e2f11caa6882383cc41c697613e30afc2c464443
     };
 
     const editAddress = async (id, updatedAddress) => {
