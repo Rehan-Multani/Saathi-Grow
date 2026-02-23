@@ -11,12 +11,11 @@ import {
     Search,
     Loader2
 } from 'lucide-react';
-import { useAuth } from '../../user/context/AuthContext';
 import useDelivery from '../hooks/useDelivery';
+import useDeliveryStore from '../store/deliveryStore';
 
 const WalletPage = () => {
-    const { token } = useAuth();
-    const { wallet, transactions, loading } = useDelivery(token);
+    const { wallet, transactions, loading } = useDelivery();
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
@@ -115,7 +114,7 @@ const WalletPage = () => {
                             <div className="flex-1">
                                 <h5 className="font-bold text-slate-900 dark:text-white uppercase text-sm mb-1">{tx.category.replace('_', ' ')}</h5>
                                 <p className="text-xs text-slate-500 font-medium">
-                                    {new Date(tx.createdAt).toLocaleDateString()} â€¢ {new Date(tx.createdAt).toLocaleTimeString()}
+                                    {new Date(tx.createdAt).toLocaleDateString()} • {new Date(tx.createdAt).toLocaleTimeString()}
                                 </p>
                             </div>
                             <div className="text-right">

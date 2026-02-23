@@ -9,6 +9,8 @@ const Wallet = lazy(() => import('../pages/WalletPage'));
 const History = lazy(() => import('../pages/DeliveryHistory'));
 const Profile = lazy(() => import('../pages/ProfileSettings'));
 const Tracking = lazy(() => import('../pages/LiveTracking'));
+const Login = lazy(() => import('../pages/DeliveryLogin'));
+import useDeliveryStore from '../store/deliveryStore';
 
 const Loading = () => (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -16,24 +18,37 @@ const Loading = () => (
     </div>
 );
 
+const DeliveryGuard = ({ children }) => {
+    const { token } = useDeliveryStore();
+    if (!token) return <Navigate to="/delivery/login" replace />;
+    return children;
+};
+
 const DeliveryRoutes = () => {
     return (
         <NotificationProvider>
-            <DeliveryLayout>
-                <Suspense fallback={<Loading />}>
-                    <Routes>
-                        <Route path="/" element={<Navigate to="dashboard" replace />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/orders" element={<Orders />} />
-                        <Route path="/wallet" element={<Wallet />} />
-                        <Route path="/history" element={<History />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/tracking/:id" element={<Tracking />} />
-                        {/* Add a generic tracking page if ID is not needed for now */}
-                        <Route path="/tracking" element={<Tracking />} />
-                    </Routes>
-                </Suspense>
-            </DeliveryLayout>
+            <Suspense fallback={<Loading />}>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+
+                    <Route path="/*" element={
+                        <DeliveryGuard>
+                            <DeliveryLayout>
+                                <Routes>
+                                    <Route path="/" element={<Navigate to="dashboard" replace />} />
+                                    <Route path="/dashboard" element={<Dashboard />} />
+                                    <Route path="/orders" element={<Orders />} />
+                                    <Route path="/wallet" element={<Wallet />} />
+                                    <Route path="/history" element={<History />} />
+                                    <Route path="/profile" element={<Profile />} />
+                                    <Route path="/tracking/:id" element={<Tracking />} />
+                                    <Route path="/tracking" element={<Tracking />} />
+                                </Routes>
+                            </DeliveryLayout>
+                        </DeliveryGuard>
+                    } />
+                </Routes>
+            </Suspense>
         </NotificationProvider>
     );
 };

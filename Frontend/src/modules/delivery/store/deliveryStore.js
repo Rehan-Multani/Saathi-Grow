@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import {
     getDeliveryProfile,
+    requestOTP as requestOTPApi,
+    verifyOTP as verifyOTPApi,
+    updateDeliveryProfile as updateProfileApi
+} from '../api/deliveryAuthApi';
+import {
     updatePartnerStatus,
     updatePartnerLocation,
     getDeliveryOrders,
@@ -10,7 +15,8 @@ import {
 } from '../services/deliveryService';
 
 const useDeliveryStore = create((set, get) => ({
-    profile: null,
+    profile: JSON.parse(localStorage.getItem('sg_delivery_user')) || null,
+    token: localStorage.getItem('sg_delivery_token') || null,
     stats: null,
     orders: [],
     history: [],
@@ -19,23 +25,49 @@ const useDeliveryStore = create((set, get) => ({
     loading: false,
     error: null,
 
-    fetchProfile: async (token) => {
+    login: async (phone, otp) => {
+        set({ loading: true, error: null });
+        try {
+            const data = await verifyOTPApi(phone, otp);
+            localStorage.setItem('sg_delivery_token', data.token);
+            localStorage.setItem('sg_delivery_user', JSON.stringify(data.partner));
+            set({ profile: data.partner, token: data.token, loading: false });
+            return true;
+        } catch (error) {
+            set({ error: error.response?.data?.message || 'Login failed', loading: false });
+            return false;
+        }
+    },
+
+    logout: () => {
+        localStorage.removeItem('sg_delivery_token');
+        localStorage.removeItem('sg_delivery_user');
+        set({ profile: null, token: null, orders: [], history: [], stats: null });
+    },
+
+    fetchProfile: async () => {
+        const token = get().token;
+        if (!token) return;
         set({ loading: true });
         try {
-            const profile = await getDeliveryProfile(token);
-            set({ profile, loading: false });
+            const data = await getDeliveryProfile(token);
+            set({ profile: data.partner, loading: false });
+            localStorage.setItem('sg_delivery_user', JSON.stringify(data.partner));
         } catch (error) {
+            if (error.response?.status === 401) get().logout();
             set({ error: error.message, loading: false });
         }
     },
 
     toggleStatus: async (token, currentStatus) => {
-        const newStatus = currentStatus === 'online' ? 'offline' : 'online';
+        const statusToSend = currentStatus === 'Online' ? 'offline' : 'online';
         try {
-            await updatePartnerStatus(token, newStatus);
+            const data = await updatePartnerStatus(token, statusToSend);
+            // The backend returns the updated partner object
             set((state) => ({
-                profile: { ...state.profile, status: newStatus }
+                profile: data
             }));
+            localStorage.setItem('sg_delivery_user', JSON.stringify(data));
         } catch (error) {
             set({ error: error.message });
         }

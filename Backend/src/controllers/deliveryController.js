@@ -10,7 +10,7 @@ import DeliveryLocation from '../models/DeliveryLocation.js';
 // @access  Private (Rider)
 export const getProfile = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id }).populate('user', 'name email phone profileImage');
+        const partner = req.partner;
         if (!partner) {
             return res.status(404).json({ message: 'Delivery partner profile not found' });
         }
@@ -26,9 +26,9 @@ export const getProfile = async (req, res) => {
 export const updateStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        const partner = await DeliveryPartner.findOneAndUpdate(
-            { user: req.user._id },
-            { status },
+        const partner = await DeliveryPartner.findByIdAndUpdate(
+            req.partner._id,
+            { dutyStatus: status === 'online' ? 'Online' : 'Offline' },
             { new: true }
         );
         res.json(partner);
@@ -48,8 +48,8 @@ export const updateLocation = async (req, res) => {
             coordinates: [longitude, latitude]
         };
 
-        const partner = await DeliveryPartner.findOneAndUpdate(
-            { user: req.user._id },
+        const partner = await DeliveryPartner.findByIdAndUpdate(
+            req.partner._id,
             { currentLocation: location },
             { new: true }
         );
@@ -71,7 +71,7 @@ export const updateLocation = async (req, res) => {
 // @access  Private (Rider)
 export const getOrders = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
+        const partner = req.partner;
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
         const { type } = req.query; // pending, active, completed
@@ -115,7 +115,7 @@ export const updateDeliveryStatus = async (req, res) => {
 
         if (!delivery) return res.status(404).json({ message: 'Delivery not found' });
 
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
+        const partner = req.partner;
 
         if (status === 'assigned') {
             delivery.deliveryPartner = partner._id;
@@ -129,7 +129,10 @@ export const updateDeliveryStatus = async (req, res) => {
             await Order.findByIdAndUpdate(delivery.order, { status: 'delivered' });
 
             // Add earnings to wallet
-            const wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+            let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+            if (!wallet) {
+                wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
+            }
             const fee = delivery.deliveryFee || 40; // Default fee if not set
             wallet.balance += fee;
             wallet.totalEarnings += fee;
@@ -160,8 +163,13 @@ export const updateDeliveryStatus = async (req, res) => {
 // @access  Private (Rider)
 export const getWallet = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
-        const wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+        const partner = req.partner;
+        let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+
+        if (!wallet) {
+            wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
+        }
+
         const transactions = await Transaction.find({ wallet: wallet._id }).sort({ createdAt: -1 }).limit(20);
 
         res.json({ wallet, transactions });
@@ -207,13 +215,16 @@ export const createProfile = async (req, res) => {
 // @access  Private (Rider)
 export const getDashboardStats = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
+        const partner = req.partner;
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+        let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+        if (!wallet) {
+            wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
+        }
 
         const pendingOrders = await OrderDelivery.countDocuments({ status: 'pending' });
         const todayDeliveries = await OrderDelivery.countDocuments({

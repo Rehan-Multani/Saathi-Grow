@@ -34,6 +34,15 @@ export const createVendor = async (req, res) => {
   try {
     const { storeName, ownerName, email, phone, address, description, status, password } = req.body;
 
+    let parsedAddress = address;
+    if (typeof address === 'string') {
+      try {
+        parsedAddress = JSON.parse(address);
+      } catch (err) {
+        return res.status(400).json({ message: 'Invalid address format' });
+      }
+    }
+
     const vendorExists = await Vendor.findOne({ email });
     if (vendorExists) {
       return res.status(400).json({ message: 'Vendor with this email already exists' });
@@ -49,7 +58,7 @@ export const createVendor = async (req, res) => {
       ownerName,
       email,
       phone,
-      address,
+      address: parsedAddress,
       description,
       status: status || 'Pending',
       password: password || '123456', // Default password if not provided
@@ -73,11 +82,20 @@ export const updateVendor = async (req, res) => {
 
     const { storeName, ownerName, email, phone, address, description, status } = req.body;
 
+    let parsedAddress = address;
+    if (address && typeof address === 'string') {
+      try {
+        parsedAddress = JSON.parse(address);
+      } catch (err) {
+        // Fallback or ignore if not JSON
+      }
+    }
+
     vendor.storeName = storeName || vendor.storeName;
     vendor.ownerName = ownerName || vendor.ownerName;
     vendor.email = email || vendor.email;
     vendor.phone = phone || vendor.phone;
-    vendor.address = address || vendor.address;
+    vendor.address = parsedAddress || vendor.address;
     vendor.description = description || vendor.description;
     vendor.status = status || vendor.status;
 

@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import useDeliveryStore from '../store/deliveryStore';
 
-const useDelivery = (token) => {
+const useDelivery = () => {
     const {
+        token,
         profile,
         stats,
         orders,
@@ -21,12 +22,12 @@ const useDelivery = (token) => {
 
     useEffect(() => {
         if (token) {
-            fetchProfile(token);
+            fetchProfile();
             fetchOrders(token, 'active');
             fetchWallet(token);
             fetchStats(token);
         }
-    }, [token, fetchProfile, fetchOrders, fetchWallet, fetchStats]);
+    }, [token]);
 
     return {
         profile,
@@ -42,7 +43,7 @@ const useDelivery = (token) => {
         refreshAll: async () => {
             if (!token) return;
             await Promise.all([
-                fetchProfile(token),
+                fetchProfile(),
                 fetchOrders(token, 'active'),
                 fetchWallet(token),
                 fetchStats(token)

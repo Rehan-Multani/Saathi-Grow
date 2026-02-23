@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNotifications } from './NotificationProvider';
+import useDeliveryStore from '../../store/deliveryStore';
 
 const OPEN_ORDER_EVENT = 'delivery:open-order';
 
@@ -25,6 +26,11 @@ const DeliveryLayout = ({ children }) => {
         removeNotification,
         clearNotifications
     } = useNotifications();
+    const { profile, logout, fetchProfile } = useDeliveryStore();
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const notificationPanelRef = useRef(null);
 
@@ -98,7 +104,7 @@ const DeliveryLayout = ({ children }) => {
                         )}
                     </button>
                     <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border border-slate-200 dark:border-zinc-700">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" />
+                        <img src={profile?.profileImage || `https://ui-avatars.com/api/?name=${profile?.name}&background=random`} alt="avatar" />
                     </div>
                 </div>
             </header>
@@ -199,22 +205,29 @@ const DeliveryLayout = ({ children }) => {
                 <div className="p-4 border-t border-slate-200 dark:border-zinc-800">
                     <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-2xl p-4 mb-4">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full border-2 border-lime-500 p-0.5">
-                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className="w-full h-full rounded-full" alt="profile" />
+                            <div className="w-10 h-10 rounded-full border-2 border-lime-500 p-0.5 overflow-hidden bg-white">
+                                <img
+                                    src={profile?.profileImage || `https://ui-avatars.com/api/?name=${profile?.name}&background=random`}
+                                    className="w-full h-full rounded-full object-cover"
+                                    alt="profile"
+                                />
                             </div>
                             <div>
-                                <h4 className="font-bold text-sm">Rahul Kumar</h4>
-                                <p className="text-xs text-slate-500 dark:text-zinc-400">Rider #SG-R23</p>
+                                <h4 className="font-bold text-sm truncate max-w-[120px]">{profile?.name}</h4>
+                                <p className="text-xs text-slate-500 dark:text-zinc-400">{profile?.uniqueId || 'Rider'}</p>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 bg-green-100 dark:bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                                Online
+                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${profile?.dutyStatus === 'Online' ? 'bg-green-100 dark:bg-green-500/10 text-green-600' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${profile?.dutyStatus === 'Online' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                {profile?.dutyStatus || 'Offline'}
                             </div>
                         </div>
                     </div>
-                    <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-colors">
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-colors"
+                    >
                         <LogOut size={20} />
                         <span className="font-medium">Logout</span>
                     </button>

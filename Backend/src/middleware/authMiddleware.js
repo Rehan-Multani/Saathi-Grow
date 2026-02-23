@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Admin from '../models/Admin.js';
 import Vendor from '../models/Vendor.js';
+import DeliveryPartner from '../models/DeliveryPartner.js';
 
 // Protect Customer/User Routes
 export const protect = async (req, res, next) => {
@@ -84,4 +85,22 @@ export const requirePermission = (requiredPermission) => {
       message: `Access Denied: You do not have the ${requiredPermission} permission.`
     });
   };
+};
+
+// Protect Delivery Partner Logic
+export const protectDeliveryPartner = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.partner = await DeliveryPartner.findById(decoded.id);
+      if (!req.partner) return res.status(401).json({ message: 'Delivery Partner access denied' });
+      if (req.partner.authStatus !== 'Active') return res.status(403).json({ message: 'Account is suspended or inactive' });
+      next();
+    } catch (error) {
+      res.status(401).json({ message: 'Session expired, please login again' });
+    }
+  }
+  if (!token) res.status(401).json({ message: 'Delivery Partner authentication required' });
 };

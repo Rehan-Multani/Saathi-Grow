@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { createVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import GoogleMapsInput from '../../components/common/GoogleMapsInput';
 
 const AddVendor = () => {
     const navigate = useNavigate();
@@ -15,7 +16,16 @@ const AddVendor = () => {
         ownerName: '',
         email: '',
         phone: '',
-        address: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            location: {
+                type: 'Point',
+                coordinates: [0, 0] // [lng, lat]
+            }
+        },
         description: '',
         status: 'Pending',
         password: ''
@@ -39,6 +49,22 @@ const AddVendor = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleLocationSelect = (locData) => {
+        setFormData(prev => ({
+            ...prev,
+            address: {
+                street: locData.street || locData.fullAddress,
+                city: locData.city,
+                state: locData.state,
+                zipCode: locData.zipCode,
+                location: {
+                    type: 'Point',
+                    coordinates: [locData.lng, locData.lat]
+                }
+            }
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.storeName || !formData.ownerName || !formData.email || !formData.phone || !formData.address) {
@@ -49,7 +75,11 @@ const AddVendor = () => {
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                data.append(key, formData[key]);
+                if (key === 'address') {
+                    data.append(key, JSON.stringify(formData[key]));
+                } else {
+                    data.append(key, formData[key]);
+                }
             });
             if (logoFile) {
                 data.append('logo', logoFile);
@@ -145,16 +175,16 @@ const AddVendor = () => {
                                 </Row>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Business Address <span className="text-danger">*</span></Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={2}
-                                        placeholder="Full street address..."
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                        required
+                                    <Form.Label className="small fw-bold">Business Address (Search on Map) <span className="text-danger">*</span></Form.Label>
+                                    <GoogleMapsInput
+                                        onLocationSelect={handleLocationSelect}
+                                        placeholder="Search for store location..."
                                     />
+                                    {formData.address.street && (
+                                        <div className="mt-2 p-2 bg-light rounded border border-dashed small text-muted">
+                                            <strong>Selected:</strong> {formData.address.street}, {formData.address.city}, {formData.address.state} {formData.address.zipCode}
+                                        </div>
+                                    )}
                                 </Form.Group>
 
                                 <Form.Group className="mb-0">

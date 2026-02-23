@@ -17,7 +17,7 @@ import {
     MessageCircle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useAuth } from '../../user/context/AuthContext';
+import useDeliveryStore from '../store/deliveryStore';
 import useDelivery from '../hooks/useDelivery';
 import { useNavigate } from 'react-router-dom';
 import useLocationTracking from '../hooks/useLocationTracking';
@@ -71,7 +71,7 @@ const StatCard = ({ icon, label, value, subValue, color, isLoading }) => (
 );
 
 const DeliveryDashboard = () => {
-    const { token, user } = useAuth();
+    const { token } = useDeliveryStore();
     const navigate = useNavigate();
     const [chartRange, setChartRange] = useState('7d');
     const [locationUpdating, setLocationUpdating] = useState(false);
@@ -84,7 +84,7 @@ const DeliveryDashboard = () => {
         updateLocation,
         toggleStatus,
         refreshAll
-    } = useDelivery(token);
+    } = useDelivery();
 
     const [incomingOrder, setIncomingOrder] = useState(null);
     const [acceptedOrder, setAcceptedOrder] = useState(null);
@@ -108,7 +108,7 @@ const DeliveryDashboard = () => {
     }, []);
 
 
-    const isOnline = profile?.status === 'online';
+    const isOnline = profile?.dutyStatus === 'Online';
     useLocationTracking(token, isOnline);
     const coordinates = profile?.currentLocation?.coordinates;
     const locationText = Array.isArray(coordinates) && coordinates.length === 2
@@ -153,8 +153,8 @@ const DeliveryDashboard = () => {
 
     const handleToggle = async () => {
         try {
-            await toggleStatus(profile?.status);
-            await refreshAll();
+            await toggleStatus(profile?.dutyStatus);
+            // No need to refreshAll, toggleStatus now updates the profile state directly
         } catch (error) {
             console.error('Failed to toggle partner status:', error);
         }
@@ -216,7 +216,7 @@ const DeliveryDashboard = () => {
             {/* Top Greeting & Toggle */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Rider'}! ðŸ‘‹</h1>
+                    <h1 className="text-3xl font-black tracking-tight">Welcome, {profile?.name?.split(' ')[0] || 'Rider'}! ðŸ‘‹</h1>
                     <p className="text-slate-500 dark:text-zinc-400 font-medium">Ready for today's deliveries?</p>
                 </div>
 
@@ -275,11 +275,11 @@ const DeliveryDashboard = () => {
                             <div>
                                 <p className="text-lime-100/80 font-bold uppercase tracking-widest text-[10px] mb-1">Your Wallet Balance</p>
                                 <h2 className="text-5xl font-black mb-1">
-                                    â‚¹{stats?.walletBalance?.toFixed(2) || '0.00'}
+                                    ₹{stats?.walletBalance?.toFixed(2) || '0.00'}
                                 </h2>
                                 <div className="flex items-center gap-2 text-lime-100 text-sm font-medium">
                                     <TrendingUp size={16} />
-                                    <span>Total Lifetime: â‚¹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
+                                    <span>Total Lifetime: ₹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
                                 </div>
                             </div>
                             <button
@@ -293,7 +293,7 @@ const DeliveryDashboard = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
                                 <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Today's Earnings</p>
-                                <h4 className="text-xl font-black">â‚¹{stats?.todayEarnings || '0'}</h4>
+                                <h4 className="text-xl font-black">₹{stats?.todayEarnings || '0'}</h4>
                             </div>
                             <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
                                 <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Active Orders</p>
@@ -378,7 +378,7 @@ const DeliveryDashboard = () => {
                 <StatCard
                     icon={<Wallet size={24} />}
                     label="Today's Earnings"
-                    value={`â‚¹${stats?.todayEarnings || '0'}`}
+                    value={`₹${stats?.todayEarnings || '0'}`}
                     color="from-blue-400 to-indigo-500"
                     isLoading={loading}
                 />
@@ -471,7 +471,7 @@ const DeliveryDashboard = () => {
                                     <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider mb-1">
                                         {order.status}
                                     </span>
-                                    <p className="font-black text-sm">â‚¹{order.deliveryFee}</p>
+                                    <p className="font-black text-sm">₹{order.deliveryFee}</p>
                                 </div>
                             </div>
                         )) : (

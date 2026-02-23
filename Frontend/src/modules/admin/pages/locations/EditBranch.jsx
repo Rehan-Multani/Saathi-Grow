@@ -3,13 +3,23 @@ import { Card, Form, Button, Row, Col } from 'react-bootstrap';
 import { Save, X, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import GoogleMapsInput from '../../components/common/GoogleMapsInput';
 
 const EditBranch = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [formData, setFormData] = useState({
         name: '',
-        address: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            location: {
+                type: 'Point',
+                coordinates: [0, 0]
+            }
+        },
         phone: '',
         manager: '',
         email: '',
@@ -31,7 +41,32 @@ const EditBranch = () => {
     }, [id]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name.includes('.')) {
+            const [parent, child] = name.split('.');
+            setFormData(prev => ({
+                ...prev,
+                [parent]: { ...prev[parent], [child]: value }
+            }));
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
+    };
+
+    const handleLocationSelect = (locData) => {
+        setFormData(prev => ({
+            ...prev,
+            address: {
+                street: locData.street || locData.fullAddress,
+                city: locData.city,
+                state: locData.state,
+                zipCode: locData.zipCode,
+                location: {
+                    type: 'Point',
+                    coordinates: [locData.lng, locData.lat]
+                }
+            }
+        }));
     };
 
     const handleSubmit = (e) => {
@@ -140,17 +175,61 @@ const EditBranch = () => {
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Full Address</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={3}
-                                        placeholder="123 Market St, City, State..."
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                        className="shadow-none border-light-subtle bg-light-subtle"
+                                    <Form.Label className="small fw-bold">Street Address (Search on Map)</Form.Label>
+                                    <GoogleMapsInput
+                                        onLocationSelect={handleLocationSelect}
+                                        defaultValue={formData.address.street}
+                                        placeholder="Search for store location..."
                                     />
+                                    <div className="mt-2">
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="123 Market St"
+                                            name="address.street"
+                                            value={formData.address.street}
+                                            onChange={handleChange}
+                                            className="shadow-none border-light-subtle bg-light-subtle py-2"
+                                        />
+                                    </div>
                                 </Form.Group>
+                                <Row className="g-3 mb-3">
+                                    <Col md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-bold">City</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                name="address.city"
+                                                value={formData.address.city}
+                                                onChange={handleChange}
+                                                className="shadow-none border-light-subtle bg-light-subtle py-2"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-bold">State</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                name="address.state"
+                                                value={formData.address.state}
+                                                onChange={handleChange}
+                                                className="shadow-none border-light-subtle bg-light-subtle py-2"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-bold">Zip Code</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                name="address.zipCode"
+                                                value={formData.address.zipCode}
+                                                onChange={handleChange}
+                                                className="shadow-none border-light-subtle bg-light-subtle py-2"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
 
                                 <Form.Group className="mb-4">
                                     <Form.Label className="small fw-bold">Status</Form.Label>

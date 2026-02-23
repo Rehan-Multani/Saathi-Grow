@@ -133,6 +133,8 @@ export const verifyRazorpayPayment = async (req, res) => {
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
+      vendor: orderData.vendorId,
+      branchId: orderData.branchId,
       razorpayOrderId: razorpayOrderId,
       razorpayPaymentId: razorpayPaymentId,
       razorpaySignature: razorpaySignature
@@ -177,6 +179,8 @@ export const createCODOrder = async (req, res) => {
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
+      vendor: orderData.vendorId,
+      branchId: orderData.branchId,
     });
 
     const createdOrder = await order.save();

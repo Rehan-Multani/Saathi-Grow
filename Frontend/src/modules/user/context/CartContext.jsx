@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import * as cartApi from '../api/userCartApi';
+import { getPublicSettings } from '../api/publicSettingApi';
 
 
 const CartContext = createContext();
@@ -19,10 +20,23 @@ export const CartProvider = ({ children }) => {
 
     const { token } = useAuth();
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [publicSettings, setPublicSettings] = useState({
+        baseDeliveryFee: 0,
+        handlingFee: 0,
+        surgeMultiplier: 1,
+        freeDeliveryThreshold: 500
+    });
 
-    // Fetch cart from backend on mount or login
+    // Fetch public rules and cart
     useEffect(() => {
-        const fetchRemoteCart = async () => {
+        const fetchSettingsAndCart = async () => {
+            try {
+                const settingsInfo = await getPublicSettings();
+                setPublicSettings(settingsInfo);
+            } catch (e) {
+                console.error("Failed fetching settings rulebook", e);
+            }
+
             if (token) {
                 try {
                     const data = await cartApi.getCart(token);
@@ -51,7 +65,7 @@ export const CartProvider = ({ children }) => {
                 }
             }
         };
-        fetchRemoteCart();
+        fetchSettingsAndCart();
     }, [token]);
 
     // Continually backup to Local Storage and optionally Sync to Cloud if authenticated
@@ -120,7 +134,8 @@ export const CartProvider = ({ children }) => {
                 cartCount,
                 isCartOpen,
                 toggleCart,
-                setIsCartOpen
+                setIsCartOpen,
+                publicSettings
             }}
         >
             {children}

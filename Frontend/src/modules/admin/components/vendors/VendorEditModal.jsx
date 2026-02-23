@@ -4,6 +4,7 @@ import { Save, Store, User, Phone, Mail, MapPin, Camera, X } from 'lucide-react'
 import { updateVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import GoogleMapsInput from '../common/GoogleMapsInput';
 
 const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
     const { adminUser } = useAdminAuth();
@@ -27,7 +28,16 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                 ownerName: vendor.ownerName || '',
                 email: vendor.email || '',
                 phone: vendor.phone || '',
-                address: vendor.address || '',
+                address: vendor.address && typeof vendor.address === 'object' ? vendor.address : {
+                    street: vendor.address || '',
+                    city: '',
+                    state: '',
+                    zipCode: '',
+                    location: {
+                        type: 'Point',
+                        coordinates: [0, 0]
+                    }
+                },
                 description: vendor.description || '',
                 status: vendor.status || 'Pending'
             });
@@ -39,6 +49,22 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleLocationSelect = (locData) => {
+        setFormData(prev => ({
+            ...prev,
+            address: {
+                street: locData.street || locData.fullAddress,
+                city: locData.city,
+                state: locData.state,
+                zipCode: locData.zipCode,
+                location: {
+                    type: 'Point',
+                    coordinates: [locData.lng, locData.lat]
+                }
+            }
+        }));
     };
 
     const handleLogoChange = (e) => {
@@ -59,7 +85,11 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                data.append(key, formData[key]);
+                if (key === 'address') {
+                    data.append(key, JSON.stringify(formData[key]));
+                } else {
+                    data.append(key, formData[key]);
+                }
             });
             if (logoFile) {
                 data.append('logo', logoFile);
@@ -162,16 +192,17 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
 
                     <Row className="g-3 mb-3">
                         <Col md={12}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Store Address</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={2}
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                                className="bg-light border-0 shadow-none"
-                                required
+                            <Form.Label className="small fw-bold text-muted uppercase">Store Address (Search on Map)</Form.Label>
+                            <GoogleMapsInput
+                                onLocationSelect={handleLocationSelect}
+                                defaultValue={typeof formData.address === 'object' ? formData.address.street : formData.address}
+                                placeholder="Search for new location..."
                             />
+                            {formData.address && typeof formData.address === 'object' && formData.address.street && (
+                                <div className="mt-2 p-2 bg-white rounded border border-light small text-muted">
+                                    <strong>Updated:</strong> {formData.address.street}, {formData.address.city}, {formData.address.state} {formData.address.zipCode}
+                                </div>
+                            )}
                         </Col>
                     </Row>
 
