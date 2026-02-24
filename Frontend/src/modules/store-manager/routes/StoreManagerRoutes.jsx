@@ -1,4 +1,5 @@
-import React, { lazy } from 'react';
+import React, { lazy, Suspense } from 'react';
+import { Spinner } from 'react-bootstrap';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import StoreManagerLayout from '../StoreManagerLayout';
 import StoreManagerDashboard from '../StoreManagerDashboard';

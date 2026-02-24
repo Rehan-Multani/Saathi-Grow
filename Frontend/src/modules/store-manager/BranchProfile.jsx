@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { Card, Form, Button, Row, Col, Spinner, Alert, InputGroup } from 'react-bootstrap';
 import { Store, MapPin, Phone, Mail, Save, RefreshCcw } from 'lucide-react';
 import { getMyBranch, updateMyBranch } from './api/branchApi';
 import Swal from 'sweetalert2';
@@ -82,7 +82,7 @@ const BranchProfile = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="d-flex items-center justify-center min-h-[400px]">
         <Spinner animation="border" variant="primary" />
       </div>
     );
@@ -226,5 +226,3 @@ const BranchProfile = () => {
 };
 
 export default BranchProfile;
-
-import { InputGroup } from 'react-bootstrap';
