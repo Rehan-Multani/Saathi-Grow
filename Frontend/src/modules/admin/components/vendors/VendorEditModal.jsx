@@ -46,6 +46,15 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         }
     }, [vendor]);
 
+    useEffect(() => {
+        if (show) {
+            const style = document.createElement('style');
+            style.innerHTML = `.pac-container { z-index: 10000 !important; }`;
+            document.head.appendChild(style);
+            return () => document.head.removeChild(style);
+        }
+    }, [show]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -198,11 +207,63 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                 defaultValue={typeof formData.address === 'object' ? formData.address.street : formData.address}
                                 placeholder="Search for new location..."
                             />
-                            {formData.address && typeof formData.address === 'object' && formData.address.street && (
-                                <div className="mt-2 p-2 bg-white rounded border border-light small text-muted">
-                                    <strong>Updated:</strong> {formData.address.street}, {formData.address.city}, {formData.address.state} {formData.address.zipCode}
-                                </div>
-                            )}
+
+                            <div className="mt-3 p-3 bg-light rounded border">
+                                <Row className="g-2">
+                                    <Col md={12}>
+                                        <Form.Label className="small fw-bold text-muted uppercase">Street</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={formData.address.street}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, street: e.target.value }
+                                            })}
+                                            className="bg-white border-0 py-2 shadow-none"
+                                            required
+                                        />
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Label className="small fw-bold text-muted uppercase">City</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={formData.address.city}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, city: e.target.value }
+                                            })}
+                                            className="bg-white border-0 py-2 shadow-none"
+                                            required
+                                        />
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Label className="small fw-bold text-muted uppercase">State</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={formData.address.state}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, state: e.target.value }
+                                            })}
+                                            className="bg-white border-0 py-2 shadow-none"
+                                            required
+                                        />
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Label className="small fw-bold text-muted uppercase">Zip Code</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={formData.address.zipCode}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, zipCode: e.target.value }
+                                            })}
+                                            className="bg-white border-0 py-2 shadow-none"
+                                            required
+                                        />
+                                    </Col>
+                                </Row>
+                            </div>
                         </Col>
                     </Row>
 

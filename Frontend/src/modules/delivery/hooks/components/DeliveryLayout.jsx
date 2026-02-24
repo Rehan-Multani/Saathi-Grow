@@ -26,11 +26,7 @@ const DeliveryLayout = ({ children }) => {
         removeNotification,
         clearNotifications
     } = useNotifications();
-    const { profile, logout, fetchProfile } = useDeliveryStore();
-
-    useEffect(() => {
-        fetchProfile();
-    }, []);
+    const { profile, logout } = useDeliveryStore();
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const notificationPanelRef = useRef(null);
 

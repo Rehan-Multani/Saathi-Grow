@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, Phone, User, Check, Home, Briefcase, Heart } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, User, Check, Home, Briefcase, Heart, Navigation, Search, Loader2 } from 'lucide-react';
 import { useLocation as useAppLocation } from '../../context/LocationContext';
 
 const AddressFormPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const routerLocation = useLocation();
-    const { savedAddresses, addAddress, editAddress } = useAppLocation();
+    const { savedAddresses, addAddress, editAddress, mapLoaded, reverseGeocode } = useAppLocation();
+    const [detecting, setDetecting] = useState(false);
+    const searchRef = React.useRef(null);
+    const autocompleteRef = React.useRef(null);
 
     const isEditMode = !!id;
     const isOriginallyDefault = isEditMode ? savedAddresses.find(addr => String(addr.id) === String(id))?.isDefault : false;
@@ -17,7 +20,8 @@ const AddressFormPage = () => {
         city: '',
         isDefault: false,
         name: '',
-        phone: ''
+        phone: '',
+        coordinates: null
     });
 
     useEffect(() => {
@@ -27,11 +31,93 @@ const AddressFormPage = () => {
                 setFormData({
                     ...addressToEdit,
                     name: addressToEdit.name || '',
-                    phone: addressToEdit.phone || ''
+                    phone: addressToEdit.phone || '',
+                    coordinates: addressToEdit.coordinates || null
                 });
             }
         }
     }, [id, isEditMode, savedAddresses]);
+
+    // Initialize Autocomplete
+    useEffect(() => {
+        if (mapLoaded && searchRef.current && !autocompleteRef.current) {
+            autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
+                componentRestrictions: { country: "IN" },
+                fields: ["address_components", "geometry", "formatted_address"]
+            });
+
+            autocompleteRef.current.addListener("place_changed", () => {
+                const place = autocompleteRef.current.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
+
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                const city = place.address_components.find(c => c.types.includes('locality'))?.long_name || '';
+                const formattedAddress = place.formatted_address || '';
+
+                // Explicitly update search input and form state
+                if (searchRef.current) {
+                    searchRef.current.value = formattedAddress;
+                }
+
+                setFormData(prev => ({
+                    ...prev,
+                    address: formattedAddress,
+                    city: city,
+                    coordinates: [lng, lat]
+                }));
+            });
+
+            // Prevent form submission on Enter in autocomplete
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter') e.preventDefault();
+            };
+            searchRef.current.addEventListener('keydown', handleKeyDown);
+
+            return () => {
+                if (window.google) {
+                    window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+                }
+            };
+        }
+    }, [mapLoaded]);
+
+    // Google Autocomplete Dropdown Z-Index Fix
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `.pac-container { z-index: 9999 !important; border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1); margin-top: 5px; }`;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, []);
+
+    const handleDetectLocation = () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        setDetecting(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                const coords = [longitude, latitude];
+                const geoData = await reverseGeocode(coords);
+
+                setFormData(prev => ({
+                    ...prev,
+                    address: geoData?.address || prev.address,
+                    city: geoData?.city || prev.city,
+                    coordinates: coords
+                }));
+                setDetecting(false);
+            },
+            (error) => {
+                console.error('Geolocation error:', error);
+                alert('Could not detect your location. Please enter it manually.');
+                setDetecting(false);
+            }
+        );
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -124,8 +210,35 @@ const AddressFormPage = () => {
                 </div>
 
                 {/* Address Details */}
-                <div className="space-y-4">
-                    <label className="!text-[9px] font-black text-gray-400 uppercase tracking-widest block">Address Details</label>
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="!text-[9px] font-black text-gray-400 uppercase tracking-widest">Address Details</label>
+                        <button
+                            type="button"
+                            onClick={handleDetectLocation}
+                            disabled={detecting}
+                            className="flex items-center gap-1.5 !text-[10px] font-black text-[#0c831f] uppercase tracking-wider hover:opacity-80 transition-all disabled:opacity-50"
+                        >
+                            {detecting ? (
+                                <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                                <Navigation size={12} fill="currentColor" />
+                            )}
+                            {detecting ? 'Detecting...' : 'Use Current Location'}
+                        </button>
+                    </div>
+
+                    {/* Search Field (Autocomplete) */}
+                    <div className="relative group mb-4">
+                        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0c831f] transition-colors" />
+                        <input
+                            ref={searchRef}
+                            type="text"
+                            placeholder="Search your area / building"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-[12px] font-bold focus:outline-none focus:ring-1 focus:ring-[#0c831f] focus:bg-white dark:focus:bg-black transition-all"
+                        />
+                    </div>
+
                     <div className="relative group">
                         <MapPin size={14} className="absolute left-3.5 top-4 text-gray-400 group-focus-within:text-[#0c831f] transition-colors" />
                         <textarea

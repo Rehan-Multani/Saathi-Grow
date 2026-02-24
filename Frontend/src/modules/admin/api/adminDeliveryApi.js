@@ -1,11 +1,13 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admin/delivery';
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/admin/delivery`;
 
 // Helper to get token based on portal
 const getAuthDetails = () => {
   const admin = localStorage.getItem('sathiGro_admin');
+  const manager = localStorage.getItem('saathigro_manager');
   if (admin) return JSON.parse(admin);
+  if (manager) return JSON.parse(manager);
   return null;
 };
 
@@ -50,6 +52,17 @@ export const deleteDeliveryPartner = async (id) => {
 };
 
 // Dispatch & Assignment APIs
+
+export const getUnassignedOrders = async () => {
+  const auth = getAuthDetails();
+  if (!auth) return [];
+
+  const { data } = await axios.get(`${API_URL}/unassigned-orders`, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
 export const getAvailablePartners = async () => {
   const auth = getAuthDetails();
   if (!auth) return [];
@@ -70,11 +83,31 @@ export const assignOrder = async (orderId, partnerId) => {
   return data;
 };
 
+export const unassignOrder = async (orderId) => {
+  const auth = getAuthDetails();
+  if (!auth) throw new Error('Not Authenticated');
+
+  const { data } = await axios.post(`${API_URL}/unassign`, { orderId }, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
 export const autoAssignOrder = async (orderId) => {
   const auth = getAuthDetails();
   if (!auth) throw new Error('Not Authenticated');
 
   const { data } = await axios.post(`${API_URL}/auto-assign/${orderId}`, {}, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const getActiveTracking = async () => {
+  const auth = getAuthDetails();
+  if (!auth) return [];
+
+  const { data } = await axios.get(`${API_URL}/active-tracking`, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;

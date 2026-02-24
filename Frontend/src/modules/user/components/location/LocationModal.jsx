@@ -1,27 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, MapPin, Navigation, Search } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
 
 const LocationModal = () => {
-    const { showLocationModal, closeLocationModal, updateLocation, savedAddresses } = useLocation();
+    const { showLocationModal, closeLocationModal, updateLocation, savedAddresses, mapLoaded, reverseGeocode } = useLocation();
     const [searchText, setSearchText] = useState('');
     const [detecting, setDetecting] = useState(false);
+    const searchRef = useRef(null);
+    const autocompleteRef = useRef(null);
 
-    if (!showLocationModal) return null;
+    // Google Maps Autocomplete init
+    useEffect(() => {
+        if (mapLoaded && showLocationModal && searchRef.current && !autocompleteRef.current) {
+            autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
+                componentRestrictions: { country: "IN" },
+                fields: ["address_components", "geometry", "formatted_address"]
+            });
+
+            autocompleteRef.current.addListener("place_changed", () => {
+                const place = autocompleteRef.current.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
+
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                const city = place.address_components.find(c => c.types.includes('locality'))?.long_name || '';
+
+                updateLocation({
+                    address: place.formatted_address,
+                    city: city,
+                    coordinates: [lng, lat]
+                });
+            });
+        }
+    }, [mapLoaded, showLocationModal]);
 
     const handleDetectLocation = () => {
         setDetecting(true);
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    // Mock Reverse Geocoding
-                    setTimeout(() => {
-                        updateLocation({
-                            address: '123, Green Street, Civil Lines',
-                            city: 'Current Location'
-                        });
-                        setDetecting(false);
-                    }, 1000);
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const coords = [longitude, latitude];
+                    const geoData = await reverseGeocode(coords);
+
+                    updateLocation({
+                        address: geoData?.address || 'Detected Location',
+                        city: geoData?.city || 'Indore, MP',
+                        coordinates: coords
+                    });
+                    setDetecting(false);
                 },
                 (error) => {
                     alert('Unable to retrieve your location');
@@ -34,21 +61,33 @@ const LocationModal = () => {
         }
     };
 
+    if (!showLocationModal) return null;
+
     const handleAddressSelect = (addr) => {
         updateLocation({
             address: addr.address,
-            city: addr.city
+            city: addr.city,
+            coordinates: addr.coordinates
         });
+    };
+
+    const cityCoords = {
+        'Indore': [75.8577, 22.7196],
+        'Bhopal': [77.4126, 23.2599],
+        'Mumbai': [72.8777, 19.0760],
+        'Delhi': [77.1025, 28.7041],
+        'Bangalore': [77.5946, 12.9716]
     };
 
     const handleManualSelect = (city) => {
         updateLocation({
             address: `${city}, India`,
-            city: city
+            city: city,
+            coordinates: cityCoords[city] || [75.8577, 22.7196] // Default to Indore if unknown
         });
     };
 
-    const suggestions = ['Mumbai', 'Delhi', 'Bangalore', 'Pune', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Indore', 'Bhopal', 'Chandigarh', 'Noida', 'Gurgaon'].filter(
+    const suggestions = Object.keys(cityCoords).concat(['Pune', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Chandigarh', 'Noida', 'Gurgaon']).filter(
         city => city.toLowerCase().includes(searchText.toLowerCase())
     );
 
@@ -86,6 +125,7 @@ const LocationModal = () => {
                         {/* Search Input */}
                         <div className="w-full md:flex-1 relative h-[42px]">
                             <input
+                                ref={searchRef}
                                 type="text"
                                 placeholder="Search delivery location"
                                 value={searchText}

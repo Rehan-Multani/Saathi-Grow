@@ -4,6 +4,7 @@ import Order from '../models/Order.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
 import DeliveryLocation from '../models/DeliveryLocation.js';
+import { findOptimalSource } from '../services/locationService.js';
 
 // @desc    Get delivery partner profile
 // @route   GET /api/delivery/profile
@@ -100,6 +101,27 @@ export const getOrders = async (req, res) => {
             .sort({ createdAt: -1 });
 
         res.json(deliveries);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get single delivery detail
+// @route   GET /api/delivery/orders/:id
+// @access  Private (Rider)
+export const getDeliveryDetail = async (req, res) => {
+    try {
+        const delivery = await OrderDelivery.findById(req.params.id)
+            .populate({
+                path: 'order',
+                populate: [
+                    { path: 'user', select: 'name phone' },
+                    { path: 'branchId', select: 'name address phone' }
+                ]
+            });
+
+        if (!delivery) return res.status(404).json({ message: 'Delivery not found' });
+        res.json(delivery);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -277,18 +299,29 @@ export const simulateOrder = async (req, res) => {
 
         if (!customer) return res.status(404).json({ message: 'No customer found to simulate order' });
 
+        const shippingAddress = {
+            street: 'Vijay Nagar, Scheme No. 54',
+            city: 'Indore',
+            state: 'MP',
+            location: { type: 'Point', coordinates: [75.8948, 22.7533] } // Real Indore coordinates for test
+        };
+
+        // For simulation, find a real product to check stock against
+        const Product = (await import('../models/Product.js')).default;
+        const randomProduct = await Product.findOne({ status: 'Active' });
+        const items = randomProduct ? [{ product: randomProduct._id, quantity: 1 }] : [];
+
+        const optimalSource = await findOptimalSource(shippingAddress.location.coordinates, items);
+
         const newOrder = await Order.create({
             orderId: 'SIM-' + Math.floor(Math.random() * 10000),
             user: customer._id,
             totalAmount: 500,
             status: 'pending',
             paymentMethod: 'cod',
-            shippingAddress: {
-                street: '123 Test Street',
-                city: 'Indore',
-                state: 'MP',
-                location: { type: 'Point', coordinates: [75.8577, 22.7196] }
-            }
+            shippingAddress,
+            branchId: optimalSource?.type === 'branch' ? optimalSource.id : undefined,
+            vendor: optimalSource?.type === 'vendor' ? optimalSource.id : undefined
         });
 
         const delivery = await OrderDelivery.create({
@@ -304,7 +337,9 @@ export const simulateOrder = async (req, res) => {
             orderId: newOrder.orderId,
             customerName: customer.name,
             amount: newOrder.totalAmount,
-            address: newOrder.shippingAddress.street
+            address: newOrder.shippingAddress.street,
+            branchLocation: optimalSource?.location,
+            customerLocation: shippingAddress.location.coordinates
         });
 
         res.json({ message: 'Order simulated successfully', delivery });

@@ -3,11 +3,16 @@ import DeliveryPartner from '../models/DeliveryPartner.js';
 import Order from '../models/Order.js';
 import Vendor from '../models/Vendor.js';
 import Branch from '../models/Branch.js';
+import OrderDelivery from '../models/OrderDelivery.js';
 
 // Helper to generate 4-digit numeric OTP securely
 const generateOTP = () => {
   return Math.floor(1000 + Math.random() * 9000).toString();
 };
+
+/**
+ * Dispatch Controller Engine - Core Logic for Assignment / Tracking
+ */
 
 // @desc    Register a new Delivery Partner
 // @route   POST /api/admin/delivery-partners
@@ -60,10 +65,16 @@ export const addDeliveryPartner = async (req, res) => {
 
 // @desc    Get all delivery partners for Admin table
 // @route   GET /api/admin/delivery-partners
-// @access  Private (Admin)
+// @access  Private (Admin/Manager)
 export const getDeliveryPartners = async (req, res) => {
   try {
-    const partners = await DeliveryPartner.find({}).sort({ createdAt: -1 });
+    const admin = req.admin;
+    let query = {};
+
+    // If Branch Manager, we show all partners (fleet is usually shared)
+    // but we could filter by proximity in the future if branch has its own geo-fence
+
+    const partners = await DeliveryPartner.find(query).sort({ createdAt: -1 });
     res.json(partners);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Error fetching delivery partners' });
@@ -116,13 +127,21 @@ export const deleteDeliveryPartner = async (req, res) => {
 
 // @desc    Get all active unassigned orders (status 'confirmed' or 'preparing')
 // @route   GET /api/admin/delivery-partners/unassigned-orders
-// @access  Private (Admin)
+// @access  Private (Admin/Manager)
 export const getUnassignedOrders = async (req, res) => {
   try {
-    const orders = await Order.find({
-      status: { $in: ['confirmed', 'preparing'] },
+    const admin = req.admin;
+    const query = {
+      status: { $in: ['confirmed', 'preparing', 'pending'] },
       deliveryPartnerId: null
-    }).populate('user', 'name phone').sort({ createdAt: 1 }); // Oldest first (FIFO)
+    };
+
+    if (admin.role !== 'Admin') {
+      if (!admin.branchId) return res.status(403).json({ message: 'No branch assigned' });
+      query.branchId = admin.branchId;
+    }
+
+    const orders = await Order.find(query).populate('user', 'name phone').sort({ createdAt: 1 }); // Oldest first (FIFO)
 
     res.json(orders);
   } catch (error) {
@@ -175,6 +194,23 @@ const performAssignment = async (orderId, partnerId, session) => {
   }
 
   await order.save({ session });
+
+  // 3.5 Create/Update OrderDelivery record for tracking consistency
+  let deliveryRecord = await OrderDelivery.findOne({ order: order._id }).session(session);
+  if (!deliveryRecord) {
+    deliveryRecord = new OrderDelivery({
+      order: order._id,
+      deliveryPartner: partner._id,
+      status: 'assigned',
+      assignedAt: Date.now(),
+      deliveryFee: order.deliveryFee || 0
+    });
+  } else {
+    deliveryRecord.deliveryPartner = partner._id;
+    deliveryRecord.status = 'assigned';
+    deliveryRecord.assignedAt = Date.now();
+  }
+  await deliveryRecord.save({ session });
 
   // 4. Update the Delivery Partner
   partner.assignmentStatus = 'Busy';
@@ -265,5 +301,103 @@ export const autoAssignOrder = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
     res.status(500).json({ message: error.message || 'Auto-assignment failed' });
+  }
+};
+
+// @desc    Unassign an order from its current driver
+// @route   POST /api/admin/delivery-partners/unassign
+// @access  Private (Admin)
+export const unassignOrderFromPartner = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { orderId } = req.body;
+
+    // Support finding by both hex _id and human-readable orderId string
+    const query = mongoose.isValidObjectId(orderId)
+      ? { _id: orderId }
+      : { orderId: orderId };
+
+    const order = await Order.findOne(query).session(session);
+
+    if (!order) throw new Error('Order record not found');
+
+    // Find corresponding OrderDelivery record
+    const deliveryRecord = await OrderDelivery.findOne({ order: order._id }).session(session);
+
+    // Check if assigned in either place
+    const partnerId = order.deliveryPartnerId || deliveryRecord?.deliveryPartner;
+
+    if (!partnerId) {
+      throw new Error(`Order ${order.orderId} is not currently assigned to any driver in the system.`);
+    }
+
+    // Cannot unassign if rider already picked up or in transit (optional policy, usually restricted)
+    if (['out_for_delivery', 'delivered'].includes(order.status)) {
+      throw new Error('Cannot unassign an order that has already been picked up or delivered');
+    }
+
+    const partner = await DeliveryPartner.findById(partnerId).session(session);
+
+    // 1. Reset Order State
+    order.deliveryPartnerId = null;
+    order.deliveryOTP = null;
+    if (order.deliveryTimestamps) {
+      order.deliveryTimestamps.assignedAt = null;
+    }
+    order.status = 'confirmed'; // Reset back to confirmed for re-assignment
+    await order.save({ session });
+
+    // 2. Clear OrderDelivery Record if it exists
+    if (deliveryRecord) {
+      await OrderDelivery.deleteOne({ _id: deliveryRecord._id }).session(session);
+    }
+
+    // 3. Reset Partner State
+    if (partner) {
+      partner.assignmentStatus = 'Free';
+      partner.activeOrder = null;
+      await partner.save({ session });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.json({ message: 'Order unassigned and returned to pool', orderId: order.orderId });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ message: error.message || 'Unassignment failed' });
+  }
+};
+
+// @desc    Get all active deliveries for Live Tracking Map
+// @route   GET /api/admin/delivery-partners/active-tracking
+// @access  Private (Admin/Manager)
+export const getActiveDeliveries = async (req, res) => {
+  try {
+    const admin = req.admin;
+    const query = {
+      deliveryPartnerId: { $ne: null },
+      status: { $in: ['preparing', 'out_for_delivery'] }
+    };
+
+    if (admin.role !== 'Admin') {
+      if (!admin.branchId) return res.status(403).json({ message: 'No branch assigned' });
+      query.branchId = admin.branchId;
+    }
+
+    // Fetch orders that are in intermediate delivery states
+    const activeOrders = await Order.find(query)
+      .populate('deliveryPartnerId', 'name phone currentLocation vehicleType vehicleNumber')
+      .populate('vendor', 'storeName address')
+      .populate('branchId', 'name address')
+      .populate('user', 'name phone')
+      .sort({ updatedAt: -1 });
+
+    res.json(activeOrders);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error fetching tracking data' });
   }
 };

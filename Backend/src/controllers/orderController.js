@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import Order from '../models/Order.js';
 import GlobalSetting from '../models/GlobalSetting.js';
 import Product from '../models/Product.js';
+import { findOptimalSource, geocodeAddress } from '../services/locationService.js';
 
 const computeBillDetails = async (items) => {
   let subTotal = 0;
@@ -134,11 +135,34 @@ export const verifyRazorpayPayment = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
-      branchId: orderData.branchId,
       razorpayOrderId: razorpayOrderId,
       razorpayPaymentId: razorpayPaymentId,
       razorpaySignature: razorpaySignature
     });
+
+    // Automatically find nearest source (Branch or Vendor) with Stock
+    let coords = orderData.shippingAddress?.location?.coordinates;
+
+    // Fallback to Geocoding if coordinates are missing but address is present
+    if (!coords && orderData.shippingAddress?.street) {
+      coords = await geocodeAddress(`${orderData.shippingAddress.street}, ${orderData.shippingAddress.city}`);
+      if (coords) {
+        order.shippingAddress.location = { type: 'Point', coordinates: coords };
+      }
+    }
+
+    if (coords) {
+      const optimalSource = await findOptimalSource(coords, orderData.items);
+      if (optimalSource) {
+        if (optimalSource.type === 'branch') {
+          order.branchId = optimalSource.id;
+        } else {
+          order.vendor = optimalSource.id;
+        }
+      }
+    } else if (orderData.branchId) {
+      order.branchId = orderData.branchId;
+    }
 
     const createdOrder = await order.save();
 
@@ -180,8 +204,31 @@ export const createCODOrder = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
-      branchId: orderData.branchId,
     });
+
+    // Automatically find nearest source (Branch or Vendor) with Stock
+    let coords = orderData.shippingAddress?.location?.coordinates;
+
+    // Fallback to Geocoding if coordinates are missing
+    if (!coords && orderData.shippingAddress?.street) {
+      coords = await geocodeAddress(`${orderData.shippingAddress.street}, ${orderData.shippingAddress.city}`);
+      if (coords) {
+        order.shippingAddress.location = { type: 'Point', coordinates: coords };
+      }
+    }
+
+    if (coords) {
+      const optimalSource = await findOptimalSource(coords, orderData.items);
+      if (optimalSource) {
+        if (optimalSource.type === 'branch') {
+          order.branchId = optimalSource.id;
+        } else {
+          order.vendor = optimalSource.id;
+        }
+      }
+    } else if (orderData.branchId) {
+      order.branchId = orderData.branchId;
+    }
 
     const createdOrder = await order.save();
     res.status(201).json({ success: true, order: createdOrder });

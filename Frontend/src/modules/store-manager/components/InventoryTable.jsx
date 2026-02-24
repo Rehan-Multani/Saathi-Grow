@@ -1,7 +1,13 @@
 import React from 'react';
 import { Edit3, Trash2, RefreshCw, AlertTriangle, ChevronRight, Package } from 'lucide-react';
 
-const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete }) => {
+const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete, branchId }) => {
+    const getBranchStock = (product) => {
+        if (!branchId) return 0;
+        const branchStock = product.branchStocks?.find(bs => bs.branchId?._id === branchId || bs.branchId === branchId);
+        return branchStock ? branchStock.stock : 0;
+    };
+
     const getStatusBadge = (stock) => {
         if (stock === 0) {
             return (
@@ -14,7 +20,7 @@ const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete }) => {
                 </div>
             );
         }
-        if (stock < 5) {
+        if (stock < 10) {
             return (
                 <div className="flex flex-col gap-1">
                     <span className="px-3 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-600 border border-amber-100 flex items-center gap-1.5 w-fit">
@@ -49,71 +55,74 @@ const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete }) => {
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                         {products.length > 0 ? (
-                            products.map((product) => (
-                                <tr key={product.id} className="group hover:bg-slate-50/50 transition-all duration-300">
-                                    <td className="px-8 py-5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-black overflow-hidden border border-slate-200 group-hover:border-blue-200 transition-colors">
-                                                {product.image ? (
-                                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <Package size={20} className="opacity-40" />
-                                                )}
+                            products.map((product) => {
+                                const stock = getBranchStock(product);
+                                return (
+                                    <tr key={product._id} className="group hover:bg-slate-50/50 transition-all duration-300">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-black overflow-hidden border border-slate-200 group-hover:border-blue-200 transition-colors">
+                                                    {product.image ? (
+                                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Package size={20} className="opacity-40" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">{product.name}</div>
+                                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Updated {new Date(product.updatedAt).toLocaleDateString()}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="text-sm font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">{product.name}</div>
-                                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Joined {product.addedDate}</div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="text-xs font-mono text-slate-500 font-bold">{product.sku}</div>
+                                            <div className="mt-1">
+                                                <span className="px-2 py-0.5 rounded text-[9px] font-black bg-blue-50 text-blue-600 uppercase tracking-tighter border border-blue-100">
+                                                    {product.category}
+                                                </span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-5">
-                                        <div className="text-xs font-mono text-slate-500 font-bold">{product.sku}</div>
-                                        <div className="mt-1">
-                                            <span className="px-2 py-0.5 rounded text-[9px] font-black bg-blue-50 text-blue-600 uppercase tracking-tighter border border-blue-100">
-                                                {product.category}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-5">
-                                        <div className="text-sm font-black text-slate-800">₹{product.price.toLocaleString()}</div>
-                                        <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Unit Price</div>
-                                    </td>
-                                    <td className="px-8 py-5 text-center">
-                                        <div className={`text-sm font-black ${product.stock < 5 ? 'text-red-500' : 'text-slate-800'}`}>
-                                            {product.stock}
-                                        </div>
-                                        <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Units</div>
-                                    </td>
-                                    <td className="px-8 py-5">
-                                        {getStatusBadge(product.stock)}
-                                    </td>
-                                    <td className="px-8 py-5">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => onUpdateStock(product)}
-                                                className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                                title="Update Volume"
-                                            >
-                                                <RefreshCw size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => onEdit(product)}
-                                                className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
-                                                title="Edit Metadata"
-                                            >
-                                                <Edit3 size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => onDelete(product.id)}
-                                                className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                                title="Purge Entry"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="text-sm font-black text-slate-800">₹{product.basePrice.toLocaleString()}</div>
+                                            <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Unit Price</div>
+                                        </td>
+                                        <td className="px-8 py-5 text-center">
+                                            <div className={`text-sm font-black ${stock < 10 ? 'text-red-500' : 'text-slate-800'}`}>
+                                                {stock}
+                                            </div>
+                                            <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Units</div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            {getStatusBadge(stock)}
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => onUpdateStock(product)}
+                                                    className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                    title="Update Volume"
+                                                >
+                                                    <RefreshCw size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => onEdit(product)}
+                                                    className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                                                    title="Edit Metadata"
+                                                >
+                                                    <Edit3 size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => onDelete(product.id)}
+                                                    className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                    title="Purge Entry"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })
                         ) : (
                             <tr>
                                 <td colSpan="6" className="px-8 py-20 text-center">

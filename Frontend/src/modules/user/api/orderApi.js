@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/orders';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/orders';
 
 export const createRazorpayOrder = async (token, items) => {
   const response = await fetch(`${API_URL}/razorpay`, {

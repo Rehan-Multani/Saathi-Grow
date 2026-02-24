@@ -26,6 +26,11 @@ export const getDeliveryOrders = async (token, type = 'active') => {
     return data;
 };
 
+export const getDeliveryDetail = async (token, id) => {
+    const { data } = await axios.get(`${API_URL}/delivery/orders/${id}`, getAuthHeaders(token));
+    return data;
+};
+
 export const updateDeliveryStatus = async (token, deliveryId, status) => {
     const { data } = await axios.patch(`${API_URL}/delivery/orders/${deliveryId}/status`, { status }, getAuthHeaders(token));
     return data;

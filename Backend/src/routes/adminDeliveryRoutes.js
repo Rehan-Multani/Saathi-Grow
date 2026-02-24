@@ -7,7 +7,9 @@ import {
   getUnassignedOrders,
   getAvailablePartners,
   assignOrderToPartner,
-  autoAssignOrder
+  autoAssignOrder,
+  unassignOrderFromPartner,
+  getActiveDeliveries
 } from '../controllers/adminDeliveryController.js';
 import { protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
@@ -30,5 +32,7 @@ router.get('/unassigned-orders', protectAdmin, requirePermission('MANAGE_DELIVER
 router.get('/available', protectAdmin, requirePermission('MANAGE_DELIVERY'), getAvailablePartners);
 router.post('/assign', protectAdmin, requirePermission('MANAGE_DELIVERY'), assignOrderToPartner);
 router.post('/auto-assign/:orderId', protectAdmin, requirePermission('MANAGE_DELIVERY'), autoAssignOrder);
+router.post('/unassign', protectAdmin, requirePermission('MANAGE_DELIVERY'), unassignOrderFromPartner);
+router.get('/active-tracking', protectAdmin, requirePermission('MANAGE_DELIVERY'), getActiveDeliveries);
 
 export default router;

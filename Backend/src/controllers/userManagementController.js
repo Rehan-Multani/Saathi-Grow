@@ -3,10 +3,16 @@ import { cloudinary } from '../config/cloudinary.js';
 
 // @desc    Get all users
 // @route   GET /api/admin/users
-// @access  Private (Admin)
+// @access  Private (Admin/Manager)
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).sort({ createdAt: -1 });
+    const admin = req.admin;
+    let query = {};
+
+    // Note: If we want to strictly branch-scope users, we'd filter by those who ordered from branchId
+    // For now, allowing managers to see users is fine for CRM purposes
+
+    const users = await User.find(query).sort({ createdAt: -1 });
     res.json({ success: true, users });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching users' });

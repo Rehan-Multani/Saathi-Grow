@@ -29,6 +29,13 @@ const AddBranch = () => {
         }
     });
 
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `.pac-container { z-index: 10000 !important; }`;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, []);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name.includes('.')) {

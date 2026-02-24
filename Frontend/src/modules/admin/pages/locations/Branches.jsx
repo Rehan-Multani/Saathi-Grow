@@ -4,7 +4,7 @@ import { Search, Plus, MapPin, Store, Edit, Trash2, Info, Upload, Download } fro
 import { Link } from 'react-router-dom';
 import BranchDetailsModal from '../../components/locations/BranchDetailsModal';
 import EditBranchModal from '../../components/locations/EditBranchModal';
-import { getBranches, deleteBranch } from '../../api/branchApi';
+import { getBranches, deleteBranch, updateBranch } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
@@ -50,9 +50,15 @@ const Branches = () => {
         setShowEditModal(true);
     };
 
-    const handleSaveBranch = () => {
-        fetchBranchesData();
-        setShowEditModal(false);
+    const handleSaveBranch = async (updatedData) => {
+        try {
+            await updateBranch(adminUser.token, selectedBranch._id, updatedData);
+            toast.success('Branch updated successfully');
+            fetchBranchesData();
+            setShowEditModal(false);
+        } catch (error) {
+            toast.error(error.message || 'Failed to update branch');
+        }
     };
 
     const handleDelete = async (id, name) => {

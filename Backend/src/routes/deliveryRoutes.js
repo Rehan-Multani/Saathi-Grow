@@ -7,7 +7,8 @@ import {
     updateDeliveryStatus,
     getWallet,
     getDashboardStats,
-    simulateOrder
+    simulateOrder,
+    getDeliveryDetail
 } from '../controllers/deliveryController.js';
 import { protectDeliveryPartner } from '../middleware/authMiddleware.js';
 
@@ -21,6 +22,7 @@ router.patch('/status', updateStatus);
 router.post('/location', updateLocation);
 
 router.get('/orders', getOrders);
+router.get('/orders/:id', getDeliveryDetail);
 router.patch('/orders/:id/status', updateDeliveryStatus);
 
 router.get('/wallet', getWallet);

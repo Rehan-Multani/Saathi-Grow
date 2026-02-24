@@ -445,6 +445,7 @@ export const updateProduct = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const adjustInventory = async (req, res) => {
   try {
+    const { branchId, amount, type, reason } = req.body;
     let finalBranchId = branchId;
 
     // Security check: Staff and Branch Managers can ONLY adjust their own branch's inventory

@@ -10,7 +10,7 @@ export const useLocation = () => useContext(LocationContext);
 export const LocationProvider = ({ children }) => {
     const [location, setLocation] = useState(() => {
         const saved = localStorage.getItem('sathiGro_location');
-        return saved ? JSON.parse(saved) : { address: 'Select Location', city: '' };
+        return saved ? JSON.parse(saved) : { address: 'Select Location', city: '', coordinates: null };
     });
 
     const [savedAddresses, setSavedAddresses] = useState(() => {
@@ -20,6 +20,35 @@ export const LocationProvider = ({ children }) => {
 
     const { token, user } = useAuth();
     const [showLocationModal, setShowLocationModal] = useState(false);
+    const [mapLoaded, setMapLoaded] = useState(false);
+
+    // Optimized Google Maps Loader
+    useEffect(() => {
+        import('../../../utils/googleMapsLoader').then(({ loadGoogleMaps }) => {
+            loadGoogleMaps()
+                .then(() => setMapLoaded(true))
+                .catch(err => console.error("Google Maps load failed", err));
+        });
+    }, []);
+
+    const reverseGeocode = async (coords) => {
+        if (!window.google) return null;
+        const geocoder = new window.google.maps.Geocoder();
+        const latlng = { lat: coords[1], lng: coords[0] };
+
+        return new Promise((resolve) => {
+            geocoder.geocode({ location: latlng }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    resolve({
+                        address: results[0].formatted_address,
+                        city: results[0].address_components.find(c => c.types.includes('locality'))?.long_name || ''
+                    });
+                } else {
+                    resolve(null);
+                }
+            });
+        });
+    };
 
     // Fetch user addresses from the backend on mount or when token changes
     useEffect(() => {
@@ -36,7 +65,8 @@ export const LocationProvider = ({ children }) => {
                         phone: addr.phone,
                         address: addr.street || addr.city,
                         city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                        isDefault: addr.isDefault
+                        isDefault: addr.isDefault,
+                        coordinates: addr.location?.coordinates || null
                     }));
                     setSavedAddresses(formatted);
                 } catch (err) {
@@ -73,7 +103,8 @@ export const LocationProvider = ({ children }) => {
                     phone: address.phone,
                     street: address.address,
                     city: address.city,
-                    isDefault: address.isDefault !== undefined ? address.isDefault : savedAddresses.length === 0
+                    isDefault: address.isDefault !== undefined ? address.isDefault : savedAddresses.length === 0,
+                    location: address.coordinates ? { type: 'Point', coordinates: address.coordinates } : undefined
                 });
                 // Refresh
                 const formatted = resData.map(addr => ({
@@ -83,7 +114,8 @@ export const LocationProvider = ({ children }) => {
                     phone: addr.phone,
                     address: addr.street || addr.city,
                     city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                    isDefault: addr.isDefault
+                    isDefault: addr.isDefault,
+                    coordinates: addr.location?.coordinates || null
                 }));
                 setSavedAddresses(formatted);
             } catch (error) {
@@ -108,7 +140,8 @@ export const LocationProvider = ({ children }) => {
                     phone: updatedAddress.phone,
                     street: updatedAddress.address,
                     city: updatedAddress.city,
-                    isDefault: updatedAddress.isDefault
+                    isDefault: updatedAddress.isDefault,
+                    location: updatedAddress.coordinates ? { type: 'Point', coordinates: updatedAddress.coordinates } : undefined
                 });
                 const formatted = resData.map(addr => ({
                     id: addr._id,
@@ -117,7 +150,8 @@ export const LocationProvider = ({ children }) => {
                     phone: addr.phone,
                     address: addr.street || addr.city,
                     city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                    isDefault: addr.isDefault
+                    isDefault: addr.isDefault,
+                    coordinates: addr.location?.coordinates || null
                 }));
                 setSavedAddresses(formatted);
             } catch (error) {
@@ -143,7 +177,8 @@ export const LocationProvider = ({ children }) => {
                     phone: addr.phone,
                     address: addr.street || addr.city,
                     city: `${addr.city || ''} ${addr.zipCode || ''}`.trim(),
-                    isDefault: addr.isDefault
+                    isDefault: addr.isDefault,
+                    coordinates: addr.location?.coordinates || null
                 }));
                 setSavedAddresses(formatted);
             } catch (error) {
@@ -168,7 +203,9 @@ export const LocationProvider = ({ children }) => {
                 deleteAddress,
                 showLocationModal,
                 openLocationModal,
-                closeLocationModal
+                closeLocationModal,
+                mapLoaded,
+                reverseGeocode
             }}
         >
             {children}
