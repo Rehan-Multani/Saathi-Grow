@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
 import { Save, X } from 'lucide-react';
+import GoogleMapsInput from '../common/GoogleMapsInput';
 import { getAllStaff } from '../../api/adminApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
@@ -16,7 +17,11 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
             street: '',
             city: '',
             state: '',
-            zipCode: ''
+            zipCode: '',
+            location: {
+                type: 'Point',
+                coordinates: [0, 0]
+            }
         }
     });
 
@@ -32,11 +37,38 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                     street: branch.address?.street || '',
                     city: branch.address?.city || '',
                     state: branch.address?.state || '',
-                    zipCode: branch.address?.zipCode || ''
+                    zipCode: branch.address?.zipCode || '',
+                    location: branch.address?.location || { type: 'Point', coordinates: [0, 0] }
                 }
             });
         }
     }, [branch, show]);
+
+    // Z-index fix for google autocomplete in modal
+    useEffect(() => {
+        if (show) {
+            const style = document.createElement('style');
+            style.innerHTML = `.pac-container { z-index: 10000 !important; }`;
+            document.head.appendChild(style);
+            return () => document.head.removeChild(style);
+        }
+    }, [show]);
+
+    const handleLocationSelect = (locData) => {
+        setFormData(prev => ({
+            ...prev,
+            address: {
+                street: locData.street || locData.fullAddress,
+                city: locData.city,
+                state: locData.state,
+                zipCode: locData.zipCode,
+                location: {
+                    type: 'Point',
+                    coordinates: [locData.lng, locData.lat]
+                }
+            }
+        }));
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -126,6 +158,14 @@ const EditBranchModal = ({ show, onHide, branch, onSave }) => {
                         <Col md={12}>
                             <Form.Label className="small fw-bold text-muted text-uppercase mb-2">Location Details</Form.Label>
                             <Row className="g-2">
+                                <Col md={12} className="mb-2">
+                                    <Form.Label className="!text-[10px] fw-bold text-primary mb-1">Search on Map</Form.Label>
+                                    <GoogleMapsInput
+                                        onLocationSelect={handleLocationSelect}
+                                        placeholder="Search for branch location..."
+                                        defaultValue={formData.address.street}
+                                    />
+                                </Col>
                                 <Col md={6}>
                                     <Form.Control
                                         type="text"

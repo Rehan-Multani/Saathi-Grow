@@ -1,21 +1,33 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Search, Plus, Phone, Star, Truck, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
 import Swal from 'sweetalert2';
-
-const INITIAL_PARTNERS = [
-    { id: 'DP-001', name: 'FastTrack Logistics', type: 'Agency', phone: '+1 555-0199', activeDrivers: 12, rating: 4.8, status: 'Active' },
-    { id: 'DP-002', name: 'John Doe (Freelancer)', type: 'Individual', phone: '+1 555-0200', activeDrivers: 1, rating: 4.5, status: 'Active' },
-    { id: 'DP-003', name: 'City Express', type: 'Agency', phone: '+1 555-0201', activeDrivers: 8, rating: 4.2, status: 'Inactive' },
-];
+import * as api from '../../api/adminDeliveryApi';
 
 const DeliveryPartners = () => {
-    const [partners, setPartners] = useState(INITIAL_PARTNERS);
+    const [partners, setPartners] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState(null);
+
+    const fetchPartners = async () => {
+        try {
+            setLoading(true);
+            const data = await api.getDeliveryPartners();
+            setPartners(data);
+        } catch (error) {
+            Swal.fire('Error', 'Failed to load delivery partners', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPartners();
+    }, []);
 
     const filtered = partners.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -30,10 +42,15 @@ const DeliveryPartners = () => {
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Delete'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                setPartners(partners.filter(p => p.id !== id));
-                Swal.fire('Deleted!', 'Partner has been removed.', 'success');
+                try {
+                    await api.deleteDeliveryPartner(id);
+                    setPartners(partners.filter(p => p._id !== id));
+                    Swal.fire('Deleted!', 'Partner has been removed.', 'success');
+                } catch (err) {
+                    Swal.fire('Error', err?.response?.data?.message || 'Failed to delete partner', 'error');
+                }
             }
         });
     };
@@ -43,15 +60,20 @@ const DeliveryPartners = () => {
         setShowEditModal(true);
     };
 
-    const handleSave = (updatedPartner) => {
-        setPartners(partners.map(p => p.id === updatedPartner.id ? updatedPartner : p));
-        Swal.fire({
-            title: 'Updated!',
-            text: 'Partner details updated successfully.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        });
+    const handleSave = async (updatedPartner) => {
+        try {
+            const apiRes = await api.updateDeliveryPartnerStatus(updatedPartner._id, updatedPartner.authStatus);
+            setPartners(partners.map(p => p._id === apiRes._id ? apiRes : p));
+            Swal.fire({
+                title: 'Updated!',
+                text: 'Partner permission status updated successfully.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (e) {
+            Swal.fire('Error', 'Failed to save changes against server', 'error');
+        }
     };
 
     return (
@@ -96,8 +118,15 @@ const DeliveryPartners = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.length > 0 ? filtered.map((p) => (
-                                <tr key={p.id}>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-5 text-muted">
+                                        <Spinner animation="border" variant="primary" />
+                                        <div className="mt-2">Loading partners...</div>
+                                    </td>
+                                </tr>
+                            ) : filtered.length > 0 ? filtered.map((p) => (
+                                <tr key={p._id}>
                                     <td className="ps-4 text-start">
                                         <div className="d-flex align-items-center gap-3">
                                             <div className="bg-light p-2 rounded text-primary">
@@ -105,30 +134,30 @@ const DeliveryPartners = () => {
                                             </div>
                                             <div>
                                                 <Link
-                                                    to={`/admin/delivery/partners/${p.id}`}
+                                                    to={`/admin/delivery/partners/${p._id}`}
                                                     className="fw-bold text-dark text-decoration-none hover-primary transition-colors d-block"
                                                 >
                                                     {p.name}
                                                 </Link>
-                                                <div className="small text-muted">{p.id}</div>
+                                                <div className="small text-muted">{p.uniqueId}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><Badge bg="light" text="dark" className="border fw-normal px-3 py-1 shadow-none">{p.type}</Badge></td>
+                                    <td><Badge bg="light" text="dark" className="border fw-normal px-3 py-1 shadow-none">{p.vehicleType || 'Individual'}</Badge></td>
                                     <td>
                                         <div className="d-flex align-items-center justify-content-center gap-2 text-muted small">
                                             <Phone size={14} /> {p.phone}
                                         </div>
                                     </td>
-                                    <td className="fw-medium">{p.activeDrivers} Drivers</td>
+                                    <td className="fw-medium text-capitalize">{p.dutyStatus}</td>
                                     <td>
                                         <div className="d-flex align-items-center justify-content-center gap-1 text-warning fw-bold">
-                                            <Star size={14} fill="currentColor" /> {p.rating}
+                                            <Star size={14} fill="currentColor" /> {p.rating || '5.0'}
                                         </div>
                                     </td>
                                     <td>
-                                        <Badge bg={p.status === 'Active' ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3 py-1 shadow-sm">
-                                            {p.status}
+                                        <Badge bg={p.authStatus === 'Active' ? 'success' : p.authStatus === 'Suspended' ? 'danger' : 'secondary'} className="rounded-pill fw-normal px-3 py-1 shadow-sm">
+                                            {p.authStatus}
                                         </Badge>
                                     </td>
                                     <td className="text-end pe-4">
@@ -141,7 +170,7 @@ const DeliveryPartners = () => {
                                             </Button>
                                             <Button
                                                 variant="light" size="sm" className="btn-icon-soft text-danger border shadow-none"
-                                                onClick={() => handleDelete(p.id, p.name)}
+                                                onClick={() => handleDelete(p._id, p.name)}
                                             >
                                                 <Trash2 size={16} />
                                             </Button>

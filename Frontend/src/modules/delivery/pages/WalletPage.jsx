@@ -14,12 +14,12 @@ import {
     Check,
     History
 } from 'lucide-react';
-import { useAuth } from '../../user/context/AuthContext';
 import useDelivery from '../hooks/useDelivery';
+import useDeliveryStore from '../store/deliveryStore';
 
 const WalletPage = () => {
     const { token } = useAuth();
-    const { stats, wallet, transactions, loading } = useDelivery(token);
+    const { wallet, transactions, loading } = useDelivery(token);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
@@ -142,44 +142,28 @@ const WalletPage = () => {
                     <button className="text-[10px] font-black text-lime-600 uppercase tracking-widest hover:underline transition-all">Export Report</button>
                 </div>
 
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-slate-200/60 dark:border-zinc-800/60 shadow-sm overflow-hidden">
-                    {transactions.length > 0 ? (
-                        <div className="divide-y divide-slate-50 dark:divide-zinc-800/40">
-                            {transactions.map((t, idx) => (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    key={t._id}
-                                    className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all group"
-                                >
-                                    <div className="flex items-center gap-3.5">
-                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-300 group-hover:scale-110 ${t.type === 'credit'
-                                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border-emerald-100 dark:border-emerald-500/10'
-                                            : 'bg-red-50 dark:bg-red-500/10 text-red-600 border-red-100 dark:border-red-500/10'
-                                            }`}>
-                                            {t.type === 'credit' ? <ArrowUpRight size={18} /> : <CreditCard size={18} />}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-sm text-slate-800 dark:text-zinc-100 leading-tight truncate">{t.description}</p>
-                                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
-                                                {new Date(t.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className={`font-black text-base ${t.type === 'credit' ? 'text-emerald-500' : 'text-slate-800 dark:text-white'}`}>
-                                            {t.type === 'credit' ? '+' : '-'}₹{t.amount}
-                                        </p>
-                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Confirmed</p>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="py-16 text-center">
-                            <div className="w-16 h-16 bg-slate-50 dark:bg-zinc-800 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-zinc-700">
-                                <History size={32} className="text-slate-200" />
+                <div className="space-y-2">
+                    {transactions.length > 0 ? transactions.map((tx) => (
+                        <div key={tx._id} className="flex items-center gap-4 p-5 rounded-[2rem] hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${tx.type === 'credit' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600' : 'bg-red-50 dark:bg-red-500/10 text-red-600'}`}>
+                                {tx.type === 'credit' ? <ArrowDownLeft size={24} /> : <ArrowUpRight size={24} />}
+                            </div>
+                            <div className="flex-1">
+                                <h5 className="font-bold text-slate-900 dark:text-white uppercase text-sm mb-1">{tx.category.replace('_', ' ')}</h5>
+                                <p className="text-xs text-slate-500 font-medium">
+                                    {new Date(tx.createdAt).toLocaleDateString()} â€¢ {new Date(tx.createdAt).toLocaleTimeString()}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <h5 className={`font-black text-lg ${tx.type === 'credit' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
+                                </h5>
+                                <p className={`text-[10px] font-bold uppercase tracking-widest ${tx.status === 'completed' ? 'text-emerald-400' : 'text-orange-400'}`}>
+                                    {tx.status}
+                                </p>
+                            </div>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity pl-2">
+                                <ChevronRight size={18} className="text-slate-300" />
                             </div>
                             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Transaction log empty</p>
                         </div>

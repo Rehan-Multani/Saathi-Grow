@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
+import { Spinner } from 'react-bootstrap';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import StoreManagerLayout from '../StoreManagerLayout';
 import StoreManagerDashboard from '../StoreManagerDashboard';
@@ -10,6 +11,12 @@ import ManagerOrders from '../ManagerOrders';
 import StaffManagement from '../StaffManagement';
 import { StoreManagerAuthProvider, useStoreManagerAuth } from '../context/StoreManagerAuthContext';
 import StoreManagerLogin from '../pages/auth/StoreManagerLogin';
+
+const DeliveryPartners = lazy(() => import('../ManagerDeliveryPartners'));
+const AssignDeliveries = lazy(() => import('../ManagerAssignDeliveries'));
+const DeliveryTracking = lazy(() => import('../ManagerDeliveryTracking'));
+const AllCustomers = lazy(() => import('../ManagerCustomers'));
+const BranchProfile = lazy(() => import('../BranchProfile'));
 
 const ProtectedStoreManagerRoute = () => {
     const { managerUser } = useStoreManagerAuth();
@@ -26,26 +33,34 @@ const ProtectedStoreManagerRoute = () => {
 const StoreManagerRoutes = () => {
     return (
         <StoreManagerAuthProvider>
-            <Routes>
-                {/* Public Store Manager Routes */}
-                <Route path="login" element={<StoreManagerLogin />} />
+            <Suspense fallback={<div className="p-5 d-flex justify-content-center"><Spinner animation="border" variant="primary" /></div>}>
+                <Routes>
+                    {/* Public Store Manager Routes */}
+                    <Route path="login" element={<StoreManagerLogin />} />
 
-                {/* Protected Store Manager Routes */}
-                <Route element={<ProtectedStoreManagerRoute />}>
-                    <Route element={<StoreManagerLayout />}>
-                        <Route index element={<Navigate to="dashboard" replace />} />
-                        <Route path="dashboard" element={<StoreManagerDashboard />} />
-                        <Route path="inventory" element={<InventoryManagement />} />
-                        <Route path="orders" element={<ManagerOrders />} />
-                        <Route path="staff" element={<StaffManagement />} />
-                        <Route path="stock-requests" element={<StockRequests />} />
-                        <Route path="returns" element={<ReturnsApproval />} />
-                        <Route path="reports" element={<ReportsAnalytics />} />
+                    {/* Protected Store Manager Routes */}
+                    <Route element={<ProtectedStoreManagerRoute />}>
+                        <Route element={<StoreManagerLayout />}>
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                            <Route path="dashboard" element={<StoreManagerDashboard />} />
+                            <Route path="inventory" element={<InventoryManagement />} />
+                            <Route path="orders" element={<ManagerOrders />} />
+                            <Route path="staff" element={<StaffManagement />} />
+                            <Route path="stock-requests" element={<StockRequests />} />
+                            <Route path="returns" element={<ReturnsApproval />} />
+                            <Route path="reports" element={<ReportsAnalytics />} />
+                            {/* New Functional Modules */}
+                            <Route path="delivery/partners" element={<DeliveryPartners />} />
+                            <Route path="delivery/assign" element={<AssignDeliveries />} />
+                            <Route path="delivery/tracking" element={<DeliveryTracking />} />
+                            <Route path="customers" element={<AllCustomers />} />
+                            <Route path="profile" element={<BranchProfile />} />
+                        </Route>
                     </Route>
-                </Route>
-                {/* Catch all for store manager - redirect to dashboard */}
-                <Route path="*" element={<Navigate to="dashboard" replace />} />
-            </Routes>
+                    {/* Catch all for store manager - redirect to dashboard */}
+                    <Route path="*" element={<Navigate to="dashboard" replace />} />
+                </Routes>
+            </Suspense>
         </StoreManagerAuthProvider>
     );
 };

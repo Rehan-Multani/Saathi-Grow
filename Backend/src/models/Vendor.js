@@ -26,8 +26,21 @@ const vendorSchema = new mongoose.Schema({
     unique: true
   },
   address: {
-    type: String,
-    required: [true, 'Business address is required']
+    street: { type: String, required: [true, 'Street address is required'] },
+    city: { type: String, required: [true, 'City is required'] },
+    state: { type: String, required: [true, 'State is required'] },
+    zipCode: { type: String, required: [true, 'Zip code is required'] },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: [true, 'Location coordinates are required']
+      }
+    }
   },
   description: {
     type: String
@@ -54,6 +67,8 @@ const vendorSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+vendorSchema.index({ "address.location": "2dsphere" });
 
 // Hash password before saving
 vendorSchema.pre('save', async function (next) {

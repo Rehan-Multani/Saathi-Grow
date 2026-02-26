@@ -1,29 +1,75 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const deliveryPartnerSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    uniqueId: {
+        type: String,
+        unique: true,
+        default: function () {
+            return 'DP-' + Math.floor(100 + Math.random() * 900) + Date.now().toString().slice(-4);
+        }
+    },
+    phone: {
+        type: String,
         required: true,
         unique: true
     },
-    status: {
+    email: {
         type: String,
-        enum: ['online', 'offline', 'busy'],
-        default: 'offline'
+        lowercase: true,
+        trim: true
+    },
+    password: {
+        type: String,
+        required: false
+    },
+    otp: {
+        type: String,
+        select: false
+    },
+    otpExpires: {
+        type: Date,
+        select: false
+    },
+    profileImage: {
+        type: String
+    },
+    profileImagePublicId: {
+        type: String
     },
     vehicleType: {
         type: String,
-        enum: ['bike', 'scooter', 'cycle', 'car'],
-        required: true
+        enum: ['Bike', 'EV', 'Cycle', 'Other'],
+        default: 'Bike'
     },
     vehicleNumber: {
         type: String,
-        required: true
+        required: false
+    },
+    authStatus: {
+        type: String,
+        enum: ['Active', 'Suspended', 'Unverified'],
+        default: 'Active'
+    },
+    dutyStatus: {
+        type: String,
+        enum: ['Online', 'Offline'],
+        default: 'Offline'
+    },
+    assignmentStatus: {
+        type: String,
+        enum: ['Free', 'Busy'],
+        default: 'Free'
     },
     currentLocation: {
         type: {
             type: String,
+            enum: ['Point'],
             default: 'Point'
         },
         coordinates: {
@@ -31,28 +77,24 @@ const deliveryPartnerSchema = new mongoose.Schema({
             default: [0, 0]
         }
     },
-    serviceArea: {
-        radius: {
-            type: Number,
-            default: 10 // km
-        },
-        center: {
-            type: {
-                type: String,
-                default: 'Point'
-            },
-            coordinates: [Number]
-        }
+    activeOrder: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        default: null
+    },
+    totalDeliveries: {
+        type: Number,
+        default: 0
+    },
+    rating: {
+        type: Number,
+        default: 5.0
     },
     bankDetails: {
         accountHolderName: String,
         accountNumber: String,
         bankName: String,
         ifscCode: String
-    },
-    ratings: {
-        average: { type: Number, default: 0 },
-        count: { type: Number, default: 0 }
     },
     totalEarnings: {
         type: Number,
@@ -61,21 +103,27 @@ const deliveryPartnerSchema = new mongoose.Schema({
     walletBalance: {
         type: Number,
         default: 0
-    },
-    isActive: {
-        type: Boolean,
-        default: true
-    },
-    isVerified: {
-        type: Boolean,
-        default: false
     }
 }, {
     timestamps: true
 });
 
+// Create spatial index for location queries
 deliveryPartnerSchema.index({ currentLocation: '2dsphere' });
-deliveryPartnerSchema.index({ 'serviceArea.center': '2dsphere' });
+
+// Match generic password comparison method
+deliveryPartnerSchema.methods.matchPassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Hash password synchronously before save if it exists
+deliveryPartnerSchema.pre('save', async function (next) {
+    if (!this.password || !this.isModified('password')) {
+        return next();
+    }
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+});
 
 const DeliveryPartner = mongoose.model('DeliveryPartner', deliveryPartnerSchema);
 export default DeliveryPartner;

@@ -7,7 +7,7 @@ export const useStoreManagerAuth = () => useContext(StoreManagerAuthContext);
 
 export const StoreManagerAuthProvider = ({ children }) => {
   const [managerUser, setManagerUser] = useState(() => {
-    const saved = localStorage.getItem('saathigro_manager');
+    const saved = localStorage.getItem('sathiGro_manager');
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -18,7 +18,7 @@ export const StoreManagerAuthProvider = ({ children }) => {
         throw new Error('Access denied. This portal is only for Branch Managers.');
       }
       setManagerUser(data);
-      localStorage.setItem('saathigro_manager', JSON.stringify(data));
+      localStorage.setItem('sathiGro_manager', JSON.stringify(data));
       return data;
     } catch (error) {
       throw error;
@@ -27,7 +27,7 @@ export const StoreManagerAuthProvider = ({ children }) => {
 
   const managerLogout = () => {
     setManagerUser(null);
-    localStorage.removeItem('saathigro_manager');
+    localStorage.removeItem('sathiGro_manager');
   };
 
   return (

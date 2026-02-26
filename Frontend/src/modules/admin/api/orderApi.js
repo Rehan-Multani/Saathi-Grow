@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-const API_URL = '/api/orders';
+const API_URL = 'http://localhost:5000/api/orders';
 
 // Helper to get token based on portal
 const getAuthDetails = () => {
   // Try Admin/Staff/Manager in order
-  const admin = localStorage.getItem('saathigro_admin');
-  const staff = localStorage.getItem('saathigro_staff');
-  const manager = localStorage.getItem('saathigro_manager');
+  const admin = localStorage.getItem('sathiGro_admin');
+  const staff = localStorage.getItem('sathiGro_staff');
+  const manager = localStorage.getItem('sathiGro_manager');
 
   if (admin) return JSON.parse(admin);
   if (staff) return JSON.parse(staff);

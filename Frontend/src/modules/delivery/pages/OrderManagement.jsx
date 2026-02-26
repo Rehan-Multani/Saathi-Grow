@@ -14,15 +14,14 @@ import {
     ArrowUpRight,
     Loader2
 } from 'lucide-react';
-import { useAuth } from '../../user/context/AuthContext';
 import useDelivery from '../hooks/useDelivery';
+import useDeliveryStore from '../store/deliveryStore';
 import { useNavigate } from 'react-router-dom';
 
 const OrderManagement = () => {
-    const { token } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('active');
-    const { orders, history, loading, refreshOrders } = useDelivery(token);
+    const { orders, history, loading, refreshOrders } = useDelivery();
 
     useEffect(() => {
         refreshOrders(activeTab === 'completed' ? 'history' : activeTab);
@@ -108,8 +107,8 @@ const OrderManagement = () => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <h5 className="font-black text-base text-lime-600">â‚¹{delivery.deliveryFee || 40}</h5>
-                                    <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-none">Net Fare</p>
+                                    <h5 className="font-black text-xl text-slate-900 dark:text-white">â‚¹{delivery.order?.totalAmount || '0'}</h5>
+                                    <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">{delivery.deliveryFee || 40} fee</p>
                                 </div>
                             </div>
 

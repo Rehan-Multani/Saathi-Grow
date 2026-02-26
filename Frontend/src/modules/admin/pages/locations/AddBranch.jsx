@@ -6,6 +6,7 @@ import { createBranch } from '../../api/branchApi';
 import { getAllStaff } from '../../api/adminApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import GoogleMapsInput from '../../components/common/GoogleMapsInput';
 
 const AddBranch = () => {
     const navigate = useNavigate();
@@ -20,9 +21,20 @@ const AddBranch = () => {
             street: '',
             city: '',
             state: '',
-            zipCode: ''
+            zipCode: '',
+            location: {
+                type: 'Point',
+                coordinates: [0, 0]
+            }
         }
     });
+
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `.pac-container { z-index: 10000 !important; }`;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -35,6 +47,22 @@ const AddBranch = () => {
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
+    };
+
+    const handleLocationSelect = (locData) => {
+        setFormData(prev => ({
+            ...prev,
+            address: {
+                street: locData.street || locData.fullAddress,
+                city: locData.city,
+                state: locData.state,
+                zipCode: locData.zipCode,
+                location: {
+                    type: 'Point',
+                    coordinates: [locData.lng, locData.lat]
+                }
+            }
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -142,15 +170,21 @@ const AddBranch = () => {
                                 <Row>
                                     <Col md={12}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-bold">Street Address</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="address.street"
-                                                value={formData.address.street}
-                                                onChange={handleChange}
-                                                placeholder="123 Market St"
-                                                className="py-2 shadow-none border-light-subtle bg-light-subtle"
+                                            <Form.Label className="small fw-bold">Street Address (Search on Map)</Form.Label>
+                                            <GoogleMapsInput
+                                                onLocationSelect={handleLocationSelect}
+                                                placeholder="Search for branch location..."
                                             />
+                                            <div className="mt-2">
+                                                <Form.Control
+                                                    type="text"
+                                                    name="address.street"
+                                                    value={formData.address.street}
+                                                    onChange={handleChange}
+                                                    placeholder="123 Market St"
+                                                    className="py-2 shadow-none border-light-subtle bg-light-subtle"
+                                                />
+                                            </div>
                                         </Form.Group>
                                     </Col>
                                     <Col md={4}>

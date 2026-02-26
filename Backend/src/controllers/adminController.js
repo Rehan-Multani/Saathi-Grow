@@ -155,13 +155,29 @@ export const updateAdmin = async (req, res) => {
 // @route   DELETE /api/admin/staff/:id
 // @access  Private (Admin Only)
 export const deleteAdmin = async (req, res) => {
-  const admin = await Admin.findById(req.params.id);
+  try {
+    const admin = await Admin.findById(req.params.id);
 
-  if (admin) {
+    if (!admin) {
+      return res.status(404).json({ message: 'Staff member not found' });
+    }
+
+    // Security Check: Prevents deleting other Admins
+    if (admin.role === 'Admin' && req.admin.role !== 'Admin') {
+      return res.status(403).json({ message: 'Not authorized to remove Admin accounts' });
+    }
+
+    // Hierarchy Enforcement for Branch Managers
+    if (req.admin.role === 'Branch Manager') {
+      if (admin.role !== 'Staff' || admin.branchId?.toString() !== req.admin.branchId?.toString()) {
+        return res.status(403).json({ message: 'Not authorized to remove staff from other branches' });
+      }
+    }
+
     await admin.deleteOne();
     res.json({ message: 'Staff member removed' });
-  } else {
-    res.status(404).json({ message: 'Staff member not found' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

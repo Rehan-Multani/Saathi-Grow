@@ -1,25 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Download, PackageSearch, Database, FileSpreadsheet } from 'lucide-react';
+import { Plus, Download, Database, FileSpreadsheet, RefreshCcw } from 'lucide-react';
 import InventoryTable from './components/InventoryTable';
 import SearchFilterBar from './components/SearchFilterBar';
 import AddProductModal from './components/AddProductModal';
 import StockUpdateModal from './components/StockUpdateModal';
+import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
+import * as productApi from '../admin/api/productApi';
+import { toast } from 'react-toastify';
 
 const InventoryManagement = () => {
-    // Dummy Data
-    const initialProducts = [
-        { id: 1, name: 'Organic Tomatoes', sku: 'VEG-TOM-001', category: 'Vegetables', price: 40, stock: 45, addedDate: 'Feb 10, 2024' },
-        { id: 2, name: 'Fresh Broccoli', sku: 'VEG-BRO-002', category: 'Vegetables', price: 120, stock: 4, addedDate: 'Feb 11, 2024' },
-        { id: 3, name: 'Alphonso Mangoes', sku: 'FRU-MAN-005', category: 'Fruits', price: 900, stock: 0, addedDate: 'Feb 12, 2024' },
-        { id: 4, name: 'Greek Yogurt 500g', sku: 'DAI-YOG-012', category: 'Dairy', price: 150, stock: 12, addedDate: 'Feb 13, 2024' },
-        { id: 5, name: 'Whole Wheat Bread', sku: 'BAK-BRD-044', category: 'Bakery', price: 60, stock: 25, addedDate: 'Feb 14, 2024' },
-        { id: 6, name: 'Farm Fresh Eggs (12)', sku: 'DAI-EGG-022', category: 'Dairy', price: 90, stock: 3, addedDate: 'Feb 14, 2024' },
-        { id: 7, name: 'Oatmeal Cookies', sku: 'SNA-CKI-099', category: 'Snacks', price: 220, stock: 55, addedDate: 'Feb 15, 2024' },
-        { id: 8, name: 'Spinach Bunches', sku: 'VEG-SPI-033', category: 'Vegetables', price: 30, stock: 15, addedDate: 'Feb 15, 2024' },
-    ];
-
-    const [products, setProducts] = useState(initialProducts);
-    const [filteredProducts, setFilteredProducts] = useState(initialProducts);
+    const { managerUser } = useStoreManagerAuth();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filteredProducts, setFilteredProducts] = useState([]);
 
     // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +26,24 @@ const InventoryManagement = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const categories = [...new Set(products.map(p => p.category))];
+
+    const fetchInventory = async () => {
+        try {
+            setLoading(true);
+            const data = await productApi.getProducts(managerUser.token);
+            setProducts(data);
+        } catch (error) {
+            toast.error(error.message || 'Failed to sync inventory');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (managerUser?.token) {
+            fetchInventory();
+        }
+    }, [managerUser?.token]);
 
     useEffect(() => {
         let result = products;
@@ -49,31 +60,24 @@ const InventoryManagement = () => {
         }
 
         if (statusFilter !== 'All') {
-            if (statusFilter === 'In Stock') result = result.filter(p => p.stock >= 5);
-            if (statusFilter === 'Low Stock') result = result.filter(p => p.stock > 0 && p.stock < 5);
-            if (statusFilter === 'Out of Stock') result = result.filter(p => p.stock === 0);
+            if (statusFilter === 'In Stock') result = result.filter(p => p.status === 'Active');
+            if (statusFilter === 'Low Stock') result = result.filter(p => p.status === 'Low Stock');
+            if (statusFilter === 'Out of Stock') result = result.filter(p => p.status === 'Out of Stock');
         }
 
         setFilteredProducts(result);
     }, [searchTerm, categoryFilter, statusFilter, products]);
 
     const handleAddProduct = (newProduct) => {
-        const productWithId = {
-            ...newProduct,
-            id: editingProduct ? editingProduct.id : products.length + 1,
-            addedDate: editingProduct ? editingProduct.addedDate : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        };
-
-        if (editingProduct) {
-            setProducts(products.map(p => p.id === editingProduct.id ? productWithId : p));
-        } else {
-            setProducts([productWithId, ...products]);
-        }
+        fetchInventory();
         setEditingProduct(null);
+        setIsAddModalOpen(false);
     };
 
-    const handleUpdateStock = (productId, newStock) => {
-        setProducts(products.map(p => p.id === productId ? { ...p, stock: newStock } : p));
+    const handleUpdateStock = async (productId, newStock) => {
+        // This will be called from Modal which hits API directly
+        fetchInventory();
+        setIsStockModalOpen(false);
     };
 
     const handleDeleteProduct = (productId) => {
@@ -136,6 +140,7 @@ const InventoryManagement = () => {
                     onEdit={openEditModal}
                     onUpdateStock={openStockModal}
                     onDelete={handleDeleteProduct}
+                    branchId={managerUser?.branchId?._id || managerUser?.branchId}
                 />
             </div>
 

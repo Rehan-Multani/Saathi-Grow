@@ -99,6 +99,25 @@ const orderSchema = new mongoose.Schema({
     branchId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branch'
+    },
+    // Delivery Q-Commerce Additions
+    deliveryPartnerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DeliveryPartner',
+        default: null
+    },
+    deliveryOTP: {
+        type: String, // 4 digit secure PIN
+        default: null
+    },
+    proofOfDeliveryImage: {
+        type: String, // Cloudinary Image URL
+        default: null
+    },
+    deliveryTimestamps: {
+        assignedAt: { type: Date, default: null },
+        pickedUpAt: { type: Date, default: null },
+        deliveredAt: { type: Date, default: null }
     }
 }, {
     timestamps: true

@@ -35,7 +35,7 @@ const AllOrders = () => {
         try {
             setLoading(true);
             const data = await getAllOrdersAdmin();
-            setOrders(data);
+            setOrders(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to fetch orders:', error);
             Swal.fire('Error', 'Could not load orders', 'error');
@@ -204,6 +204,7 @@ const AllOrders = () => {
                 show={showModal}
                 onHide={() => setShowModal(false)}
                 order={selectedOrder}
+                onOrderUpdate={fetchOrders}
             />
         </div>
     );

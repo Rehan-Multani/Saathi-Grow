@@ -6,17 +6,26 @@ import { useNavigate } from 'react-router-dom';
 import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 
 const CartSidebar = () => {
-    const { isCartOpen, setIsCartOpen, cart, updateQuantity, cartTotal, cartCount } = useCart();
+    const { isCartOpen, setIsCartOpen, cart, updateQuantity, cartTotal, cartCount, publicSettings } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
 
-    // Calculate total bill
-    const deliveryFee = 0;
-    const handlingFee = 2;
+    // Calculate total bill using dynamic Global Settings synced from backend
     const itemTotalOriginal = cart.reduce((acc, item) => acc + (item.originalPrice || item.price) * item.quantity, 0);
     const itemTotalDiscounted = cartTotal;
     const savings = itemTotalOriginal - itemTotalDiscounted;
+
+    const baseDelivery = publicSettings?.baseDeliveryFee ?? 25;
+    const thresh = publicSettings?.freeDeliveryThreshold ?? 500;
+    const surge = publicSettings?.surgeMultiplier ?? 1.0;
+
+    const deliveryFee = itemTotalDiscounted >= thresh ? 0 : baseDelivery * surge;
+    const handlingFee = publicSettings?.handlingFee ?? 5;
+
+    // Note: We don't render tax on the sidebar to keep it simple, it gets added on secure CheckoutPage.
     const finalTotal = itemTotalDiscounted + deliveryFee + handlingFee;
+
+    const remainingForFreeDelivery = thresh - itemTotalDiscounted;
 
     if (!isCartOpen) return null;
 
@@ -47,6 +56,18 @@ const CartSidebar = () => {
                     <div className="px-3.5 py-1.5 bg-[#0c831f]/10 flex items-center justify-between border-b border-[#0c831f]/10">
                         <span className="text-[#0c831f] dark:text-green-400 font-bold text-[8px] uppercase tracking-wider">Your total savings</span>
                         <span className="text-[#0c831f] dark:text-green-400 font-black text-[11px]">₹{savings}</span>
+                    </div>
+                )}
+
+                {/* Dynamic Free Delivery Banner */}
+                {cart.length > 0 && remainingForFreeDelivery > 0 && (
+                    <div className="px-3.5 py-1.5 bg-blue-50/50 dark:bg-blue-500/10 flex items-center justify-between border-b border-blue-500/10">
+                        <span className="text-blue-600 dark:text-blue-400 font-bold text-[8.5px] tracking-wide">Add ₹{remainingForFreeDelivery.toFixed(2)} more to get <span className="font-black uppercase tracking-widest">Free Delivery</span></span>
+                    </div>
+                )}
+                {cart.length > 0 && remainingForFreeDelivery <= 0 && (
+                    <div className="px-3.5 py-1.5 bg-emerald-50/50 dark:bg-emerald-500/10 flex items-center justify-between border-b border-emerald-500/10">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[8.5px] uppercase tracking-widest">Wow! You unlocked <span className="font-black border-b border-dashed border-emerald-400">Free Delivery</span></span>
                     </div>
                 )}
 
@@ -137,8 +158,10 @@ const CartSidebar = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
-                                    <span className="flex items-center gap-1">Delivery charge</span>
-                                    <span className="text-[#0c831f] font-black">FREE</span>
+                                    <span className="flex items-center gap-1">Delivery charge {publicSettings?.surgeMultiplier > 1 && <span className="lowercase normal-case text-rose-500 tracking-normal">(Surge x{publicSettings.surgeMultiplier})</span>}</span>
+                                    <span className={deliveryFee === 0 ? "text-[#0c831f] font-black" : "font-black text-gray-900 dark:text-gray-100"}>
+                                        {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight text-gray-500 dark:text-gray-400">
                                     <span className="flex items-center gap-1">Handling charge</span>

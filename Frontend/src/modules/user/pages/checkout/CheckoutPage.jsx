@@ -95,10 +95,10 @@ const CheckoutPage = () => {
                 name: user?.name,
                 phone: user?.phone,
                 street: globalLocation.address,
-                city: '', // Advanced parsing could happen here depending on bounds
+                city: globalLocation.city || '',
                 state: '',
                 zipCode: '',
-                location: globalLocation.coordinates ? { type: 'Point', coordinates: [globalLocation.coordinates.lng, globalLocation.coordinates.lat] } : undefined
+                location: globalLocation.coordinates ? { type: 'Point', coordinates: globalLocation.coordinates } : undefined
             },
             totalAmount: billDetails?.totalAmount || cartTotal
         };

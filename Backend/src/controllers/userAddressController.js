@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import { geocodeAddress } from '../services/locationService.js';
 
 // @desc    Get all addresses for logged-in user
 // @route   GET /api/user/addresses
@@ -27,6 +28,14 @@ export const addAddress = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    let finalLocation = location;
+    if ((!finalLocation || (finalLocation.coordinates[0] === 0 && finalLocation.coordinates[1] === 0)) && street) {
+      const coords = await geocodeAddress(`${street}, ${city}`);
+      if (coords) {
+        finalLocation = { type: 'Point', coordinates: coords };
+      }
+    }
+
     const newAddress = {
       label: label || 'Other',
       name: name || '',
@@ -36,7 +45,7 @@ export const addAddress = async (req, res) => {
       state,
       zipCode,
       isDefault: isDefault || false,
-      location: location || { type: 'Point', coordinates: [0, 0] }
+      location: finalLocation || { type: 'Point', coordinates: [0, 0] }
     };
 
     // If this is set to default, unset all others
@@ -87,6 +96,12 @@ export const updateAddress = async (req, res) => {
 
     if (location) {
       address.location = location;
+    } else if (street) {
+      // Re-geocode if street changed and no location provided
+      const coords = await geocodeAddress(`${street}, ${city}`);
+      if (coords) {
+        address.location = { type: 'Point', coordinates: coords };
+      }
     }
 
     if (isDefault) {

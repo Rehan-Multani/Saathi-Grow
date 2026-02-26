@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Form, Button, Row, Col, Image, Spinner } from 'react-bootstrap';
 import { Save, X, Upload, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import GoogleMapsInput from '../../components/common/GoogleMapsInput';
 
 const AddVendor = () => {
     const navigate = useNavigate();
@@ -15,13 +16,29 @@ const AddVendor = () => {
         ownerName: '',
         email: '',
         phone: '',
-        address: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            location: {
+                type: 'Point',
+                coordinates: [0, 0] // [lng, lat]
+            }
+        },
         description: '',
         status: 'Pending',
         password: ''
     });
     const [logoFile, setLogoFile] = useState(null);
     const [logoPreview, setLogoPreview] = useState(null);
+
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `.pac-container { z-index: 10000 !important; }`;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, []);
 
     const handleLogoChange = (e) => {
         const file = e.target.files[0];
@@ -39,6 +56,22 @@ const AddVendor = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleLocationSelect = (locData) => {
+        setFormData(prev => ({
+            ...prev,
+            address: {
+                street: locData.street || locData.fullAddress,
+                city: locData.city,
+                state: locData.state,
+                zipCode: locData.zipCode,
+                location: {
+                    type: 'Point',
+                    coordinates: [locData.lng, locData.lat]
+                }
+            }
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.storeName || !formData.ownerName || !formData.email || !formData.phone || !formData.address) {
@@ -49,7 +82,11 @@ const AddVendor = () => {
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                data.append(key, formData[key]);
+                if (key === 'address') {
+                    data.append(key, JSON.stringify(formData[key]));
+                } else {
+                    data.append(key, formData[key]);
+                }
             });
             if (logoFile) {
                 data.append('logo', logoFile);
@@ -144,17 +181,68 @@ const AddVendor = () => {
                                     </Col>
                                 </Row>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Business Address <span className="text-danger">*</span></Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={2}
-                                        placeholder="Full street address..."
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                        required
+                                <Form.Group className="mb-4">
+                                    <Form.Label className="small fw-bold">Business Address (Search on Map) <span className="text-danger">*</span></Form.Label>
+                                    <GoogleMapsInput
+                                        onLocationSelect={handleLocationSelect}
+                                        placeholder="Search for store location..."
                                     />
+                                    <div className="mt-3">
+                                        <Row className="g-3">
+                                            <Col md={12}>
+                                                <Form.Label className="small fw-bold text-muted">Street Address</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="123 Business Way"
+                                                    value={formData.address.street}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        address: { ...formData.address, street: e.target.value }
+                                                    })}
+                                                    required
+                                                />
+                                            </Col>
+                                            <Col md={4}>
+                                                <Form.Label className="small fw-bold text-muted">City</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="City"
+                                                    value={formData.address.city}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        address: { ...formData.address, city: e.target.value }
+                                                    })}
+                                                    required
+                                                />
+                                            </Col>
+                                            <Col md={4}>
+                                                <Form.Label className="small fw-bold text-muted">State</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="State"
+                                                    value={formData.address.state}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        address: { ...formData.address, state: e.target.value }
+                                                    })}
+                                                    required
+                                                />
+                                            </Col>
+                                            <Col md={4}>
+                                                <Form.Label className="small fw-bold text-muted">Zip Code</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="000000"
+                                                    value={formData.address.zipCode}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        address: { ...formData.address, zipCode: e.target.value }
+                                                    })}
+                                                    required
+                                                />
+                                            </Col>
+                                        </Row>
+                                    </div>
                                 </Form.Group>
 
                                 <Form.Group className="mb-0">

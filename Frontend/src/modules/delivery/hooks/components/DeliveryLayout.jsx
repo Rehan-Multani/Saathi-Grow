@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNotifications } from './NotificationProvider';
+import useDeliveryStore from '../../store/deliveryStore';
 
 const OPEN_ORDER_EVENT = 'delivery:open-order';
 
@@ -26,6 +27,7 @@ const DeliveryLayout = ({ children }) => {
         removeNotification,
         clearNotifications
     } = useNotifications();
+    const { profile, logout } = useDeliveryStore();
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const notificationPanelRef = useRef(null);
 
@@ -98,8 +100,8 @@ const DeliveryLayout = ({ children }) => {
                             </span>
                         )}
                     </button>
-                    <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border border-slate-100 dark:border-zinc-700 shadow-sm">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className="w-full h-full object-cover" alt="avatar" />
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border border-slate-200 dark:border-zinc-700">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" />
                     </div>
                 </div>
             </header>
@@ -192,31 +194,27 @@ const DeliveryLayout = ({ children }) => {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-slate-100 dark:border-zinc-800/50">
-                    <div className="bg-slate-50/80 dark:bg-zinc-800/40 backdrop-blur-sm rounded-2xl p-3 mb-3 border border-slate-100 dark:border-zinc-800/80">
-                        <div className="flex items-center gap-2.5 mb-2.5">
-                            <div className="relative">
-                                <div className="w-9 h-9 rounded-full border-2 border-white dark:border-zinc-700 shadow-sm overflow-hidden bg-white">
-                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className="w-full h-full object-cover" alt="profile" />
-                                </div>
-                                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white dark:border-zinc-800"></div>
+                <div className="p-4 border-t border-slate-200 dark:border-zinc-800">
+                    <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-2xl p-4 mb-4">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-full border-2 border-lime-500 p-0.5">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className="w-full h-full rounded-full" alt="profile" />
                             </div>
-                            <div className="min-w-0">
-                                <h4 className="font-bold text-[12px] text-slate-800 dark:text-zinc-100 truncate">Rahul Kumar</h4>
-                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">SG-R23</p>
+                            <div>
+                                <h4 className="font-bold text-sm">Rahul Kumar</h4>
+                                <p className="text-xs text-slate-500 dark:text-zinc-400">Rider #SG-R23</p>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between gap-2">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-green-600">Active</span>
-                            <div className="flex items-center gap-1.5 bg-green-500/10 text-green-500 px-2 py-0.5 rounded-lg text-[9px] font-black">
-                                <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></div>
-                                ONLINE
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 bg-green-100 dark:bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                Online
                             </div>
                         </div>
                     </div>
-                    <button className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-all font-medium text-xs group">
-                        <LogOut size={16} className="group-hover:rotate-12 transition-transform" />
-                        <span>Logout</span>
+                    <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-colors">
+                        <LogOut size={20} />
+                        <span className="font-medium">Logout</span>
                     </button>
                 </div>
             </aside>

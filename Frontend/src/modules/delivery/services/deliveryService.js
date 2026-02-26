@@ -1,89 +1,52 @@
-import {
-    mockProfile,
-    mockOrders,
-    mockHistory,
-    mockWallet,
-    mockTransactions,
-    createDummyOrder,
-} from '../data/mockDeliveryData';
+import axios from 'axios';
 
-let profile = JSON.parse(JSON.stringify(mockProfile));
-let orders = JSON.parse(JSON.stringify(mockOrders));
-let history = JSON.parse(JSON.stringify(mockHistory));
-let wallet = JSON.parse(JSON.stringify(mockWallet));
-let transactions = JSON.parse(JSON.stringify(mockTransactions));
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const wait = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
-const clone = (value) => {
-    if (value === undefined || value === null) return value;
-    return JSON.parse(JSON.stringify(value));
+const getAuthHeaders = (token) => ({
+    headers: { Authorization: `Bearer ${token}` }
+});
+
+export const getDeliveryProfile = async (token) => {
+    const { data } = await axios.get(`${API_URL}/delivery/profile`, getAuthHeaders(token));
+    return data;
 };
 
-export const getDeliveryProfile = async () => {
-    await wait();
-    return clone(profile);
+export const updatePartnerStatus = async (token, status) => {
+    const { data } = await axios.patch(`${API_URL}/delivery/status`, { status }, getAuthHeaders(token));
+    return data;
 };
 
-export const updateDeliveryProfile = async (_token, profileData) => {
-    await wait();
-    profile = { ...profile, ...profileData };
-    return clone(profile);
+export const updatePartnerLocation = async (token, longitude, latitude) => {
+    const { data } = await axios.post(`${API_URL}/delivery/location`, { longitude, latitude }, getAuthHeaders(token));
+    return data;
 };
 
-export const updatePartnerStatus = async (_token, status) => {
-    await wait();
-    profile = { ...profile, status };
-    return clone(profile);
+export const getDeliveryOrders = async (token, type = 'active') => {
+    const { data } = await axios.get(`${API_URL}/delivery/orders?type=${type}`, getAuthHeaders(token));
+    return data;
 };
 
-export const updatePartnerLocation = async (_token, longitude, latitude) => {
-    await wait();
-    profile = {
-        ...profile,
-        currentLocation: {
-            type: 'Point',
-            coordinates: [longitude, latitude],
-        },
-    };
-    return clone(profile.currentLocation);
+export const getDeliveryDetail = async (token, id) => {
+    const { data } = await axios.get(`${API_URL}/delivery/orders/${id}`, getAuthHeaders(token));
+    return data;
 };
 
-export const getDeliveryOrders = async (_token, type = 'active') => {
-    await wait();
-    if (type === 'history' || type === 'completed') return clone(history);
-    if (type === 'pending') return clone(orders.filter((order) => order.status === 'assigned'));
-    return clone(orders);
+export const updateDeliveryStatus = async (token, deliveryId, status) => {
+    const { data } = await axios.patch(`${API_URL}/delivery/orders/${deliveryId}/status`, { status }, getAuthHeaders(token));
+    return data;
 };
 
-export const updateDeliveryStatus = async (_token, deliveryId, status) => {
-    await wait();
-    orders = orders.map((order) => (order._id === deliveryId ? { ...order, status } : order));
-    return clone(orders.find((order) => order._id === deliveryId) || null);
+export const getWalletTransactions = async (token) => {
+    const { data } = await axios.get(`${API_URL}/delivery/wallet`, getAuthHeaders(token));
+    return data;
 };
 
-export const getWalletTransactions = async () => {
-    await wait();
-    return { wallet: clone(wallet), transactions: clone(transactions) };
+export const getDashboardStats = async (token) => {
+    const { data } = await axios.get(`${API_URL}/delivery/stats`, getAuthHeaders(token));
+    return data;
 };
 
-export const getDashboardStats = async () => {
-    await wait();
-    const today = new Date().toDateString();
-    const todayCredits = transactions.filter((tx) => tx.type === 'credit' && new Date(tx.createdAt).toDateString() === today);
-
-    return {
-        walletBalance: wallet.balance,
-        totalEarnings: wallet.totalEarnings,
-        todayEarnings: todayCredits.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0),
-        activeOrders: orders.length,
-        pendingOrders: orders.filter((order) => order.status === 'assigned').length,
-        todayDeliveries: history.filter((order) => new Date(order.createdAt).toDateString() === today).length,
-    };
-};
-
-export const simulateOrder = async () => {
-    await wait();
-    const order = createDummyOrder();
-    orders = [order, ...orders];
-    return clone(order);
+export const simulateOrder = async (token) => {
+    const { data } = await axios.post(`${API_URL}/delivery/simulate-order`, {}, getAuthHeaders(token));
+    return data;
 };

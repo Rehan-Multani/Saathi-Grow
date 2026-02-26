@@ -64,6 +64,8 @@ import userWishlistRoutes from './routes/userWishlistRoutes.js';
 import userCartRoutes from './routes/userCartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import settingRoutes from './routes/settingRoutes.js';
+import adminDeliveryRoutes from './routes/adminDeliveryRoutes.js';
+import deliveryAuthRoutes from './routes/deliveryAuthRoutes.js';
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -77,6 +79,8 @@ app.use('/api/admin/categories', categoryRoutes);
 app.use('/api/admin/products', productRoutes);
 app.use('/api/admin/campaigns', campaignRoutes);
 app.use('/api/admin/offer-deals', offerRoutes);
+app.use('/api/admin/delivery', adminDeliveryRoutes);
+app.use('/api/delivery/auth', deliveryAuthRoutes);
 app.use('/api/delivery', deliveryRoutes);
 
 // User Profile/Front-End Routes

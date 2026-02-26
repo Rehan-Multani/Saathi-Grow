@@ -4,13 +4,14 @@ import Order from '../models/Order.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
 import DeliveryLocation from '../models/DeliveryLocation.js';
+import { findOptimalSource } from '../services/locationService.js';
 
 // @desc    Get delivery partner profile
 // @route   GET /api/delivery/profile
 // @access  Private (Rider)
 export const getProfile = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id }).populate('user', 'name email phone profileImage');
+        const partner = req.partner;
         if (!partner) {
             return res.status(404).json({ message: 'Delivery partner profile not found' });
         }
@@ -26,9 +27,9 @@ export const getProfile = async (req, res) => {
 export const updateStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        const partner = await DeliveryPartner.findOneAndUpdate(
-            { user: req.user._id },
-            { status },
+        const partner = await DeliveryPartner.findByIdAndUpdate(
+            req.partner._id,
+            { dutyStatus: status === 'online' ? 'Online' : 'Offline' },
             { new: true }
         );
         res.json(partner);
@@ -48,8 +49,8 @@ export const updateLocation = async (req, res) => {
             coordinates: [longitude, latitude]
         };
 
-        const partner = await DeliveryPartner.findOneAndUpdate(
-            { user: req.user._id },
+        const partner = await DeliveryPartner.findByIdAndUpdate(
+            req.partner._id,
             { currentLocation: location },
             { new: true }
         );
@@ -71,7 +72,7 @@ export const updateLocation = async (req, res) => {
 // @access  Private (Rider)
 export const getOrders = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
+        const partner = req.partner;
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
         const { type } = req.query; // pending, active, completed
@@ -105,6 +106,27 @@ export const getOrders = async (req, res) => {
     }
 };
 
+// @desc    Get single delivery detail
+// @route   GET /api/delivery/orders/:id
+// @access  Private (Rider)
+export const getDeliveryDetail = async (req, res) => {
+    try {
+        const delivery = await OrderDelivery.findById(req.params.id)
+            .populate({
+                path: 'order',
+                populate: [
+                    { path: 'user', select: 'name phone' },
+                    { path: 'branchId', select: 'name address phone' }
+                ]
+            });
+
+        if (!delivery) return res.status(404).json({ message: 'Delivery not found' });
+        res.json(delivery);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Update delivery status (accept, pick up, deliver)
 // @route   PATCH /api/delivery/orders/:id/status
 // @access  Private (Rider)
@@ -115,7 +137,7 @@ export const updateDeliveryStatus = async (req, res) => {
 
         if (!delivery) return res.status(404).json({ message: 'Delivery not found' });
 
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
+        const partner = req.partner;
 
         if (status === 'assigned') {
             delivery.deliveryPartner = partner._id;
@@ -129,7 +151,10 @@ export const updateDeliveryStatus = async (req, res) => {
             await Order.findByIdAndUpdate(delivery.order, { status: 'delivered' });
 
             // Add earnings to wallet
-            const wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+            let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+            if (!wallet) {
+                wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
+            }
             const fee = delivery.deliveryFee || 40; // Default fee if not set
             wallet.balance += fee;
             wallet.totalEarnings += fee;
@@ -160,8 +185,13 @@ export const updateDeliveryStatus = async (req, res) => {
 // @access  Private (Rider)
 export const getWallet = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
-        const wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+        const partner = req.partner;
+        let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+
+        if (!wallet) {
+            wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
+        }
+
         const transactions = await Transaction.find({ wallet: wallet._id }).sort({ createdAt: -1 }).limit(20);
 
         res.json({ wallet, transactions });
@@ -207,13 +237,16 @@ export const createProfile = async (req, res) => {
 // @access  Private (Rider)
 export const getDashboardStats = async (req, res) => {
     try {
-        const partner = await DeliveryPartner.findOne({ user: req.user._id });
+        const partner = req.partner;
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+        let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+        if (!wallet) {
+            wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
+        }
 
         const pendingOrders = await OrderDelivery.countDocuments({ status: 'pending' });
         const todayDeliveries = await OrderDelivery.countDocuments({
@@ -266,18 +299,29 @@ export const simulateOrder = async (req, res) => {
 
         if (!customer) return res.status(404).json({ message: 'No customer found to simulate order' });
 
+        const shippingAddress = {
+            street: 'Vijay Nagar, Scheme No. 54',
+            city: 'Indore',
+            state: 'MP',
+            location: { type: 'Point', coordinates: [75.8948, 22.7533] } // Real Indore coordinates for test
+        };
+
+        // For simulation, find a real product to check stock against
+        const Product = (await import('../models/Product.js')).default;
+        const randomProduct = await Product.findOne({ status: 'Active' });
+        const items = randomProduct ? [{ product: randomProduct._id, quantity: 1 }] : [];
+
+        const optimalSource = await findOptimalSource(shippingAddress.location.coordinates, items);
+
         const newOrder = await Order.create({
             orderId: 'SIM-' + Math.floor(Math.random() * 10000),
             user: customer._id,
             totalAmount: 500,
             status: 'pending',
             paymentMethod: 'cod',
-            shippingAddress: {
-                street: '123 Test Street',
-                city: 'Indore',
-                state: 'MP',
-                location: { type: 'Point', coordinates: [75.8577, 22.7196] }
-            }
+            shippingAddress,
+            branchId: optimalSource?.type === 'branch' ? optimalSource.id : undefined,
+            vendor: optimalSource?.type === 'vendor' ? optimalSource.id : undefined
         });
 
         const delivery = await OrderDelivery.create({
@@ -293,7 +337,9 @@ export const simulateOrder = async (req, res) => {
             orderId: newOrder.orderId,
             customerName: customer.name,
             amount: newOrder.totalAmount,
-            address: newOrder.shippingAddress.street
+            address: newOrder.shippingAddress.street,
+            branchLocation: optimalSource?.location,
+            customerLocation: shippingAddress.location.coordinates
         });
 
         res.json({ message: 'Order simulated successfully', delivery });

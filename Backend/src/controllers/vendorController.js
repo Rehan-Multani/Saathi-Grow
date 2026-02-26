@@ -1,6 +1,7 @@
 import Vendor from '../models/Vendor.js';
 import VendorPayout from '../models/VendorPayout.js';
 import { cloudinary } from '../config/cloudinary.js';
+import { geocodeAddress, getFullAddress } from '../services/locationService.js';
 
 // @desc    Get all vendors
 // @route   GET /api/admin/vendors
@@ -34,6 +35,15 @@ export const createVendor = async (req, res) => {
   try {
     const { storeName, ownerName, email, phone, address, description, status, password } = req.body;
 
+    let parsedAddress = address;
+    if (typeof address === 'string') {
+      try {
+        parsedAddress = JSON.parse(address);
+      } catch (err) {
+        return res.status(400).json({ message: 'Invalid address format' });
+      }
+    }
+
     const vendorExists = await Vendor.findOne({ email });
     if (vendorExists) {
       return res.status(400).json({ message: 'Vendor with this email already exists' });
@@ -44,12 +54,28 @@ export const createVendor = async (req, res) => {
       logo = req.file.path;
     }
 
+    // Geocoding fallback if coordinates are missing or required fields are empty
+    if (parsedAddress && parsedAddress.street) {
+      const locationMissing = !parsedAddress.location || !parsedAddress.location.coordinates || (parsedAddress.location.coordinates[0] === 0 && parsedAddress.location.coordinates[1] === 0);
+      const fieldsMissing = !parsedAddress.city || !parsedAddress.state || !parsedAddress.zipCode;
+
+      if (locationMissing || fieldsMissing) {
+        const fullAddr = await getFullAddress(`${parsedAddress.street}, ${parsedAddress.city || ''}, ${parsedAddress.state || ''}`);
+        if (fullAddr) {
+          parsedAddress.location = { type: 'Point', coordinates: fullAddr.coordinates };
+          parsedAddress.city = parsedAddress.city || fullAddr.city;
+          parsedAddress.state = parsedAddress.state || fullAddr.state;
+          parsedAddress.zipCode = parsedAddress.zipCode || fullAddr.zipCode;
+        }
+      }
+    }
+
     const vendor = await Vendor.create({
       storeName,
       ownerName,
       email,
       phone,
-      address,
+      address: parsedAddress,
       description,
       status: status || 'Pending',
       password: password || '123456', // Default password if not provided
@@ -73,11 +99,37 @@ export const updateVendor = async (req, res) => {
 
     const { storeName, ownerName, email, phone, address, description, status } = req.body;
 
+    let parsedAddress = address;
+    if (address && typeof address === 'string') {
+      try {
+        parsedAddress = JSON.parse(address);
+      } catch (err) {
+        // Fallback or ignore if not JSON
+      }
+    }
+
+    if (parsedAddress) {
+      // If street/city changed or coordinates are missing, re-geocode
+      const addressChanged = parsedAddress.street !== vendor.address.street || parsedAddress.city !== vendor.address.city;
+      const locationMissing = !parsedAddress.location || !parsedAddress.location.coordinates || (parsedAddress.location.coordinates[0] === 0 && parsedAddress.location.coordinates[1] === 0);
+      const fieldsMissing = !parsedAddress.city || !parsedAddress.state || !parsedAddress.zipCode;
+
+      if (addressChanged || locationMissing || fieldsMissing) {
+        const fullAddr = await getFullAddress(`${parsedAddress.street}, ${parsedAddress.city || ''}, ${parsedAddress.state || ''}`);
+        if (fullAddr) {
+          parsedAddress.location = { type: 'Point', coordinates: fullAddr.coordinates };
+          parsedAddress.city = parsedAddress.city || fullAddr.city;
+          parsedAddress.state = parsedAddress.state || fullAddr.state;
+          parsedAddress.zipCode = parsedAddress.zipCode || fullAddr.zipCode;
+        }
+      }
+      vendor.address = parsedAddress;
+    }
+
     vendor.storeName = storeName || vendor.storeName;
     vendor.ownerName = ownerName || vendor.ownerName;
     vendor.email = email || vendor.email;
     vendor.phone = phone || vendor.phone;
-    vendor.address = address || vendor.address;
     vendor.description = description || vendor.description;
     vendor.status = status || vendor.status;
 

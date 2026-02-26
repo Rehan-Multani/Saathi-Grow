@@ -5,9 +5,9 @@ import { Save, User, Phone, Mail, MapPin } from 'lucide-react';
 const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
     const [formData, setFormData] = useState({
         name: '',
-        type: 'Agency',
+        vehicleType: 'Bike',
         phone: '',
-        status: 'Active',
+        authStatus: 'Active',
         rating: 0
     });
 
@@ -15,10 +15,10 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
         if (partner) {
             setFormData({
                 name: partner.name || '',
-                type: partner.type || 'Agency',
+                vehicleType: partner.vehicleType || 'Bike',
                 phone: partner.phone || '',
-                status: partner.status || 'Active',
-                rating: partner.rating || 0
+                authStatus: partner.authStatus || 'Active',
+                rating: partner.rating || 5
             });
         }
     }, [partner]);
@@ -58,15 +58,17 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
 
                     <Row className="g-3 mb-3">
                         <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Partner Type</Form.Label>
+                            <Form.Label className="small fw-bold text-muted uppercase">Vehicle</Form.Label>
                             <Form.Select
-                                name="type"
-                                value={formData.type}
+                                name="vehicleType"
+                                value={formData.vehicleType}
                                 onChange={handleChange}
                                 className="bg-light border-0 py-2 shadow-none"
+                                disabled
                             >
-                                <option value="Agency">Agency</option>
-                                <option value="Individual">Individual</option>
+                                <option value="Bike">Motorcycle</option>
+                                <option value="EV">Electric Vehicle</option>
+                                <option value="Cycle">Cycle</option>
                             </Form.Select>
                         </Col>
                         <Col md={6}>
@@ -85,15 +87,16 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
 
                     <Row className="g-3 mb-3">
                         <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Status</Form.Label>
+                            <Form.Label className="small fw-bold text-muted uppercase">Authorization Status</Form.Label>
                             <Form.Select
-                                name="status"
-                                value={formData.status}
+                                name="authStatus"
+                                value={formData.authStatus}
                                 onChange={handleChange}
                                 className="bg-light border-0 py-2 shadow-none"
                             >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="Active">Active / Approved</option>
+                                <option value="Suspended">Suspended / Blocked</option>
+                                <option value="Unverified">Unverified (Waiting)</option>
                             </Form.Select>
                         </Col>
                         <Col md={6}>

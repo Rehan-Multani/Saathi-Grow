@@ -29,8 +29,8 @@ const StaffManagement = () => {
   ];
 
   const getAuthToken = () => {
-    const admin = JSON.parse(localStorage.getItem('saathigro_admin'));
-    const manager = JSON.parse(localStorage.getItem('saathigro_manager'));
+    const admin = JSON.parse(localStorage.getItem('sathiGro_admin'));
+    const manager = JSON.parse(localStorage.getItem('sathiGro_manager'));
     return admin?.token || manager?.token;
   };
 

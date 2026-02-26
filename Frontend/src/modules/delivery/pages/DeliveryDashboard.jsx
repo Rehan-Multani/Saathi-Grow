@@ -17,7 +17,7 @@ import {
     MessageCircle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useAuth } from '../../user/context/AuthContext';
+import useDeliveryStore from '../store/deliveryStore';
 import useDelivery from '../hooks/useDelivery';
 import { useNavigate } from 'react-router-dom';
 import useLocationTracking from '../hooks/useLocationTracking';
@@ -71,7 +71,7 @@ const StatCard = ({ icon, label, value, subValue, color, isLoading }) => (
 );
 
 const DeliveryDashboard = () => {
-    const { token, user } = useAuth();
+    const { token } = useDeliveryStore();
     const navigate = useNavigate();
     const [chartRange, setChartRange] = useState('7d');
     const [locationUpdating, setLocationUpdating] = useState(false);
@@ -84,7 +84,7 @@ const DeliveryDashboard = () => {
         updateLocation,
         toggleStatus,
         refreshAll
-    } = useDelivery(token);
+    } = useDelivery();
 
     const [incomingOrder, setIncomingOrder] = useState(null);
     const [acceptedOrder, setAcceptedOrder] = useState(null);
@@ -115,7 +115,7 @@ const DeliveryDashboard = () => {
     }, []);
 
 
-    const isOnline = profile?.status === 'online';
+    const isOnline = profile?.dutyStatus === 'Online';
     useLocationTracking(token, isOnline);
     const coordinates = profile?.currentLocation?.coordinates;
     const locationText = Array.isArray(coordinates) && coordinates.length === 2
@@ -160,8 +160,8 @@ const DeliveryDashboard = () => {
 
     const handleToggle = async () => {
         try {
-            await toggleStatus(profile?.status);
-            await refreshAll();
+            await toggleStatus(profile?.dutyStatus);
+            // No need to refreshAll, toggleStatus now updates the profile state directly
         } catch (error) {
             console.error('Failed to toggle partner status:', error);
         }
@@ -219,17 +219,12 @@ const DeliveryDashboard = () => {
     };
 
     return (
-        <div className="space-y-6 pb-10">
-            {/* Top Greeting & Toggle - More Compact */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center text-white shadow-lg overflow-hidden md:hidden">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">{greeting}, {user?.name?.split(' ')[0] || 'Rider'}!</h1>
-                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">SG-DELIVERY PARTNER NETWORK</p>
-                    </div>
+        <div className="space-y-8 pb-10">
+            {/* Top Greeting & Toggle */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Rider'}! ðŸ‘‹</h1>
+                    <p className="text-slate-500 dark:text-zinc-400 font-medium">Ready for today's deliveries?</p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -280,12 +275,13 @@ const DeliveryDashboard = () => {
                     <div className="relative z-10 flex flex-col justify-between h-full gap-6">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[9px] mb-1.5 opacity-80">Available Earnings</p>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-lime-500">â‚¹</span>
-                                    <h2 className="text-4xl font-black tracking-tight">
-                                        {stats?.walletBalance?.toFixed(2) || '0.00'}
-                                    </h2>
+                                <p className="text-lime-100/80 font-bold uppercase tracking-widest text-[10px] mb-1">Your Wallet Balance</p>
+                                <h2 className="text-5xl font-black mb-1">
+                                    â‚¹{stats?.walletBalance?.toFixed(2) || '0.00'}
+                                </h2>
+                                <div className="flex items-center gap-2 text-lime-100 text-sm font-medium">
+                                    <TrendingUp size={16} />
+                                    <span>Total Lifetime: â‚¹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
                                 </div>
                             </div>
                             <button
@@ -296,14 +292,10 @@ const DeliveryDashboard = () => {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/5">
-                            <div>
-                                <p className="text-white/40 text-[8px] font-black uppercase mb-1">Total Earned</p>
-                                <p className="font-black text-sm">â‚¹{stats?.totalEarnings?.toFixed(0) || '0'}</p>
-                            </div>
-                            <div>
-                                <p className="text-white/40 text-[8px] font-black uppercase mb-1">Today</p>
-                                <p className="font-black text-sm text-lime-500">â‚¹{stats?.todayEarnings || '0'}</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
+                                <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Today's Earnings</p>
+                                <h4 className="text-xl font-black">â‚¹{stats?.todayEarnings || '0'}</h4>
                             </div>
                             <div>
                                 <p className="text-white/40 text-[8px] font-black uppercase mb-1">Deliveries</p>
@@ -365,8 +357,8 @@ const DeliveryDashboard = () => {
                     isLoading={loading}
                 />
                 <StatCard
-                    icon={<TrendingUp size={20} />}
-                    label="Daily P&L"
+                    icon={<Wallet size={24} />}
+                    label="Today's Earnings"
                     value={`â‚¹${stats?.todayEarnings || '0'}`}
                     color="from-blue-400 to-indigo-500"
                     isLoading={loading}
@@ -460,7 +452,7 @@ const DeliveryDashboard = () => {
                                     <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider mb-1">
                                         {order.status}
                                     </span>
-                                    <p className="font-black text-sm">â‚¹{order.deliveryFee}</p>
+                                    <p className="font-black text-sm">₹{order.deliveryFee}</p>
                                 </div>
                             </div>
                         )) : (

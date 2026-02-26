@@ -12,7 +12,7 @@ import { upload } from '../config/cloudinary.js';
 const router = express.Router();
 
 router.use(protectAdmin);
-router.use(restrictTo('Admin'));
+router.use(restrictTo('Admin', 'Branch Manager'));
 
 router.route('/')
   .get(getAllUsers)
