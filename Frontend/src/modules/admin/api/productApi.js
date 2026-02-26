@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/admin/products';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const PRODUCTS_API_BASE_URL = `${API_BASE_URL}/admin/products`;
 
 export const getProducts = async (token) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -16,7 +18,7 @@ export const getProducts = async (token) => {
 };
 
 export const createProduct = async (token, productData) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -32,7 +34,7 @@ export const createProduct = async (token, productData) => {
 };
 
 export const updateProduct = async (token, id, productData) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -48,7 +50,7 @@ export const updateProduct = async (token, id, productData) => {
 };
 
 export const deleteProduct = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/${id}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -63,7 +65,7 @@ export const deleteProduct = async (token, id) => {
 };
 
 export const getProductById = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/${id}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -78,7 +80,7 @@ export const getProductById = async (token, id) => {
 };
 
 export const getAISuggestions = async (token, productName, type) => {
-  const response = await fetch(`${API_BASE_URL}/ai-suggestions`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/ai-suggestions`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -95,7 +97,7 @@ export const getAISuggestions = async (token, productName, type) => {
 };
 
 export const adjustInventory = async (token, id, adjustmentData) => {
-  const response = await fetch(`${API_BASE_URL}/${id}/inventory`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/${id}/inventory`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -112,7 +114,7 @@ export const adjustInventory = async (token, id, adjustmentData) => {
 };
 
 export const getInventoryLogs = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}/inventory-logs`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/${id}/inventory-logs`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -127,7 +129,7 @@ export const getInventoryLogs = async (token, id) => {
 };
 
 export const getAllInventoryLogs = async (token) => {
-  const response = await fetch(`${API_BASE_URL}/inventory-logs`, {
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/inventory-logs`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

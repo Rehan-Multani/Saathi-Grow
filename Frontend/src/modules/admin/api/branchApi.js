@@ -1,4 +1,6 @@
-const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/admin/branches`;
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const API_URL = `${API_BASE_URL}/admin/branches`;
 
 export const getBranches = async (token) => {
   const response = await fetch(API_URL, {

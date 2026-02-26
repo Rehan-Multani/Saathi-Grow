@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/vendors/products';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const VENDOR_PRODUCTS_API_BASE_URL = `${API_BASE_URL}/vendors/products`;
 
 export const getVendorProducts = async (token) => {
-  const response = await fetch(API_BASE_URL, {
+  const response = await fetch(VENDOR_PRODUCTS_API_BASE_URL, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
@@ -14,7 +16,7 @@ export const addVendorProduct = async (token, productData) => {
   const headers = { 'Authorization': `Bearer ${token}` };
   if (!isFormData) headers['Content-Type'] = 'application/json';
 
-  const response = await fetch(API_BASE_URL, {
+  const response = await fetch(VENDOR_PRODUCTS_API_BASE_URL, {
     method: 'POST',
     headers,
     body: isFormData ? productData : JSON.stringify(productData)
@@ -29,7 +31,7 @@ export const updateVendorProduct = async (token, id, productData) => {
   const headers = { 'Authorization': `Bearer ${token}` };
   if (!isFormData) headers['Content-Type'] = 'application/json';
 
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${VENDOR_PRODUCTS_API_BASE_URL}/${id}`, {
     method: 'PUT',
     headers,
     body: isFormData ? productData : JSON.stringify(productData)
@@ -40,7 +42,7 @@ export const updateVendorProduct = async (token, id, productData) => {
 };
 
 export const deleteVendorProduct = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${VENDOR_PRODUCTS_API_BASE_URL}/${id}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${token}` }
   });

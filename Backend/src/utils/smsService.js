@@ -1,10 +1,11 @@
 import axios from 'axios';
+import { SMSINDIAHUB_BASE_URL } from '../config/serviceUrls.js';
 
 class SMSIndiaHubService {
   constructor() {
     this.apiKey = process.env.SMSINDIAHUB_API_KEY;
     this.senderId = process.env.SMSINDIA_HUB_SENDER_ID || 'SMSHUB';
-    this.baseUrl = 'https://cloud.smsindiahub.in/vendorsms/pushsms.aspx';
+    this.baseUrl = SMSINDIAHUB_BASE_URL;
   }
 
   normalizePhoneNumber(phone) {

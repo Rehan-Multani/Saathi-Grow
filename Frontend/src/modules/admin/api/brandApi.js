@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/admin/brands';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const BRANDS_API_BASE_URL = `${API_BASE_URL}/admin/brands`;
 
 export const getBrands = async (token) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${BRANDS_API_BASE_URL}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -16,7 +18,7 @@ export const getBrands = async (token) => {
 };
 
 export const createBrand = async (token, brandData) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${BRANDS_API_BASE_URL}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -32,7 +34,7 @@ export const createBrand = async (token, brandData) => {
 };
 
 export const updateBrand = async (token, id, brandData) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${BRANDS_API_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -48,7 +50,7 @@ export const updateBrand = async (token, id, brandData) => {
 };
 
 export const deleteBrand = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${BRANDS_API_BASE_URL}/${id}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -63,7 +65,7 @@ export const deleteBrand = async (token, id) => {
 };
 
 export const getBrandById = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${BRANDS_API_BASE_URL}/${id}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

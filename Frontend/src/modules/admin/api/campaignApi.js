@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/admin/campaigns';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const CAMPAIGNS_API_BASE_URL = `${API_BASE_URL}/admin/campaigns`;
 
 export const getCampaigns = async (token) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${CAMPAIGNS_API_BASE_URL}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -16,7 +18,7 @@ export const getCampaigns = async (token) => {
 };
 
 export const createCampaign = async (token, campaignData) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${CAMPAIGNS_API_BASE_URL}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -32,7 +34,7 @@ export const createCampaign = async (token, campaignData) => {
 };
 
 export const updateCampaign = async (token, id, campaignData) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${CAMPAIGNS_API_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -48,7 +50,7 @@ export const updateCampaign = async (token, id, campaignData) => {
 };
 
 export const deleteCampaign = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${CAMPAIGNS_API_BASE_URL}/${id}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -63,7 +65,7 @@ export const deleteCampaign = async (token, id) => {
 };
 
 export const getCampaignById = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${CAMPAIGNS_API_BASE_URL}/${id}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

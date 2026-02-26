@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5000/api/user/wishlist';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const API_URL = `${API_BASE_URL}/user/wishlist`;
 
 export const getWishlist = async (token) => {
   const response = await fetch(API_URL, {

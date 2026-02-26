@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/admin/offer-deals';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const OFFER_DEALS_API_BASE_URL = `${API_BASE_URL}/admin/offer-deals`;
 
 export const getOfferDeals = async (token) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${OFFER_DEALS_API_BASE_URL}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -16,7 +18,7 @@ export const getOfferDeals = async (token) => {
 };
 
 export const createOfferDeal = async (token, offerData) => {
-  const response = await fetch(`${API_BASE_URL}`, {
+  const response = await fetch(`${OFFER_DEALS_API_BASE_URL}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -32,7 +34,7 @@ export const createOfferDeal = async (token, offerData) => {
 };
 
 export const updateOfferDeal = async (token, id, offerData) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${OFFER_DEALS_API_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -48,7 +50,7 @@ export const updateOfferDeal = async (token, id, offerData) => {
 };
 
 export const deleteOfferDeal = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${OFFER_DEALS_API_BASE_URL}/${id}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -63,7 +65,7 @@ export const deleteOfferDeal = async (token, id) => {
 };
 
 export const getOfferDealById = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${OFFER_DEALS_API_BASE_URL}/${id}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

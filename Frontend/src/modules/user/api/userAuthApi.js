@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5000/api/auth';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const API_URL = `${API_BASE_URL}/auth`;
 
 /**
  * Request OTP for login or registration

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
@@ -7,6 +7,7 @@ import { ProductCardSkeleton, SuggestionSkeleton } from '../common/Skeleton';
 import logo from '../../../../assets/logo.png';
 import { useTheme } from '../../context/ThemeContext';
 import { normalizeProduct } from '../../pages/home/HomePage';
+import { API_BASE_URL } from '../../../../config/apiConfig';
 
 const SearchOverlay = () => {
     const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
@@ -94,10 +95,9 @@ const SearchOverlay = () => {
         const runSearch = async () => {
             setIsLoading(true);
             try {
-                // Determine if we should use smart AI search or standard search
-                // For simplicity, any search can pass through AI keyword parsing
-                const baseUrl = 'http://localhost:5000/api'; // Or import from API config
-                const response = await fetch(`${baseUrl}/admin/products/search/ai?q=${encodeURIComponent(searchQuery)}`);
+                const response = await fetch(
+                    `${API_BASE_URL}/admin/products/search/ai?q=${encodeURIComponent(searchQuery)}`
+                );
                 const data = await response.json();
 
                 if (Array.isArray(data)) {

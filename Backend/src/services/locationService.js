@@ -2,6 +2,7 @@ import Branch from '../models/Branch.js';
 import Vendor from '../models/Vendor.js';
 import Product from '../models/Product.js';
 import axios from 'axios';
+import { GOOGLE_MAPS_BASE_URL } from '../config/serviceUrls.js';
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API;
 
@@ -119,7 +120,7 @@ export const findOptimalSource = async (coordinates, items) => {
 export const geocodeAddress = async (addressString) => {
   if (!GOOGLE_MAPS_API_KEY) return null;
   try {
-    const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+    const response = await axios.get(GOOGLE_MAPS_BASE_URL, {
       params: {
         address: addressString,
         key: GOOGLE_MAPS_API_KEY
@@ -142,7 +143,7 @@ export const geocodeAddress = async (addressString) => {
 export const getFullAddress = async (addressString) => {
   if (!GOOGLE_MAPS_API_KEY) return null;
   try {
-    const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+    const response = await axios.get(GOOGLE_MAPS_BASE_URL, {
       params: {
         address: addressString,
         key: GOOGLE_MAPS_API_KEY

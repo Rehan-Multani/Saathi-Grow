@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5000/api/settings/public';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const API_URL = `${API_BASE_URL}/settings/public`;
 
 export const getPublicSettings = async () => {
   const response = await fetch(API_URL, {

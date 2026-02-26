@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Wallet,
@@ -143,29 +143,57 @@ const WalletPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                    {transactions.length > 0 ? transactions.map((tx) => (
-                        <div key={tx._id} className="flex items-center gap-4 p-5 rounded-[2rem] hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${tx.type === 'credit' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600' : 'bg-red-50 dark:bg-red-500/10 text-red-600'}`}>
-                                {tx.type === 'credit' ? <ArrowDownLeft size={24} /> : <ArrowUpRight size={24} />}
+                    {transactions.length > 0 ? (
+                        transactions.map((tx) => (
+                            <div
+                                key={tx._id}
+                                className="flex items-center gap-4 p-5 rounded-[2rem] hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group"
+                            >
+                                <div
+                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                                        tx.type === 'credit'
+                                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
+                                            : 'bg-red-50 dark:bg-red-500/10 text-red-600'
+                                    }`}
+                                >
+                                    {tx.type === 'credit' ? <ArrowDownLeft size={24} /> : <ArrowUpRight size={24} />}
+                                </div>
+                                <div className="flex-1">
+                                    <h5 className="font-bold text-slate-900 dark:text-white uppercase text-sm mb-1">
+                                        {tx.category.replace('_', ' ')}
+                                    </h5>
+                                    <p className="text-xs text-slate-500 font-medium">
+                                        {new Date(tx.createdAt).toLocaleDateString()} •{' '}
+                                        {new Date(tx.createdAt).toLocaleTimeString()}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <h5
+                                        className={`font-black text-lg ${
+                                            tx.type === 'credit'
+                                                ? 'text-emerald-500'
+                                                : 'text-slate-900 dark:text-white'
+                                        }`}
+                                    >
+                                        {tx.type === 'credit' ? '+' : '-'}
+                                        {tx.amount}
+                                    </h5>
+                                    <p
+                                        className={`text-[10px] font-bold uppercase tracking-widest ${
+                                            tx.status === 'completed' ? 'text-emerald-400' : 'text-orange-400'
+                                        }`}
+                                    >
+                                        {tx.status}
+                                    </p>
+                                </div>
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity pl-2">
+                                    <ChevronRight size={18} className="text-slate-300" />
+                                </div>
                             </div>
-                            <div className="flex-1">
-                                <h5 className="font-bold text-slate-900 dark:text-white uppercase text-sm mb-1">{tx.category.replace('_', ' ')}</h5>
-                                <p className="text-xs text-slate-500 font-medium">
-                                    {new Date(tx.createdAt).toLocaleDateString()} â€¢ {new Date(tx.createdAt).toLocaleTimeString()}
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <h5 className={`font-black text-lg ${tx.type === 'credit' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
-                                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
-                                </h5>
-                                <p className={`text-[10px] font-bold uppercase tracking-widest ${tx.status === 'completed' ? 'text-emerald-400' : 'text-orange-400'}`}>
-                                    {tx.status}
-                                </p>
-                            </div>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity pl-2">
-                                <ChevronRight size={18} className="text-slate-300" />
-                            </div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Transaction log empty</p>
+                        ))
+                    ) : (
+                        <div className="text-center py-10 text-xs font-bold uppercase tracking-[0.3em] text-slate-300">
+                            Transaction log empty
                         </div>
                     )}
                 </div>

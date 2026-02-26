@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5000/api/user/addresses';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const API_URL = `${API_BASE_URL}/user/addresses`;
 
 export const getAddresses = async (token) => {
   const response = await fetch(API_URL, {

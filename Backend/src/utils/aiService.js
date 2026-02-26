@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
+import { GENAI_MODELS_BASE_URL } from '../config/serviceUrls.js';
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ const getAvailableModels = async () => {
     if (!apiKey) return DEFAULT_MODELS;
 
     // Use fetch to list models from the v1beta endpoint (standard for listing)
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    const response = await fetch(`${GENAI_MODELS_BASE_URL}?key=${apiKey}`);
     const data = await response.json();
 
     if (data.models && Array.isArray(data.models)) {

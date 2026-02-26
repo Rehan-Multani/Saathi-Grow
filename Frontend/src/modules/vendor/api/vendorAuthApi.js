@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/vendors';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const VENDORS_API_BASE_URL = `${API_BASE_URL}/vendors`;
 
 export const vendorLogin = async (email, password) => {
-  const response = await fetch(`${API_BASE_URL}/login`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
@@ -12,7 +14,7 @@ export const vendorLogin = async (email, password) => {
 };
 
 export const vendorRegister = async (vendorData) => {
-  const response = await fetch(`${API_BASE_URL}/register`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(vendorData)
@@ -23,7 +25,7 @@ export const vendorRegister = async (vendorData) => {
 };
 
 export const getVendorProfile = async (token) => {
-  const response = await fetch(`${API_BASE_URL}/profile`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/profile`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
@@ -36,7 +38,7 @@ export const updateVendorProfile = async (token, vendorData) => {
   const headers = { 'Authorization': `Bearer ${token}` };
   if (!isFormData) headers['Content-Type'] = 'application/json';
 
-  const response = await fetch(`${API_BASE_URL}/profile`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/profile`, {
     method: 'PUT',
     headers,
     body: isFormData ? vendorData : JSON.stringify(vendorData)

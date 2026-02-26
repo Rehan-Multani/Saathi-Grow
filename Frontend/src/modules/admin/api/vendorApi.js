@@ -1,7 +1,9 @@
-const API_BASE_URL = 'http://localhost:5000/api/admin/vendors';
+import { API_BASE_URL } from '../../../config/apiConfig';
+
+const VENDORS_API_BASE_URL = `${API_BASE_URL}/admin/vendors`;
 
 export const getVendors = async (token) => {
-  const response = await fetch(API_BASE_URL, {
+  const response = await fetch(VENDORS_API_BASE_URL, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
@@ -14,7 +16,7 @@ export const createVendor = async (token, vendorData) => {
   const headers = { 'Authorization': `Bearer ${token}` };
   if (!isFormData) headers['Content-Type'] = 'application/json';
 
-  const response = await fetch(API_BASE_URL, {
+  const response = await fetch(VENDORS_API_BASE_URL, {
     method: 'POST',
     headers,
     body: isFormData ? vendorData : JSON.stringify(vendorData)
@@ -29,7 +31,7 @@ export const updateVendor = async (token, id, vendorData) => {
   const headers = { 'Authorization': `Bearer ${token}` };
   if (!isFormData) headers['Content-Type'] = 'application/json';
 
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/${id}`, {
     method: 'PUT',
     headers,
     body: isFormData ? vendorData : JSON.stringify(vendorData)
@@ -40,7 +42,7 @@ export const updateVendor = async (token, id, vendorData) => {
 };
 
 export const deleteVendor = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/${id}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${token}` }
   });
@@ -50,7 +52,7 @@ export const deleteVendor = async (token, id) => {
 };
 
 export const getVendorById = async (token, id) => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/${id}`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
@@ -60,7 +62,7 @@ export const getVendorById = async (token, id) => {
 
 // Payouts
 export const getPayouts = async (token) => {
-  const response = await fetch(`${API_BASE_URL}/payouts`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/payouts`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
@@ -69,7 +71,7 @@ export const getPayouts = async (token) => {
 };
 
 export const updatePayoutStatus = async (token, id, payoutData) => {
-  const response = await fetch(`${API_BASE_URL}/payouts/${id}`, {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/payouts/${id}`, {
     method: 'PATCH',
     headers: {
       'Authorization': `Bearer ${token}`,
