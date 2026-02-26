@@ -90,6 +90,13 @@ const DeliveryDashboard = () => {
     const [acceptedOrder, setAcceptedOrder] = useState(null);
     const [mapStatus, setMapStatus] = useState('assigned'); // assigned -> picked -> delivered
 
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 17) return 'Good Afternoon';
+        return 'Good Evening';
+    }, []);
+
     useEffect(() => {
         const handleIncomingOrder = (event) => {
             const order = event.detail;
@@ -212,172 +219,154 @@ const DeliveryDashboard = () => {
     };
 
     return (
-        <div className="space-y-8 pb-10">
-            {/* Top Greeting & Toggle */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Rider'}! ðŸ‘‹</h1>
-                    <p className="text-slate-500 dark:text-zinc-400 font-medium">Ready for today's deliveries?</p>
+        <div className="space-y-6 pb-10">
+            {/* Top Greeting & Toggle - More Compact */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-lime-500 to-lime-600 flex items-center justify-center text-white shadow-lg overflow-hidden md:hidden">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">{greeting}, {user?.name?.split(' ')[0] || 'Rider'}!</h1>
+                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">SG-DELIVERY PARTNER NETWORK</p>
+                    </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4">
-                    {/* Test Button */}
+                <div className="flex items-center gap-2">
                     <button
                         onClick={handleSimulate}
-                        className="flex items-center gap-2 px-4 py-2 bg-lime-100 dark:bg-lime-500/10 text-lime-600 rounded-2xl text-xs font-bold hover:bg-lime-200 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-lime-500/10 text-lime-600 dark:text-lime-500 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-lime-500/20 transition-all active:scale-95"
                     >
-                        <Play size={14} fill="currentColor" />
-                        Simulate Order
+                        <Play size={12} fill="currentColor" />
+                        Simulate
                     </button>
 
                     <button
-                        onClick={() => {
-                            refreshAll().catch((error) => {
-                                console.error('Failed to refresh dashboard data:', error);
-                            });
-                        }}
-                        className={`p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 shadow-sm ${loading ? 'animate-spin' : ''}`}
+                        onClick={() => refreshAll()}
+                        className={`p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800/80 shadow-sm active:scale-90 transition-all ${loading ? 'opacity-50' : ''}`}
                     >
-                        <RefreshCw size={20} />
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     </button>
 
-                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-slate-100 dark:border-zinc-800 shadow-sm">
-                        <span className={`text-sm font-bold uppercase tracking-wider px-3 ${isOnline ? 'text-green-600' : 'text-slate-400'}`}>
+                    <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-zinc-800/80 shadow-sm">
+                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`}></div>
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${isOnline ? 'text-green-600' : 'text-slate-400'}`}>
                             {isOnline ? 'Online' : 'Offline'}
                         </span>
                         <button
                             onClick={handleToggle}
                             disabled={loading}
-                            className={`w-14 h-8 rounded-full relative transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-slate-200 dark:bg-zinc-800'}`}
+                            className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-slate-200 dark:bg-zinc-800'}`}
                         >
                             <motion.div
-                                animate={{ x: isOnline ? 24 : 4 }}
-                                className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm shadow-black/20"
+                                animate={{ x: isOnline ? 20 : 2 }}
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
                             />
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Wallet & Main Stats Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Wallet Card */}
+            {/* Wallet & Main Stats Row - Compacted */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Wallet Card - Slimmer */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="lg:col-span-2 bg-gradient-to-br from-lime-600 to-lime-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-lime-500/30 relative overflow-hidden"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="lg:col-span-8 bg-zinc-900 dark:bg-zinc-900 rounded-[2rem] p-6 text-white shadow-2xl shadow-black/10 relative overflow-hidden"
                 >
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full -ml-20 -mb-20 blur-2xl"></div>
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-lime-600/10 rounded-full -mr-10 -mt-10 blur-3xl"></div>
 
-                    <div className="relative z-10 flex flex-col h-full justify-between gap-12">
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-6">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-lime-100/80 font-bold uppercase tracking-widest text-[10px] mb-1">Your Wallet Balance</p>
-                                <h2 className="text-5xl font-black mb-1">
-                                    â‚¹{stats?.walletBalance?.toFixed(2) || '0.00'}
-                                </h2>
-                                <div className="flex items-center gap-2 text-lime-100 text-sm font-medium">
-                                    <TrendingUp size={16} />
-                                    <span>Total Lifetime: â‚¹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
+                                <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[9px] mb-1.5 opacity-80">Available Earnings</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-bold text-lime-500">â‚¹</span>
+                                    <h2 className="text-4xl font-black tracking-tight">
+                                        {stats?.walletBalance?.toFixed(2) || '0.00'}
+                                    </h2>
                                 </div>
                             </div>
                             <button
                                 onClick={() => navigate('/delivery/wallet')}
-                                className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-bold hover:bg-white/30 transition-colors"
+                                className="bg-lime-500 text-white px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-lime-600 transition-all shadow-lg shadow-lime-500/20 active:scale-95"
                             >
-                                View Wallet
+                                Withdraw
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
-                                <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Today's Earnings</p>
-                                <h4 className="text-xl font-black">â‚¹{stats?.todayEarnings || '0'}</h4>
+                        <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/5">
+                            <div>
+                                <p className="text-white/40 text-[8px] font-black uppercase mb-1">Total Earned</p>
+                                <p className="font-black text-sm">â‚¹{stats?.totalEarnings?.toFixed(0) || '0'}</p>
                             </div>
-                            <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
-                                <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Active Orders</p>
-                                <h4 className="text-xl font-black">{stats?.activeOrders || '0'}</h4>
+                            <div>
+                                <p className="text-white/40 text-[8px] font-black uppercase mb-1">Today</p>
+                                <p className="font-black text-sm text-lime-500">â‚¹{stats?.todayEarnings || '0'}</p>
+                            </div>
+                            <div>
+                                <p className="text-white/40 text-[8px] font-black uppercase mb-1">Deliveries</p>
+                                <p className="font-black text-sm">{stats?.todayDeliveries || '0'}</p>
                             </div>
                         </div>
                     </div>
                 </motion.div>
 
-                {/* Service Area Status */}
-                <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-slate-100 dark:border-zinc-800 shadow-sm flex flex-col gap-6">
+                {/* Service Area Status - Compacted */}
+                <div className="lg:col-span-4 bg-white dark:bg-white/5 rounded-[2rem] p-6 border border-slate-200/60 dark:border-white/5 shadow-sm flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-lg">Service Area</h4>
-                        <motion.button
-                            animate={loading ? { rotate: 360 } : {}}
-                            transition={loading ? { repeat: Infinity, duration: 2, ease: "linear" } : {}}
-                            onClick={() => {
-                                refreshAll().catch((error) => {
-                                    console.error('Failed to refresh service area:', error);
-                                });
-                            }}
-                            className="p-2 bg-slate-100 dark:bg-zinc-800 rounded-full"
-                        >
-                            <RotateCcw size={16} />
-                        </motion.button>
+                        <h4 className="font-black text-[11px] uppercase tracking-widest text-slate-400">Tactical Area</h4>
+                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-slate-300'}`}></div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-lime-100 dark:bg-lime-500/10 flex items-center justify-center text-lime-600">
-                            <MapPin size={24} />
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-800 dark:text-zinc-100 border border-slate-100 dark:border-white/5">
+                            <MapPin size={18} />
                         </div>
-                        <div>
-                            <p className="text-slate-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-wider">Active Location</p>
-                            <h5 className="font-bold">{locationText}</h5>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4 pt-2">
-                        <div className="flex justify-between text-sm">
-                            <span className="text-slate-500 dark:text-zinc-400 font-medium">Radius Detection</span>
-                            <span className="text-green-500 font-bold">{profile?.serviceArea?.radius || 5}.0 km</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                            <div className="w-[85%] h-full bg-lime-500 rounded-full"></div>
+                        <div className="min-w-0">
+                            <p className="text-[12px] font-bold text-slate-800 dark:text-zinc-100 truncate">{locationText}</p>
+                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{profile?.vehicleNumber || 'Standard Rider'}</p>
                         </div>
                     </div>
 
                     <button
                         onClick={handleUpdateCenter}
                         disabled={locationUpdating}
-                        className="mt-auto w-full py-3 bg-slate-100 dark:bg-zinc-800 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-60"
+                        className="mt-auto w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        <Navigation size={18} />
-                        {locationUpdating ? 'Updating...' : 'Update Center'}
+                        <Navigation size={14} />
+                        {locationUpdating ? 'LOCATING...' : 'UPDATE HQ'}
                     </button>
                 </div>
             </div>
 
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Quick Stats Grid - More Compact icons/text */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard
-                    icon={<Clock size={24} />}
-                    label="Pending Orders"
+                    icon={<Clock size={20} />}
+                    label="Pending"
                     value={stats?.pendingOrders || '0'}
                     color="from-orange-400 to-amber-500"
                     isLoading={loading}
                 />
                 <StatCard
-                    icon={<CheckCircle2 size={24} />}
-                    label="Today Delivered"
+                    icon={<CheckCircle2 size={20} />}
+                    label="Success"
                     value={stats?.todayDeliveries || '0'}
                     color="from-emerald-400 to-teal-500"
                     isLoading={loading}
                 />
                 <StatCard
-                    icon={<XCircle size={24} />}
-                    label="Return Orders"
+                    icon={<XCircle size={20} />}
+                    label="Returns"
                     value="0"
                     color="from-red-400 to-rose-500"
                     isLoading={loading}
                 />
                 <StatCard
-                    icon={<Wallet size={24} />}
-                    label="Today's Earnings"
+                    icon={<TrendingUp size={20} />}
+                    label="Daily P&L"
                     value={`â‚¹${stats?.todayEarnings || '0'}`}
                     color="from-blue-400 to-indigo-500"
                     isLoading={loading}

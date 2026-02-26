@@ -37,32 +37,42 @@ const OrderManagement = () => {
     const displayOrders = activeTab === 'completed' ? history : orders;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-5">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight mb-2">Order Management</h1>
-                    <p className="text-slate-500 font-medium">Manage and track your delivery lifecycle</p>
+                    <h1 className="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">Deliveries</h1>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-0.5">Tactical Logistics Control</p>
                 </div>
-                {loading && <Loader2 className="animate-spin text-lime-500" size={24} />}
+                {loading && (
+                    <div className="bg-lime-50 dark:bg-lime-500/10 p-2 rounded-xl border border-lime-500/10">
+                        <Loader2 className="animate-spin text-lime-500" size={16} />
+                    </div>
+                )}
             </div>
 
-            {/* Sticky Tabs */}
-            <div className="sticky top-16 md:top-0 z-30 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-lg pt-2 pb-4 border-b border-slate-200 dark:border-zinc-800 -mx-4 px-4 md:-mx-8 md:px-8">
-                <div className="flex gap-2 overflow-x-auto no-scrollbar py-2">
+            {/* Sticky Tabs - Compact Pill Style */}
+            <div className="sticky top-14 md:top-0 z-30 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-lg py-2 -mx-4 px-4 md:-mx-8 md:px-8 flex justify-center">
+                <div className="flex bg-white dark:bg-zinc-900 p-1 rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm relative w-full max-w-md">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`
-                                flex items-center gap-2 px-6 py-3 rounded-2xl whitespace-nowrap transition-all duration-300 font-bold text-sm
+                                flex-1 flex items-center justify-center gap-2 py-2 rounded-xl whitespace-nowrap transition-all duration-300 font-black text-[10px] uppercase tracking-wider relative z-10
                                 ${activeTab === tab.id
-                                    ? 'bg-gradient-to-r from-lime-500 to-lime-600 text-white shadow-lg shadow-lime-500/20'
-                                    : 'bg-white dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 border border-slate-100 dark:border-zinc-800'}
+                                    ? 'text-white'
+                                    : 'text-slate-400 dark:text-zinc-500 hover:text-slate-600'}
                             `}
                         >
+                            {activeTab === tab.id && (
+                                <motion.div
+                                    layoutId="activeTabBg"
+                                    className="absolute inset-0 bg-slate-900 dark:bg-white rounded-xl shadow-lg -z-10"
+                                />
+                            )}
                             {tab.label}
                             {tab.count !== '?' && (
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500'}`}>
+                                <span className={`px-1.5 py-0.5 rounded-full text-[8px] ${activeTab === tab.id ? 'bg-white/20' : 'bg-slate-100 dark:bg-zinc-800'}`}>
                                     {tab.count}
                                 </span>
                             )}
@@ -71,79 +81,75 @@ const OrderManagement = () => {
                 </div>
             </div>
 
-            {/* List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* List - Higher Density */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <AnimatePresence mode="popLayout">
                     {displayOrders.length > 0 ? displayOrders.map((delivery, index) => (
                         <motion.div
                             layout
                             key={delivery._id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ delay: index * 0.05 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.03 }}
                             onClick={() => navigate(`/delivery/tracking/${delivery._id}`)}
-                            className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-slate-100 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group cursor-pointer relative"
+                            className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer"
                         >
-                            {/* Card Header */}
-                            <div className="p-6 pb-4 flex justify-between items-start">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-zinc-800 flex items-center justify-center text-lime-600">
-                                        <Package size={24} />
+                            {/* Card Header - Condensed */}
+                            <div className="p-4 flex justify-between items-center border-b border-slate-50 dark:border-zinc-800/40">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 flex items-center justify-center text-slate-800 dark:text-zinc-100 border border-slate-100 dark:border-zinc-800">
+                                        <Package size={18} />
                                     </div>
                                     <div>
-                                        <h4 className="font-black text-lg">#{delivery.order?.orderId || 'N/A'}</h4>
-                                        <p className="text-xs text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
+                                        <h4 className="font-black text-sm tracking-tight">#{delivery.order?.orderId || 'N/A'}</h4>
+                                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-0.5">
                                             {new Date(delivery.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <h5 className="font-black text-xl text-slate-900 dark:text-white">â‚¹{delivery.order?.totalAmount || '0'}</h5>
-                                    <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">{delivery.deliveryFee || 40} fee</p>
+                                    <h5 className="font-black text-base text-lime-600">â‚¹{delivery.deliveryFee || 40}</h5>
+                                    <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-none">Net Fare</p>
                                 </div>
                             </div>
 
-                            {/* Info Section */}
-                            <div className="px-6 py-4 space-y-4">
-                                <div className="flex gap-3">
-                                    <div className="mt-1 p-2 bg-lime-50 dark:bg-lime-500/5 text-lime-600 rounded-lg">
-                                        <MapPin size={16} />
+                            {/* Tactical Route Map-like Info */}
+                            <div className="p-4 space-y-4">
+                                <div className="relative pl-6 space-y-4">
+                                    {/* Vertical Route Indicator */}
+                                    <div className="absolute left-[7px] top-[6px] bottom-[6px] w-[2px] bg-slate-100 dark:bg-zinc-800">
+                                        <div className="absolute top-0 -left-[3px] w-2 h-2 rounded-full border-2 border-white dark:border-zinc-900 bg-lime-500"></div>
+                                        <div className="absolute bottom-0 -left-[3px] w-2 h-2 rounded-full border-2 border-white dark:border-zinc-900 bg-slate-300"></div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Delivery Address</p>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 line-clamp-2">
-                                            {delivery.order?.shippingAddress?.street}, {delivery.order?.shippingAddress?.city}
-                                        </p>
-                                    </div>
-                                </div>
 
-                                <div className="flex gap-3">
-                                    <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-500/5 text-blue-600 rounded-lg">
-                                        <Package size={16} />
-                                    </div>
                                     <div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Status</p>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase">{delivery.status}</p>
+                                        <p className="text-[11px] font-bold text-slate-800 dark:text-zinc-100 leading-tight">Sathi Store HQ</p>
+                                        <p className="text-[9px] text-slate-400 font-medium">Pickup Point â€¢ Indore</p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[11px] font-bold text-slate-800 dark:text-zinc-100 leading-tight truncate">
+                                            {delivery.order?.shippingAddress?.street}
+                                        </p>
+                                        <p className="text-[9px] text-slate-400 font-medium">{delivery.order?.shippingAddress?.city}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Actions */}
-                            <div className="p-6 pt-2">
-                                <button className="w-full py-4 rounded-2xl bg-gradient-to-r from-lime-500 to-lime-600 text-white font-black text-sm tracking-tight shadow-lg shadow-lime-500/20 active:scale-[0.98] transition-all uppercase flex items-center justify-center gap-2">
-                                    <Navigation size={18} />
-                                    View on Map
-                                </button>
+                            {/* Footer Status */}
+                            <div className="px-4 py-3 bg-slate-50 dark:bg-white/5 flex items-center justify-between group-hover:bg-lime-500 transition-colors">
+                                <span className={`text-[9px] font-black uppercase tracking-widest group-hover:text-white ${delivery.status === 'completed' ? 'text-emerald-500' : 'text-orange-500'}`}>
+                                    {delivery.status}
+                                </span>
+                                <ArrowUpRight size={14} className="text-slate-300 group-hover:text-white" />
                             </div>
-
-                            <div className="absolute inset-0 bg-lime-600 opacity-0 group-hover:opacity-[0.02] transition-opacity pointer-events-none"></div>
                         </motion.div>
                     )) : (
-                        <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-300 opacity-50">
-                            <Package size={64} className="mb-4" />
-                            <p className="text-xl font-bold">No orders found</p>
-                            <p className="text-sm">Try changing the tab or online status</p>
+                        <div className="col-span-full py-16 flex flex-col items-center justify-center text-slate-300 opacity-50">
+                            <div className="p-4 bg-slate-50 dark:bg-zinc-800 rounded-full mb-4">
+                                <Package size={40} className="text-slate-200" />
+                            </div>
+                            <p className="text-sm font-black uppercase tracking-widest">No Active Missions</p>
                         </div>
                     )}
                 </AnimatePresence>

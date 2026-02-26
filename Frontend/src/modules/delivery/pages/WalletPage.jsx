@@ -1,7 +1,7 @@
 ﻿import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Wallet as WalletIcon,
+    Wallet,
     ArrowUpRight,
     ArrowDownLeft,
     TrendingUp,
@@ -9,14 +9,17 @@ import {
     DollarSign,
     ChevronRight,
     Search,
-    Loader2
+    Loader2,
+    HelpCircle,
+    Check,
+    History
 } from 'lucide-react';
 import { useAuth } from '../../user/context/AuthContext';
 import useDelivery from '../hooks/useDelivery';
 
 const WalletPage = () => {
     const { token } = useAuth();
-    const { wallet, transactions, loading } = useDelivery(token);
+    const { stats, wallet, transactions, loading } = useDelivery(token);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
@@ -26,118 +29,162 @@ const WalletPage = () => {
     };
 
     return (
-        <div className="space-y-8 pb-10">
+        <div className="space-y-6 pb-20">
+            {/* Header - Compact */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight mb-2">My Wallet</h1>
-                    <p className="text-slate-500 font-medium">Manage your earnings and payouts</p>
+                    <h1 className="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">Wallet</h1>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-0.5">Fleet Financial Control</p>
                 </div>
-                {loading && <Loader2 className="animate-spin text-lime-500" size={24} />}
+                <div className="flex items-center gap-2">
+                    <button className="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800/60 shadow-sm active:scale-95 transition-all">
+                        <HelpCircle size={18} className="text-slate-400" />
+                    </button>
+                </div>
             </div>
 
-            {/* Wallet Header Card */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="relative bg-zinc-900 rounded-[3rem] p-10 text-white overflow-hidden shadow-2xl shadow-black/30"
-                >
-                    <div className="absolute top-0 right-0 w-80 h-80 bg-lime-600/20 rounded-full blur-[80px] -mr-20 -mt-20"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[60px] -ml-20 -mb-20"></div>
+            {/* Virtual Wallet Card - Slim & Premium */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-zinc-900 rounded-[2.5rem] p-7 text-white shadow-2xl shadow-black/20 relative overflow-hidden group"
+            >
+                {/* Abstract Glass decoration */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-lime-600/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-lime-600/20 transition-colors duration-700"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-sky-500/5 rounded-full -ml-16 -mb-16 blur-2xl"></div>
 
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-12">
-                            <div>
-                                <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-2">Available Balance</p>
-                                <h2 className="text-6xl font-black tracking-tighter">
-                                    {wallet?.balance?.toFixed(0) || '0'}
-                                    <span className="text-2xl text-slate-500">.{(wallet?.balance % 1).toFixed(2).substring(2) || '00'}</span>
+                <div className="relative z-10 space-y-8">
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-lime-500/20 flex items-center justify-center backdrop-blur-md border border-lime-500/20">
+                                <Wallet size={18} className="text-lime-500" />
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Tactical Pay</span>
+                        </div>
+                        <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+                            alt="visa"
+                            className="h-3 opacity-30 invert"
+                        />
+                    </div>
+
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1.5 opacity-80">Available Liquidity</p>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-2xl font-bold text-lime-500 tracking-tight">₹</span>
+                                <h2 className="text-5xl font-black tracking-tighter">
+                                    {stats?.walletBalance?.toFixed(2) || '0.00'}
                                 </h2>
                             </div>
-                            <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/10 text-lime-500">
-                                <WalletIcon size={28} />
+                        </div>
+                        <button className="bg-lime-500 text-white px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-lime-600 transition-all shadow-xl shadow-lime-500/20 active:scale-95 group/btn overflow-hidden relative">
+                            <span className="relative z-10 flex items-center gap-2">
+                                <CreditCard size={14} />
+                                Instant Payout
+                            </span>
+                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform"></div>
+                        </button>
+                    </div>
+
+                    <div className="pt-6 border-t border-white/5 flex justify-between items-center">
+                        <div className="flex gap-8">
+                            <div>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Lifetime</p>
+                                <p className="text-xs font-bold text-white tracking-widest">₹{stats?.totalEarnings?.toFixed(0) || '0'}</p>
+                            </div>
+                            <div>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Rider ID</p>
+                                <p className="text-xs font-bold text-white tracking-widest">SG-R23</p>
                             </div>
                         </div>
-
-                        <div className="flex gap-4">
-                            <button className="flex-1 py-4 bg-gradient-to-r from-lime-500 to-lime-600 rounded-2xl font-black text-sm tracking-widest uppercase shadow-lg shadow-lime-500/20 active:scale-95 transition-all">
-                                Request Payout
-                            </button>
-                            <button className="flex-1 py-4 bg-white/10 backdrop-blur-md rounded-2xl font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all border border-white/10">
-                                Add Details
-                            </button>
+                        <div className="w-10 h-10 border border-white/5 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                            <ArrowUpRight size={18} className="text-slate-500" />
                         </div>
                     </div>
-                </motion.div>
+                </div>
+            </motion.div>
 
-                {/* Secondary Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-zinc-800 shadow-sm">
-                        <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mb-6">
-                            <TrendingUp size={24} />
-                        </div>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Total Earned</p>
-                        <h4 className="text-3xl font-black">{formatCurrency(wallet?.totalEarnings)}</h4>
-                        <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase text-emerald-500 bg-emerald-50 dark:bg-emerald-500/5 px-3 py-1 rounded-full w-fit">
-                            <ArrowUpRight size={12} />
-                            Lifetime Earnings
-                        </div>
+            {/* Quick Stats Grid - High Density */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1.5">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Today P&L</p>
+                    <h4 className="text-lg font-black text-slate-800 dark:text-zinc-100">₹{stats?.todayEarnings || '0'}</h4>
+                    <div className="flex items-center gap-1 text-[8px] font-bold text-emerald-500 mt-1">
+                        <TrendingUp size={10} />
+                        <span>+12.5%</span>
                     </div>
-
-                    <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-zinc-800 shadow-sm">
-                        <div className="w-12 h-12 bg-lime-50 dark:bg-lime-500/10 text-lime-500 rounded-2xl flex items-center justify-center mb-6">
-                            <CreditCard size={24} />
-                        </div>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Pending Payouts</p>
-                        <h4 className="text-3xl font-black">{formatCurrency(wallet?.pendingPayout)}</h4>
-                        <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-zinc-800 px-3 py-1 rounded-full w-fit">
-                            Processing
-                        </div>
+                </div>
+                <div className="bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1.5">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Duty Missions</p>
+                    <h4 className="text-lg font-black text-slate-800 dark:text-zinc-100">{stats?.todayDeliveries || '0'}</h4>
+                    <p className="text-[8px] font-bold text-slate-400 mt-1">SUCCESSFUL</p>
+                </div>
+                <div className="bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1.5">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Total Ops</p>
+                    <h4 className="text-lg font-black text-slate-800 dark:text-zinc-100">128</h4>
+                    <p className="text-[8px] font-bold text-slate-400 mt-1">CUMULATIVE</p>
+                </div>
+                <div className="bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1.5">
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Uptime</p>
+                    <h4 className="text-lg font-black text-slate-800 dark:text-zinc-100">98.2%</h4>
+                    <div className="flex items-center gap-1 text-[8px] font-bold text-emerald-500 mt-1">
+                        <Check size={10} />
+                        <span>ELITE RATING</span>
                     </div>
                 </div>
             </div>
 
-            {/* Transactions Section */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[3rem] border border-slate-100 dark:border-zinc-800 p-8">
-                <div className="flex items-center justify-between mb-8">
-                    <h4 className="text-xl font-black tracking-tight">Recent Transactions</h4>
-                    <div className="p-2 bg-slate-50 dark:bg-zinc-800 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-                        <Search size={20} className="text-slate-400" />
-                    </div>
+            {/* Transactions Section - Tighter List */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between px-1">
+                    <h3 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 italic">Financial Flow</h3>
+                    <button className="text-[10px] font-black text-lime-600 uppercase tracking-widest hover:underline transition-all">Export Report</button>
                 </div>
 
-                <div className="space-y-2">
-                    {transactions.length > 0 ? transactions.map((tx) => (
-                        <div key={tx._id} className="flex items-center gap-4 p-5 rounded-[2rem] hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${tx.type === 'credit' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600' : 'bg-red-50 dark:bg-red-500/10 text-red-600'}`}>
-                                {tx.type === 'credit' ? <ArrowDownLeft size={24} /> : <ArrowUpRight size={24} />}
-                            </div>
-                            <div className="flex-1">
-                                <h5 className="font-bold text-slate-900 dark:text-white uppercase text-sm mb-1">{tx.category.replace('_', ' ')}</h5>
-                                <p className="text-xs text-slate-500 font-medium">
-                                    {new Date(tx.createdAt).toLocaleDateString()} â€¢ {new Date(tx.createdAt).toLocaleTimeString()}
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <h5 className={`font-black text-lg ${tx.type === 'credit' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
-                                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
-                                </h5>
-                                <p className={`text-[10px] font-bold uppercase tracking-widest ${tx.status === 'completed' ? 'text-emerald-400' : 'text-orange-400'}`}>
-                                    {tx.status}
-                                </p>
-                            </div>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity pl-2">
-                                <ChevronRight size={18} className="text-slate-300" />
-                            </div>
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] border border-slate-200/60 dark:border-zinc-800/60 shadow-sm overflow-hidden">
+                    {transactions.length > 0 ? (
+                        <div className="divide-y divide-slate-50 dark:divide-zinc-800/40">
+                            {transactions.map((t, idx) => (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    key={t._id}
+                                    className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-all group"
+                                >
+                                    <div className="flex items-center gap-3.5">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-300 group-hover:scale-110 ${t.type === 'credit'
+                                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border-emerald-100 dark:border-emerald-500/10'
+                                            : 'bg-red-50 dark:bg-red-500/10 text-red-600 border-red-100 dark:border-red-500/10'
+                                            }`}>
+                                            {t.type === 'credit' ? <ArrowUpRight size={18} /> : <CreditCard size={18} />}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-sm text-slate-800 dark:text-zinc-100 leading-tight truncate">{t.description}</p>
+                                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+                                                {new Date(t.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className={`font-black text-base ${t.type === 'credit' ? 'text-emerald-500' : 'text-slate-800 dark:text-white'}`}>
+                                            {t.type === 'credit' ? '+' : '-'}₹{t.amount}
+                                        </p>
+                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-tight">Confirmed</p>
+                                    </div>
+                                </motion.div>
+                            ))}
                         </div>
-                    )) : (
-                        <div className="py-20 flex flex-col items-center justify-center text-slate-300 opacity-50">
-                            <WalletIcon size={64} className="mb-4" />
-                            <p className="text-xl font-bold">No transactions yet</p>
+                    ) : (
+                        <div className="py-16 text-center">
+                            <div className="w-16 h-16 bg-slate-50 dark:bg-zinc-800 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-zinc-700">
+                                <History size={32} className="text-slate-200" />
+                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Transaction log empty</p>
                         </div>
                     )}
                 </div>
-
                 {transactions.length > 0 && (
                     <button className="w-full mt-6 py-4 border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl text-slate-400 font-bold text-sm tracking-widest uppercase hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all">
                         Load More Transactions

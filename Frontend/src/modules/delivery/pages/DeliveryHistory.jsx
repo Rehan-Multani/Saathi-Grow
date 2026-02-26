@@ -81,8 +81,8 @@ const DeliveryHistory = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${order.status === 'Delivered'
-                                                ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
-                                                : 'bg-red-50 dark:bg-red-500/10 text-red-600'
+                                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
+                                            : 'bg-red-50 dark:bg-red-500/10 text-red-600'
                                             }`}>
                                             {order.status === 'Delivered' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                                             {order.status}
