@@ -36,7 +36,9 @@ const allowedOrigins = [
 
 const isAllowed = (origin) => {
   if (!origin || origin === 'null') return true;
-  if (allowedOrigins.includes(origin)) return true;
+
+  const sanitizedOrigin = origin.trim().replace(/\/$/, '');
+  if (allowedOrigins.includes(sanitizedOrigin)) return true;
 
   try {
     const url = new URL(origin);
