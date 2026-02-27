@@ -22,17 +22,46 @@ connectDB();
 const app = express();
 const httpServer = createServer(app);
 
+// CORS configuration based on environment
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://saathi-grow-frontend.vercel.app',
+  'https://saathi-grow.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 // Socket.io initialization for real-time tracking
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 // Middleware
-app.use(helmet()); // Security headers
-app.use(cors({ origin: "*", credentials: true }));
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Allow cross-origin resources (images etc)
+}));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Body parser
 app.use(express.urlencoded({ extended: true }));
