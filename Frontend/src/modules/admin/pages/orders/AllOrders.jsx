@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Eye, Filter, Download, Store, Upload, Clock } from 'lucide-react';
 import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
-import { getAllOrdersAdmin } from '../../api/orderApi';
+import { getAllOrdersAdmin, deleteOrder, updateOrderStatus } from '../../api/orderApi';
 import { Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
 const OrderStatusBadge = ({ status }) => {
     const variants = {
@@ -68,6 +69,56 @@ const AllOrders = () => {
     const handleShowDetails = (order) => {
         setSelectedOrder(order);
         setShowModal(true);
+    };
+
+    const handleDeleteOrder = async (orderId) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this! All associated transactions will remain but order object will be wiped.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await deleteOrder(orderId);
+                toast.success('Order deleted successfully');
+                fetchOrders();
+            } catch (error) {
+                toast.error(error.response?.data?.message || 'Failed to delete order');
+            }
+        }
+    };
+
+    const handleUpdateStatus = async (orderId, currentStatus) => {
+        const { value: status } = await Swal.fire({
+            title: 'Update Order Status',
+            input: 'select',
+            inputOptions: {
+                pending: 'Pending',
+                preparing: 'Preparing',
+                confirmed: 'Confirmed',
+                out_for_delivery: 'Out for Delivery',
+                delivered: 'Delivered',
+                cancelled: 'Cancelled'
+            },
+            inputPlaceholder: 'Select a status',
+            showCancelButton: true,
+            inputValue: currentStatus
+        });
+
+        if (status) {
+            try {
+                await updateOrderStatus(orderId, status);
+                toast.success('Status updated successfully');
+                fetchOrders();
+            } catch (error) {
+                toast.error(error.response?.data?.message || 'Failed to update status');
+            }
+        }
     };
 
     return (
@@ -179,12 +230,29 @@ const AllOrders = () => {
                                     <td className="px-6 py-4"><OrderStatusBadge status={order.status} /></td>
                                     <td className="px-6 py-4 text-right font-bold text-gray-800">₹{order.totalAmount}</td>
                                     <td className="px-6 py-4 text-center">
-                                        <button
-                                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                                            onClick={() => handleShowDetails(order)}
-                                        >
-                                            <Eye size={18} />
-                                        </button>
+                                        <div className="flex justify-center items-center gap-3">
+                                            <button
+                                                className="p-1 text-blue-500 hover:text-blue-700 transition-colors"
+                                                onClick={() => handleUpdateStatus(order._id, order.status)}
+                                                title="Change Status"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                            </button>
+                                            <button
+                                                className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                                onClick={() => handleShowDetails(order)}
+                                                title="View Details"
+                                            >
+                                                <Eye size={18} />
+                                            </button>
+                                            <button
+                                                className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                                                onClick={() => handleDeleteOrder(order._id)}
+                                                title="Delete Order"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

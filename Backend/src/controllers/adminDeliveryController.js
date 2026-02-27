@@ -149,16 +149,16 @@ export const getUnassignedOrders = async (req, res) => {
   }
 };
 
-// @desc    Get all 'Online' and 'Free' delivery partners
+// @desc    Get all available delivery partners
 // @route   GET /api/admin/delivery-partners/available
 // @access  Private (Admin)
 export const getAvailablePartners = async (req, res) => {
   try {
     const partners = await DeliveryPartner.find({
       authStatus: 'Active',
-      dutyStatus: 'Online',
+      // Allowing admin to assign orders to riders even if they haven't explicitly started their 'Online' shift
       assignmentStatus: 'Free'
-    }).select('-password').sort({ 'location.updatedAt': -1 });
+    }).select('-password').sort({ 'createdAt': -1 });
 
     res.json(partners);
   } catch (error) {
@@ -177,7 +177,6 @@ const performAssignment = async (orderId, partnerId, session) => {
   const partner = await DeliveryPartner.findById(partnerId).session(session);
   if (!partner) throw new Error('Delivery Partner not found');
   if (partner.authStatus !== 'Active') throw new Error('Partner is suspended or unverified');
-  if (partner.dutyStatus !== 'Online') throw new Error('Partner went offline.');
   if (partner.assignmentStatus !== 'Free') throw new Error('Partner is currently running an active order');
 
   // 2. Generate Delivery Validation PIN (OTP)
@@ -272,7 +271,6 @@ export const autoAssignOrder = async (req, res) => {
     // Find the nearest available partner within 10km (10000 meters)
     const nearestPartner = await DeliveryPartner.findOne({
       authStatus: 'Active',
-      dutyStatus: 'Online',
       assignmentStatus: 'Free',
       currentLocation: {
         $near: {

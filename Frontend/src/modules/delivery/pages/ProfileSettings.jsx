@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     User,
@@ -21,10 +22,12 @@ const ProfileSettings = () => {
     const { profile, logout, token, fetchProfile } = useDeliveryStore();
     const [notifications, setNotifications] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const navigate = useNavigate();
 
     const handleLogout = () => {
         logout();
         toast.info('Logged out successfully');
+        navigate('/delivery/login');
     };
 
     const handleImageUpload = async (e) => {
@@ -62,18 +65,19 @@ const ProfileSettings = () => {
                 <div className="relative">
                     <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-lime-500 to-lime-600 p-1 shadow-2xl shadow-lime-500/30">
                         <img
-                            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                            src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
                             className="w-full h-full rounded-[2.3rem] object-cover bg-white"
                             alt="avatar"
                         />
                     </div>
-                    <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl flex items-center justify-center text-lime-600 border border-slate-100 dark:border-zinc-700 hover:scale-110 transition-transform">
+                    <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl flex items-center justify-center text-lime-600 border border-slate-100 dark:border-zinc-700 hover:scale-110 transition-transform cursor-pointer">
                         <Camera size={20} />
-                    </button>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
+                    </label>
                 </div>
                 <div>
-                    <h2 className="text-3xl font-black tracking-tight">Rahul Kumar</h2>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-1">Professional Partner â€¢ Indore</p>
+                    <h2 className="text-3xl font-black tracking-tight">{profile?.name || 'Partner'}</h2>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-1">Professional Partner • Indore</p>
                 </div>
 
                 <div className="flex gap-4">
@@ -116,7 +120,7 @@ const ProfileSettings = () => {
                 ))}
 
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
-                    <button className="flex items-center gap-4 w-full p-5 rounded-[2rem] hover:bg-red-50 dark:hover:bg-red-500/5 transition-all text-red-500 group">
+                    <button onClick={handleLogout} className="flex items-center gap-4 w-full p-5 rounded-[2rem] hover:bg-red-50 dark:hover:bg-red-500/5 transition-all text-red-500 group">
                         <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
                             <LogOut size={20} />
                         </div>

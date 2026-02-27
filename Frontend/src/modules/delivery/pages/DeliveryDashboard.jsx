@@ -86,6 +86,8 @@ const DeliveryDashboard = () => {
         refreshAll
     } = useDelivery();
 
+    const user = profile;
+
     const [incomingOrder, setIncomingOrder] = useState(null);
     const [acceptedOrder, setAcceptedOrder] = useState(null);
     const [mapStatus, setMapStatus] = useState('assigned'); // assigned -> picked -> delivered
@@ -116,7 +118,8 @@ const DeliveryDashboard = () => {
 
 
     const isOnline = profile?.dutyStatus === 'Online';
-    useLocationTracking(token, isOnline);
+    const activeOrderId = acceptedOrder?.order?._id || acceptedOrder?._id || null;
+    useLocationTracking(token, isOnline, activeOrderId);
     const coordinates = profile?.currentLocation?.coordinates;
     const locationText = Array.isArray(coordinates) && coordinates.length === 2
         ? `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`
@@ -385,7 +388,7 @@ const DeliveryDashboard = () => {
                     </div>
 
                     <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height={250}>
                             <AreaChart data={chartData}>
                                 <defs>
                                     <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">

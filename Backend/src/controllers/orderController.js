@@ -341,3 +341,27 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Delete Order entirely
+// @route   DELETE /api/admin/orders/:id
+// @access  Private (Admin only)
+export const deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Branch Security - Only Root Admin or same branch staff allowed
+    if (req.admin.role !== 'Admin' && order.branchId?.toString() !== req.admin.branchId?.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete orders from other branches' });
+    }
+
+    await Order.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Order deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

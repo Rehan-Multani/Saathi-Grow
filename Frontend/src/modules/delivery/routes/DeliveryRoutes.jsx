@@ -25,11 +25,12 @@ const DeliveryGuard = ({ children }) => {
 };
 
 const DeliveryRoutes = () => {
+    const { token } = useDeliveryStore();
     return (
         <NotificationProvider>
             <Suspense fallback={<Loading />}>
                 <Routes>
-                    <Route path="/login" element={<Login />} />
+                    <Route path="/login" element={token ? <Navigate to="/delivery/dashboard" replace /> : <Login />} />
 
                     <Route path="/*" element={
                         <DeliveryGuard>
@@ -42,7 +43,7 @@ const DeliveryRoutes = () => {
                                     <Route path="/history" element={<History />} />
                                     <Route path="/profile" element={<Profile />} />
                                     <Route path="/tracking/:id" element={<Tracking />} />
-                                    <Route path="/tracking" element={<Tracking />} />
+                                    <Route path="*" element={<Navigate to="dashboard" replace />} />
                                 </Routes>
                             </DeliveryLayout>
                         </DeliveryGuard>

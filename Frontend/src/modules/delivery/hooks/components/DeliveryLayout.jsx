@@ -101,7 +101,7 @@ const DeliveryLayout = ({ children }) => {
                         )}
                     </button>
                     <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border border-slate-200 dark:border-zinc-700">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" />
+                        <img src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover" alt="avatar" />
                     </div>
                 </div>
             </header>
@@ -198,21 +198,27 @@ const DeliveryLayout = ({ children }) => {
                     <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-2xl p-4 mb-4">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-10 h-10 rounded-full border-2 border-lime-500 p-0.5">
-                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className="w-full h-full rounded-full" alt="profile" />
+                                <img src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full rounded-full object-cover" alt="profile" />
                             </div>
-                            <div>
-                                <h4 className="font-bold text-sm">Rahul Kumar</h4>
-                                <p className="text-xs text-slate-500 dark:text-zinc-400">Rider #SG-R23</p>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm truncate">{profile?.name || 'Rider'}</h4>
+                                <p className="text-xs text-slate-500 dark:text-zinc-400 truncate">#{profile?.uniqueId || 'N/A'}</p>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 bg-green-100 dark:bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                                Online
+                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${profile?.dutyStatus === 'Online' ? 'bg-green-100 dark:bg-green-500/10 text-green-600' : 'bg-slate-100 dark:bg-slate-500/10 text-slate-500'}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${profile?.dutyStatus === 'Online' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                {profile?.dutyStatus || 'Offline'}
                             </div>
                         </div>
                     </div>
-                    <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-colors">
+                    <button
+                        onClick={() => {
+                            logout();
+                            navigate('/delivery/login');
+                        }}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-colors"
+                    >
                         <LogOut size={20} />
                         <span className="font-medium">Logout</span>
                     </button>

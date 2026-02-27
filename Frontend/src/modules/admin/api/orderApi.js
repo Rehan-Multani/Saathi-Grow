@@ -45,3 +45,13 @@ export const getOrderDetails = async (id) => {
   });
   return data;
 };
+
+export const deleteOrder = async (id) => {
+  const auth = getAuthDetails();
+  if (!auth) return null;
+
+  const { data } = await axios.delete(`${API_URL}/admin/${id}`, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};

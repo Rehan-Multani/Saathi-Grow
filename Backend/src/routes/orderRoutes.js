@@ -7,7 +7,8 @@ import {
   getMyOrders,
   getOrderById,
   getAllOrdersAdmin,
-  updateOrderStatus
+  updateOrderStatus,
+  deleteOrder
 } from '../controllers/orderController.js';
 import { protect, protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 
@@ -25,5 +26,6 @@ router.post('/calculate-bill', protect, calculateBill);
 // --- Admin/Staff Order Routes ---
 router.get('/admin/list', protectAdmin, requirePermission('VIEW_ORDERS'), getAllOrdersAdmin);
 router.put('/admin/:id/status', protectAdmin, requirePermission('MANAGE_ORDERS'), updateOrderStatus);
+router.delete('/admin/:id', protectAdmin, requirePermission('MANAGE_ORDERS'), deleteOrder);
 
 export default router;

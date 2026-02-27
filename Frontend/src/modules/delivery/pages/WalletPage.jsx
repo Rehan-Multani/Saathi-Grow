@@ -18,9 +18,8 @@ import useDelivery from '../hooks/useDelivery';
 import useDeliveryStore from '../store/deliveryStore';
 
 const WalletPage = () => {
-    const { token } = useAuth();
-    const { wallet, transactions, loading } = useDelivery(token);
-
+    const { token } = useDeliveryStore();
+    const { wallet, transactions, stats, loading, profile } = useDelivery();
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
@@ -95,7 +94,7 @@ const WalletPage = () => {
                             </div>
                             <div>
                                 <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Rider ID</p>
-                                <p className="text-xs font-bold text-white tracking-widest">SG-R23</p>
+                                <p className="text-xs font-bold text-white tracking-widest">{profile?.uniqueId || 'N/A'}</p>
                             </div>
                         </div>
                         <div className="w-10 h-10 border border-white/5 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -150,11 +149,10 @@ const WalletPage = () => {
                                 className="flex items-center gap-4 p-5 rounded-[2rem] hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group"
                             >
                                 <div
-                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-                                        tx.type === 'credit'
-                                            ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
-                                            : 'bg-red-50 dark:bg-red-500/10 text-red-600'
-                                    }`}
+                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center ${tx.type === 'credit'
+                                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
+                                        : 'bg-red-50 dark:bg-red-500/10 text-red-600'
+                                        }`}
                                 >
                                     {tx.type === 'credit' ? <ArrowDownLeft size={24} /> : <ArrowUpRight size={24} />}
                                 </div>
@@ -169,19 +167,17 @@ const WalletPage = () => {
                                 </div>
                                 <div className="text-right">
                                     <h5
-                                        className={`font-black text-lg ${
-                                            tx.type === 'credit'
-                                                ? 'text-emerald-500'
-                                                : 'text-slate-900 dark:text-white'
-                                        }`}
+                                        className={`font-black text-lg ${tx.type === 'credit'
+                                            ? 'text-emerald-500'
+                                            : 'text-slate-900 dark:text-white'
+                                            }`}
                                     >
                                         {tx.type === 'credit' ? '+' : '-'}
                                         {tx.amount}
                                     </h5>
                                     <p
-                                        className={`text-[10px] font-bold uppercase tracking-widest ${
-                                            tx.status === 'completed' ? 'text-emerald-400' : 'text-orange-400'
-                                        }`}
+                                        className={`text-[10px] font-bold uppercase tracking-widest ${tx.status === 'completed' ? 'text-emerald-400' : 'text-orange-400'
+                                            }`}
                                     >
                                         {tx.status}
                                     </p>

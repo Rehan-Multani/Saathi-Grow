@@ -1,4 +1,5 @@
 import Category from '../models/Category.js';
+import Product from '../models/Product.js';
 
 // @desc    Create new category
 // @route   POST /api/admin/categories
@@ -38,7 +39,20 @@ export const createCategory = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find({}).sort('-createdAt');
+    const { hasProducts } = req.query;
+    let categories = await Category.find({}).sort('-createdAt');
+
+    if (hasProducts === 'true') {
+      // Find distinct category names that have active products
+      const activeCategoryNames = await Product.distinct('category', { status: 'Active' });
+      const activeCategoryNamesLower = activeCategoryNames.map(name => name.toLowerCase());
+
+      // Filter categories to only include those in the active distinct list
+      categories = categories.filter(category =>
+        activeCategoryNamesLower.includes(category.name.toLowerCase())
+      );
+    }
+
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });

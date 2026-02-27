@@ -120,9 +120,9 @@ const StaffManagement = () => {
     setShowModal(true);
   };
 
-  const filteredStaff = staff.filter(s =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStaff = (Array.isArray(staff) ? staff : []).filter(s =>
+    (s?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

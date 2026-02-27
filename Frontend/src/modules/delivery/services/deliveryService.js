@@ -51,3 +51,8 @@ export const simulateOrder = async (token) => {
     const { data } = await axios.post(`${API_URL}/delivery/simulate-order`, {}, getAuthHeaders(token));
     return data;
 };
+
+export const getRouteDirections = async (token, origin, destination) => {
+    const { data } = await axios.get(`${API_URL}/delivery/route?origin=${origin[0]},${origin[1]}&destination=${destination[0]},${destination[1]}`, getAuthHeaders(token));
+    return data;
+};

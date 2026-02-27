@@ -322,9 +322,13 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                             onChange={(e) => setSelectedPartner(e.target.value)}
                                         >
                                             <option value="">Select Rider</option>
-                                            {availablePartners.map(p => (
-                                                <option key={p._id} value={p._id}>{p.name} ({p.vehicleType})</option>
-                                            ))}
+                                            {availablePartners.length > 0 ? (
+                                                availablePartners.map(p => (
+                                                    <option key={p._id} value={p._id}>{p.name} ({p.vehicleType})</option>
+                                                ))
+                                            ) : (
+                                                <option disabled value="">No Available Riders</option>
+                                            )}
                                         </select>
                                         <button
                                             disabled={assigning || !selectedPartner}

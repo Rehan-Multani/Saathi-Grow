@@ -92,6 +92,16 @@ const OrderDetailsPage = () => {
                     </div>
                 </div>
 
+                {['out_for_delivery', 'picked_up'].includes(order.status) && (
+                    <button
+                        onClick={() => navigate(`/orders/${order.id}/tracking`)}
+                        className="w-full bg-[#0c831f] text-white mb-6 py-4 rounded-xl flex items-center justify-center gap-2 font-black !text-[12px] uppercase tracking-widest shadow-lg shadow-green-500/20 active:scale-95 transition-all"
+                    >
+                        <Navigation size={18} />
+                        Track Live Delivery
+                    </button>
+                )}
+
                 <div className="space-y-8 animate-in fade-in duration-500 md:grid md:grid-cols-2 md:gap-8">
                     {/* Order Items */}
                     <div className="bg-transparent md:bg-white md:dark:bg-[#141414] md:border border-gray-100 dark:border-white/5 md:rounded-2xl p-0 md:p-4">

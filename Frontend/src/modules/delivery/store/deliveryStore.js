@@ -116,15 +116,19 @@ const useDeliveryStore = create((set, get) => ({
     },
 
     // ─────────────────────────── LOCATION ───────────────────────────
+    setLocalLocation: (longitude, latitude) => {
+        set((state) => ({
+            profile: {
+                ...state.profile,
+                currentLocation: { type: 'Point', coordinates: [longitude, latitude] }
+            }
+        }));
+    },
+
     updateLocation: async (token, longitude, latitude) => {
         try {
             await updatePartnerLocation(token, longitude, latitude);
-            set((state) => ({
-                profile: {
-                    ...state.profile,
-                    currentLocation: { type: 'Point', coordinates: [longitude, latitude] }
-                }
-            }));
+            get().setLocalLocation(longitude, latitude);
         } catch (error) {
             console.error('Failed to update location:', error);
         }

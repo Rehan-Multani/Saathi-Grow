@@ -1,5 +1,6 @@
 import DeliveryPartner from '../models/DeliveryPartner.js';
 import OrderDelivery from '../models/OrderDelivery.js';
+import axios from 'axios';
 import Order from '../models/Order.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
@@ -139,9 +140,26 @@ export const updateDeliveryStatus = async (req, res) => {
 
         const partner = req.partner;
 
+        // Firebase RTDB DB Instance
+        const { db } = await import('../config/firebase.js');
+
         if (status === 'assigned') {
             delivery.deliveryPartner = partner._id;
             delivery.assignedAt = Date.now();
+
+            // Create Firebase Realtime Tracking Node when assigned
+            const trackingRef = db.ref(`active_trackings/${delivery._id}`);
+            await trackingRef.set({
+                driverId: partner._id.toString(),
+                location: partner.currentLocation ? {
+                    lat: partner.currentLocation.coordinates[1],
+                    lng: partner.currentLocation.coordinates[0]
+                } : { lat: 22.7196, lng: 75.8577 },
+                heading: 0,
+                isActive: true,
+                updatedAt: Date.now()
+            });
+
         } else if (status === 'picked_up') {
             delivery.pickedUpAt = Date.now();
             await Order.findByIdAndUpdate(delivery.order, { status: 'out_for_delivery' });
@@ -149,6 +167,15 @@ export const updateDeliveryStatus = async (req, res) => {
             delivery.deliveredAt = Date.now();
             delivery.status = 'delivered';
             await Order.findByIdAndUpdate(delivery.order, { status: 'delivered' });
+
+            // Remove Firebase Realtime Tracking Node after delivery
+            const trackingRef = db.ref(`active_trackings/${delivery._id}`);
+            await trackingRef.remove();
+
+            // Free up the delivery partner for new orders
+            partner.assignmentStatus = 'Free';
+            partner.activeOrder = null;
+            await partner.save();
 
             // Add earnings to wallet
             let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
@@ -345,5 +372,35 @@ export const simulateOrder = async (req, res) => {
         res.json({ message: 'Order simulated successfully', delivery });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get Route Directions via Google Maps API
+// @route   GET /api/delivery/route
+// @access  Private (Rider)
+export const getRouteDirections = async (req, res) => {
+    try {
+        const { origin, destination } = req.query;
+        if (!origin || !destination) {
+            return res.status(400).json({ message: 'Origin and destination coordinates are required' });
+        }
+
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API;
+        if (!apiKey) {
+            return res.status(500).json({ message: 'Google Maps API is not configured on the server' });
+        }
+
+        const mapUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${apiKey}`;
+
+        const response = await axios.get(mapUrl);
+
+        if (response.data.status !== "OK") {
+            return res.status(400).json({ message: response.data.error_message || "Failed to fetch directions" });
+        }
+
+        res.json({ routes: response.data.routes });
+    } catch (error) {
+        console.error('getRouteDirections error:', error);
+        res.status(500).json({ message: 'Error fetching directions from Google Maps' });
     }
 };

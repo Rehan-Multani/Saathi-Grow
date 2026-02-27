@@ -20,6 +20,7 @@ import CancelOrderPage from '../pages/profile/CancelOrderPage';
 import ReturnOrderPage from '../pages/profile/ReturnOrderPage';
 import RaiseComplaintPage from '../pages/profile/RaiseComplaintPage';
 import SupportChatPage from '../pages/profile/SupportChatPage';
+import OrderTrackingPage from '../pages/profile/OrderTrackingPage';
 
 // Lazy Load Other Pages (Non-critical or large pages)
 const LoginModal = lazy(() => import('../components/auth/LoginModal'));
@@ -143,6 +144,7 @@ const UserRoutes = () => {
                         {/* Orders */}
                         <Route path="/orders" element={<OrdersPage />} />
                         <Route path="/orders/:id" element={<OrderDetailsPage />} />
+                        <Route path="/orders/:id/tracking" element={<OrderTrackingPage />} />
                         <Route path="/orders/:id/cancel" element={<CancelOrderPage />} />
                         <Route path="/orders/:id/return" element={<ReturnOrderPage />} />
                         <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />

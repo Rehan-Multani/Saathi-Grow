@@ -36,9 +36,10 @@ const CategoryPage = () => {
     // Backend categories use 'name' as identifier.
     // The slug in the URL might be the category name or a static slug.
     // We match by name (case-insensitive) or slug field if it exists.
-    const currentCategory = categories.find(c =>
-        (c.slug && c.slug === slug) || c.name === slug || c.name.toLowerCase().replace(/\s+/g, '-') === slug
-    );
+    const currentCategory = categories.find(c => {
+        const catSlug = c.slug || c.name.toLowerCase().replace(/\s+/g, '-');
+        return catSlug === slug || c.name === slug || c.name.toLowerCase() === slug;
+    });
 
     useEffect(() => {
         setSelectedSubCat('all');
@@ -104,10 +105,11 @@ const CategoryPage = () => {
     }
 
     // Filter products based on main category (match by name)
-    const categoryName = currentCategory?.name || slug;
+    const categoryName = currentCategory?.name;
     const displayedProducts = products
         .filter(p => {
-            const matchesMain = p.category === categoryName;
+            if (!categoryName) return false;
+            const matchesMain = p.category === categoryName || p.category?.toLowerCase() === categoryName?.toLowerCase();
             const matchesSub = selectedSubCat === 'all' || p.subCategory === selectedSubCat;
             return matchesMain && matchesSub;
         })
