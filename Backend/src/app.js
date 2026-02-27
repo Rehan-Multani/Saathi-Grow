@@ -28,14 +28,29 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://saathi-grow-frontend.vercel.app',
   'https://saathi-grow.vercel.app',
+  'https://saathi-grow-admin.vercel.app',
+  'https://saathi-grow-vendor.vercel.app',
   process.env.CLIENT_URL
 ].filter(Boolean);
+
+const isAllowed = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  const url = new URL(origin);
+  // Allow all localhost variants
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return true;
+  // Allow any vercel.app subdomain
+  if (url.hostname.endsWith('.vercel.app')) return true;
+
+  return false;
+};
 
 // Socket.io initialization for real-time tracking
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isAllowed(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -48,11 +63,12 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: false, // Allow cross-origin resources (images etc)
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
 }));
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (isAllowed(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -60,7 +76,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Body parser
