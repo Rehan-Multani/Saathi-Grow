@@ -30,19 +30,32 @@ const allowedOrigins = [
   'https://saathi-grow.vercel.app',
   'https://saathi-grow-admin.vercel.app',
   'https://saathi-grow-vendor.vercel.app',
+  'https://saathi-grow-8oyg.vercel.app',
   process.env.CLIENT_URL
-].filter(Boolean);
+].filter(Boolean).map(o => o.trim().replace(/\/$/, ''));
 
 const isAllowed = (origin) => {
-  if (!origin) return true;
+  if (!origin || origin === 'null') return true;
   if (allowedOrigins.includes(origin)) return true;
 
-  const url = new URL(origin);
-  // Allow all localhost variants
-  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return true;
-  // Allow any vercel.app subdomain
-  if (url.hostname.endsWith('.vercel.app')) return true;
+  try {
+    const url = new URL(origin);
+    const hostname = url.hostname;
 
+    // Allow all localhost variants
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+
+    // Allow any vercel.app subdomain
+    if (hostname.endsWith('.vercel.app')) return true;
+
+    // Allow the domain without subdomain if hit directly
+    if (hostname === 'vercel.app') return true;
+
+  } catch (err) {
+    console.error('CORS Origin Parsing Error:', origin);
+  }
+
+  console.warn('CORS Blocked Origin:', origin);
   return false;
 };
 
