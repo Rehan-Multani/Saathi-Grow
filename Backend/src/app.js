@@ -25,14 +25,14 @@ const httpServer = createServer(app);
 // Socket.io initialization for real-time tracking
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
 
 // Middleware
 app.use(helmet()); // Security headers
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: "*", credentials: true }));
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Body parser
 app.use(express.urlencoded({ extended: true }));
