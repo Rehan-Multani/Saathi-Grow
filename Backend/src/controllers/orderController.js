@@ -504,7 +504,10 @@ export const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate('user', 'name email phone')
-      .populate('items.product', 'name category image unitValue unitType');
+      .populate('items.product', 'name category image unitValue unitType')
+      .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber rating')
+      .populate('branchId', 'name address location')
+      .populate('vendor', 'storeName address location');
 
     if (order) {
       res.json(order);
@@ -513,6 +516,55 @@ export const getOrderById = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get Route Directions via Google Maps for order tracking (User/Rider)
+// @route   GET /api/orders/:id/route
+// @access  Private
+export const getOrderRoute = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('deliveryPartnerId', 'currentLocation')
+      .populate('branchId', 'address.location')
+      .populate('vendor', 'address.location');
+
+    if (!order) return res.status(404).json({ message: 'Order strictly not found' });
+
+    // Destination is ship address coordinates
+    const destCoords = order.shippingAddress?.location?.coordinates;
+    if (!destCoords || destCoords.length !== 2) {
+      return res.status(400).json({ message: 'Target destination missing for this order' });
+    }
+    const destination = `${destCoords[1]},${destCoords[0]}`;
+
+    // Origin is rider's current location OR store location (if waiting for pickup)
+    let originStr = "";
+    if (order.deliveryPartnerId?.currentLocation?.coordinates) {
+      const riderLoc = order.deliveryPartnerId.currentLocation.coordinates;
+      originStr = `${riderLoc[1]},${riderLoc[0]}`;
+    } else {
+      // Fallback to store if rider not assigned or location missing
+      const storeLoc = order.branchId?.location?.coordinates || order.vendor?.location?.coordinates;
+      if (storeLoc) originStr = `${storeLoc[1]},${storeLoc[0]}`;
+    }
+
+    if (!originStr) return res.status(400).json({ message: 'Rider or Store location not detected' });
+
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API;
+    if (!apiKey) return res.status(500).json({ message: 'Maps logic restricted on server currently' });
+
+    const mapUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destination}&key=${apiKey}`;
+    const response = await axios.get(mapUrl);
+
+    if (response.data.status !== "OK") {
+      return res.status(400).json({ message: response.data.error_message || "Maps engine responded with error" });
+    }
+
+    res.json({ routes: response.data.routes });
+  } catch (error) {
+    console.error('getOrderRoute issue:', error);
+    res.status(500).json({ message: 'Server Issue: Maps logic failed' });
   }
 };
 

@@ -112,3 +112,11 @@ export const submitReturnRequest = async (token, orderId, { reason, description 
     throw new Error(error.response?.data?.message || 'Failed to submit return request');
   }
 };
+export const fetchOrderRoute = async (token, orderId) => {
+  const response = await fetch(`${API_URL}/${orderId}/route`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch road directions');
+  return data;
+};

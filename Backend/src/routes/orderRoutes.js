@@ -14,7 +14,8 @@ import {
   cancelOrderUser,
   createWalletOrder,
   requestReturn,
-  scheduleReturnPickup
+  scheduleReturnPickup,
+  getOrderRoute
 } from '../controllers/orderController.js';
 import { protect, protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 
@@ -23,6 +24,7 @@ const router = express.Router();
 // --- Customer Order Routes ---
 router.get('/myorders', protect, getMyOrders);
 router.get('/:id', protect, getOrderById);
+router.get('/:id/route', protect, getOrderRoute);
 router.post('/:id/cancel', protect, cancelOrderUser);
 router.post('/:id/return', protect, requestReturn);
 

@@ -94,7 +94,7 @@ const OrderDetailsPage = () => {
                     </div>
                 </div>
 
-                {['out_for_delivery', 'picked_up'].includes(order.status) && (
+                {rawOrder?.deliveryPartnerId && !['delivered', 'cancelled', 'returned'].includes(order.status) && (
                     <button
                         onClick={() => navigate(`/orders/${order.id}/tracking`)}
                         className="w-full bg-[#0c831f] text-white mb-6 py-4 rounded-xl flex items-center justify-center gap-2 font-black !text-[12px] uppercase tracking-widest shadow-lg shadow-green-500/20 active:scale-95 transition-all"
