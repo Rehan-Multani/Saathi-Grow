@@ -71,6 +71,21 @@ export const createAdmin = async (req, res) => {
     let finalRole = role;
     let finalBranchId = branchId;
 
+    // Restricted permissions for Staff and Branch Managers
+    const RESTRICTED_PERMISSIONS = [
+      'VIEW_DASHBOARD',
+      'MANAGE_PRODUCTS',
+      'MANAGE_CATEGORIES_BRANDS',
+      'MANAGE_DELIVERY',
+      'MANAGE_DELIVERY_BOYS',
+      'MANAGE_CUSTOMERS',
+      'MANAGE_BRANCHES',
+      'MANAGE_VENDORS',
+      'MANAGE_SETTINGS'
+    ];
+
+    let finalPermissions = permissions || [];
+
     // Hierarchy Enforcement:
     if (req.admin.role === 'Branch Manager') {
       // Branch Managers can ONLY create Staff for their own branch
@@ -84,13 +99,19 @@ export const createAdmin = async (req, res) => {
       }
     }
 
+    // Only Admin can have restricted permissions. 
+    // If creating Branch Manager or Staff, strip restricted permissions
+    if (finalRole === 'Branch Manager' || finalRole === 'Staff') {
+      finalPermissions = finalPermissions.filter(p => !RESTRICTED_PERMISSIONS.includes(p));
+    }
+
     const admin = await Admin.create({
       name,
       email,
       phone,
       password,
       role: finalRole,
-      permissions,
+      permissions: finalPermissions,
       branchId: finalBranchId || null
     });
 
@@ -120,6 +141,19 @@ export const updateAdmin = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to edit Admin accounts' });
     }
 
+    // Restricted permissions for Staff and Branch Managers
+    const RESTRICTED_PERMISSIONS = [
+      'VIEW_DASHBOARD',
+      'MANAGE_PRODUCTS',
+      'MANAGE_CATEGORIES_BRANDS',
+      'MANAGE_DELIVERY',
+      'MANAGE_DELIVERY_BOYS',
+      'MANAGE_CUSTOMERS',
+      'MANAGE_BRANCHES',
+      'MANAGE_VENDORS',
+      'MANAGE_SETTINGS'
+    ];
+
     // Hierarchy Enforcement:
     if (req.admin.role === 'Branch Manager') {
       // Managers can only edit staff in THEIR branch
@@ -136,7 +170,16 @@ export const updateAdmin = async (req, res) => {
     admin.email = req.body.email || admin.email;
     admin.phone = req.body.phone || admin.phone;
     admin.role = req.body.role || admin.role;
-    admin.permissions = req.body.permissions || admin.permissions;
+
+    // Only Admin can have restricted permissions.
+    if (req.body.permissions) {
+      let finalPermissions = req.body.permissions;
+      if (admin.role === 'Branch Manager' || admin.role === 'Staff') {
+        finalPermissions = finalPermissions.filter(p => !RESTRICTED_PERMISSIONS.includes(p));
+      }
+      admin.permissions = finalPermissions;
+    }
+
     admin.branchId = req.body.branchId !== undefined ? req.body.branchId : admin.branchId;
     admin.isActive = req.body.isActive ?? admin.isActive;
 

@@ -241,7 +241,21 @@ const AllStaff = () => {
 
                             <h6 className="fw-bold mb-3 text-muted small text-uppercase">Access Control</h6>
                             <div className="d-flex flex-column gap-2">
-                                {AVAILABLE_PERMISSIONS.map((perm) => (
+                                {AVAILABLE_PERMISSIONS.filter(perm => {
+                                    const RESTRICTED_IDS = [
+                                        'VIEW_DASHBOARD',
+                                        'MANAGE_PRODUCTS',
+                                        'MANAGE_CATEGORIES_BRANDS',
+                                        'MANAGE_DELIVERY',
+                                        'MANAGE_DELIVERY_BOYS',
+                                        'MANAGE_CUSTOMERS',
+                                        'MANAGE_BRANCHES',
+                                        'MANAGE_VENDORS',
+                                        'MANAGE_SETTINGS'
+                                    ];
+                                    if (selectedStaff.role === 'Admin') return true;
+                                    return !RESTRICTED_IDS.includes(perm.id);
+                                }).map((perm) => (
                                     <div key={perm.id} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light">
                                         <div className="d-flex align-items-center gap-2">
                                             {perm.id.includes('MANAGE') ? <Shield size={16} className="text-primary" /> : <div style={{ width: 16 }} />}

@@ -295,7 +295,21 @@ const AddStaff = () => {
                                         <Shield size={16} /> Specific Permissions
                                     </Form.Label>
                                     <div className="bg-light p-3 rounded custom-scrollbar border" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                        {PERMISSIONS_LIST.map(perm => (
+                                        {PERMISSIONS_LIST.filter(perm => {
+                                            const RESTRICTED_IDS = [
+                                                'VIEW_DASHBOARD',
+                                                'MANAGE_PRODUCTS',
+                                                'MANAGE_CATEGORIES_BRANDS',
+                                                'MANAGE_DELIVERY',
+                                                'MANAGE_DELIVERY_BOYS',
+                                                'MANAGE_CUSTOMERS',
+                                                'MANAGE_BRANCHES',
+                                                'MANAGE_VENDORS',
+                                                'MANAGE_SETTINGS'
+                                            ];
+                                            if (formData.role === 'Admin') return true;
+                                            return !RESTRICTED_IDS.includes(perm.id);
+                                        }).map(perm => (
                                             <Form.Check
                                                 key={perm.id}
                                                 type="switch"
