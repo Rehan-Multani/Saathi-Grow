@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../../components/product/ProductCard';
 import LowestPricesSection from '../../components/product/LowestPricesSection';
@@ -314,7 +314,7 @@ const HomePage = ({ }) => {
                     </div>
                 </div>
             )}
-            {/* Dynamic Campaign Sections — admin-controlled (festive + lowest prices) */}
+            {/* Dynamic Campaign Sections ₹ admin-controlled (festive + lowest prices) */}
             {!isSearching && campaigns.map((campaign) => {
                 // Build normalized product list for this campaign
                 const campaignProducts = campaign.products
@@ -392,7 +392,7 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
     // Backend stores category as a string (the category name)
     const categoryProducts = getProductsByCategory(category.name || category.slug);
 
-    // ✅ useEffect MUST be before any early return (Rules of Hooks)
+    // ₹ useEffect MUST be before any early return (Rules of Hooks)
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
@@ -500,7 +500,7 @@ const OccasionSection = ({
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
 
-    // ✅ useEffect MUST be before any early return (Rules of Hooks)
+    // ₹ useEffect MUST be before any early return (Rules of Hooks)
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;

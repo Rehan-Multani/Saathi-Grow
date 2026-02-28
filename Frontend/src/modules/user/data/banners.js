@@ -1,4 +1,4 @@
-export const banners = [
+﻿export const banners = [
     {
         id: 1,
         image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2000&auto=format&fit=crop',

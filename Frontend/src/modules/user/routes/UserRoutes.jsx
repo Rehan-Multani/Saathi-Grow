@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+﻿import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation, matchPath } from 'react-router-dom';
 import { getOccasionConfig } from '../data/occasions';
 import Navbar from '../components/layout/Navbar';

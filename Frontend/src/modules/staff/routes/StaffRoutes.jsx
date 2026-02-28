@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Routes, Route, Navigate, Outlet, Link } from 'react-router-dom';
 import { StaffAuthProvider, useStaffAuth } from '../context/StaffAuthContext';
 import StaffLogin from '../pages/auth/StaffLogin';
@@ -8,6 +8,10 @@ import StaffOrders from '../pages/orders/StaffOrders';
 import StaffReturns from '../pages/orders/StaffReturns';
 import StaffInventory from '../pages/inventory/StaffInventory';
 import StaffTickets from '../pages/support/StaffTickets';
+import StaffCustomers from '../pages/customers/StaffCustomers';
+import StaffManagement from '../../store-manager/StaffManagement';
+import AllProducts from '../../admin/pages/products/AllProducts';
+import { StaffProfile } from '../../../components/ProfileSettings';
 
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
@@ -48,12 +52,14 @@ const StaffRoutes = () => {
                         <Route path="/" element={<Navigate to="dashboard" replace />} />
                         <Route path="dashboard" element={<StaffDashboard />} />
 
-                        {/* New Modules */}
                         <Route path="orders/active" element={<StaffOrders />} />
                         <Route path="orders/returns" element={<StaffReturns />} />
                         <Route path="inventory" element={<StaffInventory />} />
+                        <Route path="products" element={<AllProducts />} />
+                        <Route path="customers" element={<StaffCustomers />} />
+                        <Route path="staff" element={<StaffManagement />} />
                         <Route path="support" element={<StaffTickets />} />
-
+                        <Route path="profile" element={<StaffProfile />} />
                         <Route path="*" element={<PlaceholderPage title="Page Not Found / Under Construction" />} />
                     </Route>
                 </Route>

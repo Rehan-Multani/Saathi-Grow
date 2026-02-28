@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useCart } from '../../context/CartContext';
 import categoryPlaceholder from '../../assets/images/category-placeholder.png';
 import { useAuth } from '../../context/AuthContext';

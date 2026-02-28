@@ -44,9 +44,9 @@ const OrderTracking = () => {
                     vehicleNo: 'DL 1S AB 1234'
                 },
                 items: [
-                    { name: 'Aashirvaad Shudh Chakki Atta', qty: '5kg', price: 'â‚¹245' },
-                    { name: 'Amul Gold Milk', qty: '2 Pkts', price: 'â‚¹66' },
-                    { name: 'Fortune Biryani Rice', qty: '1kg', price: 'â‚¹125' }
+                    { name: 'Aashirvaad Shudh Chakki Atta', qty: '5kg', price: '₹245' },
+                    { name: 'Amul Gold Milk', qty: '2 Pkts', price: '₹66' },
+                    { name: 'Fortune Biryani Rice', qty: '1kg', price: '₹125' }
                 ],
                 timeline: [
                     { time: '04:15 PM', label: 'Out for delivery', desc: 'Rider is approaching your location', active: true, done: true },
@@ -205,7 +205,7 @@ const OrderTracking = () => {
                                     </div>
                                     <div className="pt-3 border-t border-gray-50 dark:border-white/5 flex justify-between items-center">
                                         <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase">Total Amount</p>
-                                        <p className="text-sm font-black text-[#0c831f]">â‚¹436.00</p>
+                                        <p className="text-sm font-black text-[#0c831f]">₹436.00</p>
                                     </div>
                                     <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-lg p-2.5 flex items-center gap-2">
                                         <Info size={12} className="text-blue-600 dark:text-blue-400 shrink-0" />

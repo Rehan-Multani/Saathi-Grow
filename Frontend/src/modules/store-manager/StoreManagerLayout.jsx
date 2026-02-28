@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StoreManagerSidebar from './components/StoreManagerSidebar';
 import { Menu, Bell, Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
@@ -74,8 +74,12 @@ const StoreManagerLayout = () => {
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 className="flex items-center gap-3 p-1 rounded-lg hover:bg-slate-50 transition-all"
                             >
-                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs uppercase">
-                                    {(managerUser?.name || 'M').charAt(0)}
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs uppercase overflow-hidden">
+                                    {managerUser?.profileImage ? (
+                                        <img src={managerUser.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        (managerUser?.name || 'M').charAt(0)
+                                    )}
                                 </div>
                                 <div className="text-left hidden lg:block">
                                     <div className="flex items-center gap-1">
@@ -94,14 +98,15 @@ const StoreManagerLayout = () => {
                                             <p className="text-sm font-semibold text-slate-800 truncate">{managerUser?.email || 'manager@saathigro.corp'}</p>
                                         </div>
                                         <div className="px-1">
-                                            {[
-                                                { label: 'Profile Settings', icon: User },
-                                                { label: 'System Settings', icon: Settings },
-                                            ].map((btn, i) => (
-                                                <button key={i} className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all">
-                                                    <btn.icon size={16} className="mr-2 text-slate-400" /> {btn.label}
-                                                </button>
-                                            ))}
+                                            <button
+                                                onClick={() => { navigate('/store-manager/profile'); setShowProfileMenu(false); }}
+                                                className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all"
+                                            >
+                                                <User size={16} className="mr-2 text-slate-400" /> Profile Settings
+                                            </button>
+                                            <button className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all">
+                                                <Settings size={16} className="mr-2 text-slate-400" /> System Settings
+                                            </button>
                                             <div className="my-1 border-t border-slate-100"></div>
                                             <button
                                                 onClick={handleLogout}
@@ -128,7 +133,7 @@ const StoreManagerLayout = () => {
                 <footer className="py-4 px-6 border-t border-slate-200 bg-white">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
                         <p className="text-[11px] text-slate-400 font-medium">
-                            Â© 2024 sathiGro Store Management System
+                            Â© 2026 sathiGro Store Management System
                         </p>
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">

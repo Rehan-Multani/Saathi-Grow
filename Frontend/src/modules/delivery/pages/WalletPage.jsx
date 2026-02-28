@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Wallet,
@@ -161,7 +161,7 @@ const WalletPage = () => {
                                         {tx.category.replace('_', ' ')}
                                     </h5>
                                     <p className="text-xs text-slate-500 font-medium">
-                                        {new Date(tx.createdAt).toLocaleDateString()} •{' '}
+                                        {new Date(tx.createdAt).toLocaleDateString()} ₹{' '}
                                         {new Date(tx.createdAt).toLocaleTimeString()}
                                     </p>
                                 </div>

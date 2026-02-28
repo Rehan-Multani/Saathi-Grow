@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { staffSidebarMenu } from '../data/staffSidebarMenu';
@@ -12,7 +12,7 @@ const StaffSidebar = ({ showMobile, onClose }) => {
 
     const hasAccess = (permissionCode) => {
         if (!staffUser) return false;
-        if (!permissionCode) return true;
+        if (!permissionCode || permissionCode === 'VIEW_DASHBOARD') return true;
         return Array.isArray(staffUser.permissions) && staffUser.permissions.includes(permissionCode);
     };
 

@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/orders`;
@@ -7,8 +7,8 @@ const API_URL = `${API_BASE_URL}/orders`;
 const getAuthDetails = () => {
   // Try Admin/Staff/Manager in order
   const admin = localStorage.getItem('sathiGro_admin');
-  const staff = localStorage.getItem('sathiGro_staff');
-  const manager = localStorage.getItem('sathiGro_manager');
+  const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('sathiGro_staff');
+  const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
 
   if (admin) return JSON.parse(admin);
   if (staff) return JSON.parse(staff);
@@ -51,6 +51,36 @@ export const deleteOrder = async (id) => {
   if (!auth) return null;
 
   const { data } = await axios.delete(`${API_URL}/admin/${id}`, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const getReturnRequests = async () => {
+  const auth = getAuthDetails();
+  if (!auth) return [];
+
+  const { data } = await axios.get(`${API_URL}/admin/returns`, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const handleReturnRequest = async (id, action, rejectionReason = null) => {
+  const auth = getAuthDetails();
+  if (!auth) return null;
+
+  const { data } = await axios.put(`${API_URL}/admin/${id}/return`, { action, rejectionReason }, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const scheduleReturnPickup = async (id, pickupFee = 30) => {
+  const auth = getAuthDetails();
+  if (!auth) return null;
+
+  const { data } = await axios.post(`${API_URL}/admin/${id}/return/schedule-pickup`, { pickupFee }, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;

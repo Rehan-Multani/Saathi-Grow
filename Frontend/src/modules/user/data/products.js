@@ -1,4 +1,4 @@
-export const products = [
+﻿export const products = [
     // 1. Fruit and vegetables
     {
         id: 101,

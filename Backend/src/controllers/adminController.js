@@ -17,6 +17,7 @@ export const adminLogin = async (req, res) => {
       role: admin.role,
       permissions: admin.permissions,
       profileImage: admin.profileImage,
+      branchId: admin.branchId, // Added branchId
       token: generateToken(admin._id)
     });
   } else {
@@ -34,16 +35,18 @@ export const getAllAdmins = async (req, res) => {
     let query = { _id: { $ne: req.admin._id } };
 
     // Hierarchy Logic:
-    if (req.admin.role === 'Branch Manager') {
-      // Branch Managers can only see 'Staff' assigned to THEIR branch
-      query.role = 'Staff';
-      query.branchId = req.admin.branchId;
-    } else if (req.admin.role === 'Admin') {
+    if (req.admin.role === 'Admin') {
       // Admins can see all 'Branch Manager' and 'Staff' across all branches
       query.role = { $in: ['Branch Manager', 'Staff'] };
     } else {
-      // Staff members shouldn't be accessing this, but if they do, show nothing or throw error
-      return res.status(403).json({ message: 'Not authorized to view staff list' });
+      // Branch Managers and allowed Staff can see all team members in THEIR branch
+      // (Excluding Super Admins)
+      query.role = { $in: ['Branch Manager', 'Staff'] };
+      query.branchId = req.admin.branchId;
+
+      if (!req.admin.branchId) {
+        return res.status(403).json({ message: 'Not authorized to view staff list (No branch assigned)' });
+      }
     }
 
     const admins = await Admin.find(query)
@@ -87,15 +90,19 @@ export const createAdmin = async (req, res) => {
     let finalPermissions = permissions || [];
 
     // Hierarchy Enforcement:
-    if (req.admin.role === 'Branch Manager') {
-      // Branch Managers can ONLY create Staff for their own branch
-      finalRole = 'Staff';
-      finalBranchId = req.admin.branchId;
-    } else if (req.admin.role === 'Admin') {
+    if (req.admin.role === 'Admin') {
       // Admins can create Branch Managers or Staff
       // Don't allow creating 'Admin' role via this endpoint for security
       if (role === 'Admin') {
         return res.status(403).json({ message: 'Cannot create other Admin accounts via this module' });
+      }
+    } else {
+      // Branch Managers and Staff can ONLY create Staff for their own branch
+      finalRole = 'Staff';
+      finalBranchId = req.admin.branchId;
+
+      if (!finalBranchId) {
+        return res.status(403).json({ message: 'Cannot create staff without a branch assignment' });
       }
     }
 
@@ -155,13 +162,13 @@ export const updateAdmin = async (req, res) => {
     ];
 
     // Hierarchy Enforcement:
-    if (req.admin.role === 'Branch Manager') {
-      // Managers can only edit staff in THEIR branch
-      if (admin.role !== 'Staff' || admin.branchId.toString() !== req.admin.branchId.toString()) {
-        return res.status(403).json({ message: 'Not authorized to edit staff from other branches' });
+    if (req.admin.role !== 'Admin') {
+      // Non-Admins can only edit staff in THEIR branch
+      if (admin.role !== 'Staff' || admin.branchId?.toString() !== req.admin.branchId?.toString()) {
+        return res.status(403).json({ message: 'Not authorized to edit staff from other branches or higher roles' });
       }
 
-      // Managers can't change roles or branches
+      // Non-Admins can't change roles or branches
       delete req.body.role;
       delete req.body.branchId;
     }
@@ -210,10 +217,10 @@ export const deleteAdmin = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to remove Admin accounts' });
     }
 
-    // Hierarchy Enforcement for Branch Managers
-    if (req.admin.role === 'Branch Manager') {
+    // Hierarchy Enforcement for Non-Admins
+    if (req.admin.role !== 'Admin') {
       if (admin.role !== 'Staff' || admin.branchId?.toString() !== req.admin.branchId?.toString()) {
-        return res.status(403).json({ message: 'Not authorized to remove staff from other branches' });
+        return res.status(403).json({ message: 'Not authorized to remove staff from other branches or higher roles' });
       }
     }
 
@@ -270,6 +277,7 @@ export const updateAdminProfile = async (req, res) => {
         role: updatedAdmin.role,
         permissions: updatedAdmin.permissions,
         profileImage: updatedAdmin.profileImage,
+        branchId: updatedAdmin.branchId, // Added branchId
         token: generateToken(updatedAdmin._id)
       });
     } else {

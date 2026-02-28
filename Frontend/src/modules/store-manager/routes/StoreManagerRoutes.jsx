@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+﻿import React, { lazy, Suspense } from 'react';
 import { Spinner } from 'react-bootstrap';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import StoreManagerLayout from '../StoreManagerLayout';
@@ -11,12 +11,13 @@ import ManagerOrders from '../ManagerOrders';
 import StaffManagement from '../StaffManagement';
 import { StoreManagerAuthProvider, useStoreManagerAuth } from '../context/StoreManagerAuthContext';
 import StoreManagerLogin from '../pages/auth/StoreManagerLogin';
+import AllProducts from '../../admin/pages/products/AllProducts';
+import { ManagerProfile } from '../../../components/ProfileSettings';
 
 const DeliveryPartners = lazy(() => import('../ManagerDeliveryPartners'));
 const AssignDeliveries = lazy(() => import('../ManagerAssignDeliveries'));
 const DeliveryTracking = lazy(() => import('../ManagerDeliveryTracking'));
 const AllCustomers = lazy(() => import('../ManagerCustomers'));
-const BranchProfile = lazy(() => import('../BranchProfile'));
 
 const ProtectedStoreManagerRoute = () => {
     const { managerUser } = useStoreManagerAuth();
@@ -48,13 +49,14 @@ const StoreManagerRoutes = () => {
                             <Route path="staff" element={<StaffManagement />} />
                             <Route path="stock-requests" element={<StockRequests />} />
                             <Route path="returns" element={<ReturnsApproval />} />
+                            <Route path="products" element={<AllProducts />} />
                             <Route path="reports" element={<ReportsAnalytics />} />
                             {/* New Functional Modules */}
                             <Route path="delivery/partners" element={<DeliveryPartners />} />
                             <Route path="delivery/assign" element={<AssignDeliveries />} />
                             <Route path="delivery/tracking" element={<DeliveryTracking />} />
                             <Route path="customers" element={<AllCustomers />} />
-                            <Route path="profile" element={<BranchProfile />} />
+                            <Route path="profile" element={<ManagerProfile />} />
                         </Route>
                     </Route>
                     {/* Catch all for store manager - redirect to dashboard */}

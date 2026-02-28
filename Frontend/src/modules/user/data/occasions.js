@@ -9,7 +9,7 @@
                 bgColor: "#fce4ec", // Light Pink
                 accentColor: "#f8bbd0",
                 productIds: [1201, 1202, 1203, 1205, 1206, 1802, 1104], // Chocolates, Grooming
-                icon: "ðŸ’–"
+                icon: "💖"
             };
         case 'saathi-select':
             return {
@@ -20,7 +20,7 @@
                 bgColor: "#f0fdf4", // Light Green (green-50)
                 accentColor: "#dcfce7", // green-100
                 productIds: [101, 102, 103, 104, 105, 106], // Staples: Tomato, Onion, Potato, Banana, etc.
-                icon: "ðŸŒ¿"
+                icon: "🌿"
             };
         default:
             return null;

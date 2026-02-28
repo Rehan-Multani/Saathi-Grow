@@ -10,7 +10,8 @@ import {
     Bell,
     Check,
     Trash2,
-    Clock
+    Clock,
+    RotateCcw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNotifications } from './NotificationProvider';
@@ -74,6 +75,7 @@ const DeliveryLayout = ({ children }) => {
     const navItems = [
         { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/delivery/dashboard' },
         { icon: <Package size={20} />, label: 'Orders', path: '/delivery/orders' },
+        { icon: <RotateCcw size={20} />, label: 'Returns', path: '/delivery/returns' },
         { icon: <Wallet size={20} />, label: 'Wallet', path: '/delivery/wallet' },
         { icon: <History size={20} />, label: 'History', path: '/delivery/history' },
         { icon: <User size={20} />, label: 'Profile', path: '/delivery/profile' },
@@ -150,7 +152,7 @@ const DeliveryLayout = ({ children }) => {
                                             <p className="text-[9px] text-slate-400 font-medium">{notification.time || 'Just now'}</p>
                                         </div>
                                         <p className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">
-                                            #{notification.orderId || 'N/A'} â€¢ {notification.customerName || 'Customer'}
+                                            #{notification.orderId || 'N/A'} ₹ {notification.customerName || 'Customer'}
                                         </p>
                                     </button>
                                     {!notification.read && <div className="w-1.5 h-1.5 rounded-full bg-lime-500 mt-1.5"></div>}

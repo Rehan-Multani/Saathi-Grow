@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Star, Search, MessageSquare, ThumbsUp, Flag, Eye, Filter } from 'lucide-react';
 
 const ProductReviews = () => {
@@ -73,7 +73,7 @@ const ProductReviews = () => {
                             { stars: 1, count: oneStar },
                         ].map(({ stars, count }) => (
                             <div key={stars} className="flex items-center gap-3">
-                                <span className="text-xs font-bold text-gray-600 w-8">{stars} ★</span>
+                                <span className="text-xs font-bold text-gray-600 w-8">{stars} ₹</span>
                                 <div className="flex-1 bg-gray-100 rounded-full h-2">
                                     <div
                                         className="bg-yellow-400 h-2 rounded-full"

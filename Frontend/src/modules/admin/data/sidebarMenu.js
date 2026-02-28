@@ -1,4 +1,4 @@
-export const adminSidebarMenu = [
+﻿export const adminSidebarMenu = [
     {
         title: 'Dashboard',
         path: '/admin/dashboard',

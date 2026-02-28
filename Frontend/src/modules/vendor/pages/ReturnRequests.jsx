@@ -1,518 +1,471 @@
-import React, { useState } from 'react';
-import { RotateCcw, Package, CheckCircle, XCircle, Clock, Search, Eye, Image as ImageIcon, X, AlertCircle, Check, MoreVertical } from 'lucide-react';
-import { formatCurrency } from '../utils/formatDate';
-import { useReturnRequests } from '../../../common/contexts/ReturnRequestsContext';
+﻿import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import {
+    RotateCcw, Package, CheckCircle, XCircle, Clock, Search,
+    Eye, X, AlertCircle, Loader2, Truck, Store, MapPin, Phone, User, IndianRupee
+} from 'lucide-react';
+import { API_BASE_URL } from '../../../config/apiConfig';
+import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
+
+const getVendorAuth = () => {
+    try {
+        const v = localStorage.getItem('sathiGro_vendor') || localStorage.getItem('saathigro_vendor');
+        return v ? JSON.parse(v) : null;
+    } catch { return null; }
+};
+
+const API = `${API_BASE_URL}/vendor`;
+
+const statusColors = {
+    Pending: 'bg-amber-50 text-amber-700 border-amber-100',
+    Approved: 'bg-green-50 text-green-700 border-green-100',
+    Rejected: 'bg-red-50 text-red-700 border-red-100',
+};
+
+const SourceBadge = ({ order }) => {
+    if (order?.vendor) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-[10px] font-bold">
+                <Store size={10} /> Vendor Store
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[10px] font-bold">
+            <Package size={10} /> Branch
+        </span>
+    );
+};
 
 const ReturnRequests = () => {
-    const { returnRequests, updateReturnStatus } = useReturnRequests();
+    const [returnRequests, setReturnRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRequest, setSelectedRequest] = useState(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [confirmAction, setConfirmAction] = useState(null);
-    const [rejectReason, setRejectReason] = useState('');
-    const [activeActionId, setActiveActionId] = useState(null);
-    const [notification, setNotification] = useState(null);
+    const [processing, setProcessing] = useState(false);
 
-    const filteredRequests = returnRequests.filter(request => {
-        const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
-        const matchesSearch = request.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            request.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            request.product.toLowerCase().includes(searchQuery.toLowerCase());
+    const fetchReturns = useCallback(async () => {
+        const auth = getVendorAuth();
+        if (!auth) { setLoading(false); return; }
+        try {
+            setLoading(true);
+            // Use vendor-specific endpoint that auto-filters by vendor ID
+            const { data } = await axios.get(`${API}/returns`, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            setReturnRequests(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Error fetching vendor returns:', err);
+            setReturnRequests([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchReturns(); }, [fetchReturns]);
+
+    const handleAction = async (orderId, action) => {
+        const auth = getVendorAuth();
+        if (!auth) return;
+
+        let rejectionReason = null;
+        if (action === 'Rejected') {
+            const result = await Swal.fire({
+                title: 'Reject Return Request',
+                input: 'textarea',
+                inputLabel: 'Reason for rejection',
+                inputPlaceholder: 'Explain why the return is being rejected...',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Reject',
+                inputValidator: (v) => !v && 'Please provide a rejection reason.'
+            });
+            if (!result.isConfirmed) return;
+            rejectionReason = result.value;
+        } else {
+            const confirm = await Swal.fire({
+                title: 'Approve Return?',
+                html: '<p class="text-sm text-gray-600">This will restore stock. Refund will be processed after the delivery partner returns the item to your store.</p>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Approve',
+                confirmButtonColor: '#16a34a',
+            });
+            if (!confirm.isConfirmed) return;
+        }
+
+        try {
+            setProcessing(true);
+            await axios.put(`${API}/returns/${orderId}`, { action, rejectionReason }, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            toast.success(action === 'Approved' ? 'Return approved! Stock restored.' : 'Return rejected.');
+            setSelectedRequest(null);
+            fetchReturns();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to update return request');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const handleSchedulePickup = async (orderId) => {
+        const auth = getVendorAuth();
+        if (!auth) return;
+
+        const result = await Swal.fire({
+            title: '🚚 Schedule Return Pickup',
+            html: `
+                <p class="text-sm text-gray-600 mb-4">A SaathiGro delivery partner will collect the item from the customer and bring it to your store.</p>
+                <label class="text-xs font-bold text-gray-500">Pickup Fee for Partner (₹)</label>
+                <input id="swal-pickup-fee" type="number" class="swal2-input" value="30" min="10" max="200">
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Schedule Pickup',
+            confirmButtonColor: '#7c3aed',
+            preConfirm: () => parseInt(document.getElementById('swal-pickup-fee').value) || 30
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            setProcessing(true);
+            await axios.post(`${API}/returns/${orderId}/schedule-pickup`, { pickupFee: result.value }, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            Swal.fire('Scheduled!', 'A delivery partner can now accept this return pickup task.', 'success');
+            setSelectedRequest(null);
+            fetchReturns();
+        } catch (err) {
+            Swal.fire('Error', err.response?.data?.message || 'Failed to schedule pickup', 'error');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const filteredRequests = returnRequests.filter(r => {
+        const status = r.returnRequest?.status || 'Pending';
+        const matchesStatus = filterStatus === 'all' || status.toLowerCase() === filterStatus;
+        const search = searchQuery.toLowerCase();
+        const matchesSearch = !searchQuery ||
+            r.orderId?.toLowerCase().includes(search) ||
+            r.user?.name?.toLowerCase().includes(search) ||
+            r.items?.[0]?.name?.toLowerCase().includes(search);
         return matchesStatus && matchesSearch;
     });
 
-    const statusColors = {
-        'pending': 'bg-yellow-50 text-yellow-700 border-yellow-100',
-        'approved': 'bg-blue-50 text-blue-700 border-blue-100',
-        'rejected': 'bg-red-50 text-red-700 border-red-100',
-        'completed': 'bg-green-50 text-green-700 border-green-100',
-    };
-
-    const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
-    const approvedReturns = returnRequests.filter(r => r.status === 'approved').length;
-    const rejectedReturns = returnRequests.filter(r => r.status === 'rejected').length;
-    const completedReturns = returnRequests.filter(r => r.status === 'completed').length;
-
-    const showNotification = (message, type = 'success') => {
-        setNotification({ message, type });
-        setTimeout(() => setNotification(null), 3000);
-    };
-
-    const handleViewDetails = (request) => {
-        setSelectedRequest(request);
-        setShowDetailModal(true);
-    };
-
-    const handleApproveClick = (request) => {
-        setSelectedRequest(request);
-        setConfirmAction('approve');
-        setShowConfirmModal(true);
-    };
-
-    const handleRejectClick = (request) => {
-        setSelectedRequest(request);
-        setConfirmAction('reject');
-        setRejectReason('');
-        setShowConfirmModal(true);
-    };
-
-    const handleConfirmAction = () => {
-        if (!selectedRequest) return;
-
-        if (confirmAction === 'approve') {
-            updateReturnStatus(selectedRequest.id, 'approved', {
-                refundDate: new Date().toISOString().split('T')[0]
-            });
-            showNotification('Return request approved successfully! Refund will be processed.', 'success');
-        } else if (confirmAction === 'reject') {
-            updateReturnStatus(selectedRequest.id, 'rejected', {
-                rejectReason: rejectReason || 'Return request rejected by vendor'
-            });
-            showNotification('Return request rejected.', 'info');
-        }
-
-        setShowConfirmModal(false);
-        setSelectedRequest(null);
-        setRejectReason('');
+    const stats = {
+        total: returnRequests.length,
+        pending: returnRequests.filter(r => r.returnRequest?.status === 'Pending').length,
+        approved: returnRequests.filter(r => r.returnRequest?.status === 'Approved').length,
+        rejected: returnRequests.filter(r => r.returnRequest?.status === 'Rejected').length,
+        pickupScheduled: returnRequests.filter(r => r.returnRequest?.pickupDeliveryId).length,
     };
 
     return (
-        <div className="space-y-4 md:space-y-6 lg:space-y-5 pb-12">
-            {/* Notification Toast */}
-            {notification && (
-                <div className={`fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in ${notification.type === 'success' ? 'bg-green-500 text-white' :
-                    notification.type === 'error' ? 'bg-red-500 text-white' :
-                        'bg-blue-500 text-white'
-                    }`}>
-                    {notification.type === 'success' && <CheckCircle size={18} />}
-                    {notification.type === 'error' && <XCircle size={18} />}
-                    {notification.type === 'info' && <AlertCircle size={18} />}
-                    <span className="text-sm font-bold">{notification.message}</span>
-                </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
-                <div>
-                    <h1 className="text-base md:text-xl lg:text-xl font-bold text-gray-900 tracking-tight">Return Requests</h1>
-                    <p className="text-[10px] md:text-sm text-gray-500 font-medium">Manage product returns and refunds</p>
+        <div className="p-6 space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-purple-600 rounded-xl text-white shadow-md shadow-purple-200">
+                            <RotateCcw size={20} />
+                        </div>
+                        <div>
+                            <h5 className="font-bold text-gray-800 text-lg">Return Requests — Your Store</h5>
+                            <p className="text-xs text-gray-500 mt-0.5">Manage returns for orders fulfilled from your vendor store</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={fetchReturns}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-100 transition-colors"
+                    >
+                        <RotateCcw size={14} className={loading ? 'animate-spin' : ''} />
+                        Refresh
+                    </button>
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                <div className="bg-white border border-gray-100 rounded-lg md:rounded-xl p-3 md:p-5 lg:p-4 hover:shadow-sm transition-shadow">
-                    <div className="flex items-center gap-2 md:gap-3">
-                        <div className="p-1.5 md:p-2.5 bg-yellow-50 text-yellow-600 rounded-lg shrink-0">
-                            <Clock size={16} className="md:w-5 md:h-5" />
-                        </div>
-                        <div>
-                            <p className="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Pending</p>
-                            <h3 className="text-xl md:text-2xl font-extrabold text-gray-900">{pendingReturns}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white border border-gray-100 rounded-lg md:rounded-xl p-3 md:p-5 hover:shadow-sm transition-shadow">
-                    <div className="flex items-center gap-2 md:gap-3">
-                        <div className="p-1.5 md:p-2.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-                            <CheckCircle size={16} className="md:w-5 md:h-5" />
-                        </div>
-                        <div>
-                            <p className="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Approved</p>
-                            <h3 className="text-xl md:text-2xl font-extrabold text-gray-900">{approvedReturns}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white border border-gray-100 rounded-lg md:rounded-xl p-3 md:p-5 hover:shadow-sm transition-shadow">
-                    <div className="flex items-center gap-2 md:gap-3">
-                        <div className="p-1.5 md:p-2.5 bg-red-50 text-red-600 rounded-lg shrink-0">
-                            <XCircle size={16} className="md:w-5 md:h-5" />
-                        </div>
-                        <div>
-                            <p className="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Rejected</p>
-                            <h3 className="text-xl md:text-2xl font-extrabold text-gray-900">{rejectedReturns}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white border border-gray-100 rounded-lg md:rounded-xl p-3 md:p-5 hover:shadow-sm transition-shadow">
-                    <div className="flex items-center gap-2 md:gap-3">
-                        <div className="p-1.5 md:p-2.5 bg-green-50 text-green-600 rounded-lg shrink-0">
-                            <RotateCcw size={16} className="md:w-5 md:h-5" />
-                        </div>
-                        <div>
-                            <p className="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Completed</p>
-                            <h3 className="text-xl md:text-2xl font-extrabold text-gray-900">{completedReturns}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="bg-white border border-gray-100 rounded-lg md:rounded-xl p-3 md:p-4 lg:p-3">
-                <div className="flex flex-col md:flex-row gap-3 md:gap-4">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Search by order ID, customer, or product..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-8 md:pl-10 pr-4 py-1.5 md:py-2 border border-gray-200 rounded-lg focus:border-[#0c831f] focus:outline-none text-xs md:text-sm"
-                        />
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                        {['all', 'pending', 'approved', 'rejected', 'completed'].map(status => (
-                            <button
-                                key={status}
-                                onClick={() => setFilterStatus(status)}
-                                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-sm font-bold capitalize whitespace-nowrap border transition-all active:scale-95 ${filterStatus === status
-                                    ? 'bg-[#0c831f] text-white border-[#0c831f]'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                                    }`}
-                            >
-                                {status}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Return Requests Table - Desktop */}
-            <div className="hidden md:block overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[900px]">
-                        <thead className="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase">Order ID</th>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase">Customer</th>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase">Product</th>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase">Reason</th>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase">Amount</th>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase">Date</th>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase">Status</th>
-                                <th className="px-4 md:px-6 py-2.5 md:py-3 lg:py-2.5 text-[9px] md:text-xs font-bold text-gray-500 uppercase text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {filteredRequests.map((request, index) => (
-                                <tr key={request.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3">
-                                        <span className="text-xs md:text-sm font-bold text-gray-900">{request.orderId}</span>
-                                    </td>
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3 text-xs md:text-sm text-gray-600">{request.customer}</td>
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3">
-                                        <p className="text-xs md:text-sm font-medium text-gray-900">{request.product}</p>
-                                        <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-500 mt-1">
-                                            <ImageIcon size={12} />
-                                            {request.images.length} image(s)
-                                        </div>
-                                    </td>
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3 text-xs md:text-sm text-gray-600">{request.reason}</td>
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3 text-xs md:text-sm font-bold text-gray-900">{formatCurrency(request.amount)}</td>
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3 text-xs md:text-sm text-gray-600">{request.date}</td>
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3">
-                                        <span className={`px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold border ${statusColors[request.status]}`}>
-                                            {request.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 md:px-6 py-3 md:py-4 lg:py-3">
-                                        <div className="relative flex justify-end">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (activeActionId === request.id) {
-                                                        setActiveActionId(null);
-                                                    } else {
-                                                        // Calculate position relative to viewport
-                                                        const rect = e.currentTarget.getBoundingClientRect();
-                                                        const menuHeight = request.status === 'pending' ? 120 : 45; // Approx heights
-                                                        const spaceBelow = window.innerHeight - rect.bottom;
-
-                                                        let top, left;
-                                                        // Open upwards if near bottom of screen
-                                                        if (spaceBelow < menuHeight + 20) {
-                                                            top = rect.top - menuHeight - 5;
-                                                        } else {
-                                                            top = rect.bottom + 5;
-                                                        }
-
-                                                        // Align right edge: rect.right - menuWidth (32 * 4 = 128px)
-                                                        left = rect.right - 128;
-
-                                                        // setMenuPosition({ top, left });
-                                                        setActiveActionId(request.id);
-                                                    }
-                                                }}
-                                                className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                                            >
-                                                <MoreVertical size={16} />
-                                            </button>
-
-                                            {/* Dropdown Menu */}
-                                            {activeActionId === request.id && (
-                                                <>
-                                                    <div
-                                                        className="fixed inset-0 z-10"
-                                                        onClick={() => setActiveActionId(null)}
-                                                    />
-                                                    <div className={`absolute right-0 w-32 bg-white rounded-lg shadow-lg border border-gray-100 z-20 py-1 overflow-visible animate-in fade-in zoom-in-95 duration-200 ${index >= filteredRequests.length - 2 && filteredRequests.length > 2
-                                                        ? 'bottom-full mb-1'
-                                                        : 'top-full mt-1'
-                                                        }`}>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleViewDetails(request);
-                                                                setActiveActionId(null);
-                                                            }}
-                                                            className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                                        >
-                                                            <Eye size={14} /> View
-                                                        </button>
-                                                        {request.status === 'pending' && (
-                                                            <>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleApproveClick(request);
-                                                                        setActiveActionId(null);
-                                                                    }}
-                                                                    className="w-full text-left px-3 py-2 text-xs font-medium text-green-600 hover:bg-green-50 flex items-center gap-2"
-                                                                >
-                                                                    <CheckCircle size={14} /> Approve
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleRejectClick(request);
-                                                                        setActiveActionId(null);
-                                                                    }}
-                                                                    className="w-full text-left px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                                                >
-                                                                    <XCircle size={14} /> Reject
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Return Request Cards - Mobile */}
-            <div className="md:hidden space-y-3 md:space-y-4">
-                {filteredRequests.map(request => (
-                    <div key={request.id} className="p-4 md:p-5 border-b border-gray-100 last:border-0">
-                        <div className="flex justify-between items-start mb-3">
-                            <div>
-                                <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase">{request.orderId}</span>
-                                <h3 className="text-xs md:text-sm font-bold text-gray-900 mt-1">{request.product}</h3>
-                                <p className="text-[10px] md:text-xs text-gray-500 mt-1">{request.customer}</p>
-                            </div>
-                            <span className={`px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold border ${statusColors[request.status]}`}>
-                                {request.status}
-                            </span>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2.5 md:p-3 mb-3">
-                            <p className="text-[10px] md:text-xs text-gray-500">Reason</p>
-                            <p className="text-xs md:text-sm font-medium text-gray-900">{request.reason}</p>
-                            <p className="text-[10px] md:text-xs text-gray-600 mt-1">{request.description}</p>
-                        </div>
-                        <div className="flex justify-between items-center mb-3">
-                            <div>
-                                <p className="text-[10px] md:text-xs text-gray-500">Refund Amount</p>
-                                <p className="text-sm md:text-base font-bold text-gray-900">{formatCurrency(request.amount)}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-[10px] md:text-xs text-gray-500">Requested</p>
-                                <p className="text-[10px] md:text-xs font-medium text-gray-900">{request.date}</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => handleViewDetails(request)}
-                                className="flex-1 py-2 text-[10px] md:text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all active:scale-95"
-                            >
-                                View Details
-                            </button>
-                            {request.status === 'pending' && (
-                                <>
-                                    <button
-                                        onClick={() => handleApproveClick(request)}
-                                        className="flex-1 py-2 text-[10px] md:text-xs font-bold text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-all active:scale-95"
-                                    >
-                                        Approve
-                                    </button>
-                                    <button
-                                        onClick={() => handleRejectClick(request)}
-                                        className="flex-1 py-2 text-[10px] md:text-xs font-bold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-all active:scale-95"
-                                    >
-                                        Reject
-                                    </button>
-                                </>
-                            )}
-                        </div>
+            {/* Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {[
+                    { label: 'Total', value: stats.total, color: 'bg-gray-50 text-gray-700 border-gray-100' },
+                    { label: 'Pending', value: stats.pending, color: 'bg-amber-50 text-amber-700 border-amber-100' },
+                    { label: 'Approved', value: stats.approved, color: 'bg-green-50 text-green-700 border-green-100' },
+                    { label: 'Rejected', value: stats.rejected, color: 'bg-red-50 text-red-700 border-red-100' },
+                    { label: 'Pickup Scheduled', value: stats.pickupScheduled, color: 'bg-blue-50 text-blue-700 border-blue-100' },
+                ].map(s => (
+                    <div key={s.label} className={`rounded-xl border p-4 ${s.color}`}>
+                        <p className="text-2xl font-black">{s.value}</p>
+                        <p className="text-xs font-medium mt-1 opacity-70">{s.label}</p>
                     </div>
                 ))}
             </div>
 
+            {/* Filters */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-3">
+                <div className="relative flex-1">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search by order ID, customer name or item..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-purple-400"
+                    />
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                    {['all', 'pending', 'approved', 'rejected'].map(f => (
+                        <button
+                            key={f}
+                            onClick={() => setFilterStatus(f)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${filterStatus === f ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                        >
+                            {f}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                {loading ? (
+                    <div className="flex items-center justify-center py-16">
+                        <Loader2 size={28} className="animate-spin text-purple-500" />
+                    </div>
+                ) : filteredRequests.length === 0 ? (
+                    <div className="py-16 flex flex-col items-center justify-center text-gray-400">
+                        <Package size={40} className="mb-3 opacity-30" />
+                        <p className="font-medium text-sm">No return requests found</p>
+                        <p className="text-xs mt-1 opacity-70">Returns from your vendor store orders will appear here</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    {['Order ID', 'Customer', 'Amount', 'Reason', 'Status', 'Pickup', 'Actions'].map(h => (
+                                        <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {filteredRequests.map(request => (
+                                    <tr key={request._id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3">
+                                            <span className="font-mono font-bold text-gray-800 text-xs">{request.orderId}</span>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <p className="font-medium text-gray-800">{request.user?.name}</p>
+                                            <p className="text-xs text-gray-400">{request.user?.phone}</p>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className="font-bold text-gray-800">₹{request.totalAmount}</span>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <p className="text-xs text-gray-600 max-w-[140px] truncate">
+                                                {request.returnRequest?.reason || '—'}
+                                            </p>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusColors[request.returnRequest?.status] || statusColors.Pending}`}>
+                                                {request.returnRequest?.status || 'Pending'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {request.returnRequest?.pickupDeliveryId ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[10px] font-bold">
+                                                    <Truck size={10} /> Scheduled
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-gray-300">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <button
+                                                onClick={() => setSelectedRequest(request)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-purple-50 hover:text-purple-700 text-gray-600 rounded-lg text-xs font-medium transition-all"
+                                            >
+                                                <Eye size={13} /> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
             {/* Detail Modal */}
-            {
-                showDetailModal && selectedRequest && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowDetailModal(false)}>
-                        <div className="bg-white rounded-xl md:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                            <div className="sticky top-0 bg-white border-b border-gray-100 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-sm md:text-lg font-bold text-gray-900">Return Request Details</h2>
-                                    <p className="text-[10px] md:text-sm text-gray-500 mt-0.5">{selectedRequest.orderId}</p>
+            {selectedRequest && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between rounded-t-2xl">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                                    <RotateCcw size={16} />
                                 </div>
-                                <button onClick={() => setShowDetailModal(false)} className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                                    <X size={20} />
-                                </button>
+                                <div>
+                                    <h3 className="font-bold text-gray-800">Return Request</h3>
+                                    <p className="text-xs text-gray-400 font-mono">{selectedRequest.orderId}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setSelectedRequest(null)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="p-5 space-y-4">
+                            {/* Source */}
+                            <div className="flex items-center gap-2">
+                                <SourceBadge order={selectedRequest} />
+                                <span className="text-[10px] text-gray-400 font-bold">
+                                    {selectedRequest.vendor ? 'This order was from your store' : 'Branch order'}
+                                </span>
                             </div>
 
-                            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-                                {/* Images */}
+                            {/* Order Value */}
+                            <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-xs md:text-sm font-bold text-gray-900 mb-2 md:mb-3">Uploaded Images</h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-                                        {selectedRequest.images.map((img, idx) => (
-                                            <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-gray-100">
-                                                <img src={img} alt={`Return proof ${idx + 1}`} className="w-full h-full object-cover" />
+                                    <p className="text-xs font-bold text-purple-600 uppercase">Order Value</p>
+                                    <p className="text-2xl font-black text-gray-800">₹{selectedRequest.totalAmount}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-gray-400 font-medium">Requested</p>
+                                    <p className="text-xs font-bold text-gray-600">
+                                        {selectedRequest.returnRequest?.requestDate
+                                            ? new Date(selectedRequest.returnRequest.requestDate).toLocaleDateString('en-IN')
+                                            : '—'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Customer */}
+                            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Customer</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 bg-white border border-gray-100 rounded-xl flex items-center justify-center">
+                                        <User size={16} className="text-gray-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-bold text-gray-800">{selectedRequest.user?.name}</p>
+                                        <p className="text-xs text-gray-500">{selectedRequest.user?.email}</p>
+                                    </div>
+                                    <a href={`tel:${selectedRequest.user?.phone}`} className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                                        <Phone size={14} />
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Return Reason */}
+                            <div className="border-l-4 border-amber-400 bg-amber-50 rounded-r-xl p-4">
+                                <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1">Return Reason</p>
+                                <p className="text-sm font-bold text-gray-800">{selectedRequest.returnRequest?.reason || '—'}</p>
+                                {selectedRequest.returnRequest?.description && (
+                                    <p className="text-xs text-gray-500 mt-1">{selectedRequest.returnRequest.description}</p>
+                                )}
+                            </div>
+
+                            {/* Items */}
+                            {selectedRequest.items?.length > 0 && (
+                                <div className="bg-gray-50 rounded-xl p-4">
+                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Items</p>
+                                    <div className="space-y-2">
+                                        {selectedRequest.items.map((item, i) => (
+                                            <div key={i} className="flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-100">
+                                                {item.image && <img src={item.image} alt={item.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-bold text-gray-800 truncate">{item.name}</p>
+                                                    <p className="text-[9px] text-gray-400">Qty: {item.quantity} · ₹{item.price}</p>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
+                            )}
 
-                                {/* Details */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                                    <div>
-                                        <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Customer</p>
-                                        <p className="text-xs md:text-sm font-bold text-gray-900">{selectedRequest.customer}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Product</p>
-                                        <p className="text-xs md:text-sm font-bold text-gray-900">{selectedRequest.product}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Return Reason</p>
-                                        <p className="text-xs md:text-sm font-bold text-gray-900">{selectedRequest.reason}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Refund Amount</p>
-                                        <p className="text-xs md:text-sm font-bold text-[#0c831f]">{formatCurrency(selectedRequest.amount)}</p>
-                                    </div>
+                            {/* Rejection reason if any */}
+                            {selectedRequest.returnRequest?.status === 'Rejected' && selectedRequest.returnRequest?.rejectionReason && (
+                                <div className="border border-red-100 bg-red-50 rounded-xl p-4">
+                                    <p className="text-xs font-bold text-red-600 uppercase mb-1">Rejection Reason</p>
+                                    <p className="text-sm text-gray-700">{selectedRequest.returnRequest.rejectionReason}</p>
                                 </div>
+                            )}
 
-                                <div>
-                                    <p className="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Description</p>
-                                    <p className="text-xs md:text-sm text-gray-700 bg-gray-50 p-2.5 md:p-3 rounded-lg">{selectedRequest.description}</p>
-                                </div>
-
-                                {selectedRequest.status === 'rejected' && selectedRequest.rejectReason && (
-                                    <div>
-                                        <p className="text-[10px] md:text-xs font-bold text-red-500 uppercase mb-1">Rejection Reason</p>
-                                        <p className="text-xs md:text-sm text-gray-700 bg-red-50 p-2.5 md:p-3 rounded-lg border border-red-100">{selectedRequest.rejectReason}</p>
-                                    </div>
-                                )}
-
-                                {selectedRequest.status === 'pending' && (
-                                    <div className="flex gap-2 md:gap-3 pt-2">
-                                        <button
-                                            onClick={() => {
-                                                setShowDetailModal(false);
-                                                handleApproveClick(selectedRequest);
-                                            }}
-                                            className="flex-1 py-2 md:py-2.5 bg-green-600 text-white rounded-lg text-xs md:text-sm font-bold hover:bg-green-700 transition-all active:scale-95"
-                                        >
-                                            Approve Return
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setShowDetailModal(false);
-                                                handleRejectClick(selectedRequest);
-                                            }}
-                                            className="flex-1 py-2 md:py-2.5 bg-red-600 text-white rounded-lg text-xs md:text-sm font-bold hover:bg-red-700 transition-all active:scale-95"
-                                        >
-                                            Reject Return
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            {/* Confirmation Modal */}
-            {
-                showConfirmModal && selectedRequest && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowConfirmModal(false)}>
-                        <div className="bg-white rounded-xl md:rounded-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-                            <div className="p-4 md:p-6">
-                                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center mb-3 md:mb-4 mx-auto ${confirmAction === 'approve' ? 'bg-green-100' : 'bg-red-100'
-                                    }`}>
-                                    {confirmAction === 'approve' ? (
-                                        <Check className="text-green-600" size={24} />
-                                    ) : (
-                                        <XCircle className="text-red-600" size={24} />
-                                    )}
-                                </div>
-
-                                <h3 className="text-base md:text-lg font-bold text-gray-900 text-center mb-2">
-                                    {confirmAction === 'approve' ? 'Approve Return Request?' : 'Reject Return Request?'}
-                                </h3>
-
-                                <p className="text-xs md:text-sm text-gray-600 text-center mb-4">
-                                    {confirmAction === 'approve'
-                                        ? `This will approve the return for ${selectedRequest.product} and process a refund of ${formatCurrency(selectedRequest.amount)}.`
-                                        : `This will reject the return request for ${selectedRequest.product}.`
-                                    }
-                                </p>
-
-                                {confirmAction === 'reject' && (
-                                    <div className="mb-4">
-                                        <label className="text-[10px] md:text-xs font-bold text-gray-700 mb-1.5 block">Rejection Reason (Optional)</label>
-                                        <textarea
-                                            value={rejectReason}
-                                            onChange={(e) => setRejectReason(e.target.value)}
-                                            placeholder="Enter reason for rejection..."
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-[#0c831f] focus:outline-none text-xs md:text-sm resize-none"
-                                            rows="3"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="flex gap-2 md:gap-3">
+                            {/* Actions */}
+                            {selectedRequest.returnRequest?.status === 'Pending' && (
+                                <div className="flex gap-3 pt-2">
                                     <button
-                                        onClick={() => setShowConfirmModal(false)}
-                                        className="flex-1 py-2 md:py-2.5 bg-gray-100 text-gray-700 rounded-lg text-xs md:text-sm font-bold hover:bg-gray-200 transition-all active:scale-95"
+                                        onClick={() => handleAction(selectedRequest._id, 'Approved')}
+                                        disabled={processing}
+                                        className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-green-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        Cancel
+                                        {processing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={16} />}
+                                        Approve & Restore Stock
                                     </button>
                                     <button
-                                        onClick={handleConfirmAction}
-                                        className={`flex-1 py-2 md:py-2.5 text-white rounded-lg text-xs md:text-sm font-bold transition-all active:scale-95 ${confirmAction === 'approve'
-                                            ? 'bg-green-600 hover:bg-green-700'
-                                            : 'bg-red-600 hover:bg-red-700'
-                                            }`}
+                                        onClick={() => handleAction(selectedRequest._id, 'Rejected')}
+                                        disabled={processing}
+                                        className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-red-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {confirmAction === 'approve' ? 'Approve' : 'Reject'}
+                                        {processing ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={16} />}
+                                        Reject
                                     </button>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* Schedule Pickup — after approval, before scheduling */}
+                            {selectedRequest.returnRequest?.status === 'Approved' && !selectedRequest.returnRequest?.pickupDeliveryId && (
+                                <div className="space-y-2 pt-2">
+                                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-100 rounded-xl">
+                                        <CheckCircle size={16} className="text-green-600" />
+                                        <p className="text-xs font-bold text-green-700">Return approved · Stock restored to your store</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleSchedulePickup(selectedRequest._id)}
+                                        disabled={processing}
+                                        className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-purple-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {processing ? <Loader2 size={14} className="animate-spin" /> : <Truck size={16} />}
+                                        Schedule Return Pickup → Your Store
+                                    </button>
+                                    <p className="text-[10px] text-gray-400 text-center">
+                                        A delivery partner will collect the item from the customer and deliver it to your store
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Pickup Already Scheduled */}
+                            {selectedRequest.returnRequest?.pickupDeliveryId && (
+                                <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                                    <Truck size={18} className="text-blue-600 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-sm font-bold text-blue-700">Pickup Scheduled</p>
+                                        <p className="text-xs text-blue-600">A delivery partner will collect the item and bring it to your store.</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Returned to store */}
+                            {selectedRequest.status === 'returned' && (
+                                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-100 rounded-xl">
+                                    <CheckCircle size={18} className="text-green-600 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-sm font-bold text-green-700">Item Returned to Store</p>
+                                        <p className="text-xs text-green-600">Customer has been refunded. Return cycle complete.</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     );
 };
 

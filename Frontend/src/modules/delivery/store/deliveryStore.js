@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import {
     getDeliveryProfile,
     verifyOTP as verifyOTPApi,
@@ -24,7 +24,7 @@ const useDeliveryStore = create((set, get) => ({
     loading: false,
     error: null,
 
-    // ── Internal fetch-in-progress flags to prevent concurrent duplicate calls ──
+    // ₹₹ Internal fetch-in-progress flags to prevent concurrent duplicate calls ₹₹
     _fetching: {
         profile: false,
         orders: false,
@@ -32,7 +32,7 @@ const useDeliveryStore = create((set, get) => ({
         stats: false
     },
 
-    // ─────────────────────────── AUTH ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ AUTH ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     login: async (phone, otp) => {
         set({ loading: true, error: null });
         try {
@@ -57,7 +57,7 @@ const useDeliveryStore = create((set, get) => ({
         });
     },
 
-    // ─────────────────────────── PROFILE ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ PROFILE ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     fetchProfile: async () => {
         const { token, _fetching } = get();
         if (!token || _fetching.profile) return;
@@ -73,7 +73,7 @@ const useDeliveryStore = create((set, get) => ({
         }
     },
 
-    // ─────────────────────────── STATUS ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ STATUS ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     toggleStatus: async (token, currentStatus) => {
         const statusToSend = currentStatus === 'Online' ? 'offline' : 'online';
         try {
@@ -85,7 +85,7 @@ const useDeliveryStore = create((set, get) => ({
         }
     },
 
-    // ─────────────────────────── ORDERS ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ ORDERS ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     fetchOrders: async (token, type = 'active') => {
         const { _fetching } = get();
         if (!token || _fetching.orders) return;
@@ -101,7 +101,7 @@ const useDeliveryStore = create((set, get) => ({
         }
     },
 
-    // ─────────────────────────── WALLET ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ WALLET ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     fetchWallet: async (token) => {
         const { _fetching } = get();
         if (!token || _fetching.wallet) return;
@@ -115,7 +115,7 @@ const useDeliveryStore = create((set, get) => ({
         }
     },
 
-    // ─────────────────────────── LOCATION ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ LOCATION ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     setLocalLocation: (longitude, latitude) => {
         set((state) => ({
             profile: {
@@ -134,7 +134,7 @@ const useDeliveryStore = create((set, get) => ({
         }
     },
 
-    // ─────────────────────────── STATS ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ STATS ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     fetchStats: async (token) => {
         const { _fetching } = get();
         if (!token || _fetching.stats) return;
@@ -149,7 +149,7 @@ const useDeliveryStore = create((set, get) => ({
         }
     },
 
-    // ─────────────────────────── SIMULATE ───────────────────────────
+    // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ SIMULATE ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
     triggerSimulation: async (token) => {
         try {
             await simulateOrderApi(token);

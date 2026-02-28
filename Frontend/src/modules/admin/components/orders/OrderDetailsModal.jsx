@@ -1,4 +1,4 @@
-import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle } from 'lucide-react';
+﻿import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle } from 'lucide-react';
 import { getAvailablePartners, assignOrder, autoAssignOrder } from '../../api/adminDeliveryApi';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -193,7 +193,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     </div>
                     <div class="total-row grand-total">
                         <span>Grand Total:</span>
-                        <span>${displayTotal}</span>
+                        <span>₹${displayTotal}</span>
                     </div>
                 </div>
 
@@ -311,7 +311,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                         onClick={handleAutoAssign}
                                         className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
                                     >
-                                        {assigning ? <span className="animate-spin">◌</span> : <Zap size={16} fill="currentColor" />}
+                                        {assigning ? <span className="animate-spin">₹</span> : <Zap size={16} fill="currentColor" />}
                                         Auto Assign Nearest
                                     </button>
 

@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { Package, RefreshCw, AlertCircle } from 'lucide-react';
 import { adjustInventory } from '../../api/productApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
+import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
 import { toast } from 'react-toastify';
 
 const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
-    const { adminUser } = useAdminAuth();
+    const adminContext = useAdminAuth();
+    const staffContext = useStaffAuth();
+    const managerContext = useStoreManagerAuth();
+
+    const adminUser = adminContext?.adminUser || staffContext?.staffUser || managerContext?.managerUser || null;
     const [amount, setAmount] = useState('');
     const [type, setType] = useState('Addition');
     const [reason, setReason] = useState('');
@@ -105,8 +111,8 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                             <option value="Addition">📦 Stock Addition (Purchase/Restock)</option>
                             <option value="Return">🔄 Customer Return</option>
                             <option value="Deduction">📤 Manual Deduction</option>
-                            <option value="Damage">⚠️ Damaged / Expired</option>
-                            <option value="Audit">⚖️ Inventory Audit (Set Exact)</option>
+                            <option value="Damage">️ Damaged / Expired</option>
+                            <option value="Audit">️ Inventory Audit (Set Exact)</option>
                         </Form.Select>
                     </Form.Group>
 

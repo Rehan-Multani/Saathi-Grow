@@ -66,11 +66,11 @@ const Footer = ({ customTheme }) => {
         {/* Copyright Bar */}
         <div className="pt-2 border-t border-gray-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-1">
           <p className="text-gray-400 dark:text-gray-500 text-[8px] md:text-xs font-medium">
-            Â© {new Date().getFullYear()} sathiGro Technologies Pvt. Ltd. All rights reserved.
+            � {new Date().getFullYear()} sathiGro Technologies Pvt. Ltd. All rights reserved.
           </p>
           <div className="flex items-center gap-1 text-gray-400 dark:text-gray-500 text-[10px] md:text-xs font-medium">
             <span>Built with</span>
-            <span className="text-red-500">â¤ï¸</span>
+            <span className="text-red-500">₹️</span>
             <span>for sathiGro Users</span>
           </div>
         </div>

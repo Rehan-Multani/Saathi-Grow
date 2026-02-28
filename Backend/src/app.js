@@ -126,6 +126,8 @@ import orderRoutes from './routes/orderRoutes.js';
 import settingRoutes from './routes/settingRoutes.js';
 import adminDeliveryRoutes from './routes/adminDeliveryRoutes.js';
 import deliveryAuthRoutes from './routes/deliveryAuthRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import walletRoutes from './routes/walletRoutes.js';
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -142,6 +144,7 @@ app.use('/api/admin/offer-deals', offerRoutes);
 app.use('/api/admin/delivery', adminDeliveryRoutes);
 app.use('/api/delivery/auth', deliveryAuthRoutes);
 app.use('/api/delivery', deliveryRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // User Profile/Front-End Routes
 app.use('/api/user/addresses', userAddressRoutes);
@@ -149,6 +152,7 @@ app.use('/api/user/wishlist', userWishlistRoutes);
 app.use('/api/user/cart', userCartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/wallet', walletRoutes);
 
 // Socket logic placeholder
 io.on('connection', (socket) => {

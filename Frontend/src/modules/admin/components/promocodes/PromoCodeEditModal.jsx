@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, InputGroup } from 'react-bootstrap';
 import { Save, Ticket } from 'lucide-react';
 
@@ -38,7 +38,7 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
 
         const displayMinOrder = `₹${formData.minOrder || '0'}`;
         const currentUsage = promoCode?.usage?.split('/')[0] || '0';
-        const displayUsage = `${currentUsage}/${formData.usageLimit || '∞'}`;
+        const displayUsage = `${currentUsage}/${formData.usageLimit || '₹'}`;
 
         onSave({
             ...promoCode,

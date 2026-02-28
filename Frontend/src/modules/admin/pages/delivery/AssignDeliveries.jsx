@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Badge, Dropdown, Spinner, Row, Col, InputGroup } from 'react-bootstrap';
 import { Clock, MapPin, UserCheck, RefreshCw, Search, UserX, Zap } from 'lucide-react';
 import {
@@ -224,7 +224,7 @@ const AssignDeliveries = () => {
                                                                 className="rounded small py-2"
                                                             >
                                                                 <div className="fw-bold">{d.name}</div>
-                                                                <div className="small text-muted">{d.vehicleType} • {d.phone}</div>
+                                                                <div className="small text-muted">{d.vehicleType} ₹ {d.phone}</div>
                                                             </Dropdown.Item>
                                                         )) : <Dropdown.Item disabled>No free drivers online</Dropdown.Item>}
                                                     </Dropdown.Menu>

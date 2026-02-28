@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';

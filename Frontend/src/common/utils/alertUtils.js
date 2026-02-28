@@ -1,4 +1,4 @@
-import Swal from 'sweetalert2';
+﻿import Swal from 'sweetalert2';
 
 export const showDeleteConfirmation = (title = 'Are you sure?', text = "You won't be able to revert this!") => {
     return Swal.fire({

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Button, Form, Row, Col, Image } from 'react-bootstrap';
 import { Save, Camera, X } from 'lucide-react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';

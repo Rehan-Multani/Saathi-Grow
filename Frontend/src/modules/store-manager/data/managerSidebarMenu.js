@@ -1,4 +1,4 @@
-export const managerSidebarMenu = [
+﻿export const managerSidebarMenu = [
   {
     title: 'Dashboard',
     path: '/store-manager/dashboard',
@@ -10,6 +10,12 @@ export const managerSidebarMenu = [
     path: '/store-manager/inventory',
     icon: 'Package',
     permission: 'MANAGE_INVENTORY'
+  },
+  {
+    title: 'Products',
+    path: '/store-manager/products',
+    icon: 'ShoppingBag',
+    permission: 'VIEW_PRODUCTS'
   },
   {
     title: 'Stock Requests',
@@ -45,7 +51,7 @@ export const managerSidebarMenu = [
   {
     title: 'Customers',
     path: '/store-manager/customers',
-    icon: 'UserCloud',
+    icon: 'Users',
     permission: 'VIEW_CUSTOMERS'
   },
   {

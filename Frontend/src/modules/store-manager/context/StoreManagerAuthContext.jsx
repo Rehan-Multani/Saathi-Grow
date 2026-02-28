@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+﻿import { createContext, useContext, useState, useEffect } from 'react';
 import { loginAdmin } from '../../admin/api/adminApi';
 
 const StoreManagerAuthContext = createContext();
@@ -30,8 +30,18 @@ export const StoreManagerAuthProvider = ({ children }) => {
     localStorage.removeItem('sathiGro_manager');
   };
 
+  const managerUpdateProfile = async (profileData) => {
+    if (!managerUser?.token) throw new Error('Not authenticated');
+    const { updateProfile: updateApi } = await import('../../admin/api/adminApi');
+    const data = await updateApi(managerUser.token, profileData);
+    const updatedUser = { ...data, token: managerUser.token };
+    setManagerUser(updatedUser);
+    localStorage.setItem('sathiGro_manager', JSON.stringify(updatedUser));
+    return updatedUser;
+  };
+
   return (
-    <StoreManagerAuthContext.Provider value={{ managerUser, managerLogin, managerLogout }}>
+    <StoreManagerAuthContext.Provider value={{ managerUser, managerLogin, managerLogout, managerUpdateProfile }}>
       {children}
     </StoreManagerAuthContext.Provider>
   );

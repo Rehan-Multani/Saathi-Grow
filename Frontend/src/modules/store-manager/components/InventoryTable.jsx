@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Edit3, Trash2, RefreshCw, AlertTriangle, ChevronRight, Package } from 'lucide-react';
 
 const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete, branchId }) => {

@@ -1,30 +1,49 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { RotateCcw, CheckCircle2, XCircle, AlertCircle, Info, ChevronRight, Package, Calendar } from 'lucide-react';
 import ReturnApprovalModal from './components/ReturnApprovalModal';
+import { getReturnRequests, handleReturnRequest } from '../admin/api/orderApi';
+import Swal from 'sweetalert2';
 
 const ReturnsApproval = () => {
-    const [returnRequests, setReturnRequests] = useState([
-        { id: 1, orderId: 'ORD-5432', productName: 'Fresh Broccoli', quantity: 2, reason: 'Damaged during delivery - items were crushed.', status: 'Pending', date: 'Feb 15, 2024' },
-        { id: 2, orderId: 'ORD-9981', productName: 'Organic Tomatoes', quantity: 5, reason: 'Incorrect product received - ordered Cherry tomatoes.', status: 'Approved', date: 'Feb 14, 2024' },
-        { id: 3, orderId: 'ORD-1223', productName: 'Greek Yogurt 500g', quantity: 1, reason: 'Near expiry date (only 1 day remains).', status: 'Pending', date: 'Feb 15, 2024' },
-        { id: 4, orderId: 'ORD-4456', productName: 'Alphonso Mangoes', quantity: 3, reason: 'Quality not as expected - too sour.', status: 'Rejected', date: 'Feb 13, 2024' },
-    ]);
-
+    const [returnRequests, setReturnRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const fetchReturns = async () => {
+        try {
+            setLoading(true);
+            const data = await getReturnRequests();
+            setReturnRequests(data);
+        } catch (error) {
+            console.error('Failed to fetch returns:', error);
+            Swal.fire('Error', 'Could not load return requests', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchReturns();
+    }, []);
+
+    const processReturn = async (id, action) => {
+        try {
+            await handleReturnRequest(id, action);
+            Swal.fire('Success', `Return ${action.toLowerCase()} successfully`, 'success');
+            fetchReturns();
+            setIsModalOpen(false);
+        } catch (error) {
+            Swal.fire('Error', error.response?.data?.message || `Failed to ${action.toLowerCase()} return`, 'error');
+        }
+    };
+
     const handleApprove = (request) => {
-        setReturnRequests(returnRequests.map(req =>
-            req.id === request.id ? { ...req, status: 'Approved' } : req
-        ));
-        setIsModalOpen(false);
+        processReturn(request._id, 'Approved');
     };
 
     const handleReject = (id) => {
-        setReturnRequests(returnRequests.map(req =>
-            req.id === id ? { ...req, status: 'Rejected' } : req
-        ));
-        setIsModalOpen(false);
+        processReturn(id, 'Rejected');
     };
 
     const getStatusBadge = (status) => {
@@ -69,55 +88,75 @@ const ReturnsApproval = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {returnRequests.map((request) => (
-                                <tr key={request.id} className="group hover:bg-slate-50/50 transition-all duration-300">
-                                    <td className="px-8 py-6">
-                                        <div className="text-sm font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">#{request.orderId}</div>
-                                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
-                                            <Calendar size={10} />
-                                            {request.date}
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
-                                                <Package size={16} />
-                                            </div>
-                                            <span className="text-sm font-bold text-slate-700 tracking-tight">{request.productName}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 max-w-[280px]">
-                                        <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic border-l-2 border-slate-100 pl-3 group-hover:border-blue-200 transition-colors">
-                                            "{request.reason}"
-                                        </p>
-                                    </td>
-                                    <td className="px-8 py-6 text-center">
-                                        <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-700 mx-auto">
-                                            {request.quantity}
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        {getStatusBadge(request.status)}
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex justify-end">
-                                            {request.status === 'Pending' ? (
-                                                <button
-                                                    onClick={() => { setSelectedRequest(request); setIsModalOpen(true); }}
-                                                    className="px-5 py-2 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 uppercase tracking-widest active:scale-95"
-                                                >
-                                                    Audit Ticket
-                                                </button>
-                                            ) : (
-                                                <div className="flex items-center gap-2 text-slate-300">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest italic">Archived</span>
-                                                    <ChevronRight size={14} />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-5 text-slate-500 font-medium">Loading return requests...</td>
                                 </tr>
-                            ))}
+                            ) : returnRequests.length > 0 ? (
+                                returnRequests.map((request) => (
+                                    <tr key={request._id} className="group hover:bg-slate-50/50 transition-all duration-300">
+                                        <td className="px-8 py-6">
+                                            <div className="text-sm font-black text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">#{request.orderId}</div>
+                                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                                                <Calendar size={10} />
+                                                {new Date(request.returnRequest?.requestDate || request.updatedAt).toLocaleDateString()}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
+                                                    <Package size={16} />
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-700 tracking-tight">{request.items?.[0]?.product?.name || 'Multiple Items'}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 max-w-[280px]">
+                                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic border-l-2 border-slate-100 pl-3 group-hover:border-blue-200 transition-colors">
+                                                "{request.returnRequest?.reason || 'No specific reason provided'}"
+                                            </p>
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-700 mx-auto">
+                                                {request.items?.length || 1}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            {getStatusBadge(request.returnRequest?.status || 'Pending')}
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex justify-end">
+                                                {(request.returnRequest?.status === 'Pending' || !request.returnRequest?.status) ? (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedRequest({
+                                                                id: request._id,
+                                                                _id: request._id,
+                                                                orderId: request.orderId,
+                                                                productName: request.items?.[0]?.product?.name || 'Items',
+                                                                quantity: request.items?.length || 1,
+                                                                status: request.returnRequest?.status || 'Pending',
+                                                                reason: request.returnRequest?.reason
+                                                            }); setIsModalOpen(true);
+                                                        }}
+                                                        className="px-5 py-2 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 uppercase tracking-widest active:scale-95"
+                                                    >
+                                                        Audit Ticket
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-slate-300">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest italic">Archived</span>
+                                                        <ChevronRight size={14} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-5 text-slate-500 font-medium">No pending return requests found.</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

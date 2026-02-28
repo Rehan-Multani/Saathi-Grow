@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Users, Search, ShoppingBag, TrendingUp, DollarSign, Eye, Calendar, Filter } from 'lucide-react';
 import { formatCurrency } from '../utils/formatDate';
 

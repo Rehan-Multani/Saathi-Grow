@@ -188,7 +188,7 @@ const RegisterPage = () => {
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                     className="block w-full px-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl text-center text-xl tracking-[0.2em] focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none bg-gray-50/50 dark:bg-white/5 dark:text-white font-black"
-                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
+                                    placeholder="₹₹₹₹₹₹"
                                     required
                                     disabled={loading}
                                 />

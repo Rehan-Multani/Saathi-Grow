@@ -3,7 +3,7 @@ import Otp from '../models/Otp.js';
 import generateToken from '../utils/generateToken.js';
 import smsService from '../utils/smsService.js';
 import { cloudinary } from '../config/cloudinary.js';
-
+import Order from '../models/Order.js';
 // @desc    Request OTP for Login/Register
 // @route   POST /api/auth/request-otp
 // @access  Public
@@ -30,7 +30,7 @@ export const requestOTP = async (req, res) => {
     }
 
     // TEST NUMBERS - Bypass OTP with default 123456
-    const testNumbers = ['9199818320', '9009925021', '6261096283', '9752275626','7047716600','9685974247'];
+    const testNumbers = ['9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247'];
     const isTestNumber = testNumbers.includes(phone);
 
     // Generate 6-digit OTP
@@ -187,6 +187,7 @@ export const resendOTP = async (req, res) => {
 export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
+    const totalOrders = await Order.countDocuments({ user: req.user._id });
 
     if (user) {
       res.json({
@@ -199,7 +200,8 @@ export const getUserProfile = async (req, res) => {
           role: user.role,
           profileImage: user.profileImage,
           addresses: user.addresses,
-          walletBalance: user.walletBalance
+          walletBalance: user.walletBalance,
+          totalOrders: totalOrders
         }
       });
     } else {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Plus, Download, Database, FileSpreadsheet, RefreshCcw } from 'lucide-react';
 import InventoryTable from './components/InventoryTable';
 import SearchFilterBar from './components/SearchFilterBar';

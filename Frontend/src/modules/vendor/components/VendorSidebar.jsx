@@ -138,7 +138,7 @@ const VendorSidebar = () => {
                         <LogOut size={18} />
                         Logout
                     </button>
-                    <p className="mt-4 text-[10px] text-gray-400 text-center">v1.2.0 â€¢ sathiGro Vendor</p>
+                    <p className="mt-4 text-[10px] text-gray-400 text-center">v1.2.0 ₹ sathiGro Vendor</p>
                 </div>
             </div>
 

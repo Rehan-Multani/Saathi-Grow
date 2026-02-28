@@ -1,20 +1,73 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, ShieldCheck, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Send, ShieldCheck, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import * as orderApi from '../../api/orderApi';
+import { toast } from 'react-toastify';
 
 const CancelOrderPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { token } = useAuth();
     const [selectedIssue, setSelectedIssue] = useState('');
     const [comment, setComment] = useState('');
     const [submitted, setSubmitted] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [orderStatus, setOrderStatus] = useState('');
 
     const issues = ['Changed my mind', 'Order taking too long', 'Incorrect items ordered', 'Found better price elsewhere'];
 
-    const submitRequest = () => {
-        setSubmitted(true);
-        setTimeout(() => navigate('/orders'), 3000);
+    useEffect(() => {
+        const checkStatus = async () => {
+            if (token && id) {
+                try {
+                    const data = await orderApi.fetchOrderDetails(token, id);
+                    setOrderStatus(data.status);
+
+                    const restricted = ['out_for_delivery', 'delivered', 'cancelled', 'returned'];
+                    if (restricted.includes(data.status)) {
+                        toast.error(`Order cannot be cancelled. Current status: ${data.status.replace(/_/g, ' ')}`);
+                        navigate(`/orders/${id}`);
+                    }
+                } catch (err) {
+                    toast.error("Failed to verify order status");
+                    navigate('/orders');
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
+        checkStatus();
+    }, [token, id, navigate]);
+
+    const submitRequest = async () => {
+        if (!selectedIssue) return;
+
+        try {
+            console.log(`[DEBUG] Attempting cancellation for order ID: ${id}`);
+            setIsCancelling(true);
+            const reason = comment ? `${selectedIssue}: ${comment}` : selectedIssue;
+            const res = await orderApi.cancelOrder(token, id, reason);
+            console.log(`[DEBUG] API Success:`, res);
+            setSubmitted(true);
+            toast.success("Order cancelled successfully");
+            setTimeout(() => navigate('/orders'), 3000);
+        } catch (err) {
+            console.error(`[DEBUG] Cancellation Failed:`, err);
+            toast.error(err.message || "Failed to cancel order");
+        } finally {
+            setIsCancelling(false);
+        }
     };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
+                <Loader2 className="animate-spin text-[#0c831f]" size={32} />
+            </div>
+        );
+    }
 
     if (submitted) {
         return (
@@ -22,8 +75,8 @@ const CancelOrderPage = () => {
                 <div className="w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-6 text-red-600 animate-bounce">
                     <CheckCircle size={32} strokeWidth={3} />
                 </div>
-                <h2 className="text-[17px] md:text-xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Order cancelled!</h2>
-                <p className="text-[11px] md:text-base text-gray-500 mb-8 max-w-[250px]">Your order #{id} has been successfully cancelled. Your refund will be processed shortly.</p>
+                <h2 className="text-[17px] md:text-xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight uppercase">Order cancelled!</h2>
+                <p className="text-[11px] md:text-base text-gray-500 mb-8 max-w-[250px] font-bold">Your order #{id.slice(-6).toUpperCase()} has been successfully cancelled. Your refund will be processed shortly.</p>
                 <div className="w-full max-w-[180px] h-1 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                     <div className="h-full bg-red-600 animate-[shimmer_2s_infinite]"></div>
                 </div>
@@ -40,15 +93,16 @@ const CancelOrderPage = () => {
                     </button>
                     <div className="flex items-center gap-2">
                         <XCircle size={14} className="text-red-600" />
-                        <h1 className="text-[13.5px] md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none">Cancel order</h1>
+                        <h1 className="text-[13.5px] md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none uppercase">Cancel order</h1>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-2xl mx-auto px-4 pt-24 md:pt-28 pb-4 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-6">
-                    <div className="bg-red-500/10 dark:bg-red-500/5 p-4 md:rounded-2xl md:border border-red-100 dark:border-red-500/10 mb-2">
-                        <p className="text-[10px] md:text-base text-red-600 font-bold tracking-tight">Are you sure you want to cancel? This action cannot be undone.</p>
+                    <div className="bg-red-500/10 dark:bg-red-500/5 p-4 md:rounded-2xl md:border border-red-100 dark:border-red-500/10 mb-2 text-center">
+                        <p className="text-[10px] md:text-base text-red-600 font-black tracking-tight uppercase">Are you sure you want to cancel?</p>
+                        <p className="text-[9px] text-gray-400 font-bold mt-1">This action cannot be undone and will restore stock to our warehouse.</p>
                     </div>
 
                     <div>
@@ -62,7 +116,7 @@ const CancelOrderPage = () => {
                                         ? 'bg-red-500/10 text-red-600'
                                         : 'bg-transparent text-gray-600 dark:text-gray-300'}`}
                                 >
-                                    <span>{issue}</span>
+                                    <span className="uppercase tracking-tight">{issue}</span>
                                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${selectedIssue === issue ? 'border-red-600 bg-red-600' : 'border-gray-200 dark:border-white/10'}`}>
                                         {selectedIssue === issue && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
                                     </div>
@@ -77,26 +131,26 @@ const CancelOrderPage = () => {
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Please explain why you are cancelling..."
-                            className="w-full h-28 p-3.5 bg-white/20 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-600 text-[11px] md:text-base dark:text-white placeholder:text-gray-400 shadow-sm"
+                            className="w-full h-28 p-3.5 bg-white/20 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-600 text-[11px] md:text-base dark:text-white placeholder:text-gray-400 shadow-sm font-bold"
                         />
                     </div>
 
                     <div className="bg-blue-50 dark:bg-blue-500/10 p-3.5 rounded-xl flex gap-3 text-blue-600 border border-blue-100 dark:border-blue-500/10">
                         <ShieldCheck size={18} className="flex-shrink-0" />
-                        <p className="text-[9.5px] md:text-base font-medium leading-relaxed italic">
+                        <p className="text-[9.5px] md:text-base font-black leading-relaxed italic uppercase tracking-tight">
                             Your full refund will be processed within 1-2 hours for prepaid orders.
                         </p>
                     </div>
 
                     <button
-                        disabled={!selectedIssue}
+                        disabled={!selectedIssue || isCancelling}
                         onClick={submitRequest}
-                        className={`w-full py-3.5 rounded-xl text-[10.5px] md:text-lg font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 ${selectedIssue
+                        className={`w-full py-4 rounded-xl text-[10.5px] md:text-lg font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 ${selectedIssue && !isCancelling
                             ? 'bg-red-600 text-white shadow-red-500/20'
                             : 'bg-gray-200 dark:bg-white/10 text-gray-400 cursor-not-allowed shadow-none'}`}
                     >
-                        <Send size={14} />
-                        Confirm cancellation
+                        {isCancelling ? <Loader2 className="animate-spin" size={18} /> : <Send size={14} />}
+                        {isCancelling ? 'Processing...' : 'Confirm cancellation'}
                     </button>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Camera, Save, MapPin, Store, User, Phone, Mail, Clock, X, Check, Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { useNavigate } from 'react-router-dom';
@@ -137,7 +137,7 @@ const ShopProfile = () => {
                                 <span className={`px-2 py-0.5 rounded-md text-xs font-bold border flex items-center gap-1 ${vendor?.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-gray-50 text-gray-700 border-gray-100'}`}>
                                     {vendor?.status === 'Active' && <CheckCircle size={12} />} {vendor?.status}
                                 </span>
-                                <span>•</span>
+                                <span>₹</span>
                                 <span className="font-mono text-xs">#{vendor?._id?.substring(vendor._id.length - 8)}</span>
                             </div>
                         </div>

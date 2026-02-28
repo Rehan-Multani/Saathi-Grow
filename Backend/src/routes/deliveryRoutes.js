@@ -9,7 +9,10 @@ import {
     getDashboardStats,
     simulateOrder,
     getDeliveryDetail,
-    getRouteDirections
+    getRouteDirections,
+    getReturnPickups,
+    acceptReturnPickup,
+    updateReturnPickupStatus
 } from '../controllers/deliveryController.js';
 import { protectDeliveryPartner } from '../middleware/authMiddleware.js';
 
@@ -32,5 +35,10 @@ router.get('/stats', getDashboardStats);
 
 // Simulation route
 router.post('/simulate-order', simulateOrder);
+
+// Return Pickup Routes
+router.get('/returns', getReturnPickups);
+router.patch('/returns/:id/accept', acceptReturnPickup);
+router.patch('/returns/:id/status', updateReturnPickupStatus);
 
 export default router;

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, LayoutGrid, User, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

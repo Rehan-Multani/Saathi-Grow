@@ -77,7 +77,7 @@ const ProfileSettings = () => {
                 </div>
                 <div>
                     <h2 className="text-3xl font-black tracking-tight">{profile?.name || 'Partner'}</h2>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-1">Professional Partner • Indore</p>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-1">Professional Partner � Indore</p>
                 </div>
 
                 <div className="flex gap-4">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Package, AlertTriangle, Search, Filter, Save, RefreshCw, Plus, Minus, Layers, RotateCcw, Check } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../utils/formatDate';
@@ -283,7 +283,7 @@ const StockManagement = () => {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="text-sm font-bold text-gray-900 truncate">{product.name}</h3>
-                                            <p className="text-[10px] text-gray-500 font-medium">{product.category} • {formatCurrency(product.price)}</p>
+                                            <p className="text-[10px] text-gray-500 font-medium">{product.category} ₹ {formatCurrency(product.price)}</p>
                                         </div>
                                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${currentStock === 0 ? 'bg-red-50 text-red-600 border-red-100' :
                                             currentStock < 20 ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :

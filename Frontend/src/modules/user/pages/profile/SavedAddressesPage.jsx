@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { MapPin, ArrowLeft, Plus, ShoppingBag, Edit2, Trash2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLocation as useAppLocation } from '../../context/LocationContext';

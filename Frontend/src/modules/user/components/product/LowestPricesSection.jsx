@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import ProductCard from './ProductCard';
 import { normalizeProduct } from '../../pages/home/HomePage';
 import { ProductCardSkeleton } from '../common/Skeleton';
@@ -9,8 +9,8 @@ import { useTheme } from '../../context/ThemeContext';
  * LowestPricesSection
  *
  * Two modes:
- *  1. campaignProducts prop is given (array) → use those curated products directly (admin-driven)
- *  2. products prop is given → auto-filter products with mrp > basePrice (legacy auto-mode, no longer used on HomePage)
+ *  1. campaignProducts prop is given (array) ₹ use those curated products directly (admin-driven)
+ *  2. products prop is given ₹ auto-filter products with mrp > basePrice (legacy auto-mode, no longer used on HomePage)
  */
 const LowestPricesSection = ({
     products = [],
@@ -24,7 +24,7 @@ const LowestPricesSection = ({
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
 
-    // ✅ useEffect MUST be before any early return (Rules of Hooks)
+    // ₹ useEffect MUST be before any early return (Rules of Hooks)
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
@@ -116,7 +116,7 @@ const LowestPricesSection = ({
                     ) : (
                         displayProducts.map((product) => (
                             <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] relative">
-                                {/* Discount Badge — only show if there's a real discount */}
+                                {/* Discount Badge ₹ only show if there's a real discount */}
                                 {product.discountPercentage > 0 && (
                                     <div className="absolute top-1 right-1 z-40 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-black shadow-lg">
                                         {product.discountPercentage}% OFF

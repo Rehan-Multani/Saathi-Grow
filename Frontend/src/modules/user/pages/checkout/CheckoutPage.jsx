@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -14,14 +14,15 @@ import {
     Star,
     PartyPopper,
     Sparkles,
-    Lock
+    Lock,
+    Wallet,
+    Loader2
 } from 'lucide-react';
-
-// CelebrationBurst moved to OrderSuccessPage.jsx
 
 import { useLocation as useGlobalLocation } from '../../context/LocationContext';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
+import * as walletApi from '../../api/walletApi';
 import { toast } from 'react-toastify';
 
 const loadRazorpaySDK = () => {
@@ -40,7 +41,8 @@ const CheckoutPage = () => {
     const { user, token } = useAuth();
     const [isPlacing, setIsPlacing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cod');
-    const [onlineMethod, setOnlineMethod] = useState('phonepe'); // phonepe, gpay
+    const [walletBalance, setWalletBalance] = useState(0);
+    const [onlineMethod, setOnlineMethod] = useState('phonepe');
     const [billDetails, setBillDetails] = useState(null);
     const [isCalculating, setIsCalculating] = useState(true);
     const navigate = useNavigate();
@@ -48,7 +50,18 @@ const CheckoutPage = () => {
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, []);
+        const fetchWallet = async () => {
+            if (token) {
+                try {
+                    const data = await walletApi.fetchWalletData(token);
+                    setWalletBalance(data.balance);
+                } catch (err) {
+                    console.error('Wallet fetch failed', err);
+                }
+            }
+        };
+        fetchWallet();
+    }, [token]);
 
     useEffect(() => {
         const fetchBill = async () => {
@@ -81,11 +94,18 @@ const CheckoutPage = () => {
             return;
         }
 
+        const totalToPay = billDetails?.totalAmount || cartTotal;
+
+        if (paymentMethod === 'wallet' && walletBalance < totalToPay) {
+            toast.error("Insufficient wallet balance. Please top up or use another method.");
+            return;
+        }
+
         setIsPlacing(true);
 
         const orderData = {
             items: cart.map(item => ({
-                product: item.id || item._id, // Clean mapping fallback
+                product: item.id || item._id,
                 quantity: item.quantity,
                 price: item.price,
                 name: item.name,
@@ -100,12 +120,16 @@ const CheckoutPage = () => {
                 zipCode: '',
                 location: globalLocation.coordinates ? { type: 'Point', coordinates: globalLocation.coordinates } : undefined
             },
-            totalAmount: billDetails?.totalAmount || cartTotal
+            totalAmount: totalToPay
         };
 
         try {
             if (paymentMethod === 'cod') {
                 await orderApi.createCODOrder(token, orderData);
+                clearCart();
+                navigate('/order-success');
+            } else if (paymentMethod === 'wallet') {
+                await orderApi.createWalletOrder(token, orderData);
                 clearCart();
                 navigate('/order-success');
             } else {
@@ -128,7 +152,7 @@ const CheckoutPage = () => {
                 const rpPayload = await orderApi.createRazorpayOrder(token, itemsToCheckout);
 
                 const options = {
-                    key: 'rzp_test_8sYbzHWidwe5Zw', // Test API Key (safe to expose publicly on frontend since it's just public mapping)
+                    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                     amount: rpPayload.amount,
                     currency: rpPayload.currency,
                     name: "SaathiGrow Rapid",
@@ -170,7 +194,7 @@ const CheckoutPage = () => {
                 });
 
                 razorpayWindow.open();
-                return; // Wait for active JS UI payload to finish
+                return;
             }
         } catch (error) {
             console.error("Failure checking out:", error);
@@ -180,11 +204,8 @@ const CheckoutPage = () => {
         setIsPlacing(false);
     };
 
-
-
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black transition-colors duration-300 pb-32 pt-8 relative">
-            {/* Payment Processing Overlay */}
             {isPlacing && paymentMethod === 'online' && (
                 <div className="fixed inset-0 z-[100] bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
                     <div className="w-full max-w-xs flex flex-col items-center">
@@ -210,8 +231,6 @@ const CheckoutPage = () => {
                 </div>
             )}
             <div className="max-w-2xl mx-auto px-4">
-
-                {/* Clean Header Style like Notifications Page */}
                 <div className="flex items-center gap-3 mb-8">
                     <button
                         onClick={() => navigate('/cart')}
@@ -221,11 +240,10 @@ const CheckoutPage = () => {
                     </button>
                     <div>
                         <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight capitalize leading-none">Checkout</h1>
-                        <p className="!text-[8px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items • ₹{billDetails?.totalAmount || cartTotal}</p>
+                        <p className="!text-[8px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items ₹ ₹{billDetails?.totalAmount || cartTotal}</p>
                     </div>
                 </div>
 
-                {/* Delivery Address */}
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4 px-1">
                         <MapPin size={14} className="text-[#0c831f]" />
@@ -247,13 +265,27 @@ const CheckoutPage = () => {
                     </div>
                 </div>
 
-                {/* Payment Method */}
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4 px-1">
                         <Clock size={14} className="text-[#0c831f]" />
                         <h3 className="!text-[10px] font-black text-gray-400 tracking-widest">Payment method</h3>
                     </div>
                     <div className="space-y-3">
+                        {/* Wallet Option */}
+                        <div
+                            onClick={() => setPaymentMethod('wallet')}
+                            className={`flex items-center justify-between p-4 rounded-[20px] cursor-pointer transition-all border ${paymentMethod === 'wallet' ? 'bg-green-50/50 dark:bg-green-500/5 border-[#0c831f]' : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className={`w-4 h-4 rounded-full border-[4px] bg-white ${paymentMethod === 'wallet' ? 'border-[#0c831f]' : 'border-gray-300'}`}></div>
+                                <div className="flex flex-col">
+                                    <span className={`text-[11px] font-black capitalize tracking-tight ${paymentMethod === 'wallet' ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>sathiGro Wallet</span>
+                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mt-1">Available: ₹{walletBalance.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <Wallet size={16} className={`${paymentMethod === 'wallet' ? 'text-[#0c831f]' : 'text-gray-300'}`} />
+                        </div>
+
                         {/* COD Option */}
                         <div
                             onClick={() => setPaymentMethod('cod')}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { X, Store, Award, Package, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 
 const VendorPerformanceModal = ({ show, onHide, vendor }) => {

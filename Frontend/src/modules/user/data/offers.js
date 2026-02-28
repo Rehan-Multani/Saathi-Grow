@@ -1,4 +1,4 @@
-import offer1 from '../../../assets/offers/offer1.png';
+﻿import offer1 from '../../../assets/offers/offer1.png';
 import offer2 from '../../../assets/offers/offer2.png';
 import offer3 from '../../../assets/offers/offer3.png';
 import offer4 from '../../../assets/offers/offer4.png';

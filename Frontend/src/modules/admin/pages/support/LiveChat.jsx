@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card, Button, Form, Row, Col, ListGroup, Image, Badge } from 'react-bootstrap';
 import { Search, Send, MessageCircle, MoreVertical, Paperclip, Smile } from 'lucide-react';
 

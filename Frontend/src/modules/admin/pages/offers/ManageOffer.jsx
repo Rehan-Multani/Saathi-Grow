@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Button, Form, Row, Col, Card, Spinner, InputGroup, Breadcrumb } from 'react-bootstrap';
 import { Save, X, Plus, Trash2, Search, ArrowLeft, Image as ImageIcon, Sparkles, LayoutGrid, Upload, Percent } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
@@ -462,7 +462,7 @@ const ManageOffer = () => {
             <div className="me-auto hidden md:block text-start">
               <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">Status</div>
               <div className={`text-xs font-bold ${formData.isActive ? 'text-green-600' : 'text-gray-400'}`}>
-                {formData.isActive ? '• Ready for Launch' : '• Draft / Offline'}
+                {formData.isActive ? '₹ Ready for Launch' : '₹ Draft / Offline'}
               </div>
             </div>
             <Button variant="light" as={Link} to="/admin/offers/deals" className="px-5 py-2 fw-bold text-gray-500 hover:bg-gray-100 border shadow-sm">Cancel</Button>

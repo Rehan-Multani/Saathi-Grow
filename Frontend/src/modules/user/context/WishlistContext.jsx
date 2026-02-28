@@ -34,8 +34,8 @@ export const WishlistProvider = ({ children }) => {
                         id: p._id || p.id,
                         name: p.name,
                         image: p.image || (p.gallery && p.gallery.length > 0 ? p.gallery[0] : ''),
-                        basePrice: p.basePrice,
-                        mrp: p.mrp,
+                        price: p.basePrice,
+                        originalPrice: p.mrp,
                         category: p.category,
                         unitValue: p.unitValue,
                         unitType: p.unitType

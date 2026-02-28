@@ -1,4 +1,5 @@
-import { API_BASE_URL } from '../../../config/apiConfig';
+﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import axios from 'axios';
 
 const API_URL = `${API_BASE_URL}/orders`;
 
@@ -58,6 +59,20 @@ export const createCODOrder = async (token, orderData) => {
   return data;
 };
 
+export const createWalletOrder = async (token, orderData) => {
+  const response = await fetch(`${API_URL}/wallet`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ orderData })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to process wallet payment');
+  return data;
+};
+
 export const fetchMyOrders = async (token) => {
   const response = await fetch(`${API_URL}/myorders`, {
     headers: { 'Authorization': `Bearer ${token}` }
@@ -74,4 +89,26 @@ export const fetchOrderDetails = async (token, orderId) => {
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Error syncing single historical layout');
   return data;
+};
+
+export const cancelOrder = async (token, orderId, reason) => {
+  try {
+    const { data } = await axios.post(`${API_URL}/${orderId}/cancel`, { reason }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to cancel order secure layout');
+  }
+};
+
+export const submitReturnRequest = async (token, orderId, { reason, description }) => {
+  try {
+    const { data } = await axios.post(`${API_URL}/${orderId}/return`, { reason, description }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to submit return request');
+  }
 };

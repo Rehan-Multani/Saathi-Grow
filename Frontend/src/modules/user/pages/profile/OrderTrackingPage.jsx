@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../../../../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
@@ -193,7 +193,7 @@ const OrderTrackingPage = () => {
               </div>
               <div>
                 <h4 className="font-black text-gray-900 dark:text-white text-base leading-none mb-1">Rajesh Kumar</h4>
-                <p className="text-xs text-gray-500 font-bold tracking-tight">Delivery Partner â€¢ MP-09-XX-1234</p>
+                <p className="text-xs text-gray-500 font-bold tracking-tight">Delivery Partner ₹₹� MP-09-XX-1234</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

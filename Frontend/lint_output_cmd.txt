@@ -1,0 +1,776 @@
+
+> frontend@0.0.0 lint
+> eslint .
+
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\common\contexts\ReturnRequestsContext.jsx
+  5:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\components\ProfileSettings.jsx
+  15:9  error  'auth' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\config\apiConfig.js
+  6:3  warning  Unused eslint-disable directive (no problems were reported from 'no-console')
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\customers\CustomerDetailsModal.jsx
+  121:94  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  119 |                                     </div>
+  120 |                                     <div className="text-right">
+> 121 |                                         <div className="text-sm font-bold text-gray-800">��{(Math.random() * 500).toFixed(2)}</div>
+      |                                                                                              ^^^^^^^^^^^^^ Cannot call impure function
+  122 |                                         <div className="text-xs text-green-600">Delivered</div>
+  123 |                                     </div>
+  124 |                                 </div>  react-hooks/purity
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\delivery\DeliveryPartnerEditModal.jsx
+  16:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  14 |     useEffect(() => {
+  15 |         if (partner) {
+> 16 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  17 |                 name: partner.name || '',
+  18 |                 vehicleType: partner.vehicleType || 'Bike',
+  19 |                 phone: partner.phone || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\locations\EditBranchModal.jsx
+   5:10  error  'getAllStaff' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+   9:13  error  'adminUser' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+  30:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  28 |     useEffect(() => {
+  29 |         if (branch) {
+> 30 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |                 name: branch.name || '',
+  32 |                 code: branch.code || '',
+  33 |                 phone: branch.phone || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\locations\EditWarehouseModal.jsx
+  17:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 |     useEffect(() => {
+  16 |         if (warehouse) {
+> 17 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |                 name: warehouse.name || '',
+  19 |                 location: warehouse.location || '',
+  20 |                 capacity: warehouse.capacity || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\offers\BannerEditModal.jsx
+  17:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 |     useEffect(() => {
+  16 |         if (banner) {
+> 17 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |                 id: banner.id,
+  19 |                 title: banner.title || '',
+  20 |                 link: banner.link || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\offers\EditOfferModal.jsx
+  17:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 |     useEffect(() => {
+  16 |         if (offer) {
+> 17 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |                 title: offer.title || '',
+  19 |                 discount: offer.discount || '',
+  20 |                 code: offer.code || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\offers\SliderEditModal.jsx
+  15:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  13 |     useEffect(() => {
+  14 |         if (slider) {
+> 15 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  16 |                 title: slider.title || '',
+  17 |                 location: slider.location || 'Home Page - Top',
+  18 |                 status: slider.status || 'Active',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\orders\OrderDetailsModal.jsx
+  53:19  error  'res' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\products\BrandEditModal.jsx
+  39:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  37 |     useEffect(() => {
+  38 |         if (brand) {
+> 39 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  40 |                 name: brand.name || '',
+  41 |                 category: brand.category || '',
+  42 |                 status: brand.status || 'Active',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\products\CategoryEditModal.jsx
+  82:18  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\products\InventoryLogsModal.jsx
+  23:6  warning  React Hook useEffect has a missing dependency: 'fetchLogs'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\products\ProductEditModal.jsx
+  159:8   warning  React Hook useEffect has a missing dependency: 'formData.brandName'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  280:18  error    'error' is defined but never used                                                                                      no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\promocodes\PromoCodeEditModal.jsx
+  17:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 |     useEffect(() => {
+  16 |         if (promoCode) {
+> 17 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |                 code: promoCode.code || '',
+  19 |                 type: promoCode.type || 'Percentage',
+  20 |                 value: promoCode.value?.replace(/[^0-9.]/g, '') || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\staff\StaffEditModal.jsx
+  33:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  31 |     useEffect(() => {
+  32 |         if (staff) {
+> 33 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |                 name: staff.name || '',
+  35 |                 role: staff.role || '',
+  36 |                 email: staff.email || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\support\FAQModal.jsx
+  15:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  13 |     useEffect(() => {
+  14 |         if (faq) {
+> 15 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  16 |                 question: faq.question || '',
+  17 |                 answer: faq.answer || '',
+  18 |                 category: faq.category || 'General',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\components\support\TicketEditModal.jsx
+  15:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  13 |     useEffect(() => {
+  14 |         if (ticket) {
+> 15 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  16 |                 subject: ticket.subject || '',
+  17 |                 priority: ticket.priority || 'Low',
+  18 |                 status: ticket.status || 'Open',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\context\AdminAuthContext.jsx
+   6:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  55:11  error  Unnecessary catch clause                                                                                                        no-useless-catch
+  75:11  error  Unnecessary catch clause                                                                                                        no-useless-catch
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\Dashboard.jsx
+   11:7   error  'revenueData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u           no-unused-vars
+   21:7   error  'categoryData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u          no-unused-vars
+   30:41  error  'Icon' is defined but never used                                                                      no-unused-vars
+   48:7   error  'recentOrders' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u          no-unused-vars
+   62:12  error  'isMobile' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u              no-unused-vars
+   66:28  error  'setDateFilterType' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+   67:26  error  'setSelectedDate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u       no-unused-vars
+  108:11  error  'handleGenerateReport' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\analytics\POSAnalytics.jsx
+  1:17  error  'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\analytics\RevenueAnalytics.jsx
+  1:17  error  'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\auth\AdminLogin.jsx
+  22:18  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\brands\AllBrands.jsx
+  62:19  error  'isFormData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\delivery\AddDeliveryPartner.jsx
+  28:11  error  'handleGeneratePassword' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  50:19  error  'res' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                     no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\delivery\AssignDeliveries.jsx
+  11:5   error    'getDeliveryPartners' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                    no-unused-vars
+  41:18  error    'error' is defined but never used                                                                             no-unused-vars
+  50:8   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\delivery\DeliveryPartners.jsx
+  21:18  error  'error' is defined but never used  no-unused-vars
+  74:18  error  'e' is defined but never used      no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\delivery\DeliveryTracking.jsx
+  21:7   error    'getDriverIcon' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                       no-unused-vars
+  21:24  error    'type' is defined but never used                                                                                    no-unused-vars
+  47:29  error    'setRefreshInterval' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                  no-unused-vars
+  64:8   warning  React Hook useEffect has a missing dependency: 'refreshInterval'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\locations\AddBranch.jsx
+  6:10  error  'getAllStaff' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\locations\EditBranch.jsx
+  39:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  37 |
+  38 |         if (mockBranchData[id]) {
+> 39 |             setFormData(mockBranchData[id]);
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  40 |         }
+  41 |     }, [id]);
+  42 |  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\offers\ManageOffer.jsx
+  410:79  error  'idx' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\orders\AllOrders.jsx
+  32:12  error  'selectedCategory' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  32:30  error  'setSelectedCategory' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  53:11  error  'uniqueCategories' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\products\AddProduct.jsx
+  129:8   warning  React Hook useEffect has a missing dependency: 'formData.brandName'. Either include it or remove the dependency array                react-hooks/exhaustive-deps
+  148:8   warning  React Hook useEffect has missing dependencies: 'formData.sku' and 'generateSKU'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  500:63  error    'index' is defined but never used                                                                                                    no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\reports\SalesReports.jsx
+  1:17  error  'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\settings\AppSettings.jsx
+  1:17  error  'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\settings\BillingSettings.jsx
+  30:8   warning  React Hook useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  36:18  error    'error' is defined but never used                                                                                 no-unused-vars
+  57:18  error    'error' is defined but never used                                                                                 no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\settings\SocialProfile.jsx
+  1:17  error  'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\stock\LowStockAlerts.jsx
+  32:8  warning  React Hook useEffect has a missing dependency: 'fetchProducts'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\stock\StockAdjustments.jsx
+  66:48  error  'idx' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\support\FAQs.jsx
+  41:33  error  'id' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\support\Tickets.jsx
+  34:33  error  'id' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\vendors\AllVendors.jsx
+  35:8  warning  React Hook useEffect has a missing dependency: 'fetchVendors'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\vendors\VendorPayouts.jsx
+  21:22  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\admin\pages\vendors\VendorProducts.jsx
+  30:22  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\hooks\components\DeliveryLayout.jsx
+  15:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                       no-unused-vars
+  27:9   error  'removeNotification' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\hooks\components\NotificationProvider.jsx
+  9:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\hooks\useLocationTracking.js
+  107:8  warning  React Hook useEffect has a missing dependency: 'setLocalLocation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\pages\DeliveryDashboard.jsx
+   2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u             no-unused-vars
+  95:11  error  'greeting' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\pages\DeliveryHistory.jsx
+  2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\pages\DeliveryLogin.jsx
+  4:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\pages\LiveTracking.jsx
+  96:11  error  Parsing error: Unexpected token ?
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\pages\OrderManagement.jsx
+   2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u            no-unused-vars
+  18:8   error  'useDeliveryStore' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\pages\ProfileSettings.jsx
+   3:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  45:18  error  'error' is defined but never used                                              no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\pages\WalletPage.jsx
+   1:17  error  'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                no-unused-vars
+   2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                   no-unused-vars
+  21:13  error  'token' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u           no-unused-vars
+  22:13  error  'wallet' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u          no-unused-vars
+  22:42  error  'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u         no-unused-vars
+  23:11  error  'formatCurrency' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\delivery\store\deliveryStore.js
+  5:30  error  'updateProfileApi' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\staff\context\StaffAuthContext.jsx
+   1:47  error  'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                no-unused-vars
+   6:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  16:9   error  Unnecessary try/catch wrapper                                                                                                   no-useless-catch
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\staff\pages\Dashboard.jsx
+  52:68  error  'apiRevenueData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\staff\pages\customers\StaffCustomers.jsx
+  38:6  warning  React Hook useEffect has a missing dependency: 'fetchCustomers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\staff\pages\inventory\StaffInventory.jsx
+  1:17  error  'useState' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\staff\pages\orders\StaffOrders.jsx
+  7:10  error  'useStaffAuth' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\InventoryManagement.jsx
+  14:12  error    'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                            no-unused-vars
+  46:8   warning  React Hook useEffect has a missing dependency: 'fetchInventory'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  71:31  error    'newProduct' is defined but never used                                                                             no-unused-vars
+  77:38  error    'productId' is defined but never used                                                                              no-unused-vars
+  77:49  error    'newStock' is defined but never used                                                                               no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\ManagerAssignDeliveries.jsx
+  41:14  error    'error' is defined but never used                                                                             no-unused-vars
+  50:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\ManagerCustomers.jsx
+  39:6  warning  React Hook useEffect has a missing dependency: 'fetchCustomers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\ManagerDeliveryPartners.jsx
+  23:14  error  'error' is defined but never used  no-unused-vars
+  57:14  error  'e' is defined but never used      no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\ManagerDeliveryTracking.jsx
+  25:14  error    'error' is defined but never used                                                                                     no-unused-vars
+  36:6   warning  React Hook useEffect has a missing dependency: 'fetchTrackingData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  64:6   warning  React Hook useEffect has a missing dependency: 'map'. Either include it or remove the dependency array                react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\StaffManagement.jsx
+   12:37  error    React Hook "useAdminAuth" is called conditionally. React Hooks must be called in the exact same order in every component render         react-hooks/rules-of-hooks
+   13:46  error    React Hook "useStoreManagerAuth" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+   14:37  error    React Hook "useStaffAuth" is called conditionally. React Hooks must be called in the exact same order in every component render         react-hooks/rules-of-hooks
+   75:6   warning  React Hook useEffect has a missing dependency: 'fetchStaff'. Either include it or remove the dependency array                           react-hooks/exhaustive-deps
+  126:16  error    'error' is defined but never used                                                                                                       no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\StoreManagerDashboard.jsx
+  12:12  error  'period' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  12:20  error  'setPeriod' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\components\AddProductModal.jsx
+  15:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  13 |     useEffect(() => {
+  14 |         if (editingProduct) {
+> 15 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  16 |                 name: editingProduct.name,
+  17 |                 sku: editingProduct.sku,
+  18 |                 category: editingProduct.category,  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\components\StockUpdateModal.jsx
+  9:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+   7 |
+   8 |     useEffect(() => {
+>  9 |         setAdjustment('');
+     |         ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  10 |         setType('add');
+  11 |     }, [isOpen, product]);
+  12 |  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\store-manager\context\StoreManagerAuthContext.jsx
+   1:47  error  'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                no-unused-vars
+   6:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  15:5   error  Unnecessary try/catch wrapper                                                                                                   no-useless-catch
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\components\layout\MobileFooter.jsx
+  6:25  error  'setIsMenuOpen' is defined but never used                                             no-unused-vars
+  7:13  error  'user' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\components\layout\MobileRecommendations.jsx
+  11:21  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+   9 |     const recommendedProducts = products
+  10 |         .filter(p => p.isBestSeller)
+> 11 |         .sort(() => Math.random() - 0.5)
+     |                     ^^^^^^^^^^^^^ Cannot call impure function
+  12 |         .slice(0, 4);
+  13 |
+  14 |     return (  react-hooks/purity
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\components\layout\Navbar.jsx
+   14:19  error    'isMenuOpen' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+   15:22  error    'cartTotal' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+   16:17  error    'logout' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+   18:40  error    'isSearchOverlayOpen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+   21:10  error    'isMobileSearchOpen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+   22:10  error    'suggestions' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+   23:10  error    'showCategories' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+   23:26  error    'setShowCategories' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+   24:9   error    'uniqueCategories' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+   28:10  error    'isFocused' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+   30:10  error    'isLoading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+   49:9   error    Error: Cannot access variable before it is declared
+
+`handleSuggestionClick` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  47 |         setSearchQuery(transcript);
+  48 |         setIsListening(false);
+> 49 |         handleSuggestionClick(transcript);
+     |         ^^^^^^^^^^^^^^^^^^^^^ `handleSuggestionClick` accessed before it is declared
+  50 |         navigate(`/category?search=${transcript}`);
+  51 |       };
+  52 |
+
+  114 |   }, [searchQuery]);
+  115 |
+> 116 |   const handleSuggestionClick = (query) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 117 |     if (query) {
+      | ^^^^^^^^^^^^^^^^
+> 118 |       const updatedRecent = [query, ...recentSearches.filter(q => q !== query)].slice(0, 5);
+      …
+      | ^^^^^^^^^^^^^^^^
+> 125 |     setIsFocused(false);
+      | ^^^^^^^^^^^^^^^^
+> 126 |   };
+      | ^^^^^ `handleSuggestionClick` is declared here
+  127 |
+  128 |   const handleRecentClick = (query) => {
+  129 |     setSearchQuery(query);  react-hooks/immutability
+   64:6   warning  React Hook useEffect has a missing dependency: 'handleSuggestionClick'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+   66:9   error    'startListening' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+   95:6   warning  React Hook useEffect has a missing dependency: 'setIsMenuOpen'. Either include it or remove the dependency array. If 'setIsMenuOpen' changes too often, find the parent component that defines it and wrap that definition in useCallback                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+  128:9   error    'handleRecentClick' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+  134:9   error    'removeRecent' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\components\location\LocationModal.jsx
+  35:8   warning  React Hook useEffect has a missing dependency: 'updateLocation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  53:18  error    'error' is defined but never used                                                                                  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\components\product\ProductCard.jsx
+  12:11  error  'user' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+  13:9   error  'navigate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\components\search\SearchOverlay.jsx
+  63:8  warning  React Hook useEffect has a missing dependency: 'addToHistory'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\context\AuthContext.jsx
+  5:14  error  Fast refresh only works when a file only exports components. Move your React context(s) to a separate file                      react-refresh/only-export-components
+  7:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\context\CartContext.jsx
+   9:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  16:18  error  'e' is defined but never used                                                                                                   no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\context\LocationContext.jsx
+   8:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  21:20  error  'user' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                            no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\context\SearchContext.jsx
+  5:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\context\ShopContext.jsx
+  6:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\context\ThemeContext.jsx
+  43:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\context\WishlistContext.jsx
+  9:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\categories\CategoryPage.jsx
+  45:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  43 |
+  44 |     useEffect(() => {
+> 45 |         setSelectedSubCat('all');
+     |         ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  46 |     }, [slug]);
+  47 |
+  48 |     if (isMainListView) {  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\checkout\CheckoutPage.jsx
+   49:11  error  'location' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  171:34  error  'verifyErr' is defined but never used                                                     no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\checkout\OrderSuccessPage.jsx
+  15:34  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  13 |                     style={{
+  14 |                         backgroundColor: ['#0c831f', '#FFD700', '#FF6B6B', '#4D96FF', '#A78BFA'][i % 5],
+> 15 |                         left: `${Math.random() * 100}%`,
+     |                                  ^^^^^^^^^^^^^ Cannot call impure function
+  16 |                         top: `-10px`,
+  17 |                         animationDelay: `${Math.random() * 5}s`,
+  18 |                         animationDuration: `${3 + Math.random() * 3}s`  react-hooks/purity
+  17:44  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  15 |                         left: `${Math.random() * 100}%`,
+  16 |                         top: `-10px`,
+> 17 |                         animationDelay: `${Math.random() * 5}s`,
+     |                                            ^^^^^^^^^^^^^ Cannot call impure function
+  18 |                         animationDuration: `${3 + Math.random() * 3}s`
+  19 |                     }}
+  20 |                 />                                                                                    react-hooks/purity
+  18:51  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  16 |                         top: `-10px`,
+  17 |                         animationDelay: `${Math.random() * 5}s`,
+> 18 |                         animationDuration: `${3 + Math.random() * 3}s`
+     |                                                   ^^^^^^^^^^^^^ Cannot call impure function
+  19 |                     }}
+  20 |                 />
+  21 |             ))}                                                                                                                      react-hooks/purity
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\home\HomePage.jsx
+   29:19  error    Unexpected empty object pattern                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-empty-pattern
+   33:25  error    'products' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+   57:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  55 |         // If loaded with 0 (from previous state or SSR mismatch), jump to middle
+  56 |         if (isCarousel && offerIndex === 0 && activeOffers.length > 0) {
+> 57 |             setOfferIndex(activeOffers.length);
+     |             ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  58 |         }
+  59 |     }, [activeOffers.length, isCarousel]);
+  60 |  react-hooks/set-state-in-effect
+   59:8   warning  React Hook useEffect has a missing dependency: 'offerIndex'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+   65:15  error    'totalItems' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+   81:8   warning  React Hook useEffect has a missing dependency: 'isCarousel'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  377:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-refresh/only-export-components
+  495:5   error    'campaignId' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\location\AddressPage.jsx
+  16:18  error  'position' is defined but never used  no-unused-vars
+  27:18  error  'error' is defined but never used     no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\offer\OfferPage.jsx
+  130:12  error  'copied' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  130:20  error  'setCopied' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\profile\AddMoneyPage.jsx
+  84:39  error  'response' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\profile\AddressFormPage.jsx
+   9:11  error  'routerLocation' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  31:17  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  29 |             const addressToEdit = savedAddresses.find(addr => String(addr.id) === String(id));
+  30 |             if (addressToEdit) {
+> 31 |                 setFormData({
+     |                 ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  32 |                     ...addressToEdit,
+  33 |                     name: addressToEdit.name || '',
+  34 |                     phone: addressToEdit.phone || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\profile\CancelOrderPage.jsx
+  17:12  error  'orderStatus' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  33:26  error  'err' is defined but never used                                                              no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\profile\OrderDetailsPage.jsx
+  39:26  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\profile\OrdersPage.jsx
+  10:11  error  'location' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u   no-unused-vars
+  14:12  error  'isLoading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  51:26  error  'err' is defined but never used                                                            no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\profile\ProfilePage.jsx
+  23:8  warning  React Hook React.useEffect has a missing dependency: 'refreshProfile'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\pages\profile\WalletPage.jsx
+  9:11  error  'location' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\user\routes\UserRoutes.jsx
+  70:11  error  'isLowestPricesPage' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\components\VendorSidebar.jsx
+  4:10  error  'useVendor' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\contexts\VendorContext.jsx
+   8:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                             react-refresh/only-export-components
+  30:8   warning  React Hook useEffect has missing dependencies: 'fetchProducts', 'refreshProfile', and 'vendor?.token'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Analysis.jsx
+  16:11  error  'categoryData' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Dashboard.jsx
+   8:41  error  'Icon' is defined but never used                                                                  no-unused-vars
+  35:11  error  'lowStockProducts' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\InventoryReports.jsx
+  183:56  error  'index' is defined but never used  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Notifications.jsx
+  6:11  error  'navigate' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Orders.jsx
+  4:26  error  'formatDate' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Orders\AllOrders.jsx
+  5:26  error  'formatDate' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Orders\OrderDetail.jsx
+  5:26  error  'formatDate' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\ProductReviews.jsx
+  7:12  error  'selectedReview' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  7:28  error  'setSelectedReview' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Products\AddProduct.jsx
+  8:25  error  'vendor' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\Products\EditProduct.jsx
+  40:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  38 |     useEffect(() => {
+  39 |         if (product) {
+> 40 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  41 |                 name: product.name || '',
+  42 |                 brand: product.brandName || '',
+  43 |                 category: product.category || '',  react-hooks/set-state-in-effect
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\ReturnRequests.jsx
+  237:61  error  'top' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u   no-unused-vars
+  241:57  error  'left' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\ReturnRequests_fixed.jsx
+  4:12  error  Parsing error: Unexpected token (
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\ShopProfile.jsx
+  8:42  error  'changePassword' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\pages\SupportTickets.jsx
+  3:10  error  'formatDate' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\91998\OneDrive\Desktop\AppZeto\Saathi-Grow\Frontend\src\modules\vendor\utils\authHelpers.js
+  1:35  error  'credentials' is defined but never used  no-unused-vars
+  6:38  error  'data' is defined but never used         no-unused-vars
+
+✖ 209 problems (183 errors, 26 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

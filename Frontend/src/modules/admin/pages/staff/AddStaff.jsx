@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
 import { User, Mail, Phone, Lock, Briefcase, Save, ArrowLeft, Shield, Store } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -217,7 +217,7 @@ const AddStaff = () => {
                                             <Form.Control
                                                 required
                                                 type="password"
-                                                placeholder="••••••••"
+                                                placeholder="₹₹₹₹₹₹₹₹"
                                                 name="password"
                                                 value={formData.password}
                                                 onChange={handleChange}
@@ -233,7 +233,7 @@ const AddStaff = () => {
                                             <Form.Control
                                                 required
                                                 type="password"
-                                                placeholder="••••••••"
+                                                placeholder="₹₹₹₹₹₹₹₹"
                                                 name="confirmPassword"
                                                 value={formData.confirmPassword}
                                                 onChange={handleChange}

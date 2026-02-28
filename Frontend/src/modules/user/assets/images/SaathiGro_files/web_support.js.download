@@ -1,4 +1,4 @@
-window.flutter_inappwebview = {
+﻿window.flutter_inappwebview = {
     webViews: {},
     createFlutterInAppWebView: function(viewId, iframeId) {
         var webView = {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send } from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
@@ -80,8 +80,8 @@ const ManagerCustomers = () => {
       <Card className="border-0 shadow-sm mb-4 rounded-xl overflow-hidden">
         <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 bg-white p-4">
           <div className="d-flex align-items-center gap-3">
-            <h4 className="mb-0 fw-bold text-slate-800">Business Customers</h4>
-            <Badge bg="primary-subtle" className="text-primary rounded-pill px-3 py-1">Total {filtered.length}</Badge>
+            <h4 className="mb-0 fw-bold text-slate-800">Branch Customers</h4>
+            <Badge bg="primary-subtle" className="text-primary rounded-pill px-3 py-1">Branch-ID: {managerUser?.branchId}</Badge>
           </div>
           <div className="d-flex gap-2 flex-grow-1 justify-content-md-end w-100 w-md-auto">
             <InputGroup style={{ maxWidth: '400px' }} className="shadow-none">
@@ -180,7 +180,7 @@ const ManagerCustomers = () => {
                     </td>
                   </tr>
                 )) : (
-                  <tr><td colSpan="6" className="text-center py-5 text-slate-400">No customers found for this branch.</td></tr>
+                  <tr><td colSpan="6" className="text-center py-5 text-slate-400">No customers found for your branch yet.</td></tr>
                 )}
               </tbody>
             </Table>

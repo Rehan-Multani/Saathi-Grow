@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Plus, Trash2, Info, Box, Layers, Hash, ArrowRight, X, Search, Filter, CheckCircle2, Edit2 } from 'lucide-react';
 
 const ProductAttributes = () => {

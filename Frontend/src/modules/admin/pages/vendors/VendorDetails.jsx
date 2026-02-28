@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Badge, Button, Table, ProgressBar } from 'react-bootstrap';
 import {
@@ -71,9 +71,9 @@ const VendorDetails = () => {
                         <h4 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '200px' }}>{vendor.name}</h4>
                         <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
                             <span className="badge bg-primary bg-opacity-10 text-primary px-2">Vendor</span>
-                            <span className="d-none d-sm-inline">•</span>
+                            <span className="d-none d-sm-inline">₹</span>
                             <span>ID: {id}</span>
-                            <span className="d-none d-sm-inline">•</span>
+                            <span className="d-none d-sm-inline">₹</span>
                             <span className={`fw-bold d-flex align-items-center gap-1 ${vendor.status === 'Active' ? 'text-success' : 'text-danger'}`}>
                                 <Activity size={14} /> {vendor.status}
                             </span>

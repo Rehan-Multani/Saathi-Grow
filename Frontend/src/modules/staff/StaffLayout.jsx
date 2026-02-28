@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+﻿import React, { useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StaffSidebar from './components/StaffSidebar';
 import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react';
 import { staffSidebarMenu } from './data/staffSidebarMenu';
@@ -9,6 +9,7 @@ const StaffLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
     const { staffUser, staffLogout } = useStaffAuth();
 
     // Helper to find current page title
@@ -67,8 +68,12 @@ const StaffLayout = () => {
                                     <div className="font-bold text-sm text-gray-800 leading-none">{staffUser?.name || 'Staff User'}</div>
                                     <div className="text-[11px] text-gray-500 leading-none mt-1">{staffUser?.role || 'Associate'}</div>
                                 </div>
-                                <div className="w-9 h-9 bg-green-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm">
-                                    {(staffUser?.name || 'S').charAt(0)}
+                                <div className="w-9 h-9 bg-green-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm overflow-hidden">
+                                    {staffUser?.profileImage ? (
+                                        <img src={staffUser.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        (staffUser?.name || 'S').charAt(0)
+                                    )}
                                 </div>
                             </button>
 
@@ -83,9 +88,17 @@ const StaffLayout = () => {
                                         <div className="px-4 py-2 border-b border-gray-50 mb-1">
                                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
                                         </div>
-                                        <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600">
-                                            <User size={16} className="mr-2" /> Profile
-                                        </a>
+                                        <div className="px-1">
+                                            <button
+                                                onClick={() => { navigate('/staff/profile'); setShowProfileMenu(false); }}
+                                                className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all"
+                                            >
+                                                <User size={16} className="mr-2 text-slate-400" /> Profile Settings
+                                            </button>
+                                            <button className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all">
+                                                <Settings size={16} className="mr-2 text-slate-400" /> System Settings
+                                            </button>
+                                        </div>
                                         <div className="my-1 border-t border-gray-50"></div>
                                         <button
                                             onClick={staffLogout}

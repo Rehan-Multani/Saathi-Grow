@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { X, Minus, Plus, ChevronRight, Clock, ShoppingBag, Info } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';

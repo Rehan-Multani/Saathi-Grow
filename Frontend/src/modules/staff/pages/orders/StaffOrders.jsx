@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -190,44 +190,27 @@ const StaffOrders = () => {
                                         </td>
                                         <td className="text-end pe-4">
                                             <div className="d-flex justify-content-end gap-2">
-                                                {(order.status === 'confirmed' || order.status === 'pending') && (
-                                                    <Button
-                                                        variant="outline-primary"
-                                                        size="sm"
-                                                        title="Start Preparing"
-                                                        onClick={() => handleStatusUpdate(order._id, 'preparing')}
-                                                    >
-                                                        <Box size={16} /> Process
-                                                    </Button>
-                                                )}
-                                                {order.status === 'preparing' && (
-                                                    <Button
-                                                        variant="success"
-                                                        size="sm"
-                                                        className="d-flex align-items-center gap-1"
-                                                        onClick={() => handleStatusUpdate(order._id, 'out_for_delivery')}
-                                                    >
-                                                        <CheckCircle size={16} /> Dispatch
-                                                    </Button>
-                                                )}
-                                                {order.status === 'out_for_delivery' && (
-                                                    <Button
-                                                        variant="outline-success"
-                                                        size="sm"
-                                                        title="Mark Delivered"
-                                                        onClick={() => handleStatusUpdate(order._id, 'delivered')}
-                                                    >
-                                                        <Truck size={16} /> Delivered
-                                                    </Button>
-                                                )}
-                                                <Button
-                                                    variant="light"
-                                                    size="sm"
-                                                    className="btn-icon-soft"
-                                                    onClick={() => handleViewOrder(order)}
-                                                >
-                                                    <Eye size={16} />
-                                                </Button>
+                                                <Dropdown>
+                                                    <Dropdown.Toggle variant="light" size="sm" className="btn-icon-soft border-0 shadow-sm d-flex align-items-center gap-1">
+                                                        Manage
+                                                    </Dropdown.Toggle>
+                                                    <Dropdown.Menu className="shadow-sm border-0">
+                                                        <Dropdown.Item onClick={() => handleViewOrder(order)} className="d-flex align-items-center gap-2">
+                                                            <Eye size={16} /> View Details
+                                                        </Dropdown.Item>
+                                                        {order.status !== 'cancelled' && order.status !== 'delivered' && order.status !== 'returned' && (
+                                                            <>
+                                                                <Dropdown.Divider />
+                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'confirmed')}>Mark Confirmed</Dropdown.Item>
+                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'preparing')}>Mark Preparing</Dropdown.Item>
+                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'out_for_delivery')}>Out for Delivery</Dropdown.Item>
+                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'delivered')} className="text-success">Mark Delivered</Dropdown.Item>
+                                                                <Dropdown.Divider />
+                                                                <Dropdown.Item className="text-danger" onClick={() => handleStatusUpdate(order._id, 'cancelled')}>Cancel Order</Dropdown.Item>
+                                                            </>
+                                                        )}
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                             </div>
                                         </td>
                                     </tr>

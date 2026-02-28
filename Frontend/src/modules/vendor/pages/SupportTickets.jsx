@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Headphones, Search, Filter, Clock, CheckCircle, AlertCircle, MessageCircle, Send, User, X } from 'lucide-react';
 import { formatDate } from '../utils/formatDate';
 
@@ -154,7 +154,7 @@ const SupportTickets = () => {
                             <div className="flex items-center gap-2 text-xs text-gray-500">
                                 <User size={14} />
                                 <span>{ticket.customer}</span>
-                                <span className="text-gray-300">•</span>
+                                <span className="text-gray-300">₹</span>
                                 <span>{ticket.date}</span>
                             </div>
                             <div className="flex items-center gap-2 mt-3 text-xs text-gray-600">
@@ -187,7 +187,7 @@ const SupportTickets = () => {
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                     <span className="font-bold text-gray-900">{selectedTicket.customer}</span>
-                                    <span className="text-gray-400">•</span>
+                                    <span className="text-gray-400">₹</span>
                                     <span className="text-gray-500">{selectedTicket.email}</span>
                                 </div>
                             </div>

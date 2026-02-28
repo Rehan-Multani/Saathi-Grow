@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+﻿import { createContext, useContext, useState, useEffect } from 'react';
 import { loginAdmin } from '../../admin/api/adminApi';
 
 const StaffAuthContext = createContext();
@@ -7,7 +7,7 @@ export const useStaffAuth = () => useContext(StaffAuthContext);
 
 export const StaffAuthProvider = ({ children }) => {
     const [staffUser, setStaffUser] = useState(() => {
-        const saved = localStorage.getItem('sathiGro_staff');
+        const saved = localStorage.getItem('saathigro_staff');
         return saved ? JSON.parse(saved) : null;
     });
 
@@ -28,11 +28,23 @@ export const StaffAuthProvider = ({ children }) => {
 
     const staffLogout = () => {
         setStaffUser(null);
-        localStorage.removeItem('sathiGro_staff');
+        localStorage.removeItem('saathigro_staff');
+    };
+
+
+    // Correct implementation based on AdminAuthContext pattern:
+    const updateProfile = async (profileData) => {
+        if (!staffUser?.token) throw new Error('Not authenticated');
+        const { updateProfile: updateApi } = await import('../../admin/api/adminApi');
+        const data = await updateApi(staffUser.token, profileData);
+        const updatedUser = { ...data, token: staffUser.token };
+        setStaffUser(updatedUser);
+        localStorage.setItem('saathigro_staff', JSON.stringify(updatedUser));
+        return updatedUser;
     };
 
     return (
-        <StaffAuthContext.Provider value={{ staffUser, staffLogin, staffLogout }}>
+        <StaffAuthContext.Provider value={{ staffUser, staffLogin, staffLogout, staffUpdateProfile: updateProfile }}>
             {children}
         </StaffAuthContext.Provider>
     );

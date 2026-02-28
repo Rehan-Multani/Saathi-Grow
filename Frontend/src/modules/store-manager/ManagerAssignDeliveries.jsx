@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Badge, Dropdown, Spinner, Row, Col, InputGroup } from 'react-bootstrap';
 import { Clock, MapPin, UserCheck, RefreshCw, Search, UserX, Zap, Truck } from 'lucide-react';
 import {
@@ -225,7 +225,7 @@ const ManagerAssignDeliveries = () => {
                                 >
                                   <div className="fw-bold text-slate-700">{d.name}</div>
                                   <div className="small text-slate-500 d-flex align-items-center gap-1">
-                                    <Truck size={12} /> {d.vehicleType} • {d.phone}
+                                    <Truck size={12} /> {d.vehicleType} ₹ {d.phone}
                                   </div>
                                 </Dropdown.Item>
                               )) : <Dropdown.Item disabled className="small text-muted text-center py-3">No online riders found</Dropdown.Item>}

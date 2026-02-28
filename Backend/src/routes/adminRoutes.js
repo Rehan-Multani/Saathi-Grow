@@ -8,7 +8,7 @@ import {
     getAdminProfile,
     updateAdminProfile
 } from '../controllers/adminController.js';
-import { protectAdmin, restrictTo } from '../middleware/authMiddleware.js';
+import { protectAdmin, restrictTo, requirePermission } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
@@ -20,13 +20,13 @@ router.post('/login', adminLogin);
 router.get('/profile', protectAdmin, getAdminProfile);
 router.put('/profile', protectAdmin, upload.single('profileImage'), updateAdminProfile);
 
-// Staff Management (Restricted to Admin and Branch Manager roles)
+// Staff Management (Branch Scoped for Managers/Staff with permission)
 router.route('/staff')
-    .get(protectAdmin, restrictTo('Admin', 'Branch Manager'), getAllAdmins)
-    .post(protectAdmin, restrictTo('Admin', 'Branch Manager'), createAdmin);
+    .get(protectAdmin, requirePermission('MANAGE_STAFF'), getAllAdmins)
+    .post(protectAdmin, requirePermission('MANAGE_STAFF'), createAdmin);
 
 router.route('/staff/:id')
-    .put(protectAdmin, restrictTo('Admin', 'Branch Manager'), updateAdmin)
-    .delete(protectAdmin, restrictTo('Admin', 'Branch Manager'), deleteAdmin);
+    .put(protectAdmin, requirePermission('MANAGE_STAFF'), updateAdmin)
+    .delete(protectAdmin, requirePermission('MANAGE_STAFF'), deleteAdmin);
 
 export default router;

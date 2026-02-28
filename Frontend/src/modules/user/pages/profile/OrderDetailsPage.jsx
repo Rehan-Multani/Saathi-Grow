@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +11,7 @@ const OrderDetailsPage = () => {
     const { token } = useAuth();
 
     const [order, setOrder] = useState(null);
+    const [rawOrder, setRawOrder] = useState(null); // Full raw data for guard checks
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -35,6 +36,7 @@ const OrderDetailsPage = () => {
                             img: item.image || (item.product?.image && item.product.image) || 'https://via.placeholder.com/150'
                         }))
                     };
+                    setRawOrder(data); // preserve raw for guards
                     setOrder(processedOrder);
                 } catch (err) {
                     toast.error("Failed to load secure order details.");
@@ -67,7 +69,7 @@ const OrderDetailsPage = () => {
                     </button>
                     <div>
                         <div className="!text-[11.5px] md:!text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1">Order Summary</div>
-                        <p className="!text-[7.5px] md:!text-base text-gray-400 font-bold tracking-widest uppercase">#{order.id.slice(-6).toUpperCase()} • {order.date}</p>
+                        <p className="!text-[7.5px] md:!text-base text-gray-400 font-bold tracking-widest uppercase">#{order.id.slice(-6).toUpperCase()} · {order.date}</p>
                     </div>
                 </div>
             </div>
@@ -114,7 +116,7 @@ const OrderDetailsPage = () => {
                                     </div>
                                     <div className="flex-1">
                                         <div className="!text-[10px] md:!text-lg font-black text-gray-800 dark:text-gray-100 leading-tight tracking-tight">{item.name}</div>
-                                        <div className="!text-[9px] md:!text-base text-gray-400 font-bold mt-1">Qty: {item.qty} • {item.price}</div>
+                                        <div className="!text-[9px] md:!text-base text-gray-400 font-bold mt-1">Qty: {item.qty} ₹ {item.price}</div>
                                     </div>
                                 </div>
                             ))}
@@ -138,30 +140,67 @@ const OrderDetailsPage = () => {
                                 <ChevronRight size={14} className="text-gray-200 group-hover:text-orange-500 transition-all" />
                             </button>
 
-                            <button onClick={() => navigate(`/orders/${order.id}/return`)} className="w-full py-5 px-1 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group border-b border-gray-100 dark:border-white/5">
+                            <button
+                                onClick={() => {
+                                    const canReturn = order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested;
+                                    if (canReturn) {
+                                        navigate(`/orders/${order.id}/return`);
+                                    } else if (rawOrder?.returnRequest?.isRequested) {
+                                        const rStatus = rawOrder.returnRequest.status;
+                                        const msg = rStatus === 'Approved' ? 'Your return has been approved! Refund is processing.' :
+                                            rStatus === 'Rejected' ? 'Your return request was rejected by our team.' :
+                                                'Your return request is under review.';
+                                        toast.info(msg);
+                                    } else {
+                                        toast.info('Returns are only available for delivered orders.');
+                                    }
+                                }}
+                                className={`w-full py-5 px-1 flex items-center justify-between transition-all group border-b border-gray-100 dark:border-white/5 ${order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested ? 'hover:bg-gray-50/50 dark:hover:bg-white/5 active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'}`}
+                            >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 border border-blue-100 dark:border-blue-500/10">
+                                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center border ${rawOrder?.returnRequest?.isRequested ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 border-amber-100 dark:border-amber-500/10' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-blue-100 dark:border-blue-500/10'}`}>
                                         <RefreshCw size={15} />
                                     </div>
                                     <div className="text-left">
                                         <div className="!text-[10.5px] md:!text-lg font-black text-gray-800 dark:text-gray-100 tracking-tight">Return items</div>
-                                        <p className="!text-[8.5px] md:!text-base text-gray-400 font-bold tracking-tight">Returning defective or wrong items</p>
+                                        <p className="!text-[8.5px] md:!text-base text-gray-400 font-bold tracking-tight">
+                                            {rawOrder?.returnRequest?.isRequested
+                                                ? `Request ${rawOrder.returnRequest.status?.toLowerCase()} · ${rawOrder.returnRequest.reason}`
+                                                : order.status === 'delivered' ? 'Returning defective or wrong items' : 'Available only after delivery'}
+                                        </p>
                                     </div>
                                 </div>
-                                <ChevronRight size={14} className="text-gray-200 group-hover:text-blue-500 transition-all" />
+                                {order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested && (
+                                    <ChevronRight size={14} className="text-gray-200 group-hover:text-blue-500 transition-all" />
+                                )}
                             </button>
 
-                            <button onClick={() => navigate(`/orders/${order.id}/cancel`)} className="w-full py-5 px-1 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group border-b border-gray-100 dark:border-white/5">
+                            <button
+                                onClick={() => {
+                                    const statusLower = (order.status || '').toLowerCase();
+                                    const restricted = ['out_for_delivery', 'delivered', 'cancelled', 'returned'];
+                                    if (!restricted.includes(statusLower)) {
+                                        navigate(`/orders/${order.id}/cancel`);
+                                    } else {
+                                        toast.info("Cancellation and changes no longer available for this order state.");
+                                    }
+                                }}
+                                className={`w-full py-5 px-1 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-white/5 transition-all group border-b border-gray-100 dark:border-white/5 ${['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes((order.status || '').toLowerCase()) ? 'opacity-50 cursor-not-allowed grayscale' : 'active:scale-[0.98]'}`}
+                            >
                                 <div className="flex items-center gap-4">
                                     <div className="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-600 border border-red-100 dark:border-red-500/10">
                                         <XCircle size={15} />
                                     </div>
                                     <div className="text-left">
                                         <div className="!text-[10.5px] md:!text-lg font-black text-gray-800 dark:text-gray-100 tracking-tight">Cancel order</div>
-                                        <p className="!text-[8.5px] md:!text-base text-gray-400 font-bold tracking-tight">Cancel items before delivery</p>
+                                        <p className="!text-[8.5px] md:!text-base text-gray-400 font-bold tracking-tight">
+                                            {['out_for_delivery', 'delivered'].includes(order.status) ? 'Order is already out for delivery' : order.status === 'cancelled' ? 'This order was cancelled' : 'Cancel items before delivery'}
+                                        </p>
                                     </div>
                                 </div>
-                                <ChevronRight size={14} className="text-gray-200 group-hover:text-red-500 transition-all" />
+                                {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && (
+                                    <ChevronRight size={14} className="text-gray-200 group-hover:text-red-500 transition-all" />
+                                )}
                             </button>
                         </div>
                     </div>

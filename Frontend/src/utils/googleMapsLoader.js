@@ -1,4 +1,4 @@
-let loadingPromise = null;
+﻿let loadingPromise = null;
 
 export const loadGoogleMaps = () => {
   if (window.google) {

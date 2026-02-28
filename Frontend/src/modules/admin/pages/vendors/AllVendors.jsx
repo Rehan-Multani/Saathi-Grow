@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, Plus, MoreHorizontal, Store, Mail, Phone, CheckCircle, Ban, Upload, Download, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -171,7 +171,7 @@ const AllVendors = () => {
                                         <td className="fw-bold text-center">{v.products || 0}</td>
                                         <td className="text-center">
                                             <Badge bg="light" text="dark" className="border shadow-none">
-                                                ⭐ {v.rating > 0 ? v.rating : 'New'}
+                                                ₹ {v.rating > 0 ? v.rating : 'New'}
                                             </Badge>
                                         </td>
                                         <td className="text-center">

@@ -56,6 +56,20 @@ export const protectAdmin = async (req, res, next) => {
   if (!token) res.status(401).json({ message: 'Admin authentication required' });
 };
 
+// Optional Admin Protection - Populates req.admin if token exists, but doesn't error if not
+export const optionalProtectAdmin = async (req, res, next) => {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.admin = await Admin.findById(decoded.id);
+    } catch (error) {
+      // Silently fail, req.admin will remain undefined
+    }
+  }
+  next();
+};
+
 // Check specific admin role
 export const restrictTo = (...roles) => {
   return (req, res, next) => {

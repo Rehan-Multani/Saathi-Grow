@@ -1,25 +1,49 @@
-import React, { useState } from 'react';
-import { Card, Table, Badge, Button, Modal, Form } from 'react-bootstrap';
+﻿import React, { useState, useEffect } from 'react';
+import { Card, Table, Badge, Button, Modal, Form, Spinner } from 'react-bootstrap';
 import { RefreshCcw, Check, X, AlertCircle } from 'lucide-react';
-
-const MOCK_RETURNS = [
-    { id: 'RET-001', orderId: 'ORD-8821', customer: 'Alice Cooper', reason: 'Damaged Item', amount: '₹150', status: 'Pending' },
-    { id: 'RET-002', orderId: 'ORD-9912', customer: 'Bob Marley', reason: 'Wrong Product', amount: '₹1200', status: 'Pending' },
-];
+import { getReturnRequests, handleReturnRequest } from '../../../admin/api/orderApi';
+import Swal from 'sweetalert2';
 
 const StaffReturns = () => {
-    const [returns, setReturns] = useState(MOCK_RETURNS);
+    const [returns, setReturns] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [selectedReturn, setSelectedReturn] = useState(null);
 
+    const fetchReturns = async () => {
+        try {
+            setLoading(true);
+            const data = await getReturnRequests();
+            setReturns(data);
+        } catch (error) {
+            console.error('Failed to fetch returns:', error);
+            Swal.fire('Error', 'Could not load return requests', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchReturns();
+    }, []);
+
+    const processReturn = async (id, action) => {
+        try {
+            await handleReturnRequest(id, action);
+            Swal.fire('Success', `Return ${action.toLowerCase()} successfully`, 'success');
+            fetchReturns();
+            setShowRejectModal(false);
+        } catch (error) {
+            Swal.fire('Error', error.response?.data?.message || `Failed to ${action.toLowerCase()} return`, 'error');
+        }
+    };
+
     const handleApprove = (id, amount) => {
-        // Simple mock limit check
-        const numericAmount = parseInt(amount.replace('₹', ''));
-        if (numericAmount > 1000) {
-            alert('Amount exceeds staff approval limit (₹1000). Please escalate to Admin.');
+        if (amount > 1000) {
+            Swal.fire('Limit Exceeded', 'Amount exceeds staff approval limit (₹1000). Please escalate to Admin.', 'warning');
             return;
         }
-        setReturns(returns.map(r => r.id === id ? { ...r, status: 'Approved' } : r));
+        processReturn(id, 'Approved');
     };
 
     const handleRejectClick = (ret) => {
@@ -28,8 +52,7 @@ const StaffReturns = () => {
     };
 
     const confirmReject = () => {
-        setReturns(returns.map(r => r.id === selectedReturn.id ? { ...r, status: 'Rejected' } : r));
-        setShowRejectModal(false);
+        processReturn(selectedReturn._id, 'Rejected');
     };
 
     return (
@@ -57,49 +80,62 @@ const StaffReturns = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {returns.map((ret) => (
-                                <tr key={ret.id}>
-                                    <td className="ps-4 fw-bold">{ret.id}</td>
-                                    <td>{ret.orderId}</td>
-                                    <td>{ret.customer}</td>
-                                    <td>
-                                        <Badge bg="light" text="dark" className="border fw-normal">
-                                            {ret.reason}
-                                        </Badge>
-                                    </td>
-                                    <td className="fw-bold">{ret.amount}</td>
-                                    <td>
-                                        <Badge
-                                            bg={ret.status === 'Approved' ? 'success' : ret.status === 'Rejected' ? 'danger' : 'warning'}
-                                            className="rounded-pill px-3 fw-normal"
-                                        >
-                                            {ret.status}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-end pe-4">
-                                        {ret.status === 'Pending' && (
-                                            <div className="d-flex justify-content-end gap-2">
-                                                <Button
-                                                    variant="success"
-                                                    size="sm"
-                                                    className="d-flex align-items-center gap-1"
-                                                    onClick={() => handleApprove(ret.id, ret.amount)}
-                                                >
-                                                    <Check size={14} /> Approve
-                                                </Button>
-                                                <Button
-                                                    variant="danger"
-                                                    size="sm"
-                                                    className="d-flex align-items-center gap-1"
-                                                    onClick={() => handleRejectClick(ret)}
-                                                >
-                                                    <X size={14} /> Reject
-                                                </Button>
-                                            </div>
-                                        )}
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-5">
+                                        <Spinner animation="border" variant="primary" size="sm" className="me-2" />
+                                        Loading return requests...
                                     </td>
                                 </tr>
-                            ))}
+                            ) : returns.length > 0 ? (
+                                returns.map((ret) => (
+                                    <tr key={ret._id}>
+                                        <td className="ps-4 fw-bold text-primary">{ret._id.substring(ret._id.length - 6).toUpperCase()}</td>
+                                        <td>{ret.orderId}</td>
+                                        <td>{ret.user?.name || 'Customer'}</td>
+                                        <td>
+                                            <Badge bg="light" text="dark" className="border fw-normal">
+                                                {ret.returnRequest?.reason || 'No specific reason provided'}
+                                            </Badge>
+                                        </td>
+                                        <td className="fw-bold">₹{ret.totalAmount}</td>
+                                        <td>
+                                            <Badge
+                                                bg={ret.returnRequest?.status === 'Approved' ? 'success' : ret.returnRequest?.status === 'Rejected' ? 'danger' : 'warning'}
+                                                className="rounded-pill px-3 fw-normal uppercase"
+                                            >
+                                                {ret.returnRequest?.status || 'Pending'}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-end pe-4">
+                                            {ret.returnRequest?.status === 'Pending' && (
+                                                <div className="d-flex justify-content-end gap-2">
+                                                    <Button
+                                                        variant="success"
+                                                        size="sm"
+                                                        className="d-flex align-items-center gap-1"
+                                                        onClick={() => handleApprove(ret._id, ret.totalAmount)}
+                                                    >
+                                                        <Check size={14} /> Approve
+                                                    </Button>
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        className="d-flex align-items-center gap-1"
+                                                        onClick={() => handleRejectClick(ret)}
+                                                    >
+                                                        <X size={14} /> Reject
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-5 text-muted">No pending return requests found.</td>
+                                </tr>
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>

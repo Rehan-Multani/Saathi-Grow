@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { X, MapPin, Navigation, Search } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
 import { Search, Plus, Ticket, Copy, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';

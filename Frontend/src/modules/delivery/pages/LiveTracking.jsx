@@ -91,14 +91,14 @@ const getDistance = (pos1, pos2) => {
     const lng2 = Number(pos2[1]);
 
     const R = 6371e3;
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lng2 - lng1) * Math.PI / 180;
+    const f1 = lat1 * Math.PI / 180;
+    const f2 = lat2 * Math.PI / 180;
+    const ?f = (lat2 - lat1) * Math.PI / 180;
+    const ?? = (lng2 - lng1) * Math.PI / 180;
 
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-        Math.cos(φ1) * Math.cos(φ2) *
-        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const a = Math.sin(?f / 2) * Math.sin(?f / 2) +
+        Math.cos(f1) * Math.cos(f2) *
+        Math.sin(?? / 2) * Math.sin(?? / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return Math.abs(R * c);

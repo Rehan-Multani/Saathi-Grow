@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Search, Filter, X, SlidersHorizontal, RefreshCw } from 'lucide-react';
 
 const SearchFilterBar = ({

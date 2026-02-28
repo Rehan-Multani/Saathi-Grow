@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../../../config/apiConfig';
+﻿import { API_BASE_URL } from '../../../config/apiConfig';
 
 const ADMIN_BASE_URL = `${API_BASE_URL}/admin`;
 
@@ -101,5 +101,14 @@ export const deleteStaff = async (token, id) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to delete staff');
+  return data;
+};
+
+export const getDashboardStats = async (token) => {
+  const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch dashboard stats');
   return data;
 };

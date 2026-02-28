@@ -296,7 +296,7 @@ const EditProduct = () => {
                                                     newVariants[index].price = e.target.value;
                                                     setVariants(newVariants);
                                                 }}
-                                                placeholder="â‚¹ 0.00"
+                                                placeholder="₹ 0.00"
                                                 className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
                                             />
                                         </div>

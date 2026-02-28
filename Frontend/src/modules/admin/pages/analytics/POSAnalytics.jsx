@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card, Table, Button, Form, Row, Col } from 'react-bootstrap';
 import { Download, Monitor, Store, ShoppingCart, User } from 'lucide-react';
 
@@ -60,7 +60,7 @@ const POSAnalytics = () => {
                                 <span className="small text-uppercase fw-bold">Best Performing Branch</span>
                             </div>
                             <h5 className="fw-bold mb-0 text-primary">Main Store - Downtown</h5>
-                            <div className="small mt-1 text-muted">₹4,200 sales today</div>
+                            <div className="small mt-1 text-muted"> ₹4,200 sales today</div>
                         </Card.Body>
                     </Card>
                 </Col>

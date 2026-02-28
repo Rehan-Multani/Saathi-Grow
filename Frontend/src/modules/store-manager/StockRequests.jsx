@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { CheckCircle2, XCircle, Clock, Package, AlertTriangle, User, History, ChevronRight } from 'lucide-react';
 
 const StockRequests = () => {

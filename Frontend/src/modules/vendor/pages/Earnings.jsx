@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, X, AlertCircle } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../utils/formatDate';
@@ -32,7 +32,7 @@ const Earnings = () => {
             // Show Success Toast
             const toast = document.createElement('div');
             toast.className = 'fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 z-50 animate-in slide-in-from-bottom-5';
-            toast.innerHTML = `<span class="text-green-400">✓</span> <span class="text-sm font-medium">Withdrawal request of ₹${withdrawAmount} submitted successfully!</span>`;
+            toast.innerHTML = `<span class="text-green-400">₹</span> <span class="text-sm font-medium">Withdrawal request of ₹${withdrawAmount} submitted successfully!</span>`;
             document.body.appendChild(toast);
 
             setTimeout(() => {

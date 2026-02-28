@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Order from '../models/Order.js';
 import { cloudinary } from '../config/cloudinary.js';
 
 // @desc    Get all users
@@ -9,12 +10,17 @@ export const getAllUsers = async (req, res) => {
     const admin = req.admin;
     let query = {};
 
-    // Note: If we want to strictly branch-scope users, we'd filter by those who ordered from branchId
-    // For now, allowing managers to see users is fine for CRM purposes
+    // Branch Scoping: If not Super Admin, filter users who have interacted with this specific branch
+    if (admin && admin.role !== 'Admin' && admin.branchId) {
+      // Find IDs of users who have placed orders in this branch
+      const customerIdsInBranch = await Order.find({ branchId: admin.branchId }).distinct('user');
+      query._id = { $in: customerIdsInBranch };
+    }
 
     const users = await User.find(query).sort({ createdAt: -1 });
     res.json({ success: true, users });
   } catch (error) {
+    console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Error fetching users' });
   }
 };

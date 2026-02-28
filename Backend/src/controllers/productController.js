@@ -190,12 +190,15 @@ export const getProducts = async (req, res) => {
       ];
     }
 
-    // Branch Scoping: If user is Staff or Branch Manager, they should ideally see products relevant to their branch
-    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
-      query.$or = [
-        { isAllBranches: true },
-        { specificBranches: req.admin.branchId }
-      ];
+    // Branch Scoping: If user is Staff or Branch Manager, strictly filter by branchStocks
+    if (req.admin && req.admin.role !== 'Admin') {
+      if (req.admin.branchId) {
+        // Find products that have a stock entry for THIS specific branch
+        query['branchStocks.branchId'] = req.admin.branchId;
+      } else {
+        // If they have no branch assigned, they shouldn't see anything (unless Super Admin)
+        return res.json([]);
+      }
     }
 
     const products = await Product.find(query)
@@ -267,7 +270,7 @@ export const searchProductsWithAI = async (req, res) => {
 
     // Find products matching ANY of the keywords in name, tags, or description
     // using $or combined with $in pattern matching
-    const products = await Product.find({
+    const searchQuery = {
       status: 'Active',
       $or: [
         { name: { $in: regexArray } },
@@ -276,7 +279,18 @@ export const searchProductsWithAI = async (req, res) => {
         { brandName: { $in: regexArray } },
         { category: { $in: regexArray } }
       ]
-    })
+    };
+
+    // Branch Scoping for Search
+    if (req.admin && req.admin.role !== 'Admin') {
+      if (req.admin.branchId) {
+        searchQuery['branchStocks.branchId'] = req.admin.branchId;
+      } else {
+        return res.json([]);
+      }
+    }
+
+    const products = await Product.find(searchQuery)
       .populate('vendor', 'storeName logo')
       .sort('-createdAt')
       .limit(30);

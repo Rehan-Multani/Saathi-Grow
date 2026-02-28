@@ -14,7 +14,7 @@ const HelpPage = () => {
         },
         {
             q: "What is sathiGro Wallet?",
-            a: "sathiGro Wallet is a secure digital wallet where you can store money for faster checkouts. All refunds are credited instantly to your wallet, and you can also use it to earn and redeem loyalty points."
+            a: "sathiGro Wallet is a secure digital wallet where you can store money for faster checkouts. All refunds are credited instantly to your wallet."
         },
         {
             q: "What are the delivery hours?",
@@ -22,7 +22,7 @@ const HelpPage = () => {
         },
         {
             q: "Is there a minimum order value?",
-            a: "No, there is no minimum order value. However, orders below â‚¹99 may incur a nominal delivery fee unless you are a Saathi Plus member."
+            a: "No, there is no minimum order value. However, orders below ₹99 may incur a nominal delivery fee unless you are a Saathi Plus member."
         }
     ];
 

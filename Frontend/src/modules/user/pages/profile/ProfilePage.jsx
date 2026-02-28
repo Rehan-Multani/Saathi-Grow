@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -39,7 +39,7 @@ const ProfilePage = () => {
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
-        { icon: CreditCard, label: "sathiGro Wallet", subtitle: `â‚¹${user?.walletBalance || '0.00'} Balance available`, path: "/wallet" },
+        { icon: CreditCard, label: "sathiGro Wallet", subtitle: `₹${user?.walletBalance || '0.00'} Balance available`, path: "/wallet" },
         { icon: Shield, label: "Security", subtitle: "Password and account security", path: "/security" },
         { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and Customer Support", path: "/help" }
     ];
@@ -102,11 +102,11 @@ const ProfilePage = () => {
 
                         <div className="grid grid-cols-2 gap-4 py-2 md:py-3 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">0</p>
+                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">{user?.totalOrders || 0}</p>
                                 <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Orders</p>
                             </div>
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">â‚¹{user?.walletBalance || 0}</p>
+                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹{user?.walletBalance || 0}</p>
                                 <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Savings</p>
                             </div>
                         </div>

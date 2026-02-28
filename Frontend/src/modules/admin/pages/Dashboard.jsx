@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Package, Users, IndianRupee, TrendingUp, TrendingDown, Activity, CreditCard, Eye } from 'lucide-react';
 import {
@@ -52,7 +52,13 @@ const recentOrders = [
     { id: '#ORD-004', customer: 'John Doe', product: 'Gaming Mouse', amount: '₹45.00', status: 'Cancelled' },
 ];
 
+import { useAdminAuth } from '../context/AdminAuthContext';
+import { getDashboardStats } from '../api/adminApi';
+
 const Dashboard = () => {
+    const { adminUser } = useAdminAuth();
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -61,10 +67,27 @@ const Dashboard = () => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const data = await getDashboardStats(adminUser.token);
+                if (data.success) {
+                    setStats(data);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (adminUser?.token) {
+            fetchStats();
+        }
+
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [adminUser.token]);
 
     const handleViewOrder = (order) => {
         // Adapt dashboard data to modal expected format
@@ -73,9 +96,9 @@ const Dashboard = () => {
             customer: order.customer,
             status: order.status,
             total: order.amount,
-            date: 'Today', // Mock date for dashboard items
+            date: order.date,
             items: 1,
-            payment: 'Paid', // Mock status
+            payment: 'Paid',
             ...order
         };
         setSelectedOrder(modalOrder);
@@ -86,46 +109,31 @@ const Dashboard = () => {
         alert(`Generating ${dateFilterType} report for ${selectedDate}... (This is a demo feature)`);
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    const { stats: apiStats, recentOrders: apiOrders, revenueData: apiRevenueData } = stats || {};
+
     return (
         <div className="p-4 md:p-6 space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h3 className="font-bold text-dark text-2xl mb-1 text-gray-800">Dashboard Overview</h3>
-                    <p className="text-gray-500 text-sm mb-0">Live analytics and performance metrics.</p>
+                    <h3 className="font-bold text-dark text-2xl mb-1 text-gray-800">Branch Insights</h3>
+                    <p className="text-gray-500 text-sm mb-0">Performance metrics for your assigned branch.</p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                    {/* Date Type Selector */}
-                    <select
-                        value={dateFilterType}
-                        onChange={(e) => setDateFilterType(e.target.value)}
-                        className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
-                    >
-                        <option value="daily">Daily</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-
-                    {/* Dynamic Date Input */}
-                    <div className="relative">
-                        <input
-                            type={dateFilterType === 'daily' ? 'date' : dateFilterType === 'monthly' ? 'month' : 'number'}
-                            min={dateFilterType === 'yearly' ? "2000" : undefined}
-                            max={dateFilterType === 'yearly' ? "2100" : undefined}
-                            placeholder={dateFilterType === 'yearly' ? "YYYY" : undefined}
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                            className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
-                        />
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto text-xs">
+                    <div className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg border border-blue-100 flex items-center gap-2">
+                        <Activity size={14} />
+                        <span className="font-semibold">{adminUser?.role} Panel</span>
+                        {adminUser?.branchId && <span className="opacity-50 text-[10px]">| Online</span>}
                     </div>
-
-                    <button
-                        onClick={handleGenerateReport}
-                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors font-medium whitespace-nowrap">
-                        <Activity size={18} />
-                        <span>Generate Report</span>
-                    </button>
                 </div>
             </div>
 
@@ -133,55 +141,63 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Revenue"
-                    value="₹54,230"
+                    value={`₹${apiStats?.totalRevenue || 0}`}
                     icon={IndianRupee}
                     color="#3B82F6"
                     gradient="linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"
                     trend="up"
-                    trendValue="+12.5%"
+                    trendValue="+0%"
                 />
                 <StatCard
                     title="Total Orders"
-                    value="1,890"
+                    value={apiStats?.totalOrders || 0}
                     icon={ShoppingCart}
                     color="#10B981"
                     gradient="linear-gradient(135deg, #10B981 0%, #059669 100%)"
                     trend="up"
-                    trendValue="+8.2%"
+                    trendValue="+0%"
                 />
                 <StatCard
-                    title="Total Products"
-                    value="452"
+                    title="Pending Orders"
+                    value={apiStats?.pendingOrders || 0}
                     icon={Package}
                     color="#F59E0B"
                     gradient="linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"
                     trend="down"
-                    trendValue="-2.4%"
+                    trendValue="0"
                 />
-                <StatCard
-                    title="New Users"
-                    value="340"
-                    icon={Users}
-                    color="#8B5CF6"
-                    gradient="linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)"
-                    trend="up"
-                    trendValue="+18%"
-                />
+                {adminUser?.role === 'Admin' ? (
+                    <StatCard
+                        title="Total Users"
+                        value={apiStats?.totalUsers || 0}
+                        icon={Users}
+                        color="#8B5CF6"
+                        gradient="linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)"
+                        trend="up"
+                        trendValue="+0%"
+                    />
+                ) : (
+                    <StatCard
+                        title="Branch Products"
+                        value={apiStats?.totalProducts || 0}
+                        icon={Package}
+                        color="#8B5CF6"
+                        gradient="linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)"
+                        trend="up"
+                        trendValue="Active"
+                    />
+                )}
             </div>
 
             {/* Main Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h5 className="font-bold text-gray-800 text-lg">Revenue Analytics</h5>
-                        <select className="form-select text-sm border-gray-200 rounded-lg text-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                            <option>This Year</option>
-                            <option>Last Year</option>
-                        </select>
+                        <h5 className="font-bold text-gray-800 text-lg">Revenue Trends (Last 7 Days)</h5>
                     </div>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={revenueData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                            <AreaChart data={apiRevenueData || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
@@ -201,39 +217,29 @@ const Dashboard = () => {
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div className="mb-6">
-                        <h5 className="font-bold text-gray-800 text-lg">Sales by Category</h5>
+                    <div className="mb-6 flex justify-between items-center">
+                        <h5 className="font-bold text-gray-800 text-lg">Daily Orders</h5>
+                        <Activity size={18} className="text-blue-500" />
                     </div>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={categoryData}
-                                layout={isMobile ? "horizontal" : "vertical"}
-                                margin={isMobile ? { top: 20, right: 20, left: 0, bottom: 5 } : { top: 5, right: 30, left: 20, bottom: 5 }}
+                                data={apiRevenueData || []}
                             >
-                                <CartesianGrid strokeDasharray="3 3" horizontal={isMobile} vertical={!isMobile} stroke="#f1f5f9" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis
-                                    type={isMobile ? "category" : "number"}
-                                    dataKey={isMobile ? "name" : undefined}
-                                    hide={!isMobile}
-                                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
-                                    interval={0}
-                                />
-                                <YAxis
-                                    type={isMobile ? "number" : "category"}
-                                    dataKey={isMobile ? undefined : "name"}
-                                    width={isMobile ? 40 : 80}
-                                    tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
-                                    hide={false}
+                                    dataKey="name"
                                     axisLine={false}
                                     tickLine={false}
+                                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
                                 />
                                 <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                                <Bar dataKey="value" radius={isMobile ? [4, 4, 0, 0] : [0, 4, 4, 0]} barSize={isMobile ? 40 : 24}>
-                                    {categoryData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Bar>
+                                <Bar dataKey="orders" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={30} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -252,14 +258,13 @@ const Dashboard = () => {
                             <tr>
                                 <th className="px-6 py-4">Order ID</th>
                                 <th className="px-6 py-4">Customer</th>
-                                <th className="px-6 py-4">Product</th>
                                 <th className="px-6 py-4">Amount</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {recentOrders.map((order, idx) => (
+                            {apiOrders?.map((order, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 font-medium text-gray-900">{order.id}</td>
                                     <td className="px-6 py-4">
@@ -270,13 +275,12 @@ const Dashboard = () => {
                                             <span className="text-gray-700 font-medium">{order.customer}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500">{order.product}</td>
-                                    <td className="px-6 py-4 font-bold text-gray-800">{order.amount}</td>
+                                    <td className="px-6 py-4 font-bold text-gray-800">₹{order.amount}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-3 py-1 rounded-full text-xs font-medium 
-                                            ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                                                    order.status === 'Processing' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                            ${order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                                                order.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                    order.status === 'confirmed' || order.status === 'preparing' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
                                             {order.status}
                                         </span>
                                     </td>
@@ -291,6 +295,11 @@ const Dashboard = () => {
                                     </td>
                                 </tr>
                             ))}
+                            {(!apiOrders || apiOrders.length === 0) && (
+                                <tr>
+                                    <td colSpan="5" className="text-center py-10 text-gray-500">No recent orders found.</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

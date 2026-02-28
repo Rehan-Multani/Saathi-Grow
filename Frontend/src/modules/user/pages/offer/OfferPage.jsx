@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     ArrowLeft, Clock, Tag, Sparkles, Filter, ChevronDown,
@@ -77,7 +77,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                     </h4>
                 </Link>
                 <div className="text-gray-500 dark:text-gray-400 text-[7px] md:text-[9px] mb-1 font-medium italic opacity-80 line-clamp-1">
-                    {product.weight || (product.unitValue ? product.unitValue + ' ' + (product.unitType || '') : '1 pcs')} • {product.category || product.subCategory || "Premium"}
+                    {product.weight || (product.unitValue ? product.unitValue + ' ' + (product.unitType || '') : '1 pcs')} ₹ {product.category || product.subCategory || "Premium"}
                 </div>
 
                 <div className="flex items-center justify-between mt-auto pt-1">
@@ -361,7 +361,7 @@ const OfferPage = () => {
                         {/* Floating Hero Icons (Dynamic Matching Home) */}
                         <div className="absolute right-[-10px] top-[15px] w-[110px] h-[110px] z-0 pointer-events-none">
                             {(() => {
-                                const icons = ['🎁', '✨', '🛍️']; // Simplified for dynamic
+                                const icons = ['🎁', '₹', '🛍️']; // Simplified for dynamic
                                 return (
                                     <>
                                         <div className="absolute top-0 right-0 text-[60px] drop-shadow-xl animate-bounce duration-[3000ms] select-none text-opacity-90">{icons[0]}</div>

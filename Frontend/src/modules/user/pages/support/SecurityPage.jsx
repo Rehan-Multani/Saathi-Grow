@@ -129,7 +129,7 @@ const SecurityPage = () => {
 
                 {/* Tips */}
                 <div className="mx-6 p-4 bg-[#eefaf1] rounded-2xl border border-[#0c831f]/10 text-center mb-10 md:mb-0">
-                    <p className="text-[10px] md:text-[11px] text-[#0c831f] font-bold leading-relaxed">sathiGro will never ask for your password or OTP via call or email. Stay safe! ðŸ›¡ï¸</p>
+                    <p className="text-[10px] md:text-[11px] text-[#0c831f] font-bold leading-relaxed">sathiGro will never ask for your password or OTP via call or email. Stay safe! 🛡️</p>
                 </div>
             </div>
 
@@ -145,11 +145,11 @@ const SecurityPage = () => {
                         <form onSubmit={handleChangePassword} className="space-y-3">
                             <div>
                                 <label className="!text-[8.5px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Old Password</label>
-                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="₹₹₹₹₹₹₹₹" />
                             </div>
                             <div>
                                 <label className="!text-[8.5px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">New Password</label>
-                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="₹₹₹₹₹₹₹₹" />
                             </div>
                             <button type="submit" className="w-full bg-[#0c831f] text-white py-3 rounded-xl font-black !text-[11px] shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all mt-4 uppercase tracking-widest">
                                 Update Password

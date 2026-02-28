@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ShoppingBag, Package, ChevronRight, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -25,10 +25,17 @@ const OrdersPage = () => {
                         const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
                         // Determine Color 
-                        let colorClass = 'text-green-600 bg-green-50';
-                        if (o.status === "Pending" || o.status === "Processing") colorClass = 'text-orange-600 bg-orange-50';
-                        if (o.status === "In Transit" || o.status === "Out for Delivery") colorClass = 'text-blue-600 bg-blue-50';
-                        if (o.status === "Cancelled" || o.status === "Returned") colorClass = 'text-red-600 bg-red-50';
+                        const statusLower = (o.status || '').toLowerCase();
+                        let colorClass = 'text-green-600 bg-green-50'; // Default Delivered
+                        if (['pending', 'confirmed', 'processing', 'preparing'].includes(statusLower)) {
+                            colorClass = 'text-orange-600 bg-orange-50';
+                        }
+                        if (['out_for_delivery', 'shipped', 'in_transit'].includes(statusLower)) {
+                            colorClass = 'text-blue-600 bg-blue-50';
+                        }
+                        if (['cancelled', 'returned'].includes(statusLower)) {
+                            colorClass = 'text-red-600 bg-red-50';
+                        }
 
                         return {
                             id: o._id,

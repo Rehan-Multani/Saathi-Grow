@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
@@ -125,7 +125,7 @@ const ProductList = () => {
                                 className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] focus:outline-none"
                             >
                                 <option value="all">All Stock</option>
-                                <option value="instock">In Stock (≥20)</option>
+                                <option value="instock">In Stock (₹20)</option>
                                 <option value="low">Low Stock (&lt;20)</option>
                                 <option value="outofstock">Out of Stock</option>
                             </select>

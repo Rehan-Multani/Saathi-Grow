@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStoreManagerAuth } from '../../context/StoreManagerAuthContext';
 import { Card, Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
@@ -59,7 +59,7 @@ const StoreManagerLogin = () => {
                     <Form.Label className="fw-bold small text-uppercase">Password</Form.Label>
                     <Form.Control
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="₹₹₹₹₹₹₹₹"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required

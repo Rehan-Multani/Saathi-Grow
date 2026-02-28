@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -7,6 +7,8 @@ import ProductEditModal from '../../components/products/ProductEditModal';
 import RestockModal from '../../components/products/RestockModal';
 import InventoryLogsModal from '../../components/products/InventoryLogsModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
+import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
 import { getProducts, deleteProduct, updateProduct } from '../../api/productApi';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
@@ -29,7 +31,12 @@ const ProductStatusBadge = ({ status }) => {
 };
 
 const AllProducts = () => {
-    const { adminUser } = useAdminAuth();
+    const adminContext = useAdminAuth();
+    const staffContext = useStaffAuth();
+    const managerContext = useStoreManagerAuth();
+
+    // Dynamically assign active user from whoever is rendering the portal
+    const adminUser = adminContext?.adminUser || staffContext?.staffUser || managerContext?.managerUser || null;
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
@@ -69,6 +76,14 @@ const AllProducts = () => {
 
     const getTotalStock = (p) => {
         if (!p.branchStocks || p.branchStocks.length === 0) return 0;
+
+        // If not Admin, only show stock for THIS branch
+        if (adminUser?.role !== 'Admin' && adminUser?.branchId) {
+            const myStock = p.branchStocks.find(bs => (bs.branchId._id || bs.branchId) === adminUser.branchId);
+            return myStock ? myStock.stock : 0;
+        }
+
+        // Otherwise sum all
         return p.branchStocks.reduce((sum, bs) => sum + bs.stock, 0);
     };
 
@@ -209,13 +224,15 @@ const AllProducts = () => {
                             <Download size={20} />
                             <span className="hidden sm:inline">Export</span>
                         </button>
-                        <Link
-                            to="/admin/products/add"
-                            className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm"
-                        >
-                            <Plus size={20} />
-                            <span className="hidden sm:inline">Add Product</span>
-                        </Link>
+                        {adminUser?.role === 'Admin' && (
+                            <Link
+                                to="/admin/products/add"
+                                className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm"
+                            >
+                                <Plus size={20} />
+                                <span className="hidden sm:inline">Add Product</span>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
@@ -228,9 +245,9 @@ const AllProducts = () => {
                                 <th className="px-6 py-4">Product Name</th>
                                 <th className="px-6 py-4 text-center">Brand</th>
                                 <th className="px-6 py-4 text-center">Category</th>
-                                <th className="px-6 py-4 text-center">Branches</th>
+                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? 'Branches' : 'Assigned Branch'}</th>
                                 <th className="px-6 py-4 text-center">Price</th>
-                                <th className="px-6 py-4 text-center">Total Stock</th>
+                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? 'Total Stock' : 'Branch Stock'}</th>
                                 <th className="px-6 py-4 text-center">Status</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
@@ -271,14 +288,21 @@ const AllProducts = () => {
                                         <td className="px-6 py-4 text-gray-500 text-center">{p.category}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex flex-wrap justify-center gap-1">
-                                                {p.branchStocks && p.branchStocks.length > 0 ? (
-                                                    p.branchStocks.map((bs, idx) => (
-                                                        <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] whitespace-nowrap">
-                                                            {bs.branchId?.name || 'Main'}
-                                                        </span>
-                                                    ))
+                                                {adminUser?.role === 'Admin' ? (
+                                                    p.branchStocks && p.branchStocks.length > 0 ? (
+                                                        p.branchStocks.map((bs, idx) => (
+                                                            <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] whitespace-nowrap">
+                                                                {bs.branchId?.name || 'Main'}
+                                                            </span>
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-gray-400 text-xs">No Branch</span>
+                                                    )
                                                 ) : (
-                                                    <span className="text-gray-400 text-xs">No Branch</span>
+                                                    // For Staff/Manager, only show their own branch name
+                                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[10px] font-bold">
+                                                        {p.branchStocks.find(bs => (bs.branchId._id || bs.branchId) === adminUser.branchId)?.branchId?.name || 'Current Branch'}
+                                                    </span>
                                                 )}
                                             </div>
                                         </td>
@@ -319,21 +343,24 @@ const AllProducts = () => {
                                                 >
                                                     <PackagePlus size={16} />
                                                 </button>
-                                                <button
-                                                    className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
-                                                    title="Edit"
-                                                    onClick={() => handleEdit(p)}
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"
-                                                    title="Delete"
-                                                    onClick={() => handleDelete(p._id, p.name)}
-                                                    disabled={adminUser.role !== 'Admin'}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                {(adminUser?.role === 'Admin' || adminUser?.role === 'Branch Manager' || (adminUser?.permissions && adminUser.permissions.includes('MANAGE_PRODUCTS'))) && (
+                                                    <button
+                                                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
+                                                        title="Edit"
+                                                        onClick={() => handleEdit(p)}
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                )}
+                                                {adminUser?.role === 'Admin' && (
+                                                    <button
+                                                        className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"
+                                                        title="Delete"
+                                                        onClick={() => handleDelete(p._id, p.name)}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
                                             </div>
                                             {showQR === p._id && (
                                                 <>

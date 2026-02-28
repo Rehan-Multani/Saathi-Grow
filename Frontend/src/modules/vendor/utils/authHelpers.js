@@ -1,4 +1,4 @@
-export const loginVendor = async (credentials) => {
+﻿export const loginVendor = async (credentials) => {
     // Simulator
     return new Promise((resolve) => setTimeout(() => resolve({ token: 'vendor-123' }), 500));
 };

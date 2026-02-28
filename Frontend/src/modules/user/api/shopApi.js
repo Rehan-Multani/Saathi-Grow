@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../../../config/apiConfig';
+﻿import { API_BASE_URL } from '../../../config/apiConfig';
 
 export const fetchCategories = async () => {
   const response = await fetch(`${API_BASE_URL}/admin/categories?hasProducts=true`);

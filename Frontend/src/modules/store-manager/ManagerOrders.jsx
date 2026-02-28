@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, DollarSign } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -144,14 +144,27 @@ const ManagerOrders = () => {
                     </td>
                     <td className="text-end pe-4">
                       <div className="d-flex justify-content-end gap-2">
-                        <Button variant="light" size="sm" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>
-                          <Eye size={16} />
-                        </Button>
-                        {order.status === 'delivered' && (
-                          <Button variant="outline-danger" size="sm" title="Initiate Return/Refund">
-                            <Box size={16} />
-                          </Button>
-                        )}
+                        <Dropdown>
+                          <Dropdown.Toggle variant="light" size="sm" className="btn-icon-soft border-0 shadow-sm d-flex align-items-center gap-1">
+                            Manage
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu className="shadow-sm border-0">
+                            <Dropdown.Item onClick={() => { setSelectedOrder(order); setShowModal(true); }} className="d-flex align-items-center gap-2">
+                              <Eye size={16} /> View Details
+                            </Dropdown.Item>
+                            {order.status !== 'cancelled' && order.status !== 'delivered' && order.status !== 'returned' && (
+                              <>
+                                <Dropdown.Divider />
+                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'confirmed')}>Mark Confirmed</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'preparing')}>Mark Preparing</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'out_for_delivery')}>Out for Delivery</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'delivered')} className="text-success">Mark Delivered</Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item className="text-danger" onClick={() => handleStatusUpdate(order._id, 'cancelled')}>Cancel Order</Dropdown.Item>
+                              </>
+                            )}
+                          </Dropdown.Menu>
+                        </Dropdown>
                       </div>
                     </td>
                   </tr>

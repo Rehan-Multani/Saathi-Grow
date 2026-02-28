@@ -1,6 +1,22 @@
 import mongoose from 'mongoose';
 
 const orderDeliverySchema = new mongoose.Schema({
+    type: {
+        type: String,
+        enum: ['delivery', 'return_pickup'],
+        default: 'delivery'
+    },
+    // For return_pickup: where to drop the item back
+    dropDestinationType: {
+        type: String,
+        enum: ['branch', 'vendor'],
+        default: null
+    },
+    dropDestinationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        // ref is either 'Branch' or 'Vendor' based on dropDestinationType
+        default: null
+    },
     order: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
@@ -12,7 +28,10 @@ const orderDeliverySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'assigned', 'picked_up', 'in_transit', 'delivered', 'failed', 'returned'],
+        enum: [
+            'pending', 'assigned', 'picked_up', 'in_transit', 'delivered', 'failed', 'returned',
+            'return_pickup_assigned', 'return_in_transit', 'return_delivered'
+        ],
         default: 'pending'
     },
     assignedAt: Date,
@@ -29,6 +48,12 @@ const orderDeliverySchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    pickupFee: {
+        type: Number,
+        default: 30  // default return pickup earning for partner
+    },
+    returnPickedUpAt: { type: Date, default: null },
+    returnDeliveredAt: { type: Date, default: null },
     customerSignature: String,
     deliveryPhoto: String,
     notes: String

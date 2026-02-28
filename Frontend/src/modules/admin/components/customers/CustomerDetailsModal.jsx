@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { X, Mail, Phone, MapPin, Calendar, ShoppingBag, Star, ShieldAlert } from 'lucide-react';
 
 const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {

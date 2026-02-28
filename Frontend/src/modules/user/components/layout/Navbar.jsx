@@ -162,10 +162,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             <img
               src={logo}
               alt="sathiGro"
-              className={`h-9 w-auto object-contain transition-all duration-300 ${isDarkMode
-                ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
-                : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
-                }`}
+              className="h-9 w-auto object-contain transition-all duration-300"
+              style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
             />
           </Link>
 
@@ -227,8 +225,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             <button
               onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
               className={`flex flex-col items-center justify-center p-1.5 rounded-xl transition-all min-w-[32px] ${isDarkMode
-                  ? 'bg-white/10 border border-white/5 shadow-sm'
-                  : 'bg-transparent border-transparent shadow-none'
+                ? 'bg-white/10 border border-white/5 shadow-sm'
+                : 'bg-transparent border-transparent shadow-none'
                 }`}
             >
               <Globe size={18} className="text-[#0c831f] dark:text-gray-100" strokeWidth={2.5} />
@@ -247,7 +245,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
                   <div className="p-1.5 space-y-0.5">
                     {[
                       { name: 'English', sub: 'Default' },
-                      { name: 'Hindi', sub: 'à¤¹à¤¿à¤‚à¤¦à¥€' }
+                      { name: 'Hindi', sub: 'हिंदी' }
                     ].map((lang) => (
                       <button
                         key={lang.name}
@@ -295,10 +293,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
                 <img
                   src={logo}
                   alt="sathiGro Logo"
-                  className={`h-10 w-auto object-contain transition-all duration-300 hover:scale-105 ${isDarkMode
-                    ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
-                    : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'
-                    }`}
+                  className="h-10 w-auto object-contain transition-all duration-300 hover:scale-105"
+                  style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
               </Link>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Search, ChevronDown, CheckCircle, Package, Truck, Clock, Eye, MoreVertical } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency, formatDate } from '../utils/formatDate';
@@ -68,7 +68,7 @@ const Orders = () => {
                                 <h3 className="text-sm font-extrabold text-gray-900 leading-none mt-1">{order.customer}</h3>
                                 <div className="flex items-center gap-2 text-gray-400 font-bold text-[10px]">
                                     <span className="flex items-center gap-1"><Clock size={10} /> {order.time}</span>
-                                    <span>•</span>
+                                    <span>₹</span>
                                     <span>{order.items} Items</span>
                                 </div>
                             </div>

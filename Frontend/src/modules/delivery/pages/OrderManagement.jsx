@@ -107,7 +107,7 @@ const OrderManagement = () => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <h5 className="font-black text-xl text-slate-900 dark:text-white">â‚¹{delivery.order?.totalAmount || '0'}</h5>
+                                    <h5 className="font-black text-xl text-slate-900 dark:text-white">₹{delivery.order?.totalAmount || '0'}</h5>
                                     <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">{delivery.deliveryFee || 40} fee</p>
                                 </div>
                             </div>
@@ -123,7 +123,7 @@ const OrderManagement = () => {
 
                                     <div>
                                         <p className="text-[11px] font-bold text-slate-800 dark:text-zinc-100 leading-tight">Sathi Store HQ</p>
-                                        <p className="text-[9px] text-slate-400 font-medium">Pickup Point â€¢ Indore</p>
+                                        <p className="text-[9px] text-slate-400 font-medium">Pickup Point ₹ Indore</p>
                                     </div>
 
                                     <div>

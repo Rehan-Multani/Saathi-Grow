@@ -1,4 +1,4 @@
-const now = new Date();
+﻿const now = new Date();
 
 const makeDate = (daysAgo = 0, minutesAgo = 0) => {
     const date = new Date(now);

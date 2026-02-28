@@ -308,6 +308,11 @@ export const getDashboardStats = async (req, res) => {
             activeOrders: await OrderDelivery.countDocuments({
                 deliveryPartner: partner._id,
                 status: { $in: ['assigned', 'picked_up', 'in_transit'] }
+            }),
+            returnPickups: await OrderDelivery.countDocuments({
+                type: 'return_pickup',
+                status: 'pending',
+                deliveryPartner: { $exists: false }
             })
         });
     } catch (error) {
@@ -404,3 +409,223 @@ export const getRouteDirections = async (req, res) => {
         res.status(500).json({ message: 'Error fetching directions from Google Maps' });
     }
 };
+
+// ─────────────────────────────────────────────────────
+// RETURN PICKUP MODULE — Delivery Partner Side
+// ─────────────────────────────────────────────────────
+
+// @desc    Get all pending/active return pickup tasks for delivery partner
+// @route   GET /api/delivery/returns
+// @access  Private (Rider)
+export const getReturnPickups = async (req, res) => {
+    try {
+        const partner = req.partner;
+        const { type = 'available' } = req.query;
+
+        let query = { type: 'return_pickup' };
+
+        if (type === 'available') {
+            query.status = 'pending';
+            query.deliveryPartner = { $exists: false };
+        } else if (type === 'active') {
+            query.deliveryPartner = partner._id;
+            query.status = { $in: ['return_pickup_assigned', 'return_in_transit'] };
+        } else if (type === 'history') {
+            query.deliveryPartner = partner._id;
+            query.status = 'return_delivered';
+        }
+
+        const tasks = await OrderDelivery.find(query)
+            .populate({
+                path: 'order',
+                populate: [
+                    { path: 'user', select: 'name phone' },
+                    { path: 'branchId', select: 'name address phone' },
+                    { path: 'vendor', select: 'storeName address phone' }
+                ]
+            })
+            .sort({ createdAt: -1 });
+
+        // Attach unified dropDestinationInfo so frontend doesn't need to determine source type
+        const enrichedTasks = tasks.map(task => {
+            const t = task.toObject();
+            const order = t.order;
+
+            if (t.dropDestinationType === 'branch' && order?.branchId) {
+                t.dropDestinationInfo = {
+                    type: 'branch',
+                    name: order.branchId.name,
+                    address: typeof order.branchId.address === 'object'
+                        ? `${order.branchId.address.street || ''}, ${order.branchId.address.city || ''}`.trim().replace(/^,|,$/g, '')
+                        : order.branchId.address,
+                    phone: order.branchId.phone
+                };
+            } else if (t.dropDestinationType === 'vendor' && order?.vendor) {
+                t.dropDestinationInfo = {
+                    type: 'vendor',
+                    name: order.vendor.storeName,
+                    address: typeof order.vendor.address === 'object'
+                        ? `${order.vendor.address.street || ''}, ${order.vendor.address.city || ''}`.trim().replace(/^,|,$/g, '')
+                        : order.vendor.address,
+                    phone: order.vendor.phone
+                };
+            } else {
+                t.dropDestinationInfo = null;
+            }
+            return t;
+        });
+
+        res.json(enrichedTasks);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+// @desc    Accept a return pickup task
+// @route   PATCH /api/delivery/returns/:id/accept
+// @access  Private (Rider)
+export const acceptReturnPickup = async (req, res) => {
+    try {
+        const partner = req.partner;
+        const task = await OrderDelivery.findById(req.params.id);
+
+        if (!task || task.type !== 'return_pickup') {
+            return res.status(404).json({ message: 'Return pickup task not found' });
+        }
+
+        if (task.status !== 'pending') {
+            return res.status(400).json({ message: 'This return pickup has already been assigned' });
+        }
+
+        task.deliveryPartner = partner._id;
+        task.status = 'return_pickup_assigned';
+        task.assignedAt = new Date();
+        await task.save();
+
+        // Link partner to the order's returnRequest
+        await Order.findByIdAndUpdate(task.order, {
+            'returnRequest.pickupPartnerId': partner._id
+        });
+
+        // Mark partner as busy
+        partner.assignmentStatus = 'Busy';
+        await partner.save();
+
+        const populated = await OrderDelivery.findById(task._id).populate({
+            path: 'order',
+            populate: [
+                { path: 'user', select: 'name phone' },
+                { path: 'branchId', select: 'name address phone' },
+                { path: 'vendor', select: 'storeName address phone' }
+            ]
+        });
+
+        res.json({ success: true, task: populated });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update return pickup task status
+//          return_in_transit  = picked up from customer
+//          return_delivered   = delivered back to branch/store
+// @route   PATCH /api/delivery/returns/:id/status
+// @access  Private (Rider)
+export const updateReturnPickupStatus = async (req, res) => {
+    try {
+        const { status, proofImage } = req.body;
+        const partner = req.partner;
+
+        const task = await OrderDelivery.findById(req.params.id);
+        if (!task || task.type !== 'return_pickup') {
+            return res.status(404).json({ message: 'Return pickup task not found' });
+        }
+
+        if (task.deliveryPartner?.toString() !== partner._id.toString()) {
+            return res.status(403).json({ message: 'This task is not assigned to you' });
+        }
+
+        const order = await Order.findById(task.order);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        if (status === 'return_in_transit') {
+            // Partner has picked item from customer
+            task.returnPickedUpAt = new Date();
+            task.status = 'return_in_transit';
+
+            // Update order status
+            order.status = 'return_picked_up';
+            order.returnRequest.pickedUpAt = new Date();
+            if (proofImage) order.returnRequest.pickupProofImage = proofImage;
+            await order.save();
+
+        } else if (status === 'return_delivered') {
+            // Partner has returned item to store/branch — FULL COMPLETION
+            task.returnDeliveredAt = new Date();
+            task.status = 'return_delivered';
+
+            // Mark order as fully returned
+            order.status = 'returned';
+            order.returnRequest.resolvedAt = new Date();
+
+            // Restore stock (if not already done on approval)
+            // Note: stock was restored on admin approval — skip here
+
+            // Process refund if not already done
+            if (order.paymentStatus === 'paid') {
+                const User = (await import('../models/User.js')).default;
+                const UserTransaction = (await import('../models/UserTransaction.js')).default;
+
+                const user = await User.findById(order.user);
+                if (user) {
+                    user.walletBalance = (user.walletBalance || 0) + order.totalAmount;
+                    await user.save();
+
+                    await UserTransaction.create({
+                        user: order.user,
+                        amount: order.totalAmount,
+                        type: 'credit',
+                        category: 'order_refund',
+                        status: 'completed',
+                        description: `Refund for Returned Order #${order.orderId}`,
+                        orderId: order._id
+                    });
+                }
+                order.paymentStatus = 'refunded';
+            }
+
+            await order.save();
+
+            // Credit partner with pickup fee
+            const fee = task.pickupFee || 30;
+            let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+            if (!wallet) {
+                wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
+            }
+            wallet.balance += fee;
+            wallet.totalEarnings += fee;
+            await wallet.save();
+
+            await Transaction.create({
+                wallet: wallet._id,
+                amount: fee,
+                type: 'credit',
+                category: 'return_pickup_fee',
+                referenceId: task._id,
+                referenceModel: 'OrderDelivery'
+            });
+
+            // Free up partner
+            partner.assignmentStatus = 'Free';
+            partner.activeOrder = null;
+            await partner.save();
+        }
+
+        await task.save();
+        res.json({ success: true, task });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

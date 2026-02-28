@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Badge, Image } from 'react-bootstrap';
 import { Save, Globe, Smartphone, Mail, Layout, Palette, Upload } from 'lucide-react';
 
@@ -63,7 +63,7 @@ const AppSettings = () => {
                                         <Form.Select className="w-100" defaultValue="INR (₹)">
                                             <option>INR (₹)</option>
                                             <option>USD ($)</option>
-                                            <option>EUR (€)</option>
+                                            <option>EUR (₹)</option>
                                         </Form.Select>
                                     </Col>
                                     <Col md={6}>

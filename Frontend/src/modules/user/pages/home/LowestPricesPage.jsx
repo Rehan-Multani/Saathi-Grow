@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, ChevronDown, TrendingDown } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';

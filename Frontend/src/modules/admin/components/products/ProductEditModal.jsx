@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Spinner, Image } from 'react-bootstrap';
 import { Save, X, Camera, Plus, Sparkles } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -6,11 +6,17 @@ import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
+import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
 import { getAISuggestions } from '../../api/productApi';
 import { toast } from 'react-toastify';
 
 const ProductEditModal = ({ show, onHide, product, onSave }) => {
-    const { adminUser } = useAdminAuth();
+    const adminContext = useAdminAuth();
+    const staffContext = useStaffAuth();
+    const managerContext = useStoreManagerAuth();
+
+    const adminUser = adminContext?.adminUser || staffContext?.staffUser || managerContext?.managerUser || null;
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);

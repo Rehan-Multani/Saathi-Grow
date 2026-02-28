@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Package, ShoppingBag, Clock, Wallet, TrendingUp, AlertCircle, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../utils/formatDate';
@@ -152,7 +152,7 @@ const Dashboard = () => {
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <p className="text-xs text-gray-500 font-medium">
-                                            {order.items} items <span className="text-gray-300 mx-1">•</span> {order.time}
+                                            {order.items} items <span className="text-gray-300 mx-1">₹</span> {order.time}
                                         </p>
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${order.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
                                             order.status === 'Dispatched' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-gray-50 text-gray-600 border-gray-100'

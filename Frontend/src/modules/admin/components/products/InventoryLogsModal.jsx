@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Modal, Table, Spinner, Badge } from 'react-bootstrap';
 import { History, ArrowUpRight, ArrowDownRight, Info, User } from 'lucide-react';
 import { getInventoryLogs } from '../../api/productApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
+import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
 import { format } from 'date-fns';
 
 const InventoryLogsModal = ({ show, onHide, product }) => {
-  const { adminUser } = useAdminAuth();
+  const adminContext = useAdminAuth();
+  const staffContext = useStaffAuth();
+  const managerContext = useStoreManagerAuth();
+
+  const adminUser = adminContext?.adminUser || staffContext?.staffUser || managerContext?.managerUser || null;
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
 

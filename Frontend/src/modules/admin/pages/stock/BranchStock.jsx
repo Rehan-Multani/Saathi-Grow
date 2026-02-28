@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Search, MapPin, Package } from 'lucide-react';
 import { getProducts } from '../../api/productApi';

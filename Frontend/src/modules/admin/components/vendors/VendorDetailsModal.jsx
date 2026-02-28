@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Mail, Phone, MapPin, Store, Star, Package, ShieldCheck, Globe, Info } from 'lucide-react';
 import { Badge } from 'react-bootstrap';
@@ -50,7 +50,7 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                             <h5 className="text-xl font-bold text-gray-800">{vendor.storeName}</h5>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <span className="font-mono text-xs">#{vendor._id}</span>
-                                <span>•</span>
+                                <span>₹</span>
                                 <span className={`flex items-center gap-1 ${vendor.status === 'Active' ? 'text-green-600' : 'text-amber-600'}`}>
                                     {vendor.status === 'Active' ? <ShieldCheck size={14} /> : null} {vendor.status}
                                 </span>

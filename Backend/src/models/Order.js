@@ -48,7 +48,10 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled', 'returned'],
+        enum: [
+            'pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered',
+            'cancelled', 'return_requested', 'return_pickup_scheduled', 'return_picked_up', 'returned'
+        ],
         default: 'pending'
     },
     paymentStatus: {
@@ -58,7 +61,7 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['cod', 'online'],
+        enum: ['cod', 'online', 'wallet'],
         required: true
     },
     razorpayOrderId: {
@@ -118,6 +121,26 @@ const orderSchema = new mongoose.Schema({
         assignedAt: { type: Date, default: null },
         pickedUpAt: { type: Date, default: null },
         deliveredAt: { type: Date, default: null }
+    },
+    returnRequest: {
+        isRequested: { type: Boolean, default: false },
+        reason: { type: String, default: null },
+        description: { type: String, default: null },
+        images: { type: [String], default: [] },
+        status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+        requestDate: { type: Date, default: null },
+        rejectionReason: { type: String, default: null },
+        pickupScheduledAt: { type: Date, default: null },
+        pickedUpAt: { type: Date, default: null },
+        resolvedAt: { type: Date, default: null },
+        pickupProofImage: { type: String, default: null },
+        pickupPartnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'DeliveryPartner', default: null },
+        pickupDeliveryId: { type: mongoose.Schema.Types.ObjectId, ref: 'OrderDelivery', default: null }
+    },
+    cancellation: {
+        isCancelled: { type: Boolean, default: false },
+        reason: { type: String, default: null },
+        cancelledAt: { type: Date, default: null }
     }
 }, {
     timestamps: true

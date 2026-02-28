@@ -9,6 +9,7 @@ const Wallet = lazy(() => import('../pages/WalletPage'));
 const History = lazy(() => import('../pages/DeliveryHistory'));
 const Profile = lazy(() => import('../pages/ProfileSettings'));
 const Tracking = lazy(() => import('../pages/LiveTracking'));
+const ReturnPickups = lazy(() => import('../pages/ReturnPickups'));
 const Login = lazy(() => import('../pages/DeliveryLogin'));
 import useDeliveryStore from '../store/deliveryStore';
 
@@ -39,6 +40,7 @@ const DeliveryRoutes = () => {
                                     <Route path="/" element={<Navigate to="dashboard" replace />} />
                                     <Route path="/dashboard" element={<Dashboard />} />
                                     <Route path="/orders" element={<Orders />} />
+                                    <Route path="/returns" element={<ReturnPickups />} />
                                     <Route path="/wallet" element={<Wallet />} />
                                     <Route path="/history" element={<History />} />
                                     <Route path="/profile" element={<Profile />} />
