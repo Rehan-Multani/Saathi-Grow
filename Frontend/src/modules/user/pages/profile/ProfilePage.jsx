@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -37,12 +37,14 @@ const ProfilePage = () => {
 
     const sections = [
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
+        { icon: MessageCircle, label: "My Complaints", subtitle: "Check status of your grievances", path: "/my-complaints" },
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
         { icon: CreditCard, label: "sathiGro Wallet", subtitle: `₹${user?.walletBalance || '0.00'} Balance available`, path: "/wallet" },
         { icon: Shield, label: "Security", subtitle: "Password and account security", path: "/security" },
         { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and Customer Support", path: "/help" }
     ];
+
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black pt-24 px-0 pb-0 md:p-2">

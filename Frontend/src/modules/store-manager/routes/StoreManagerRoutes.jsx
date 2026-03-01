@@ -13,6 +13,7 @@ import { StoreManagerAuthProvider, useStoreManagerAuth } from '../context/StoreM
 import StoreManagerLogin from '../pages/auth/StoreManagerLogin';
 import AllProducts from '../../admin/pages/products/AllProducts';
 import { ManagerProfile } from '../../../components/ProfileSettings';
+import ManagerSupportTickets from '../ManagerSupportTickets';
 
 const DeliveryPartners = lazy(() => import('../ManagerDeliveryPartners'));
 const AssignDeliveries = lazy(() => import('../ManagerAssignDeliveries'));
@@ -57,6 +58,7 @@ const StoreManagerRoutes = () => {
                             <Route path="delivery/tracking" element={<DeliveryTracking />} />
                             <Route path="customers" element={<AllCustomers />} />
                             <Route path="profile" element={<ManagerProfile />} />
+                            <Route path="support" element={<ManagerSupportTickets />} />
                         </Route>
                     </Route>
                     {/* Catch all for store manager - redirect to dashboard */}

@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, Phone, User, Check, Home, Briefcase, Heart, Navigation, Search, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, User, Check, Home, Briefcase, Heart, Navigation as NavIcon, Search, Loader2 } from 'lucide-react';
 import { useLocation as useAppLocation } from '../../context/LocationContext';
 
 const AddressFormPage = () => {
@@ -222,7 +222,7 @@ const AddressFormPage = () => {
                             {detecting ? (
                                 <Loader2 size={12} className="animate-spin" />
                             ) : (
-                                <Navigation size={12} fill="currentColor" />
+                                <NavIcon size={12} fill="currentColor" />
                             )}
                             {detecting ? 'Detecting...' : 'Use Current Location'}
                         </button>

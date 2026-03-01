@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import axios from 'axios';
 import polylineUtil from '@mapbox/polyline';
 import 'leaflet/dist/leaflet.css';
@@ -25,10 +25,11 @@ import { getDeliveryDetail, updateDeliveryStatus, getRouteDirections } from '../
 import { toast } from 'react-toastify';
 import useLocationTracking from '../hooks/useLocationTracking';
 
-// Import Assets for Icons
-import bikeImg from '../../../assets/delivery-bike.png';
-import storeImg from '../../../assets/store.png';
-import houseImg from '../../../assets/house.png';
+// Asset URLs using Vite-friendly resolution
+const bikeImgUrl = new URL('../../../assets/delivery-bike.png', import.meta.url).href;
+const storeImgUrl = new URL('../../../assets/store.png', import.meta.url).href;
+const houseImgUrl = new URL('../../../assets/house.png', import.meta.url).href;
+
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -38,53 +39,39 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom component to handle map centering
-const ChangeView = ({ center }) => {
+// Custom component to handle map centering and interaction
+const MapController = ({ center, isFOLLOWING, setIsFOLLOWING }) => {
     const map = useMap();
-    if (center) map.setView(center, map.getZoom());
+
+    // Handle auto-centering
+    useEffect(() => {
+        if (center && isFOLLOWING) {
+            map.setView(center, map.getZoom(), { animate: true });
+        }
+    }, [center, isFOLLOWING, map]);
+
+    // Handle user interaction detection
+    useMapEvents({
+        movestart: (e) => {
+            // Only disable following if the movement was caused by user (not by setView)
+            if (e.target._animateToCenter) return; // Ignore internal animations
+            // Note: Leaflet doesn't always provide an easy 'originalEvent' for movestart
+            // but we can check if it's currently following
+        },
+        dragstart: () => setIsFOLLOWING(false),
+        zoomstart: () => setIsFOLLOWING(false),
+        touchmove: () => setIsFOLLOWING(false)
+    });
+
     return null;
 };
 
-// Custom Map Icons
-const bikeIcon = new L.divIcon({
-    html: `<div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative;">
-             <span style="position: absolute; top: 0; right: 0; display: flex; height: 16px; width: 16px; z-index: 10;">
-               <span style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
-               <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
-             </span>
-             <img src="${bikeImg}" style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-    className: '',
-    iconSize: [50, 50],
-    iconAnchor: [25, 25],
-    popupAnchor: [0, -25]
-});
 
-const storeIcon = new L.divIcon({
-    html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-             <img src="${storeImg}" style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-    className: '',
-    iconSize: [45, 45],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -22]
-});
-
-const homeIcon = new L.divIcon({
-    html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-             <img src="${houseImg}" style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-    className: '',
-    iconSize: [45, 45],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -22]
-});
 
 // Helper function to get distance between two coords in meters
 const getDistance = (pos1, pos2) => {
     if (!pos1 || !pos2) return 0;
 
-    // Explicitly parse to numbers to prevent NaN breaking calculation
     const lat1 = Number(pos1[0]);
     const lng1 = Number(pos1[1]);
     const lat2 = Number(pos2[0]);
@@ -93,12 +80,13 @@ const getDistance = (pos1, pos2) => {
     const R = 6371e3;
     const f1 = lat1 * Math.PI / 180;
     const f2 = lat2 * Math.PI / 180;
-    const ?f = (lat2 - lat1) * Math.PI / 180;
-    const ?? = (lng2 - lng1) * Math.PI / 180;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
 
-    const a = Math.sin(?f / 2) * Math.sin(?f / 2) +
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(f1) * Math.cos(f2) *
-        Math.sin(?? / 2) * Math.sin(?? / 2);
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return Math.abs(R * c);
@@ -114,7 +102,39 @@ const LiveTracking = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [routeCoordinates, setRouteCoordinates] = useState([]);
     const [trimmedRoute, setTrimmedRoute] = useState([]);
+    const [isFOLLOWING, setIsFOLLOWING] = useState(true);
     const markerRef = React.useRef(null);
+
+
+    // Memoize custom icons to ensure they work with imported assets correctly
+    const bikeIcon = useMemo(() => new L.divIcon({
+        html: `<div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative;">
+                 <span style="position: absolute; top: 0; right: 0; display: flex; height: 16px; width: 16px; z-index: 10;">
+                   <span style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
+                   <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
+                 </span>
+                 <img src="${bikeImgUrl}" style="width: 100%; height: 100%; object-fit: contain;" />
+               </div>`,
+        className: '',
+        iconSize: [50, 50],
+        iconAnchor: [25, 25],
+        popupAnchor: [0, -25]
+    }), []);
+
+    const storeIcon = useMemo(() => L.icon({
+        iconUrl: storeImgUrl,
+        iconSize: [45, 45],
+        iconAnchor: [22, 22],
+        popupAnchor: [0, -22]
+    }), []);
+
+    const homeIcon = useMemo(() => L.icon({
+        iconUrl: houseImgUrl,
+        iconSize: [45, 45],
+        iconAnchor: [22, 22],
+        popupAnchor: [0, -22]
+    }), []);
+
 
     // Track location when viewing an active order
     useLocationTracking(token, delivery?.status !== 'delivered' && delivery?.status !== undefined, delivery?.order?._id);
@@ -252,8 +272,17 @@ const LiveTracking = () => {
         <div className="fixed inset-0 w-full h-full z-[100] bg-slate-50">
             {/* Map Background */}
             <div className="absolute inset-0 z-0">
-                <MapContainer center={partnerPos} zoom={15} style={{ height: '100%', width: '100%' }}>
-                    <ChangeView center={delivery.status === 'delivered' ? deliveryPos : (delivery.status === 'picked_up' ? deliveryPos : pickupPos)} />
+                <MapContainer
+                    center={partnerPos}
+                    zoom={15}
+                    style={{ height: '100%', width: '100%' }}
+                >
+                    <MapController
+                        center={partnerPos}
+                        isFOLLOWING={isFOLLOWING}
+                        setIsFOLLOWING={setIsFOLLOWING}
+                    />
+
                     <TileLayer
                         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                         attribution='&copy; OpenStreetMap'
@@ -313,10 +342,17 @@ const LiveTracking = () => {
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <span className="font-black text-sm uppercase tracking-wider">Live Tracking</span>
                 </div>
-                <button className="p-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-slate-100 dark:border-zinc-800">
-                    <Maximize2 size={24} />
+                <button
+                    onClick={() => {
+                        setIsFOLLOWING(true);
+                        toast.info("Map centered on you");
+                    }}
+                    className={`p-3 rounded-2xl shadow-xl border transition-all ${isFOLLOWING ? 'bg-lime-500 text-white border-lime-600' : 'bg-white dark:bg-zinc-900 border-slate-100 dark:border-zinc-800'}`}
+                >
+                    <Navigation size={24} className={isFOLLOWING ? 'fill-current' : ''} />
                 </button>
             </div>
+
 
             {/* Floating Order Info Bottom Sheet */}
             <div className="absolute bottom-0 left-0 right-0 z-[1000] overflow-hidden">

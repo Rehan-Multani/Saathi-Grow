@@ -458,7 +458,7 @@ const DeliveryDashboard = () => {
                                     <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider mb-1">
                                         {order.status}
                                     </span>
-                                    <p className="font-black text-sm">?{order.deliveryFee}</p>
+                                    <p className="font-black text-sm">₹{order.deliveryFee}</p>
                                 </div>
                             </div>
                         )) : (

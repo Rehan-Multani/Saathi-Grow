@@ -128,6 +128,10 @@ import adminDeliveryRoutes from './routes/adminDeliveryRoutes.js';
 import deliveryAuthRoutes from './routes/deliveryAuthRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import walletRoutes from './routes/walletRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import complaintRoutes from './routes/complaintRoutes.js';
+import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
+
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -153,6 +157,10 @@ app.use('/api/user/cart', userCartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+
 
 // Socket logic placeholder
 io.on('connection', (socket) => {

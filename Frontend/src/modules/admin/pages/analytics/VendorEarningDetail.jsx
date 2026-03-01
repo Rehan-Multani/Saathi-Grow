@@ -30,9 +30,8 @@ const VendorEarningDetail = () => {
             refunds: '₹450.00'
         },
         transactions: [
-            { id: '#ORD-2001', date: '2023-10-25', items: 12, amount: '₹1,200', comm: '₹120', net: '₹,080' },
-            {₹₹₹₹₹₹₹₹₹
-                id: '#ORD-2005', date: '2023-10-22', items: 8, amount: '₹0', comm: '₹net: '�₹65' },
+            { id: '#ORD-2001', date: '2023-10-25', items: 12, amount: '₹1,200', comm: '₹120', net: '₹1,080' },
+            { id: '#ORD-2005', date: '2023-10-22', items: 8, amount: '₹850', comm: '₹85', net: '₹765' },
             { id: '#ORD-2010', date: '2023-10-18', items: 15, amount: '₹2,100', comm: '₹210', net: '₹1,890' },
             { id: '#ORD-2015', date: '2023-10-15', items: 5, amount: '₹450', comm: '₹45', net: '₹405' },
         ],

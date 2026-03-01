@@ -45,9 +45,10 @@ const StoreManagerDashboard = () => {
         { label: 'Total Revenue', value: `₹${apiStats?.totalRevenue || 0}`, icon: 'IndianRupee', color: 'bg-green-500', textColor: 'text-green-500', trend: 0, path: '/store-manager/reports' },
         { label: 'Total Orders', value: apiStats?.totalOrders || 0, icon: 'ShoppingCart', color: 'bg-blue-500', textColor: 'text-blue-500', trend: 0, path: '/store-manager/orders' },
         { label: 'Pending Orders', value: apiStats?.pendingOrders || 0, icon: 'Clock', color: 'bg-amber-500', textColor: 'text-amber-500', trend: 0, path: '/store-manager/orders' },
-        { label: 'Stock Products', value: apiStats?.totalProducts || 0, icon: 'Package', color: 'bg-purple-500', textColor: 'text-purple-500', trend: 0, path: '/store-manager/inventory' },
-        { label: 'Branch Staff', value: 'Active', icon: 'Users', color: 'bg-indigo-500', textColor: 'text-indigo-500', trend: 0, path: '/store-manager/staff' },
+        { label: 'Support Tickets', value: apiStats?.pendingTickets || 0, icon: 'Headphones', color: 'bg-rose-500', textColor: 'text-rose-500', trend: 0, path: '/store-manager/support' },
+        { label: 'Branch Status', value: 'Active', icon: 'Shield', color: 'bg-indigo-500', textColor: 'text-indigo-500', trend: 0, path: '/store-manager/profile' },
     ];
+
 
     const chartData = apiRevenueData?.map(d => d.orders) || [0, 0, 0, 0, 0, 0, 0];
     const maxChartValue = Math.max(...chartData) || 1;

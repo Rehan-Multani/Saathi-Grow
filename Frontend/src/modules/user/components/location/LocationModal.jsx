@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { X, MapPin, Navigation, Search } from 'lucide-react';
+import { X, MapPin, Navigation as NavIcon, Search } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
 
 const LocationModal = () => {
@@ -118,7 +118,7 @@ const LocationModal = () => {
                             onClick={handleDetectLocation}
                             className="w-full md:w-auto bg-[#0c831f] text-white px-6 py-2.5 rounded-lg hover:bg-[#0b721b] transition-colors font-bold text-xs md:text-sm h-[42px] whitespace-nowrap shadow-sm active:scale-95 flex items-center justify-center gap-2"
                         >
-                            <Navigation size={14} fill="currentColor" />
+                            <NavIcon size={14} fill="currentColor" />
                             {detecting ? 'Detecting...' : 'Detect location'}
                         </button>
 

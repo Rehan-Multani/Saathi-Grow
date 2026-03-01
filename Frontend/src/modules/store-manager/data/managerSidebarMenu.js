@@ -61,9 +61,16 @@
     permission: 'VIEW_DASHBOARD'
   },
   {
+    title: 'Support Tickets',
+    path: '/store-manager/support',
+    icon: 'Headphones',
+    permission: 'VIEW_DASHBOARD'
+  },
+  {
     title: 'Branch Profile',
     path: '/store-manager/profile',
     icon: 'Store',
     permission: 'VIEW_DASHBOARD'
   }
+
 ];

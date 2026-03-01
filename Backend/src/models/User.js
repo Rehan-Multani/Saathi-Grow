@@ -78,6 +78,16 @@ const userSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    fcmToken: {
+        app: {
+            type: String,
+            default: ''
+        },
+        web: {
+            type: String,
+            default: ''
+        }
     }
 }, {
     timestamps: true

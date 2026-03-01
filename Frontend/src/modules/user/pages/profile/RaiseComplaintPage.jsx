@@ -1,95 +1,166 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, ShieldCheck, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Send, ShieldCheck, CheckCircle, Camera, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import * as complaintApi from '../../api/complaintApi';
+import { toast } from 'react-toastify';
 
 const RaiseComplaintPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { token } = useAuth();
+
     const [selectedIssue, setSelectedIssue] = useState('');
     const [comment, setComment] = useState('');
     const [submitted, setSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [images, setImages] = useState([]);
+    const [ticketId, setTicketId] = useState('');
 
-    const issues = ['Late delivery', 'Rude delivery partner', 'Missing items', 'Payment issues'];
+    const issues = ['Missing Item', 'Damaged Goods', 'Poor Quality', 'Payment Issue', 'Late Delivery', 'Wrong Item', 'Other'];
 
-    const submitRequest = () => {
-        setSubmitted(true);
-        setTimeout(() => navigate('/orders'), 3000);
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        // Simple mock for production - usually upload to Cloudinary directly or send as part of form
+        if (files.length > 3) {
+            toast.warn('You can upload up to 3 images.');
+            return;
+        }
+        setImages(files);
+        toast.info(`${files.length} images added.`);
     };
+
+    const submitRequest = async () => {
+        if (!selectedIssue) return;
+
+        try {
+            setIsSubmitting(true);
+
+            // Use FormData for multipart/form-data upload
+            const formData = new FormData();
+            formData.append('orderId', id);
+            formData.append('category', selectedIssue);
+            formData.append('description', comment || 'No comments provided');
+
+            // Append images to 'attachments' field
+            images.forEach((image) => {
+                formData.append('attachments', image);
+            });
+
+            const response = await complaintApi.raiseComplaint(token, formData);
+
+            if (response.success) {
+                setTicketId(response.complaint.ticketId);
+                setSubmitted(true);
+                toast.success('Complaint submitted successfully!');
+            } else {
+                toast.error(response.message || 'Something went wrong');
+            }
+        } catch (error) {
+            console.error('Submission error:', error);
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to submit complaint';
+            toast.error(errorMsg);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
 
     if (submitted) {
         return (
-            <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:dark:bg-black md:bg-none dark:from-[#141414] dark:to-[#141414] flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 bg-green-50 dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center mb-6 text-[#0c831f] animate-bounce">
+            <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 bg-green-50 dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center mb-6 text-[#0c831f] animate-bounce shadow-xl">
                     <CheckCircle size={32} strokeWidth={3} />
                 </div>
-                <h2 className="text-[17px] font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">Request received!</h2>
-                <p className="text-[11px] text-gray-500 mb-8 max-w-[250px]">Your complaint for Order #{id} has been submitted. We will notify you shortly.</p>
-                <div className="w-full max-w-[180px] h-1 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#0c831f] animate-[shimmer_2s_infinite]"></div>
+                <h2 className="text-[17px] md:text-2xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight uppercase">Complaint registered!</h2>
+                <div className="bg-gray-100 dark:bg-white/5 px-4 py-2 rounded-lg mb-4">
+                    <span className="text-[10px] font-black text-gray-400 mr-2">TICKET ID:</span>
+                    <span className="text-[14px] font-black text-[#0c831f]">{ticketId}</span>
                 </div>
+                <p className="text-[11px] md:text-sm text-gray-500 mb-8 max-w-[250px] font-bold">Your complaint for Order #{id.slice(-6).toUpperCase()} is being reviewed by our Admin team.</p>
+                <button
+                    onClick={() => navigate('/orders')}
+                    className="px-8 py-3 bg-[#0c831f] text-white rounded-xl font-black text-[12px] uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-green-500/20"
+                >
+                    Back to orders
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white md:dark:bg-black dark:from-[#141414] dark:to-[#141414] pb-10">
-            <div className="hidden md:block sticky top-0 z-40 bg-white/20 dark:bg-black/20 md:bg-none md:bg-white md:dark:bg-black backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4 transition-colors">
+        <div className="min-h-screen bg-gradient-to-r from-[#f9fafb] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] pb-10">
+            {/* Native Mobile Header */}
+            <div className="sticky top-0 z-40 bg-white/60 dark:bg-black/40 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 p-4 transition-all">
                 <div className="max-w-2xl mx-auto flex items-center gap-4">
-                    <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
+                    <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all border border-gray-100 dark:border-white/10">
                         <ArrowLeft size={16} />
                     </button>
-                    <h1 className="text-[13.5px] md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none">Raise complaint</h1>
+                    <h1 className="text-[13.5px] md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none uppercase">Raise complaint</h1>
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 pt-24 md:pt-28 pb-4 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="space-y-6">
+            <div className="max-w-2xl mx-auto px-4 py-6 md:py-10 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="bg-white dark:bg-[#1a1a1a] rounded-3xl p-6 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-white/5 space-y-8">
+                    {/* Reason Selection */}
                     <div>
-                        <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Select reason</p>
-                        <div className="divide-y divide-gray-100 dark:divide-white/5 md:border-y md:border-gray-100 md:dark:border-white/5 mx-[-1rem]">
+                        <p className="!text-[9px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Reason for complaint</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {issues.map((issue, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setSelectedIssue(issue)}
-                                    className={`w-full py-4 px-5 text-left transition-all !text-[10px] md:!text-base font-bold flex items-center justify-between group ${selectedIssue === issue
-                                        ? 'bg-transparent md:bg-green-50/50 dark:bg-[#0c831f]/10 text-[#0c831f]'
-                                        : 'bg-transparent text-gray-600 dark:text-gray-300'}`}
+                                    className={`py-3 px-4 rounded-xl text-left transition-all !text-[11px] md:!text-base font-black flex items-center justify-between group border uppercase tracking-tight ${selectedIssue === issue
+                                        ? 'bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] shadow-sm'
+                                        : 'bg-gray-50/50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-400'}`}
                                 >
                                     <span>{issue}</span>
-                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${selectedIssue === issue ? 'border-[#0c831f] bg-[#0c831f]' : 'border-gray-200 dark:border-white/10'}`}>
-                                        {selectedIssue === issue && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
-                                    </div>
+                                    {selectedIssue === issue && <CheckCircle size={14} />}
                                 </button>
                             ))}
                         </div>
                     </div>
 
+                    {/* Image Upload */}
                     <div>
-                        <p className="text-[8.5px] md:text-sm font-black text-gray-400 tracking-[0.2em] mb-4 uppercase">Additional comments (optional)</p>
+                        <p className="!text-[9px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Upload Evidence (Optional)</p>
+                        <label className="flex flex-col items-center justify-center py-6 bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-[#0c831f]/5 transition-all group">
+                            <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                            <Camera size={24} className="text-gray-400 group-hover:text-[#0c831f] transition-all mb-2" />
+                            <span className="text-[10px] md:text-sm font-black text-gray-400 group-hover:text-[#0c831f] transition-all uppercase tracking-widest">{images.length > 0 ? `${images.length} images selected` : 'Click to upload photos'}</span>
+                            <p className="text-[8px] text-gray-300 mt-1">MAX 3 IMAGES · DAMAGED OR WRONG ITEMS</p>
+                        </label>
+                    </div>
+
+                    {/* Comments */}
+                    <div>
+                        <p className="text-[9.5px] md:text-sm font-black text-gray-400 tracking-[0.2em] mb-4 uppercase">Additional details</p>
                         <textarea
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            placeholder="Tell us more about the issue..."
-                            className="w-full h-28 p-3.5 bg-white/20 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0c831f] text-[11px] md:text-base dark:text-white placeholder:text-gray-400 shadow-sm"
+                            placeholder="Please provide details about your issue..."
+                            className="w-full h-32 p-4 bg-gray-50/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0c831f]/50 text-[12px] md:text-lg dark:text-white placeholder:text-gray-400 font-bold transition-all"
                         />
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-500/10 p-3.5 rounded-xl flex gap-3 text-blue-600 border border-blue-100 dark:border-blue-500/10">
-                        <ShieldCheck size={18} className="flex-shrink-0" />
-                        <p className="text-[9.5px] md:text-base font-medium leading-relaxed italic">
-                            Your request will be processed according to our sathiGro protection policy. Support will contact you within 24 hours.
+                    {/* Policy Banner */}
+                    <div className="bg-amber-50/50 dark:bg-amber-500/10 p-4 rounded-2xl flex gap-4 text-amber-700 dark:text-amber-500 border border-amber-100 dark:border-amber-500/10">
+                        <ShieldCheck size={28} className="flex-shrink-0" />
+                        <p className="text-[10px] md:text-[14px] font-black leading-tight italic uppercase tracking-tighter">
+                            Your protection is our priority. Complaints are escalated directly to the store manager and monitored by SaathiGro Admins.
                         </p>
                     </div>
 
+                    {/* Submit Button */}
                     <button
-                        disabled={!selectedIssue}
+                        disabled={!selectedIssue || isSubmitting}
                         onClick={submitRequest}
-                        className={`w-full py-3.5 rounded-xl text-[10.5px] md:text-lg font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 ${selectedIssue
-                            ? 'bg-[#0c831f] text-white shadow-green-500/20'
+                        className={`w-full py-4 rounded-2xl text-[12px] md:text-xl font-black uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] ${selectedIssue && !isSubmitting
+                            ? 'bg-[#0c831f] text-white shadow-green-500/30 ring-4 ring-green-500/5'
                             : 'bg-gray-200 dark:bg-white/10 text-gray-400 cursor-not-allowed shadow-none'}`}
                     >
-                        <Send size={14} />
-                        Submit complaint
+                        {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                        {isSubmitting ? 'Submitting...' : 'Register Ticket'}
                     </button>
                 </div>
             </div>
@@ -98,4 +169,5 @@ const RaiseComplaintPage = () => {
 };
 
 export default RaiseComplaintPage;
+
 

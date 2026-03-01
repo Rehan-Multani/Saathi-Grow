@@ -103,6 +103,16 @@ const deliveryPartnerSchema = new mongoose.Schema({
     walletBalance: {
         type: Number,
         default: 0
+    },
+    fcmToken: {
+        app: {
+            type: String,
+            default: ''
+        },
+        web: {
+            type: String,
+            default: ''
+        }
     }
 }, {
     timestamps: true
