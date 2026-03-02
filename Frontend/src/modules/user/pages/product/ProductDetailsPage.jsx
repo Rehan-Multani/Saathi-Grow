@@ -5,7 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
 import ProductCard from '../../components/product/ProductCard';
-import categoryPlaceholder from '../../assets/images/category-placeholder.png';
+const categoryPlaceholder = '/assets/category-placeholder.png';
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
@@ -124,9 +124,11 @@ const ProductDetailsPage = () => {
                                 alt={product.name}
                                 className={`w-full h-full transition-all duration-700 group-hover:scale-110 ${!selectedImage ? 'object-cover' : 'object-contain'}`}
                                 onError={(e) => {
-                                    e.target.src = categoryPlaceholder;
-                                    e.target.classList.add('opacity-80');
-                                    e.target.style.objectFit = 'cover';
+                                    if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                        e.target.src = categoryPlaceholder;
+                                        e.target.classList.add('opacity-80');
+                                        e.target.style.objectFit = 'cover';
+                                    }
                                 }}
                             />
                         </div>
@@ -147,8 +149,10 @@ const ProductDetailsPage = () => {
                                         alt="thumb"
                                         className={`w-full h-full transition-all duration-300 ${!img ? 'object-cover' : 'object-contain'}`}
                                         onError={(e) => {
-                                            e.target.src = categoryPlaceholder;
-                                            e.target.style.objectFit = 'cover';
+                                            if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                                e.target.src = categoryPlaceholder;
+                                                e.target.style.objectFit = 'cover';
+                                            }
                                         }}
                                     />
                                 </div>

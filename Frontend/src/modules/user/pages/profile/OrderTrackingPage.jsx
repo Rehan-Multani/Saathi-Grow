@@ -14,9 +14,9 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
 // Asset URLs using Vite-friendly resolution
-const bikeImgUrl = new URL('../../../../assets/delivery-bike.png', import.meta.url).href;
-const storeImgUrl = new URL('../../../../assets/store.png', import.meta.url).href;
-const houseImgUrl = new URL('../../../../assets/house.png', import.meta.url).href;
+const bikeImgUrl = '/assets/delivery-bike.png';
+const storeImgUrl = '/assets/store.png';
+const houseImgUrl = '/assets/house.png';
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;

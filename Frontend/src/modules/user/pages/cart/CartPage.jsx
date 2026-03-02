@@ -3,7 +3,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { Minus, Plus, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import categoryPlaceholder from '../../assets/images/category-placeholder.png';
+const categoryPlaceholder = '/assets/category-placeholder.png';
 
 const CartPage = () => {
   const { cart, updateQuantity, cartTotal } = useCart();
@@ -55,8 +55,10 @@ const CartPage = () => {
                       alt={item.name}
                       className="w-12 h-12 object-contain"
                       onError={(e) => {
-                        e.target.src = categoryPlaceholder;
-                        e.target.style.objectFit = 'cover';
+                        if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                          e.target.src = categoryPlaceholder;
+                          e.target.style.objectFit = 'cover';
+                        }
                       }}
                     />
                   </div>
