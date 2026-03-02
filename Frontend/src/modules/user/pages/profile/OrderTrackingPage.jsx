@@ -13,10 +13,12 @@ import * as orderApi from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
-// Assets for Icons from public folder
-const bikeImg = '/assets/delivery-bike.png';
-const storeImg = '/assets/store.png';
-const houseImg = '/assets/house.png';
+// Import Asset URLs with Cloudinary fallbacks
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+
+const bikeImg = ASSET_URLS.bike;
+const storeImg = ASSET_URLS.store;
+const houseImg = ASSET_URLS.house;
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -90,7 +92,9 @@ const OrderTrackingPage = () => {
                    <span style="animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
                    <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
                  </span>
-                 <img src="${bikeImg}" style="width: 100%; height: 100%; object-fit: contain;" />
+                 <img src="${bikeImg}" 
+                      onerror="this.onerror=null; this.src='${ASSET_URLS.bikeCloudinary}';"
+                      style="width: 100%; height: 100%; object-fit: contain;" />
                </div>`,
     className: '',
     iconSize: [50, 50],
@@ -98,15 +102,25 @@ const OrderTrackingPage = () => {
     popupAnchor: [0, -25]
   }), [bikeImg]);
 
-  const storeIcon = useMemo(() => L.icon({
-    iconUrl: storeImg,
+  const storeIcon = useMemo(() => L.divIcon({
+    html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+             <img src="${storeImg}" 
+                  onerror="this.onerror=null; this.src='${ASSET_URLS.storeCloudinary}';"
+                  style="width: 100%; height: 100%; object-fit: contain;" />
+           </div>`,
+    className: '',
     iconSize: [45, 45],
     iconAnchor: [22, 22],
     popupAnchor: [0, -22]
   }), [storeImg]);
 
-  const homeIcon = useMemo(() => L.icon({
-    iconUrl: houseImg,
+  const homeIcon = useMemo(() => L.divIcon({
+    html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+             <img src="${houseImg}" 
+                  onerror="this.onerror=null; this.src='${ASSET_URLS.houseCloudinary}';"
+                  style="width: 100%; height: 100%; object-fit: contain;" />
+           </div>`,
+    className: '',
     iconSize: [45, 45],
     iconAnchor: [22, 22],
     popupAnchor: [0, -22]
@@ -256,8 +270,9 @@ const OrderTrackingPage = () => {
             setIsFOLLOWING={setIsFOLLOWING}
           />
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution='&copy; OpenStreetMap'
+            url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+            attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
           />
 
           {storePos && order.status !== 'picked_up' && (

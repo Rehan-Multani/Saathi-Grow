@@ -7,7 +7,8 @@ import { useShop } from '../../context/ShopContext';
 import { ChevronRight, ArrowRight, ArrowLeft, TrendingDown } from 'lucide-react';
 import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../components/common/Skeleton';
 import { useTheme } from '../../context/ThemeContext';
-const categoryPlaceholder = '/assets/category-placeholder.png';
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const categoryColors = {
     'staples-and-grains': '#f0f4f8',
@@ -273,8 +274,9 @@ const HomePage = ({ }) => {
                                                     alt={cat.name}
                                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-active:scale-110 z-10"
                                                     onError={(e) => {
-                                                        if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                                        if (e.target.src !== window.location.origin + categoryPlaceholder && e.target.src !== categoryPlaceholder) {
                                                             e.target.src = categoryPlaceholder;
+                                                            e.target.onerror = (ev) => { ev.target.src = ASSET_URLS.placeholderCloudinary; };
                                                             e.target.classList.add('opacity-80');
                                                             e.target.style.objectFit = 'cover';
                                                         }

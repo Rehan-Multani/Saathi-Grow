@@ -26,6 +26,7 @@ import 'leaflet/dist/leaflet.css';
 import './live-tracking.css';
 import L from 'leaflet';
 import { createDummyOrder } from '../data/mockDeliveryData';
+import { ASSET_URLS } from '../../../constants/assetUrls';
 
 const NEW_ORDER_EVENT = 'delivery:new-order';
 const OPEN_ORDER_EVENT = 'delivery:open-order';
@@ -194,7 +195,9 @@ const DeliveryDashboard = () => {
         html: `<div class="rider-marker-container">
                  <div class="pulse-ring ring-1"></div>
                  <div class="bike-icon-wrapper">
-                    <img src="/assets/delivery-bike.png" class="bike-img" />
+                    <img src="${ASSET_URLS.bike}" 
+                         onerror="this.onerror=null; this.src='${ASSET_URLS.bikeCloudinary}';"
+                         class="bike-img" />
                  </div>
                </div>`,
         className: 'custom-bike-marker',
@@ -204,7 +207,10 @@ const DeliveryDashboard = () => {
 
     const storeIcon = useMemo(() => L.divIcon({
         html: `<div class="location-marker store-marker small">
-                <div class="marker-pin"><img src="/assets/store.png" /></div>
+                <div class="marker-pin">
+                    <img src="${ASSET_URLS.store}" 
+                         onerror="this.onerror=null; this.src='${ASSET_URLS.storeCloudinary}';" />
+                </div>
                </div>`,
         className: 'custom-location-marker',
         iconSize: [40, 40],
@@ -213,7 +219,10 @@ const DeliveryDashboard = () => {
 
     const homeIcon = useMemo(() => L.divIcon({
         html: `<div class="location-marker home-marker small">
-                <div class="marker-pin"><img src="/assets/house.png" /></div>
+                <div class="marker-pin">
+                    <img src="${ASSET_URLS.house}" 
+                         onerror="this.onerror=null; this.src='${ASSET_URLS.houseCloudinary}';" />
+                </div>
                </div>`,
         className: 'custom-location-marker',
         iconSize: [40, 40],
@@ -595,8 +604,9 @@ const DeliveryDashboard = () => {
                             >
                                 <ChangeView center={mapStatus === 'assigned' ? acceptedOrder.coords.pickup : acceptedOrder.coords.delivery} />
                                 <TileLayer
-                                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                                    attribution='&copy; OpenStreetMap'
+                                    url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                                    subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                                    attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
                                 />
                                 <Marker position={acceptedOrder.coords.pickup} icon={storeIcon}>
                                     <Popup>Pickup: {acceptedOrder.restaurant}</Popup>

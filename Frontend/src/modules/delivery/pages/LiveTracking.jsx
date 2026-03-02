@@ -26,10 +26,12 @@ import { toast } from 'react-toastify';
 import useLocationTracking from '../hooks/useLocationTracking';
 import './live-tracking.css';
 
-// Asset URLs using Vite-friendly resolution
-const bikeImgUrl = '/assets/delivery-bike.png';
-const storeImgUrl = '/assets/store.png';
-const houseImgUrl = '/assets/house.png';
+// Import Asset URLs with Cloudinary fallbacks
+import { ASSET_URLS } from '../../../constants/assetUrls';
+
+const bikeImgUrl = ASSET_URLS.bike;
+const storeImgUrl = ASSET_URLS.store;
+const houseImgUrl = ASSET_URLS.house;
 
 
 // Fix for default marker icon in Leaflet
@@ -113,7 +115,9 @@ const LiveTracking = () => {
                  <div class="pulse-ring ring-1"></div>
                  <div class="pulse-ring ring-2"></div>
                  <div class="bike-icon-wrapper">
-                    <img src="${bikeImgUrl}" class="bike-img" />
+                    <img src="${bikeImgUrl}"
+                         onerror="this.onerror=null; this.src='${ASSET_URLS.bikeCloudinary}';"
+                         class="bike-img" />
                  </div>
                </div>`,
         className: 'custom-bike-marker',
@@ -124,7 +128,10 @@ const LiveTracking = () => {
 
     const storeIcon = useMemo(() => L.divIcon({
         html: `<div class="location-marker store-marker">
-                <div class="marker-pin"><img src="${storeImgUrl}" /></div>
+                <div class="marker-pin">
+                    <img src="${storeImgUrl}"
+                         onerror="this.onerror=null; this.src='${ASSET_URLS.storeCloudinary}';" />
+                </div>
                 <div class="marker-shadow"></div>
                </div>`,
         className: 'custom-location-marker',
@@ -134,7 +141,10 @@ const LiveTracking = () => {
 
     const homeIcon = useMemo(() => L.divIcon({
         html: `<div class="location-marker home-marker">
-                <div class="marker-pin"><img src="${houseImgUrl}" /></div>
+                <div class="marker-pin">
+                    <img src="${houseImgUrl}"
+                         onerror="this.onerror=null; this.src='${ASSET_URLS.houseCloudinary}';" />
+                </div>
                 <div class="marker-shadow"></div>
                </div>`,
         className: 'custom-location-marker',
@@ -292,8 +302,9 @@ const LiveTracking = () => {
                     />
 
                     <TileLayer
-                        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; OpenStreetMap'
+                        url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                        subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
                     />
                     <Marker ref={markerRef} position={partnerPos} icon={bikeIcon}>
                         <Popup>Rider is here</Popup>

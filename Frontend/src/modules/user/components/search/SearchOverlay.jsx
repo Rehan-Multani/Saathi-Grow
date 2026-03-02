@@ -4,7 +4,8 @@ import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton, SuggestionSkeleton } from '../common/Skeleton';
-const logo = '/assets/logo.png';
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+const logo = ASSET_URLS.logo;
 import { useTheme } from '../../context/ThemeContext';
 import { normalizeProduct } from '../../pages/home/HomePage';
 import { API_BASE_URL } from '../../../../config/apiConfig';
@@ -181,6 +182,7 @@ const SearchOverlay = () => {
                             <img
                                 src={logo}
                                 alt="sathiGro Logo"
+                                onError={(e) => { e.target.onerror = null; e.target.src = ASSET_URLS.logoCloudinary; }}
                                 className={`h-8 w-auto object-contain transition-all duration-300 hover:scale-105 ${isDarkMode
                                     ? 'invert hue-rotate-[195deg] brightness-[2] saturate-[4] contrast-[1.1] mix-blend-screen'
                                     : 'brightness-[1.05] contrast-[1.05] mix-blend-multiply'

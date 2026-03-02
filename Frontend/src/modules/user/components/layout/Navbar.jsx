@@ -7,7 +7,8 @@ import { useLocation } from '../../context/LocationContext';
 import { useSearch } from '../../context/SearchContext';
 import { useTheme } from '../../context/ThemeContext';
 import { products } from '../../data/products';
-const logo = '/assets/logo.png';
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+const logo = ASSET_URLS.logo;
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton } from '../common/Skeleton';
 
@@ -162,6 +163,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             <img
               src={logo}
               alt="sathiGro"
+              onError={(e) => { e.target.onerror = null; e.target.src = ASSET_URLS.logoCloudinary; }}
               className="h-9 w-auto object-contain transition-all duration-300"
               style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
             />
@@ -293,6 +295,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
                 <img
                   src={logo}
                   alt="sathiGro Logo"
+                  onError={(e) => { e.target.onerror = null; e.target.src = ASSET_URLS.logoCloudinary; }}
                   className="h-10 w-auto object-contain transition-all duration-300 hover:scale-105"
                   style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
