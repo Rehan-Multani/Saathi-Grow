@@ -40,8 +40,7 @@ const ProfilePage = () => {
         { icon: MessageCircle, label: "My Complaints", subtitle: "Check status of your grievances", path: "/my-complaints" },
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
-        { icon: CreditCard, label: "sathiGro Wallet", subtitle: `₹${user?.walletBalance || '0.00'} Balance available`, path: "/wallet" },
-        { icon: Shield, label: "Security", subtitle: "Password and account security", path: "/security" },
+        { icon: CreditCard, label: "sathiGro Wallet", subtitle: `₹${Number(user?.walletBalance || 0).toFixed(2)} Balance available`, path: "/wallet" },
         { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and Customer Support", path: "/help" }
     ];
 
@@ -108,7 +107,7 @@ const ProfilePage = () => {
                                 <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Orders</p>
                             </div>
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹{user?.walletBalance || 0}</p>
+                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹{Number(user?.walletBalance || 0).toFixed(2)}</p>
                                 <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Savings</p>
                             </div>
                         </div>

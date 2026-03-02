@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import useLocationTracking from '../hooks/useLocationTracking';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import './live-tracking.css';
 import L from 'leaflet';
 import { createDummyOrder } from '../data/mockDeliveryData';
 
@@ -187,6 +188,37 @@ const DeliveryDashboard = () => {
         setIncomingOrder(null);
         setMapStatus('assigned');
     };
+
+    // Standardized premium markers for Dashboard
+    const bikeIcon = useMemo(() => new L.divIcon({
+        html: `<div class="rider-marker-container">
+                 <div class="pulse-ring ring-1"></div>
+                 <div class="bike-icon-wrapper">
+                    <img src="/assets/delivery-bike.png" class="bike-img" />
+                 </div>
+               </div>`,
+        className: 'custom-bike-marker',
+        iconSize: [50, 50],
+        iconAnchor: [25, 25]
+    }), []);
+
+    const storeIcon = useMemo(() => L.divIcon({
+        html: `<div class="location-marker store-marker small">
+                <div class="marker-pin"><img src="/assets/store.png" /></div>
+               </div>`,
+        className: 'custom-location-marker',
+        iconSize: [40, 40],
+        iconAnchor: [20, 35]
+    }), []);
+
+    const homeIcon = useMemo(() => L.divIcon({
+        html: `<div class="location-marker home-marker small">
+                <div class="marker-pin"><img src="/assets/house.png" /></div>
+               </div>`,
+        className: 'custom-location-marker',
+        iconSize: [40, 40],
+        iconAnchor: [20, 35]
+    }), []);
 
     const handleDeclineOrder = () => {
         setIncomingOrder(null);
@@ -563,21 +595,31 @@ const DeliveryDashboard = () => {
                             >
                                 <ChangeView center={mapStatus === 'assigned' ? acceptedOrder.coords.pickup : acceptedOrder.coords.delivery} />
                                 <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                                     attribution='&copy; OpenStreetMap'
                                 />
-                                <Marker position={acceptedOrder.coords.pickup}>
+                                <Marker position={acceptedOrder.coords.pickup} icon={storeIcon}>
                                     <Popup>Pickup: {acceptedOrder.restaurant}</Popup>
                                 </Marker>
-                                <Marker position={acceptedOrder.coords.delivery}>
+                                <Marker position={acceptedOrder.coords.delivery} icon={homeIcon}>
                                     <Popup>Delivery: {acceptedOrder.customer}</Popup>
                                 </Marker>
+
+                                {/* Depth Polyline */}
+                                <Polyline
+                                    positions={[acceptedOrder.coords.pickup, acceptedOrder.coords.delivery]}
+                                    color="#000"
+                                    weight={8}
+                                    opacity={0.1}
+                                    lineCap="round"
+                                />
                                 <Polyline
                                     positions={[acceptedOrder.coords.pickup, acceptedOrder.coords.delivery]}
                                     color="#ec4899"
-                                    weight={6}
+                                    weight={4}
                                     opacity={0.6}
-                                    dashArray="10, 10"
+                                    dashArray="1, 10"
+                                    lineCap="round"
                                 />
                             </MapContainer>
 
@@ -609,9 +651,9 @@ const DeliveryDashboard = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <div className="bg-slate-50 dark:bg-zinc-800 px-6 py-3 rounded-2xl border border-slate-100 dark:border-zinc-800">
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Estimated Arrival</p>
-                                            <p className="font-black text-lg">7 Mins</p>
+                                        <div className="bg-slate-50/80 dark:bg-zinc-800/80 backdrop-blur-sm px-6 py-3 rounded-2xl border border-slate-100 dark:border-zinc-800/50 shadow-inner">
+                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.15em] mb-1">ETA Arrival</p>
+                                            <p className="font-black text-lg text-slate-800 dark:text-zinc-50">7 Mins</p>
                                         </div>
                                         <div className="flex gap-2">
                                             <button className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center">

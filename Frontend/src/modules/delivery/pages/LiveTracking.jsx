@@ -24,6 +24,7 @@ import useDeliveryStore from '../store/deliveryStore';
 import { getDeliveryDetail, updateDeliveryStatus, getRouteDirections } from '../services/deliveryService';
 import { toast } from 'react-toastify';
 import useLocationTracking from '../hooks/useLocationTracking';
+import './live-tracking.css';
 
 // Asset URLs using Vite-friendly resolution
 const bikeImgUrl = '/assets/delivery-bike.png';
@@ -106,33 +107,39 @@ const LiveTracking = () => {
     const markerRef = React.useRef(null);
 
 
-    // Memoize custom icons to ensure they work with imported assets correctly
+    // Memoize custom icons for a premium look
     const bikeIcon = useMemo(() => new L.divIcon({
-        html: `<div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative;">
-                 <span style="position: absolute; top: 0; right: 0; display: flex; height: 16px; width: 16px; z-index: 10;">
-                   <span style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
-                   <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
-                 </span>
-                 <img src="${bikeImgUrl}" style="width: 100%; height: 100%; object-fit: contain;" />
+        html: `<div class="rider-marker-container">
+                 <div class="pulse-ring ring-1"></div>
+                 <div class="pulse-ring ring-2"></div>
+                 <div class="bike-icon-wrapper">
+                    <img src="${bikeImgUrl}" class="bike-img" />
+                 </div>
                </div>`,
-        className: '',
+        className: 'custom-bike-marker',
+        iconSize: [60, 60],
+        iconAnchor: [30, 30],
+        popupAnchor: [0, -30]
+    }), []);
+
+    const storeIcon = useMemo(() => L.divIcon({
+        html: `<div class="location-marker store-marker">
+                <div class="marker-pin"><img src="${storeImgUrl}" /></div>
+                <div class="marker-shadow"></div>
+               </div>`,
+        className: 'custom-location-marker',
         iconSize: [50, 50],
-        iconAnchor: [25, 25],
-        popupAnchor: [0, -25]
+        iconAnchor: [25, 45]
     }), []);
 
-    const storeIcon = useMemo(() => L.icon({
-        iconUrl: storeImgUrl,
-        iconSize: [45, 45],
-        iconAnchor: [22, 22],
-        popupAnchor: [0, -22]
-    }), []);
-
-    const homeIcon = useMemo(() => L.icon({
-        iconUrl: houseImgUrl,
-        iconSize: [45, 45],
-        iconAnchor: [22, 22],
-        popupAnchor: [0, -22]
+    const homeIcon = useMemo(() => L.divIcon({
+        html: `<div class="location-marker home-marker">
+                <div class="marker-pin"><img src="${houseImgUrl}" /></div>
+                <div class="marker-shadow"></div>
+               </div>`,
+        className: 'custom-location-marker',
+        iconSize: [50, 50],
+        iconAnchor: [25, 45]
     }), []);
 
 
@@ -204,30 +211,31 @@ const LiveTracking = () => {
 
     useEffect(() => {
         const fetchRoute = async () => {
-            // Only fetch route if we have required positions
+            // Only fetch route if we have required positions and they are valid
             if (!pickupPos || !deliveryPos || !partnerPos) return;
+            if (partnerPos[0] === 0 || partnerPos[1] === 0) return;
 
             const destination = delivery?.status === 'assigned' ? pickupPos : deliveryPos;
+            if (!destination || (destination[0] === 0 && destination[1] === 0)) return;
 
             try {
                 const response = await getRouteDirections(token, partnerPos, destination);
                 if (response.routes && response.routes.length > 0) {
                     const encodedPolyline = response.routes[0].overview_polyline.points;
-                    // decode into [lat, lng]
                     const decodedCoords = polylineUtil.decode(encodedPolyline);
                     setRouteCoordinates(decodedCoords);
+                    console.log("🛣️ Road route fetched successfully from Google");
                 }
             } catch (error) {
                 console.error("Failed to fetch Google Maps Route directly from backend", error);
-                // Fallback to straight line if API fails
-                setRouteCoordinates([partnerPos, destination]);
+                // Only use straight line if we don't have route coordinates yet
+                setRouteCoordinates(prev => prev.length > 0 ? prev : [partnerPos, destination]);
             }
         }
 
         fetchRoute();
-        // optionally, you might only want this to run occasionally or just once when status changes.
-        // running it continuously wastes API credits.
-    }, [delivery?.status, pickupPos[0], pickupPos[1], deliveryPos[0], deliveryPos[1]]); // Intentionally leaving partnerPos out so we don't spam Google Maps API as the driver moves.
+        // Re-run if partner moves from 0,0/default OR if status changes
+    }, [delivery?.status, partnerPos[0], partnerPos[1], pickupPos[0], pickupPos[1], deliveryPos[0], deliveryPos[1]]);
 
     // Dynamically trim the polyline as the driver moves towards the destination
     useEffect(() => {
@@ -307,20 +315,29 @@ const LiveTracking = () => {
 
                     {trimmedRoute.length > 0 && (
                         <>
-                            {/* Outer dark stroke for modern map look */}
+                            {/* Outer shadow for path depth */}
                             <Polyline
                                 positions={trimmedRoute}
-                                color="#0f172a"
-                                weight={7}
-                                opacity={0.6}
+                                color="#000"
+                                weight={10}
+                                opacity={0.1}
                                 lineCap="round"
                                 lineJoin="round"
                             />
-                            {/* Inner bright stroke */}
+                            {/* Main Path with glow */}
                             <Polyline
                                 positions={trimmedRoute}
-                                color="#3b82f6"
-                                weight={4}
+                                color="#84cc16"
+                                weight={6}
+                                opacity={0.8}
+                                lineCap="round"
+                                lineJoin="round"
+                            />
+                            {/* Core Path line */}
+                            <Polyline
+                                positions={trimmedRoute}
+                                color="#bef264"
+                                weight={2}
                                 opacity={1}
                                 lineCap="round"
                                 lineJoin="round"
@@ -338,9 +355,9 @@ const LiveTracking = () => {
                 >
                     <ChevronLeft size={24} />
                 </button>
-                <div className="px-6 py-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 dark:border-zinc-800 flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span className="font-black text-sm uppercase tracking-wider">Live Tracking</span>
+                <div className="px-6 py-3 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-lime-500 animate-pulse shadow-[0_0_8px_rgba(132,204,22,0.8)]"></div>
+                    <span className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-800 dark:text-zinc-100">Live Mission</span>
                 </div>
                 <button
                     onClick={() => {
@@ -363,31 +380,40 @@ const LiveTracking = () => {
                 >
                     {/* Drag Handle */}
                     <div
-                        className="w-full pt-4 pb-2 flex justify-center cursor-pointer"
+                        className="w-full pt-4 pb-2 flex justify-center cursor-pointer group"
                         onClick={() => setIsExpanded(!isExpanded)}
                     >
-                        <div className="w-12 h-1.5 bg-slate-300 dark:bg-zinc-700 rounded-full" />
+                        <div className="w-12 h-1 bg-slate-200 dark:bg-zinc-800 rounded-full group-hover:bg-slate-300 dark:group-hover:bg-zinc-700 transition-colors" />
                     </div>
 
-                    <div className="px-6 pb-6">
-                        <div className="flex items-center justify-between gap-4 mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-zinc-700">
-                                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${delivery.order?._id || 'Felix'}`} className="w-full h-full object-cover" alt="avatar" />
+                    <div className="px-6 pb-6 pt-2">
+                        <div className="flex items-center justify-between gap-4 mb-6">
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 flex items-center justify-center overflow-hidden border border-slate-200/60 dark:border-zinc-700/50 shadow-inner">
+                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${delivery.order?._id || 'Felix'}`} className="w-full h-full object-cover" alt="avatar" />
+                                    </div>
+                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-lime-500 border-2 border-white dark:border-zinc-900 rounded-lg flex items-center justify-center shadow-lg">
+                                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                    </div>
                                 </div>
                                 <div>
-                                    <h4 className="font-black text-lg text-slate-800 dark:text-white leading-tight">#{delivery.order?.orderId || 'N/A'}</h4>
-                                    <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-                                        {delivery.status === 'delivered' ? 'Completed' : 'Active Drop'}
-                                    </p>
+                                    <h4 className="font-black text-xl text-slate-900 dark:text-zinc-50 tracking-tight leading-none mb-1.5">#{delivery.order?.orderId || 'N/A'}</h4>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${delivery.status === 'delivered' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-lime-100 text-lime-600 dark:bg-lime-500/10 dark:text-lime-400'}`}>
+                                            {delivery.status.replace('_', ' ')}
+                                        </span>
+                                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500">•</span>
+                                        <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">{delivery.order?.paymentMethod || 'COD'}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors">
-                                    <MessageCircle size={18} />
+                            <div className="flex items-center gap-2.5">
+                                <button className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all active:scale-90 border border-blue-100/50 dark:border-blue-500/20">
+                                    <MessageCircle size={20} />
                                 </button>
-                                <a href={`tel:${delivery.order?.user?.phone}`} className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors">
-                                    <Phone size={18} />
+                                <a href={`tel:${delivery.order?.user?.phone}`} className="w-11 h-11 rounded-2xl bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center hover:bg-green-100 dark:hover:bg-green-500/20 transition-all active:scale-90 border border-green-100/50 dark:border-green-500/20 shadow-sm">
+                                    <Phone size={20} />
                                 </a>
                             </div>
                         </div>

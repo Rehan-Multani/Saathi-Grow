@@ -49,11 +49,9 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
         className="absolute inset-0 rounded-2xl border-[1.5px] md:border-transparent animate-pulse md:animate-none pointer-events-none z-30"
         style={{ borderColor: customTheme ? `${customTheme.themeColor}20` : '#0c831f20' }}
       />
-      {savings > 0 && (
-        <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[7.5px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
-          <span>Save ₹{savings}</span>
-        </div>
-      )}
+      <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[7.5px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
+        <span>Save ₹{Number(savings).toFixed(2)}</span>
+      </div>
 
       {/* Wishlist Button */}
       <button

@@ -39,7 +39,6 @@ const NotificationsPage = lazy(() => import('../pages/support/NotificationsPage'
 const HelpPage = lazy(() => import('../pages/support/HelpPage'));
 const SettingsPage = lazy(() => import('../pages/support/SettingsPage'));
 const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
-const SecurityPage = lazy(() => import('../pages/support/SecurityPage'));
 const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPage'));
 const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
 const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
@@ -61,6 +60,7 @@ const UserLayout = () => {
     const { isDarkMode } = useTheme();
     const authNoChromePaths = ['/logout-confirmation', '/login', '/register', '/order-success'];
     const hideDesktopChrome = authNoChromePaths.includes(location.pathname);
+    const hideNavbarMobile = location.pathname === '/orders' || location.pathname === '/checkout' || hideDesktopChrome;
 
     // Determine Theme based on route (for Occasion Pages & Lowest Prices)
     const occasionMatch = matchPath("/occasion/:slug", location.pathname);
@@ -80,11 +80,11 @@ const UserLayout = () => {
     return (
         <div className="user-module-root flex flex-col min-h-screen">
             <ScrollToTop />
-            <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''}`}>
+            <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''}`}>
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>
             {/* Spacer for fixed Navbar */}
-            {!hideDesktopChrome && <div className="h-[128px] md:h-20"></div>}
+            {!hideDesktopChrome && <div className={`h-[128px] md:h-20 ${hideNavbarMobile ? 'hidden md:block' : ''}`}></div>}
             <CartSidebar />
             <LocationModal />
             <FloatingCartStrip />
@@ -137,7 +137,6 @@ const UserRoutes = () => {
 
                         {/* Profile */}
                         <Route path="/profile" element={<ProfilePage />} />
-                        <Route path="/security" element={<SecurityPage />} />
                         <Route path="/wallet" element={<WalletPage />} />
                         <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                         <Route path="/wishlist" element={<WishlistPage />} />

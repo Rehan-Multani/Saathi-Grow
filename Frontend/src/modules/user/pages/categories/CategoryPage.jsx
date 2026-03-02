@@ -184,7 +184,15 @@ const CategoryPage = () => {
                 ) : displayedProducts.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4 animate-in fade-in duration-500">
                         {displayedProducts.map((product) => (
-                            <ProductCard key={product._id || product.id} product={product} isCompact={true} />
+                            <ProductCard
+                                key={product._id || product.id}
+                                product={product}
+                                isCompact={true}
+                                customTheme={{
+                                    bgColor: 'linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%)',
+                                    themeColor: '#0c831f'
+                                }}
+                            />
                         ))}
                     </div>
                 ) : (
@@ -212,9 +220,18 @@ const CategoryPage = () => {
                             <div className="w-1 h-4 bg-[#f7cb15] rounded-full"></div>
                             <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">You Might Also Like</h3>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        <div className="flex overflow-x-auto md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4 md:pb-0 scrollbar-hide -mx-4 px-4 md:-mx-0 md:px-0">
                             {recommendedProducts.map((product) => (
-                                <ProductCard key={`rec-${product._id || product.id}`} product={product} isCompact={true} />
+                                <div key={`rec-${product._id || product.id}`} className="w-[155px] md:w-auto flex-shrink-0">
+                                    <ProductCard
+                                        product={product}
+                                        isCompact={true}
+                                        customTheme={{
+                                            bgColor: 'linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%)',
+                                            themeColor: '#0c831f'
+                                        }}
+                                    />
+                                </div>
                             ))}
                         </div>
                     </div>

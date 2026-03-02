@@ -26,7 +26,7 @@ export const requestOTP = async (req, res) => {
     }
 
     // TEST NUMBERS - Bypass OTP with default 123456
-    const testNumbers = ['9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247'];
+    const testNumbers = ['9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247', '8770620342'];
     const isTestNumber = testNumbers.includes(phone);
 
     // Generate 6-digit OTP
@@ -73,7 +73,7 @@ export const verifyOTP = async (req, res) => {
       return res.status(404).json({ message: 'Partner not found' });
     }
 
-    const testNumbers = ['9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247'];
+    const testNumbers = ['8770620342', '9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247'];
     const isTestNumber = testNumbers.includes(phone);
 
     if (isTestNumber && otp === '123456') {

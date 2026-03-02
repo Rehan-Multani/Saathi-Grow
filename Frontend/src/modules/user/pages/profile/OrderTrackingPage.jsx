@@ -13,10 +13,10 @@ import * as orderApi from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
-// Asset URLs using Vite-friendly resolution
-const bikeImgUrl = '/assets/delivery-bike.png';
-const storeImgUrl = '/assets/store.png';
-const houseImgUrl = '/assets/house.png';
+// Assets for Icons from public folder
+const bikeImg = '/assets/delivery-bike.png';
+const storeImg = '/assets/store.png';
+const houseImg = '/assets/house.png';
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -90,27 +90,27 @@ const OrderTrackingPage = () => {
                    <span style="animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
                    <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
                  </span>
-                 <img src="${bikeImgUrl}" style="width: 100%; height: 100%; object-fit: contain;" />
+                 <img src="${bikeImg}" style="width: 100%; height: 100%; object-fit: contain;" />
                </div>`,
     className: '',
     iconSize: [50, 50],
     iconAnchor: [25, 25],
     popupAnchor: [0, -25]
-  }), []);
+  }), [bikeImg]);
 
   const storeIcon = useMemo(() => L.icon({
-    iconUrl: storeImgUrl,
+    iconUrl: storeImg,
     iconSize: [45, 45],
     iconAnchor: [22, 22],
     popupAnchor: [0, -22]
-  }), []);
+  }), [storeImg]);
 
   const homeIcon = useMemo(() => L.icon({
-    iconUrl: houseImgUrl,
+    iconUrl: houseImg,
     iconSize: [45, 45],
     iconAnchor: [22, 22],
     popupAnchor: [0, -22]
-  }), []);
+  }), [houseImg]);
 
   // Load Order Data
   useEffect(() => {
@@ -153,20 +153,25 @@ const OrderTrackingPage = () => {
   // Fetch Route Path
   useEffect(() => {
     const fetchRoute = async () => {
+      // Don't fetch if missing info or location is too primitive (0,0)
       if (!id || !token || !driverLocation) return;
+      if (driverLocation[0] === 0 && driverLocation[1] === 0) return;
+
       try {
-        const response = await orderApi.fetchOrderRoute(token, id);
+        const originStr = `${driverLocation[0]},${driverLocation[1]}`;
+        const response = await orderApi.fetchOrderRoute(token, id, originStr);
         if (response.routes && response.routes.length > 0) {
           const encodedPolyline = response.routes[0].overview_polyline.points;
           const decoded = polylineUtil.decode(encodedPolyline);
           setRouteCoords(decoded);
+          console.log("🗺️ Order route updated with real-time road directions");
         }
       } catch (err) {
         console.error("Route fetch error:", err);
       }
     };
     fetchRoute();
-  }, [id, token, !!driverLocation]);
+  }, [id, token, driverLocation?.[0], driverLocation?.[1]]);
 
   // Dynamic Route Trimming
   useEffect(() => {
@@ -206,7 +211,7 @@ const OrderTrackingPage = () => {
 
   const destCoords = order.shippingAddress?.location?.coordinates;
   const destPos = destCoords ? [destCoords[1], destCoords[0]] : [22.7196, 75.8577];
-  const storeCoords = order.branchId?.location?.coordinates || order.vendor?.location?.coordinates;
+  const storeCoords = order.branchId?.address?.location?.coordinates || order.vendor?.address?.location?.coordinates;
   const storePos = storeCoords ? [storeCoords[1], storeCoords[0]] : null;
 
   const mapCenter = driverLocation || destPos;
@@ -271,19 +276,30 @@ const OrderTrackingPage = () => {
 
           {trimmedRoute.length > 0 && (
             <>
+              {/* Outer shadow for path depth */}
               <Polyline
                 positions={trimmedRoute}
-                color="#000000"
-                weight={7}
-                opacity={0.15}
+                color="#000"
+                weight={8}
+                opacity={0.1}
                 lineCap="round"
                 lineJoin="round"
               />
+              {/* Main Path with glow */}
               <Polyline
                 positions={trimmedRoute}
                 color="#0c831f"
-                weight={4}
-                opacity={1}
+                weight={5}
+                opacity={0.7}
+                lineCap="round"
+                lineJoin="round"
+              />
+              {/* Core Path line */}
+              <Polyline
+                positions={trimmedRoute}
+                color="#bef264"
+                weight={2}
+                opacity={0.9}
                 lineCap="round"
                 lineJoin="round"
               />

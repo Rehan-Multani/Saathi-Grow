@@ -27,14 +27,6 @@ const SettingsPage = () => {
             icon: MapPin,
             color: "bg-green-50 text-green-500",
             path: "/saved-addresses"
-        },
-        {
-            id: 'security',
-            title: "Security",
-            subtitle: "Password and account security",
-            icon: Shield,
-            color: "bg-orange-50 text-orange-500",
-            path: "/security"
         }
     ];
 

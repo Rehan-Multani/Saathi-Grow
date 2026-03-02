@@ -525,6 +525,7 @@ export const getOrderById = async (req, res) => {
 // @access  Private
 export const getOrderRoute = async (req, res) => {
   try {
+    const { origin: clientOrigin } = req.query;
     const order = await Order.findById(req.params.id)
       .populate('deliveryPartnerId', 'currentLocation')
       .populate('branchId', 'address.location')
@@ -539,14 +540,21 @@ export const getOrderRoute = async (req, res) => {
     }
     const destination = `${destCoords[1]},${destCoords[0]}`;
 
-    // Origin is rider's current location OR store location (if waiting for pickup)
+    // Origin priority:
+    // 1. Client provided 'origin' (via query param)
+    // 2. Rider's current location from DB
+    // 3. Fallback to store/branch location
     let originStr = "";
-    if (order.deliveryPartnerId?.currentLocation?.coordinates) {
+
+    if (clientOrigin) {
+      originStr = clientOrigin;
+    } else if (order.deliveryPartnerId?.currentLocation?.coordinates) {
       const riderLoc = order.deliveryPartnerId.currentLocation.coordinates;
       originStr = `${riderLoc[1]},${riderLoc[0]}`;
     } else {
       // Fallback to store if rider not assigned or location missing
-      const storeLoc = order.branchId?.location?.coordinates || order.vendor?.location?.coordinates;
+      // Fix: Branch/Vendor location is nested under .address
+      const storeLoc = order.branchId?.address?.location?.coordinates || order.vendor?.address?.location?.coordinates;
       if (storeLoc) originStr = `${storeLoc[1]},${storeLoc[0]}`;
     }
 
@@ -555,13 +563,16 @@ export const getOrderRoute = async (req, res) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API;
     if (!apiKey) return res.status(500).json({ message: 'Maps logic restricted on server currently' });
 
+    console.log(`🗺️ Order Route Request: Origin ${originStr}, Destination ${destination}`);
     const mapUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destination}&key=${apiKey}`;
     const response = await axios.get(mapUrl);
 
     if (response.data.status !== "OK") {
+      console.error('❌ Google Maps Order Route Error:', response.data.status, response.data.error_message);
       return res.status(400).json({ message: response.data.error_message || "Maps engine responded with error" });
     }
 
+    console.log(`✅ Order Route fetched successfully`);
     res.json({ routes: response.data.routes });
   } catch (error) {
     console.error('getOrderRoute issue:', error);

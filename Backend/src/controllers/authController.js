@@ -30,7 +30,7 @@ export const requestOTP = async (req, res) => {
     }
 
     // TEST NUMBERS - Bypass OTP with default 123456
-    const testNumbers = ['9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247'];
+    const testNumbers = ['8770620342', '9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247'];
     const isTestNumber = testNumbers.includes(phone);
 
     // Generate 6-digit OTP
@@ -152,7 +152,7 @@ export const resendOTP = async (req, res) => {
     if (!phone) return res.status(400).json({ message: 'Phone number is required' });
 
     // Same test number logic
-    const testNumbers = ['9199818320', '9009925021'];
+    const testNumbers = ['8770620342', '9199818320', '9009925021', '6261096283', '9752275626', '7047716600', '9685974247'];
     const isTestNumber = testNumbers.includes(phone);
 
     const otp = isTestNumber ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();

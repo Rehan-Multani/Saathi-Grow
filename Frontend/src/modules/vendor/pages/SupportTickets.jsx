@@ -1,11 +1,12 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Headphones, Search, Filter, Clock, CheckCircle, AlertCircle, MessageCircle, Send, User, X, Package, Loader2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useVendor } from '../contexts/VendorContext';
 import * as complaintApi from '../api/complaintApi';
 import { toast } from 'react-toastify';
 
 const SupportTickets = () => {
-    const { token, vendor } = useAuth();
+    const { vendor } = useVendor();
+    const token = vendor?.token;
     const [filterStatus, setFilterStatus] = useState('ESCALATED_TO_STORE');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTicket, setSelectedTicket] = useState(null);

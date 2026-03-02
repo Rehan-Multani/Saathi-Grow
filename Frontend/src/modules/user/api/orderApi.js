@@ -112,8 +112,12 @@ export const submitReturnRequest = async (token, orderId, { reason, description 
     throw new Error(error.response?.data?.message || 'Failed to submit return request');
   }
 };
-export const fetchOrderRoute = async (token, orderId) => {
-  const response = await fetch(`${API_URL}/${orderId}/route`, {
+export const fetchOrderRoute = async (token, orderId, origin = null) => {
+  const url = origin
+    ? `${API_URL}/${orderId}/route?origin=${origin}`
+    : `${API_URL}/${orderId}/route`;
+
+  const response = await fetch(url, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();

@@ -1,5 +1,5 @@
+import './config/env.js';
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -8,15 +8,7 @@ import { Server } from 'socket.io';
 import connectDB from './config/db.js';
 
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load environment variables
-dotenv.config({ path: join(__dirname, '../.env') });
-
-// Connect to Database
+// Database Connection
 connectDB();
 
 const app = express();
@@ -171,11 +163,11 @@ io.on('connection', (socket) => {
   });
 });
 
-// Error handling middleware placeholder (we will refine this)
+// Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
-    message: err.message,
+    message: err.message || 'Internal Server Error',
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 });

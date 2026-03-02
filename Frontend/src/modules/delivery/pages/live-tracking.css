@@ -1,0 +1,114 @@
+.rider-marker-container {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.pulse-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #84cc16;
+    opacity: 0;
+}
+
+.ring-1 { animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+.ring-2 { animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) 0.5s infinite; }
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.33); opacity: 0; }
+    30% { opacity: 0.5; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+.bike-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: 3px solid #84cc16;
+    border-radius: 16px;
+    padding: 6px;
+    z-index: 10;
+    box-shadow: 0 8px 16px -4px rgba(132,204,22,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bike-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.location-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.marker-pin {
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border: 3px solid #f8fafc;
+    z-index: 2;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.store-marker .marker-pin { border-color: #3b82f6; }
+.home-marker .marker-pin { border-color: #f59e0b; }
+
+.marker-pin img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.location-marker:hover .marker-pin {
+    transform: translateY(-8px) scale(1.1);
+    box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+}
+
+.marker-shadow {
+    width: 20px;
+    height: 8px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50%;
+    margin-top: 4px;
+    filter: blur(2px);
+    transition: all 0.3s ease;
+}
+
+.location-marker:hover .marker-shadow {
+    transform: scale(0.8);
+    opacity: 0.5;
+}
+
+/* Small variants for Dashboard */
+.location-marker.small .marker-pin {
+    width: 40px;
+    height: 40px;
+}
+
+.location-marker.small .marker-pin img {
+    width: 24px;
+    height: 24px;
+}
+
+.location-marker.small .marker-shadow {
+    width: 15px;
+    height: 6px;
+}

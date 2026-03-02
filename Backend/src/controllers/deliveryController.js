@@ -395,14 +395,17 @@ export const getRouteDirections = async (req, res) => {
             return res.status(500).json({ message: 'Google Maps API is not configured on the server' });
         }
 
+        console.log(`🗺️ Fetching Route: Origin ${origin}, Destination ${destination}`);
         const mapUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${apiKey}`;
 
         const response = await axios.get(mapUrl);
 
         if (response.data.status !== "OK") {
+            console.error('❌ Google Maps Error:', response.data.status, response.data.error_message);
             return res.status(400).json({ message: response.data.error_message || "Failed to fetch directions" });
         }
 
+        console.log(`✅ Route fetched successfully: ${response.data.routes.length} routes found`);
         res.json({ routes: response.data.routes });
     } catch (error) {
         console.error('getRouteDirections error:', error);

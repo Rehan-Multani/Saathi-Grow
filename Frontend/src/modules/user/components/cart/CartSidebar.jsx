@@ -55,7 +55,7 @@ const CartSidebar = () => {
                 {savings > 0 && (
                     <div className="px-3.5 py-1.5 bg-[#0c831f]/10 flex items-center justify-between border-b border-[#0c831f]/10">
                         <span className="text-[#0c831f] dark:text-green-400 font-bold text-[8px] uppercase tracking-wider">Your total savings</span>
-                        <span className="text-[#0c831f] dark:text-green-400 font-black text-[11px]">₹{savings}</span>
+                        <span className="text-[#0c831f] dark:text-green-400 font-black text-[11px]">₹{Number(savings).toFixed(2)}</span>
                     </div>
                 )}
 
