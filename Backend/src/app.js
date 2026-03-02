@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables
-dotenv.config({ path: join(__dirname, '.env') });
+dotenv.config({ path: join(__dirname, '../.env') });
 
 // Connect to Database
 connectDB();

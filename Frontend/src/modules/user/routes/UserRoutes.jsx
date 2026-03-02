@@ -83,7 +83,7 @@ const UserLayout = () => {
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>
             {/* Spacer for fixed Navbar */}
-            {!hideDesktopChrome && <div className="h-[110px] md:h-20"></div>}
+            {!hideDesktopChrome && <div className="h-[128px] md:h-20"></div>}
             <CartSidebar />
             <LocationModal />
             <FloatingCartStrip />

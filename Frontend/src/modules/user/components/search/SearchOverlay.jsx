@@ -4,7 +4,7 @@ import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton, SuggestionSkeleton } from '../common/Skeleton';
-import logo from '../../../../assets/logo.png';
+import logo from '../../assets/images/SaathiGro.png';
 import { useTheme } from '../../context/ThemeContext';
 import { normalizeProduct } from '../../pages/home/HomePage';
 import { API_BASE_URL } from '../../../../config/apiConfig';
