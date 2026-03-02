@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { useCart } from '../../context/CartContext';
-import categoryPlaceholder from '../../assets/images/category-placeholder.png';
+const categoryPlaceholder = '/assets/category-placeholder.png';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Heart } from 'lucide-react';
@@ -83,8 +83,10 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
             alt={product.name}
             className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${imgPadding || 'p-2'}`}
             onError={(e) => {
-              e.target.src = categoryPlaceholder;
-              e.target.style.objectFit = 'cover';
+              if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                e.target.src = categoryPlaceholder;
+                e.target.style.objectFit = 'cover';
+              }
             }}
             loading="lazy"
           />

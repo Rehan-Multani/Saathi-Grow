@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { Card, Spinner, Button, Row, Col, Badge, ListGroup } from 'react-bootstrap';
-import { MapPin, Truck, RefreshCcw, Navigation, User, Store, Phone } from 'lucide-react';
+import { MapPin, Truck, RefreshCcw, Navigation as NavIcon, User, Store, Phone } from 'lucide-react';
 import { getActiveTracking } from '../admin/api/adminDeliveryApi';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import { toast } from 'react-toastify';
@@ -161,7 +161,7 @@ const ManagerDeliveryTracking = () => {
             <Card.Body className="p-0 overflow-auto" style={{ maxHeight: '530px' }}>
               {activeDeliveries.length === 0 ? (
                 <div className="p-5 text-center text-muted">
-                  <Navigation size={40} className="mb-3 opacity-20" />
+                  <NavIcon size={40} className="mb-3 opacity-20" />
                   <p className="small">No active deliveries on the map.</p>
                 </div>
               ) : (

@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Truck, Search, MapPin, Package, Clock, ClipboardList, CheckCircle2, ChevronRight, User, Phone, ArrowLeft, RefreshCcw, Navigation, Map, Bike, Star, Info } from 'lucide-react';
+import { Truck, Search, MapPin, Package, Clock, ClipboardList, CheckCircle2, ChevronRight, User, Phone, ArrowLeft, RefreshCcw, Navigation as NavIcon, Map, Bike, Star, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const OrderTracking = () => {
@@ -117,7 +117,7 @@ const OrderTracking = () => {
                                             </h2>
                                             <div className="flex items-center gap-3 text-sm">
                                                 <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                                                    <Navigation size={12} className="animate-pulse" />
+                                                    <NavIcon size={12} className="animate-pulse" />
                                                     <span className="text-[10px] font-bold">{liveDistance.toFixed(1)} km away</span>
                                                 </div>
                                                 <div className="flex items-center gap-1 text-green-100">

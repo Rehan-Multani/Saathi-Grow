@@ -3,7 +3,7 @@ import { X, Minus, Plus, ChevronRight, Clock, ShoppingBag, Info } from 'lucide-r
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import categoryPlaceholder from '../../assets/images/category-placeholder.png';
+const categoryPlaceholder = '/assets/category-placeholder.png';
 
 const CartSidebar = () => {
     const { isCartOpen, setIsCartOpen, cart, updateQuantity, cartTotal, cartCount, publicSettings } = useCart();
@@ -121,8 +121,10 @@ const CartSidebar = () => {
                                                 alt={item.name}
                                                 className="w-full h-full object-contain"
                                                 onError={(e) => {
-                                                    e.target.src = categoryPlaceholder;
-                                                    e.target.style.objectFit = 'cover';
+                                                    if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                                        e.target.src = categoryPlaceholder;
+                                                        e.target.style.objectFit = 'cover';
+                                                    }
                                                 }}
                                             />
                                         </div>

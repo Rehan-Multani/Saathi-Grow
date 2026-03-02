@@ -63,6 +63,10 @@ const vendorSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: 'Admin'
+  },
+  fcmToken: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

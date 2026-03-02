@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import { Form, ListGroup } from 'react-bootstrap';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, Navigation as NavIcon } from 'lucide-react';
 
 const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) => {
   const inputRef = useRef(null);
@@ -160,7 +160,7 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
             className="btn btn-link p-0 text-primary opacity-75 hover-opacity-100 border-0 shadow-none"
             title="Detect Location"
           >
-            <Navigation size={18} fill="currentColor" />
+            <NavIcon size={18} fill="currentColor" />
           </button>
         )}
         <div className="text-muted opacity-50 border-start ps-2">

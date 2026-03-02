@@ -45,6 +45,16 @@ const adminSchema = new mongoose.Schema({
   branchId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Branch'
+  },
+  fcmToken: {
+    app: {
+      type: String,
+      default: ''
+    },
+    web: {
+      type: String,
+      default: ''
+    }
   }
 }, {
   timestamps: true

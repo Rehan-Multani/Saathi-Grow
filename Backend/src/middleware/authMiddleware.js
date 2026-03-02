@@ -118,3 +118,34 @@ export const protectDeliveryPartner = async (req, res, next) => {
   }
   if (!token) res.status(401).json({ message: 'Delivery Partner authentication required' });
 };
+// Protect routes for both Vendors and Admins (Branch Managers)
+export const protectStoreManager = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Try to find Admin first
+      const admin = await Admin.findById(decoded.id);
+      if (admin) {
+        req.user = admin;
+        req.role = 'Admin';
+        return next();
+      }
+
+      // Try to find Vendor
+      const vendor = await Vendor.findById(decoded.id);
+      if (vendor) {
+        req.user = vendor;
+        req.role = 'Vendor';
+        return next();
+      }
+
+      return res.status(401).json({ message: 'Store manager access denied' });
+    } catch (error) {
+      res.status(401).json({ message: 'Invalid token' });
+    }
+  }
+  if (!token) res.status(401).json({ message: 'Authentication required' });
+};

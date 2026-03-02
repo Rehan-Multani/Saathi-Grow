@@ -7,7 +7,7 @@ import { useLocation } from '../../context/LocationContext';
 import { useSearch } from '../../context/SearchContext';
 import { useTheme } from '../../context/ThemeContext';
 import { products } from '../../data/products';
-import logo from '../../assets/images/SaathiGro.png';
+const logo = '/assets/logo.png';
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton } from '../common/Skeleton';
 

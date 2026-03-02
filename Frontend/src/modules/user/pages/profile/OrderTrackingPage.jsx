@@ -2,19 +2,21 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../../../../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.marker.slideto';
 import polylineUtil from '@mapbox/polyline';
-import { ArrowLeft, Navigation, Phone, MessageSquare, Package, CheckCircle, Truck, Info, PhoneCall, MapPin } from 'lucide-react';
+import { ArrowLeft, Navigation as NavIcon, Phone, MessageSquare, Package, CheckCircle, Truck, Info, PhoneCall, MapPin, ChevronLeft, ChevronRight, Star, MessageCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as orderApi from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-toastify';
 
-// Import Assets for Icons
-import bikeImg from '../../../../assets/delivery-bike.png';
-import storeImg from '../../../../assets/store.png';
-import houseImg from '../../../../assets/house.png';
+// Asset URLs using Vite-friendly resolution
+const bikeImgUrl = '/assets/delivery-bike.png';
+const storeImgUrl = '/assets/store.png';
+const houseImgUrl = '/assets/house.png';
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -24,80 +26,43 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom Map Icons
-const bikeIcon = new L.divIcon({
-  html: `<div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative;">
-             <span style="position: absolute; top: 0; right: 0; display: flex; height: 16px; width: 16px; z-index: 10;">
-               <span style="animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
-               <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
-             </span>
-             <img src="${bikeImg}" style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-  className: '',
-  iconSize: [50, 50],
-  iconAnchor: [25, 25],
-  popupAnchor: [0, -25]
-});
-
-const storeIcon = new L.divIcon({
-  html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-             <img src="${storeImg}" style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-  className: '',
-  iconSize: [45, 45],
-  iconAnchor: [22, 22]
-});
-
-const homeIcon = new L.divIcon({
-  html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-             <img src="${houseImg}" style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-  className: '',
-  iconSize: [45, 45],
-  iconAnchor: [22, 22]
-});
-
-// Custom Animated Marker Component
-const AnimatedMarker = ({ position, heading }) => {
-  const markerRef = useRef(null);
-
-  useEffect(() => {
-    if (markerRef.current && position) {
-      markerRef.current.slideTo(position, {
-        duration: 2000,
-        keepAtCenter: false
-      });
-    }
-  }, [position]);
-
-  return (
-    <Marker
-      ref={markerRef}
-      position={position}
-      icon={bikeIcon}
-    />
-  );
-};
-
-const ChangeView = ({ center }) => {
+// Custom component to handle map centering and interaction
+const MapController = ({ center, isFOLLOWING, setIsFOLLOWING }) => {
   const map = useMap();
+
   useEffect(() => {
-    if (center) {
-      map.flyTo(center, 16, { animate: true, duration: 1.5 });
+    if (center && isFOLLOWING) {
+      map.setView(center, map.getZoom(), { animate: true });
     }
-  }, [center?.join(','), map]);
+  }, [center, isFOLLOWING, map]);
+
+  useMapEvents({
+    dragstart: () => setIsFOLLOWING(false),
+    zoomstart: () => setIsFOLLOWING(false),
+    touchmove: () => setIsFOLLOWING(false)
+  });
+
   return null;
 };
 
 // Distance Helper
 const getDistance = (pos1, pos2) => {
   if (!pos1 || !pos2) return 0;
+  const lat1 = Number(pos1[0]);
+  const lng1 = Number(pos1[1]);
+  const lat2 = Number(pos2[0]);
+  const lng2 = Number(pos2[1]);
+
   const R = 6371e3;
-  const f1 = pos1[0] * Math.PI / 180;
-  const f2 = pos2[0] * Math.PI / 180;
-  const df = (pos2[0] - pos1[0]) * Math.PI / 180;
-  const dl = (pos2[1] - pos1[1]) * Math.PI / 180;
-  const a = Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+  const f1 = lat1 * Math.PI / 180;
+  const f2 = lat2 * Math.PI / 180;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(f1) * Math.cos(f2) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.abs(R * c);
 };
@@ -113,7 +78,41 @@ const OrderTrackingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [routeCoords, setRouteCoords] = useState([]);
   const [trimmedRoute, setTrimmedRoute] = useState([]);
+  const [isFOLLOWING, setIsFOLLOWING] = useState(true);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
 
+  const markerRef = useRef(null);
+
+  // Custom Map Icons
+  const bikeIcon = useMemo(() => new L.divIcon({
+    html: `<div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative;">
+                 <span style="position: absolute; top: 0; right: 0; display: flex; height: 16px; width: 16px; z-index: 10;">
+                   <span style="animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
+                   <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
+                 </span>
+                 <img src="${bikeImgUrl}" style="width: 100%; height: 100%; object-fit: contain;" />
+               </div>`,
+    className: '',
+    iconSize: [50, 50],
+    iconAnchor: [25, 25],
+    popupAnchor: [0, -25]
+  }), []);
+
+  const storeIcon = useMemo(() => L.icon({
+    iconUrl: storeImgUrl,
+    iconSize: [45, 45],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -22]
+  }), []);
+
+  const homeIcon = useMemo(() => L.icon({
+    iconUrl: houseImgUrl,
+    iconSize: [45, 45],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -22]
+  }), []);
+
+  // Load Order Data
   useEffect(() => {
     const loadOrder = async () => {
       if (token && id) {
@@ -122,6 +121,7 @@ const OrderTrackingPage = () => {
           setOrder(data);
         } catch (err) {
           console.error("Failed to load order for tracking", err);
+          toast.error("Failed to sync order status");
         } finally {
           setIsLoading(false);
         }
@@ -130,21 +130,27 @@ const OrderTrackingPage = () => {
     loadOrder();
   }, [token, id]);
 
-  // Sync with Firebase RTDB
+  // Firebase Real-time Sync
   useEffect(() => {
     if (!id) return;
     const trackingRef = ref(db, `active_trackings/${id}`);
     const unsubscribe = onValue(trackingRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.location) {
-        setDriverLocation([data.location.lat, data.location.lng]);
+        const newPos = [data.location.lat, data.location.lng];
+        setDriverLocation(newPos);
         if (data.heading !== undefined) setHeading(data.heading);
+
+        // Animate marker transition
+        if (markerRef.current) {
+          markerRef.current.slideTo(newPos, { duration: 2000, keepAtCenter: false });
+        }
       }
     });
     return () => off(trackingRef, 'value', unsubscribe);
   }, [id]);
 
-  // Fetch Road Route from Google Maps (via Backend)
+  // Fetch Route Path
   useEffect(() => {
     const fetchRoute = async () => {
       if (!id || !token || !driverLocation) return;
@@ -160,17 +166,16 @@ const OrderTrackingPage = () => {
       }
     };
     fetchRoute();
-    // Refresh route every 2 minutes or only once? Let's do once to save API cost.
   }, [id, token, !!driverLocation]);
 
-  // Trim Route dynamically
+  // Dynamic Route Trimming
   useEffect(() => {
     if (!routeCoords.length || !driverLocation) {
       setTrimmedRoute([]);
       return;
     }
-    const dest = routeCoords[routeCoords.length - 1];
-    if (getDistance(driverLocation, dest) < 100) {
+    const destination = routeCoords[routeCoords.length - 1];
+    if (getDistance(driverLocation, destination) < 150) {
       setTrimmedRoute([]);
       return;
     }
@@ -187,8 +192,13 @@ const OrderTrackingPage = () => {
   }, [driverLocation, routeCoords]);
 
   if (isLoading) return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-50 dark:bg-black">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0c831f]"></div>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 dark:bg-black">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+        className="w-12 h-12 border-4 border-[#0c831f]/20 border-t-[#0c831f] rounded-full"
+      />
+      <p className="mt-4 text-xs font-black text-gray-400 uppercase tracking-widest animate-pulse">Establishing Live Sync...</p>
     </div>
   );
 
@@ -196,31 +206,50 @@ const OrderTrackingPage = () => {
 
   const destCoords = order.shippingAddress?.location?.coordinates;
   const destPos = destCoords ? [destCoords[1], destCoords[0]] : [22.7196, 75.8577];
-
   const storeCoords = order.branchId?.location?.coordinates || order.vendor?.location?.coordinates;
   const storePos = storeCoords ? [storeCoords[1], storeCoords[0]] : null;
 
-  // Dynamic Center Logic
   const mapCenter = driverLocation || destPos;
   const etaMins = driverLocation ? Math.max(2, Math.round(getDistance(driverLocation, destPos) / 333) + 1) : null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-black flex flex-col md:relative md:min-h-screen md:bg-gray-50">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] p-4 flex justify-between items-center pointer-events-none">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-white dark:bg-gray-900 shadow-xl pointer-events-auto border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-800 dark:text-gray-200">
-          <ArrowLeft size={20} />
+    <div className="fixed inset-0 z-[100] bg-white dark:bg-black overflow-hidden flex flex-col">
+      {/* Top Bar Navigation */}
+      <div className="absolute top-4 left-4 right-4 z-[1000] flex justify-between items-center">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 active:scale-95 transition-all text-gray-800 dark:text-white"
+        >
+          <ChevronLeft size={24} strokeWidth={3} />
         </button>
-        <div className="px-4 py-2 bg-white/95 dark:bg-black/95 backdrop-blur-md rounded-2xl shadow-xl pointer-events-auto border border-gray-100 dark:border-gray-800 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-800 dark:text-gray-200">Live Mission</span>
+        <div className="px-6 py-3 bg-white/95 dark:bg-black/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#0c831f] animate-pulse"></div>
+          <span className="text-[11px] font-black uppercase tracking-widest text-[#0c831f]">Live Tracking</span>
         </div>
+        <button
+          onClick={() => {
+            setIsFOLLOWING(true);
+            toast.success("Recenter Map", { autoClose: 1000, hideProgressBar: true });
+          }}
+          className={`p-3 rounded-2xl shadow-2xl border transition-all ${isFOLLOWING ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-white/5 text-gray-400'}`}
+        >
+          <NavIcon size={24} className={isFOLLOWING ? 'fill-current' : ''} />
+        </button>
       </div>
 
-      {/* Map Area */}
-      <div className="flex-1 relative w-full h-[60vh] md:h-[70vh]">
-        <MapContainer center={mapCenter} zoom={16} zoomControl={false} style={{ height: '100%', width: '100%' }}>
-          <ChangeView center={mapCenter} />
+      {/* Map Container */}
+      <div className="flex-1 w-full h-full relative">
+        <MapContainer
+          center={mapCenter}
+          zoom={15}
+          zoomControl={false}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <MapController
+            center={mapCenter}
+            isFOLLOWING={isFOLLOWING}
+            setIsFOLLOWING={setIsFOLLOWING}
+          />
           <TileLayer
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             attribution='&copy; OpenStreetMap'
@@ -233,92 +262,153 @@ const OrderTrackingPage = () => {
           <Marker position={destPos} icon={homeIcon} />
 
           {driverLocation && (
-            <AnimatedMarker position={driverLocation} heading={heading} />
+            <Marker
+              ref={markerRef}
+              position={driverLocation}
+              icon={bikeIcon}
+            />
           )}
 
           {trimmedRoute.length > 0 && (
-            <Polyline
-              positions={trimmedRoute}
-              color="#0c831f"
-              weight={5}
-              opacity={0.8}
-              lineCap="round"
-              lineJoin="round"
-            />
+            <>
+              <Polyline
+                positions={trimmedRoute}
+                color="#000000"
+                weight={7}
+                opacity={0.15}
+                lineCap="round"
+                lineJoin="round"
+              />
+              <Polyline
+                positions={trimmedRoute}
+                color="#0c831f"
+                weight={4}
+                opacity={1}
+                lineCap="round"
+                lineJoin="round"
+              />
+            </>
           )}
         </MapContainer>
       </div>
 
-      {/* Information Card */}
-      <div className="bg-white dark:bg-zinc-950 rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.1)] -mt-10 z-[1010] relative flex-shrink-0">
-        <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full mx-auto mt-4"></div>
-
-        <div className="px-6 pb-8 pt-6 w-full max-w-2xl mx-auto">
-          {/* Time Estimate */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-black text-gray-900 dark:text-white leading-tight">
-                {etaMins ? `Arriving in ${etaMins} mins` : "Searching Rider..."}
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400 font-bold text-sm tracking-tight mt-1">
-                {order.status === 'picked_up' ? "On the way to your home" : "Rider is heading to the store"}
-              </p>
-            </div>
-            <div className="w-16 h-16 rounded-[1.5rem] bg-green-50 dark:bg-green-500/10 flex items-center justify-center border border-green-100 dark:border-green-500/10">
-              <Truck size={28} className="text-[#0c831f]" />
-            </div>
+      {/* Bottom Slider Sheet */}
+      <div className="absolute bottom-0 left-0 right-0 z-[1001]">
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="bg-white dark:bg-zinc-950 rounded-t-[2rem] shadow-[0_-15px_40px_-10px_rgba(0,0,0,0.2)] border-t border-gray-100 dark:border-white/5 w-full max-w-2xl mx-auto"
+        >
+          {/* Drag Handle */}
+          <div
+            className="w-full pt-4 pb-1 flex justify-center cursor-pointer"
+            onClick={() => setIsSheetExpanded(!isSheetExpanded)}
+          >
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-800 rounded-full" />
           </div>
 
-          {/* Rider Identity Card */}
-          <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-3xl border border-gray-100 dark:border-white/5 flex items-center gap-4 mb-8">
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-white shadow-sm border border-gray-100 p-1 flex items-center justify-center">
-              {order.deliveryPartnerId?.profileImage ? (
-                <img src={order.deliveryPartnerId.profileImage} alt="Rider" className="w-full h-full object-cover rounded-full" />
-              ) : (
-                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${order.deliveryPartnerId?._id || 'Rider'}`} alt="Rider" className="w-full h-full object-cover rounded-full" />
-              )}
-            </div>
-            <div className="flex-1">
-              <h4 className="font-black text-gray-900 dark:text-white text-base leading-none mb-1">
-                {order.deliveryPartnerId?.name || "Assigning Rider..."}
-              </h4>
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-none">
-                ★ {order.deliveryPartnerId?.rating || "5.0"} · {order.deliveryPartnerId?.vehicleNumber || "Loading..."}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button className="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-blue-500 shadow-sm active:scale-95 transition-all">
-                <MessageSquare size={18} />
-              </button>
-              {order.deliveryPartnerId?.phone && (
-                <a href={`tel:${order.deliveryPartnerId.phone}`} className="w-10 h-10 rounded-full bg-[#0c831f] flex items-center justify-center text-white shadow-lg shadow-green-500/20 active:scale-95 transition-all">
-                  <PhoneCall size={18} />
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Simple Step Log */}
-          <div className="space-y-4 px-2">
-            <div className="flex items-start gap-4">
-              <div className={`w-2 h-2 rounded-full mt-1.5 ${order.status === 'picked_up' ? 'bg-gray-300' : 'bg-lime-500'}`}></div>
+          <div className="px-5 pb-4">
+            {/* Summary Header */}
+            <div className="flex items-center justify-between gap-3 mb-4">
               <div>
-                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">At store</p>
-                <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{order.branchId?.name || order.vendor?.storeName || 'Store Location'}</p>
+                <h2 className="text-xl font-black text-gray-900 dark:text-white leading-tight tracking-tight">
+                  {etaMins ? `${etaMins} mins` : "Arriving soon"}
+                </h2>
+                <p className="text-[#0c831f] font-black text-[9px] uppercase tracking-widest mt-0.5">
+                  {order.status === 'picked_up' ? "On the way to home" : "Heading to store"}
+                </p>
+              </div>
+              <div className="w-11 h-11 rounded-2xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center border border-green-100 dark:border-green-500/10 shadow-inner flex-shrink-0">
+                <Truck size={22} className="text-[#0c831f]" />
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className={`w-2 h-2 rounded-full mt-1.5 ${order.status === 'picked_up' ? 'bg-[#0c831f] animate-pulse' : 'bg-gray-200'}`}></div>
-              <div>
-                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Delivery To</p>
-                <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{order.shippingAddress?.street}, {order.shippingAddress?.city}</p>
+
+            {/* Rider Card UI matching user's reference */}
+            <div className="bg-gray-50/50 dark:bg-white/5 p-3.5 rounded-[1.5rem] border border-gray-100 dark:border-white/5 flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-lg border-2 border-white dark:border-zinc-800 flex-shrink-0">
+                <img
+                  src={order.deliveryPartnerId?.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${order.deliveryPartnerId?._id || 'Sarthak'}`}
+                  alt="Rider"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-black text-gray-900 dark:text-white text-sm leading-tight mb-0.5 truncate">
+                  {order.deliveryPartnerId?.name || "Assigning..."}
+                </h4>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-0.5 text-[9px] font-black text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded-full uppercase">
+                    <Star size={9} fill="currentColor" /> {order.deliveryPartnerId?.rating || "4.9"}
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest truncate">
+                    {order.deliveryPartnerId?.vehicleNumber || "Verified"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button className="w-9 h-9 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-blue-600 shadow-sm active:scale-95 transition-all">
+                  <MessageCircle size={18} strokeWidth={2.5} />
+                </button>
+                {order.deliveryPartnerId?.phone && (
+                  <a
+                    href={`tel:${order.deliveryPartnerId.phone}`}
+                    className="w-9 h-9 rounded-full bg-[#0c831f] flex items-center justify-center text-white shadow-lg shadow-green-500/30 active:scale-95 transition-all"
+                  >
+                    <Phone size={18} strokeWidth={2.5} />
+                  </a>
+                )}
               </div>
             </div>
+
+            {/* Collapsible Steps Log */}
+            <AnimatePresence>
+              {isSheetExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-4 px-2 pb-4 border-t border-gray-100 dark:border-white/5 pt-4">
+                    <div className="flex items-start gap-4 relative">
+                      <div className="absolute left-[3.5px] top-[14px] bottom-[-18px] w-[1px] bg-gray-100 dark:bg-white/5"></div>
+                      <div className={`w-2 h-2 rounded-full z-10 mt-1.5 ${order.status !== 'picked_up' ? 'bg-[#0c831f] ring-2 ring-green-50 dark:ring-green-900/20' : 'bg-gray-300'}`}></div>
+                      <div>
+                        <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-0.5">At Store</p>
+                        <p className="text-xs font-black text-gray-800 dark:text-gray-200 leading-tight">
+                          {order.branchId?.name || order.vendor?.storeName || 'Store Location'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-2 h-2 rounded-full z-10 mt-1.5 ${order.status === 'picked_up' ? 'bg-[#0c831f] ring-2 ring-green-50 dark:ring-green-900/20 animate-pulse' : 'bg-gray-200'}`}></div>
+                      <div>
+                        <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-0.5">Delivering To</p>
+                        <p className="text-xs font-black text-gray-800 dark:text-gray-200 leading-tight">
+                          {order.shippingAddress?.street}, {order.shippingAddress?.city}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Safety Disclaimer matching reference */}
+            <div className="bg-amber-50/30 dark:bg-amber-500/5 p-3 rounded-2xl border border-amber-50/50 dark:border-amber-500/10 flex items-start gap-3 mb-1">
+              <Info size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+              <p className="text-[9px] font-black text-amber-700/80 dark:text-amber-500/80 uppercase leading-relaxed italic tracking-tight">
+                Complaints are escalated directly to the store manager and monitored by SaathiGro Admins.
+              </p>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
+
     </div>
   );
 };
 
 export default OrderTrackingPage;
+

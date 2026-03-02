@@ -5,7 +5,7 @@ import { normalizeProduct } from '../home/HomePage';
 import ProductCard from '../../components/product/ProductCard';
 import { ChevronRight, Filter, ArrowLeft } from 'lucide-react';
 import { ProductCardSkeleton } from '../../components/common/Skeleton';
-import categoryPlaceholder from '../../assets/images/category-placeholder.png';
+const categoryPlaceholder = '/assets/category-placeholder.png';
 
 const categoryColors = {
     'staples-and-grains': '#f0f4f8',
@@ -85,9 +85,11 @@ const CategoryPage = () => {
                                                 alt={cat.name}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 onError={(e) => {
-                                                    e.target.src = categoryPlaceholder;
-                                                    e.target.classList.add('opacity-80');
-                                                    e.target.style.objectFit = 'cover';
+                                                    if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                                        e.target.src = categoryPlaceholder;
+                                                        e.target.classList.add('opacity-80');
+                                                        e.target.style.objectFit = 'cover';
+                                                    }
                                                 }}
                                             />
                                         </div>

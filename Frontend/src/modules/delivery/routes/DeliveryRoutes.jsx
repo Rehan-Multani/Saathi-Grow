@@ -11,6 +11,7 @@ const Profile = lazy(() => import('../pages/ProfileSettings'));
 const Tracking = lazy(() => import('../pages/LiveTracking'));
 const ReturnPickups = lazy(() => import('../pages/ReturnPickups'));
 const Login = lazy(() => import('../pages/DeliveryLogin'));
+const Grievances = lazy(() => import('../pages/Grievances'));
 import useDeliveryStore from '../store/deliveryStore';
 
 const Loading = () => (
@@ -45,6 +46,7 @@ const DeliveryRoutes = () => {
                                     <Route path="/history" element={<History />} />
                                     <Route path="/profile" element={<Profile />} />
                                     <Route path="/tracking/:id" element={<Tracking />} />
+                                    <Route path="/grievances" element={<Grievances />} />
                                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                                 </Routes>
                             </DeliveryLayout>

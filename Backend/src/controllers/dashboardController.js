@@ -1,7 +1,7 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
-import Admin from '../models/Admin.js';
+import Complaint from '../models/Complaint.js';
 import mongoose from 'mongoose';
 
 // @desc    Get dashboard analytics (Global or Branch-scoped)
@@ -20,6 +20,9 @@ export const getDashboardStats = async (req, res) => {
       query.branchId = branchId;
     }
 
+    // Determine the "store" filter for complaints
+    const complaintStoreFilter = role === 'Admin' ? {} : { store: branchId };
+
     // 1. STATS: Revenue, Orders, Products, Users
     const [
       revenueResult,
@@ -27,7 +30,8 @@ export const getDashboardStats = async (req, res) => {
       pendingOrders,
       totalProducts,
       totalUsers,
-      recentOrders
+      recentOrders,
+      pendingTickets
     ] = await Promise.all([
       // Total Revenue (Paid or Delivered)
       Order.aggregate([
@@ -46,8 +50,11 @@ export const getDashboardStats = async (req, res) => {
       Order.find(query)
         .populate('user', 'name')
         .sort({ createdAt: -1 })
-        .limit(5)
+        .limit(5),
+      // Pending Tickets Escalated to this Store/Branch
+      Complaint.countDocuments({ ...complaintStoreFilter, status: 'ESCALATED_TO_STORE' })
     ]);
+
 
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
 
@@ -98,7 +105,9 @@ export const getDashboardStats = async (req, res) => {
         pendingOrders,
         totalProducts,
         totalUsers: role === 'Admin' ? totalUsers : null, // Only admin sees global user count
+        pendingTickets
       },
+
       recentOrders: recentOrders.map(o => ({
         id: o.orderId,
         customer: o.user?.name || 'Guest',

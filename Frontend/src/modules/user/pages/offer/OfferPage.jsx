@@ -8,7 +8,7 @@ import {
 import { useShop } from '../../context/ShopContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
-import categoryPlaceholder from '../../assets/images/category-placeholder.png';
+const categoryPlaceholder = '/assets/category-placeholder.png';
 
 // Helper for countdown
 const useCountdown = (targetDate) => {
@@ -56,8 +56,10 @@ const FlyerProductCard = ({ product, badgeText }) => {
                     alt={product.name}
                     className="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105"
                     onError={(e) => {
-                        e.target.src = categoryPlaceholder;
-                        e.target.style.objectFit = 'cover';
+                        if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                            e.target.src = categoryPlaceholder;
+                            e.target.style.objectFit = 'cover';
+                        }
                     }}
                 />
 
