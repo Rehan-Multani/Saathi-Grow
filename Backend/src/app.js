@@ -123,6 +123,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import walletRoutes from './routes/walletRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import complaintRoutes from './routes/complaintRoutes.js';
+import legalRoutes from './routes/legalRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
 
 
@@ -152,6 +153,7 @@ app.use('/api/settings', settingRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/legal', legalRoutes);
 
 
 

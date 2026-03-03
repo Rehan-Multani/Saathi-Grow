@@ -31,6 +31,7 @@ import Promotions from '../pages/Promotions';
 import WalletHistory from '../pages/WalletHistory';
 import ProductReviews from '../pages/ProductReviews';
 import ReturnRequests from '../pages/ReturnRequests';
+import LegalPolicies from '../pages/LegalPolicies';
 
 import { useLocation } from 'react-router-dom';
 
@@ -85,6 +86,7 @@ const VendorRoutes = () => {
                     <Route path="return-requests" element={<ReturnRequests />} />
                     <Route path="earnings" element={<Earnings />} />
                     <Route path="profile" element={<ShopProfile />} />
+                    <Route path="policies" element={<LegalPolicies />} />
 
                     {/* Default Redirect */}
                     <Route path="" element={<Navigate to="dashboard" replace />} />

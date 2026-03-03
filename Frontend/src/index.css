@@ -117,7 +117,7 @@ a {
 }
 
 .premium-card:hover {
-  @apply shadow-lg shadow-gray-200/50 -translate-y-1 border-[#0c831f]/20;
+  @apply shadow-lg shadow-gray-200/50 -translate-y-1 border-[#028A0F]/20;
 }
 
 /* Fix for broken images */
@@ -260,4 +260,46 @@ img {
   border-color: inherit !important;
   box-shadow: none !important;
   transform: none !important;
+}
+
+/* Delivery Module Compact & Premium Styling */
+.delivery-module-root {
+  font-family: 'Poppins', 'Inter', sans-serif !important;
+  color: #0f172a;
+  background-color: #f8fafc;
+}
+
+/* Ensure font-sans children also use Poppins in this module */
+.delivery-module-root .font-sans {
+  font-family: 'Poppins', 'Inter', sans-serif !important;
+}
+
+.delivery-module-root h1,
+.delivery-module-root h2,
+.delivery-module-root h3,
+.delivery-module-root h4,
+.delivery-module-root h5 {
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.delivery-module-root .compact-card {
+  @apply p-3 md:p-4 rounded-2xl border border-slate-100 shadow-sm transition-all;
+}
+
+.delivery-module-root .stat-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4;
+}
+
+.delivery-module-root .section-spacing {
+  @apply space-y-4 md:space-y-6;
+}
+
+/* Tighter spacing for lists and items */
+.delivery-module-root .list-item-compact {
+  @apply p-3 md:p-4 rounded-2xl border border-slate-50 flex items-center gap-3 transition-colors;
+}
+
+.delivery-module-root .text-compact {
+  @apply leading-tight;
 }

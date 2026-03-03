@@ -71,6 +71,11 @@
     path: '/store-manager/profile',
     icon: 'Store',
     permission: 'VIEW_DASHBOARD'
+  },
+  {
+    title: 'Legal & Policies',
+    path: '/store-manager/policies',
+    icon: 'Shield',
+    permission: 'VIEW_DASHBOARD'
   }
-
 ];

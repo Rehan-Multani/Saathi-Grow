@@ -49,6 +49,7 @@ const WishlistPage = lazy(() => import('../pages/profile/WishlistPage'));
 const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage'));
 const OfferPage = lazy(() => import('../pages/offer/OfferPage'));
 const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
+const LegalPage = lazy(() => import('../pages/support/LegalPage'));
 
 const LoadingFallback = () => (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
@@ -201,6 +202,7 @@ const UserRoutes = () => {
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path="/help" element={<HelpPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/legal/:slug" element={<LegalPage />} />
 
                         {/* Offers */}
                         <Route path="/offer/:id" element={<OfferPage />} />

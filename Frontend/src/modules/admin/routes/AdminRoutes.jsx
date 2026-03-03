@@ -57,9 +57,7 @@ import POSAnalytics from '../pages/analytics/POSAnalytics';
 import VendorEarnings from '../pages/analytics/VendorEarnings';
 import VendorEarningDetail from '../pages/analytics/VendorEarningDetail';
 import TaxReports from '../pages/analytics/TaxReports';
-import PrivacyPolicy from '../pages/policies/PrivacyPolicy';
-import RefundPolicy from '../pages/policies/RefundPolicy';
-import TermsConditions from '../pages/policies/TermsConditions';
+import LegalManagement from '../pages/policies/LegalManagement';
 import AdminProfile from '../pages/settings/AdminProfile';
 import RolesAndPermissions from '../pages/settings/RolesAndPermissions';
 import BillingSettings from '../pages/settings/BillingSettings';
@@ -215,9 +213,7 @@ const AdminRoutes = () => {
                         <Route path="analytics/tax" element={<TaxReports />} />
 
                         {/* Policies */}
-                        <Route path="policies/privacy" element={<PrivacyPolicy />} />
-                        <Route path="policies/refund" element={<RefundPolicy />} />
-                        <Route path="policies/terms" element={<TermsConditions />} />
+                        <Route path="policies" element={<LegalManagement />} />
 
                         {/* Settings */}
                         <Route path="settings/profile" element={<AdminProfile />} />

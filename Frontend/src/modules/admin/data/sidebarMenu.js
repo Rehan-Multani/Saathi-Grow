@@ -155,13 +155,10 @@
         ],
     },
     {
-        title: 'Policies',
+        title: 'Legal & Policies',
+        path: '/admin/policies',
         icon: 'Shield',
-        submenu: [
-            { title: 'Privacy Policy', path: '/admin/policies/privacy' },
-            { title: 'Refund Policy', path: '/admin/policies/refund' },
-            { title: 'Terms & Conditions', path: '/admin/policies/terms' },
-        ],
+        permission: 'MANAGE_SETTINGS'
     },
     {
         title: 'Settings',

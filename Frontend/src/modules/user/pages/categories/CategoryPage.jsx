@@ -402,7 +402,6 @@ const CategoryPage = () => {
                     </div>
                 )}
             </div>
-
             {/* Mobile Bottom Float Info */}
             <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                 {debouncedSearch && (
@@ -412,7 +411,7 @@ const CategoryPage = () => {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 };
 

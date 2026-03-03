@@ -1,8 +1,9 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Settings, User, MapPin, Bell, Shield, Moon, Sun, ArrowLeft, ChevronRight, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { getPoliciesList } from '../../../../common/utils/legalUtils';
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -10,6 +11,17 @@ const SettingsPage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const { user, logout } = useAuth();
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [policies, setPolicies] = useState([]);
+    const [loadingPolicies, setLoadingPolicies] = useState(true);
+
+    useEffect(() => {
+        const fetchPolicies = async () => {
+            const data = await getPoliciesList('User');
+            setPolicies(data);
+            setLoadingPolicies(false);
+        };
+        fetchPolicies();
+    }, []);
 
     const menuItems = [
         {
@@ -110,6 +122,36 @@ const SettingsPage = () => {
                                 <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${notificationsEnabled ? 'left-[1.35rem]' : 'left-1'}`} />
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                {/* Legal Section */}
+                <div className="px-4 mb-8">
+                    <h3 className="!text-[8px] font-bold text-gray-400 mb-2 px-2 tracking-widest uppercase">Legal & Privacy</h3>
+                    <div className="divide-y divide-gray-100 dark:divide-white/5 bg-gray-50/50 dark:bg-white/5 rounded-2xl overflow-hidden mt-2">
+                        {loadingPolicies ? (
+                            <div className="p-4 text-center">
+                                <div className="w-5 h-5 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                            </div>
+                        ) : policies.length > 0 ? (
+                            policies.map((p) => (
+                                <button
+                                    key={p._id}
+                                    onClick={() => navigate(`/legal/${p.slug}`)}
+                                    className="w-full py-3.5 px-4 flex items-center justify-between hover:bg-white dark:hover:bg-black transition-all group border-b border-gray-100 dark:border-white/5 last:border-none"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/10 shadow-sm">
+                                            <Shield size={14} className="text-[#0c831f]" />
+                                        </div>
+                                        <h4 className="!text-[11px] font-black text-gray-800 dark:text-gray-100 tracking-tight uppercase">{p.title}</h4>
+                                    </div>
+                                    <ChevronRight size={14} className="text-gray-300 group-hover:text-[#0c831f] transition-colors" />
+                                </button>
+                            ))
+                        ) : (
+                            <div className="p-4 text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">No policies found</div>
+                        )}
                     </div>
                 </div>
 

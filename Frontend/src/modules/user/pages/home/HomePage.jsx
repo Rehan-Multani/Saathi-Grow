@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../../components/product/ProductCard';
 import LowestPricesSection from '../../components/product/LowestPricesSection';
+import { fetchProducts } from '../../api/shopApi';
 import { useSearch } from '../../context/SearchContext';
 import { useShop } from '../../context/ShopContext';
 import { ChevronRight, ArrowRight, ArrowLeft, TrendingDown } from 'lucide-react';
@@ -355,6 +356,7 @@ const HomePage = ({ }) => {
                                 bgColor={campaign.bgColor || '#f0fdf4'}
                                 slug={null}
                                 campaignId={campaign._id}
+                                totalProductsCount={campaign.totalProducts}
                             />
                         )}
                         <div className="h-4 sm:h-8" />
@@ -370,7 +372,6 @@ const HomePage = ({ }) => {
                             key={category._id || category.id}
                             category={category}
                             loading={loading}
-                            getProductsByCategory={getProductsByCategoryLocal}
                         />
                     ))}
                 </div>
@@ -395,14 +396,42 @@ export const normalizeProduct = (product) => ({
 });
 
 // Sub-component for individual product rows to manage scroll state
-const ProductRow = ({ category, loading, getProductsByCategory }) => {
+const ProductRow = ({ category, loading: globalLoading }) => {
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
-    // Backend stores category as a string (the category name)
-    const categoryProducts = getProductsByCategory(category.name || category.slug);
+    const [localProducts, setLocalProducts] = useState([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // ₹ useEffect MUST be before any early return (Rules of Hooks)
+    const fetchItems = useCallback(async (pageNum) => {
+        try {
+            const data = await fetchProducts({
+                category: category.name,
+                page: pageNum,
+                limit: 10,
+                status: 'Active'
+            });
+            const newProducts = data.products || [];
+            if (pageNum === 1) {
+                setLocalProducts(newProducts);
+            } else {
+                setLocalProducts(prev => [...prev, ...newProducts]);
+            }
+            setHasMore(data.page < data.pages);
+            setPage(pageNum);
+        } catch (err) {
+            console.error("Error fetching category products:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [category.name]);
+
+    useEffect(() => {
+        fetchItems(1);
+    }, [category.name]);
+
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
@@ -411,15 +440,21 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
         }
     };
 
-    useEffect(() => {
-        // Initial check after loading finishes
-        if (!loading) {
-            setTimeout(handleScroll, 100);
-        }
-    }, [loading]);
+    if (isLoading && page === 1) {
+        return (
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="flex gap-4 overflow-hidden">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                            <ProductCardSkeleton />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
-    // Early return AFTER all hooks
-    if (!categoryProducts || categoryProducts.length === 0) return null;
+    if (!localProducts.length && !isLoading) return null;
 
     const sectionScroll = (dir) => {
         if (sectionRef.current) {
@@ -449,42 +484,50 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                     onScroll={handleScroll}
                     className="flex overflow-x-auto gap-2 md:gap-5 pb-2 md:pb-4 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-stretch"
                 >
-                    {loading ? (
-                        Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCardSkeleton />
-                            </div>
-                        ))
-                    ) : (
-                        categoryProducts.map((product) => (
-                            <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCard product={normalizeProduct(product)} />
-                            </div>
-                        ))
+                    {localProducts.map((product) => (
+                        <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                            <ProductCard product={normalizeProduct(product)} />
+                        </div>
+                    ))}
+                    {hasMore && (
+                        <div className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] flex flex-col">
+                            <button
+                                onClick={() => fetchItems(page + 1)}
+                                className="w-full h-full rounded-3xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col items-center justify-center gap-4 group/btn bg-white dark:bg-[#111111] mb-1 relative overflow-hidden md:!bg-white dark:md:!bg-[#111111]"
+                            >
+                                {/* Pulsing Border Highlight - Match ProductCard */}
+                                <div
+                                    className="absolute inset-0 rounded-3xl border-[1.5px] md:border-transparent animate-pulse md:animate-none pointer-events-none z-30"
+                                    style={{ borderColor: '#0c831f20' }}
+                                />
+
+                                <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-full shadow-inner group-hover/btn:scale-110 group-hover/btn:bg-green-50 dark:group-hover/btn:bg-green-500/10 transition-all duration-300 relative z-10">
+                                    <TrendingDown size={32} className="text-[var(--saathi-green)]" />
+                                </div>
+                                <div className="flex flex-col items-center gap-1 relative z-10">
+                                    <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white">Load More</span>
+                                    <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Next Batch</span>
+                                </div>
+                            </button>
+                        </div>
                     )}
                 </div>
 
-                {!loading && (
-                    <>
-                        {showLeft && (
-                            <button
-                                onClick={() => sectionScroll('left')}
-                                className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
-                                aria-label="Scroll left"
-                            >
-                                <ArrowLeft size={18} strokeWidth={2.5} />
-                            </button>
-                        )}
-                        {showRight && (
-                            <button
-                                onClick={() => sectionScroll('right')}
-                                className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
-                                aria-label="Scroll right"
-                            >
-                                <ArrowRight size={18} strokeWidth={2.5} />
-                            </button>
-                        )}
-                    </>
+                {showLeft && (
+                    <button
+                        onClick={() => sectionScroll('left')}
+                        className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                )}
+                {showRight && (
+                    <button
+                        onClick={() => sectionScroll('right')}
+                        className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
+                    >
+                        <ArrowRight size={18} strokeWidth={2.5} />
+                    </button>
                 )}
             </div>
         </div>
@@ -495,22 +538,32 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
 const OccasionSection = ({
     title,
     subtitle,
-    products,
-    loading,
+    products: initialProducts,
+    loading: globalLoading,
     themeColor,
     bgColor,
     slug,
     badgeText,
     className,
     campaignId,
-    wishlistPosition
+    wishlistPosition,
+    totalProductsCount
 }) => {
     const { isDarkMode } = useTheme();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
+    const [localProducts, setLocalProducts] = useState(initialProducts || []);
+    const [page, setPage] = useState(1);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState((initialProducts?.length || 0) < (totalProductsCount || 0));
 
-    // ₹ useEffect MUST be before any early return (Rules of Hooks)
+    useEffect(() => {
+        setLocalProducts(initialProducts);
+        setHasMore((initialProducts?.length || 0) < (totalProductsCount || 0));
+        setPage(1);
+    }, [initialProducts, totalProductsCount]);
+
     const handleScroll = () => {
         if (sectionRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = sectionRef.current;
@@ -519,12 +572,33 @@ const OccasionSection = ({
         }
     };
 
-    useEffect(() => {
-        if (!loading) setTimeout(handleScroll, 100);
-    }, [loading]);
+    const fetchMore = async () => {
+        if (isLoadingMore || !hasMore) return;
+        setIsLoadingMore(true);
+        try {
+            const nextPage = page + 1;
+            const data = await fetchProducts({
+                campaignId: campaignId,
+                page: nextPage,
+                limit: 10,
+                status: 'Active'
+            });
+            const newProducts = data.products || [];
+            if (newProducts.length > 0) {
+                setLocalProducts(prev => [...prev, ...newProducts]);
+                setHasMore(data.page < data.pages);
+                setPage(nextPage);
+            } else {
+                setHasMore(false);
+            }
+        } catch (err) {
+            console.error("Error fetching campaign products:", err);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
 
-    // Early return AFTER all hooks
-    if (!products || products.length === 0) return null;
+    if (!localProducts || localProducts.length === 0) return null;
 
     const sectionScroll = (dir) => {
         if (sectionRef.current) {
@@ -542,38 +616,13 @@ const OccasionSection = ({
                     </h2>
                     <p className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'opacity-70'}`} style={{ color: isDarkMode ? '' : themeColor }}>{subtitle}</p>
                 </div>
-                {slug && (
-                    <Link
-                        to={`/occasion/${slug}`}
-                        className="flex items-center gap-1 text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all border-b-2 border-transparent hover:border-current"
-                        style={{ color: isDarkMode ? 'var(--saathi-yellow)' : themeColor }}
-                    >
-                        See All
-                        <ChevronRight size={14} strokeWidth={2.5} />
-                    </Link>
-                )}
             </div>
 
-            {/* Promotional Badge (Optional) */}
             {badgeText && (
                 <div className="mb-1">
-                    <div
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm"
-                        style={{
-                            backgroundColor: `${themeColor}10`, // 10% opacity of theme color
-                            borderColor: `${themeColor}30`
-                        }}
-                    >
-                        <div
-                            className="w-2 h-2 rounded-full animate-pulse"
-                            style={{ backgroundColor: themeColor }}
-                        />
-                        <span
-                            className="text-[9px] md:text-xs font-black tracking-wide uppercase"
-                            style={{ color: themeColor }}
-                        >
-                            {badgeText}
-                        </span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm" style={{ backgroundColor: `${themeColor}10`, borderColor: `${themeColor}30` }}>
+                        <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: themeColor }} />
+                        <span className="text-[9px] md:text-xs font-black tracking-wide uppercase" style={{ color: themeColor }}>{badgeText}</span>
                     </div>
                 </div>
             )}
@@ -584,47 +633,71 @@ const OccasionSection = ({
                     onScroll={handleScroll}
                     className="flex overflow-x-auto gap-3 md:gap-5 pb-2 md:pb-4 scrollbar-hide -mx-0 px-0 scroll-smooth items-stretch"
                 >
-                    {loading ? (
-                        Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCardSkeleton />
-                            </div>
-                        ))
-                    ) : (
-                        products.map((product) => (
-                            <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
-                                <ProductCard
-                                    product={normalizeProduct(product)}
-                                    customTheme={{
-                                        themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor,
-                                        bgColor: isDarkMode ? '' : bgColor
-                                    }}
-                                    wishlistPosition={wishlistPosition}
+                    {localProducts.map((product) => (
+                        <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                            <ProductCard
+                                product={normalizeProduct(product)}
+                                customTheme={{
+                                    themeColor: isDarkMode ? 'var(--saathi-yellow)' : themeColor,
+                                    bgColor: isDarkMode ? '' : bgColor
+                                }}
+                                wishlistPosition={wishlistPosition}
+                            />
+                        </div>
+                    ))}
+                    {hasMore && (
+                        <div className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] flex flex-col">
+                            <button
+                                onClick={fetchMore}
+                                disabled={isLoadingMore}
+                                className="w-full h-full rounded-3xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col items-center justify-center gap-4 group/btn bg-white dark:bg-[#111111] mb-1 relative overflow-hidden disabled:opacity-50 md:!bg-white dark:md:!bg-[#111111]"
+                                style={{
+                                    borderColor: themeColor ? `${themeColor}30` : undefined,
+                                    '--theme-color': themeColor || '#0c831f'
+                                }}
+                            >
+                                {/* Pulsing Border Highlight - Match ProductCard */}
+                                <div
+                                    className="absolute inset-0 rounded-3xl border-[1.5px] md:border-transparent animate-pulse md:animate-none pointer-events-none z-30"
+                                    style={{ borderColor: themeColor ? `${themeColor}20` : '#0c831f20' }}
                                 />
-                            </div>
-                        ))
+
+                                <div className="p-4 bg-opacity-5 rounded-full shadow-inner group-hover/btn:scale-110 transition-all duration-300 relative z-10"
+                                    style={{ backgroundColor: `${themeColor}15` }}>
+                                    {isLoadingMore ? (
+                                        <div className="w-8 h-8 border-3 border-[var(--saathi-green)] border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <TrendingDown size={32} style={{ color: themeColor || 'var(--saathi-green)' }} />
+                                    )}
+                                </div>
+                                <div className="flex flex-col items-center gap-1 relative z-10">
+                                    <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white">
+                                        {isLoadingMore ? 'Loading...' : 'More Results'}
+                                    </span>
+                                    <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                                        {isLoadingMore ? 'Wait for it' : 'Load more'}
+                                    </span>
+                                </div>
+                            </button>
+                        </div>
                     )}
                 </div>
 
-                {!loading && (
-                    <>
-                        {showLeft && (
-                            <button
-                                onClick={() => sectionScroll('left')}
-                                className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white text-black w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
-                            >
-                                <ArrowLeft size={18} strokeWidth={2.5} />
-                            </button>
-                        )}
-                        {showRight && (
-                            <button
-                                onClick={() => sectionScroll('right')}
-                                className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white text-black w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
-                            >
-                                <ArrowRight size={18} strokeWidth={2.5} />
-                            </button>
-                        )}
-                    </>
+                {showLeft && (
+                    <button
+                        onClick={() => sectionScroll('left')}
+                        className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white text-black w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                )}
+                {showRight && (
+                    <button
+                        onClick={() => sectionScroll('right')}
+                        className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white text-black w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
+                    >
+                        <ArrowRight size={18} strokeWidth={2.5} />
+                    </button>
                 )}
             </div>
         </div>

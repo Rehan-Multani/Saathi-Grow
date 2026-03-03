@@ -281,7 +281,7 @@ const LiveTracking = () => {
     if (isLoading) {
         return (
             <div className="h-screen flex items-center justify-center">
-                <Loader2 className="animate-spin text-lime-500" size={48} />
+                <Loader2 className="animate-spin text-[#028A0F]" size={48} />
             </div>
         );
     }
@@ -338,7 +338,7 @@ const LiveTracking = () => {
                             {/* Main Path with glow */}
                             <Polyline
                                 positions={trimmedRoute}
-                                color="#84cc16"
+                                color="#028A0F"
                                 weight={6}
                                 opacity={0.8}
                                 lineCap="round"
@@ -347,7 +347,7 @@ const LiveTracking = () => {
                             {/* Core Path line */}
                             <Polyline
                                 positions={trimmedRoute}
-                                color="#bef264"
+                                color="#02880d"
                                 weight={2}
                                 opacity={1}
                                 lineCap="round"
@@ -367,7 +367,7 @@ const LiveTracking = () => {
                     <ChevronLeft size={24} />
                 </button>
                 <div className="px-6 py-3 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-lime-500 animate-pulse shadow-[0_0_8px_rgba(132,204,22,0.8)]"></div>
+                    <div className="w-2 h-2 rounded-full bg-[#028A0F] animate-pulse shadow-[0_0_8px_rgba(2,138,15,0.8)]"></div>
                     <span className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-800 dark:text-zinc-100">Live Mission</span>
                 </div>
                 <button
@@ -375,7 +375,7 @@ const LiveTracking = () => {
                         setIsFOLLOWING(true);
                         toast.info("Map centered on you");
                     }}
-                    className={`p-3 rounded-2xl shadow-xl border transition-all ${isFOLLOWING ? 'bg-lime-500 text-white border-lime-600' : 'bg-white dark:bg-zinc-900 border-slate-100 dark:border-zinc-800'}`}
+                    className={`p-3 rounded-2xl shadow-xl border transition-all ${isFOLLOWING ? 'bg-[#028A0F] text-white border-[#028A0F]/20' : 'bg-white dark:bg-zinc-900 border-slate-100 dark:border-zinc-800'}`}
                 >
                     <Navigation size={24} className={isFOLLOWING ? 'fill-current' : ''} />
                 </button>
@@ -404,14 +404,14 @@ const LiveTracking = () => {
                                     <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 flex items-center justify-center overflow-hidden border border-slate-200/60 dark:border-zinc-700/50 shadow-inner">
                                         <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${delivery.order?._id || 'Felix'}`} className="w-full h-full object-cover" alt="avatar" />
                                     </div>
-                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-lime-500 border-2 border-white dark:border-zinc-900 rounded-lg flex items-center justify-center shadow-lg">
+                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#028A0F] border-2 border-white dark:border-zinc-900 rounded-lg flex items-center justify-center shadow-lg">
                                         <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                                     </div>
                                 </div>
                                 <div>
                                     <h4 className="font-black text-xl text-slate-900 dark:text-zinc-50 tracking-tight leading-none mb-1.5">#{delivery.order?.orderId || 'N/A'}</h4>
                                     <div className="flex items-center gap-2">
-                                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${delivery.status === 'delivered' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-lime-100 text-lime-600 dark:bg-lime-500/10 dark:text-lime-400'}`}>
+                                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${delivery.status === 'delivered' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-green-100 text-[#028A0F] dark:bg-[#028A0F]/10 dark:text-[#028A0F]'}`}>
                                             {delivery.status.replace('_', ' ')}
                                         </span>
                                         <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500">•</span>
@@ -420,10 +420,10 @@ const LiveTracking = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2.5">
-                                <button className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all active:scale-90 border border-blue-100/50 dark:border-blue-500/20">
+                                <button className="w-11 h-11 rounded-2xl bg-green-50 dark:bg-[#028A0F]/10 text-[#028A0F] dark:text-[#028A0F] flex items-center justify-center hover:bg-green-100 dark:hover:bg-[#028A0F]/20 transition-all active:scale-90 border border-green-100/50 dark:border-[#028A0F]/20">
                                     <MessageCircle size={20} />
                                 </button>
-                                <a href={`tel:${delivery.order?.user?.phone}`} className="w-11 h-11 rounded-2xl bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center hover:bg-green-100 dark:hover:bg-green-500/20 transition-all active:scale-90 border border-green-100/50 dark:border-green-500/20 shadow-sm">
+                                <a href={`tel:${delivery.order?.user?.phone}`} className="w-11 h-11 rounded-2xl bg-green-50 dark:bg-[#028A0F]/10 text-[#028A0F] dark:text-[#028A0F] flex items-center justify-center hover:bg-green-100 dark:hover:bg-[#028A0F]/20 transition-all active:scale-90 border border-green-100/50 dark:border-[#028A0F]/20 shadow-sm">
                                     <Phone size={20} />
                                 </a>
                             </div>
@@ -441,19 +441,19 @@ const LiveTracking = () => {
                                         {/* Status Timeline */}
                                         <div className="flex justify-between items-center mb-6 px-2 mt-2">
                                             <div className="flex flex-col items-center gap-2">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${delivery.status === 'assigned' || delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-lime-500 text-white shadow-lg shadow-lime-500/30' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${delivery.status === 'assigned' || delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-[#028A0F] text-white shadow-lg shadow-[#028A0F]/30' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
                                                     <Package size={14} />
                                                 </div>
                                             </div>
-                                            <div className={`flex-1 h-[2px] mx-2 transition-colors ${delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-lime-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
+                                            <div className={`flex-1 h-[2px] mx-2 transition-colors ${delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-[#028A0F]' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
                                             <div className="flex flex-col items-center gap-2">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-lime-500 text-white shadow-lg shadow-lime-500/30' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-[#028A0F] text-white shadow-lg shadow-[#028A0F]/30' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
                                                     <Flag size={14} />
                                                 </div>
                                             </div>
-                                            <div className={`flex-1 h-[2px] mx-2 transition-colors ${delivery.status === 'delivered' ? 'bg-lime-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
+                                            <div className={`flex-1 h-[2px] mx-2 transition-colors ${delivery.status === 'delivered' ? 'bg-[#028A0F]' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
                                             <div className="flex flex-col items-center gap-2">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${delivery.status === 'delivered' ? 'bg-lime-500 text-white shadow-lg shadow-lime-500/30' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${delivery.status === 'delivered' ? 'bg-[#028A0F] text-white shadow-lg shadow-[#028A0F]/30' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400'}`}>
                                                     <CheckCircle2 size={14} />
                                                 </div>
                                             </div>
@@ -461,7 +461,7 @@ const LiveTracking = () => {
 
                                         <div className="space-y-4 mb-6">
                                             <div className="flex items-start gap-4">
-                                                <div className={`mt-2 w-2 h-2 rounded-full ${delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-slate-300' : 'bg-lime-500'}`}></div>
+                                                <div className={`mt-2 w-2 h-2 rounded-full ${delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'bg-slate-300' : 'bg-[#028A0F]'}`}></div>
                                                 <div>
                                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Store Pickup</p>
                                                     <p className={`text-sm font-bold text-slate-800 dark:text-slate-200 ${delivery.status === 'picked_up' || delivery.status === 'delivered' ? 'text-slate-400 line-through' : ''}`}>
@@ -470,7 +470,7 @@ const LiveTracking = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-start gap-4">
-                                                <div className={`mt-2 w-2 h-2 rounded-full ${delivery.status === 'delivered' ? 'bg-green-500' : 'bg-blue-500 animate-pulse'}`}></div>
+                                                <div className={`mt-2 w-2 h-2 rounded-full ${delivery.status === 'delivered' ? 'bg-green-500' : 'bg-[#028A0F] animate-pulse'}`}></div>
                                                 <div>
                                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Customer Delivery</p>
                                                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
@@ -489,7 +489,7 @@ const LiveTracking = () => {
                             disabled={actionLoading}
                             className={`w-full py-4 mt-2 rounded-[1.25rem] text-white font-black tracking-widest uppercase shadow-xl transition-all flex items-center justify-center gap-3 ${delivery.status === 'delivered'
                                 ? 'bg-emerald-500 shadow-emerald-500/30'
-                                : 'bg-gradient-to-r from-lime-500 to-lime-600 shadow-lime-500/30 active:scale-[0.98]'
+                                : 'bg-[#028A0F] shadow-[#028A0F]/30 active:scale-[0.98]'
                                 }`}
                         >
                             {actionLoading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}

@@ -34,10 +34,33 @@ export const getCampaignById = async (req, res) => {
 // @access  Public
 export const getActiveCampaignSections = async (req, res) => {
   try {
-    const sections = await CampaignSection.find({ isActive: true })
+    const sections = await CampaignSection.find({ isActive: true }, {
+      // Return all fields except products, which we slice
+      title: 1,
+      subtitle: 1,
+      highlightText: 1,
+      displayType: 1,
+      bgColor: 1,
+      textColor: 1,
+      accentColor: 1,
+      order: 1,
+      isActive: 1,
+      bannerImage: 1,
+      products: { $slice: 10 } // Initial batch
+    })
       .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg')
       .sort('order');
-    res.json(sections);
+
+    // Also send total product count per section to help frontend pagination
+    const sectionsWithCount = await Promise.all(sections.map(async (s) => {
+      const fullDoc = await CampaignSection.findById(s._id).select('products');
+      return {
+        ...s.toObject(),
+        totalProducts: fullDoc.products.length
+      };
+    }));
+
+    res.json(sectionsWithCount);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

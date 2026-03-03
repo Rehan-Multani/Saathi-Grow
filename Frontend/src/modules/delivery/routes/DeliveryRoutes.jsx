@@ -12,6 +12,7 @@ const Tracking = lazy(() => import('../pages/LiveTracking'));
 const ReturnPickups = lazy(() => import('../pages/ReturnPickups'));
 const Login = lazy(() => import('../pages/DeliveryLogin'));
 const Grievances = lazy(() => import('../pages/Grievances'));
+const Legal = lazy(() => import('../pages/LegalDocuments'));
 import useDeliveryStore from '../store/deliveryStore';
 
 const Loading = () => (
@@ -29,32 +30,35 @@ const DeliveryGuard = ({ children }) => {
 const DeliveryRoutes = () => {
     const { token } = useDeliveryStore();
     return (
-        <NotificationProvider>
-            <Suspense fallback={<Loading />}>
-                <Routes>
-                    <Route path="/login" element={token ? <Navigate to="/delivery/dashboard" replace /> : <Login />} />
+        <div className="delivery-module-root min-h-screen">
+            <NotificationProvider>
+                <Suspense fallback={<Loading />}>
+                    <Routes>
+                        <Route path="/login" element={token ? <Navigate to="/delivery/dashboard" replace /> : <Login />} />
 
-                    <Route path="/*" element={
-                        <DeliveryGuard>
-                            <DeliveryLayout>
-                                <Routes>
-                                    <Route path="/" element={<Navigate to="dashboard" replace />} />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/orders" element={<Orders />} />
-                                    <Route path="/returns" element={<ReturnPickups />} />
-                                    <Route path="/wallet" element={<Wallet />} />
-                                    <Route path="/history" element={<History />} />
-                                    <Route path="/profile" element={<Profile />} />
-                                    <Route path="/tracking/:id" element={<Tracking />} />
-                                    <Route path="/grievances" element={<Grievances />} />
-                                    <Route path="*" element={<Navigate to="dashboard" replace />} />
-                                </Routes>
-                            </DeliveryLayout>
-                        </DeliveryGuard>
-                    } />
-                </Routes>
-            </Suspense>
-        </NotificationProvider>
+                        <Route path="/*" element={
+                            <DeliveryGuard>
+                                <DeliveryLayout>
+                                    <Routes>
+                                        <Route path="/" element={<Navigate to="dashboard" replace />} />
+                                        <Route path="/dashboard" element={<Dashboard />} />
+                                        <Route path="/orders" element={<Orders />} />
+                                        <Route path="/returns" element={<ReturnPickups />} />
+                                        <Route path="/wallet" element={<Wallet />} />
+                                        <Route path="/history" element={<History />} />
+                                        <Route path="/profile" element={<Profile />} />
+                                        <Route path="/tracking/:id" element={<Tracking />} />
+                                        <Route path="/grievances" element={<Grievances />} />
+                                        <Route path="/legal" element={<Legal />} />
+                                        <Route path="*" element={<Navigate to="dashboard" replace />} />
+                                    </Routes>
+                                </DeliveryLayout>
+                            </DeliveryGuard>
+                        } />
+                    </Routes>
+                </Suspense>
+            </NotificationProvider>
+        </div>
     );
 };
 

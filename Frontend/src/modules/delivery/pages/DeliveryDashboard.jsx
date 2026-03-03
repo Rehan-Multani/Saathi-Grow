@@ -51,22 +51,22 @@ const StatCard = ({ icon, label, value, subValue, color, isLoading, onClick }) =
     <motion.div
         whileHover={{ y: -5 }}
         onClick={onClick}
-        className={`bg-white dark:bg-zinc-900 p-5 rounded-3xl border border-slate-100 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
+        className={`bg-white dark:bg-zinc-900 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-zinc-800 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
     >
-        <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
-        <div className="flex flex-col gap-4">
-            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg`}>
-                {icon}
+        <div className={`absolute -right-4 -top-4 w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
+        <div className="flex flex-col gap-2 md:gap-4">
+            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg`}>
+                {React.cloneElement(icon, { size: 18 })}
             </div>
             <div>
-                <p className="text-slate-500 dark:text-zinc-400 text-sm font-medium">{label}</p>
-                <div className="flex items-baseline gap-2 mt-1">
+                <p className="text-slate-500 dark:text-zinc-400 text-[10px] md:text-xs font-semibold uppercase tracking-wider">{label}</p>
+                <div className="flex items-baseline gap-1 md:gap-2 mt-0.5 md:mt-1">
                     {isLoading ? (
-                        <div className="h-8 w-20 bg-slate-100 dark:bg-zinc-800 animate-pulse rounded-lg"></div>
+                        <div className="h-6 md:h-8 w-16 md:w-20 bg-slate-100 dark:bg-zinc-800 animate-pulse rounded-lg"></div>
                     ) : (
-                        <h3 className="text-2xl font-black tracking-tight">{value}</h3>
+                        <h3 className="text-xl md:text-2xl font-black tracking-tight">{value}</h3>
                     )}
-                    {subValue && <span className="text-xs font-bold text-green-500">{subValue}</span>}
+                    {subValue && <span className="text-[10px] font-bold text-[#028A0F]">{subValue}</span>}
                 </div>
             </div>
         </div>
@@ -264,18 +264,18 @@ const DeliveryDashboard = () => {
     };
 
     return (
-        <div className="space-y-8 pb-10">
+        <div className="space-y-4 md:space-y-6 pb-6">
             {/* Top Greeting & Toggle */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Rider'}! 👋</h1>
-                    <p className="text-slate-500 dark:text-zinc-400 font-medium">Ready for today's deliveries?</p>
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tight">Welcome, {user?.name?.split(' ')[0] || 'Rider'}! 👋</h1>
+                    <p className="text-xs md:text-sm text-slate-500 dark:text-zinc-400 font-medium">Ready for today's deliveries?</p>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleSimulate}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-lime-500/10 text-lime-600 dark:text-lime-500 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-lime-500/20 transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-[#028A0F]/10 text-[#028A0F] rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#028A0F]/20 transition-all active:scale-95"
                     >
                         <Play size={12} fill="currentColor" />
                         Simulate
@@ -289,14 +289,14 @@ const DeliveryDashboard = () => {
                     </button>
 
                     <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-zinc-800/80 shadow-sm">
-                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`}></div>
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${isOnline ? 'text-green-600' : 'text-slate-400'}`}>
+                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#028A0F] animate-pulse' : 'bg-slate-300'}`}></div>
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${isOnline ? 'text-[#028A0F]' : 'text-slate-400'}`}>
                             {isOnline ? 'Online' : 'Offline'}
                         </span>
                         <button
                             onClick={handleToggle}
                             disabled={loading}
-                            className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${isOnline ? 'bg-green-500' : 'bg-slate-200 dark:bg-zinc-800'}`}
+                            className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${isOnline ? 'bg-[#028A0F]' : 'bg-slate-200 dark:bg-zinc-800'}`}
                         >
                             <motion.div
                                 animate={{ x: isOnline ? 20 : 2 }}
@@ -313,101 +313,101 @@ const DeliveryDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="lg:col-span-8 bg-zinc-900 dark:bg-zinc-900 rounded-[2rem] p-6 text-white shadow-2xl shadow-black/10 relative overflow-hidden"
+                    className="lg:col-span-8 bg-[#028A0F] rounded-3xl p-4 md:p-5 text-white shadow-xl shadow-[#028A0F]/20 relative overflow-hidden"
                 >
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-lime-600/10 rounded-full -mr-10 -mt-10 blur-3xl"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 md:w-48 md:h-48 bg-white/20 rounded-full -mr-10 -mt-10 blur-3xl"></div>
 
-                    <div className="relative z-10 flex flex-col justify-between h-full gap-6">
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-3 md:gap-4">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-lime-100/80 font-bold uppercase tracking-widest text-[10px] mb-1">Your Wallet Balance</p>
-                                <h2 className="text-5xl font-black mb-1">
+                                <p className="text-white/70 font-bold uppercase tracking-widest text-[8px] md:text-[9px] mb-0.5">Your Wallet Balance</p>
+                                <h2 className="text-2xl md:text-4xl font-black mb-0.5">
                                     ₹{stats?.walletBalance?.toFixed(2) || '0.00'}
                                 </h2>
-                                <div className="flex items-center gap-2 text-lime-100 text-sm font-medium">
-                                    <TrendingUp size={16} />
-                                    <span>Total Lifetime: ₹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
+                                <div className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-xs font-bold">
+                                    <TrendingUp size={12} md:size={14} />
+                                    <span>Lifetime: ₹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => navigate('/delivery/wallet')}
-                                className="bg-lime-500 text-white px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-lime-600 transition-all shadow-lg shadow-lime-500/20 active:scale-95"
+                                className="bg-white text-[#028A0F] px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-wider hover:bg-slate-50 transition-all shadow-lg active:scale-95"
                             >
                                 Withdraw
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/10 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
-                                <p className="text-lime-100/60 text-xs font-bold uppercase tracking-wider mb-1">Today's Earnings</p>
-                                <h4 className="text-xl font-black">₹{stats?.todayEarnings || '0'}</h4>
+                        <div className="grid grid-cols-2 gap-3 md:gap-4">
+                            <div className="bg-white/10 backdrop-blur-sm p-2.5 md:p-3 rounded-2xl md:rounded-3xl border border-white/10">
+                                <p className="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-0.5">Today's Earnings</p>
+                                <h4 className="text-base md:text-lg font-black">₹{stats?.todayEarnings || '0'}</h4>
                             </div>
-                            <div>
-                                <p className="text-white/40 text-[8px] font-black uppercase mb-1">Deliveries</p>
-                                <p className="font-black text-sm">{stats?.todayDeliveries || '0'}</p>
+                            <div className="flex flex-col justify-center">
+                                <p className="text-white/40 text-[7px] md:text-[8px] font-black uppercase mb-0.5">Deliveries</p>
+                                <p className="font-black text-xs md:text-sm">{stats?.todayDeliveries || '0'}</p>
                             </div>
                         </div>
                     </div>
                 </motion.div>
 
                 {/* Service Area Status - Compacted */}
-                <div className="lg:col-span-4 bg-white dark:bg-white/5 rounded-[2rem] p-6 border border-slate-200/60 dark:border-white/5 shadow-sm flex flex-col gap-4">
+                <div className="lg:col-span-4 bg-white dark:bg-white/5 rounded-3xl p-5 md:p-6 border border-slate-200/60 dark:border-white/5 shadow-sm flex flex-col gap-3 md:gap-4">
                     <div className="flex items-center justify-between">
-                        <h4 className="font-black text-[11px] uppercase tracking-widest text-slate-400">Tactical Area</h4>
-                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-slate-300'}`}></div>
+                        <h4 className="font-black text-[10px] md:text-[11px] uppercase tracking-widest text-slate-400">Tactical Area</h4>
+                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#028A0F]' : 'bg-slate-300'}`}></div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-800 dark:text-zinc-100 border border-slate-100 dark:border-white/5">
-                            <MapPin size={18} />
+                    <div className="flex items-center gap-2.5 md:gap-3">
+                        <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-800 dark:text-zinc-100 border border-slate-100 dark:border-white/5">
+                            <MapPin size={16} />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[12px] font-bold text-slate-800 dark:text-zinc-100 truncate">{locationText}</p>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{profile?.vehicleNumber || 'Standard Rider'}</p>
+                            <p className="text-[11px] md:text-[12px] font-bold text-slate-800 dark:text-zinc-100 truncate">{locationText}</p>
+                            <p className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase tracking-wider">{profile?.vehicleNumber || 'Standard Rider'}</p>
                         </div>
                     </div>
 
                     <button
                         onClick={handleUpdateCenter}
                         disabled={locationUpdating}
-                        className="mt-auto w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="mt-2 md:mt-auto w-full py-2 md:py-2.5 bg-slate-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em] flex items-center justify-center gap-1.5 md:gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        <Navigation size={14} />
+                        <Navigation size={12} />
                         {locationUpdating ? 'LOCATING...' : 'UPDATE HQ'}
                     </button>
                 </div>
             </div>
 
             {/* Quick Stats Grid - More Compact icons/text */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <StatCard
-                    icon={<Clock size={20} />}
+                    icon={<Clock />}
                     label="Pending"
                     value={stats?.pendingOrders || '0'}
                     color="from-orange-400 to-amber-500"
                     isLoading={loading}
                 />
                 <StatCard
-                    icon={<CheckCircle2 size={20} />}
+                    icon={<CheckCircle2 />}
                     label="Success"
                     value={stats?.todayDeliveries || '0'}
                     color="from-emerald-400 to-teal-500"
                     isLoading={loading}
                 />
                 <StatCard
-                    icon={<XCircle size={20} />}
-                    label="Return Pickups"
-                    value={stats?.returnPickups ?? '—'}
-                    subValue={stats?.returnPickups > 0 ? 'Available' : null}
+                    icon={<XCircle />}
+                    label="Returns"
+                    value={stats?.returnPickups ?? '0'}
+                    subValue={stats?.returnPickups > 0 ? 'Active' : null}
                     color="from-blue-400 to-indigo-500"
                     isLoading={loading}
                     onClick={() => navigate('/delivery/returns')}
                 />
                 <StatCard
-                    icon={<Wallet size={24} />}
-                    label="Today's Earnings"
+                    icon={<Wallet />}
+                    label="Earnings"
                     value={`₹${stats?.todayEarnings || '0'}`}
-                    color="from-blue-400 to-indigo-500"
+                    color="from-pink-400 to-rose-500"
                     isLoading={loading}
                 />
             </div>
@@ -415,24 +415,24 @@ const DeliveryDashboard = () => {
             {/* Bottom Section: Chart & Recent Orders */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Earnings Analytics */}
-                <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-slate-100 dark:border-zinc-800 shadow-sm">
-                    <div className="flex items-center justify-between mb-8">
+                <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 md:p-6 border border-slate-100 dark:border-zinc-800 shadow-sm">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
                         <div>
-                            <h4 className="font-bold text-xl tracking-tight">Earnings Analytics</h4>
-                            <p className="text-slate-500 text-sm">Weekly performance Overview</p>
+                            <h4 className="font-bold text-lg md:text-xl tracking-tight">Analytics</h4>
+                            <p className="text-slate-500 text-[10px] md:text-xs">Weekly performance overview</p>
                         </div>
                         <select
                             value={chartRange}
                             onChange={(e) => setChartRange(e.target.value)}
-                            className="bg-slate-50 dark:bg-zinc-800 border-none rounded-xl px-4 py-2 text-xs font-bold font-sans outline-none"
+                            className="bg-slate-50 dark:bg-zinc-800 border-none rounded-lg px-2 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold font-sans outline-none"
                         >
-                            <option value="7d">Last 7 Days</option>
-                            <option value="30d">Last 30 Days</option>
+                            <option value="7d">7 Days</option>
+                            <option value="30d">30 Days</option>
                         </select>
                     </div>
 
-                    <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height={250}>
+                    <div className="h-[180px] md:h-[220px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData}>
                                 <defs>
                                     <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
@@ -470,14 +470,14 @@ const DeliveryDashboard = () => {
                 </div>
 
                 {/* Recent Orders Overview */}
-                <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-slate-100 dark:border-zinc-800 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                        <h4 className="font-bold text-xl tracking-tight">Active Deliveries</h4>
+                <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 md:p-6 border border-slate-100 dark:border-zinc-800 shadow-sm">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                        <h4 className="font-bold text-lg md:text-xl tracking-tight">Active Deliveries</h4>
                         <button
                             onClick={() => navigate('/delivery/orders')}
-                            className="text-lime-600 text-sm font-bold flex items-center gap-1 group"
+                            className="text-[#028A0F] text-[11px] md:text-xs font-bold flex items-center gap-1 group"
                         >
-                            View All <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            View All <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
 
@@ -488,18 +488,18 @@ const DeliveryDashboard = () => {
                                 onClick={() => navigate(`/delivery/tracking/${order._id}`)}
                                 className="flex items-center gap-4 p-4 rounded-3xl border border-slate-50 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                             >
-                                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-lime-500 font-bold">
-                                    <Clock size={20} />
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-[#028A0F] font-bold shrink-0">
+                                    <Clock size={16} md:size={20} />
                                 </div>
-                                <div className="flex-1">
-                                    <h5 className="font-bold text-sm">Order #{order.order?.orderId || 'N/A'}</h5>
-                                    <p className="text-slate-500 text-xs">{order.order?.shippingAddress?.street}, {order.order?.shippingAddress?.city}</p>
+                                <div className="flex-1 min-w-0">
+                                    <h5 className="font-bold text-[13px] md:text-sm truncate">#{order.order?.orderId || 'N/A'}</h5>
+                                    <p className="text-slate-500 text-[10px] md:text-xs truncate">{order.order?.shippingAddress?.street}, {order.order?.shippingAddress?.city}</p>
                                 </div>
-                                <div className="text-right">
-                                    <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider mb-1">
+                                <div className="text-right shrink-0">
+                                    <span className="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-wider mb-0.5 md:mb-1">
                                         {order.status}
                                     </span>
-                                    <p className="font-black text-sm">₹{order.deliveryFee}</p>
+                                    <p className="font-black text-[13px] md:text-sm">₹{order.deliveryFee}</p>
                                 </div>
                             </div>
                         )) : (
@@ -522,7 +522,7 @@ const DeliveryDashboard = () => {
                         className="fixed bottom-6 left-4 right-4 md:left-auto md:right-8 md:w-[400px] z-[100]"
                     >
                         <div className="bg-white dark:bg-zinc-900 rounded-[2rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-zinc-800 overflow-hidden">
-                            <div className="bg-lime-500 p-4 text-white flex items-center justify-between">
+                            <div className="bg-[#028A0F] p-4 text-white flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-white animate-ping"></div>
                                     <span className="font-black text-xs uppercase tracking-widest">New Order Request</span>
@@ -535,19 +535,19 @@ const DeliveryDashboard = () => {
                                     <div>
                                         <h4 className="font-black text-xl mb-1">{incomingOrder.restaurant}</h4>
                                         <p className="text-slate-500 text-sm font-medium flex items-center gap-1">
-                                            <MapPin size={14} className="text-lime-500" />
+                                            <MapPin size={14} className="text-[#028A0F]" />
                                             {incomingOrder.distance} away ₹ {incomingOrder.time}
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-black text-lime-600">{incomingOrder.fare}</div>
+                                        <div className="text-2xl font-black text-[#028A0F]">{incomingOrder.fare}</div>
                                         <p className="text-[10px] text-slate-400 font-bold uppercase">Estimated Fare</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3 mb-8">
                                     <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-zinc-800/50 rounded-2xl">
-                                        <div className="w-8 h-8 rounded-xl bg-lime-100 dark:bg-lime-500/10 flex items-center justify-center text-lime-600">
+                                        <div className="w-8 h-8 rounded-xl bg-green-100 dark:bg-green-500/10 flex items-center justify-center text-[#028A0F]">
                                             <Clock size={16} />
                                         </div>
                                         <div>
@@ -575,7 +575,7 @@ const DeliveryDashboard = () => {
                                     </button>
                                     <button
                                         onClick={handleAcceptOrder}
-                                        className="py-4 rounded-2xl bg-gradient-to-r from-lime-500 to-rose-600 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-lime-500/30 active:scale-95 transition-all"
+                                        className="py-4 rounded-2xl bg-[#028A0F] text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-[#028A0F]/30 active:scale-95 transition-all"
                                     >
                                         Accept Order
                                     </button>
@@ -641,7 +641,7 @@ const DeliveryDashboard = () => {
                             </button>
 
                             <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 px-6 py-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 dark:border-zinc-800 flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                <div className="w-2 h-2 rounded-full bg-[#028A0F] animate-pulse"></div>
                                 <span className="font-black text-sm uppercase tracking-wider">
                                     {mapStatus === 'assigned' ? 'Heading to Restaurant' : (mapStatus === 'picked_up' ? 'Heading to Customer' : 'Delivery Complete')}
                                 </span>
@@ -652,7 +652,7 @@ const DeliveryDashboard = () => {
                             <div className="max-w-4xl mx-auto">
                                 <div className="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-3xl bg-lime-100 dark:bg-lime-500/10 flex items-center justify-center text-lime-600">
+                                        <div className="w-16 h-16 rounded-3xl bg-green-100 dark:bg-green-500/10 flex items-center justify-center text-[#028A0F]">
                                             <Play size={24} fill="currentColor" />
                                         </div>
                                         <div>
@@ -677,18 +677,18 @@ const DeliveryDashboard = () => {
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-4 mb-8">
-                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'assigned' ? 'bg-lime-500' : 'bg-green-500'}`}></div>
-                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'picked_up' ? 'bg-lime-500' : (mapStatus === 'delivered' ? 'bg-green-500' : 'bg-slate-100 dark:bg-zinc-800')}`}></div>
-                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'delivered' ? 'bg-lime-500' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
+                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'assigned' ? 'bg-[#028A0F]' : 'bg-[#028A0F]'}`}></div>
+                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'picked_up' ? 'bg-[#028A0F]' : (mapStatus === 'delivered' ? 'bg-[#028A0F]' : 'bg-slate-100 dark:bg-zinc-800')}`}></div>
+                                    <div className={`h-2 rounded-full transition-colors ${mapStatus === 'delivered' ? 'bg-[#028A0F]' : 'bg-slate-100 dark:bg-zinc-800'}`}></div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'assigned' ? 'border-lime-500 bg-lime-50/50 dark:bg-lime-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
+                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'assigned' ? 'border-[#028A0F] bg-green-50/50 dark:bg-green-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Pickup From</p>
                                         <p className="font-black">{acceptedOrder.restaurant}</p>
                                         <p className="text-xs text-slate-500">Vijay Nagar, Sector B</p>
                                     </div>
-                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'picked_up' ? 'border-lime-500 bg-lime-50/50 dark:bg-lime-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
+                                    <div className={`p-4 rounded-3xl border ${mapStatus === 'picked_up' ? 'border-[#028A0F] bg-green-50/50 dark:bg-green-500/5' : 'border-slate-100 dark:border-zinc-800 opacity-50'}`}>
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Deliver To</p>
                                         <p className="font-black">{acceptedOrder.customer}</p>
                                         <p className="text-xs text-slate-500">Sapphire Heights, Apt 402</p>
@@ -697,7 +697,7 @@ const DeliveryDashboard = () => {
 
                                 <button
                                     onClick={handleUpdateMapStatus}
-                                    className="w-full py-5 bg-gradient-to-r from-lime-600 to-lime-700 text-white font-black tracking-[0.2em] uppercase rounded-[1.5rem] shadow-2xl shadow-lime-500/40 active:scale-[0.98] transition-all"
+                                    className="w-full py-5 bg-[#028A0F] text-white font-black tracking-[0.2em] uppercase rounded-[1.5rem] shadow-2xl shadow-[#028A0F]/40 active:scale-[0.98] transition-all"
                                 >
                                     {mapStatus === 'assigned' && 'Confirm Pickup'}
                                     {mapStatus === 'picked_up' && 'Confirm Delivery'}

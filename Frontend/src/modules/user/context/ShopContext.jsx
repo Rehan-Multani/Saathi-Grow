@@ -22,14 +22,13 @@ export const ShopProvider = ({ children }) => {
   const refreshShopData = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const [categoriesData, productsResponse, campaignsData, offersData] = await Promise.all([
+      const [categoriesData, campaignsData, offersData] = await Promise.all([
         fetchCategories(),
-        fetchProducts({ status: 'Active', limit: 100 }), // Fetch more for global context mapping
         fetchActiveCampaigns().catch(() => []), // Don't fail if no campaigns
         fetchActiveOfferDeals().catch(() => []) // Don't fail if no offers
       ]);
       setCategories(categoriesData);
-      setProducts(Array.isArray(productsResponse) ? productsResponse : (productsResponse.products || []));
+      setProducts([]); // No longer needed for home page mapping
       setCampaigns(campaignsData);
       setOffers(offersData);
       setError(null);

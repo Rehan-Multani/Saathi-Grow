@@ -43,5 +43,11 @@
         path: '/staff/staff',
         icon: 'UserPlus',
         permission: 'MANAGE_STAFF'
+    },
+    {
+        title: 'Policies & Legal',
+        path: '/staff/legal',
+        icon: 'Shield',
+        permission: 'VIEW_DASHBOARD'
     }
 ];

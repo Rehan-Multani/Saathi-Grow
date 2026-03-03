@@ -41,7 +41,8 @@ const ProfilePage = () => {
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
         { icon: CreditCard, label: "sathiGro Wallet", subtitle: `₹${Number(user?.walletBalance || 0).toFixed(2)} Balance available`, path: "/wallet" },
-        { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and Customer Support", path: "/help" }
+        { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and Customer Support", path: "/help" },
+        { icon: Shield, label: "Legal & Policies", subtitle: "Terms, Privacy and more", path: "/settings" }
     ];
 
 

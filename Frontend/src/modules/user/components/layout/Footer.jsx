@@ -1,8 +1,19 @@
-﻿import React from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { getPoliciesList } from '../../../../common/utils/legalUtils';
 
 const Footer = ({ customTheme }) => {
+  const [policies, setPolicies] = useState([]);
+
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      const data = await getPoliciesList('User');
+      setPolicies(data);
+    };
+    fetchPolicies();
+  }, []);
+
   return (
     <footer
       className="pt-4 md:pt-16 pb-12 md:pb-12 font-sans transition-colors duration-300 border-t border-gray-100 dark:border-white/5 relative"
@@ -41,10 +52,15 @@ const Footer = ({ customTheme }) => {
           <div className="flex flex-col items-start text-left">
             <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Resources</h3>
             <ul className="space-y-2 sm:space-y-3 p-0 list-none">
-              <li><Link to="/about" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">About</Link></li>
+              <li><Link to="/help" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Help Center</Link></li>
               <li><Link to="/contact" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Contact</Link></li>
-              <li><Link to="/faqs" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">FAQs</Link></li>
-              <li><Link to="/privacy" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Privacy</Link></li>
+              {policies.map(p => (
+                <li key={p._id}>
+                  <Link to={`/legal/${p.slug}`} className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors uppercase tracking-tight">
+                    {p.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

@@ -1,5 +1,6 @@
 import Product from '../models/Product.js';
 import InventoryLog from '../models/InventoryLog.js';
+import CampaignSection from '../models/CampaignSection.js';
 import { generateProductDescription, generateProductTags, analyzeSearchQuery } from '../utils/aiService.js';
 import QRCode from 'qrcode';
 
@@ -192,11 +193,23 @@ export const getProducts = async (req, res) => {
       isVeg,
       sort = '-createdAt',
       page = 1,
-      limit = 20
+      limit = 20,
+      campaignId
     } = req.query;
 
     // Build query object
     let query = {};
+
+    // Campaign filtering
+    if (campaignId) {
+      const campaign = await CampaignSection.findById(campaignId);
+      if (campaign) {
+        const productIds = campaign.products.map(p => p.productId);
+        query._id = { $in: productIds };
+      } else {
+        return res.json({ products: [], total: 0, pages: 0 });
+      }
+    }
 
     // Status filtering
     if (status) {
@@ -207,12 +220,13 @@ export const getProducts = async (req, res) => {
     }
 
     if (category) {
-      // Use exact match with regex for case-insensitivity
-      query.category = new RegExp(`^${category.trim()}$`, 'i');
+      const categoryList = Array.isArray(category) ? category : [category];
+      query.category = { $in: categoryList.map(c => new RegExp(`^${escapeRegExp(c.trim())}$`, 'i')) };
     }
 
     if (subCategory) {
-      query.subCategory = new RegExp(`^${subCategory.trim()}$`, 'i');
+      const subCategoryList = Array.isArray(subCategory) ? subCategory : [subCategory];
+      query.subCategory = { $in: subCategoryList.map(s => new RegExp(`^${escapeRegExp(s.trim())}$`, 'i')) };
     }
 
     if (brand) {
