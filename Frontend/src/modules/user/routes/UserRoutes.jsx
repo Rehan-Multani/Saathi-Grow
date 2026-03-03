@@ -1,5 +1,6 @@
 ﻿import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Outlet, useLocation, matchPath } from 'react-router-dom';
+import { Routes, Route, Outlet, useLocation, matchPath, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { getOccasionConfig } from '../data/occasions';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
@@ -11,7 +12,8 @@ import FloatingCartStrip from '../components/cart/FloatingCartStrip';
 import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
-import { ShopProvider } from '../context/ShopContext';
+import { ShopProvider, useShop } from '../context/ShopContext';
+import PullToRefresh from '../../../common/components/PullToRefresh';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -77,6 +79,35 @@ const UserLayout = () => {
         }
     }
 
+    const { token, isWebView, loading, refreshProfile } = useAuth();
+    const { refreshShopData } = useShop();
+    const isAuthPath = ['/login', '/register', '/logout-confirmation'].includes(location.pathname);
+
+    const handleRefresh = async () => {
+        try {
+            // 1. Dispatch a custom event so the current child route can refresh its own data
+            // This allows pages to only fetch what they specifically need ("sirf vahi")
+            const refreshEvent = new CustomEvent('saathi_refresh');
+            window.dispatchEvent(refreshEvent);
+
+            // 2. Refresh global profile data (fast & essential)
+            await refreshProfile();
+
+            // 3. Wait for a bit so the animator stays visible/active for the user
+            await new Promise(resolve => setTimeout(resolve, 800));
+        } catch (error) {
+            console.error("Refresh failed:", error);
+        }
+    };
+
+    // Initial Loading State
+    if (loading) return <LoadingFallback />;
+
+    // APK Mandatory Login Logic
+    if (isWebView && !token && !isAuthPath) {
+        return <Navigate to="/login" replace />;
+    }
+
     return (
         <div className="user-module-root flex flex-col min-h-screen">
             <ScrollToTop />
@@ -92,9 +123,11 @@ const UserLayout = () => {
             <SearchOverlay />
 
             <main className="flex-grow bg-white dark:!bg-black transition-colors duration-300 pb-20 md:pb-0">
-                <Suspense fallback={<LoadingFallback />}>
-                    <Outlet />
-                </Suspense>
+                <PullToRefresh onRefresh={handleRefresh}>
+                    <Suspense fallback={<LoadingFallback />}>
+                        <Outlet />
+                    </Suspense>
+                </PullToRefresh>
             </main>
 
             {/* Desktop Footer */}
@@ -108,6 +141,19 @@ const UserLayout = () => {
             {!hideDesktopChrome && <MobileFooter setIsMenuOpen={setIsMenuOpen} />}
         </div>
     );
+};
+
+const ProtectedRoute = ({ children }) => {
+    const { token, loading } = useAuth();
+    const location = useLocation();
+
+    if (loading) return <LoadingFallback />;
+
+    if (!token) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    return children;
 };
 
 const UserRoutes = () => {
@@ -130,26 +176,26 @@ const UserRoutes = () => {
                         <Route path="/order-success" element={<OrderSuccessPage />} />
 
                         {/* Address */}
-                        <Route path="/address" element={<AddressPage />} />
-                        <Route path="/saved-addresses" element={<SavedAddressesPage />} />
-                        <Route path="/add-address" element={<AddressFormPage />} />
-                        <Route path="/edit-address/:id" element={<AddressFormPage />} />
+                        <Route path="/address" element={<ProtectedRoute><AddressPage /></ProtectedRoute>} />
+                        <Route path="/saved-addresses" element={<ProtectedRoute><SavedAddressesPage /></ProtectedRoute>} />
+                        <Route path="/add-address" element={<ProtectedRoute><AddressFormPage /></ProtectedRoute>} />
+                        <Route path="/edit-address/:id" element={<ProtectedRoute><AddressFormPage /></ProtectedRoute>} />
 
                         {/* Profile */}
-                        <Route path="/profile" element={<ProfilePage />} />
-                        <Route path="/wallet" element={<WalletPage />} />
-                        <Route path="/wallet/add-money" element={<AddMoneyPage />} />
-                        <Route path="/wishlist" element={<WishlistPage />} />
+                        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                        <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+                        <Route path="/wallet/add-money" element={<ProtectedRoute><AddMoneyPage /></ProtectedRoute>} />
+                        <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
 
                         {/* Orders */}
-                        <Route path="/orders" element={<OrdersPage />} />
-                        <Route path="/orders/:id" element={<OrderDetailsPage />} />
-                        <Route path="/orders/:id/tracking" element={<OrderTrackingPage />} />
-                        <Route path="/orders/:id/cancel" element={<CancelOrderPage />} />
-                        <Route path="/orders/:id/return" element={<ReturnOrderPage />} />
-                        <Route path="/orders/:id/complaint" element={<RaiseComplaintPage />} />
-                        <Route path="/my-complaints" element={<MyComplaintsPage />} />
-                        <Route path="/orders/:id/support-chat" element={<SupportChatPage />} />
+                        <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+                        <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailsPage /></ProtectedRoute>} />
+                        <Route path="/orders/:id/tracking" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
+                        <Route path="/orders/:id/cancel" element={<ProtectedRoute><CancelOrderPage /></ProtectedRoute>} />
+                        <Route path="/orders/:id/return" element={<ProtectedRoute><ReturnOrderPage /></ProtectedRoute>} />
+                        <Route path="/orders/:id/complaint" element={<ProtectedRoute><RaiseComplaintPage /></ProtectedRoute>} />
+                        <Route path="/my-complaints" element={<ProtectedRoute><MyComplaintsPage /></ProtectedRoute>} />
+                        <Route path="/orders/:id/support-chat" element={<ProtectedRoute><SupportChatPage /></ProtectedRoute>} />
 
                         {/* Support */}
                         <Route path="/notifications" element={<NotificationsPage />} />

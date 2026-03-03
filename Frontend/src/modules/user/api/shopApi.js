@@ -15,6 +15,14 @@ export const fetchProducts = async (params = {}) => {
   return data;
 };
 
+export const fetchBrands = async (category = '') => {
+  const url = `${API_BASE_URL}/admin/products/brands${category ? `?category=${category}` : ''}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch brands');
+  return data;
+};
+
 export const fetchProductById = async (id) => {
   const response = await fetch(`${API_BASE_URL}/admin/products/${id}`);
   const data = await response.json();
@@ -33,5 +41,11 @@ export const fetchActiveOfferDeals = async () => {
   const response = await fetch(`${API_BASE_URL}/admin/offer-deals/public`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch active offers');
+  return data;
+};
+export const searchProducts = async (query = '', page = 1) => {
+  const response = await fetch(`${API_BASE_URL}/admin/products/search/ai?q=${query}&page=${page}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to search products');
   return data;
 };

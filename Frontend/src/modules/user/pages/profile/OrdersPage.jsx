@@ -13,49 +13,54 @@ const OrdersPage = () => {
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchOrders = async () => {
-            if (token) {
-                try {
-                    setIsLoading(true);
-                    const data = await orderApi.fetchMyOrders(token);
+    const fetchOrders = async (silent = false) => {
+        if (token) {
+            try {
+                if (!silent) setIsLoading(true);
+                const data = await orderApi.fetchMyOrders(token);
 
-                    const mappedOrders = data.map(o => {
-                        const d = new Date(o.createdAt);
-                        const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                const mappedOrders = data.map(o => {
+                    const d = new Date(o.createdAt);
+                    const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-                        // Determine Color 
-                        const statusLower = (o.status || '').toLowerCase();
-                        let colorClass = 'text-green-600 bg-green-50'; // Default Delivered
-                        if (['pending', 'confirmed', 'processing', 'preparing'].includes(statusLower)) {
-                            colorClass = 'text-orange-600 bg-orange-50';
-                        }
-                        if (['out_for_delivery', 'shipped', 'in_transit'].includes(statusLower)) {
-                            colorClass = 'text-blue-600 bg-blue-50';
-                        }
-                        if (['cancelled', 'returned'].includes(statusLower)) {
-                            colorClass = 'text-red-600 bg-red-50';
-                        }
+                    // Determine Color 
+                    const statusLower = (o.status || '').toLowerCase();
+                    let colorClass = 'text-green-600 bg-green-50'; // Default Delivered
+                    if (['pending', 'confirmed', 'processing', 'preparing'].includes(statusLower)) {
+                        colorClass = 'text-orange-600 bg-orange-50';
+                    }
+                    if (['out_for_delivery', 'shipped', 'in_transit'].includes(statusLower)) {
+                        colorClass = 'text-blue-600 bg-blue-50';
+                    }
+                    if (['cancelled', 'returned'].includes(statusLower)) {
+                        colorClass = 'text-red-600 bg-red-50';
+                    }
 
-                        return {
-                            id: o._id,
-                            status: o.status,
-                            date: formattedDate,
-                            amount: '₹' + o.totalAmount.toFixed(2),
-                            items: o.items.map(item => item.name).join(', '),
-                            color: colorClass
-                        }
-                    });
+                    return {
+                        id: o._id,
+                        status: o.status,
+                        date: formattedDate,
+                        amount: '₹' + o.totalAmount.toFixed(2),
+                        items: o.items.map(item => item.name).join(', '),
+                        color: colorClass
+                    }
+                });
 
-                    setOrders(mappedOrders);
-                } catch (err) {
-                    toast.error("Failed to load secure transaction history");
-                } finally {
-                    setIsLoading(false);
-                }
+                setOrders(mappedOrders);
+            } catch (err) {
+                if (!silent) toast.error("Failed to load secure transaction history");
+            } finally {
+                if (!silent) setIsLoading(false);
             }
-        };
+        }
+    };
+
+    useEffect(() => {
         fetchOrders();
+
+        const handleRefresh = () => fetchOrders(true);
+        window.addEventListener('saathi_refresh', handleRefresh);
+        return () => window.removeEventListener('saathi_refresh', handleRefresh);
     }, [token]);
 
     return (

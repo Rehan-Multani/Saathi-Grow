@@ -19,17 +19,17 @@ export const ShopProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const refreshShopData = async () => {
-    setLoading(true);
+  const refreshShopData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
-      const [categoriesData, productsData, campaignsData, offersData] = await Promise.all([
+      const [categoriesData, productsResponse, campaignsData, offersData] = await Promise.all([
         fetchCategories(),
-        fetchProducts({ status: 'Active' }),
+        fetchProducts({ status: 'Active', limit: 100 }), // Fetch more for global context mapping
         fetchActiveCampaigns().catch(() => []), // Don't fail if no campaigns
         fetchActiveOfferDeals().catch(() => []) // Don't fail if no offers
       ]);
       setCategories(categoriesData);
-      setProducts(productsData);
+      setProducts(Array.isArray(productsResponse) ? productsResponse : (productsResponse.products || []));
       setCampaigns(campaignsData);
       setOffers(offersData);
       setError(null);
@@ -37,7 +37,7 @@ export const ShopProvider = ({ children }) => {
       console.error('Error fetching shop data:', err);
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 

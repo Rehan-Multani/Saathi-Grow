@@ -186,7 +186,7 @@ export const resendOTP = async (req, res) => {
 // @access  Private
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('name email phone role profileImage addresses walletBalance');
     const totalOrders = await Order.countDocuments({ user: req.user._id });
 
     if (user) {

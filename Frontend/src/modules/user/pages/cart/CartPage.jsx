@@ -3,21 +3,20 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { Minus, Plus, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-const categoryPlaceholder = '/assets/category-placeholder.png';
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const CartPage = () => {
   const { cart, updateQuantity, cartTotal } = useCart();
-  const { user } = useAuth();
+  const { user, protectAction } = useAuth();
   const navigate = useNavigate();
   const deliveryFee = 15;
   const handlingFee = 5;
   const finalTotal = cartTotal + deliveryFee + handlingFee;
   const handleProceed = () => {
-    if (!user) {
-      navigate('/login?redirect=/cart');
-    } else {
+    protectAction(() => {
       navigate('/checkout');
-    }
+    });
   };
 
   if (cart.length === 0) {
@@ -55,7 +54,7 @@ const CartPage = () => {
                       alt={item.name}
                       className="w-12 h-12 object-contain"
                       onError={(e) => {
-                        if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                        if (e.target.src !== categoryPlaceholder) {
                           e.target.src = categoryPlaceholder;
                           e.target.style.objectFit = 'cover';
                         }

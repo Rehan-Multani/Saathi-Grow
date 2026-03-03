@@ -15,6 +15,26 @@ const determineProductStatus = (branchStocks) => {
   return 'Active';
 };
 
+// Helper to escape regex special characters
+const escapeRegExp = (string) => {
+  if (!string) return '';
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+// Helper to handle comma-separated strings or arrays
+const parseParam = (val) => {
+  if (!val) return null;
+  if (Array.isArray(val)) return val;
+  return val.split(',').map(s => s.trim());
+};
+
+// Help parse status list which we specifically send as arrays/comma-lists
+const parseStatus = (val) => {
+  if (!val) return [];
+  const arr = Array.isArray(val) ? val : val.split(',');
+  return arr.map(s => s.trim()).filter(Boolean);
+};
+
 // @desc    Get AI suggestions for product description and tags
 // @route   POST /api/admin/products/ai-suggestions
 // @access  Private (Admin/Staff)
@@ -161,25 +181,57 @@ export const createProduct = async (req, res) => {
 // @access  Public (Enhanced with filtering)
 export const getProducts = async (req, res) => {
   try {
-    const { category, search, status, brand } = req.query;
+    const {
+      category,
+      subCategory,
+      search,
+      status,
+      brand,
+      minPrice,
+      maxPrice,
+      isVeg,
+      sort = '-createdAt',
+      page = 1,
+      limit = 20
+    } = req.query;
 
     // Build query object
     let query = {};
 
-    // If not specified, and not an admin request, show only Active products
-    // (A simple check for now, can be refined with auth)
+    // Status filtering
     if (status) {
-      query.status = status;
+      const statusList = parseStatus(status);
+      query.status = { $in: statusList };
     } else if (!req.admin) {
       query.status = 'Active';
     }
 
     if (category) {
-      query.category = category;
+      // Use exact match with regex for case-insensitivity
+      query.category = new RegExp(`^${category.trim()}$`, 'i');
+    }
+
+    if (subCategory) {
+      query.subCategory = new RegExp(`^${subCategory.trim()}$`, 'i');
     }
 
     if (brand) {
-      query.brandName = brand;
+      const brandList = Array.isArray(brand) ? brand : brand.split(',').map(s => s.trim());
+      // Create exact match regex for each brand with escaping
+      query.brandName = {
+        $in: brandList.map(b => new RegExp(`^${escapeRegExp(b)}$`, 'i'))
+      };
+    }
+
+    if (isVeg !== undefined) {
+      query.isVeg = isVeg === 'true';
+    }
+
+    // Price filtering
+    if (minPrice || maxPrice) {
+      query.basePrice = {};
+      if (minPrice) query.basePrice.$gte = Number(minPrice);
+      if (maxPrice) query.basePrice.$lte = Number(maxPrice);
     }
 
     if (search) {
@@ -190,26 +242,39 @@ export const getProducts = async (req, res) => {
       ];
     }
 
-    // Branch Scoping: If user is Staff or Branch Manager, strictly filter by branchStocks
+    // Branch Scoping
     if (req.admin && req.admin.role !== 'Admin') {
       if (req.admin.branchId) {
-        // Find products that have a stock entry for THIS specific branch
         query['branchStocks.branchId'] = req.admin.branchId;
       } else {
-        // If they have no branch assigned, they shouldn't see anything (unless Super Admin)
-        return res.json([]);
+        return res.json({ products: [], total: 0, pages: 0 });
       }
     }
 
-    const products = await Product.find(query)
+    // Pagination logic
+    const skip = (Number(page) - 1) * Number(limit);
+    const total = await Product.countDocuments(query);
+
+    let productQuery = Product.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(Number(limit));
+
+    // If it's a public/user request (no admin), select only necessary fields
+    if (!req.admin) {
+      productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku');
+    }
+
+    const products = await productQuery
       .populate('branchStocks.branchId', 'name code')
-      .populate('vendor', 'storeName logo')
-      .sort('-createdAt');
+      .populate('vendor', 'storeName logo');
 
-    // If branch scoped, we might want to transform the output to show only the relevant branch stock at the top level
-    // for easier frontend consumption, but let's keep it standard for now and handle UI logic in frontend.
-
-    res.json(products);
+    res.json({
+      products,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit))
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -290,12 +355,25 @@ export const searchProductsWithAI = async (req, res) => {
       }
     }
 
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 30;
+    const skip = (page - 1) * limit;
+
+    const total = await Product.countDocuments(searchQuery);
+
     const products = await Product.find(searchQuery)
+      .select('name image basePrice mrp category status brandName unitType unitValue isVeg sku')
       .populate('vendor', 'storeName logo')
       .sort('-createdAt')
-      .limit(30);
+      .skip(skip)
+      .limit(limit);
 
-    res.json(products);
+    res.json({
+      products,
+      total,
+      page,
+      pages: Math.ceil(total / limit)
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -585,6 +663,25 @@ export const getInventoryLogs = async (req, res) => {
       .sort('-createdAt')
       .limit(50);
     res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get unique brand names
+// @route   GET /api/admin/products/brands
+// @access  Public
+export const getUniqueBrands = async (req, res) => {
+  try {
+    const { category } = req.query;
+    let query = { status: 'Active' };
+
+    if (category) {
+      query.category = new RegExp(`^${escapeRegExp(category.trim())}$`, 'i');
+    }
+
+    const brands = await Product.distinct('brandName', query);
+    res.json(brands.filter(Boolean).sort());
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

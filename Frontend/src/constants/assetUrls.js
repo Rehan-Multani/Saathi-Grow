@@ -6,7 +6,7 @@ export const ASSET_URLS = {
   house: "/assets/house.png",
   logo: "/assets/logo.png",
   banner: "/assets/banner_new.png",
-  placeholder: "/assets/category-placeholder.png",
+  placeholder: "https://res.cloudinary.com/dntvxv9ef/raw/upload/v1772452874/saathigro/assets/category-placeholder.png",
 
   // Cloudinary Fallbacks
   bikeCloudinary: "https://res.cloudinary.com/dntvxv9ef/raw/upload/v1772452867/saathigro/assets/delivery-bike.png",

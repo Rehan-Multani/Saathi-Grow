@@ -1,6 +1,8 @@
 ﻿import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import * as authApi from '../api/userAuthApi';
 import { toast } from 'react-toastify';
+import { isWebView as checkWebView } from '../../../utils/deviceUtils';
+import { useNavigate } from 'react-router-dom';
 
 export const AuthContext = createContext();
 
@@ -19,12 +21,14 @@ export const AuthProvider = ({ children }) => {
     });
 
     const [token, setToken] = useState(localStorage.getItem('sathiGro_token') || null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Initial loading true to check auth
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [loginView, setLoginView] = useState('login'); // 'login' or 'register'
+    const [isWebView] = useState(checkWebView());
 
+    // Handle Persistence
     useEffect(() => {
-        if (user && token) {
+        if (token) {
             localStorage.setItem('sathiGro_user', JSON.stringify(user));
             localStorage.setItem('sathiGro_token', token);
         } else {
@@ -32,6 +36,17 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('sathiGro_token');
         }
     }, [user, token]);
+
+    // Initial Auth Verification on Mount
+    useEffect(() => {
+        const verifyAuth = async () => {
+            if (token) {
+                await refreshProfile();
+            }
+            setLoading(false);
+        };
+        verifyAuth();
+    }, []); // Only on mount
 
     const login = async (credentials) => {
         setLoading(true);
@@ -120,6 +135,26 @@ export const AuthProvider = ({ children }) => {
 
     const closeLoginModal = () => setShowLoginModal(false);
 
+    /**
+     * Helper to protect actions. 
+     * If logged in, executes the action.
+     * If not logged in, opens login modal (on web) or redirects (on APK).
+     */
+    const protectAction = (action) => {
+        if (token) {
+            action();
+        } else {
+            if (isWebView) {
+                // For APK, we usually redirect to login page, but we can also use modal if preferred.
+                // Redirecting to /login is safer for strict APK flow.
+                window.location.href = '/login';
+            } else {
+                toast.info('Please login to continue');
+                openLogin();
+            }
+        }
+    };
+
     return (
         <AuthContext.Provider
             value={{
@@ -136,7 +171,10 @@ export const AuthProvider = ({ children }) => {
                 closeLoginModal,
                 loginView,
                 setLoginView,
-                refreshProfile
+                refreshProfile,
+                isWebView,
+                setLoading,
+                protectAction
             }}
         >
             {children}

@@ -35,7 +35,7 @@ export const getCampaignById = async (req, res) => {
 export const getActiveCampaignSections = async (req, res) => {
   try {
     const sections = await CampaignSection.find({ isActive: true })
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status')
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg')
       .sort('order');
     res.json(sections);
   } catch (error) {

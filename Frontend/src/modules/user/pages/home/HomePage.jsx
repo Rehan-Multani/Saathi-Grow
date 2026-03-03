@@ -31,15 +31,22 @@ const HomePage = ({ }) => {
     const navigate = useNavigate();
     const { searchQuery } = useSearch();
     const { isDarkMode } = useTheme();
-    const { categories, products, campaigns, offers, loading, getProductsByCategory } = useShop();
+    const { categories, products, campaigns, offers, loading, getProductsByCategory, refreshShopData } = useShop();
     const scrollContainerRef = useRef(null);
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
-    // Update window width on resize
+    // Update window width on resize & Handle Pull-to-Refresh
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+
+        const handleRefresh = () => refreshShopData(false); // silent refresh
+        window.addEventListener('saathi_refresh', handleRefresh);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('saathi_refresh', handleRefresh);
+        };
     }, []);
 
     const activeOffers = offers.length > 0 ? offers : [];
@@ -262,7 +269,7 @@ const HomePage = ({ }) => {
                                 filteredCategories.map((cat) => {
                                     const bgColor = categoryColors[cat.slug] || '#f3f4f6';
                                     return (
-                                        <Link key={cat._id || cat.id} to={`/category/${cat.slug || cat.name}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200">
+                                        <Link key={cat._id || cat.id} to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200">
                                             <div
                                                 className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-2xl sm:rounded-3xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
                                                 style={{ backgroundColor: isDarkMode ? 'var(--bg-surface)' : bgColor }}
@@ -274,9 +281,8 @@ const HomePage = ({ }) => {
                                                     alt={cat.name}
                                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-active:scale-110 z-10"
                                                     onError={(e) => {
-                                                        if (e.target.src !== window.location.origin + categoryPlaceholder && e.target.src !== categoryPlaceholder) {
+                                                        if (e.target.src !== categoryPlaceholder) {
                                                             e.target.src = categoryPlaceholder;
-                                                            e.target.onerror = (ev) => { ev.target.src = ASSET_URLS.placeholderCloudinary; };
                                                             e.target.classList.add('opacity-80');
                                                             e.target.style.objectFit = 'cover';
                                                         }
@@ -429,7 +435,7 @@ const ProductRow = ({ category, loading, getProductsByCategory }) => {
                     {category.name}
                 </h2>
                 <Link
-                    to={`/category/${category.slug || category.name}`}
+                    to={`/category/${encodeURIComponent(category.slug || category.name?.toLowerCase().replace(/\s+/g, '-'))}`}
                     className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all"
                 >
                     See all

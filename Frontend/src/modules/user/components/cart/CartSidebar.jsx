@@ -3,11 +3,12 @@ import { X, Minus, Plus, ChevronRight, Clock, ShoppingBag, Info } from 'lucide-r
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-const categoryPlaceholder = '/assets/category-placeholder.png';
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const CartSidebar = () => {
     const { isCartOpen, setIsCartOpen, cart, updateQuantity, cartTotal, cartCount, publicSettings } = useCart();
-    const { user } = useAuth();
+    const { user, protectAction } = useAuth();
     const navigate = useNavigate();
 
     // Calculate total bill using dynamic Global Settings synced from backend
@@ -121,7 +122,7 @@ const CartSidebar = () => {
                                                 alt={item.name}
                                                 className="w-full h-full object-contain"
                                                 onError={(e) => {
-                                                    if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                                    if (e.target.src !== categoryPlaceholder) {
                                                         e.target.src = categoryPlaceholder;
                                                         e.target.style.objectFit = 'cover';
                                                     }
@@ -179,9 +180,10 @@ const CartSidebar = () => {
                         {/* Footer CTA */}
                         <button
                             onClick={() => {
-                                setIsCartOpen(false);
-                                if (!user) navigate('/login');
-                                else navigate('/checkout');
+                                protectAction(() => {
+                                    setIsCartOpen(false);
+                                    navigate('/checkout');
+                                });
                             }}
                             style={{ borderRadius: '16px' }}
                             className="w-full bg-[#0c831f] text-white px-8 flex items-center justify-between hover:bg-[#0a6b19] transition-all h-14 shadow-lg shadow-green-500/10 active:scale-[0.98] group"

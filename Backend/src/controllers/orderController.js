@@ -490,7 +490,9 @@ export const calculateBill = async (req, res) => {
 // @access  Private
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.user._id })
+      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod')
+      .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });

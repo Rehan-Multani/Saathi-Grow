@@ -134,7 +134,7 @@ export const deleteOfferDeal = async (req, res) => {
 export const getActiveOfferDeals = async (req, res) => {
   try {
     const offers = await OfferDeal.find({ isActive: true })
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue')
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg')
       .sort('order');
     res.json(offers);
   } catch (error) {

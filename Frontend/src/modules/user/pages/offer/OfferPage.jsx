@@ -8,7 +8,8 @@ import {
 import { useShop } from '../../context/ShopContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
-const categoryPlaceholder = '/assets/category-placeholder.png';
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+const categoryPlaceholder = ASSET_URLS.placeholder;
 
 // Helper for countdown
 const useCountdown = (targetDate) => {
@@ -56,7 +57,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                     alt={product.name}
                     className="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-105"
                     onError={(e) => {
-                        if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                        if (e.target.src !== categoryPlaceholder) {
                             e.target.src = categoryPlaceholder;
                             e.target.style.objectFit = 'cover';
                         }
@@ -132,10 +133,14 @@ const OfferPage = () => {
     const [copied, setCopied] = useState(false);
     const [activeFilter, setActiveFilter] = useState('Hot Deals');
 
-    const { offers, loading } = useShop();
+    const { offers, loading, refreshShopData } = useShop();
 
     useEffect(() => {
         window.scrollTo(0, 0);
+
+        const handleRefresh = () => refreshShopData(false); // silent refresh
+        window.addEventListener('saathi_refresh', handleRefresh);
+        return () => window.removeEventListener('saathi_refresh', handleRefresh);
     }, [id]);
 
     const offer = useMemo(() => {

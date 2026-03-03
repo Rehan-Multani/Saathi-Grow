@@ -5,7 +5,7 @@ import User from '../models/User.js';
 // @access  Private
 export const getCart = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('cart.product');
+    const user = await User.findById(req.user._id).populate('cart.product', 'name image basePrice mrp unitType unitValue category status isVeg');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -50,7 +50,7 @@ export const syncCart = async (req, res) => {
 
     await user.save();
 
-    const updatedUser = await User.findById(req.user._id).populate('cart.product');
+    const updatedUser = await User.findById(req.user._id).populate('cart.product', 'name image basePrice mrp unitType unitValue category status isVeg');
     const validCart = updatedUser.cart.filter(item => item.product);
     const cartFormat = validCart.map(item => ({
       ...item.product._doc,

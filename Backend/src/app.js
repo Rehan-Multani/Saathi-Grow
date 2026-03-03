@@ -6,12 +6,13 @@ import morgan from 'morgan';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
+import noCache from './utils/noCache.js';
 
-import { fileURLToPath } from 'url';
 // Database Connection
 connectDB();
 
 const app = express();
+app.use(noCache);
 const httpServer = createServer(app);
 
 // CORS configuration based on environment

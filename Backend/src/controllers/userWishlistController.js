@@ -6,7 +6,7 @@ import Product from '../models/Product.js';
 // @access  Private
 export const getWishlist = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('wishlist');
+    const user = await User.findById(req.user._id).populate('wishlist', 'name image basePrice mrp unitType unitValue category status isVeg');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -41,7 +41,7 @@ export const addToWishlist = async (req, res) => {
       await user.save();
     }
 
-    const updatedUser = await User.findById(req.user._id).populate('wishlist');
+    const updatedUser = await User.findById(req.user._id).populate('wishlist', 'name image basePrice mrp unitType unitValue category status isVeg');
     res.json(updatedUser.wishlist);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -63,7 +63,7 @@ export const removeFromWishlist = async (req, res) => {
     user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
     await user.save();
 
-    const updatedUser = await User.findById(req.user._id).populate('wishlist');
+    const updatedUser = await User.findById(req.user._id).populate('wishlist', 'name image basePrice mrp unitType unitValue category status isVeg');
     res.json({ message: 'Removed from wishlist', wishlist: updatedUser.wishlist });
   } catch (error) {
     res.status(500).json({ message: error.message });

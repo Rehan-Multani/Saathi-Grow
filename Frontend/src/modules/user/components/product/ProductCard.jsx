@@ -10,7 +10,7 @@ import { useWishlist } from '../../context/WishlistContext';
 
 const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false, isLargeButton = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
-  const { user } = useAuth();
+  const { user, protectAction } = useAuth();
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -24,13 +24,13 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product);
+    protectAction(() => addToCart(product));
   };
 
   const handleUpdateQuantity = (e, delta) => {
     e.preventDefault();
     e.stopPropagation();
-    updateQuantity(productId, delta);
+    protectAction(() => updateQuantity(productId, delta));
   };
 
   return (
@@ -59,7 +59,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          toggleWishlist(product);
+          protectAction(() => toggleWishlist(product));
         }}
         className={`absolute ${wishlistPosition} z-30 p-1.5 rounded-full transition-all group/wishlist`}
       >
@@ -82,9 +82,8 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
             alt={product.name}
             className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${imgPadding || 'p-2'}`}
             onError={(e) => {
-              if (e.target.src !== window.location.origin + categoryPlaceholder && e.target.src !== categoryPlaceholder) {
+              if (e.target.src !== categoryPlaceholder) {
                 e.target.src = categoryPlaceholder;
-                e.target.onerror = (ev) => { ev.target.src = ASSET_URLS.placeholderCloudinary; };
                 e.target.style.objectFit = 'cover';
               }
             }}

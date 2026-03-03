@@ -5,11 +5,14 @@ import { useCart } from '../../context/CartContext';
 import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
 import ProductCard from '../../components/product/ProductCard';
-const categoryPlaceholder = '/assets/category-placeholder.png';
+import { useAuth } from '../../context/AuthContext';
+import { ASSET_URLS } from '../../../../constants/assetUrls';
+const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
     const { addToCart, updateQuantity, cart } = useCart();
+    const { protectAction } = useAuth();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -18,77 +21,81 @@ const ProductDetailsPage = () => {
     const [recommendedProducts, setRecommendedProducts] = useState([]);
     const [error, setError] = useState(false);
 
-    useEffect(() => {
-        const loadProduct = async () => {
-            try {
-                setLoading(true);
-                setError(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+    const loadProduct = async (silent = false) => {
+        try {
+            if (!silent) setLoading(true);
+            setError(false);
+            if (!silent) window.scrollTo({ top: 0, behavior: 'smooth' });
 
-                // Fetch product details
-                const data = await fetchProductById(id);
+            // Fetch product details
+            const data = await fetchProductById(id);
 
-                // Standardize mapping to frontend model
-                const p = {
-                    id: data._id,
-                    name: data.name,
-                    image: data.image || (data.gallery && data.gallery.length > 0 ? data.gallery[0] : ''),
-                    images: data.gallery && data.gallery.length > 0 ? data.gallery : [data.image],
-                    price: data.basePrice,
-                    mrp: data.mrp,
-                    category: data.category?.name || data.category,
-                    description: data.description,
-                    weight: `${data.unitValue} ${data.unitType}`,
-                    tags: data.tags
-                };
+            // Standardize mapping to frontend model
+            const p = {
+                id: data._id,
+                name: data.name,
+                image: data.image || (data.gallery && data.gallery.length > 0 ? data.gallery[0] : ''),
+                images: data.gallery && data.gallery.length > 0 ? data.gallery : [data.image],
+                price: data.basePrice,
+                mrp: data.mrp,
+                category: data.category?.name || data.category,
+                description: data.description,
+                weight: `${data.unitValue} ${data.unitType}`,
+                tags: data.tags
+            };
 
-                setProduct(p);
-                setSelectedImage(p.image);
-                setProductImages(p.images.length >= 3 ? p.images : [p.image, p.image, p.image]); // Fill layout if few images
+            setProduct(p);
+            setSelectedImage(p.image);
+            setProductImages(p.images.length >= 3 ? p.images : [p.image, p.image, p.image]); // Fill layout if few images
 
-                // Fetch relative products
-                if (p.category) {
-                    try {
-                        const simres = await fetchProducts({ category: p.category, limit: 10 });
-                        const sim = (Array.isArray(simres) ? simres : (simres?.products || [])).filter(simP => simP._id !== id).map(simP => ({
-                            id: simP._id,
-                            name: simP.name,
-                            image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
-                            price: simP.basePrice,
-                            mrp: simP.mrp,
-                            weight: `${simP.unitValue} ${simP.unitType}`
-                        }));
-                        setSimilarProducts(sim);
-                    } catch (simErr) {
-                        console.error("Failed to load similar products:", simErr);
-                    }
-                }
-
-                // General Recommendations
+            // Fetch relative products
+            if (p.category) {
                 try {
-                    const recres = await fetchProducts({ limit: 12 });
-                    const rec = (Array.isArray(recres) ? recres : (recres?.products || [])).filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
-                        id: recP._id,
-                        name: recP.name,
-                        image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
-                        price: recP.basePrice,
-                        mrp: recP.mrp,
-                        weight: `${recP.unitValue} ${recP.unitType}`
+                    const simres = await fetchProducts({ category: p.category, limit: 10 });
+                    const sim = (Array.isArray(simres) ? simres : (simres?.products || [])).filter(simP => simP._id !== id).map(simP => ({
+                        id: simP._id,
+                        name: simP.name,
+                        image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
+                        price: simP.basePrice,
+                        mrp: simP.mrp,
+                        weight: `${simP.unitValue} ${simP.unitType}`
                     }));
-                    setRecommendedProducts(rec);
-                } catch (recErr) {
-                    console.error("Failed to load recommended products:", recErr);
+                    setSimilarProducts(sim);
+                } catch (simErr) {
+                    console.error("Failed to load similar products:", simErr);
                 }
-
-            } catch (err) {
-                console.error("Failed to load product details:", err);
-                setError(true);
-            } finally {
-                setLoading(false);
             }
-        };
 
+            // General Recommendations
+            try {
+                const recres = await fetchProducts({ limit: 12 });
+                const rec = (Array.isArray(recres) ? recres : (recres?.products || [])).filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
+                    id: recP._id,
+                    name: recP.name,
+                    image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
+                    price: recP.basePrice,
+                    mrp: recP.mrp,
+                    weight: `${recP.unitValue} ${recP.unitType}`
+                }));
+                setRecommendedProducts(rec);
+            } catch (recErr) {
+                console.error("Failed to load recommended products:", recErr);
+            }
+
+        } catch (err) {
+            console.error("Failed to load product details:", err);
+            setError(true);
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         loadProduct();
+
+        const handleRefresh = () => loadProduct(true);
+        window.addEventListener('saathi_refresh', handleRefresh);
+        return () => window.removeEventListener('saathi_refresh', handleRefresh);
     }, [id]);
 
     if (error || (!loading && !product)) return <div className="p-8 text-center text-gray-500">Product not found. <Link to="/" className="text-green-600 underline">Return Home</Link></div>;
@@ -124,7 +131,7 @@ const ProductDetailsPage = () => {
                                 alt={product.name}
                                 className={`w-full h-full transition-all duration-700 group-hover:scale-110 ${!selectedImage ? 'object-cover' : 'object-contain'}`}
                                 onError={(e) => {
-                                    if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                    if (e.target.src !== categoryPlaceholder) {
                                         e.target.src = categoryPlaceholder;
                                         e.target.classList.add('opacity-80');
                                         e.target.style.objectFit = 'cover';
@@ -149,7 +156,7 @@ const ProductDetailsPage = () => {
                                         alt="thumb"
                                         className={`w-full h-full transition-all duration-300 ${!img ? 'object-cover' : 'object-contain'}`}
                                         onError={(e) => {
-                                            if (e.target.src !== window.location.origin + categoryPlaceholder) {
+                                            if (e.target.src !== categoryPlaceholder) {
                                                 e.target.src = categoryPlaceholder;
                                                 e.target.style.objectFit = 'cover';
                                             }
@@ -194,7 +201,7 @@ const ProductDetailsPage = () => {
                         <div className="mt-4 mb-6">
                             {quantity === 0 ? (
                                 <button
-                                    onClick={() => addToCart(product)}
+                                    onClick={() => protectAction(() => addToCart(product))}
                                     className="w-full md:w-fit flex items-center justify-center gap-2 bg-[#0c831f] hover:bg-[#0a6b19] text-white font-bold py-4 px-12 !rounded-full transition-all active:scale-95 shadow-lg shadow-green-500/20"
                                 >
                                     <ShoppingCart size={18} className="fill-white" />
@@ -203,14 +210,14 @@ const ProductDetailsPage = () => {
                             ) : (
                                 <div className="flex items-center bg-[#0c831f] rounded-2xl p-1 w-fit shadow-lg shadow-green-500/20">
                                     <button
-                                        onClick={() => updateQuantity(product.id, -1)}
+                                        onClick={() => protectAction(() => updateQuantity(product.id, -1))}
                                         className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
                                     >
                                         <Minus size={20} strokeWidth={3} />
                                     </button>
                                     <span className="w-12 text-center font-black text-lg text-white">{quantity}</span>
                                     <button
-                                        onClick={() => updateQuantity(product.id, 1)}
+                                        onClick={() => protectAction(() => updateQuantity(product.id, 1))}
                                         className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
                                     >
                                         <Plus size={20} strokeWidth={3} />

@@ -40,7 +40,9 @@ export const createCategory = async (req, res) => {
 export const getCategories = async (req, res) => {
   try {
     const { hasProducts } = req.query;
-    let categories = await Category.find({}).sort('-createdAt');
+    let categories = await Category.find({})
+      .select('name slug image bgColor status')
+      .sort('-createdAt');
 
     if (hasProducts === 'true') {
       // Find distinct category names that have active products

@@ -2,9 +2,11 @@
 import { useCart } from '../../context/CartContext';
 import { ChevronRight } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const FloatingCartStrip = () => {
     const { cartCount, cart, toggleCart, isCartOpen } = useCart();
+    const { protectAction } = useAuth();
     const routerLocation = useLocation();
 
     // Store the initial count when the component mounts to detect NEW additions
@@ -30,7 +32,7 @@ const FloatingCartStrip = () => {
     return (
         <div className="fixed bottom-28 md:bottom-10 left-1/2 -translate-x-1/2 z-[45] w-[95%] max-w-[165px] md:max-w-[220px] animate-in slide-in-from-bottom-10 duration-500">
             <button
-                onClick={toggleCart}
+                onClick={() => protectAction(toggleCart)}
                 className="group relative flex w-full items-center justify-between bg-gradient-to-b from-[#0c9d23] to-[#09811c] p-2.5 md:p-3 text-white shadow-[0_12px_30px_rgba(12,131,31,0.4)] border border-white/25 transition-all active:scale-[0.96] overflow-hidden"
                 style={{ borderRadius: '9999px' }}
             >

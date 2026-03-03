@@ -6,7 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../context/LocationContext';
 import { useSearch } from '../../context/SearchContext';
 import { useTheme } from '../../context/ThemeContext';
-import { products } from '../../data/products';
+import { useShop } from '../../context/ShopContext';
+import { searchProducts } from '../../api/shopApi';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const logo = ASSET_URLS.logo;
 import ProductCard from '../product/ProductCard';
@@ -14,7 +15,7 @@ import { ProductCardSkeleton } from '../common/Skeleton';
 
 const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const { cartCount, cartTotal, toggleCart } = useCart();
-  const { user, logout } = useAuth();
+  const { user, logout, protectAction } = useAuth();
   const { location, openLocationModal } = useLocation();
   const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
   const { isDarkMode, toggleTheme } = useTheme();
@@ -22,7 +23,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
-  const uniqueCategories = [...new Set(products.map(p => p.category))];
+  const { categories } = useShop();
+  const uniqueCategories = categories.map(c => c.name);
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
   const [recentSearches, setRecentSearches] = useState([]);
@@ -96,16 +98,17 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   }, [routerLocation]);
 
   useEffect(() => {
-    if (searchQuery.trim().length > 0) {
+    if (searchQuery.trim().length > 1) {
       setIsLoading(true);
-      const filtered = products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 8);
-
-      const timer = setTimeout(() => {
-        setSuggestions(filtered);
-        setIsLoading(false);
+      const timer = setTimeout(async () => {
+        try {
+          const response = await searchProducts(searchQuery);
+          setSuggestions(response.products || []);
+        } catch (err) {
+          console.error('Search error:', err);
+        } finally {
+          setIsLoading(false);
+        }
       }, 500);
       return () => clearTimeout(timer);
     } else {
@@ -367,7 +370,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
 
               <div className="relative">
                 <button
-                  onClick={toggleCart}
+                  onClick={() => protectAction(toggleCart)}
                   className="p-2.5 bg-gray-100 dark:bg-white/5 hover:bg-[#0c831f] hover:text-white dark:hover:bg-[#0c831f] text-gray-800 dark:text-[#0c831f] rounded-full transition-all duration-300 group shadow-sm"
                 >
                   <ShoppingBag size={20} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
