@@ -12,7 +12,15 @@ import {
     LogOut,
     ChevronRight,
     MapPin,
-    Smartphone
+    Smartphone,
+    ArrowLeft,
+    Mail,
+    Phone,
+    Calendar,
+    FileText,
+    Lock,
+    Globe,
+    CheckCircle2
 } from 'lucide-react';
 import useDeliveryStore from '../store/deliveryStore';
 import { toast } from 'react-toastify';
@@ -22,6 +30,7 @@ const ProfileSettings = () => {
     const { profile, logout, token, fetchProfile } = useDeliveryStore();
     const [notifications, setNotifications] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [selectedView, setSelectedView] = useState('menu');
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -50,106 +59,229 @@ const ProfileSettings = () => {
     };
 
     const menuItems = [
-        { icon: <User size={20} />, label: 'Personal Information', sub: `${profile?.name || 'N/A'}, ${profile?.email || 'No Email'}`, color: 'text-blue-500 bg-blue-50' },
-        { icon: <Truck size={20} />, label: 'Vehicle Details', sub: `${profile?.vehicleType || 'N/A'} - ${profile?.vehicleNumber || 'Pending'}`, color: 'text-orange-500 bg-orange-50' },
-        { icon: <CreditCard size={20} />, label: 'Bank Details', sub: profile?.bankDetails?.bankName ? `${profile.bankDetails.bankName} - **** ${profile.bankDetails.accountNumber?.slice(-4)}` : 'Bank details not added', color: 'text-emerald-500 bg-emerald-50' },
-        { icon: <Bell size={20} />, label: 'Notifications', sub: 'Manage alerts & sounds', color: 'text-purple-500 bg-purple-50', toggle: true },
-        { icon: <Shield size={20} />, label: 'Security & Privacy', sub: 'Authentication & Access', color: 'text-red-500 bg-red-50' },
-        { icon: <HelpCircle size={20} />, label: 'Help & Support', sub: 'FAQs, Contact us', color: 'text-slate-500 bg-slate-50' },
+        { id: 'personal', icon: <User size={18} />, label: 'Personal information', sub: `${profile?.name || 'N/A'}, ${profile?.email || 'No email'}`, color: 'text-[#028A0F]' },
+        { id: 'vehicle', icon: <Truck size={18} />, label: 'Vehicle details', sub: `${profile?.vehicleType || 'N/A'} - ${profile?.vehicleNumber || 'Pending'}`, color: 'text-orange-500' },
+        { id: 'bank', icon: <CreditCard size={18} />, label: 'Bank details', sub: profile?.bankDetails?.bankName ? `${profile.bankDetails.bankName} - **** ${profile.bankDetails.accountNumber?.slice(-4)}` : 'Bank details not added', color: 'text-emerald-500' },
+        { id: 'notifications', icon: <Bell size={18} />, label: 'Notifications', sub: 'Manage alerts & sounds', color: 'text-purple-500', toggle: true },
+        { id: 'security', icon: <Shield size={18} />, label: 'Security & privacy', sub: 'Authentication & access', color: 'text-red-500' },
+        { id: 'help', icon: <HelpCircle size={18} />, label: 'Help & support', sub: 'FAQs, Contact us', color: 'text-slate-500' },
     ];
 
+    const renderSubView = () => {
+        const views = {
+            personal: (
+                <div className="space-y-1">
+                    {[
+                        { label: 'Full name', value: profile?.name, icon: <User size={16} /> },
+                        { label: 'Email address', value: profile?.email, icon: <Mail size={16} /> },
+                        { label: 'Phone number', value: profile?.phone || '+91 98765 43210', icon: <Phone size={16} /> },
+                        { label: 'Joined date', value: 'January 2024', icon: <Calendar size={16} /> },
+                        { label: 'Total missions', value: '1,284', icon: <Truck size={16} /> },
+                        { label: 'Base location', value: profile?.city || 'Indore, MP', icon: <MapPin size={16} /> },
+                    ].map((field, i) => (
+                        <div key={i} className="flex items-center gap-3 py-2.5 border-b border-slate-50 dark:border-zinc-800/30">
+                            <div className="text-[#028A0F] opacity-70">{field.icon}</div>
+                            <div>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{field.label}</p>
+                                <p className="text-sm font-medium text-slate-800 dark:text-zinc-100">{field.value || 'N/A'}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ),
+            vehicle: (
+                <div className="space-y-1">
+                    <div className="py-3 border-b border-slate-50 dark:border-zinc-800/30">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Active vehicle</p>
+                        <h3 className="text-base font-bold text-slate-800 dark:text-zinc-100">{profile?.vehicleType || 'Two wheeler'}</h3>
+                        <p className="text-xs font-medium text-[#028A0F]">{profile?.vehicleNumber || 'MP-09-AB-1234'}</p>
+                    </div>
+                    {[
+                        { label: 'Registration no', value: profile?.vehicleNumber || 'MP-09-AB-1234' },
+                        { label: 'Insurance policy', value: 'POL-882104-XX', status: 'Active' },
+                        { label: 'Emission cert', value: 'VALID-2025', status: 'Expiring soon' },
+                        { label: 'Permit type', value: 'All india commercial' },
+                    ].map((field, i) => (
+                        <div key={i} className="py-2.5 border-b border-slate-50 dark:border-zinc-800/30">
+                            <p className="text-[9px] font-bold text-slate-400 mb-0.5 uppercase tracking-tighter">{field.label}</p>
+                            <div className="flex justify-between items-center">
+                                <p className="text-sm font-medium text-slate-800 dark:text-zinc-100">{field.value}</p>
+                                {field.status && (
+                                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${field.status === 'Active' ? 'text-emerald-500 bg-emerald-500/5' : 'text-orange-500 bg-orange-500/5'}`}>
+                                        {field.status}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ),
+            bank: (
+                <div className="space-y-1">
+                    <div className="py-3 border-b border-slate-50 dark:border-zinc-800/30">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Primary settlement account</p>
+                        <h3 className="text-base font-bold text-slate-800 dark:text-zinc-100">{profile?.bankDetails?.bankName || 'HDFC Bank Ltd'}</h3>
+                        <p className="text-sm font-medium font-mono tracking-widest text-[#028A0F]">**** **** {profile?.bankDetails?.accountNumber?.slice(-4) || '8842'}</p>
+                    </div>
+                    <button className="text-[11px] font-bold text-[#028A0F] hover:underline py-2 uppercase tracking-wide">Update payout methods</button>
+                    <div className="mt-2 p-3 bg-slate-50 dark:bg-zinc-800/30 rounded-xl border border-slate-100 dark:border-zinc-800">
+                        <p className="text-[9px] font-bold text-slate-400 italic">Financial verification status</p>
+                        <div className="flex items-center gap-2 mt-0.5 text-emerald-500">
+                            <CheckCircle2 size={12} />
+                            <span className="text-[10px] font-bold">Successfully verified</span>
+                        </div>
+                    </div>
+                </div>
+            ),
+            security: (
+                <div className="space-y-0.5">
+                    {[
+                        { label: 'Change password', icon: <Lock size={16} /> },
+                        { label: 'Two-factor authentication', icon: <Smartphone size={16} />, status: 'On' },
+                        { label: 'Active sessions', icon: <Smartphone size={16} />, status: '3 Active' },
+                        { label: 'Biometric access', icon: <User size={16} />, status: 'Setup' },
+                    ].map((item, i) => (
+                        <div key={i} className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-zinc-800/30 cursor-pointer group">
+                            <div className="flex items-center gap-3">
+                                <div className="text-slate-400">{item.icon}</div>
+                                <span className="text-sm font-medium text-slate-800 dark:text-zinc-100 group-hover:text-[#028A0F] transition-colors">{item.label}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {item.status && <span className="text-[9px] font-bold text-[#028A0F] uppercase tracking-tighter">{item.status}</span>}
+                                <ChevronRight size={14} className="text-slate-300" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )
+        };
+        return views[selectedView] || (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText size={28} className="text-slate-200 mb-2" />
+                <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-100">Information pending</h3>
+                <p className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-widest">Under tactical review</p>
+            </div>
+        );
+    };
+
+    if (selectedView !== 'menu') {
+        return (
+            <div className="space-y-4 pb-6 min-h-screen">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setSelectedView('menu')}
+                        className="text-slate-400 hover:text-[#028A0F] transition-all p-1"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-lg font-black text-slate-800 dark:text-zinc-100">
+                            {menuItems.find(i => i.id === selectedView)?.label || 'Information'}
+                        </h1>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest tracking-tighter">Fleet partner info</p>
+                    </div>
+                </div>
+                {renderSubView()}
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-lg mx-auto space-y-8 pb-20">
-            {/* Header / Avatar - Compacted */}
-            <div className="flex flex-col items-center text-center space-y-3">
+        <div className="space-y-4 pb-10 min-h-screen">
+            {/* Header / Avatar - Ultra Compact */}
+            <div className="flex items-center gap-4 py-2">
                 <div className="relative">
-                    <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-lime-500 to-lime-600 p-1 shadow-2xl shadow-lime-500/30">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg border border-slate-100 dark:border-zinc-800">
                         <img
                             src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
-                            className="w-full h-full rounded-[2.3rem] object-cover bg-white"
+                            className="w-full h-full object-cover bg-white"
                             alt="avatar"
                         />
                     </div>
-                    <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white dark:bg-zinc-800 rounded-2xl shadow-xl flex items-center justify-center text-lime-600 border border-slate-100 dark:border-zinc-700 hover:scale-110 transition-transform cursor-pointer">
-                        <Camera size={20} />
+                    <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#028A0F] text-white rounded-lg shadow-lg flex items-center justify-center cursor-pointer border-2 border-white dark:border-zinc-900 transition-transform active:scale-90">
+                        <Camera size={12} />
                         <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
                     </label>
                 </div>
                 <div>
-                    <h2 className="text-3xl font-black tracking-tight">{profile?.name || 'Partner'}</h2>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-1">Professional Partner � Indore</p>
-                </div>
-
-                <div className="flex gap-4">
-                    <div className="px-5 py-2 bg-lime-50 dark:bg-lime-500/10 rounded-full flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-lime-500"></span>
-                        <span className="text-xs font-bold text-lime-600 uppercase tracking-wider">Level 4</span>
-                    </div>
-                    <div className="px-5 py-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">4.9 Rating</span>
+                    <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{profile?.name || 'Partner'}</h2>
+                    <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[#028A0F] font-bold text-[10px] uppercase tracking-wider">Elite carrier</p>
+                        <span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                        <p className="text-slate-400 font-bold text-[10px]">{profile?.uniqueId || 'RDR-001'}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Menu List - Higher Density */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-slate-200/60 dark:border-zinc-800/60 p-2 shadow-sm">
+            {/* Quick Stats - Compact Text Row */}
+            <div className="flex justify-between py-2.5 border-y border-slate-50 dark:border-zinc-800/30 px-1">
+                <div>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Partner level</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-zinc-100">04</p>
+                </div>
+                <div>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Service rating</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-zinc-100">4.9</p>
+                </div>
+                <div>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">Completed ops</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-zinc-100 text-right">1,284</p>
+                </div>
+            </div>
+
+            {/* Menu List - Tight vertical list, no cards */}
+            <div className="space-y-0.5">
                 {menuItems.map((item, index) => (
-                    <div key={index} className="flex items-center gap-3.5 p-3.5 rounded-[1.8rem] hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color.split(' ')[0]} ${item.color.split(' ')[1]} dark:bg-opacity-10 border border-current border-opacity-5 transition-transform group-hover:scale-105`}>
-                            {React.cloneElement(item.icon, { size: 18 })}
+                    <div
+                        key={index}
+                        onClick={() => !item.toggle && setSelectedView(item.id)}
+                        className="flex items-center gap-4 py-3.5 border-b border-slate-50 dark:border-zinc-800/30 cursor-pointer group active:opacity-60 transition-all px-0.5"
+                    >
+                        <div className={`${item.color} opacity-80 group-hover:scale-105 transition-transform`}>
+                            {React.cloneElement(item.icon, { size: 20 })}
                         </div>
-                        <div className="flex-1">
-                            <h4 className="font-bold text-sm text-slate-800 dark:text-zinc-100 leading-tight">{item.label}</h4>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{item.sub}</p>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-slate-800 dark:text-zinc-100 group-hover:text-[#028A0F] transition-colors">{item.label}</h4>
+                            <p className="text-[10px] text-slate-400 mt-0.5 truncate uppercase tracking-tighter">{item.sub}</p>
                         </div>
                         {item.toggle ? (
                             <button
                                 onClick={(e) => { e.stopPropagation(); setNotifications(!notifications); }}
-                                className={`w-10 h-5.5 rounded-full relative transition-colors duration-300 ${notifications ? 'bg-lime-500' : 'bg-slate-200 dark:bg-zinc-800'}`}
+                                className={`w-8 h-4.5 rounded-full relative transition-colors duration-300 ${notifications ? 'bg-[#028A0F]' : 'bg-slate-200 dark:bg-zinc-800'}`}
                             >
                                 <motion.div
-                                    animate={{ x: notifications ? 20 : 2 }}
-                                    className="absolute top-0.5 w-4.5 h-4.5 bg-white rounded-full shadow-sm"
+                                    animate={{ x: notifications ? 14 : 2 }}
+                                    className="absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow-sm"
                                 />
                             </button>
                         ) : (
-                            <ChevronRight size={16} className="text-slate-300 group-hover:text-lime-500 transition-colors" />
+                            <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-0.5 transition-all" />
                         )}
                     </div>
                 ))}
 
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
-                    <button onClick={handleLogout} className="flex items-center gap-4 w-full p-5 rounded-[2rem] hover:bg-red-50 dark:hover:bg-red-500/5 transition-all text-red-500 group">
-                        <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
-                            <LogOut size={20} />
-                        </div>
-                        <div className="flex-1 text-left">
-                            <h4 className="font-bold text-sm leading-tight">Logout</h4>
-                            <p className="text-[9px] text-red-300 font-bold uppercase tracking-widest mt-0.5">End Duty</p>
-                        </div>
-                        <ChevronRight size={16} className="text-red-200" />
-                    </button>
+                {/* Logout Row - Integrated list item */}
+                <div
+                    onClick={handleLogout}
+                    className="flex items-center gap-4 py-4 cursor-pointer group active:opacity-60 transition-all border-b border-slate-50 dark:border-zinc-800/30 px-0.5"
+                >
+                    <div className="text-red-500 opacity-80 group-hover:scale-105 transition-transform">
+                        <LogOut size={20} />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="font-bold text-sm text-red-500">Log out</h4>
+                        <p className="text-[10px] text-red-300 mt-0.5 uppercase tracking-tighter">End current duty session</p>
+                    </div>
+                    <ChevronRight size={16} className="text-red-100 group-hover:translate-x-0.5 transition-all" />
                 </div>
             </div>
 
-            {/* Footer / Version - Slimmer */}
-            <div className="text-center space-y-3 pt-2">
-                <div className="flex justify-center gap-8">
-                    <div className="flex flex-col items-center opacity-40 hover:opacity-100 transition-opacity">
-                        <Smartphone size={18} className="text-slate-400 mb-1" />
-                        <span className="text-[8px] font-black uppercase tracking-widest">v1.2.4</span>
-                    </div>
-                    <div className="flex flex-col items-center opacity-40 hover:opacity-100 transition-opacity">
-                        <HelpCircle size={18} className="text-slate-400 mb-1" />
-                        <span className="text-[8px] font-black uppercase tracking-widest">Support</span>
-                    </div>
-                </div>
-                <p className="text-[8px] text-slate-300 font-black uppercase tracking-[0.3em] dark:text-zinc-600">SathiGro Digital Hub</p>
+            {/* Footer - Compact Minimalist */}
+            <div className="py-6 text-center">
+                <p className="text-[8px] text-slate-300 font-bold uppercase tracking-[0.3em] dark:text-zinc-700">Sathigro ops • v1.2.4</p>
             </div>
         </div>
     );
 };
 
 export default ProfileSettings;
-

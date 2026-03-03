@@ -188,6 +188,7 @@ const CategoryPage = () => {
                                 key={product._id || product.id}
                                 product={product}
                                 isCompact={true}
+                                isCategoryRow={true}
                                 customTheme={{
                                     bgColor: 'linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%)',
                                     themeColor: '#0c831f'
@@ -226,6 +227,7 @@ const CategoryPage = () => {
                                     <ProductCard
                                         product={product}
                                         isCompact={true}
+                                        isCategoryRow={true}
                                         customTheme={{
                                             bgColor: 'linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%)',
                                             themeColor: '#0c831f'

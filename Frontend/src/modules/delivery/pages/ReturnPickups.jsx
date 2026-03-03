@@ -14,13 +14,13 @@ import { toast } from 'react-toastify';
 const API = `${API_BASE_URL}/delivery`;
 
 const StatusBadge = ({ status }) => {
-  const map = {
-    pending: { label: 'Available', cls: 'bg-amber-100 text-amber-700' },
-    return_pickup_assigned: { label: 'Assigned', cls: 'bg-blue-100 text-blue-700' },
-    return_in_transit: { label: 'In Transit', cls: 'bg-purple-100 text-purple-700' },
-    return_delivered: { label: 'Completed', cls: 'bg-green-100 text-green-700' },
+  const styles = {
+    pending: { label: 'Available', cls: 'bg-orange-100 text-orange-600 border-orange-200' },
+    return_pickup_assigned: { label: 'Assigned', cls: 'bg-green-100 text-[#028A0F] border-green-200' },
+    return_in_transit: { label: 'In Transit', cls: 'bg-blue-100 text-blue-600 border-blue-200' },
+    return_delivered: { label: 'Completed', cls: 'bg-[#028A0F] text-white border-[#028A0F]/20' },
   };
-  const v = map[status] || { label: status, cls: 'bg-gray-100 text-gray-600' };
+  const v = styles[status] || { label: status, cls: 'bg-gray-100 text-gray-600' };
   return (
     <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${v.cls}`}>
       {v.label}
@@ -100,16 +100,16 @@ const ReturnPickups = () => {
   ];
 
   return (
-    <div className="space-y-5 pb-10">
+    <div className="space-y-3 md:space-y-4 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100 flex items-center gap-2">
-            <RotateCcw size={22} className="text-blue-500" />
+          <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100 flex items-center gap-2">
+            <RotateCcw size={20} md:size={22} className="text-[#028A0F]" />
             Return Pickups
           </h1>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-0.5">
-            Collect returns from customers · Earn ₹30/task
+          <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] mt-0.5">
+            Collect returns from customers
           </p>
         </div>
         <button
@@ -117,26 +117,25 @@ const ReturnPickups = () => {
           disabled={loading}
           className="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 shadow-sm active:scale-90 transition-all"
         >
-          <RefreshCw size={16} className={loading ? 'animate-spin text-blue-500' : 'text-slate-400'} />
+          <RefreshCw size={16} className={loading ? 'animate-spin text-[#028A0F]' : 'text-slate-400'} />
         </button>
       </div>
 
       {/* Earning Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-5 text-white shadow-lg shadow-blue-500/20">
+      <div className="bg-gradient-to-r from-[#028A0F] to-[#028A0F] rounded-2xl md:rounded-3xl p-4 md:p-5 text-slate-900 shadow-lg shadow-[#028A0F]/20">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-blue-100/80 text-[10px] font-black uppercase tracking-widest mb-1">Return Pickup Reward</p>
-            <h3 className="text-3xl font-black">₹30 <span className="text-lg">per task</span></h3>
-            <p className="text-blue-200 text-xs mt-1">Credited instantly on completion</p>
+            <p className="text-white/70 text-[9px] md:text-[10px] font-black uppercase tracking-widest mb-0.5 md:mb-1">Return Reward</p>
+            <h3 className="text-2xl md:text-3xl font-black text-white">₹30 <span className="text-sm md:text-base font-bold">per task</span></h3>
           </div>
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-            <IndianRupee size={28} className="text-white" />
+          <div className="w-12 h-12 md:w-14 md:h-14 bg-black/5 rounded-xl md:rounded-2xl flex items-center justify-center">
+            <IndianRupee size={24} md:size={28} className="text-white" />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-14 md:top-0 z-30 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-lg py-2 -mx-4 px-4 md:-mx-8 md:px-8 flex justify-center">
+      <div className="sticky top-14 md:top-0 z-30 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-lg py-1.5 md:py-2 -mx-4 px-4 md:-mx-8 md:px-8 flex justify-center">
         <div className="flex bg-white dark:bg-zinc-900 p-1 rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm w-full max-w-md">
           {tabs.map((tab) => (
             <button
@@ -147,7 +146,7 @@ const ReturnPickups = () => {
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="returnTabBg"
-                  className="absolute inset-0 bg-blue-600 rounded-xl -z-10 shadow-lg"
+                  className="absolute inset-0 bg-[#028A0F] rounded-xl -z-10 shadow-lg"
                 />
               )}
               {tab.label}
@@ -163,8 +162,9 @@ const ReturnPickups = () => {
 
       {/* Task List */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 size={28} className="animate-spin text-blue-500" />
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="animate-spin text-[#028A0F] mb-4" size={40} />
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Loading tasks...</p>
         </div>
       ) : tasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -186,50 +186,49 @@ const ReturnPickups = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.04 }}
                 onClick={() => setSelectedTask(task)}
-                className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/60 dark:border-zinc-800 shadow-sm hover:shadow-xl transition-all cursor-pointer group overflow-hidden"
+                className="bg-white dark:bg-zinc-900 rounded-2xl md:rounded-3xl border border-slate-200/60 dark:border-zinc-800 shadow-sm hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
               >
                 {/* Card Header */}
-                <div className="p-4 border-b border-slate-50 dark:border-zinc-800/40 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 border border-blue-100 dark:border-blue-500/10">
-                      <RotateCcw size={18} />
+                <div className="p-3 md:p-4 border-b border-slate-50 dark:border-zinc-800/40 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 md:gap-3">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#028A0F]/10 flex items-center justify-center text-[#028A0F] border border-[#028A0F]/10">
+                      <RotateCcw size={16} md:size={18} />
                     </div>
                     <div>
-                      <p className="font-black text-sm text-slate-800 dark:text-zinc-100">#{task.order?.orderId || 'N/A'}</p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Return Pickup</p>
+                      <p className="font-black text-[13px] md:text-sm text-slate-800 dark:text-zinc-100">#{task.order?.orderId || 'N/A'}</p>
+                      <p className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-0.5">Return Pickup</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-black text-lg text-blue-600">₹{task.pickupFee || 30}</p>
-                    <p className="text-[9px] text-slate-400 font-bold">fee</p>
+                    <p className="font-black text-base md:text-lg text-[#028A0F]">₹{task.pickupFee || 30}</p>
                   </div>
                 </div>
 
                 {/* Customer + Address */}
-                <div className="p-4 space-y-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-50 dark:bg-zinc-800 flex items-center justify-center">
-                      <User size={13} className="text-slate-400" />
+                <div className="p-3 md:p-4 space-y-2.5 md:space-y-3">
+                  <div className="flex items-center gap-2 md:gap-2.5">
+                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-slate-50 dark:bg-zinc-800 flex items-center justify-center">
+                      <User size={12} md:size={13} className="text-slate-400" />
                     </div>
                     <div>
-                      <p className="text-[11px] font-black text-slate-800 dark:text-zinc-100">{task.order?.user?.name || 'Customer'}</p>
-                      <p className="text-[9px] text-slate-400 font-medium">{task.order?.user?.phone}</p>
+                      <p className="text-[10px] md:text-[11px] font-black text-slate-800 dark:text-zinc-100 truncate">{task.order?.user?.name || 'Customer'}</p>
+                      <p className="text-[8px] md:text-[9px] text-slate-400 font-medium leading-none">{task.order?.user?.phone}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-500/10 flex items-center justify-center mt-0.5 flex-shrink-0">
-                      <MapPin size={13} className="text-red-500" />
+                  <div className="flex items-start gap-2 md:gap-2.5">
+                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-red-50 dark:bg-red-500/10 flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <MapPin size={12} md:size={13} className="text-red-500" />
                     </div>
-                    <p className="text-[10px] text-slate-600 dark:text-zinc-300 font-medium line-clamp-2 leading-relaxed">
-                      {task.order?.shippingAddress?.street || 'Address not available'}
+                    <p className="text-[9px] md:text-[10px] text-slate-600 dark:text-zinc-300 font-medium line-clamp-2 leading-relaxed">
+                      {task.order?.shippingAddress?.street}
                     </p>
                   </div>
 
                   {task.order?.returnRequest?.reason && (
-                    <div className="flex items-center gap-2.5 bg-amber-50 dark:bg-amber-500/10 p-2.5 rounded-xl">
-                      <AlertCircle size={13} className="text-amber-600 flex-shrink-0" />
-                      <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 truncate">
+                    <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-500/10 p-2 rounded-xl">
+                      <AlertCircle size={12} className="text-amber-600 flex-shrink-0" />
+                      <p className="text-[8px] md:text-[9px] font-bold text-amber-700 dark:text-amber-400 truncate">
                         {task.order.returnRequest.reason}
                       </p>
                     </div>
@@ -237,9 +236,9 @@ const ReturnPickups = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-3 bg-slate-50 dark:bg-white/5 flex items-center justify-between group-hover:bg-blue-600 transition-colors">
+                <div className="px-3 md:px-4 py-2 md:py-3 bg-slate-50 dark:bg-white/5 flex items-center justify-between group-hover:bg-[#028A0F] transition-colors">
                   <StatusBadge status={task.status} />
-                  <ChevronRight size={14} className="text-slate-300 group-hover:text-white transition-all" />
+                  <ChevronRight size={12} md:size={14} className="text-slate-300 group-hover:text-white transition-all" />
                 </div>
               </motion.div>
             ))}
@@ -268,7 +267,7 @@ const ReturnPickups = () => {
               {/* Modal Header */}
               <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-slate-100 dark:border-zinc-800 px-5 py-4 flex items-center justify-between rounded-t-3xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-600">
+                  <div className="w-10 h-10 rounded-xl bg-[#028A0F]/10 flex items-center justify-center text-[#028A0F]">
                     <RotateCcw size={18} />
                   </div>
                   <div>
@@ -283,10 +282,10 @@ const ReturnPickups = () => {
 
               <div className="p-5 space-y-4">
                 {/* Earnings */}
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 text-white">
-                  <p className="text-blue-200 text-[10px] font-black uppercase mb-1">Your Earning</p>
+                <div className="bg-gradient-to-r from-[#028A0F] to-[#028A0F] rounded-2xl p-4 text-white shadow-lg shadow-[#028A0F]/20">
+                  <p className="text-white/70 text-[10px] font-black uppercase mb-1">Your Earning</p>
                   <p className="text-4xl font-black">₹{selectedTask.pickupFee || 30}</p>
-                  <p className="text-blue-200 text-xs mt-1">Credited instantly upon return to branch</p>
+                  <p className="text-white/60 text-xs mt-1 font-bold">Credited instantly upon return to branch</p>
                 </div>
 
                 {/* Customer Details */}
@@ -328,7 +327,7 @@ const ReturnPickups = () => {
                       Drop At ({selectedTask.dropDestinationInfo.type === 'vendor' ? 'Vendor Store' : 'Branch'})
                     </p>
                     <div className="flex items-start gap-2">
-                      <MapPin size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                      <MapPin size={16} className="text-[#028A0F] mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-bold text-slate-800 dark:text-zinc-100">
                           {selectedTask.dropDestinationInfo.name}
@@ -337,7 +336,7 @@ const ReturnPickups = () => {
                         {selectedTask.dropDestinationInfo.phone && (
                           <a
                             href={`tel:${selectedTask.dropDestinationInfo.phone}`}
-                            className="text-[10px] text-blue-500 font-bold flex items-center gap-1 mt-1"
+                            className="text-[10px] text-[#028A0F] font-bold flex items-center gap-1 mt-1"
                             onClick={e => e.stopPropagation()}
                           >
                             <Phone size={10} /> {selectedTask.dropDestinationInfo.phone}
@@ -350,7 +349,7 @@ const ReturnPickups = () => {
                   <div className="bg-slate-50 dark:bg-zinc-800 rounded-2xl p-4 space-y-2">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Drop At (Branch)</p>
                     <div className="flex items-start gap-2">
-                      <MapPin size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                      <MapPin size={16} className="text-[#028A0F] mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-bold text-slate-800 dark:text-zinc-100">{selectedTask.order.branchId.name}</p>
                         <p className="text-xs text-slate-500">{selectedTask.order.branchId.address}</p>
@@ -395,7 +394,7 @@ const ReturnPickups = () => {
                     <button
                       onClick={() => handleAccept(selectedTask._id)}
                       disabled={!!processingId}
-                      className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                      className="w-full py-4 bg-[#028A0F] text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-[#028A0F]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                     >
                       {processingId === selectedTask._id ? (
                         <Loader2 size={16} className="animate-spin" />
@@ -410,7 +409,7 @@ const ReturnPickups = () => {
                     <button
                       onClick={() => handleStatusUpdate(selectedTask._id, 'return_in_transit')}
                       disabled={!!processingId}
-                      className="w-full py-4 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-purple-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                      className="w-full py-4 bg-[#028A0F] text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-[#028A0F]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                     >
                       {processingId === selectedTask._id ? (
                         <Loader2 size={16} className="animate-spin" />
@@ -451,7 +450,7 @@ const ReturnPickups = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 };
 

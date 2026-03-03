@@ -67,12 +67,12 @@ const DeliveryLogin = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo / Icon */}
         <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 bg-lime-400 rounded-3xl flex items-center justify-center shadow-lg shadow-lime-200 rotation-12">
-            <Zap size={40} className="text-black fill-black" />
+          <div className="w-20 h-20 bg-[#028A0F] rounded-3xl flex items-center justify-center shadow-lg shadow-[#028A0F]/20 rotation-12">
+            <Zap size={40} className="text-white fill-white" />
           </div>
         </div>
         <h2 className="text-center text-3xl font-black text-gray-900 tracking-tight">
-          Saathi<span className="text-lime-500">Gro</span> Delivery
+          Saathi<span className="text-[#028A0F]">Gro</span> Delivery
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 font-medium">
           {step === 1 ? 'Enter phone number to get started' : 'Verify your identity to login'}
@@ -97,7 +97,7 @@ const DeliveryLogin = () => {
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Phone size={18} className="text-gray-400 group-focus-within:text-lime-500 transition-colors" />
+                      <Phone size={18} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
                     </div>
                     <input
                       id="phone"
@@ -107,7 +107,7 @@ const DeliveryLogin = () => {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl text-gray-900 font-bold placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-lime-400 focus:bg-white transition-all shadow-inner"
+                      className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl text-gray-900 font-bold placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-[#028A0F] focus:bg-white transition-all shadow-inner"
                       placeholder="9876543210"
                     />
                   </div>
@@ -141,7 +141,7 @@ const DeliveryLogin = () => {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="text-xs font-bold text-lime-600 hover:text-lime-700 underline"
+                    className="text-xs font-bold text-[#028A0F] hover:text-[#035a0a] underline"
                   >
                     Change Number
                   </button>
@@ -153,7 +153,7 @@ const DeliveryLogin = () => {
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Lock size={18} className="text-gray-400 group-focus-within:text-lime-500 transition-colors" />
+                      <Lock size={18} className="text-gray-400 group-focus-within:text-[#028A0F] transition-colors" />
                     </div>
                     <input
                       id="otp"
@@ -163,7 +163,7 @@ const DeliveryLogin = () => {
                       required
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl text-center text-2xl tracking-[0.5em] font-black text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-lime-400 focus:bg-white transition-all shadow-inner"
+                      className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-50 rounded-2xl text-center text-2xl tracking-[0.5em] font-black text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-[#028A0F] focus:bg-white transition-all shadow-inner"
                       placeholder="------"
                     />
                   </div>
