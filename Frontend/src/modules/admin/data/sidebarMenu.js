@@ -73,6 +73,7 @@
             { title: 'Delivery Partners', path: '/admin/delivery/partners' },
             { title: 'Assign Deliveries', path: '/admin/delivery/assign' },
             { title: 'Delivery Tracking', path: '/admin/delivery/tracking' },
+            { title: 'Delivery Slots', path: '/admin/delivery/slots' },
         ],
     },
     {

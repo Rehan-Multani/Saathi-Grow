@@ -16,12 +16,13 @@ const getAuthDetails = () => {
   return null;
 };
 
-export const getAllOrdersAdmin = async () => {
+export const getAllOrdersAdmin = async (params = {}) => {
   const auth = getAuthDetails();
-  if (!auth) return [];
+  if (!auth) return { orders: [], pagination: {} };
 
   const { data } = await axios.get(`${API_URL}/admin/list`, {
-    headers: { Authorization: `Bearer ${auth.token}` }
+    headers: { Authorization: `Bearer ${auth.token}` },
+    params
   });
   return data;
 };

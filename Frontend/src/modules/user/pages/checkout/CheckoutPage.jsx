@@ -16,13 +16,15 @@ import {
     Sparkles,
     Lock,
     Wallet,
-    Loader2
+    Loader2,
+    Calendar
 } from 'lucide-react';
 
 import { useLocation as useGlobalLocation } from '../../context/LocationContext';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
 import * as walletApi from '../../api/walletApi';
+import { fetchDeliverySlots } from '../../api/orderApi';
 import { toast } from 'react-toastify';
 
 const loadRazorpaySDK = () => {
@@ -45,6 +47,9 @@ const CheckoutPage = () => {
     const [onlineMethod, setOnlineMethod] = useState('phonepe');
     const [billDetails, setBillDetails] = useState(null);
     const [isCalculating, setIsCalculating] = useState(true);
+    const [deliverySlots, setDeliverySlots] = useState([]);
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [loadingSlots, setLoadingSlots] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -61,6 +66,19 @@ const CheckoutPage = () => {
             }
         };
         fetchWallet();
+
+        const loadSlots = async () => {
+            try {
+                const data = await fetchDeliverySlots();
+                setDeliverySlots(data);
+                if (data.length > 0) setSelectedSlot(data[0].label);
+            } catch (err) {
+                console.error('Slots fetch failed', err);
+            } finally {
+                setLoadingSlots(false);
+            }
+        };
+        loadSlots();
     }, [token]);
 
     useEffect(() => {
@@ -94,6 +112,11 @@ const CheckoutPage = () => {
             return;
         }
 
+        if (!selectedSlot) {
+            toast.error("Please select a delivery slot.");
+            return;
+        }
+
         const totalToPay = billDetails?.totalAmount || cartTotal;
 
         if (paymentMethod === 'wallet' && walletBalance < totalToPay) {
@@ -120,7 +143,8 @@ const CheckoutPage = () => {
                 zipCode: '',
                 location: globalLocation.coordinates ? { type: 'Point', coordinates: globalLocation.coordinates } : undefined
             },
-            totalAmount: totalToPay
+            totalAmount: totalToPay,
+            deliverySlot: selectedSlot
         };
 
         try {
@@ -240,7 +264,7 @@ const CheckoutPage = () => {
                     </button>
                     <div>
                         <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight capitalize leading-none">Checkout</h1>
-                        <p className="!text-[8px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items ₹ ₹{billDetails?.totalAmount || cartTotal}</p>
+                        <p className="!text-[8px] font-bold text-gray-400 mt-0.5 tracking-wider">{cartCount} items ₹{billDetails?.totalAmount || cartTotal}</p>
                     </div>
                 </div>
 
@@ -263,6 +287,42 @@ const CheckoutPage = () => {
                             {globalLocation.address || "Select Address"}
                         </p>
                     </div>
+                </div>
+
+                {/* Delivery Slots Section */}
+                <div className="mb-10">
+                    <div className="flex items-center gap-2 mb-4 px-1">
+                        <Calendar size={14} className="text-[#0c831f]" />
+                        <h3 className="!text-[10px] font-black text-gray-400 tracking-widest uppercase">Delivery Slot</h3>
+                    </div>
+                    {loadingSlots ? (
+                        <div className="flex gap-3 px-1 animate-pulse">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="h-10 w-24 bg-gray-100 dark:bg-white/5 rounded-xl"></div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-wrap gap-2 px-1">
+                            {deliverySlots.length > 0 ? deliverySlots.map((slot) => (
+                                <div
+                                    key={slot._id}
+                                    onClick={() => setSelectedSlot(slot.label)}
+                                    className={`px-4 py-2.5 rounded-2xl cursor-pointer border-2 transition-all flex flex-col items-center min-w-[120px] ${selectedSlot === slot.label
+                                        ? 'border-[#0c831f] bg-green-50 dark:bg-green-500/10'
+                                        : 'border-gray-100 dark:border-white/5 bg-transparent hover:border-gray-200'}`}
+                                >
+                                    <span className={`text-[10px] font-black ${selectedSlot === slot.label ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-200'}`}>
+                                        {slot.label}
+                                    </span>
+                                    <span className="text-[8px] font-bold text-gray-400 mt-0.5 tracking-tight">
+                                        {slot.startTime} - {slot.endTime}
+                                    </span>
+                                </div>
+                            )) : (
+                                <p className="text-[10px] text-red-500 font-bold px-1">No delivery slots available currently.</p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="mb-10">
@@ -389,7 +449,6 @@ const CheckoutPage = () => {
                         </div>
                     </div>
                 </div>
-
             </div>
 
             {/* Bottom Sticky Action Bar */}

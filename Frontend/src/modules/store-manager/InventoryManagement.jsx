@@ -31,7 +31,7 @@ const InventoryManagement = () => {
         try {
             setLoading(true);
             const data = await productApi.getProducts(managerUser.token);
-            setProducts(data);
+            setProducts(data.products || []);
         } catch (error) {
             toast.error(error.message || 'Failed to sync inventory');
         } finally {

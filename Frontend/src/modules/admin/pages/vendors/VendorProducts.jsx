@@ -24,7 +24,7 @@ const VendorProducts = () => {
                     getVendors(adminUser.token)
                 ]);
                 // Filter to only show products linked to vendors
-                const vendorProds = productsData.filter(p => p.vendor);
+                const vendorProds = (productsData.products || []).filter(p => p.vendor);
                 setProducts(vendorProds);
                 setVendors(vendorsData);
             } catch (error) {

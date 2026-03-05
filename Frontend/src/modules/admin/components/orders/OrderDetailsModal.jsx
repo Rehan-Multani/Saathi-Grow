@@ -244,6 +244,11 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                             <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 flex items-center">
                                 <Clock size={14} className="mr-1.5" /> {displayDate}
                             </span>
+                            {order.deliverySlot && (
+                                <span className="px-3 py-1.5 rounded-full text-sm font-black bg-violet-600 text-white flex items-center shadow-lg shadow-violet-500/20">
+                                    <Truck size={14} className="mr-1.5" /> Slot: {order.deliverySlot}
+                                </span>
+                            )}
                         </div>
                         <button
                             onClick={handleDownloadInvoice}
@@ -415,10 +420,14 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 </div>
                             </div>
 
+                            <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-100">
+                                <span className="text-sm text-gray-500 font-medium">Payment Method</span>
+                                <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">{order.paymentMethod || 'N/A'}</span>
+                            </div>
                             <div className="flex justify-between items-center pt-2">
-                                <span className="text-sm text-gray-500">Payment Status</span>
-                                <span className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center ${displayPayment === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                                    <CreditCard size={14} className="mr-1.5" /> {displayPayment}
+                                <span className="text-sm text-gray-500 font-medium">Payment Status</span>
+                                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex items-center ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : order.paymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                    <CreditCard size={12} className="mr-1.5" /> {(order.paymentStatus || 'pending')}
                                 </span>
                             </div>
                         </div>

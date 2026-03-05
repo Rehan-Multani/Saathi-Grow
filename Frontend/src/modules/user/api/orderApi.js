@@ -124,3 +124,10 @@ export const fetchOrderRoute = async (token, orderId, origin = null) => {
   if (!response.ok) throw new Error(data.message || 'Failed to fetch road directions');
   return data;
 };
+
+export const fetchDeliverySlots = async () => {
+  const response = await fetch(`${API_BASE_URL}/delivery-slots`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch delivery slots');
+  return data;
+};

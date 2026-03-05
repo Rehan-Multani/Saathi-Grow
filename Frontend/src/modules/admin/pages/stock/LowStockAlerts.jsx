@@ -17,8 +17,8 @@ const LowStockAlerts = () => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const data = await getProducts(adminUser.token);
-            setProducts(data);
+            const data = await getProducts(adminUser.token, { limit: 200 });
+            setProducts(data.products || []);
         } catch (error) {
             console.error('Error fetching low stock:', error);
             toast.error('Failed to load low stock alerts');

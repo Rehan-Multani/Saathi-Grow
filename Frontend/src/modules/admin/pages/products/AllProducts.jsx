@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Spinner } from 'react-bootstrap';
 import ProductEditModal from '../../components/products/ProductEditModal';
@@ -30,12 +30,29 @@ const ProductStatusBadge = ({ status }) => {
     );
 };
 
+const SourceBadge = ({ vendor }) => {
+    if (vendor) {
+        return (
+            <div className="flex flex-col items-center gap-0.5">
+                <span className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-bold uppercase flex items-center gap-1">
+                    <Store size={9} /> Vendor
+                </span>
+                <span className="text-[10px] text-gray-500 truncate max-w-[90px]">{vendor.storeName}</span>
+            </div>
+        );
+    }
+    return (
+        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10px] font-bold uppercase flex items-center gap-1">
+            <Package size={9} /> Branch
+        </span>
+    );
+};
+
 const AllProducts = () => {
     const adminContext = useAdminAuth();
     const staffContext = useStaffAuth();
     const managerContext = useStoreManagerAuth();
 
-    // Dynamically assign active user from whoever is rendering the portal
     const adminUser = adminContext?.adminUser || staffContext?.staffUser || managerContext?.managerUser || null;
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -46,6 +63,7 @@ const AllProducts = () => {
     const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedBrand, setSelectedBrand] = useState('');
+    const [sourceFilter, setSourceFilter] = useState('all'); // 'all' | 'branch' | 'vendor'
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [showLogsModal, setShowLogsModal] = useState(false);
@@ -59,7 +77,7 @@ const AllProducts = () => {
                 getCategories(adminUser.token),
                 getBrands(adminUser.token)
             ]);
-            setProducts(productsData);
+            setProducts(productsData.products || []);
             setCategories(categoriesData);
             setBrands(brandsData);
         } catch (error) {
@@ -76,26 +94,32 @@ const AllProducts = () => {
 
     const getTotalStock = (p) => {
         if (!p.branchStocks || p.branchStocks.length === 0) return 0;
-
-        // If not Admin, only show stock for THIS branch
         if (adminUser?.role !== 'Admin' && adminUser?.branchId) {
-            const myStock = p.branchStocks.find(bs => (bs.branchId._id || bs.branchId) === adminUser.branchId);
+            const myStock = p.branchStocks.find(bs => (bs.branchId?._id || bs.branchId) === adminUser.branchId);
             return myStock ? myStock.stock : 0;
         }
-
-        // Otherwise sum all
         return p.branchStocks.reduce((sum, bs) => sum + bs.stock, 0);
     };
 
+    // Source counts for tab badges
+    const branchCount = products.filter(p => !p.vendor).length;
+    const vendorCount = products.filter(p => !!p.vendor).length;
+
     const filteredProducts = products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.brandName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch =
+            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (p.brandName && p.brandName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (p.vendor?.storeName && p.vendor.storeName.toLowerCase().includes(searchTerm.toLowerCase()));
 
         const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
         const matchesBrand = selectedBrand ? p.brandName === selectedBrand : true;
+        const matchesSource =
+            sourceFilter === 'all' ? true :
+                sourceFilter === 'vendor' ? !!p.vendor :
+                    !p.vendor;
 
-        return matchesSearch && matchesCategory && matchesBrand;
+        return matchesSearch && matchesCategory && matchesBrand && matchesSource;
     });
 
     const handleDelete = async (id, name) => {
@@ -141,11 +165,19 @@ const AllProducts = () => {
         setProducts(products.map(p => p._id === updatedProduct._id ? updatedProduct : p));
     };
 
+    const activeFiltersCount = [selectedCategory, selectedBrand].filter(Boolean).length;
+
     return (
         <div className="p-4 p-md-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
+            {/* Header Toolbar */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 p-4">
                 <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-                    <h5 className="mb-0 font-bold text-gray-800 text-lg text-nowrap">Product Inventory</h5>
+                    <div className="flex items-center gap-3">
+                        <h5 className="mb-0 font-bold text-gray-800 text-lg text-nowrap">Product Inventory</h5>
+                        <span className="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold px-2 py-0.5 rounded-full">
+                            {filteredProducts.length} products
+                        </span>
+                    </div>
 
                     <div className="flex flex-col md:flex-row gap-3 w-full xl:w-auto flex-1 relative">
                         <div className="w-full md:max-w-xs">
@@ -155,7 +187,7 @@ const AllProducts = () => {
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Search Name, SKU..."
+                                    placeholder="Search name, SKU, vendor..."
                                     className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -166,12 +198,12 @@ const AllProducts = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setShowFilterMenu(!showFilterMenu)}
-                                className={`flex items-center justify-center gap-2 px-3 py-2 bg-white border ${showFilterMenu || selectedCategory || selectedBrand ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-700'} rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap`}
+                                className={`flex items-center justify-center gap-2 px-3 py-2 bg-white border ${showFilterMenu || activeFiltersCount > 0 ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-700'} rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap`}
                             >
                                 <Filter size={18} />
                                 <span>Filter</span>
-                                {(selectedCategory || selectedBrand) && (
-                                    <span className="flex h-2 w-2 rounded-full bg-blue-600"></span>
+                                {activeFiltersCount > 0 && (
+                                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-bold">{activeFiltersCount}</span>
                                 )}
                             </button>
 
@@ -201,7 +233,7 @@ const AllProducts = () => {
                                                 {brands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                             </select>
                                         </div>
-                                        {(selectedCategory || selectedBrand) && (
+                                        {activeFiltersCount > 0 && (
                                             <button
                                                 onClick={() => { setSelectedCategory(''); setSelectedBrand(''); setShowFilterMenu(false); }}
                                                 className="text-xs text-red-600 font-medium hover:text-red-700 mt-2 w-full text-center"
@@ -237,15 +269,50 @@ const AllProducts = () => {
                 </div>
             </div>
 
+            {/* Source Filter Tabs */}
+            {adminUser?.role === 'Admin' && (
+                <div className="flex gap-2 mb-4">
+                    {[
+                        { key: 'all', label: 'All Products', count: products.length },
+                        { key: 'branch', label: 'Branch Products', count: branchCount, color: 'blue' },
+                        { key: 'vendor', label: 'Vendor Products', count: vendorCount, color: 'purple' },
+                    ].map(tab => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setSourceFilter(tab.key)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${sourceFilter === tab.key
+                                    ? tab.color === 'purple'
+                                        ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+                                        : tab.color === 'blue'
+                                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                            : 'bg-gray-800 text-white border-gray-800 shadow-md'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                }`}
+                        >
+                            {tab.key === 'vendor' ? <Store size={14} /> : <Package size={14} />}
+                            {tab.label}
+                            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${sourceFilter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                {tab.count}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Products Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
                             <tr>
-                                <th className="px-6 py-4">Product Name</th>
+                                <th className="px-6 py-4">Product</th>
                                 <th className="px-6 py-4 text-center">Brand</th>
                                 <th className="px-6 py-4 text-center">Category</th>
-                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? 'Branches' : 'Assigned Branch'}</th>
+                                {adminUser?.role === 'Admin' && (
+                                    <th className="px-6 py-4 text-center">Source</th>
+                                )}
+                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? 'Branches / Store' : 'Assigned Branch'}</th>
                                 <th className="px-6 py-4 text-center">Price</th>
                                 <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? 'Total Stock' : 'Branch Stock'}</th>
                                 <th className="px-6 py-4 text-center">Status</th>
@@ -255,14 +322,14 @@ const AllProducts = () => {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="8" className="text-center py-10">
+                                    <td colSpan="9" className="text-center py-10">
                                         <Spinner animation="border" variant="primary" />
                                         <p className="mt-2 text-muted text-sm">Loading products...</p>
                                     </td>
                                 </tr>
                             ) : filteredProducts.length > 0 ? (
                                 filteredProducts.map((p) => (
-                                    <tr key={p._id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={p._id} className={`hover:bg-gray-50 transition-colors ${p.vendor ? 'bg-purple-50/20' : ''}`}>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-white rounded border border-gray-100 flex items-center justify-center text-gray-500 font-bold overflow-hidden flex-shrink-0 relative">
@@ -271,7 +338,7 @@ const AllProducts = () => {
                                                         : <span className="text-sm font-bold text-gray-400">{p.name.charAt(0)}</span>
                                                     }
                                                     <div
-                                                        className={`position-absolute bottom-0 right-0 p-1 border rounded-sm ${p.isVeg ? 'bg-white' : 'bg-white'}`}
+                                                        className="position-absolute bottom-0 right-0 p-1 border rounded-sm bg-white"
                                                         style={{ width: '12px', height: '12px', margin: '2px', border: p.isVeg ? '1.5px solid #198754' : '1.5px solid #dc3545', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                                         title={p.isVeg ? "Vegetarian" : "Non-Vegetarian"}
                                                     >
@@ -284,38 +351,54 @@ const AllProducts = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-500 text-center">{p.brandName}</td>
-                                        <td className="px-6 py-4 text-gray-500 text-center">{p.category}</td>
+                                        <td className="px-6 py-4 text-gray-500 text-center text-sm">{p.brandName}</td>
+                                        <td className="px-6 py-4 text-gray-500 text-center text-sm">{p.category}</td>
+
+                                        {/* Source Column — Admin only */}
+                                        {adminUser?.role === 'Admin' && (
+                                            <td className="px-6 py-4 text-center">
+                                                <SourceBadge vendor={p.vendor} />
+                                            </td>
+                                        )}
+
+                                        {/* Branch / Store Column */}
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex flex-wrap justify-center gap-1">
                                                 {adminUser?.role === 'Admin' ? (
-                                                    p.branchStocks && p.branchStocks.length > 0 ? (
-                                                        p.branchStocks.map((bs, idx) => (
+                                                    p.vendor ? (
+                                                        // Vendor product — show vendor store name
+                                                        <span className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-bold flex items-center gap-1">
+                                                            <Store size={9} /> {p.vendor.storeName}
+                                                        </span>
+                                                    ) : p.branchStocks && p.branchStocks.length > 0 ? (
+                                                        p.branchStocks.slice(0, 3).map((bs, idx) => (
                                                             <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] whitespace-nowrap">
                                                                 {bs.branchId?.name || 'Main'}
                                                             </span>
                                                         ))
-                                                    ) : (
+                                                    ).concat(p.branchStocks.length > 3 ? [
+                                                        <span key="more" className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px]">+{p.branchStocks.length - 3} more</span>
+                                                    ] : []) : (
                                                         <span className="text-gray-400 text-xs">No Branch</span>
                                                     )
                                                 ) : (
-                                                    // For Staff/Manager, only show their own branch name
                                                     <span className="px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[10px] font-bold">
-                                                        {p.branchStocks.find(bs => (bs.branchId._id || bs.branchId) === adminUser.branchId)?.branchId?.name || 'Current Branch'}
+                                                        {p.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId) === adminUser.branchId)?.branchId?.name || 'Current Branch'}
                                                     </span>
                                                 )}
                                             </div>
                                         </td>
+
                                         <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-col items-center">
                                                 <span className="font-bold text-gray-800">₹{p.basePrice?.toFixed(2)}</span>
                                                 {p.mrp && p.mrp > p.basePrice && (
-                                                    <span className="text-[10px] text-gray-400 text-decoration-line-through">₹{p.mrp.toFixed(2)}</span>
+                                                    <span className="text-[10px] text-gray-400 line-through">₹{p.mrp.toFixed(2)}</span>
                                                 )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className={`font-medium ${getTotalStock(p) === 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                                            <span className={`font-bold text-sm ${getTotalStock(p) === 0 ? 'text-red-600' : 'text-gray-700'}`}>
                                                 {getTotalStock(p)}
                                             </span>
                                         </td>
@@ -364,10 +447,7 @@ const AllProducts = () => {
                                             </div>
                                             {showQR === p._id && (
                                                 <>
-                                                    <div
-                                                        className="fixed inset-0 z-[5] bg-transparent"
-                                                        onClick={() => setShowQR(null)}
-                                                    ></div>
+                                                    <div className="fixed inset-0 z-[5] bg-transparent" onClick={() => setShowQR(null)}></div>
                                                     <div className="absolute right-10 top-12 bg-white shadow-xl p-4 rounded-xl border border-gray-100 z-[10] text-center animate-in fade-in zoom-in-95 duration-200" style={{ width: '180px' }}>
                                                         <h6 className="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Product QR Code</h6>
                                                         <div className="bg-gray-50 p-2 rounded-lg mb-3">
@@ -382,7 +462,7 @@ const AllProducts = () => {
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 const link = document.createElement('a');
-                                                                link.href = p.qrCode || ''; // Usually stored as data URL or Cloudinary URL
+                                                                link.href = p.qrCode || '';
                                                                 link.download = `QR-${p.sku}.png`;
                                                                 document.body.appendChild(link);
                                                                 link.click();
@@ -401,14 +481,31 @@ const AllProducts = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="8" className="text-center py-10 text-gray-400">
-                                        No products found.
+                                    <td colSpan="9" className="text-center py-12">
+                                        <Package size={40} className="mx-auto text-gray-300 mb-3" />
+                                        <p className="text-gray-400 font-medium">No products found</p>
+                                        <p className="text-gray-400 text-xs mt-1">
+                                            {sourceFilter !== 'all'
+                                                ? `No ${sourceFilter} products match your search.`
+                                                : 'Try adjusting your search or filters.'}
+                                        </p>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Product count footer */}
+                {!loading && filteredProducts.length > 0 && (
+                    <div className="border-t border-gray-100 px-6 py-3 flex items-center justify-between bg-gray-50/50 text-xs text-gray-500">
+                        <span>Showing <strong className="text-gray-700">{filteredProducts.length}</strong> products</span>
+                        <div className="flex items-center gap-4">
+                            <span><strong className="text-blue-600">{branchCount}</strong> Branch</span>
+                            <span><strong className="text-purple-600">{vendorCount}</strong> Vendor</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <ProductEditModal
@@ -430,7 +527,7 @@ const AllProducts = () => {
                 onHide={() => setShowLogsModal(false)}
                 product={selectedProduct}
             />
-        </div >
+        </div>
     );
 };
 

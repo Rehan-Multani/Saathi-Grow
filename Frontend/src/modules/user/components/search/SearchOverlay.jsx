@@ -100,12 +100,13 @@ const SearchOverlay = () => {
                     `${API_BASE_URL}/admin/products/search/ai?q=${encodeURIComponent(searchQuery)}`
                 );
                 const data = await response.json();
+                const productsArray = Array.isArray(data) ? data : (data.products || []);
 
-                if (Array.isArray(data)) {
-                    setFilteredProducts(data);
+                if (productsArray.length > 0) {
+                    setFilteredProducts(productsArray);
 
                     // Generate basic suggestions based on top results
-                    setSuggestions(data.slice(0, 5).map(p => ({
+                    setSuggestions(productsArray.slice(0, 5).map(p => ({
                         id: p._id || p.id,
                         name: p.name,
                         image: p.image,

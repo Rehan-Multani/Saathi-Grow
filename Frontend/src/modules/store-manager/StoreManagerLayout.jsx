@@ -20,7 +20,6 @@ const StoreManagerLayout = () => {
         const path = location.pathname;
         if (path.includes('dashboard')) return 'System Metrics';
         if (path.includes('inventory')) return 'Resource Catalog';
-        if (path.includes('stock-requests')) return 'Logistics Queue';
         if (path.includes('returns')) return 'QC Terminal';
         if (path.includes('reports')) return 'Strategic Intel';
         return 'Control Center';

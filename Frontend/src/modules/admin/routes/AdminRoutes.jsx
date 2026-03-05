@@ -26,6 +26,7 @@ import AddDeliveryPartner from '../pages/delivery/AddDeliveryPartner';
 import AssignDeliveries from '../pages/delivery/AssignDeliveries';
 import DeliveryTracking from '../pages/delivery/DeliveryTracking';
 import PartnerDetails from '../pages/delivery/PartnerDetails';
+import DeliverySlots from '../pages/delivery/DeliverySlots';
 import AllVendors from '../pages/vendors/AllVendors';
 import AddVendor from '../pages/vendors/AddVendor';
 import VendorProducts from '../pages/vendors/VendorProducts';
@@ -158,6 +159,7 @@ const AdminRoutes = () => {
                         <Route path="delivery/partners/add" element={<AddDeliveryPartner />} />
                         <Route path="delivery/assign" element={<AssignDeliveries />} />
                         <Route path="delivery/tracking" element={<DeliveryTracking />} />
+                        <Route path="delivery/slots" element={<DeliverySlots />} />
 
                         {/* Vendors */}
                         <Route path="vendors" element={<AllVendors />} />

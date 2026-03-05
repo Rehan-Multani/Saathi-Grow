@@ -37,7 +37,7 @@ const ManageOffer = () => {
     const fetchData = async () => {
       try {
         const productsData = await getProducts(adminUser.token);
-        setProducts(productsData);
+        setProducts(productsData.products || []);
 
         if (id) {
           const offer = await getOfferDealById(adminUser.token, id);

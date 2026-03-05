@@ -4,6 +4,7 @@ import Product from '../models/Product.js';
 import axios from 'axios';
 import { GOOGLE_MAPS_BASE_URL } from '../config/serviceUrls.js';
 
+const GOOGLE_MAPS_DISTANCEMATRIX_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API;
 
 /**
@@ -92,22 +93,62 @@ export const findOptimalSource = async (coordinates, items) => {
       }
     }
 
-    if (candidates.length === 0) return null;
+    if (candidates.length === 0) {
+      // 2.5 Fallback: Search again without distance constraints if proximity fails
+      console.log('[SOURCE-FALLBACK] No nearby source found within 20km. Searching globally...');
+      const allActiveBranches = await Branch.find({ isActive: true }).limit(20);
+      const allActiveVendors = await Vendor.find({ status: 'Active' }).limit(20);
 
-    // 3. If multiple candidates, we could use Google Maps Distance Matrix to be super precise
-    // For now, sorting by initial $near proximity is good, but let's implement a fallback
+      for (const branch of allActiveBranches) {
+        if (await checkBranchStock(branch._id, items)) {
+          candidates.push({ type: 'branch', id: branch._id, location: branch.address?.location?.coordinates || [0, 0], doc: branch });
+        }
+      }
+      for (const vendor of allActiveVendors) {
+        if (await checkVendorStock(vendor._id, items)) {
+          candidates.push({ type: 'vendor', id: vendor._id, location: vendor.address?.location?.coordinates || [0, 0], doc: vendor });
+        }
+      }
+    }
 
-    // Sort by Euclidean distance (simple) or just take the first from $near results if they were merged.
-    // Actually $near already sorts. Let's just find the closest one manually from our candidates list 
-    // to be sure since we fetched two separate lists.
+    if (candidates.length === 0) {
+      console.error('[SOURCE-FATAL] No source found globally with sufficient stock for these items');
+      return null;
+    }
 
+    // 3. Filter and Sort using Google Maps Distance Matrix for accuracy
+    if (candidates.length > 0 && GOOGLE_MAPS_API_KEY) {
+      console.log(`[SOURCE-DEBUG] Verifying ${candidates.length} candidates with Google Distance Matrix`);
+      const googleDistances = await getGoogleDistances(coordinates, candidates.map(c => c.location));
+
+      if (googleDistances) {
+        // Map actual road distances back to our candidates
+        candidates.forEach((c, idx) => {
+          c.roadDistance = googleDistances[idx].distance;
+        });
+
+        // Filter those strictly within 20km road distance if any exist
+        const withinRadius = candidates.filter(c => c.roadDistance <= 20);
+        if (withinRadius.length > 0) {
+          withinRadius.sort((a, b) => a.roadDistance - b.roadDistance);
+          console.log(`[SOURCE-CHOSEN] Road Distance: ${withinRadius[0].roadDistance}km`);
+          return withinRadius[0];
+        } else {
+          console.log('[SOURCE-WARN] No candidate within 20km road distance. Picking closest available.');
+        }
+      }
+    }
+
+    // 4. Fallback Sort by Euclidean distance if Google fails or none are within 20km
     candidates.sort((a, b) => {
       const distA = calculateDistance(coordinates[1], coordinates[0], a.location[1], a.location[0]);
       const distB = calculateDistance(coordinates[1], coordinates[0], b.location[1], b.location[0]);
       return distA - distB;
     });
 
-    return candidates[0];
+    const chosen = candidates[0];
+    console.log(`[SOURCE-CHOSEN] Type: ${chosen.type}, ID: ${chosen.id} (Euclidean: ${calculateDistance(coordinates[1], coordinates[0], chosen.location[1], chosen.location[0]).toFixed(2)}km)`);
+    return chosen;
   } catch (error) {
     console.error('Error in findOptimalSource:', error);
     return null;
@@ -185,6 +226,38 @@ export const getFullAddress = async (addressString) => {
     return null;
   } catch (error) {
     console.error('Full Geocoding error:', error);
+    return null;
+  }
+};
+
+/**
+ * Get road distances from origin to multiple destinations using Google Distance Matrix
+ */
+export const getGoogleDistances = async (origin, destinations) => {
+  if (!GOOGLE_MAPS_API_KEY || !destinations.length) return null;
+  try {
+    const destString = destinations.map(d => `${d[1]},${d[0]}`).join('|');
+    const originString = `${origin[1]},${origin[0]}`;
+
+    const response = await axios.get(GOOGLE_MAPS_DISTANCEMATRIX_URL, {
+      params: {
+        origins: originString,
+        destinations: destString,
+        key: GOOGLE_MAPS_API_KEY,
+        mode: 'driving'
+      }
+    });
+
+    if (response.data.status === 'OK' && response.data.rows[0]) {
+      return response.data.rows[0].elements.map((el, idx) => ({
+        distance: el.distance?.value / 1000 || 99999, // in KM
+        duration: el.duration?.value || 0, // in seconds
+        destination: destinations[idx]
+      }));
+    }
+    return null;
+  } catch (error) {
+    console.error('Distance Matrix error:', error);
     return null;
   }
 };

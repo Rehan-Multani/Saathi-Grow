@@ -193,8 +193,9 @@ export const getProducts = async (req, res) => {
       isVeg,
       sort = '-createdAt',
       page = 1,
-      limit = 20,
-      campaignId
+      limit = 100,
+      campaignId,
+      source // 'vendor' | 'branch' | '' (all)
     } = req.query;
 
     // Build query object
@@ -214,7 +215,27 @@ export const getProducts = async (req, res) => {
     // Status filtering
     if (status) {
       const statusList = parseStatus(status);
-      query.status = { $in: statusList };
+      if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+        const statusOr = [];
+        if (statusList.includes('Out of Stock')) {
+          statusOr.push({ branchStocks: { $elemMatch: { branchId: req.admin.branchId, stock: { $lte: 0 } } } });
+        }
+        if (statusList.includes('Low Stock')) {
+          statusOr.push({ branchStocks: { $elemMatch: { branchId: req.admin.branchId, stock: { $gt: 0, $lte: 10 } } } });
+        }
+        if (statusList.includes('Active')) {
+          statusOr.push({ branchStocks: { $elemMatch: { branchId: req.admin.branchId, stock: { $gt: 10 } } } });
+        }
+        if (statusList.includes('Draft')) {
+          statusOr.push({ status: 'Draft' });
+        }
+        if (statusOr.length > 0) {
+          query.$and = query.$and || [];
+          query.$and.push({ $or: statusOr });
+        }
+      } else {
+        query.status = { $in: statusList };
+      }
     } else if (!req.admin) {
       query.status = 'Active';
     }
@@ -249,11 +270,22 @@ export const getProducts = async (req, res) => {
     }
 
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
-      ];
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { tags: { $in: [new RegExp(search, 'i')] } }
+        ]
+      });
+    }
+
+    // Source filtering: vendor products vs branch products
+    if (source === 'vendor') {
+      query.vendor = { $exists: true, $ne: null };
+    } else if (source === 'branch') {
+      query.$or = query.$or || undefined;
+      query.vendor = { $exists: false };
     }
 
     // Branch Scoping
@@ -279,9 +311,24 @@ export const getProducts = async (req, res) => {
       productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku');
     }
 
-    const products = await productQuery
+    let products = await productQuery
       .populate('branchStocks.branchId', 'name code')
-      .populate('vendor', 'storeName logo');
+      .populate('vendor', 'storeName logo businessType');
+
+    // If Branch Manager/Staff, transform products to only show their branch details and local status
+    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+      products = products.map(p => {
+        const pObj = p.toObject ? p.toObject() : p;
+        pObj.branchStocks = pObj.branchStocks.filter(bs => {
+          const bsBranchId = bs.branchId?._id || bs.branchId;
+          return bsBranchId && bsBranchId.toString() === req.admin.branchId.toString();
+        });
+        if (pObj.status !== 'Draft') {
+          pObj.status = determineProductStatus(pObj.branchStocks);
+        }
+        return pObj;
+      });
+    }
 
     res.json({
       products,
@@ -332,31 +379,32 @@ export const searchProductsWithAI = async (req, res) => {
 
     console.log(`[SMART-SEARCH] Keywords for "${q}":`, searchKeywords);
 
-    // Build Regex array for multiple keywords
-    const regexArray = searchKeywords.map(k => {
+    // Build a single Regex pattern for all keywords
+    const searchPattern = searchKeywords.map(k => {
       // Escape special characters so they don't break regex
       const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
       // For very short words (<= 3 chars like "dal", "oil"), enforce word boundaries 
       // so "dal" doesn't accidentally match "pedal" or "oil" doesn't match "spoil"
       if (escaped.length <= 3) {
-        return new RegExp(`\\b${escaped}\\b`, 'i');
+        return `\\b${escaped}\\b`;
       }
 
-      // For longer words, allow partial matching (e.g. "tomat" catches "tomato")
-      return new RegExp(escaped, 'i');
-    });
+      // For longer words, allow partial matching
+      return escaped;
+    }).join('|');
 
-    // Find products matching ANY of the keywords in name, tags, or description
-    // using $or combined with $in pattern matching
+    const combinedRegex = new RegExp(searchPattern, 'i');
+
+    // Find products matching the combined pattern in name, tags, or description
     const searchQuery = {
       status: 'Active',
       $or: [
-        { name: { $in: regexArray } },
-        { tags: { $in: regexArray } },
-        { description: { $in: regexArray } },
-        { brandName: { $in: regexArray } },
-        { category: { $in: regexArray } }
+        { name: { $regex: combinedRegex } },
+        { tags: { $regex: combinedRegex } },
+        { description: { $regex: combinedRegex } },
+        { brandName: { $regex: combinedRegex } },
+        { category: { $regex: combinedRegex } }
       ]
     };
 
@@ -375,12 +423,28 @@ export const searchProductsWithAI = async (req, res) => {
 
     const total = await Product.countDocuments(searchQuery);
 
-    const products = await Product.find(searchQuery)
-      .select('name image basePrice mrp category status brandName unitType unitValue isVeg sku')
+    let products = await Product.find(searchQuery)
+      .select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks')
+      .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo')
       .sort('-createdAt')
       .skip(skip)
       .limit(limit);
+
+    // If Branch Manager/Staff, transform products to only show their branch details and local status
+    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+      products = products.map(p => {
+        const pObj = p.toObject ? p.toObject() : p;
+        pObj.branchStocks = pObj.branchStocks.filter(bs => {
+          const bsBranchId = bs.branchId?._id || bs.branchId;
+          return bsBranchId && bsBranchId.toString() === req.admin.branchId.toString();
+        });
+        if (pObj.status !== 'Draft') {
+          pObj.status = determineProductStatus(pObj.branchStocks);
+        }
+        return pObj;
+      });
+    }
 
     res.json({
       products,
@@ -654,7 +718,15 @@ export const adjustInventory = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getAllInventoryLogs = async (req, res) => {
   try {
-    const logs = await InventoryLog.find({})
+    let query = {};
+    if (req.admin && req.admin.role !== 'Admin') {
+      if (req.admin.branchId) {
+        query.branchId = req.admin.branchId;
+      } else {
+        return res.json([]);
+      }
+    }
+    const logs = await InventoryLog.find(query)
       .populate('product', 'name sku image')
       .populate('admin', 'name email')
       .populate('branchId', 'name code')
@@ -671,7 +743,15 @@ export const getAllInventoryLogs = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getInventoryLogs = async (req, res) => {
   try {
-    const logs = await InventoryLog.find({ product: req.params.id })
+    let query = { product: req.params.id };
+    if (req.admin && req.admin.role !== 'Admin') {
+      if (req.admin.branchId) {
+        query.branchId = req.admin.branchId;
+      } else {
+        return res.json([]);
+      }
+    }
+    const logs = await InventoryLog.find(query)
       .populate('admin', 'name email')
       .populate('branchId', 'name code')
       .sort('-createdAt')

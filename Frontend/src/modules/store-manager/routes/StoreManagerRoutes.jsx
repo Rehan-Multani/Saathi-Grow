@@ -4,7 +4,6 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import StoreManagerLayout from '../StoreManagerLayout';
 import StoreManagerDashboard from '../StoreManagerDashboard';
 import InventoryManagement from '../InventoryManagement';
-import StockRequests from '../StockRequests';
 import ReturnsApproval from '../ReturnsApproval';
 import ReportsAnalytics from '../ReportsAnalytics';
 import ManagerOrders from '../ManagerOrders';
@@ -49,7 +48,6 @@ const StoreManagerRoutes = () => {
                             <Route path="inventory" element={<InventoryManagement />} />
                             <Route path="orders" element={<ManagerOrders />} />
                             <Route path="staff" element={<StaffManagement />} />
-                            <Route path="stock-requests" element={<StockRequests />} />
                             <Route path="returns" element={<ReturnsApproval />} />
                             <Route path="products" element={<AllProducts />} />
                             <Route path="reports" element={<ReportsAnalytics />} />

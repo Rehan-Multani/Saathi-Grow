@@ -103,6 +103,10 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branch'
     },
+    deliverySlot: {
+        type: String, // e.g., "09:00 - 11:00"
+        default: null
+    },
     // Delivery Q-Commerce Additions
     deliveryPartnerId: {
         type: mongoose.Schema.Types.ObjectId,

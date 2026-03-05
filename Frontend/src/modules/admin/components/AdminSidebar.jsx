@@ -80,7 +80,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                                                 onClick={() => toggleSubmenu(item.title)}
                                             >
                                                 {renderIcon(item.icon)}
-                                                <span className="flex-grow text-center">{item.title}</span>
+                                                <span className="flex-grow text-left">{item.title}</span>
                                                 <Icons.ChevronDown
                                                     size={14}
                                                     className={`transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`}
@@ -95,7 +95,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                                                             to={subItem.path}
                                                             end={true}
                                                             className={({ isActive }) =>
-                                                                `flex items-center justify-center px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors
+                                                                `flex items-center justify-start pl-12 pr-4 py-2 text-sm text-slate-400 hover:text-white transition-colors
                                                                 ${isActive ? 'text-violet-400 font-medium' : ''}`
                                                             }
                                                             onClick={() => showMobile && onClose()}
@@ -116,7 +116,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                                             onClick={() => showMobile && onClose()}
                                         >
                                             {renderIcon(item.icon)}
-                                            <span className="flex-grow text-center">{item.title}</span>
+                                            <span className="flex-grow text-left">{item.title}</span>
                                         </NavLink>
                                     )}
                                 </div>

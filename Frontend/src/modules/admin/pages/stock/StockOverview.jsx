@@ -23,10 +23,10 @@ const StockOverview = () => {
         const fetchData = async () => {
             try {
                 const [productsData, categoriesData] = await Promise.all([
-                    getProducts(adminUser.token),
+                    getProducts(adminUser.token, { limit: 200 }),
                     getCategories(adminUser.token)
                 ]);
-                setProducts(productsData);
+                setProducts(productsData.products || []);
                 setCategories(categoriesData);
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);

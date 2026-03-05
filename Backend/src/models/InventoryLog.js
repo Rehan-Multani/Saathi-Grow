@@ -9,12 +9,22 @@ const inventoryLogSchema = new mongoose.Schema({
   admin: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin',
-    required: true
+    required: false // Optional for system/order triggers
   },
   branchId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Branch',
-    required: true
+    required: false
+  },
+  vendorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Vendor',
+    required: false
+  },
+  orderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Order',
+    required: false
   },
   changeAmount: {
     type: Number,
@@ -30,7 +40,7 @@ const inventoryLogSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['Addition', 'Deduction', 'Audit', 'Sale', 'Return', 'Damage'],
+    enum: ['Addition', 'Deduction', 'Audit', 'Sale', 'Return', 'Damage', 'Removal'],
     required: true
   },
   reason: {

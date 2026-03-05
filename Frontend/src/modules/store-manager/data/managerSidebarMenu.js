@@ -18,12 +18,6 @@
     permission: 'VIEW_PRODUCTS'
   },
   {
-    title: 'Stock Requests',
-    path: '/store-manager/stock-requests',
-    icon: 'ClipboardList',
-    permission: 'MANAGE_INVENTORY'
-  },
-  {
     title: 'Orders',
     icon: 'ShoppingCart',
     permission: 'VIEW_ORDERS',

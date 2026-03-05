@@ -41,7 +41,7 @@ const AddStockAdjustment = () => {
                     getProducts(adminUser.token),
                     getBranches(adminUser.token)
                 ]);
-                setProducts(productsData);
+                setProducts(productsData.products || []);
                 setBranches(branchesData.filter(b => b.isActive));
             } catch (error) {
                 console.error('Error fetching data:', error);

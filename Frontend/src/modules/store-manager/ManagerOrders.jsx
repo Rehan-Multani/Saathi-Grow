@@ -20,7 +20,7 @@ const ManagerOrders = () => {
     try {
       setLoading(true);
       const data = await getAllOrdersAdmin();
-      setOrders(data);
+      setOrders(data.orders || []);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
       Swal.fire('Error', 'Could not load branch orders', 'error');
@@ -62,13 +62,15 @@ const ManagerOrders = () => {
     }
   };
 
-  const filteredOrders = orders.filter(order => {
-    const orderId = order.orderId || order._id;
-    const customerName = order.user?.name || 'Guest';
-    return (orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customerName.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (statusFilter === 'All' || order.status === statusFilter);
-  });
+  const filteredOrders = Array.isArray(orders)
+    ? orders.filter(order => {
+      const orderId = order.orderId || order._id;
+      const customerName = order.user?.name || 'Guest';
+      return (orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customerName.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (statusFilter === 'All' || order.status === statusFilter);
+    })
+    : [];
 
   return (
     <div className="p-4">

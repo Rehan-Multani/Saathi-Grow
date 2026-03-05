@@ -7,6 +7,7 @@ import UserTransaction from '../models/UserTransaction.js';
 import GlobalSetting from '../models/GlobalSetting.js';
 import Product from '../models/Product.js';
 import OrderDelivery from '../models/OrderDelivery.js';
+import InventoryLog from '../models/InventoryLog.js';
 import { findOptimalSource, geocodeAddress } from '../services/locationService.js';
 
 const computeBillDetails = async (items) => {
@@ -129,7 +130,7 @@ export const verifyRazorpayPayment = async (req, res) => {
       items: orderData.items,
       shippingAddress: orderData.shippingAddress,
       paymentMethod: 'online',
-      paymentStatus: 'paid',
+      paymentStatus: 'paid', // Mark as paid for razorpay
       status: 'confirmed',
       totalAmount: computedBill.totalAmount, // Securely injected
       subTotal: computedBill.subTotal,
@@ -139,6 +140,7 @@ export const verifyRazorpayPayment = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
+      deliverySlot: orderData.deliverySlot,
       razorpayOrderId: razorpayOrderId,
       razorpayPaymentId: razorpayPaymentId,
       razorpaySignature: razorpaySignature
@@ -183,20 +185,64 @@ export const verifyRazorpayPayment = async (req, res) => {
 // Unified Stock Helpers for Branch & Vendor
 const decrementStock = async (order) => {
   const { branchId, vendor, items } = order;
+  console.log(`[STOCK-DEBUG] Starting decrement for Order: ${order.orderId}, Source: ${branchId ? 'Branch ' + branchId : 'Vendor ' + vendor}`);
+
   for (const item of items) {
-    const productId = item.product._id || item.product;
-    if (branchId) {
-      // Logic for Branch Stock
-      await Product.findOneAndUpdate(
-        { _id: productId, 'branchStocks.branchId': branchId },
-        { $inc: { 'branchStocks.$.stock': -item.quantity } }
-      );
-    } else if (vendor) {
-      // Logic for Vendor Stock (Deduct from FIRST variant atomically)
-      await Product.updateOne(
-        { _id: productId },
-        { $inc: { 'variants.0.stock': -item.quantity } }
-      );
+    try {
+      const productId = item.product._id || item.product;
+      const quantity = parseInt(item.quantity) || 0;
+      console.log(`[STOCK-DEBUG] Processing Product: ${productId}, Qty: ${quantity}`);
+
+      if (branchId) {
+        // Logic for Branch Stock
+        const updatedProduct = await Product.findOneAndUpdate(
+          { _id: productId, 'branchStocks.branchId': branchId },
+          { $inc: { 'branchStocks.$.stock': -quantity } },
+          { new: true }
+        );
+
+        if (updatedProduct) {
+          console.log(`[STOCK-SUCCESS] Deducted ${quantity} from Branch ${branchId} for Product ${productId}`);
+          const currentBS = updatedProduct.branchStocks.find(bs => bs.branchId.toString() === branchId.toString());
+          await InventoryLog.create({
+            product: productId,
+            branchId: branchId,
+            changeAmount: -quantity,
+            previousStock: (currentBS?.stock || 0) + quantity,
+            newStock: currentBS?.stock || 0,
+            type: 'Removal',
+            reason: `Order Placement #${order.orderId}`,
+            orderId: order._id
+          });
+        } else {
+          console.warn(`[STOCK-WARN] No match found for Product: ${productId} at Branch: ${branchId}`);
+        }
+      } else if (vendor) {
+        // Logic for Vendor Stock (Deduct from FIRST variant atomically)
+        const updatedProduct = await Product.findOneAndUpdate(
+          { _id: productId },
+          { $inc: { 'variants.0.stock': -quantity } },
+          { new: true }
+        );
+
+        if (updatedProduct && updatedProduct.variants && updatedProduct.variants[0]) {
+          console.log(`[STOCK-SUCCESS] Deducted ${quantity} from Vendor ${vendor} for Product ${productId}`);
+          await InventoryLog.create({
+            product: productId,
+            vendorId: vendor,
+            changeAmount: -quantity,
+            previousStock: (updatedProduct.variants[0].stock || 0) + quantity,
+            newStock: updatedProduct.variants[0].stock || 0,
+            type: 'Removal',
+            reason: `Order Placement #${order.orderId}`,
+            orderId: order._id
+          });
+        } else {
+          console.warn(`[STOCK-WARN] No match/variants found for Product: ${productId} at Vendor: ${vendor}`);
+        }
+      }
+    } catch (err) {
+      console.error(`[STOCK-DECREMENT-FAIL] Order: ${order.orderId}, Product: ${item.product}`, err);
     }
   }
 };
@@ -204,18 +250,53 @@ const decrementStock = async (order) => {
 const incrementStock = async (order) => {
   const { branchId, vendor, items } = order;
   for (const item of items) {
-    const productId = item.product._id || item.product;
-    if (branchId) {
-      await Product.findOneAndUpdate(
-        { _id: productId, 'branchStocks.branchId': branchId },
-        { $inc: { 'branchStocks.$.stock': item.quantity } }
-      );
-    } else if (vendor) {
-      // Logic for Vendor Stock (Restore to FIRST variant atomically)
-      await Product.updateOne(
-        { _id: productId },
-        { $inc: { 'variants.0.stock': item.quantity } }
-      );
+    try {
+      const productId = item.product._id || item.product;
+      const quantity = parseInt(item.quantity) || 0;
+
+      if (branchId) {
+        const updatedProduct = await Product.findOneAndUpdate(
+          { _id: productId, 'branchStocks.branchId': branchId },
+          { $inc: { 'branchStocks.$.stock': quantity } },
+          { new: true }
+        );
+
+        if (updatedProduct) {
+          const currentBS = updatedProduct.branchStocks.find(bs => bs.branchId.toString() === branchId.toString());
+          await InventoryLog.create({
+            product: productId,
+            branchId: branchId,
+            changeAmount: quantity,
+            previousStock: (currentBS?.stock || 0) - quantity,
+            newStock: currentBS?.stock || 0,
+            type: 'Addition',
+            reason: `Order Reversal (Cancel/Return) #${order.orderId}`,
+            orderId: order._id
+          });
+        }
+      } else if (vendor) {
+        // Restore to FIRST variant
+        const updatedProduct = await Product.findOneAndUpdate(
+          { _id: productId },
+          { $inc: { 'variants.0.stock': quantity } },
+          { new: true }
+        );
+
+        if (updatedProduct && updatedProduct.variants && updatedProduct.variants[0]) {
+          await InventoryLog.create({
+            product: productId,
+            vendorId: vendor,
+            changeAmount: quantity,
+            previousStock: (updatedProduct.variants[0].stock || 0) - quantity,
+            newStock: updatedProduct.variants[0].stock || 0,
+            type: 'Addition',
+            reason: `Order Reversal (Cancel/Return) #${order.orderId}`,
+            orderId: order._id
+          });
+        }
+      }
+    } catch (err) {
+      console.error(`[STOCK-INCREMENT-FAIL] Order: ${order.orderId}, Product: ${item.product}`, err);
     }
   }
 };
@@ -251,6 +332,7 @@ export const createCODOrder = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
+      deliverySlot: orderData.deliverySlot,
     });
 
     // Automatically find nearest source (Branch or Vendor) with Stock
@@ -320,6 +402,7 @@ export const createWalletOrder = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
+      deliverySlot: orderData.deliverySlot,
     });
 
     // Deduct from User Wallet immediately
@@ -589,6 +672,18 @@ export const getOrderRoute = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getAllOrdersAdmin = async (req, res) => {
   try {
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      status,
+      paymentMethod,
+      paymentStatus,
+      startDate,
+      endDate,
+      branchId
+    } = req.query;
+
     let query = {};
 
     // Branch Scoping: If not Super Admin, only show orders for their branch
@@ -597,14 +692,72 @@ export const getAllOrdersAdmin = async (req, res) => {
         return res.status(403).json({ message: 'No branch assigned' });
       }
       query.branchId = req.admin.branchId;
-      // Note: Make sure Order model has branchId field or we derive it from items
+    } else if (branchId) {
+      // Super Admin filtering by branch
+      query.branchId = branchId;
     }
 
-    const orders = await Order.find(query)
-      .populate('user', 'name email phone')
-      .sort({ createdAt: -1 });
+    // Search logic
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
 
-    res.json(orders);
+      // We need to search by orderId and also by user name/email.
+      // Since user is a ref, we first find matching users.
+      const matchingUsers = await User.find({
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { phone: searchRegex }
+        ]
+      }).select('_id');
+      const userIds = matchingUsers.map(user => user._id);
+
+      query.$or = [
+        { orderId: searchRegex },
+        { user: { $in: userIds } }
+      ];
+    }
+
+    // Filters
+    if (status) query.status = status;
+    if (paymentMethod) query.paymentMethod = paymentMethod;
+    if (paymentStatus) query.paymentStatus = paymentStatus;
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    // Pagination
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const [orders, totalOrders] = await Promise.all([
+      Order.find(query)
+        .populate('user', 'name email phone')
+        .populate('branchId', 'name')
+        .populate('vendor', 'storeName')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNumber),
+      Order.countDocuments(query)
+    ]);
+
+    res.json({
+      orders,
+      pagination: {
+        total: totalOrders,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(totalOrders / limitNumber)
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -633,10 +786,10 @@ export const updateOrderStatus = async (req, res) => {
       order.paymentStatus = 'paid';
     }
 
-    if (status === 'cancelled' && oldStatus !== 'cancelled') {
+    if ((status === 'cancelled' || status === 'returned') && oldStatus !== 'cancelled' && oldStatus !== 'returned') {
       order.cancellation = {
         isCancelled: true,
-        reason: 'Cancelled by Admin/Staff',
+        reason: status === 'cancelled' ? 'Cancelled by Admin/Staff' : 'Returned',
         cancelledAt: new Date()
       };
       // Restore Stock

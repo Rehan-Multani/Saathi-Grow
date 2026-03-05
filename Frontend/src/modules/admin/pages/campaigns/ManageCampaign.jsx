@@ -33,7 +33,7 @@ const ManageCampaign = () => {
     const fetchData = async () => {
       try {
         const productsData = await getProducts(adminUser.token);
-        setProducts(productsData);
+        setProducts(productsData.products || []);
 
         if (id) {
           const campaign = await getCampaignById(adminUser.token, id);

@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Badge, Dropdown, Spinner, Row, Col, InputGroup } from 'react-bootstrap';
-import { Clock, MapPin, UserCheck, RefreshCw, Search, UserX, Zap } from 'lucide-react';
+import { Clock, MapPin, UserCheck, RefreshCw, Search, UserX, Zap, Calendar } from 'lucide-react';
 import {
     getUnassignedOrders,
     getAvailablePartners,
@@ -194,8 +194,15 @@ const AssignDeliveries = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="d-flex align-items-center gap-2 text-warning fw-medium small">
-                                            <Clock size={14} /> {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        <div className="d-flex flex-column gap-1 small">
+                                            <div className="d-flex align-items-center gap-2 text-warning fw-medium">
+                                                <Clock size={14} /> {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                            {item.deliverySlot && (
+                                                <div className="d-flex align-items-center gap-2 text-primary fw-bold">
+                                                    <Calendar size={14} /> {item.deliverySlot}
+                                                </div>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="text-end pe-4">

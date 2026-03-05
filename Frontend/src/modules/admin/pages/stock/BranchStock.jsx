@@ -14,8 +14,8 @@ const BranchStock = () => {
     useEffect(() => {
         const fetchBranchWiseStock = async () => {
             try {
-                const data = await getProducts(adminUser.token);
-                setProducts(data);
+                const data = await getProducts(adminUser.token, { limit: 200 });
+                setProducts(data.products || []);
             } catch (error) {
                 console.error('Error fetching stock:', error);
                 toast.error('Failed to load branch-wise stock');
@@ -36,6 +36,8 @@ const BranchStock = () => {
                     productName: product.name,
                     image: product.image,
                     sku: product.sku,
+                    isVendor: !!product.vendor,
+                    vendorName: product.vendor?.storeName || '',
                     branchName: bs.branchId?.name || 'Unknown',
                     branchCode: bs.branchId?.branchCode || '',
                     location: bs.branchId?.address || 'N/A',
@@ -109,6 +111,9 @@ const BranchStock = () => {
                                             <div>
                                                 <div className="fw-medium text-dark">{row.productName}</div>
                                                 <div className="small text-muted font-monospace">{row.sku}</div>
+                                                {row.isVendor && (
+                                                    <div className="small text-purple-600 fw-bold">🏪 {row.vendorName}</div>
+                                                )}
                                             </div>
                                         </div>
                                     </td>
