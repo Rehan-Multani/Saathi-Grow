@@ -2,10 +2,11 @@
 import { useParams, Link } from 'react-router-dom';
 import { fetchProductById, fetchProducts } from '../../api/shopApi';
 import { useCart } from '../../context/CartContext';
-import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp } from 'lucide-react';
+import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp, AlertCircle } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
 import ProductCard from '../../components/product/ProductCard';
 import { useAuth } from '../../context/AuthContext';
+import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
@@ -13,6 +14,7 @@ const ProductDetailsPage = () => {
     const { id } = useParams();
     const { addToCart, updateQuantity, cart } = useCart();
     const { protectAction } = useAuth();
+    const { activeStore } = useStore();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -28,7 +30,10 @@ const ProductDetailsPage = () => {
             if (!silent) window.scrollTo({ top: 0, behavior: 'smooth' });
 
             // Fetch product details
-            const data = await fetchProductById(id);
+            const data = await fetchProductById(id, {
+                storeId: activeStore?.id,
+                storeType: activeStore?.type
+            });
 
             // Standardize mapping to frontend model
             const p = {
@@ -41,7 +46,8 @@ const ProductDetailsPage = () => {
                 category: data.category?.name || data.category,
                 description: data.description,
                 weight: `${data.unitValue} ${data.unitType}`,
-                tags: data.tags
+                tags: data.tags,
+                isDeliverable: data.isDeliverable
             };
 
             setProduct(p);
@@ -51,7 +57,12 @@ const ProductDetailsPage = () => {
             // Fetch relative products
             if (p.category) {
                 try {
-                    const simres = await fetchProducts({ category: p.category, limit: 10 });
+                    const simres = await fetchProducts({
+                        category: p.category,
+                        limit: 10,
+                        storeId: activeStore?.id,
+                        storeType: activeStore?.type
+                    });
                     const sim = (Array.isArray(simres) ? simres : (simres?.products || [])).filter(simP => simP._id !== id).map(simP => ({
                         id: simP._id,
                         name: simP.name,
@@ -68,7 +79,11 @@ const ProductDetailsPage = () => {
 
             // General Recommendations
             try {
-                const recres = await fetchProducts({ limit: 12 });
+                const recres = await fetchProducts({
+                    limit: 12,
+                    storeId: activeStore?.id,
+                    storeType: activeStore?.type
+                });
                 const rec = (Array.isArray(recres) ? recres : (recres?.products || [])).filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
                     id: recP._id,
                     name: recP.name,
@@ -178,8 +193,11 @@ const ProductDetailsPage = () => {
                                 <Star size={14} className="text-yellow-500 fill-yellow-500" />
                                 <span className="text-xs font-bold text-gray-400">0.0</span>
                             </div>
-                            <div className="border border-gray-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-[#0c831f] dark:text-[#10b981]">
-                                In Stock
+                            <div className={`border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${product.isDeliverable !== false
+                                    ? 'border-gray-600 text-[#0c831f] dark:text-[#10b981]'
+                                    : 'border-red-500 text-red-500'
+                                }`}>
+                                {product.isDeliverable !== false ? 'In Stock' : 'Not Deliverable'}
                             </div>
                         </div>
 
@@ -202,10 +220,16 @@ const ProductDetailsPage = () => {
                             {quantity === 0 ? (
                                 <button
                                     onClick={() => protectAction(() => addToCart(product))}
-                                    className="w-full md:w-fit flex items-center justify-center gap-2 bg-[#0c831f] hover:bg-[#0a6b19] text-white font-bold py-4 px-12 !rounded-full transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                                    disabled={product.isDeliverable === false}
+                                    className={`w-full md:w-fit flex items-center justify-center gap-2 font-bold py-4 px-12 !rounded-full transition-all shadow-lg ${product.isDeliverable === false
+                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                                            : 'bg-[#0c831f] hover:bg-[#0a6b19] text-white active:scale-95 shadow-green-500/20'
+                                        }`}
                                 >
-                                    <ShoppingCart size={18} className="fill-white" />
-                                    <span className="uppercase tracking-widest text-xs">Add to Cart</span>
+                                    <ShoppingCart size={18} className={product.isDeliverable === false ? '' : 'fill-white'} />
+                                    <span className="uppercase tracking-widest text-xs">
+                                        {product.isDeliverable === false ? 'Out of Range' : 'Add to Cart'}
+                                    </span>
                                 </button>
                             ) : (
                                 <div className="flex items-center bg-[#0c831f] rounded-2xl p-1 w-fit shadow-lg shadow-green-500/20">
@@ -228,6 +252,19 @@ const ProductDetailsPage = () => {
 
                         {/* Additional Info (Minimal) */}
                         <div className="border-t border-gray-100 dark:border-white/5 pt-4 md:pt-8">
+                            {product.isDeliverable === false && activeStore && (
+                                <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20 mb-6">
+                                    <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">Store Not Serviceable</p>
+                                        <p className="text-[10px] text-red-500/70 dark:text-red-400/70 font-medium leading-relaxed">
+                                            This product is currently not available for delivery at your selected store: <span className="font-bold">{activeStore.name}</span>.
+                                            Try switching to another store nearby.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-4">Product Details</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                                 Fresh and natural coconut water combo. Perfect for a refreshing drink any time of the day. Packed with electrolytes and nutrients.

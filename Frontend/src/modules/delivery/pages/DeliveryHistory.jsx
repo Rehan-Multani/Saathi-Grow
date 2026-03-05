@@ -14,30 +14,40 @@ import {
     ChevronLeft
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import useDelivery from '../hooks/useDelivery';
+
 
 const DeliveryHistory = () => {
+    const { history, refreshOrders } = useDelivery();
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [dateFilter, setDateFilter] = useState('');
     const itemsPerPage = 5;
 
-    const historicalOrders = [
-        { id: 'SG-0841', date: '21 Feb 2024', status: 'Delivered', amount: '₹45.00', items: '2 Items', customer: 'Rohan J.', location: 'Palasia' },
-        { id: 'SG-0842', date: '21 Feb 2024', status: 'Cancelled', amount: '₹0.00', items: '1 Item', customer: 'Sneha M.', location: 'LIG Sq.' },
-        { id: 'SG-0835', date: '20 Feb 2024', status: 'Delivered', amount: '₹38.00', items: '5 Items', customer: 'Vikas T.', location: 'Bhawarkua' },
-        { id: 'SG-0830', date: '20 Feb 2024', status: 'Delivered', amount: '₹42.00', items: '3 Items', customer: 'Anjali R.', location: 'Annapurna' },
-        { id: 'SG-0824', date: '19 Feb 2024', status: 'Delivered', amount: '₹55.00', items: '7 Items', customer: 'Kunal S.', location: 'Geeta Bhawan' },
-        { id: 'SG-0819', date: '18 Feb 2024', status: 'Delivered', amount: '₹22.00', items: '1 Item', customer: 'Priya K.', location: 'Vijay Nagar' },
-        { id: 'SG-0815', date: '18 Feb 2024', status: 'Delivered', amount: '₹65.00', items: '4 Items', customer: 'Manish P.', location: 'Indore' },
-        { id: 'SG-0810', date: '17 Feb 2024', status: 'Delivered', amount: '₹12.00', items: '2 Items', customer: 'Rohit S.', location: 'Rajwada' },
-    ];
+    React.useEffect(() => {
+        refreshOrders('history');
+    }, [refreshOrders]);
+
+    const historicalOrders = useMemo(() => {
+        if (!history) return [];
+        return history.flatMap(run =>
+            run.orders.map(o => ({
+                id: o.order?.orderId || o.order?._id || 'Unknown',
+                date: new Date(o.deliveredAt || o.failedAt || run.completedAt || run.createdAt).toLocaleDateString(),
+                status: o.status === 'delivered' ? 'Delivered' : (o.status === 'failed' ? 'Failed' : o.status.replace('_', ' ')),
+                amount: `₹${o.order?.totalAmount || 0}`,
+                customer: o.order?.user?.name || 'Customer',
+                location: o.order?.shippingAddress?.city || o.order?.shippingAddress?.street || 'Unknown'
+            }))
+        );
+    }, [history]);
 
     const filteredOrders = useMemo(() => {
         return historicalOrders.filter(order =>
             order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
             order.customer.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery]);
+    }, [searchQuery, historicalOrders]);
 
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
     const paginatedOrders = filteredOrders.slice(

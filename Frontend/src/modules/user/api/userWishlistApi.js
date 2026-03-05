@@ -2,8 +2,9 @@
 
 const API_URL = `${API_BASE_URL}/user/wishlist`;
 
-export const getWishlist = async (token) => {
-  const response = await fetch(API_URL, {
+export const getWishlist = async (token, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`${API_URL}?${query}`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();

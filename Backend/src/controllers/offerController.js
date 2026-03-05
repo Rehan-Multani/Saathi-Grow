@@ -133,9 +133,44 @@ export const deleteOfferDeal = async (req, res) => {
 // @desc    Get active offer deals for public
 export const getActiveOfferDeals = async (req, res) => {
   try {
+    const { storeId, storeType } = req.query;
+
     const offers = await OfferDeal.find({ isActive: true })
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg')
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
       .sort('order');
+
+    if (storeId && storeType) {
+      const formattedOffers = offers.map(offer => {
+        const offerObj = offer.toObject();
+        offerObj.products = offerObj.products.map(cp => {
+          if (!cp.productId) return cp;
+
+          let isDeliverable = false;
+          const pObj = cp.productId;
+
+          if (storeType === 'branch') {
+            const branchStock = pObj.branchStocks?.find(bs => {
+              const bId = bs.branchId?._id || bs.branchId;
+              return bId && bId.toString() === storeId.toString();
+            });
+            if (branchStock && branchStock.stock > 0) {
+              isDeliverable = true;
+            }
+          } else if (storeType === 'vendor') {
+            const vId = pObj.vendor?._id || pObj.vendor;
+            if (vId && vId.toString() === storeId.toString()) {
+              isDeliverable = true;
+            }
+          }
+
+          cp.productId.isDeliverable = isDeliverable;
+          return cp;
+        });
+        return offerObj;
+      });
+      return res.json(formattedOffers);
+    }
+
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: error.message });

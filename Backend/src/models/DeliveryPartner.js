@@ -78,9 +78,22 @@ const deliveryPartnerSchema = new mongoose.Schema({
         }
     },
     activeOrder: {
+        // Legacy: used by old 1-to-1 assignment. Kept for backward compat.
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
         default: null
+    },
+    // Sprint 1: DeliveryRun system additions
+    activeRun: {
+        // The current DeliveryRun batch assigned to this partner
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DeliveryRun',
+        default: null
+    },
+    currentStopIndex: {
+        // 0-based index of which stop in the run the partner is currently working on
+        type: Number,
+        default: 0
     },
     totalDeliveries: {
         type: Number,

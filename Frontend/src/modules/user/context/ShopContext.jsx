@@ -1,5 +1,8 @@
 ﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCategories, fetchProducts, fetchActiveCampaigns, fetchActiveOfferDeals } from '../api/shopApi';
+import { useStore } from './StoreContext';
+import { useCart } from './CartContext';
+import { toast } from 'react-toastify';
 
 const ShopContext = createContext();
 
@@ -18,14 +21,18 @@ export const ShopProvider = ({ children }) => {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { activeStore } = useStore();
+  const { clearCart } = useCart();
+  const [lastStoreId, setLastStoreId] = useState(activeStore?.id);
 
   const refreshShopData = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
+      const fetchParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
       const [categoriesData, campaignsData, offersData] = await Promise.all([
         fetchCategories(),
-        fetchActiveCampaigns().catch(() => []), // Don't fail if no campaigns
-        fetchActiveOfferDeals().catch(() => []) // Don't fail if no offers
+        fetchActiveCampaigns(fetchParams).catch(() => []),
+        fetchActiveOfferDeals(fetchParams).catch(() => [])
       ]);
       setCategories(categoriesData);
       setProducts([]); // No longer needed for home page mapping
@@ -39,6 +46,19 @@ export const ShopProvider = ({ children }) => {
       if (showLoading) setLoading(false);
     }
   };
+
+  // Watch for store changes to clear cart and refresh data
+  useEffect(() => {
+    if (activeStore?.id !== lastStoreId) {
+      if (lastStoreId && activeStore?.id) {
+        // Only clear cart if it was a real switch between two different stores
+        clearCart();
+        toast.info("Cart cleared due to store switch");
+      }
+      setLastStoreId(activeStore?.id);
+      refreshShopData();
+    }
+  }, [activeStore?.id]);
 
   useEffect(() => {
     refreshShopData();

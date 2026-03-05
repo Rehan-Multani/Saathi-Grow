@@ -1,7 +1,9 @@
 ﻿import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useStore } from './StoreContext';
 import * as cartApi from '../api/userCartApi';
 import { getPublicSettings } from '../api/publicSettingApi';
+import { toast } from 'react-toastify';
 
 
 const CartContext = createContext();
@@ -19,6 +21,7 @@ export const CartProvider = ({ children }) => {
     });
 
     const { token } = useAuth();
+    const { activeStore } = useStore();
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [publicSettings, setPublicSettings] = useState({
         baseDeliveryFee: 0,
@@ -50,7 +53,7 @@ export const CartProvider = ({ children }) => {
                     }));
 
                     // If there's local items that need merging to the cloud
-                    const localCart = JSON.parse(localStorage.getItem('saathigro_cart') || '[]');
+                    const localCart = JSON.parse(localStorage.getItem('sathiGro_cart') || '[]');
 
                     if (localCart.length > 0 && formatted.length === 0) {
                         // The User logged into a blank account but has stuff right now. Sync up immediately.
@@ -70,7 +73,7 @@ export const CartProvider = ({ children }) => {
 
     // Continually backup to Local Storage and optionally Sync to Cloud if authenticated
     useEffect(() => {
-        localStorage.setItem('saathigro_cart', JSON.stringify(cart));
+        localStorage.setItem('sathiGro_cart', JSON.stringify(cart));
 
         let timeoutId;
         if (token) {
@@ -85,6 +88,17 @@ export const CartProvider = ({ children }) => {
 
 
     const addToCart = (product) => {
+        // Enforce Store-First logic: Only add if deliverable from the ACTIVE store
+        if (product.isDeliverable === false) {
+            toast.error("This product is not deliverable from your selected store.");
+            return;
+        }
+
+        if (!activeStore) {
+            toast.warning("Please select a store first.");
+            return;
+        }
+
         setCart((prevCart) => {
             const prodId = product.id || product._id;
             const priceToUse = product.price || product.basePrice || 0; // Fallback mapping

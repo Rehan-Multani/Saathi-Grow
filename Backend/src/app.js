@@ -125,6 +125,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import complaintRoutes from './routes/complaintRoutes.js';
 import legalRoutes from './routes/legalRoutes.js';
 import deliverySlotRoutes from './routes/deliverySlotRoutes.js';
+import storeRoutes from './routes/storeRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
 
 
@@ -156,6 +157,7 @@ app.use('/api/complaints', complaintRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/legal', legalRoutes);
 app.use('/api/delivery-slots', deliverySlotRoutes);
+app.use('/api/user/stores', storeRoutes);
 
 
 

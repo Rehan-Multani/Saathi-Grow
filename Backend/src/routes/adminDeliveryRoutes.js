@@ -11,6 +11,13 @@ import {
   unassignOrderFromPartner,
   getActiveDeliveries
 } from '../controllers/adminDeliveryController.js';
+import {
+  getOrdersBySlot,
+  createDeliveryRun,
+  getAllDeliveryRuns,
+  getDeliveryRunById,
+  cancelDeliveryRun
+} from '../controllers/deliveryRunController.js';
 import { protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
@@ -34,5 +41,12 @@ router.post('/assign', protectAdmin, requirePermission('MANAGE_DELIVERY'), assig
 router.post('/auto-assign/:orderId', protectAdmin, requirePermission('MANAGE_DELIVERY'), autoAssignOrder);
 router.post('/unassign', protectAdmin, requirePermission('MANAGE_DELIVERY'), unassignOrderFromPartner);
 router.get('/active-tracking', protectAdmin, requirePermission('MANAGE_DELIVERY'), getActiveDeliveries);
+
+// --- Sprint 3: Delivery Run (Multi-order Batch) routes ---
+router.get('/run/orders-by-slot', protectAdmin, requirePermission('MANAGE_DELIVERY'), getOrdersBySlot);
+router.post('/run/create', protectAdmin, requirePermission('MANAGE_DELIVERY'), createDeliveryRun);
+router.get('/run', protectAdmin, requirePermission('MANAGE_DELIVERY'), getAllDeliveryRuns);
+router.get('/run/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), getDeliveryRunById);
+router.delete('/run/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), cancelDeliveryRun);
 
 export default router;

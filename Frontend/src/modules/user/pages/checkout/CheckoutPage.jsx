@@ -22,6 +22,7 @@ import {
 
 import { useLocation as useGlobalLocation } from '../../context/LocationContext';
 import { useAuth } from '../../context/AuthContext';
+import { useStore } from '../../context/StoreContext';
 import * as orderApi from '../../api/orderApi';
 import * as walletApi from '../../api/walletApi';
 import { fetchDeliverySlots } from '../../api/orderApi';
@@ -41,6 +42,7 @@ const CheckoutPage = () => {
     const { cartTotal = 0, clearCart, cartCount = 0, cart = [] } = useCart();
     const { location: globalLocation, openLocationModal } = useGlobalLocation();
     const { user, token } = useAuth();
+    const { activeStore } = useStore();
     const [isPlacing, setIsPlacing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [walletBalance, setWalletBalance] = useState(0);
@@ -48,7 +50,9 @@ const CheckoutPage = () => {
     const [billDetails, setBillDetails] = useState(null);
     const [isCalculating, setIsCalculating] = useState(true);
     const [deliverySlots, setDeliverySlots] = useState([]);
-    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [selectedSlotId, setSelectedSlotId] = useState(null);   // ObjectId of chosen slot
+    const [selectedSlotLabel, setSelectedSlotLabel] = useState(null); // Display label
+    const [isImmediate, setIsImmediate] = useState(true);          // Default = Immediate
     const [loadingSlots, setLoadingSlots] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
@@ -71,7 +75,7 @@ const CheckoutPage = () => {
             try {
                 const data = await fetchDeliverySlots();
                 setDeliverySlots(data);
-                if (data.length > 0) setSelectedSlot(data[0].label);
+                // Don't auto-select a slot — default is Immediate
             } catch (err) {
                 console.error('Slots fetch failed', err);
             } finally {
@@ -93,7 +97,10 @@ const CheckoutPage = () => {
                     name: item.name,
                     image: item.image
                 }));
-                const computed = await orderApi.calculateBill(token, items);
+                const computed = await orderApi.calculateBill(token, items, {
+                    storeId: activeStore?.id,
+                    storeType: activeStore?.type
+                });
                 setBillDetails(computed);
             } catch (error) {
                 console.error(error);
@@ -112,10 +119,7 @@ const CheckoutPage = () => {
             return;
         }
 
-        if (!selectedSlot) {
-            toast.error("Please select a delivery slot.");
-            return;
-        }
+        // Delivery timing is always valid — either Immediate or a chosen slot
 
         const totalToPay = billDetails?.totalAmount || cartTotal;
 
@@ -144,7 +148,11 @@ const CheckoutPage = () => {
                 location: globalLocation.coordinates ? { type: 'Point', coordinates: globalLocation.coordinates } : undefined
             },
             totalAmount: totalToPay,
-            deliverySlot: selectedSlot
+            deliverySlot: isImmediate ? 'Immediate' : selectedSlotLabel,   // legacy label for display
+            deliverySlotId: isImmediate ? null : selectedSlotId,            // NEW: ObjectId ref
+            isImmediate,                                                     // NEW: flag
+            storeId: activeStore?.id,
+            storeType: activeStore?.type
         };
 
         try {
@@ -257,7 +265,7 @@ const CheckoutPage = () => {
             <div className="max-w-2xl mx-auto px-4">
                 <div className="flex items-center gap-3 mb-8">
                     <button
-                        onClick={() => navigate('/cart')}
+                        onClick={() => navigate(-1)}
                         className="p-1.5 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
                     >
                         <ArrowLeft size={16} className="text-gray-900 dark:text-white" />
@@ -289,40 +297,68 @@ const CheckoutPage = () => {
                     </div>
                 </div>
 
-                {/* Delivery Slots Section */}
+                {/* Delivery Timing Section */}
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4 px-1">
                         <Calendar size={14} className="text-[#0c831f]" />
-                        <h3 className="!text-[10px] font-black text-gray-400 tracking-widest uppercase">Delivery Slot</h3>
+                        <h3 className="!text-[10px] font-black text-gray-400 tracking-widest uppercase">When to Deliver?</h3>
                     </div>
+
                     {loadingSlots ? (
                         <div className="flex gap-3 px-1 animate-pulse">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="h-10 w-24 bg-gray-100 dark:bg-white/5 rounded-xl"></div>
+                                <div key={i} className="h-14 w-28 bg-gray-100 dark:bg-white/5 rounded-2xl" />
                             ))}
                         </div>
                     ) : (
                         <div className="flex flex-wrap gap-2 px-1">
-                            {deliverySlots.length > 0 ? deliverySlots.map((slot) => (
+                            {/* Immediate option — always shown first */}
+                            <div
+                                onClick={() => { setIsImmediate(true); setSelectedSlotId(null); setSelectedSlotLabel(null); }}
+                                className={`px-4 py-2.5 rounded-2xl cursor-pointer border-2 transition-all flex flex-col items-center min-w-[110px] ${isImmediate
+                                    ? 'border-[#0c831f] bg-green-50 dark:bg-green-500/10'
+                                    : 'border-gray-100 dark:border-white/5 bg-transparent hover:border-gray-200'
+                                    }`}
+                            >
+                                <span className={`text-[11px] font-black ${isImmediate ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-200'}`}>⚡ Immediate</span>
+                                <span className="text-[8px] font-bold text-gray-400 mt-0.5 tracking-tight">ASAP Delivery</span>
+                            </div>
+
+                            {/* Slot options */}
+                            {deliverySlots.map((slot) => (
                                 <div
                                     key={slot._id}
-                                    onClick={() => setSelectedSlot(slot.label)}
-                                    className={`px-4 py-2.5 rounded-2xl cursor-pointer border-2 transition-all flex flex-col items-center min-w-[120px] ${selectedSlot === slot.label
+                                    onClick={() => { setIsImmediate(false); setSelectedSlotId(slot._id); setSelectedSlotLabel(slot.label); }}
+                                    className={`px-4 py-2.5 rounded-2xl cursor-pointer border-2 transition-all flex flex-col items-center min-w-[110px] ${!isImmediate && selectedSlotId === slot._id
                                         ? 'border-[#0c831f] bg-green-50 dark:bg-green-500/10'
-                                        : 'border-gray-100 dark:border-white/5 bg-transparent hover:border-gray-200'}`}
+                                        : 'border-gray-100 dark:border-white/5 bg-transparent hover:border-gray-200'
+                                        }`}
                                 >
-                                    <span className={`text-[10px] font-black ${selectedSlot === slot.label ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-200'}`}>
+                                    <span className={`text-[10px] font-black ${!isImmediate && selectedSlotId === slot._id ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-200'
+                                        }`}>
                                         {slot.label}
                                     </span>
                                     <span className="text-[8px] font-bold text-gray-400 mt-0.5 tracking-tight">
-                                        {slot.startTime} - {slot.endTime}
+                                        {slot.startTime} – {slot.endTime}
                                     </span>
                                 </div>
-                            )) : (
-                                <p className="text-[10px] text-red-500 font-bold px-1">No delivery slots available currently.</p>
+                            ))}
+
+                            {deliverySlots.length === 0 && (
+                                <p className="text-[10px] text-gray-400 font-medium px-1 pt-1">
+                                    No scheduled slots active. Immediate delivery only.
+                                </p>
                             )}
                         </div>
                     )}
+
+                    {/* Chosen timing summary */}
+                    <p className="text-[9px] font-bold text-gray-400 mt-3 px-1 uppercase tracking-wider">
+                        {isImmediate
+                            ? '⚡ Your order will be dispatched as soon as it is ready'
+                            : `🕐 Scheduled for delivery during: ${selectedSlotLabel}`
+                        }
+                    </p>
                 </div>
 
                 <div className="mb-10">

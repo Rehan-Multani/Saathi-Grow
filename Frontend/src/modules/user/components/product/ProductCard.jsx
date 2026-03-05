@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Heart } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useStore } from '../../context/StoreContext';
 
 const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false, isLargeButton = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
@@ -14,12 +15,17 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { activeStore } = useStore();
 
   const productId = product.id || product._id;
 
   const cartItem = cart.find(item => item.id === productId);
   const quantity = cartItem ? cartItem.quantity : 0;
   const savings = product.originalPrice ? product.originalPrice - product.price : 0;
+
+  // Check deliverability
+  const isDeliverable = product.isDeliverable !== false; // Default true if not provided (e.g. initial load)
+  const isOutOfZone = !isDeliverable && activeStore;
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -153,6 +159,18 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
           )}
         </div>
       </div>
+      {isOutOfZone && (
+        <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[1px] z-40 flex flex-col items-center justify-center p-4 text-center">
+          <div className="bg-red-500 text-white text-[8px] sm:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg mb-2">
+            Not Deliverable
+          </div>
+          <p className="text-[7px] sm:text-[9px] font-bold text-gray-800 dark:text-gray-200 leading-tight">
+            Not available at <br />
+            <span className="text-[#0c831f]">{activeStore.name}</span>
+          </p>
+        </div>
+      )}
+
       <style>{`
         @keyframes shine-sweep-fast {
           0% { left: -100%; }

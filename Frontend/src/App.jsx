@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './modules/user/context/AuthContext';
 import { CartProvider } from './modules/user/context/CartContext';
 import { LocationProvider } from './modules/user/context/LocationContext';
+import { StoreProvider } from './modules/user/context/StoreContext';
 import { SearchProvider } from './modules/user/context/SearchContext';
 import { ThemeProvider } from './modules/user/context/ThemeContext';
 import { ReturnRequestsProvider } from './common/contexts/ReturnRequestsContext';
@@ -45,40 +46,42 @@ function App() {
         <ThemeProvider>
             <AuthProvider>
                 <LocationProvider>
-                    <SearchProvider>
-                        <CartProvider>
-                            <WishlistProvider>
-                                <ReturnRequestsProvider>
-                                    <BrowserRouter>
-                                        <Suspense fallback={<GlobalLoading />}>
-                                            <Routes>
-                                                <Route path="/staff/*" element={<StaffRoutes />} />
-                                                <Route path="/admin/*" element={<AdminRoutes />} />
-                                                <Route path="/store-manager/*" element={<StoreManagerRoutes />} />
-                                                <Route path="/vendor/*" element={<VendorRoutes />} />
-                                                <Route path="/delivery/*" element={<DeliveryRoutes />} />
-                                                <Route path="/*" element={<UserRoutes />} />
-                                            </Routes>
+                    <StoreProvider>
+                        <SearchProvider>
+                            <CartProvider>
+                                <WishlistProvider>
+                                    <ReturnRequestsProvider>
+                                        <BrowserRouter>
+                                            <Suspense fallback={<GlobalLoading />}>
+                                                <Routes>
+                                                    <Route path="/staff/*" element={<StaffRoutes />} />
+                                                    <Route path="/admin/*" element={<AdminRoutes />} />
+                                                    <Route path="/store-manager/*" element={<StoreManagerRoutes />} />
+                                                    <Route path="/vendor/*" element={<VendorRoutes />} />
+                                                    <Route path="/delivery/*" element={<DeliveryRoutes />} />
+                                                    <Route path="/*" element={<UserRoutes />} />
+                                                </Routes>
 
 
-                                            <ToastContainer
-                                                position="bottom-center"
-                                                autoClose={2000}
-                                                hideProgressBar={false}
-                                                newestOnTop={false}
-                                                closeOnClick
-                                                rtl={false}
-                                                pauseOnFocusLoss
-                                                draggable
-                                                pauseOnHover
-                                                theme="colored"
-                                            />
-                                        </Suspense>
-                                    </BrowserRouter>
-                                </ReturnRequestsProvider>
-                            </WishlistProvider>
-                        </CartProvider>
-                    </SearchProvider>
+                                                <ToastContainer
+                                                    position="bottom-center"
+                                                    autoClose={2000}
+                                                    hideProgressBar={false}
+                                                    newestOnTop={false}
+                                                    closeOnClick
+                                                    rtl={false}
+                                                    pauseOnFocusLoss
+                                                    draggable
+                                                    pauseOnHover
+                                                    theme="colored"
+                                                />
+                                            </Suspense>
+                                        </BrowserRouter>
+                                    </ReturnRequestsProvider>
+                                </WishlistProvider>
+                            </CartProvider>
+                        </SearchProvider>
+                    </StoreProvider>
                 </LocationProvider>
             </AuthProvider>
         </ThemeProvider>

@@ -10,7 +10,7 @@ import OrderDelivery from '../models/OrderDelivery.js';
 import InventoryLog from '../models/InventoryLog.js';
 import { findOptimalSource, geocodeAddress } from '../services/locationService.js';
 
-const computeBillDetails = async (items) => {
+const computeBillDetails = async (items, storeInfo = null) => {
   let subTotal = 0;
 
   // Validate each item against the actual database to prevent frontend price manipulation
@@ -18,6 +18,8 @@ const computeBillDetails = async (items) => {
     const product = await Product.findById(item.product);
     if (!product) throw new Error(`Product mapping failed for: ${item.name}`);
 
+    // In a mature store-first app, we'd check store-specific pricing here if it exists.
+    // For now, we take the base price.
     const verifiedPrice = product.basePrice || product.price || 0;
     subTotal += verifiedPrice * item.quantity;
   }
@@ -28,6 +30,9 @@ const computeBillDetails = async (items) => {
   const taxAmount = (subTotal * settings.defaultTaxRate) / 100;
 
   let deliveryFee = settings.baseDeliveryFee * settings.surgeMultiplier;
+
+  // Custom logic: Distance based fee could be calculated if we have storeInfo
+  // and user location. For now, we stick to global settings threshold.
   if (subTotal >= settings.freeDeliveryThreshold) {
     deliveryFee = 0;
   }
@@ -35,7 +40,7 @@ const computeBillDetails = async (items) => {
   const handlingFee = settings.handlingFee;
   const totalAmount = subTotal + taxAmount + deliveryFee + handlingFee;
 
-  // Vendor Commission logic
+  // Vendor Commission logic (Note: If storeType is 'vendor', this applies)
   const platformCommission = (subTotal * settings.platformCommissionRate) / 100;
   const vendorPayoutAmount = (subTotal + taxAmount) - platformCommission;
 
@@ -140,24 +145,24 @@ export const verifyRazorpayPayment = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
-      deliverySlot: orderData.deliverySlot,
+      deliverySlot: orderData.deliverySlot,        // legacy label
+      deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
+      isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
       razorpayOrderId: razorpayOrderId,
       razorpayPaymentId: razorpayPaymentId,
       razorpaySignature: razorpaySignature
     });
 
-    // Automatically find nearest source (Branch or Vendor) with Stock
-    let coords = orderData.shippingAddress?.location?.coordinates;
-
-    // Fallback to Geocoding if coordinates are missing but address is present
-    if (!coords && orderData.shippingAddress?.street) {
-      coords = await geocodeAddress(`${orderData.shippingAddress.street}, ${orderData.shippingAddress.city}`);
-      if (coords) {
-        order.shippingAddress.location = { type: 'Point', coordinates: coords };
+    // Priority 1: Use specific Store if provided by Frontend (Store-First Architecture)
+    if (orderData.storeId && orderData.storeType) {
+      if (orderData.storeType === 'branch') {
+        order.branchId = orderData.storeId;
+      } else {
+        order.vendor = orderData.storeId;
       }
     }
-
-    if (coords) {
+    // Legacy/Fallback Logic
+    else if (coords) {
       const optimalSource = await findOptimalSource(coords, orderData.items);
       if (optimalSource) {
         if (optimalSource.type === 'branch') {
@@ -332,21 +337,21 @@ export const createCODOrder = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
-      deliverySlot: orderData.deliverySlot,
+      deliverySlot: orderData.deliverySlot,        // legacy label
+      deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
+      isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
     });
 
-    // Automatically find nearest source (Branch or Vendor) with Stock
-    let coords = orderData.shippingAddress?.location?.coordinates;
-
-    // Fallback to Geocoding if coordinates are missing
-    if (!coords && orderData.shippingAddress?.street) {
-      coords = await geocodeAddress(`${orderData.shippingAddress.street}, ${orderData.shippingAddress.city}`);
-      if (coords) {
-        order.shippingAddress.location = { type: 'Point', coordinates: coords };
+    // Priority 1: Use specific Store if provided by Frontend (Store-First Architecture)
+    if (orderData.storeId && orderData.storeType) {
+      if (orderData.storeType === 'branch') {
+        order.branchId = orderData.storeId;
+      } else {
+        order.vendor = orderData.storeId;
       }
     }
-
-    if (coords) {
+    // Legacy/Fallback Logic
+    else if (coords) {
       const optimalSource = await findOptimalSource(coords, orderData.items);
       if (optimalSource) {
         if (optimalSource.type === 'branch') {
@@ -402,8 +407,35 @@ export const createWalletOrder = async (req, res) => {
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
       vendor: orderData.vendorId,
-      deliverySlot: orderData.deliverySlot,
+      deliverySlot: orderData.deliverySlot,        // legacy label
+      deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
+      isImmediate: orderData.isImmediate ?? true,       // Sprint 2: ASAP flag
     });
+
+    // Priority 1: Use specific Store if provided by Frontend (Store-First Architecture)
+    if (orderData.storeId && orderData.storeType) {
+      if (orderData.storeType === 'branch') {
+        order.branchId = orderData.storeId;
+      } else {
+        order.vendor = orderData.storeId;
+      }
+    }
+    // Legacy/Fallback Logic
+    else {
+      let coords = orderData.shippingAddress?.location?.coordinates;
+      if (coords) {
+        const optimalSource = await findOptimalSource(coords, orderData.items);
+        if (optimalSource) {
+          if (optimalSource.type === 'branch') {
+            order.branchId = optimalSource.id;
+          } else {
+            order.vendor = optimalSource.id;
+          }
+        }
+      } else if (orderData.branchId) {
+        order.branchId = orderData.branchId;
+      }
+    }
 
     // Deduct from User Wallet immediately
     user.walletBalance -= computedBill.totalAmount;
@@ -558,10 +590,10 @@ export const requestReturn = async (req, res) => {
 // @access  Private
 export const calculateBill = async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, storeId, storeType } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ message: 'Cart is empty' });
 
-    const bill = await computeBillDetails(items);
+    const bill = await computeBillDetails(items, { storeId, storeType });
     res.json(bill);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -738,7 +770,8 @@ export const getAllOrdersAdmin = async (req, res) => {
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const [orders, totalOrders] = await Promise.all([
+    // Run paginated results, total count, AND full-dataset aggregate stats in parallel
+    const [orders, totalOrders, statsAgg] = await Promise.all([
       Order.find(query)
         .populate('user', 'name email phone')
         .populate('branchId', 'name')
@@ -746,8 +779,26 @@ export const getAllOrdersAdmin = async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNumber),
-      Order.countDocuments(query)
+      Order.countDocuments(query),
+      // Aggregate across ALL matching docs (no pagination) for accurate stats
+      Order.aggregate([
+        { $match: query },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$totalAmount' },
+            totalPaid: {
+              $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, 1, 0] }
+            },
+            totalPendingPayment: {
+              $sum: { $cond: [{ $ne: ['$paymentStatus', 'paid'] }, 1, 0] }
+            }
+          }
+        }
+      ])
     ]);
+
+    const aggResult = statsAgg[0] || {};
 
     res.json({
       orders,
@@ -756,6 +807,12 @@ export const getAllOrdersAdmin = async (req, res) => {
         page: pageNumber,
         limit: limitNumber,
         totalPages: Math.ceil(totalOrders / limitNumber)
+      },
+      stats: {
+        totalOrders,
+        totalPaid: aggResult.totalPaid || 0,
+        totalPendingPayment: aggResult.totalPendingPayment || 0,
+        totalRevenue: parseFloat((aggResult.totalRevenue || 0).toFixed(2))
       }
     });
   } catch (error) {

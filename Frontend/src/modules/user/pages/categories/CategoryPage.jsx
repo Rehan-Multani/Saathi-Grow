@@ -5,6 +5,7 @@ import { fetchProducts, fetchBrands } from '../../api/shopApi';
 import ProductCard from '../../components/product/ProductCard';
 import { ChevronRight, Filter, ArrowLeft, Search, X, SlidersHorizontal, Leaf, Info, TrendingUp } from 'lucide-react';
 import { ProductCardSkeleton } from '../../components/common/Skeleton';
+import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 import { normalizeProduct } from '../home/HomePage';
 const categoryPlaceholder = ASSET_URLS.placeholder;
@@ -31,6 +32,7 @@ const CategoryPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { categories, products: globalProducts, refreshShopData } = useShop();
+    const { activeStore } = useStore();
 
     // Parse URL search params
     const queryParams = new URLSearchParams(location.search);
@@ -102,6 +104,10 @@ const CategoryPage = () => {
             if (selectedSubCat !== 'all') params.subCategory = selectedSubCat;
             if (isVegOnly) params.isVeg = 'true';
             if (selectedBrands.length > 0) params.brand = selectedBrands.join(',');
+            if (activeStore) {
+                params.storeId = activeStore.id;
+                params.storeType = activeStore.type;
+            }
 
             const response = await fetchProducts(params);
             const newProducts = response.products || [];

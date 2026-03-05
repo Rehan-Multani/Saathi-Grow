@@ -113,3 +113,48 @@ export const getActiveTracking = async () => {
   });
   return data;
 };
+
+// --- Sprint 3: Delivery Run APIs ---
+
+export const getOrdersBySlot = async (date = '', branchId = '') => {
+  const auth = getAuthDetails();
+  if (!auth) return null;
+
+  const { data } = await axios.get(`${API_URL}/run/orders-by-slot`, {
+    params: { date, branchId },
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const createDeliveryRun = async (payload) => {
+  const auth = getAuthDetails();
+  if (!auth) throw new Error('Not Authenticated');
+
+  const { data } = await axios.post(`${API_URL}/run/create`, payload, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const getAllDeliveryRuns = async (status = '', date = '') => {
+  const auth = getAuthDetails();
+  if (!auth) return [];
+
+  const { data } = await axios.get(`${API_URL}/run`, {
+    params: { status, date },
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const cancelDeliveryRun = async (runId) => {
+  const auth = getAuthDetails();
+  if (!auth) throw new Error('Not Authenticated');
+
+  const { data } = await axios.delete(`${API_URL}/run/${runId}`, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+

@@ -48,14 +48,46 @@ export const getActiveCampaignSections = async (req, res) => {
       bannerImage: 1,
       products: { $slice: 10 } // Initial batch
     })
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg')
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg branchStocks vendor')
       .sort('order');
+
+    // Inject isDeliverable if store context provided
+    const { storeId, storeType } = req.query;
 
     // Also send total product count per section to help frontend pagination
     const sectionsWithCount = await Promise.all(sections.map(async (s) => {
       const fullDoc = await CampaignSection.findById(s._id).select('products');
+      const sectionObj = s.toObject();
+
+      if (storeId && storeType) {
+        sectionObj.products = sectionObj.products.map(cp => {
+          if (!cp.productId) return cp;
+
+          let isDeliverable = false;
+          const pObj = cp.productId;
+
+          if (storeType === 'branch') {
+            const branchStock = pObj.branchStocks?.find(bs => {
+              const bId = bs.branchId?._id || bs.branchId;
+              return bId && bId.toString() === storeId.toString();
+            });
+            if (branchStock && branchStock.stock > 0) {
+              isDeliverable = true;
+            }
+          } else if (storeType === 'vendor') {
+            const vId = pObj.vendor?._id || pObj.vendor;
+            if (vId && vId.toString() === storeId.toString()) {
+              isDeliverable = true;
+            }
+          }
+
+          cp.productId.isDeliverable = isDeliverable;
+          return cp;
+        });
+      }
+
       return {
-        ...s.toObject(),
+        ...sectionObj,
         totalProducts: fullDoc.products.length
       };
     }));

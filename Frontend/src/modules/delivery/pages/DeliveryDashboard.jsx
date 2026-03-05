@@ -472,7 +472,7 @@ const DeliveryDashboard = () => {
                 {/* Recent Orders Overview */}
                 <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 md:p-6 border border-slate-100 dark:border-zinc-800 shadow-sm">
                     <div className="flex items-center justify-between mb-4 md:mb-6">
-                        <h4 className="font-bold text-lg md:text-xl tracking-tight">Active Deliveries</h4>
+                        <h4 className="font-bold text-lg md:text-xl tracking-tight">Active Batch Runs</h4>
                         <button
                             onClick={() => navigate('/delivery/orders')}
                             className="text-[#028A0F] text-[11px] md:text-xs font-bold flex items-center gap-1 group"
@@ -482,24 +482,23 @@ const DeliveryDashboard = () => {
                     </div>
 
                     <div className="space-y-4">
-                        {orders.length > 0 ? orders.map((order) => (
+                        {orders.length > 0 ? orders.map((run) => (
                             <div
-                                key={order._id}
-                                onClick={() => navigate(`/delivery/tracking/${order._id}`)}
+                                key={run._id}
+                                onClick={() => navigate(`/delivery/tracking/${run._id}`)}
                                 className="flex items-center gap-4 p-4 rounded-3xl border border-slate-50 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-[#028A0F] font-bold shrink-0">
                                     <Clock size={16} md:size={20} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h5 className="font-bold text-[13px] md:text-sm truncate">#{order.order?.orderId || 'N/A'}</h5>
-                                    <p className="text-slate-500 text-[10px] md:text-xs truncate">{order.order?.shippingAddress?.street}, {order.order?.shippingAddress?.city}</p>
+                                    <h5 className="font-bold text-[13px] md:text-sm truncate">{run.runId}</h5>
+                                    <p className="text-slate-500 text-[10px] md:text-xs truncate">{run.orders?.length || 0} Stops</p>
                                 </div>
                                 <div className="text-right shrink-0">
                                     <span className="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-500/10 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-wider mb-0.5 md:mb-1">
-                                        {order.status}
+                                        {run.status.replace('_', ' ')}
                                     </span>
-                                    <p className="font-black text-[13px] md:text-sm">₹{order.deliveryFee}</p>
                                 </div>
                             </div>
                         )) : (

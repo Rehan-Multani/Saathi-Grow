@@ -7,6 +7,7 @@ import { useSearch } from '../../context/SearchContext';
 import { useShop } from '../../context/ShopContext';
 import { ChevronRight, ArrowRight, ArrowLeft, TrendingDown } from 'lucide-react';
 import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../components/common/Skeleton';
+import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
@@ -157,6 +158,8 @@ const HomePage = ({ }) => {
     const getProductsByCategoryLocal = (categoryName) => {
         return getProductsByCategory(categoryName);
     };
+
+    const { activeStore } = useStore();
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300">
@@ -331,10 +334,12 @@ const HomePage = ({ }) => {
                 const campaignProducts = campaign.products
                     .filter(cp => cp.productId)
                     .map(cp => ({
-                        ...cp.productId,
-                        basePrice: cp.productId.basePrice,
-                        price: cp.productId.basePrice,
-                        mrp: cp.productId.mrp || cp.productId.basePrice,
+                        ...(cp.productId || {}),
+                        id: cp.productId?._id || cp.productId?.id,
+                        basePrice: cp.productId?.basePrice,
+                        price: cp.productId?.basePrice,
+                        mrp: cp.productId?.mrp || cp.productId?.basePrice,
+                        isDeliverable: cp.productId?.isDeliverable
                     }));
                 return (
                     <React.Fragment key={campaign._id}>
@@ -397,6 +402,7 @@ export const normalizeProduct = (product) => ({
 
 // Sub-component for individual product rows to manage scroll state
 const ProductRow = ({ category, loading: globalLoading }) => {
+    const { activeStore } = useStore();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
@@ -411,7 +417,9 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                 category: category.name,
                 page: pageNum,
                 limit: 10,
-                status: 'Active'
+                status: 'Active',
+                storeId: activeStore?.id,
+                storeType: activeStore?.type
             });
             const newProducts = data.products || [];
             if (pageNum === 1) {
@@ -426,11 +434,12 @@ const ProductRow = ({ category, loading: globalLoading }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [category.name]);
+    }, [category.name, activeStore?.id]); // Added activeStore dependence
 
     useEffect(() => {
+        setPage(1);
         fetchItems(1);
-    }, [category.name]);
+    }, [category.name, activeStore?.id]); // Added activeStore dependence
 
     const handleScroll = () => {
         if (sectionRef.current) {
@@ -550,6 +559,7 @@ const OccasionSection = ({
     totalProductsCount
 }) => {
     const { isDarkMode } = useTheme();
+    const { activeStore } = useStore();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
@@ -581,7 +591,9 @@ const OccasionSection = ({
                 campaignId: campaignId,
                 page: nextPage,
                 limit: 10,
-                status: 'Active'
+                status: 'Active',
+                storeId: activeStore?.id,
+                storeType: activeStore?.type
             });
             const newProducts = data.products || [];
             if (newProducts.length > 0) {

@@ -7,12 +7,14 @@ import { ProductCardSkeleton, SuggestionSkeleton } from '../common/Skeleton';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const logo = ASSET_URLS.logo;
 import { useTheme } from '../../context/ThemeContext';
+import { useStore } from '../../context/StoreContext';
 import { normalizeProduct } from '../../pages/home/HomePage';
-import { API_BASE_URL } from '../../../../config/apiConfig';
+import { searchProducts } from '../../api/shopApi';
 
 const SearchOverlay = () => {
     const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
     const { isDarkMode } = useTheme();
+    const { activeStore } = useStore();
     const navigate = useNavigate();
     const [recentSearches, setRecentSearches] = useState(() => {
         const saved = localStorage.getItem('recentSearches');
@@ -96,10 +98,9 @@ const SearchOverlay = () => {
         const runSearch = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(
-                    `${API_BASE_URL}/admin/products/search/ai?q=${encodeURIComponent(searchQuery)}`
-                );
-                const data = await response.json();
+                const storeParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
+                const data = await searchProducts(searchQuery, 1, storeParams);
+
                 const productsArray = Array.isArray(data) ? data : (data.products || []);
 
                 if (productsArray.length > 0) {

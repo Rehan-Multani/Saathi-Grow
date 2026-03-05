@@ -1,5 +1,6 @@
 import DeliveryPartner from '../models/DeliveryPartner.js';
-import OrderDelivery from '../models/OrderDelivery.js';
+import OrderDelivery from '../models/OrderDelivery.js'; // Legacy
+import DeliveryRun from '../models/DeliveryRun.js';
 import axios from 'axios';
 import Order from '../models/Order.js';
 import Wallet from '../models/Wallet.js';
@@ -68,7 +69,7 @@ export const updateLocation = async (req, res) => {
     }
 };
 
-// @desc    Get active/pending orders for partner
+// @desc    Get active/pending runs/orders for partner
 // @route   GET /api/delivery/orders
 // @access  Private (Rider)
 export const getOrders = async (req, res) => {
@@ -78,77 +79,84 @@ export const getOrders = async (req, res) => {
 
         const { type } = req.query; // pending, active, completed
 
-        let query = {};
-        if (type === 'pending') {
-            query = { status: 'pending', deliveryPartner: { $exists: false } };
-            // In a real app, we might also filter by service area distance
-        } else if (type === 'active') {
-            query = {
+        if (type === 'active') {
+            const activeRun = await DeliveryRun.findOne({
                 deliveryPartner: partner._id,
-                status: { $in: ['assigned', 'picked_up', 'in_transit'] }
-            };
+                status: { $in: ['assigned', 'in_progress'] }
+            }).populate({
+                path: 'orders.order',
+                populate: [
+                    { path: 'user', select: 'name phone' },
+                    { path: 'branchId', select: 'name address' }
+                ]
+            }).populate('branchId');
+
+            // Return as an array to maintain frontend compatibility, even though it's one run
+            return res.json(activeRun ? [activeRun] : []);
+
         } else if (type === 'history') {
-            query = {
+            const completedRuns = await DeliveryRun.find({
                 deliveryPartner: partner._id,
-                status: { $in: ['delivered', 'failed', 'returned'] }
-            };
+                status: { $in: ['completed', 'partial_complete'] }
+            })
+                .populate({ path: 'orders.order' })
+                .sort({ createdAt: -1 })
+                .limit(20);
+
+            return res.json(completedRuns);
         }
 
-        const deliveries = await OrderDelivery.find(query)
-            .populate({
-                path: 'order',
-                populate: { path: 'user', select: 'name phone' }
-            })
-            .sort({ createdAt: -1 });
-
-        res.json(deliveries);
+        res.json([]);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Get single delivery detail
+// @desc    Get single delivery run detail
 // @route   GET /api/delivery/orders/:id
 // @access  Private (Rider)
 export const getDeliveryDetail = async (req, res) => {
     try {
-        const delivery = await OrderDelivery.findById(req.params.id)
+        const run = await DeliveryRun.findById(req.params.id)
             .populate({
-                path: 'order',
+                path: 'orders.order',
                 populate: [
                     { path: 'user', select: 'name phone' },
-                    { path: 'branchId', select: 'name address phone' }
+                    { path: 'branchId', select: 'name address phone location' }
                 ]
             });
 
-        if (!delivery) return res.status(404).json({ message: 'Delivery not found' });
-        res.json(delivery);
+        if (!run) return res.status(404).json({ message: 'Delivery run not found' });
+        res.json(run);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Update delivery status (accept, pick up, deliver)
+// @desc    Update delivery run/stop status (start run, pick up, deliver stop)
 // @route   PATCH /api/delivery/orders/:id/status
 // @access  Private (Rider)
 export const updateDeliveryStatus = async (req, res) => {
     try {
-        const { status } = req.body;
-        const delivery = await OrderDelivery.findById(req.params.id);
+        // Here, 'id' is the DeliveryRun _id
+        // We will pass stopOrderId and new stopStatus for individual stops
+        const { status, stopOrderId, stopStatus, otp } = req.body;
+        const run = await DeliveryRun.findById(req.params.id);
 
-        if (!delivery) return res.status(404).json({ message: 'Delivery not found' });
+        if (!run) return res.status(404).json({ message: 'Delivery run not found' });
 
         const partner = req.partner;
 
-        // Firebase RTDB DB Instance
+        // Firebase RTDB Tracking setup
         const { db } = await import('../config/firebase.js');
 
-        if (status === 'assigned') {
-            delivery.deliveryPartner = partner._id;
-            delivery.assignedAt = Date.now();
+        // 1. Overall Run Status Updates (e.g. marking the whole run as in_progress/picked_up)
+        if (status === 'in_progress') {
+            run.status = 'in_progress';
+            run.startedAt = Date.now();
 
-            // Create Firebase Realtime Tracking Node when assigned
-            const trackingRef = db.ref(`active_trackings/${delivery._id}`);
+            // Create Firebase Tracking Node for full run
+            const trackingRef = db.ref(`active_trackings/${run._id}`);
             await trackingRef.set({
                 driverId: partner._id.toString(),
                 location: partner.currentLocation ? {
@@ -160,48 +168,85 @@ export const updateDeliveryStatus = async (req, res) => {
                 updatedAt: Date.now()
             });
 
-        } else if (status === 'picked_up') {
-            delivery.pickedUpAt = Date.now();
-            await Order.findByIdAndUpdate(delivery.order, { status: 'out_for_delivery' });
-        } else if (status === 'delivered') {
-            delivery.deliveredAt = Date.now();
-            delivery.status = 'delivered';
-            await Order.findByIdAndUpdate(delivery.order, { status: 'delivered' });
+        } else if (status === 'completed') {
+            // Check if all stops are done
+            const pendingStops = run.orders.filter(o => o.status === 'pending' || o.status === 'out_for_delivery');
+            if (pendingStops.length > 0) {
+                return res.status(400).json({ message: 'Cannot complete run. Some stops are still pending.' });
+            }
 
-            // Remove Firebase Realtime Tracking Node after delivery
-            const trackingRef = db.ref(`active_trackings/${delivery._id}`);
+            run.status = run.orders.some(o => o.status === 'failed') ? 'partial_complete' : 'completed';
+            run.completedAt = Date.now();
+
+            // Remove Firebase Tracking
+            const trackingRef = db.ref(`active_trackings/${run._id}`);
             await trackingRef.remove();
 
-            // Free up the delivery partner for new orders
+            // Free Partner
             partner.assignmentStatus = 'Free';
-            partner.activeOrder = null;
+            partner.activeRun = null;
+            partner.currentStopIndex = 0;
             await partner.save();
 
-            // Add earnings to wallet
-            let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
-            if (!wallet) {
-                wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
-            }
-            const fee = delivery.deliveryFee || 40; // Default fee if not set
-            wallet.balance += fee;
-            wallet.totalEarnings += fee;
-            await wallet.save();
+            // Add earnings (Bulk fee, 40 per delivered order as placeholder logic)
+            const deliveredCount = run.orders.filter(o => o.status === 'delivered').length;
+            if (deliveredCount > 0) {
+                let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
+                if (!wallet) wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
 
-            // Create transaction
-            await Transaction.create({
-                wallet: wallet._id,
-                amount: fee,
-                type: 'credit',
-                category: 'delivery_fee',
-                referenceId: delivery._id,
-                referenceModel: 'OrderDelivery'
-            });
+                const fee = 40 * deliveredCount;
+                wallet.balance += fee;
+                wallet.totalEarnings += fee;
+                await wallet.save();
+
+                await Transaction.create({
+                    wallet: wallet._id,
+                    amount: fee,
+                    type: 'credit',
+                    category: 'delivery_fee',
+                    referenceId: run._id,
+                    referenceModel: 'DeliveryRun',
+                    description: `Earnings for delivering ${deliveredCount} stops in run ${run.runId}`
+                });
+            }
         }
 
-        delivery.status = status;
-        await delivery.save();
+        // 2. Individual Stop Status Updates
+        if (stopOrderId && stopStatus) {
+            const stopIndex = run.orders.findIndex(s => s.order.toString() === stopOrderId.toString());
+            if (stopIndex === -1) return res.status(404).json({ message: 'Stop not found in run' });
 
-        res.json(delivery);
+            const stop = run.orders[stopIndex];
+
+            // Verify OTP if delivering
+            if (stopStatus === 'delivered') {
+                if (stop.deliveryOTP && stop.deliveryOTP !== otp) {
+                    stop.otpAttempts += 1;
+                    await run.save();
+                    return res.status(400).json({ message: 'Invalid OTP', attempts: stop.otpAttempts });
+                }
+                stop.status = 'delivered';
+                stop.deliveredAt = Date.now();
+                await Order.findByIdAndUpdate(stopOrderId, { status: 'delivered' });
+
+                // Advance current stop index
+                partner.currentStopIndex = partner.currentStopIndex + 1;
+                await partner.save();
+            } else if (stopStatus === 'failed') {
+                stop.status = 'failed';
+                stop.failedAt = Date.now();
+                // We keep Order status as is or mark returned. Leaving it as confirmed/preparing for admin re-assign.
+                partner.currentStopIndex = partner.currentStopIndex + 1;
+                await partner.save();
+            } else if (stopStatus === 'out_for_delivery') {
+                stop.status = 'out_for_delivery';
+                stop.startedAt = Date.now();
+                await Order.findByIdAndUpdate(stopOrderId, { status: 'out_for_delivery' });
+            }
+        }
+
+        await run.save();
+        res.json(run);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

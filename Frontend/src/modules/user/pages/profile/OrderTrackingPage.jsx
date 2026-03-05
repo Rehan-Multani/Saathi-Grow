@@ -146,8 +146,10 @@ const OrderTrackingPage = () => {
 
   // Firebase Real-time Sync
   useEffect(() => {
-    if (!id) return;
-    const trackingRef = ref(db, `active_trackings/${id}`);
+    const trackingId = order?.deliveryRunId || id;
+    if (!trackingId) return;
+
+    const trackingRef = ref(db, `active_trackings/${trackingId}`);
     const unsubscribe = onValue(trackingRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.location) {
@@ -162,7 +164,7 @@ const OrderTrackingPage = () => {
       }
     });
     return () => off(trackingRef, 'value', unsubscribe);
-  }, [id]);
+  }, [id, order?.deliveryRunId]);
 
   // Fetch Route Path
   useEffect(() => {

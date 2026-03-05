@@ -195,7 +195,9 @@ export const getProducts = async (req, res) => {
       page = 1,
       limit = 100,
       campaignId,
-      source // 'vendor' | 'branch' | '' (all)
+      source, // 'vendor' | 'branch' | '' (all)
+      storeId,
+      storeType
     } = req.query;
 
     // Build query object
@@ -315,6 +317,33 @@ export const getProducts = async (req, res) => {
       .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo businessType');
 
+    // Store-Aware logic: Inject isDeliverable flag
+    if (storeId && storeType) {
+      products = products.map(p => {
+        const pObj = p.toObject ? p.toObject() : p;
+        let isDeliverable = false;
+
+        if (storeType === 'branch') {
+          // Check if product is in stock at this branch
+          const branchStock = pObj.branchStocks?.find(bs => {
+            const bId = bs.branchId?._id || bs.branchId;
+            return bId && bId.toString() === storeId.toString();
+          });
+          if (branchStock && branchStock.stock > 0) {
+            isDeliverable = true;
+          }
+        } else if (storeType === 'vendor') {
+          // Check if product belongs to this vendor
+          const vId = pObj.vendor?._id || pObj.vendor;
+          if (vId && vId.toString() === storeId.toString()) {
+            isDeliverable = true;
+          }
+        }
+
+        return { ...pObj, isDeliverable };
+      });
+    }
+
     // If Branch Manager/Staff, transform products to only show their branch details and local status
     if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
       products = products.map(p => {
@@ -431,6 +460,32 @@ export const searchProductsWithAI = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Store-Aware logic for search results
+    const { storeId, storeType } = req.query;
+    if (storeId && storeType) {
+      products = products.map(p => {
+        const pObj = p.toObject ? p.toObject() : p;
+        let isDeliverable = false;
+
+        if (storeType === 'branch') {
+          const branchStock = pObj.branchStocks?.find(bs => {
+            const bId = bs.branchId?._id || bs.branchId;
+            return bId && bId.toString() === storeId.toString();
+          });
+          if (branchStock && branchStock.stock > 0) {
+            isDeliverable = true;
+          }
+        } else if (storeType === 'vendor') {
+          const vId = pObj.vendor?._id || pObj.vendor;
+          if (vId && vId.toString() === storeId.toString()) {
+            isDeliverable = true;
+          }
+        }
+
+        return { ...pObj, isDeliverable };
+      });
+    }
+
     // If Branch Manager/Staff, transform products to only show their branch details and local status
     if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
       products = products.map(p => {
@@ -463,12 +518,37 @@ export const searchProductsWithAI = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('vendor', 'storeName logo');
-    if (product) {
-      res.json(product);
-    } else {
-      res.status(404).json({ message: 'Product not found' });
+      .populate('branchStocks.branchId', 'name code')
+      .populate('vendor', 'storeName logo businessType');
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
     }
+
+    const pObj = product.toObject();
+
+    // Store-Aware logic for single product view
+    const { storeId, storeType } = req.query;
+    if (storeId && storeType) {
+      let isDeliverable = false;
+      if (storeType === 'branch') {
+        const branchStock = pObj.branchStocks?.find(bs => {
+          const bId = bs.branchId?._id || bs.branchId;
+          return bId && bId.toString() === storeId.toString();
+        });
+        if (branchStock && branchStock.stock > 0) {
+          isDeliverable = true;
+        }
+      } else if (storeType === 'vendor') {
+        const vId = pObj.vendor?._id || pObj.vendor;
+        if (vId && vId.toString() === storeId.toString()) {
+          isDeliverable = true;
+        }
+      }
+      pObj.isDeliverable = isDeliverable;
+    }
+
+    res.json(pObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

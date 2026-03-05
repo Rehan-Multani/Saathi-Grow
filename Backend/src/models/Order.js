@@ -104,7 +104,30 @@ const orderSchema = new mongoose.Schema({
         ref: 'Branch'
     },
     deliverySlot: {
-        type: String, // e.g., "09:00 - 11:00"
+        type: String, // Legacy display label e.g. "Morning (9 AM - 11 AM)" — kept for backward compat
+        default: null
+    },
+    // Sprint 1: DeliveryRun system additions
+    deliverySlotId: {
+        // Proper ObjectId ref to the DeliverySlot document (Sprint 2+: used for slot-grouping in admin)
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DeliverySlot',
+        default: null
+    },
+    isImmediate: {
+        // true = customer chose ASAP delivery (no slot selected)
+        type: Boolean,
+        default: false
+    },
+    deliveryRunId: {
+        // Link to the DeliveryRun batch this order was assigned to
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DeliveryRun',
+        default: null
+    },
+    stopSequence: {
+        // Position of this order within its DeliveryRun (1 = first stop, 2 = second, etc.)
+        type: Number,
         default: null
     },
     // Delivery Q-Commerce Additions

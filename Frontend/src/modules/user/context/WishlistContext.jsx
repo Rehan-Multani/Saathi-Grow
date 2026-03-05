@@ -2,6 +2,7 @@
 import { toast } from 'react-toastify';
 import { Heart } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { useStore } from './StoreContext';
 import * as wishlistApi from '../api/userWishlistApi';
 
 const WishlistContext = createContext();
@@ -20,14 +21,16 @@ export const WishlistProvider = ({ children }) => {
     });
 
     const { token } = useAuth();
+    const { activeStore } = useStore();
 
 
-    // Fetch wishlist from backend on mount or login
+    // Fetch wishlist from backend on mount or login or store change
     useEffect(() => {
         const fetchRemoteWishlist = async () => {
             if (token) {
                 try {
-                    const data = await wishlistApi.getWishlist(token);
+                    const params = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
+                    const data = await wishlistApi.getWishlist(token, params);
                     // the backend returns full populated Product objects
                     // Map to Match frontend expectations (e.g. `_id` to `id`, `name`, `image`)
                     const formatted = data.map(p => ({
@@ -38,7 +41,8 @@ export const WishlistProvider = ({ children }) => {
                         originalPrice: p.mrp,
                         category: p.category,
                         unitValue: p.unitValue,
-                        unitType: p.unitType
+                        unitType: p.unitType,
+                        isDeliverable: p.isDeliverable
                     }));
                     setWishlist(formatted);
                 } catch (err) {
@@ -47,7 +51,7 @@ export const WishlistProvider = ({ children }) => {
             }
         };
         fetchRemoteWishlist();
-    }, [token]);
+    }, [token, activeStore?.id]);
 
     useEffect(() => {
         if (!token) {

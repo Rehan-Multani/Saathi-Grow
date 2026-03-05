@@ -17,14 +17,20 @@ export const createRazorpayOrder = async (token, items) => {
   return data;
 };
 
-export const calculateBill = async (token, items) => {
+export const calculateBill = async (token, items, storeInfo = null) => {
+  const body = { items };
+  if (storeInfo) {
+    body.storeId = storeInfo.storeId;
+    body.storeType = storeInfo.storeType;
+  }
+
   const response = await fetch(`${API_URL}/calculate-bill`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ items })
+    body: JSON.stringify(body)
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to calculate secure bill summary');

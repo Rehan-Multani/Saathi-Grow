@@ -23,29 +23,40 @@ export const fetchBrands = async (category = '') => {
   return data;
 };
 
-export const fetchProductById = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/admin/products/${id}`);
+export const fetchProductById = async (id, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/products/${id}?${query}`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch product');
   return data;
 };
 
-export const fetchActiveCampaigns = async () => {
-  const response = await fetch(`${API_BASE_URL}/admin/campaigns/public`);
+export const fetchActiveCampaigns = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/campaigns/public?${query}`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch campaigns');
   return data;
 };
 
-export const fetchActiveOfferDeals = async () => {
-  const response = await fetch(`${API_BASE_URL}/admin/offer-deals/public`);
+export const fetchActiveOfferDeals = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/offer-deals/public?${query}`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch active offers');
   return data;
 };
-export const searchProducts = async (query = '', page = 1) => {
-  const response = await fetch(`${API_BASE_URL}/admin/products/search/ai?q=${query}&page=${page}`);
+export const searchProducts = async (query = '', page = 1, storeParams = {}) => {
+  const params = new URLSearchParams({ q: query, page, ...storeParams }).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/products/search/ai?${params}`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to search products');
+  return data;
+};
+
+export const getNearbyStores = async (lat, lng, radius = 20000) => {
+  const response = await fetch(`${API_BASE_URL}/user/stores/nearby?lat=${lat}&lng=${lng}&radius=${radius}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch nearby stores');
   return data;
 };
