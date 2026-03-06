@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import InventoryLog from '../models/InventoryLog.js';
 import CampaignSection from '../models/CampaignSection.js';
@@ -202,6 +203,17 @@ export const getProducts = async (req, res) => {
       storeType
     } = req.query;
 
+    // Sanitize storeId (handle stringified 'null' or 'undefined' from frontend)
+    const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
+    let effectiveStoreObjectId = null;
+    if (effectiveStoreId) {
+      try {
+        effectiveStoreObjectId = new mongoose.Types.ObjectId(effectiveStoreId);
+      } catch (e) {
+        console.error('Invalid storeId format:', effectiveStoreId);
+      }
+    }
+
     // Build query object
     let query = {};
 
@@ -238,20 +250,35 @@ export const getProducts = async (req, res) => {
           query.$and.push({ $or: statusOr });
         }
       } else {
-        query.status = { $in: statusList };
+        // For public users, even if they request 'Active', we show out of stock items
+        // to support the 'Out of Stock' display logic.
+        if (!req.admin && statusList.length === 1 && statusList[0] === 'Active') {
+          query.status = { $in: ['Active', 'Out of Stock', 'Low Stock'] };
+        } else {
+          query.status = { $in: statusList };
+        }
       }
     } else if (!req.admin) {
-      query.status = 'Active';
+      query.status = { $in: ['Active', 'Out of Stock', 'Low Stock'] };
     }
 
     if (category) {
       const categoryList = Array.isArray(category) ? category : [category];
-      query.category = { $in: categoryList.map(c => new RegExp(`^${escapeRegExp(c.trim())}$`, 'i')) };
+      // Build a regex that matches if ANY of the category keywords match 
+      // This helps with typos like "Breakast" vs "Breakfast"
+      const categoryRegexes = categoryList.map(cat => {
+        const words = cat.trim().split(/[\s&]+/).filter(w => w.length > 2);
+        if (words.length > 0) {
+          return new RegExp(words.map(w => escapeRegExp(w)).join('|'), 'i');
+        }
+        return new RegExp(escapeRegExp(cat.trim()), 'i');
+      });
+      query.category = { $in: categoryRegexes };
     }
 
     if (subCategory) {
       const subCategoryList = Array.isArray(subCategory) ? subCategory : [subCategory];
-      query.subCategory = { $in: subCategoryList.map(s => new RegExp(`^${escapeRegExp(s.trim())}$`, 'i')) };
+      query.subCategory = { $in: subCategoryList.map(s => new RegExp(escapeRegExp(s.trim()), 'i')) };
     }
 
     if (brand) {
@@ -304,38 +331,6 @@ export const getProducts = async (req, res) => {
     // Pagination logic
     const skip = (Number(page) - 1) * Number(limit);
 
-    // If a storeId is provided, filter out products falling below lowStockThreshold for that branch
-    if (storeId && storeType === 'branch') {
-      query.$and = query.$and || [];
-      query.$and.push({
-        branchStocks: {
-          $elemMatch: {
-            branchId: storeId
-          }
-        }
-      });
-      // Further filter to ensure stock > threshold using $expr
-      query.$expr = {
-        $gt: [
-          {
-            $size: {
-              $filter: {
-                input: "$branchStocks",
-                as: "bs",
-                cond: {
-                  $and: [
-                    { $eq: ["$$bs.branchId", { $toObjectId: storeId }] },
-                    { $gt: ["$$bs.stock", "$$bs.lowStockThreshold"] }
-                  ]
-                }
-              }
-            }
-          },
-          0
-        ]
-      };
-    }
-
     const total = await Product.countDocuments(query);
 
     // Build Sort Object: Prioritize Saathi Grow, then apply user sort
@@ -360,7 +355,7 @@ export const getProducts = async (req, res) => {
 
     // If it's a public/user request (no admin), select only necessary fields
     if (!req.admin) {
-      productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku');
+      productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks');
     }
 
     let products = await productQuery
@@ -368,7 +363,7 @@ export const getProducts = async (req, res) => {
       .populate('vendor', 'storeName logo businessType');
 
     // Store-Aware logic: Inject isDeliverable flag
-    if (storeId && storeType) {
+    if (effectiveStoreId && storeType) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
         let isDeliverable = false;
@@ -377,15 +372,15 @@ export const getProducts = async (req, res) => {
           // Check if product is in stock at this branch
           const branchStock = pObj.branchStocks?.find(bs => {
             const bId = bs.branchId?._id || bs.branchId;
-            return bId && bId.toString() === storeId.toString();
+            return bId && bId.toString() === effectiveStoreId.toString();
           });
-          if (branchStock && branchStock.stock > 0) {
+          if (branchStock && branchStock.stock > (branchStock.lowStockThreshold || 0)) {
             isDeliverable = true;
           }
         } else if (storeType === 'vendor') {
           // Check if product belongs to this vendor
           const vId = pObj.vendor?._id || pObj.vendor;
-          if (vId && vId.toString() === storeId.toString()) {
+          if (vId && vId.toString() === effectiveStoreId.toString()) {
             isDeliverable = true;
           }
         }
@@ -425,7 +420,7 @@ export const getProducts = async (req, res) => {
 // @access  Public
 export const searchProductsWithAI = async (req, res) => {
   try {
-    const { q } = req.query;
+    const { q, storeId, storeType } = req.query;
     if (!q) {
       return res.json([]);
     }
@@ -477,7 +472,7 @@ export const searchProductsWithAI = async (req, res) => {
 
     // Find products matching the combined pattern in name, tags, or description
     const searchQuery = {
-      status: 'Active',
+      status: { $in: ['Active', 'Out of Stock', 'Low Stock'] },
       $or: [
         { name: { $regex: combinedRegex } },
         { tags: { $regex: combinedRegex } },
@@ -496,34 +491,6 @@ export const searchProductsWithAI = async (req, res) => {
       }
     }
 
-    // Apply Low Stock Threshold filtering for public search if storeId provided
-    const { storeId, storeType } = req.query;
-    if (storeId && storeType === 'branch') {
-      searchQuery.$and = searchQuery.$and || [];
-      searchQuery.$and.push({
-        branchStocks: { $elemMatch: { branchId: storeId } }
-      });
-      searchQuery.$expr = {
-        $gt: [
-          {
-            $size: {
-              $filter: {
-                input: "$branchStocks",
-                as: "bs",
-                cond: {
-                  $and: [
-                    { $eq: ["$$bs.branchId", { $toObjectId: storeId }] },
-                    { $gt: ["$$bs.stock", "$$bs.lowStockThreshold"] }
-                  ]
-                }
-              }
-            }
-          },
-          0
-        ]
-      };
-    }
-
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 30;
     const skip = (page - 1) * limit;
@@ -539,7 +506,8 @@ export const searchProductsWithAI = async (req, res) => {
       .limit(limit);
 
     // Store-Aware logic for search results
-    if (storeId && storeType) {
+    const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
+    if (effectiveStoreId && storeType) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
         let isDeliverable = false;
@@ -547,14 +515,14 @@ export const searchProductsWithAI = async (req, res) => {
         if (storeType === 'branch') {
           const branchStock = pObj.branchStocks?.find(bs => {
             const bId = bs.branchId?._id || bs.branchId;
-            return bId && bId.toString() === storeId.toString();
+            return bId && bId.toString() === effectiveStoreId.toString();
           });
-          if (branchStock && branchStock.stock > 0) {
+          if (branchStock && branchStock.stock > (branchStock.lowStockThreshold || 0)) {
             isDeliverable = true;
           }
         } else if (storeType === 'vendor') {
           const vId = pObj.vendor?._id || pObj.vendor;
-          if (vId && vId.toString() === storeId.toString()) {
+          if (vId && vId.toString() === effectiveStoreId.toString()) {
             isDeliverable = true;
           }
         }
@@ -606,19 +574,20 @@ export const getProductById = async (req, res) => {
 
     // Store-Aware logic for single product view
     const { storeId, storeType } = req.query;
-    if (storeId && storeType) {
+    const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
+    if (effectiveStoreId && storeType) {
       let isDeliverable = false;
       if (storeType === 'branch') {
         const branchStock = pObj.branchStocks?.find(bs => {
           const bId = bs.branchId?._id || bs.branchId;
-          return bId && bId.toString() === storeId.toString();
+          return bId && bId.toString() === effectiveStoreId.toString();
         });
-        if (branchStock && branchStock.stock > branchStock.lowStockThreshold) {
+        if (branchStock && branchStock.stock > (branchStock.lowStockThreshold || 0)) {
           isDeliverable = true;
         }
       } else if (storeType === 'vendor') {
         const vId = pObj.vendor?._id || pObj.vendor;
-        if (vId && vId.toString() === storeId.toString()) {
+        if (vId && vId.toString() === effectiveStoreId.toString()) {
           isDeliverable = true;
         }
       }

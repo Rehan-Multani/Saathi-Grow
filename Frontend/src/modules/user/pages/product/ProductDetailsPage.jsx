@@ -196,11 +196,13 @@ const ProductDetailsPage = () => {
                                 <Star size={14} className="text-yellow-500 fill-yellow-500" />
                                 <span className="text-xs font-bold text-gray-400">0.0</span>
                             </div>
-                            <div className={`border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${product.isDeliverable !== false
-                                ? 'border-gray-600 text-[#0c831f] dark:text-[#10b981]'
-                                : 'border-red-500 text-red-500'
+                            <div className={`border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isStoreOutOfRange
+                                ? 'border-orange-500 text-orange-500'
+                                : (product.isDeliverable !== false
+                                    ? 'border-gray-600 text-[#0c831f] dark:text-[#10b981]'
+                                    : 'border-red-500 text-red-500')
                                 }`}>
-                                {product.isDeliverable !== false ? 'In Stock' : 'Not Deliverable'}
+                                {isStoreOutOfRange ? 'Out of Zone' : (product.isDeliverable !== false ? 'In Stock' : 'Out of Stock')}
                             </div>
                         </div>
 
@@ -230,8 +232,11 @@ const ProductDetailsPage = () => {
                                         }`}
                                 >
                                     <ShoppingCart size={18} className={isBtnDisabled ? '' : 'fill-white'} />
-                                    <span className="uppercase tracking-widest text-xs">
-                                        {isBtnDisabled ? (isStoreOutOfRange ? 'Store Out of Range' : 'Not Deliverable') : 'Add to Cart'}
+                                    <span className="uppercase tracking-widest text-[11px] font-black">
+                                        {isBtnDisabled
+                                            ? (isStoreOutOfRange ? 'Out of Zone' : 'Out of Stock')
+                                            : 'Add to Cart'
+                                        }
                                     </span>
                                 </button>
                             ) : (
@@ -257,18 +262,33 @@ const ProductDetailsPage = () => {
 
                         {/* Additional Info (Minimal) */}
                         <div className="border-t border-gray-100 dark:border-white/5 pt-4 md:pt-8">
-                            {product.isDeliverable === false && activeStore && (
-                                <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20 mb-6">
-                                    <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">Store Not Serviceable</p>
-                                        <p className="text-[10px] text-red-500/70 dark:text-red-400/70 font-medium leading-relaxed">
-                                            This product is currently not available for delivery at your selected store: <span className="font-bold">{activeStore.name}</span>.
-                                            Try switching to another store nearby.
-                                        </p>
+                            {isStoreOutOfRange ? (
+                                <div className="flex flex-col gap-2 p-5 bg-orange-50 dark:bg-orange-500/5 rounded-3xl border border-orange-200/50 dark:border-orange-500/20 mb-8 shadow-sm">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+                                            <AlertCircle size={18} className="text-orange-600" />
+                                        </div>
+                                        <p className="text-xs font-black text-orange-700 dark:text-orange-400 uppercase tracking-widest">Out of Delivery Zone</p>
                                     </div>
+                                    <p className="text-[11px] text-orange-600/80 dark:text-orange-400/80 font-semibold leading-relaxed pl-10">
+                                        This store <b>{activeStore?.name}</b> is currently outside your delivery radius.
+                                        Please select a closer store or update your delivery location to order this item.
+                                    </p>
                                 </div>
-                            )}
+                            ) : (product.isDeliverable === false && activeStore && (
+                                <div className="flex flex-col gap-2 p-5 bg-red-50 dark:bg-red-500/5 rounded-3xl border border-red-200/50 dark:border-red-500/20 mb-8 shadow-sm">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
+                                            <AlertCircle size={18} className="text-red-600" />
+                                        </div>
+                                        <p className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest">Out of Stock</p>
+                                    </div>
+                                    <p className="text-[11px] text-red-600/80 dark:text-red-400/80 font-semibold leading-relaxed pl-10">
+                                        This product has reached its minimum delivery threshold at <b>{activeStore.name}</b>.
+                                        It is temporarily unavailable for purchase at this location.
+                                    </p>
+                                </div>
+                            ))}
 
                             <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-4">Product Details</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
