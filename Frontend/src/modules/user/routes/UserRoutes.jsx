@@ -13,6 +13,8 @@ import MobileFooter from '../components/layout/MobileFooter';
 import SearchOverlay from '../components/search/SearchOverlay';
 import { useTheme } from '../context/ThemeContext';
 import { ShopProvider, useShop } from '../context/ShopContext';
+import { useStore } from '../context/StoreContext';
+import StoreSelector from '../components/location/StoreSelector';
 import PullToRefresh from '../../../common/components/PullToRefresh';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
@@ -82,6 +84,7 @@ const UserLayout = () => {
 
     const { token, isWebView, loading, refreshProfile } = useAuth();
     const { refreshShopData } = useShop();
+    const { isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
     const isAuthPath = ['/login', '/register', '/logout-confirmation'].includes(location.pathname);
 
     const handleRefresh = async () => {
@@ -119,6 +122,7 @@ const UserLayout = () => {
             {!hideDesktopChrome && <div className={`h-[128px] md:h-20 ${hideNavbarMobile ? 'hidden md:block' : ''}`}></div>}
             <CartSidebar />
             <LocationModal />
+            <StoreSelector isOpen={isStoreSelectorOpen} onClose={() => setIsStoreSelectorOpen(false)} />
             <FloatingCartStrip />
             <LoginModal />
             <SearchOverlay />

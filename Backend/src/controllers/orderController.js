@@ -10,6 +10,7 @@ import OrderDelivery from '../models/OrderDelivery.js';
 import InventoryLog from '../models/InventoryLog.js';
 import Branch from '../models/Branch.js';
 import Vendor from '../models/Vendor.js';
+import DeliverySlot from '../models/DeliverySlot.js';
 import { findOptimalSource, geocodeAddress, calculateDistance } from '../services/locationService.js';
 
 const validateStoreDistance = async (storeId, storeType, userLocation) => {
@@ -41,6 +42,31 @@ const validateStoreDistance = async (storeId, storeType, userLocation) => {
   } catch (error) {
     throw error;
   }
+  return true;
+};
+
+const validateSlotAvailability = async (deliverySlotId, isImmediate) => {
+  if (isImmediate) return true;
+  if (!deliverySlotId) throw new Error('Delivery slot ID is required for scheduled orders.');
+
+  const slot = await DeliverySlot.findById(deliverySlotId);
+  if (!slot || !slot.isActive) {
+    throw new Error('Selected delivery slot is no longer active or valid.');
+  }
+
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+
+  const [endHour, endMin] = slot.endTime.split(':').map(Number);
+
+  // Buffer: Cannot select a slot that ends in less than 30 minutes
+  const isExpired = currentHour > endHour || (currentHour === endHour && currentMin >= (endMin - 30));
+
+  if (isExpired) {
+    throw new Error(`The selected slot (${slot.label}) has already passed or is too close to expiry. Please pick another or choose Immediate.`);
+  }
+
   return true;
 };
 
@@ -163,6 +189,9 @@ export const verifyRazorpayPayment = async (req, res) => {
     if (orderData.storeId) {
       await validateStoreDistance(orderData.storeId, orderData.storeType, orderData.shippingAddress.location);
     }
+
+    // SLOT VALIDATION
+    await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
 
     // Recompute bill to guarantee no manipulation during payment verify leap
     const computedBill = await computeBillDetails(orderData.items);
@@ -362,6 +391,9 @@ export const createCODOrder = async (req, res) => {
       await validateStoreDistance(orderData.storeId, orderData.storeType, orderData.shippingAddress.location);
     }
 
+    // SLOT VALIDATION
+    await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
+
     // Always recompute on backend. NEVER trust frontend amount
     const computedBill = await computeBillDetails(orderData.items);
 
@@ -430,6 +462,19 @@ export const createWalletOrder = async (req, res) => {
 
     // Recompute bill to guarantee security
     const computedBill = await computeBillDetails(orderData.items);
+
+    // SLOT VALIDATION
+    await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
+
+    // Strip empty location bounds
+    if (orderData.shippingAddress && (!orderData.shippingAddress.location || !orderData.shippingAddress.location.coordinates || orderData.shippingAddress.location.coordinates.length < 2)) {
+      delete orderData.shippingAddress.location;
+    }
+
+    // RANGE VALIDATION (Store-First Architecture Safeguard)
+    if (orderData.storeId) {
+      await validateStoreDistance(orderData.storeId, orderData.storeType, orderData.shippingAddress.location);
+    }
 
     if (user.walletBalance < computedBill.totalAmount) {
       return res.status(400).json({ message: 'Insufficient wallet balance' });

@@ -6,7 +6,27 @@ import DeliverySlot from '../models/DeliverySlot.js';
 export const getDeliverySlots = async (req, res) => {
   try {
     const slots = await DeliverySlot.find({ isActive: true }).sort({ startTime: 1 });
-    res.json(slots);
+
+    // Filter slots based on current time
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+
+    const filteredSlots = slots.filter(slot => {
+      const [endHour, endMin] = slot.endTime.split(':').map(Number);
+
+      // If current hour is less than end hour, it's valid
+      if (currentHour < endHour) return true;
+
+      // If current hour matches end hour, check minutes (with a 30 min buffer for safety)
+      if (currentHour === endHour) {
+        return currentMin < (endMin - 30);
+      }
+
+      return false;
+    });
+
+    res.json(filteredSlots);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

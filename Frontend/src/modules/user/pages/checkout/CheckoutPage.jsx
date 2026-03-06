@@ -40,7 +40,7 @@ const loadRazorpaySDK = () => {
 
 const CheckoutPage = () => {
     const { cartTotal = 0, clearCart, cartCount = 0, cart = [] } = useCart();
-    const { location: globalLocation, openLocationModal } = useGlobalLocation();
+    const { location: globalLocation, openLocationModal, savedAddresses, updateLocation } = useGlobalLocation();
     const { user, token } = useAuth();
     const { activeStore, isStoreOutOfRange, openStoreSelector } = useStore();
     const [isPlacing, setIsPlacing] = useState(false);
@@ -84,6 +84,20 @@ const CheckoutPage = () => {
         };
         loadSlots();
     }, [token]);
+
+    // PREFILL ADDRESS LOGIC
+    useEffect(() => {
+        if (globalLocation.address === 'Select Location' && savedAddresses?.length > 0) {
+            const defaultAddr = savedAddresses.find(a => a.isDefault) || savedAddresses[0];
+            if (defaultAddr) {
+                updateLocation({
+                    address: defaultAddr.address,
+                    city: defaultAddr.city,
+                    coordinates: defaultAddr.coordinates
+                });
+            }
+        }
+    }, [savedAddresses, globalLocation.address, updateLocation]);
 
     useEffect(() => {
         const fetchBill = async () => {

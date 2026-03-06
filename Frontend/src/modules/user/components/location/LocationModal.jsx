@@ -67,7 +67,8 @@ const LocationModal = () => {
         updateLocation({
             address: addr.address,
             city: addr.city,
-            coordinates: addr.coordinates
+            coordinates: addr.coordinates,
+            label: addr.type || addr.label
         });
     };
 

@@ -15,6 +15,7 @@ export const StoreProvider = ({ children }) => {
   const [nearbyStores, setNearbyStores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isStoreOutOfRange, setIsStoreOutOfRange] = useState(false);
+  const [isStoreSelectorOpen, setIsStoreSelectorOpen] = useState(false);
 
   // Fetch nearby stores whenever the user's location changes
   useEffect(() => {
@@ -47,7 +48,16 @@ export const StoreProvider = ({ children }) => {
     };
 
     fetchStores();
-  }, [location?.coordinates, activeStore?.id]);
+  }, [location?.coordinates]);
+
+  // Handle auto-opening of store selector
+  useEffect(() => {
+    if (location?.coordinates) {
+      if (!activeStore || isStoreOutOfRange) {
+        setIsStoreSelectorOpen(true);
+      }
+    }
+  }, [location?.coordinates, isStoreOutOfRange, activeStore?.id]);
 
   // Persist active store selection
   useEffect(() => {
@@ -71,7 +81,11 @@ export const StoreProvider = ({ children }) => {
         isStoreOutOfRange,
         selectStore,
         loading,
-        setActiveStore
+        setActiveStore,
+        isStoreSelectorOpen,
+        setIsStoreSelectorOpen,
+        openStoreSelector: () => setIsStoreSelectorOpen(true),
+        closeStoreSelector: () => setIsStoreSelectorOpen(false)
       }}
     >
       {children}
