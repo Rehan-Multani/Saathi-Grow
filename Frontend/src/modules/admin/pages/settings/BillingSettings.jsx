@@ -21,6 +21,7 @@ const BillingSettings = () => {
         handlingFee: 5,
         surgeMultiplier: 1.0,
         platformCommissionRate: 12,
+        maxDeliveryRadius: 20,
         platformWalletBalance: 0,
         autoInvoicingEnabled: true
     });
@@ -154,9 +155,13 @@ const BillingSettings = () => {
                                     <input type="number" name="handlingFee" value={settings.handlingFee} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-200 text-sm text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-blue-600 mb-2">Platform Engine Commission (%)</label>
-                                    <input type="number" name="platformCommissionRate" value={settings.platformCommissionRate} onChange={handleInputChange} className="w-full px-3 py-2 border border-blue-200 bg-blue-50 text-sm text-gray-800 rounded-lg outline-none font-bold" />
+                                    <label className="block text-xs font-bold text-blue-600 mb-2">Maximum Delivery Radius (KM)</label>
+                                    <input type="number" name="maxDeliveryRadius" value={settings.maxDeliveryRadius} onChange={handleInputChange} className="w-full px-3 py-2 border border-blue-200 bg-blue-50 text-sm text-gray-800 rounded-lg outline-none font-bold" />
                                 </div>
+                            </div>
+                            <div className="mt-6 md:w-1/2">
+                                <label className="block text-xs font-bold text-blue-600 mb-2">Platform Engine Commission (%)</label>
+                                <input type="number" name="platformCommissionRate" value={settings.platformCommissionRate} onChange={handleInputChange} className="w-full px-3 py-2 border border-blue-200 bg-blue-50 text-sm text-gray-800 rounded-lg outline-none font-bold" />
                             </div>
                         </div>
 

@@ -16,6 +16,7 @@ const globalSettingSchema = new mongoose.Schema({
   // Business Logic
   platformCommissionRate: { type: Number, default: 12 }, // Vendor split
   platformWalletBalance: { type: Number, default: 45280.50 }, // Track platform earnings
+  maxDeliveryRadius: { type: Number, default: 20 }, // in KM
   autoInvoicingEnabled: { type: Boolean, default: true }
 }, {
   timestamps: true
