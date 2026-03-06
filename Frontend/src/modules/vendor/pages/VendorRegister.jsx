@@ -74,7 +74,7 @@ const VendorRegister = () => {
                                 <label className="text-xs font-bold text-gray-700 ml-1">Password</label>
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="₹₹₹₹₹₹₹₹" />
+                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="••••••••" />
                                 </div>
                             </div>
                         </div>

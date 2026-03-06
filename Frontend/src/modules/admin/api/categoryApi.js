@@ -2,8 +2,11 @@
 
 const CATEGORIES_API_BASE_URL = `${API_BASE_URL}/admin/categories`;
 
-export const getCategories = async (token) => {
-  const response = await fetch(`${CATEGORIES_API_BASE_URL}`, {
+export const getCategories = async (token, params = {}) => {
+  const queryParams = new URLSearchParams(params).toString();
+  const queryString = queryParams ? `?${queryParams}` : '';
+
+  const response = await fetch(`${CATEGORIES_API_BASE_URL}${queryString}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

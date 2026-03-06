@@ -315,7 +315,6 @@ export const getProducts = async (req, res) => {
     if (source === 'vendor') {
       query.vendor = { $exists: true, $ne: null };
     } else if (source === 'branch') {
-      query.$or = query.$or || undefined;
       query.vendor = { $exists: false };
     }
 
