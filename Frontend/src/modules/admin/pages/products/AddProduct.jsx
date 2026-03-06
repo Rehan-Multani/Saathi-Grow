@@ -42,7 +42,8 @@ const AddProduct = () => {
         sku: '',
         tags: [],
         status: 'Active',
-        vendor: ''
+        vendor: '',
+        isSaathiGrow: false
     });
 
     const [branchStocks, setBranchStocks] = useState([]); // Array of { branchId, name, stock, lowStockThreshold }
@@ -568,6 +569,26 @@ const AddProduct = () => {
                                         {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName}</option>)}
                                     </Form.Select>
                                     <Form.Text className="text-muted small italic">Assigning a vendor links this product to their inventory.</Form.Text>
+                                </Form.Group>
+
+                                <Form.Group className="mb-4 p-3 bg-blue-50/30 border border-blue-100 rounded-xl">
+                                    <Form.Check
+                                        type="checkbox"
+                                        id="isSaathiGrow"
+                                        name="isSaathiGrow"
+                                        label={
+                                            <div className="ms-3">
+                                                <div className="text-xs font-black text-blue-800 uppercase tracking-wider d-flex align-items-center gap-2">
+                                                    <Sparkles size={12} className="text-blue-600" />
+                                                    Saathi Grow Priority Product
+                                                </div>
+                                                <div className="text-[10px] text-blue-600/70 font-medium">Prioritize this product in user listings</div>
+                                            </div>
+                                        }
+                                        checked={formData.isSaathiGrow}
+                                        onChange={handleChange}
+                                        className="d-flex align-items-start"
+                                    />
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">

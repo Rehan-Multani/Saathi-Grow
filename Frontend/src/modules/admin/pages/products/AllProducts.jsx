@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package, Sparkles } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Spinner } from 'react-bootstrap';
 import ProductEditModal from '../../components/products/ProductEditModal';
@@ -281,12 +281,12 @@ const AllProducts = () => {
                             key={tab.key}
                             onClick={() => setSourceFilter(tab.key)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${sourceFilter === tab.key
-                                    ? tab.color === 'purple'
-                                        ? 'bg-purple-600 text-white border-purple-600 shadow-md'
-                                        : tab.color === 'blue'
-                                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                            : 'bg-gray-800 text-white border-gray-800 shadow-md'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                ? tab.color === 'purple'
+                                    ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+                                    : tab.color === 'blue'
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                        : 'bg-gray-800 text-white border-gray-800 shadow-md'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                 }`}
                         >
                             {tab.key === 'vendor' ? <Store size={14} /> : <Package size={14} />}
@@ -347,7 +347,14 @@ const AllProducts = () => {
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-medium text-gray-800">{p.name}</span>
-                                                    <span className="text-xs text-gray-400 font-mono">{p.sku}</span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-xs text-gray-400 font-mono">{p.sku}</span>
+                                                        {p.isSaathiGrow && (
+                                                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase d-flex align-items-center gap-0.5 border border-blue-100">
+                                                                <Sparkles size={8} /> Saathi Grow
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>

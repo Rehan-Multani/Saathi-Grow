@@ -87,7 +87,8 @@ export const createProduct = async (req, res) => {
       mrp,
       isVeg,
       variants,
-      unitValue
+      unitValue,
+      isSaathiGrow
     } = req.body;
 
     const productExists = await Product.findOne({ sku });
@@ -153,6 +154,7 @@ export const createProduct = async (req, res) => {
       mrp: Number(mrp) || Number(basePrice),
       isVeg: isVeg === 'true' || isVeg === true,
       variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
+      isSaathiGrow: isSaathiGrow === 'true' || isSaathiGrow === true,
       createdBy: req.admin._id
     });
 
@@ -301,10 +303,58 @@ export const getProducts = async (req, res) => {
 
     // Pagination logic
     const skip = (Number(page) - 1) * Number(limit);
+
+    // If a storeId is provided, filter out products falling below lowStockThreshold for that branch
+    if (storeId && storeType === 'branch') {
+      query.$and = query.$and || [];
+      query.$and.push({
+        branchStocks: {
+          $elemMatch: {
+            branchId: storeId
+          }
+        }
+      });
+      // Further filter to ensure stock > threshold using $expr
+      query.$expr = {
+        $gt: [
+          {
+            $size: {
+              $filter: {
+                input: "$branchStocks",
+                as: "bs",
+                cond: {
+                  $and: [
+                    { $eq: ["$$bs.branchId", { $toObjectId: storeId }] },
+                    { $gt: ["$$bs.stock", "$$bs.lowStockThreshold"] }
+                  ]
+                }
+              }
+            }
+          },
+          0
+        ]
+      };
+    }
+
     const total = await Product.countDocuments(query);
 
+    // Build Sort Object: Prioritize Saathi Grow, then apply user sort
+    let sortObj = { isSaathiGrow: -1 };
+    if (sort) {
+      if (typeof sort === 'string') {
+        const parts = sort.split(' ');
+        parts.forEach(p => {
+          const field = p.startsWith('-') ? p.substring(1) : p;
+          const order = p.startsWith('-') ? -1 : 1;
+          sortObj[field] = order;
+        });
+      }
+    } else {
+      sortObj.createdAt = -1;
+    }
+
     let productQuery = Product.find(query)
-      .sort(sort)
+      .sort(sortObj)
       .skip(skip)
       .limit(Number(limit));
 
@@ -446,6 +496,34 @@ export const searchProductsWithAI = async (req, res) => {
       }
     }
 
+    // Apply Low Stock Threshold filtering for public search if storeId provided
+    const { storeId, storeType } = req.query;
+    if (storeId && storeType === 'branch') {
+      searchQuery.$and = searchQuery.$and || [];
+      searchQuery.$and.push({
+        branchStocks: { $elemMatch: { branchId: storeId } }
+      });
+      searchQuery.$expr = {
+        $gt: [
+          {
+            $size: {
+              $filter: {
+                input: "$branchStocks",
+                as: "bs",
+                cond: {
+                  $and: [
+                    { $eq: ["$$bs.branchId", { $toObjectId: storeId }] },
+                    { $gt: ["$$bs.stock", "$$bs.lowStockThreshold"] }
+                  ]
+                }
+              }
+            }
+          },
+          0
+        ]
+      };
+    }
+
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 30;
     const skip = (page - 1) * limit;
@@ -456,12 +534,11 @@ export const searchProductsWithAI = async (req, res) => {
       .select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks')
       .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo')
-      .sort('-createdAt')
+      .sort({ isSaathiGrow: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
     // Store-Aware logic for search results
-    const { storeId, storeType } = req.query;
     if (storeId && storeType) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
@@ -536,7 +613,7 @@ export const getProductById = async (req, res) => {
           const bId = bs.branchId?._id || bs.branchId;
           return bId && bId.toString() === storeId.toString();
         });
-        if (branchStock && branchStock.stock > 0) {
+        if (branchStock && branchStock.stock > branchStock.lowStockThreshold) {
           isDeliverable = true;
         }
       } else if (storeType === 'vendor') {
@@ -576,6 +653,7 @@ export const updateProduct = async (req, res) => {
       product.vendor = req.body.vendor !== undefined ? (req.body.vendor || null) : product.vendor;
       product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
       product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
+      product.isSaathiGrow = req.body.isSaathiGrow !== undefined ? (req.body.isSaathiGrow === 'true' || req.body.isSaathiGrow === true) : product.isSaathiGrow;
 
       if (req.body.variants) {
         product.variants = typeof req.body.variants === 'string' ? JSON.parse(req.body.variants) : req.body.variants;
