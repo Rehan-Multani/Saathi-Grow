@@ -39,8 +39,11 @@ export const createCategory = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getCategories = async (req, res) => {
   try {
-    const { hasProducts } = req.query;
-    let categories = await Category.find({})
+    const { hasProducts, status } = req.query;
+    let query = {};
+    if (status) query.status = { $regex: new RegExp('^' + status + '$', 'i') };
+
+    let categories = await Category.find(query)
       .select('name slug image bgColor status')
       .sort('-createdAt');
 

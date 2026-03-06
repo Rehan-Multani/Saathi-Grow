@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package, Sparkles } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Spinner } from 'react-bootstrap';
 import ProductEditModal from '../../components/products/ProductEditModal';
@@ -58,26 +58,55 @@ const AllProducts = () => {
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const searchTerm = searchParams.get('search') || '';
+    const selectedCategory = searchParams.get('category') || '';
+    const selectedBrand = searchParams.get('brand') || '';
+    const sourceFilter = searchParams.get('source') || 'all';
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = 10;
+
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [localSearch, setLocalSearch] = useState(searchTerm);
+
     const [showQR, setShowQR] = useState(null);
     const [showFilterMenu, setShowFilterMenu] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [selectedBrand, setSelectedBrand] = useState('');
-    const [sourceFilter, setSourceFilter] = useState('all'); // 'all' | 'branch' | 'vendor'
+
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [showLogsModal, setShowLogsModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
+    const updateParams = useCallback((newParams) => {
+        setSearchParams(prev => {
+            Object.entries(newParams).forEach(([key, value]) => {
+                if (value && value !== 'all') prev.set(key, value);
+                else prev.delete(key);
+            });
+            return prev;
+        });
+    }, [setSearchParams]);
+
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
+            const params = {
+                page,
+                limit,
+                search: searchTerm,
+                category: selectedCategory,
+                brand: selectedBrand,
+                source: sourceFilter === 'all' ? '' : sourceFilter
+            };
             const [productsData, categoriesData, brandsData] = await Promise.all([
-                getProducts(adminUser.token),
-                getCategories(adminUser.token),
+                getProducts(adminUser.token, params),
+                getCategories(adminUser.token, { status: 'Active' }),
                 getBrands(adminUser.token)
             ]);
             setProducts(productsData.products || []);
+            setTotalPages(productsData.pages || 1);
+            setTotalProducts(productsData.total || 0);
             setCategories(categoriesData);
             setBrands(brandsData);
         } catch (error) {
@@ -86,11 +115,20 @@ const AllProducts = () => {
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token]);
+    }, [adminUser.token, page, limit, searchTerm, selectedCategory, selectedBrand, sourceFilter]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (localSearch !== searchTerm) {
+                updateParams({ search: localSearch, page: 1 });
+            }
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [localSearch, searchTerm, updateParams]);
 
     const getTotalStock = (p) => {
         if (!p.branchStocks || p.branchStocks.length === 0) return 0;
@@ -175,7 +213,7 @@ const AllProducts = () => {
                     <div className="flex items-center gap-3">
                         <h5 className="mb-0 font-bold text-gray-800 text-lg text-nowrap">Product Inventory</h5>
                         <span className="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold px-2 py-0.5 rounded-full">
-                            {filteredProducts.length} products
+                            {totalProducts} products
                         </span>
                     </div>
 
@@ -189,8 +227,8 @@ const AllProducts = () => {
                                     type="text"
                                     placeholder="Search name, SKU, vendor..."
                                     className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    value={localSearch}
+                                    onChange={(e) => setLocalSearch(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -216,7 +254,7 @@ const AllProducts = () => {
                                             <select
                                                 className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
                                                 value={selectedCategory}
-                                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                                onChange={(e) => updateParams({ category: e.target.value, page: 1 })}
                                             >
                                                 <option value="">All Categories</option>
                                                 {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
@@ -227,7 +265,7 @@ const AllProducts = () => {
                                             <select
                                                 className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
                                                 value={selectedBrand}
-                                                onChange={(e) => setSelectedBrand(e.target.value)}
+                                                onChange={(e) => updateParams({ brand: e.target.value, page: 1 })}
                                             >
                                                 <option value="">All Brands</option>
                                                 {brands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
@@ -235,7 +273,7 @@ const AllProducts = () => {
                                         </div>
                                         {activeFiltersCount > 0 && (
                                             <button
-                                                onClick={() => { setSelectedCategory(''); setSelectedBrand(''); setShowFilterMenu(false); }}
+                                                onClick={() => { updateParams({ category: '', brand: '', page: 1 }); setShowFilterMenu(false); }}
                                                 className="text-xs text-red-600 font-medium hover:text-red-700 mt-2 w-full text-center"
                                             >
                                                 Clear Filters
@@ -247,15 +285,7 @@ const AllProducts = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 w-full xl:w-auto">
-                        <button className="flex items-center justify-center gap-2 px-3 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors font-medium shadow-sm">
-                            <Upload size={20} />
-                            <span className="hidden sm:inline">Import</span>
-                        </button>
-                        <button className="flex items-center justify-center gap-2 px-3 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium shadow-sm">
-                            <Download size={20} />
-                            <span className="hidden sm:inline">Export</span>
-                        </button>
+                    <div className="flex gap-3 w-full xl:w-auto">
                         {adminUser?.role === 'Admin' && (
                             <Link
                                 to="/admin/products/add"
@@ -279,7 +309,7 @@ const AllProducts = () => {
                     ].map(tab => (
                         <button
                             key={tab.key}
-                            onClick={() => setSourceFilter(tab.key)}
+                            onClick={() => updateParams({ source: tab.key, page: 1 })}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${sourceFilter === tab.key
                                 ? tab.color === 'purple'
                                     ? 'bg-purple-600 text-white border-purple-600 shadow-md'
@@ -291,10 +321,11 @@ const AllProducts = () => {
                         >
                             {tab.key === 'vendor' ? <Store size={14} /> : <Package size={14} />}
                             {tab.label}
-                            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${sourceFilter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
-                                }`}>
-                                {tab.count}
-                            </span>
+                            {sourceFilter === tab.key && (
+                                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full bg-white/20 text-white`}>
+                                    {totalProducts}
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>
@@ -327,8 +358,8 @@ const AllProducts = () => {
                                         <p className="mt-2 text-muted text-sm">Loading products...</p>
                                     </td>
                                 </tr>
-                            ) : filteredProducts.length > 0 ? (
-                                filteredProducts.map((p) => (
+                            ) : products.length > 0 ? (
+                                products.map((p) => (
                                     <tr key={p._id} className={`hover:bg-gray-50 transition-colors ${p.vendor ? 'bg-purple-50/20' : ''}`}>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
@@ -503,13 +534,50 @@ const AllProducts = () => {
                     </table>
                 </div>
 
-                {/* Product count footer */}
-                {!loading && filteredProducts.length > 0 && (
-                    <div className="border-t border-gray-100 px-6 py-3 flex items-center justify-between bg-gray-50/50 text-xs text-gray-500">
-                        <span>Showing <strong className="text-gray-700">{filteredProducts.length}</strong> products</span>
-                        <div className="flex items-center gap-4">
-                            <span><strong className="text-blue-600">{branchCount}</strong> Branch</span>
-                            <span><strong className="text-purple-600">{vendorCount}</strong> Vendor</span>
+                {/* Pagination footer */}
+                {!loading && totalPages > 0 && (
+                    <div className="border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-gray-50/50 gap-4">
+                        <span className="text-sm text-gray-500">
+                            Showing <strong className="text-gray-900">{products.length}</strong> of <strong className="text-gray-900">{totalProducts}</strong> products
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={() => updateParams({ page: Math.max(1, page - 1) })}
+                                disabled={page === 1}
+                                className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm text-sm"
+                            >
+                                <ChevronLeft size={16} /> Previous
+                            </button>
+
+                            <div className="flex items-center px-2">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    // Logic to show pages around current page
+                                    let pageNum = page > 3 ? (totalPages - page < 2 ? totalPages - 4 + i : page - 2 + i) : i + 1;
+                                    pageNum = Math.max(1, Math.min(totalPages, pageNum));
+
+                                    // Only show unique tabs (fixes issue when totalPages < 5)
+                                    if (i > 0 && pageNum <= (page > 3 ? (totalPages - page < 2 ? totalPages - 4 + i - 1 : page - 2 + i - 1) : i)) return null;
+
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => updateParams({ page: pageNum })}
+                                            className={`w-8 h-8 mx-0.5 rounded-md flex items-center justify-center text-sm font-medium transition-colors ${page === pageNum ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100 border border-transparent hover:border-gray-200'}`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                onClick={() => updateParams({ page: Math.min(totalPages, page + 1) })}
+                                disabled={page === totalPages}
+                                className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm text-sm"
+                            >
+                                Next <ChevronRight size={16} />
+                            </button>
                         </div>
                     </div>
                 )}

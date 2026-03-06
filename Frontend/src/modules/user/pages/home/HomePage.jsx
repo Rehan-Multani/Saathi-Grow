@@ -483,10 +483,10 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                 <div className="flex items-center gap-3 lg:gap-5">
                     <Link
                         to={`/category/${encodeURIComponent(category.slug || category.name?.toLowerCase().replace(/\s+/g, '-'))}`}
-                        className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
+                        className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-black tracking-wider hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
                     >
                         See all
-                        <ChevronRight size={14} />
+                        <ArrowRight size={16} strokeWidth={2.5} />
                     </Link>
                 </div>
             </div>

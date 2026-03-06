@@ -4,7 +4,7 @@ const PRODUCTS_API_BASE_URL = `${API_BASE_URL}/admin/products`;
 
 export const getProducts = async (token, params = {}) => {
   const queryParams = new URLSearchParams({
-    limit: 200,
+    limit: params.limit || 10,
     ...params
   }).toString();
 

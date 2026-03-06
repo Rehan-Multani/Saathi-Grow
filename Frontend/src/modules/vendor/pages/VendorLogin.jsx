@@ -69,7 +69,7 @@ const VendorLogin = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-4 focus:ring-green-500/10 transition-all outline-none font-medium"
-                                placeholder="₹₹₹₹₹₹₹₹"
+                                placeholder="••••••••"
                             />
                         </div>
 
