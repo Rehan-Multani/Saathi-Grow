@@ -42,7 +42,7 @@ const CheckoutPage = () => {
     const { cartTotal = 0, clearCart, cartCount = 0, cart = [] } = useCart();
     const { location: globalLocation, openLocationModal } = useGlobalLocation();
     const { user, token } = useAuth();
-    const { activeStore } = useStore();
+    const { activeStore, isStoreOutOfRange, openStoreSelector } = useStore();
     const [isPlacing, setIsPlacing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [walletBalance, setWalletBalance] = useState(0);
@@ -116,6 +116,11 @@ const CheckoutPage = () => {
         if (cart.length === 0) return;
         if (!globalLocation.address) {
             toast.error("Please select a valid delivery address first.");
+            return;
+        }
+
+        if (isStoreOutOfRange) {
+            toast.error("Store is out of delivery range for this address.");
             return;
         }
 
@@ -263,6 +268,25 @@ const CheckoutPage = () => {
                 </div>
             )}
             <div className="max-w-2xl mx-auto px-4">
+                {/* Out of Range Banner */}
+                {isStoreOutOfRange && (
+                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-2xl flex items-start gap-4 animate-in slide-in-from-top duration-300">
+                        <AlertCircle className="text-red-500 shrink-0" size={20} />
+                        <div>
+                            <h4 className="text-sm font-black text-red-600 dark:text-red-400">Store out of delivery range</h4>
+                            <p className="text-[10px] font-bold text-red-500/80 leading-tight mt-1">
+                                {activeStore?.name} cannot deliver to your current address.
+                                Please change your delivery address or switch to a closer store.
+                            </p>
+                            <button
+                                onClick={() => navigate('/')}
+                                className="mt-3 text-[9px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 underline underline-offset-2"
+                            >
+                                Switch Store
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <div className="flex items-center gap-3 mb-8">
                     <button
                         onClick={() => navigate(-1)}
@@ -496,16 +520,16 @@ const CheckoutPage = () => {
                     </div>
                     <button
                         onClick={handlePlaceOrder}
-                        disabled={isPlacing || cart.length === 0}
+                        disabled={isPlacing || cart.length === 0 || isStoreOutOfRange}
                         style={{ borderRadius: '16px' }}
-                        className="flex-1 bg-[#0c831f] text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                        className={`flex-1 ${isStoreOutOfRange ? 'bg-gray-400' : 'bg-[#0c831f]'} text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2`}
                     >
                         {isPlacing ? (
                             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                         ) : (
                             <>
-                                <span>Place Order</span>
-                                <ArrowRight size={16} strokeWidth={3} />
+                                <span>{isStoreOutOfRange ? 'Out of Range' : 'Place Order'}</span>
+                                {!isStoreOutOfRange && <ArrowRight size={16} strokeWidth={3} />}
                             </>
                         )}
                     </button>

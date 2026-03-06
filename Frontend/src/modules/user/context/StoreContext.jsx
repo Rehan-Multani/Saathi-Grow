@@ -14,6 +14,7 @@ export const StoreProvider = ({ children }) => {
   });
   const [nearbyStores, setNearbyStores] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isStoreOutOfRange, setIsStoreOutOfRange] = useState(false);
 
   // Fetch nearby stores whenever the user's location changes
   useEffect(() => {
@@ -28,13 +29,17 @@ export const StoreProvider = ({ children }) => {
           // If we have an active store, check if it's still in the nearby list
           if (activeStore) {
             const exists = stores.find(s => s.id === activeStore.id);
+            setIsStoreOutOfRange(!exists);
+
             if (!exists) {
-              // Optionally handle logic if store is now out of range
-              console.warn("Active store is no longer in range.");
+              console.warn("Active store is no longer in range for the current location.");
             }
+          } else {
+            setIsStoreOutOfRange(false);
           }
         } catch (error) {
           console.error("Failed to fetch nearby stores:", error);
+          setIsStoreOutOfRange(false);
         } finally {
           setLoading(false);
         }
@@ -42,7 +47,7 @@ export const StoreProvider = ({ children }) => {
     };
 
     fetchStores();
-  }, [location?.coordinates]);
+  }, [location?.coordinates, activeStore?.id]);
 
   // Persist active store selection
   useEffect(() => {
@@ -55,6 +60,7 @@ export const StoreProvider = ({ children }) => {
 
   const selectStore = (store) => {
     setActiveStore(store);
+    setIsStoreOutOfRange(false); // Reset on selection
   };
 
   return (
@@ -62,6 +68,7 @@ export const StoreProvider = ({ children }) => {
       value={{
         activeStore,
         nearbyStores,
+        isStoreOutOfRange,
         selectStore,
         loading,
         setActiveStore

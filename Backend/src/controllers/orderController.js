@@ -8,7 +8,38 @@ import GlobalSetting from '../models/GlobalSetting.js';
 import Product from '../models/Product.js';
 import OrderDelivery from '../models/OrderDelivery.js';
 import InventoryLog from '../models/InventoryLog.js';
-import { findOptimalSource, geocodeAddress } from '../services/locationService.js';
+import Branch from '../models/Branch.js';
+import Vendor from '../models/Vendor.js';
+import { findOptimalSource, geocodeAddress, calculateDistance } from '../services/locationService.js';
+
+const validateStoreDistance = async (storeId, storeType, userLocation) => {
+  if (!storeId || !userLocation || !userLocation.coordinates || userLocation.coordinates.length < 2) return true;
+
+  try {
+    let store;
+    if (storeType === 'branch') {
+      store = await Branch.findById(storeId);
+    } else {
+      store = await Vendor.findById(storeId);
+    }
+
+    if (!store || !store.address?.location?.coordinates) return true;
+
+    const storeCoords = store.address.location.coordinates;
+    const distance = calculateDistance(
+      userLocation.coordinates[1], userLocation.coordinates[0],
+      storeCoords[1], storeCoords[0]
+    );
+
+    // Max 25km Euclidean distance as a hard backend guard
+    if (distance > 25) {
+      throw new Error(`Store range validation failed. Distance: ${distance.toFixed(1)}km. Max range: 25km.`);
+    }
+  } catch (error) {
+    throw error;
+  }
+  return true;
+};
 
 const computeBillDetails = async (items, storeInfo = null) => {
   let subTotal = 0;
@@ -123,6 +154,11 @@ export const verifyRazorpayPayment = async (req, res) => {
     // Strip empty location bounds so the 2dsphere index doesn't explode
     if (orderData.shippingAddress && (!orderData.shippingAddress.location || !orderData.shippingAddress.location.coordinates || orderData.shippingAddress.location.coordinates.length < 2)) {
       delete orderData.shippingAddress.location;
+    }
+
+    // RANGE VALIDATION (Store-First Architecture Safeguard)
+    if (orderData.storeId) {
+      await validateStoreDistance(orderData.storeId, orderData.storeType, orderData.shippingAddress.location);
     }
 
     // Recompute bill to guarantee no manipulation during payment verify leap
@@ -316,6 +352,11 @@ export const createCODOrder = async (req, res) => {
     // Strip empty location bounds so the 2dsphere index doesn't explode
     if (orderData.shippingAddress && (!orderData.shippingAddress.location || !orderData.shippingAddress.location.coordinates || orderData.shippingAddress.location.coordinates.length < 2)) {
       delete orderData.shippingAddress.location;
+    }
+
+    // RANGE VALIDATION (Store-First Architecture Safeguard)
+    if (orderData.storeId) {
+      await validateStoreDistance(orderData.storeId, orderData.storeType, orderData.shippingAddress.location);
     }
 
     // Always recompute on backend. NEVER trust frontend amount

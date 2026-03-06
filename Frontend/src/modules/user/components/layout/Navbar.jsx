@@ -35,7 +35,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem('preferredLanguage') || 'English');
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
-  const { activeStore } = useStore();
+  const { activeStore, isStoreOutOfRange } = useStore();
   const [isStoreSelectorOpen, setIsStoreSelectorOpen] = useState(false);
 
   const recognitionRef = React.useRef(null);
@@ -187,16 +187,17 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             {/* Location Selector (Polished Design) */}
             <div
               onClick={() => setIsStoreSelectorOpen(true)}
-              className="flex flex-col items-end justify-center leading-none cursor-pointer max-w-[140px]"
+              className={`flex flex-col items-end justify-center leading-none cursor-pointer max-w-[140px] ${isStoreOutOfRange ? 'bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-lg' : ''}`}
             >
               <div className="flex items-center gap-1 mb-0.5 w-full justify-end">
-                <span className="text-[14px] font-black text-gray-900 dark:text-gray-100 uppercase tracking-tighter truncate text-right">
+                {isStoreOutOfRange && <AlertCircle size={10} className="text-red-500" strokeWidth={3} />}
+                <span className={`text-[14px] font-black uppercase tracking-tighter truncate text-right ${isStoreOutOfRange ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
                   {activeStore?.name || location.city || 'Indore'}
                 </span>
-                <ChevronDown size={12} className="text-[#0c831f] flex-shrink-0" strokeWidth={4} />
+                <ChevronDown size={12} className={isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'} strokeWidth={4} />
               </div>
-              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 text-right truncate w-full tracking-tight">
-                {activeStore ? `Delivering from Store` : (location.address || 'Select locality')}
+              <span className={`text-[10px] font-bold text-right truncate w-full tracking-tight ${isStoreOutOfRange ? 'text-red-500/80' : 'text-gray-400 dark:text-gray-500'}`}>
+                {isStoreOutOfRange ? 'Out of range' : (activeStore ? `Delivering from Store` : (location.address || 'Select locality'))}
               </span>
             </div>
           </div>
@@ -311,14 +312,17 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
               {/* Location Selector - Desktop */}
               <div
                 onClick={() => setIsStoreSelectorOpen(true)}
-                className="flex flex-col items-start leading-none px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-gray-100 dark:hover:border-white/5"
+                className={`flex flex-col items-start leading-none px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors border border-transparent ${isStoreOutOfRange ? 'bg-red-50 dark:bg-red-500/10 border-red-200' : 'hover:border-gray-100 dark:hover:border-white/5'}`}
               >
-                <span className="text-[10px] uppercase font-bold text-[#0c831f] tracking-wider mb-1 flex items-center gap-1">
-                  Delivering from <ChevronDown size={10} strokeWidth={3} />
+                <span className={`text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1 ${isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'}`}>
+                  {isStoreOutOfRange ? 'Out of Range' : 'Delivering from'} <ChevronDown size={10} strokeWidth={3} />
                 </span>
-                <span className="text-[13px] font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 max-w-[180px]">
-                  {activeStore?.name || (location.city ? location.address : 'Select Location')}
-                </span>
+                <div className="flex items-center gap-2">
+                  {isStoreOutOfRange && <AlertCircle size={12} className="text-red-500" />}
+                  <span className={`text-[13px] font-semibold line-clamp-1 max-w-[180px] ${isStoreOutOfRange ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-gray-100'}`}>
+                    {activeStore?.name || (location.city ? location.address : 'Select Location')}
+                  </span>
+                </div>
               </div>
             </div>
 
