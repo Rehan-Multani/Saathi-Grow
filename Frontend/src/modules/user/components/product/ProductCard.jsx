@@ -43,7 +43,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
   return (
     <div
-      className="rounded-2xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111]"
+      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111]"
       style={{
         background: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
@@ -55,7 +55,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
       {/* Pulsing Border Highlight - Mobile Only */}
       <div
-        className="absolute inset-0 rounded-2xl border-[1.5px] md:border-transparent animate-pulse md:animate-none pointer-events-none z-30"
+        className="absolute inset-0 rounded-lg sm:rounded-xl border-[1.5px] md:border-transparent animate-pulse md:animate-none pointer-events-none z-30"
         style={{ borderColor: customTheme ? `${customTheme.themeColor}20` : '#0c831f20' }}
       />
       <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[7.5px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
@@ -78,10 +78,10 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
       </button>
 
       {/* Product Image */}
-      <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-white dark:bg-zinc-800 z-10 transition-all duration-500">
+      <div className="relative w-full aspect-square overflow-hidden rounded-md sm:rounded-lg bg-white dark:bg-zinc-800 z-10 transition-all duration-500">
 
         {/* Shine Effect on Hover - Image Only */}
-        <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden dark:hidden rounded-xl">
+        <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden dark:hidden rounded-md sm:rounded-lg">
           <div className="absolute top-0 -left-[100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-25deg] group-hover:animate-[shine-sweep-fast_0.75s_ease-in-out]" />
         </div>
         <Link to={`/product/${productId}`} className="block w-full h-full">

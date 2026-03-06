@@ -53,7 +53,7 @@ const NotificationsPage = () => {
                 </div>
 
                 {/* Notifications List */}
-                <div className="px-0 md:px-4">
+                <div className="px-0 md:px-4 pt-20 border-t border-transparent md:pt-0">
                     <p className="!text-[8px] font-bold text-gray-400 mb-2 tracking-widest px-4 md:px-2">RECENTLY RECEIVED</p>
                     <div className="flex flex-col gap-0 md:gap-3">
                         {notifications.map((item) => (

@@ -52,7 +52,7 @@ const HomePage = ({ }) => {
     }, []);
 
     const activeOffers = offers.length > 0 ? offers : [];
-    const maxItemsToShow = windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : 3;
+    const maxItemsToShow = 1; // 1 banner at a time for gorgeous premium carousel
     const itemsToShow = Math.min(maxItemsToShow, activeOffers.length || 1);
     const isCarousel = activeOffers.length > itemsToShow;
 
@@ -167,8 +167,8 @@ const HomePage = ({ }) => {
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
             {!isSearching && !loading && activeOffers.length > 0 && (
-                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 group/offers relative">
-                    <div className="relative overflow-hidden rounded-none sm:rounded-2xl">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mb-2 group/offers relative">
+                    <div className="relative overflow-hidden sm:rounded-2xl">
                         <div
                             className={`flex ${isTransitioning && isCarousel ? 'transition-transform duration-1000 ease-in-out' : ''}`}
                             style={{
@@ -186,15 +186,15 @@ const HomePage = ({ }) => {
                                 >
                                     <div
                                         onClick={() => navigate(`/offer/${offer._id || offer.id}`)}
-                                        className="relative cursor-pointer transition-all duration-300 mx-0 border-none group/banner block z-10"
+                                        className="relative cursor-pointer transition-all duration-500 mx-0 border-none group/banner block z-10 hover:shadow-2xl"
                                         role="button"
                                         tabIndex={0}
                                     >
-                                        <div className="aspect-[16/7.5] sm:aspect-[16/7] overflow-hidden rounded-lg sm:rounded-2xl shadow-sm border border-gray-100/10 pointer-events-none">
+                                        <div className="aspect-[16/7.5] sm:aspect-[24/8] overflow-hidden rounded-lg sm:rounded-3xl shadow-md border border-gray-100/10 pointer-events-none bg-gray-50 dark:bg-gray-900">
                                             <img
                                                 src={offer.bannerImage || offer.image}
                                                 alt={offer.title || "Special Offer"}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover/banner:scale-105"
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover/banner:scale-[1.03]"
                                                 loading="lazy"
                                             />
                                         </div>
@@ -249,18 +249,19 @@ const HomePage = ({ }) => {
                         <h2 className="text-[13px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
                         {!isSearching && (
                             <Link
+                                autoFocus={false}
                                 to="/category"
                                 className="flex items-center gap-1 text-[#0c831f] text-[10px] md:text-sm font-black tracking-widest hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
                             >
                                 See all
-                                <ChevronRight size={12} strokeWidth={3} />
+                                <ArrowRight size={16} strokeWidth={2.5} />
                             </Link>
                         )}
                     </div>
                     <div className="relative group/nav">
                         <div
                             ref={scrollContainerRef}
-                            className="flex overflow-x-auto gap-2 sm:gap-8 pt-1 pb-2 md:pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start"
+                            className="flex overflow-x-auto gap-2 sm:gap-8 pt-1 pb-2 md:pb-8 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-start md:snap-x md:snap-mandatory"
                             onScroll={handleCategoryScroll}
                         >
                             {loading ? (
@@ -273,9 +274,9 @@ const HomePage = ({ }) => {
                                 filteredCategories.map((cat) => {
                                     const bgColor = categoryColors[cat.slug] || '#f3f4f6';
                                     return (
-                                        <Link key={cat._id || cat.id} to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200">
+                                        <Link key={cat._id || cat.id} to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200 md:snap-start">
                                             <div
-                                                className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-2xl sm:rounded-3xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
+                                                className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-lg sm:rounded-xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
                                                 style={{ backgroundColor: isDarkMode ? 'var(--bg-surface)' : bgColor }}
                                             >
                                                 {/* Glassy reflection overlay */}
@@ -308,7 +309,7 @@ const HomePage = ({ }) => {
                                 {canScrollLeft && (
                                     <button
                                         onClick={scrollLeft}
-                                        className="absolute -left-4 top-10 md:top-14 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
+                                        className="absolute -left-4 top-[35px] sm:top-[47.5px] -translate-y-1/2 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
                                         aria-label="Scroll left"
                                     >
                                         <ArrowLeft size={18} strokeWidth={2.5} />
@@ -317,7 +318,7 @@ const HomePage = ({ }) => {
                                 {canScrollRight && (
                                     <button
                                         onClick={scrollRight}
-                                        className="absolute -right-4 top-10 md:top-14 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
+                                        className="absolute -right-4 top-[35px] sm:top-[47.5px] -translate-y-1/2 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
                                         aria-label="Scroll right"
                                     >
                                         <ArrowRight size={18} strokeWidth={2.5} />
@@ -479,28 +480,41 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                 <h2 className="text-[11px] md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
                 </h2>
-                <Link
-                    to={`/category/${encodeURIComponent(category.slug || category.name?.toLowerCase().replace(/\s+/g, '-'))}`}
-                    className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all"
-                >
-                    See all
-                    <ChevronRight size={14} />
-                </Link>
+                <div className="flex items-center gap-3 lg:gap-5">
+                    <Link
+                        to={`/category/${encodeURIComponent(category.slug || category.name?.toLowerCase().replace(/\s+/g, '-'))}`}
+                        className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
+                    >
+                        See all
+                        <ChevronRight size={14} />
+                    </Link>
+                </div>
             </div>
 
-            <div className="relative group/section">
+            <div className="relative flex items-center group/section -mx-4 md:mx-0">
+                {/* Left Arrow Space */}
+                <div className={`hidden md:flex w-10 lg:w-12 shrink-0 justify-start transition-opacity duration-300 ${showLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <button
+                        onClick={() => sectionScroll('left')}
+                        className="bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 lg:w-11 lg:h-11 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer border border-gray-100 dark:border-white/5"
+                        aria-label="Scroll left"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                </div>
+
                 <div
                     ref={sectionRef}
                     onScroll={handleScroll}
-                    className="flex overflow-x-auto gap-2 md:gap-5 pb-2 md:pb-4 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-stretch"
+                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
                 >
                     {localProducts.map((product) => (
-                        <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                        <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] md:snap-start">
                             <ProductCard product={normalizeProduct(product)} />
                         </div>
                     ))}
                     {hasMore && (
-                        <div className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] flex flex-col">
+                        <div className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] flex flex-col md:snap-start">
                             <button
                                 onClick={() => fetchItems(page + 1)}
                                 className="w-full h-full rounded-3xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col items-center justify-center gap-4 group/btn bg-white dark:bg-[#111111] mb-1 relative overflow-hidden md:!bg-white dark:md:!bg-[#111111]"
@@ -523,22 +537,16 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                     )}
                 </div>
 
-                {showLeft && (
-                    <button
-                        onClick={() => sectionScroll('left')}
-                        className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
-                    >
-                        <ArrowLeft size={18} strokeWidth={2.5} />
-                    </button>
-                )}
-                {showRight && (
+                {/* Right Arrow Space */}
+                <div className={`hidden md:flex w-10 lg:w-12 shrink-0 justify-end transition-opacity duration-300 ${showRight ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button
                         onClick={() => sectionScroll('right')}
-                        className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
+                        className="bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 lg:w-11 lg:h-11 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer border border-gray-100 dark:border-white/5"
+                        aria-label="Scroll right"
                     >
                         <ArrowRight size={18} strokeWidth={2.5} />
                     </button>
-                )}
+                </div>
             </div>
         </div>
     );
@@ -632,7 +640,7 @@ const OccasionSection = ({
             </div>
 
             {badgeText && (
-                <div className="mb-1">
+                <div className="mb-4 md:mb-6">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm" style={{ backgroundColor: `${themeColor}10`, borderColor: `${themeColor}30` }}>
                         <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: themeColor }} />
                         <span className="text-[9px] md:text-xs font-black tracking-wide uppercase" style={{ color: themeColor }}>{badgeText}</span>
@@ -640,14 +648,26 @@ const OccasionSection = ({
                 </div>
             )}
 
-            <div className="relative group/section">
+            <div className="relative flex items-center group/section -mx-4 md:mx-0">
+                {/* Left Arrow Space */}
+                <div className={`hidden md:flex w-10 lg:w-12 shrink-0 justify-start transition-opacity duration-300 ${showLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <button
+                        onClick={() => sectionScroll('left')}
+                        className="bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 lg:w-11 lg:h-11 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer border"
+                        style={{ borderColor: themeColor ? `${themeColor}40` : '#e5e7eb' }}
+                        aria-label="Scroll left"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                </div>
+
                 <div
                     ref={sectionRef}
                     onScroll={handleScroll}
-                    className="flex overflow-x-auto gap-3 md:gap-5 pb-2 md:pb-4 scrollbar-hide -mx-0 px-0 scroll-smooth items-stretch"
+                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
                 >
                     {localProducts.map((product) => (
-                        <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                        <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] md:snap-start">
                             <ProductCard
                                 product={normalizeProduct(product)}
                                 customTheme={{
@@ -659,7 +679,7 @@ const OccasionSection = ({
                         </div>
                     ))}
                     {hasMore && (
-                        <div className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] flex flex-col">
+                        <div className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] flex flex-col md:snap-start">
                             <button
                                 onClick={fetchMore}
                                 disabled={isLoadingMore}
@@ -696,22 +716,17 @@ const OccasionSection = ({
                     )}
                 </div>
 
-                {showLeft && (
-                    <button
-                        onClick={() => sectionScroll('left')}
-                        className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white text-black w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
-                    >
-                        <ArrowLeft size={18} strokeWidth={2.5} />
-                    </button>
-                )}
-                {showRight && (
+                {/* Right Arrow Space */}
+                <div className={`hidden md:flex w-10 lg:w-12 shrink-0 justify-end transition-opacity duration-300 ${showRight ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button
                         onClick={() => sectionScroll('right')}
-                        className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white text-black w-9 h-9 rounded-full shadow-md flex items-center justify-center transition-all hover:scale-110 hidden md:flex"
+                        className="bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 lg:w-11 lg:h-11 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer border"
+                        style={{ borderColor: themeColor ? `${themeColor}40` : '#e5e7eb' }}
+                        aria-label="Scroll right"
                     >
                         <ArrowRight size={18} strokeWidth={2.5} />
                     </button>
-                )}
+                </div>
             </div>
         </div>
     );
