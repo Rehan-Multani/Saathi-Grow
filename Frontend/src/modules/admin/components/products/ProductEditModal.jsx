@@ -12,6 +12,7 @@ import { getAISuggestions } from '../../api/productApi';
 import { toast } from 'react-toastify';
 
 const ProductEditModal = ({ show, onHide, product, onSave }) => {
+    // Component for editing product details and inventory
     const adminContext = useAdminAuth();
     const staffContext = useStaffAuth();
     const managerContext = useStoreManagerAuth();
@@ -39,7 +40,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         unitType: 'pcs',
         unitValue: 1,
         description: '',
-        tags: []
+        tags: [],
+        isSaathiGrow: false
     });
 
     const [imagePreview, setImagePreview] = useState(null);
@@ -81,7 +83,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                 unitType: product.unitType || 'pcs',
                 unitValue: product.unitValue || 1,
                 description: product.description || '',
-                tags: product.tags || []
+                tags: product.tags || [],
+                isSaathiGrow: product.isSaathiGrow || false
             });
 
             // Map existing stocks by branchId for quick lookup
@@ -157,12 +160,11 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             setFilteredBrands([]);
         }
     }, [formData.category, brands]);
-
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: (name === 'basePrice' || name === 'mrp' || name === 'unitValue') ? parseFloat(value) : value
+            [name]: type === 'checkbox' ? checked : ((name === 'basePrice' || name === 'mrp' || name === 'unitValue') ? parseFloat(value) : value)
         }));
     };
 
@@ -447,6 +449,28 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     </Form.Group>
                                 </Col>
 
+                                <Col md={12}>
+                                    <Form.Group className="mb-2 p-3 bg-blue-50/30 border border-blue-100 rounded-xl">
+                                        <Form.Check
+                                            type="checkbox"
+                                            id="edit-isSaathiGrow"
+                                            name="isSaathiGrow"
+                                            label={
+                                                <div className="ms-3">
+                                                    <div className="text-xs font-black text-blue-800 uppercase tracking-wider d-flex align-items-center gap-2">
+                                                        <Sparkles size={12} className="text-blue-600" />
+                                                        Saathi Grow Priority Product
+                                                    </div>
+                                                    <div className="text-[10px] text-blue-600/70 font-medium">Prioritize this product in user listings</div>
+                                                </div>
+                                            }
+                                            checked={formData.isSaathiGrow}
+                                            onChange={handleChange}
+                                            className="d-flex align-items-start"
+                                        />
+                                    </Form.Group>
+                                </Col>
+
                                 <Col md={6}>
                                     <Form.Group>
                                         <Form.Label className="small fw-medium text-muted">Physical Location</Form.Label>
@@ -678,5 +702,4 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         </Modal >
     );
 };
-
 export default ProductEditModal;
