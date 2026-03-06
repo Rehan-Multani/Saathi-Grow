@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 import { getPoliciesList } from '../../../../common/utils/legalUtils';
+import logo from '../../../../assets/logo.png';
 
 const Footer = ({ customTheme }) => {
   const [policies, setPolicies] = useState([]);
@@ -31,7 +32,9 @@ const Footer = ({ customTheme }) => {
 
           {/* Brand Section */}
           <div className="flex flex-col items-start text-left min-w-fit">
-            <Link to="/" className="text-[9px] sm:text-2xl font-black text-[#0c831f] tracking-tighter mb-2 sm:mb-4">sathiGro</Link>
+            <Link to="/" className="mb-2 sm:mb-4 inline-block">
+              <img src={logo} alt="sathiGro" className="h-8 sm:h-12 object-contain" />
+            </Link>
             <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed max-w-[100px] hidden lg:block">
               Fresh groceries delivered to your home in minutes.
             </p>

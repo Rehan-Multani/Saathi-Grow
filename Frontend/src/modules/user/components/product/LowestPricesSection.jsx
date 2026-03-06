@@ -101,21 +101,32 @@ const LowestPricesSection = ({
             </div>
 
             {/* Products Scrollable Row */}
-            <div className="relative group/section">
+            <div className="relative flex items-center group/section -mx-4 md:mx-0">
+                {/* Left Arrow Space */}
+                <div className={`hidden md:flex w-10 lg:w-12 shrink-0 justify-start transition-opacity duration-300 ${showLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <button
+                        onClick={() => sectionScroll('left')}
+                        className="bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 lg:w-11 lg:h-11 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-center transition-all border border-gray-100 dark:border-white/5 hover:scale-110 active:scale-95 cursor-pointer"
+                        aria-label="Scroll left"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                </div>
+
                 <div
                     ref={sectionRef}
                     onScroll={handleScroll}
-                    className="flex overflow-x-auto gap-2 md:gap-5 pb-2 md:pb-4 scrollbar-hide -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-smooth items-stretch"
+                    className="flex-1 flex overflow-x-auto gap-3 md:gap-4 lg:gap-5 pb-2 md:pb-4 scrollbar-hide px-4 md:px-0 scroll-smooth items-stretch md:snap-x md:snap-mandatory w-full"
                 >
                     {loading ? (
                         Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
+                            <div key={i} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] md:snap-start">
                                 <ProductCardSkeleton />
                             </div>
                         ))
                     ) : (
                         displayProducts.map((product) => (
-                            <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px] relative">
+                            <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] relative md:snap-start">
                                 {/* Discount Badge ₹ only show if there's a real discount */}
                                 {product.discountPercentage > 0 && (
                                     <div className="absolute top-1 right-1 z-40 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-black shadow-lg">
@@ -135,29 +146,16 @@ const LowestPricesSection = ({
                     )}
                 </div>
 
-                {/* Navigation Arrows - Desktop Only */}
-                {!loading && (
-                    <>
-                        {showLeft && (
-                            <button
-                                onClick={() => sectionScroll('left')}
-                                className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
-                                aria-label="Scroll left"
-                            >
-                                <ArrowLeft size={18} strokeWidth={2.5} />
-                            </button>
-                        )}
-                        {showRight && (
-                            <button
-                                onClick={() => sectionScroll('right')}
-                                className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
-                                aria-label="Scroll right"
-                            >
-                                <ArrowRight size={18} strokeWidth={2.5} />
-                            </button>
-                        )}
-                    </>
-                )}
+                {/* Right Arrow Space */}
+                <div className={`hidden md:flex w-10 lg:w-12 shrink-0 justify-end transition-opacity duration-300 ${showRight ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <button
+                        onClick={() => sectionScroll('right')}
+                        className="bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 lg:w-11 lg:h-11 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-center transition-all border border-gray-100 dark:border-white/5 hover:scale-110 active:scale-95 cursor-pointer"
+                        aria-label="Scroll right"
+                    >
+                        <ArrowRight size={18} strokeWidth={2.5} />
+                    </button>
+                </div>
             </div>
         </div>
     );
