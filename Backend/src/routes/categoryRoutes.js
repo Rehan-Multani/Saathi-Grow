@@ -17,8 +17,8 @@ router.get('/:id', getCategoryById);
 
 // Admin only routes
 router.use(protectAdmin);
-router.post('/', upload.single('image'), createCategory);
-router.put('/:id', upload.single('image'), updateCategory);
-router.delete('/:id', restrictTo('Admin', 'Branch Manager'), deleteCategory);
+router.post('/', restrictTo('Admin'), upload.single('image'), createCategory);
+router.put('/:id', restrictTo('Admin'), upload.single('image'), updateCategory);
+router.delete('/:id', restrictTo('Admin'), deleteCategory);
 
 export default router;

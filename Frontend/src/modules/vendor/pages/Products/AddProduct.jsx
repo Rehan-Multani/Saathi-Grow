@@ -1,362 +1,578 @@
-﻿import React, { useState, useRef } from 'react';
-import { X, Upload, ChevronDown, Plus, Trash2, Image as ImageIcon, Info, DollarSign, ArrowLeft, Save, Bell, LogOut, Store } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
+import { RefreshCw, Save, Upload, X, Sparkles, Plus, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
+import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { useVendor } from '../../contexts/VendorContext';
+import { getCategories } from '../../../admin/api/categoryApi';
+import { getBrands } from '../../../admin/api/brandApi';
+import { addVendorProduct, getVendorAISuggestions } from '../../api/vendorProductApi';
+import { toast } from 'react-toastify';
 
 const AddProduct = () => {
     const navigate = useNavigate();
-    const { addProduct, vendor } = useVendor();
-    const fileInputRef = useRef(null);
-    const otherFilesRef = useRef(null);
+    const { vendor } = useVendor();
+    const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
 
-    const [mainImage, setMainImage] = useState(null);
-    const [mainImageFile, setMainImageFile] = useState(null);
-    const [otherImages, setOtherImages] = useState([]);
-    const [otherImageFiles, setOtherImageFiles] = useState([]);
-    const [variants, setVariants] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [filteredBrands, setFilteredBrands] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
-        brand: '',
         category: '',
+        brandName: '',
+        basePrice: '',
         mrp: '',
-        price: '',
-        unit: '',
-        unitValue: 1,
-        description: '',
         isVeg: true,
-        stock: 10
+        unitType: 'pcs',
+        unitValue: 1,
+        physicalLocation: '',
+        description: '',
+        sku: '',
+        tags: [],
+        stock: 0,
+        lowStockThreshold: 10,
+        status: 'Pending Approval',
+        isSaathiGrow: false
     });
 
-    const categories = ['Vegetables & Fruits', 'Dairy & Breakfast', 'Munchies', 'Fashion', 'Electronics'];
-    const brands = ['Fashion Hub', 'Amul', 'Nestle', 'Tata', 'Reliance', 'Other'];
+    const [imagePreview, setImagePreview] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [galleryFiles, setGalleryFiles] = useState([]);
+    const [showCropper, setShowCropper] = useState(false);
+    const [tempImage, setTempImage] = useState(null);
+    const [tagInput, setTagInput] = useState('');
 
-    const handleMainUpload = (e) => {
+    // Fetch Initial Data
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [categoriesData, brandsData, branchesData] = await Promise.all([
+                    getCategories(vendor.token),
+                    getBrands(vendor.token)
+                ]);
+                setCategories(categoriesData.filter(c => c.status === 'Active'));
+                setBrands(brandsData.filter(b => b.status === 'Active'));
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                toast.error('Failed to load initial data');
+            } finally {
+                setInitialLoading(false);
+            }
+        };
+
+        if (vendor?.token) {
+            fetchData();
+        }
+    }, [vendor.token]);
+
+
+
+    useEffect(() => {
+        if (formData.category) {
+            const matches = brands.filter(b => b.category === formData.category);
+            setFilteredBrands(matches);
+            if (!matches.find(m => m.name === formData.brandName)) {
+                setFormData(prev => ({ ...prev, brandName: '' }));
+            }
+        } else {
+            setFilteredBrands([]);
+            setFormData(prev => ({ ...prev, brandName: '' }));
+        }
+    }, [formData.category, brands]);
+
+    const generateSKU = () => {
+        const prefix = formData.category ? formData.category.substring(0, 3).toUpperCase() : 'PROD';
+        const namePart = formData.name ? formData.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X') : 'XXX';
+        const uid = Math.random().toString(36).substring(2, 7).toUpperCase();
+        return `V-${prefix}-${namePart}-${uid}`;
+    };
+
+    useEffect(() => {
+        if (formData.name && formData.category && !formData.sku) {
+            setFormData(prev => ({ ...prev, sku: generateSKU() }));
+        }
+    }, [formData.name, formData.category]);
+
+    const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setMainImage(URL.createObjectURL(file));
-            setMainImageFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setTempImage(reader.result);
+                setShowCropper(true);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
-    const handleOtherUpload = (e) => {
+    const handleCropComplete = async (croppedImage) => {
+        setImagePreview(croppedImage);
+        setShowCropper(false);
+        setTempImage(null);
+        const res = await fetch(croppedImage);
+        const blob = await res.blob();
+        setImageFile(new File([blob], 'product.jpg', { type: 'image/jpeg' }));
+    };
+
+    const handleGalleryChange = (e) => {
         const files = Array.from(e.target.files);
-        if (files.length + otherImageFiles.length > 10) {
-            return alert('Maximum 10 gallery images allowed');
+        if (files.length + galleryFiles.length > 10) {
+            return toast.warning('Maximum 10 gallery images allowed');
         }
         const newPreviews = files.map(file => URL.createObjectURL(file));
-        setOtherImages([...otherImages, ...newPreviews]);
-        setOtherImageFiles([...otherImageFiles, ...files]);
+        setGalleryPreviews(prev => [...prev, ...newPreviews]);
+        setGalleryFiles(prev => [...prev, ...files]);
     };
 
-    const removeOtherImage = (index) => {
-        setOtherImages(prev => prev.filter((_, i) => i !== index));
-        setOtherImageFiles(prev => prev.filter((_, i) => i !== index));
+    const removeGalleryImage = (index) => {
+        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+        setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleRefreshSKU = () => {
+        setFormData({ ...formData, sku: generateSKU() });
+    };
+
+    const addTag = (newTag) => {
+        const trimmedTag = (newTag || tagInput).trim();
+        if (trimmedTag && !formData.tags.includes(trimmedTag)) {
+            setFormData(prev => ({
+                ...prev,
+                tags: [...prev.tags, trimmedTag]
+            }));
+            if (!newTag) setTagInput('');
+        }
+    };
+
+    const handleAISuggestion = async (type) => {
+        if (!formData.name) {
+            return toast.warning('Please enter a product name first');
+        }
+        setAiLoading(prev => ({ ...prev, [type]: true }));
+        try {
+            const data = await getVendorAISuggestions(vendor.token, formData.name, type);
+            if (type === 'description') {
+                setFormData(prev => ({ ...prev, description: data.suggestion }));
+                toast.success('Description generated!');
+            } else if (type === 'tags') {
+                const newTags = data.suggestion.split(',').map(t => t.trim()).filter(t => t);
+                setFormData(prev => ({
+                    ...prev,
+                    tags: [...new Set([...prev.tags, ...newTags])]
+                }));
+                toast.success('Tags generated!');
+            }
+        } catch (error) {
+            toast.error(error.message || `Failed to generate ${type}`);
+        } finally {
+            setAiLoading(prev => ({ ...prev, [type]: false }));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const data = new FormData();
-        data.append('name', formData.name);
-        data.append('brand', formData.brand);
-        data.append('category', formData.category);
-        data.append('mrp', formData.mrp);
-        data.append('price', formData.price);
-        data.append('unit', formData.unit);
-        data.append('unitValue', formData.unitValue);
-        data.append('description', formData.description);
-        data.append('isVeg', formData.isVeg);
-        data.append('stock', formData.stock);
-
-        // Handle images
-        if (mainImageFile) {
-            data.append('image', mainImageFile);
+        if (!formData.name || !formData.category || !formData.brandName || !formData.basePrice || !formData.sku) {
+            return toast.error('Please fill all required fields');
         }
+        setLoading(true);
+        try {
+            const data = new FormData();
 
-        if (otherImageFiles.length > 0) {
-            otherImageFiles.forEach(file => {
-                data.append('gallery', file);
+            Object.keys(formData).forEach(key => {
+                if (key === 'tags') {
+                    data.append(key, formData.tags.join(','));
+                } else {
+                    data.append(key, formData[key]);
+                }
             });
-        }
 
-        // Handle variants
-        data.append('variants', JSON.stringify(variants.map(v => ({
-            ...v,
-            stock: Number(v.stock) || 0,
-            price: Number(v.price) || Number(formData.price)
-        }))));
+            if (imageFile) data.append('image', imageFile);
+            if (galleryFiles.length > 0) {
+                galleryFiles.forEach(file => data.append('gallery', file));
+            }
 
-        const success = await addProduct(data);
-        if (success) {
+            await addVendorProduct(vendor.token, data);
+            toast.success('Product submitted for approval!');
             navigate('/vendor/products');
+        } catch (error) {
+            toast.error(error.message || 'Failed to create product');
+        } finally {
+            setLoading(false);
         }
     };
 
-    return (
-        <div className="min-h-screen bg-white pb-20 overflow-x-hidden">
-            <input type="file" ref={fileInputRef} onChange={handleMainUpload} accept="image/*" className="hidden" />
-            <input type="file" ref={otherFilesRef} onChange={handleOtherUpload} accept="image/*" multiple className="hidden" />
+    if (initialLoading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <Spinner animation="border" variant="success" />
+            </div>
+        );
+    }
 
-            {/* Header */}
-            <div className="bg-white border-b border-gray-100 px-3 md:px-8 py-2 md:py-3 lg:py-2.5 flex items-center justify-between sticky top-0 z-50">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/vendor/products')} className="p-2 hover:bg-gray-100 rounded-full transition-colors md:hidden">
-                        <ArrowLeft size={18} className="text-gray-600" />
-                    </button>
-                    <div>
-                        <h1 className="text-sm md:text-base font-bold text-gray-900 tracking-tight">Add new product</h1>
-                        <p className="text-[9px] md:text-[10px] text-gray-500 font-medium tracking-tight">List your item on sathiGro</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-1.5 md:gap-2">
-                    <button onClick={() => navigate('/vendor/products')} className="hidden md:block px-4 py-2 rounded-lg text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors">
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        className="px-3 md:px-6 py-1.5 md:py-2 rounded-lg bg-[#0c831f] text-white text-[10px] md:text-xs font-bold hover:bg-[#0a6b19] shadow-sm transition-all flex items-center gap-1.5"
-                    >
-                        <Save size={14} className="md:w-4 md:h-4" /> <span className="hidden sm:inline">Save Product</span><span className="sm:hidden">Save</span>
-                    </button>
-                </div>
+    return (
+        <div className="p-3 bg-white min-vh-100 overflow-x-hidden">
+            <div className="flex items-center gap-3 mb-4">
+                <button onClick={() => navigate('/vendor/products')} className="p-2 hover:bg-gray-100 rounded-full transition-colors md:hidden">
+                    <ArrowLeft size={18} className="text-gray-600" />
+                </button>
+                <h4 className="mb-0 fw-bold">Add New Product</h4>
             </div>
 
-            <div className="max-w-7xl mx-auto px-3 md:px-12 py-3 md:py-4 lg:py-4">
-                <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 lg:space-y-5">
-
-                    {/* Basic Information */}
-                    <div className="space-y-2 md:space-y-3 lg:space-y-3">
-                        <h3 className="text-[10px] md:text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Basic information</h3>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 md:gap-x-6 lg:gap-x-5 gap-y-2 md:gap-y-3 lg:gap-y-3">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-semibold text-gray-500">Product name *</label>
-                                <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
-                                    placeholder="Enter product name" />
-                            </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-semibold text-gray-500">Unit Amount</label>
-                                <input type="number" value={formData.unitValue} onChange={(e) => setFormData({ ...formData, unitValue: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
-                                    placeholder="Amount (e.g. 500, 1)" />
-                            </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-semibold text-gray-500">Unit</label>
-                                <input value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
-                                    placeholder="e.g., kg, gm, pcs" />
-                            </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-semibold text-gray-500">Category *</label>
-                                <div className="relative">
-                                    <select required value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:border-[#0c831f] outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="">Select category</option>
-                                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                    <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                </div>
-                            </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-semibold text-gray-500">Brand</label>
-                                <div className="relative">
-                                    <select value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:border-[#0c831f] outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="">Select brand</option>
-                                        {brands.map(b => <option key={b} value={b}>{b}</option>)}
-                                    </select>
-                                    <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-0.5">
-                            <label className="text-[10px] font-semibold text-gray-500">Description</label>
-                            <textarea rows="2" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] outline-none transition-all resize-none placeholder:text-gray-300"
-                                placeholder="Enter product description..." />
-                        </div>
-                    </div>
-
-                    {/* Variants Section */}
-                    <div className="space-y-2 md:space-y-3 lg:space-y-3">
-                        <div className="flex items-center justify-between border-b border-gray-50 pb-1">
-                            <h3 className="text-[10px] md:text-xs font-bold text-gray-700 tracking-tight">Variants (Size, Color, etc.)</h3>
-                            <button
-                                onClick={() => setVariants([...variants, { type: 'Size', value: '', stock: '', price: '' }])}
-                                className="flex items-center gap-1 text-[9px] md:text-[10px] font-bold text-[#0c831f] hover:underline"
-                            >
-                                <Plus size={10} /> Add Variant
-                            </button>
-                        </div>
-
-                        <div className="space-y-2">
-                            {variants.map((variant, index) => (
-                                <div key={index} className="flex flex-col md:flex-row gap-2 bg-gray-50 p-2 rounded-lg relative group">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
-                                        <div className="space-y-0.5">
-                                            <label className="text-[9px] font-semibold text-gray-500">Attr Type</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={variant.type}
-                                                    onChange={(e) => {
-                                                        const newVariants = [...variants];
-                                                        newVariants[index].type = e.target.value;
-                                                        setVariants(newVariants);
-                                                    }}
-                                                    className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none appearance-none cursor-pointer"
-                                                >
-                                                    <option value="Size">Size</option>
-                                                    <option value="Weight">Weight</option>
-                                                    <option value="Color">Color</option>
-                                                    <option value="Material">Material</option>
-                                                    <option value="Style">Style</option>
-                                                </select>
-                                                <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-0.5">
-                                            <label className="text-[9px] font-semibold text-gray-500">Value</label>
-                                            <input
-                                                value={variant.value}
-                                                onChange={(e) => {
-                                                    const newVariants = [...variants];
-                                                    newVariants[index].value = e.target.value;
-                                                    setVariants(newVariants);
-                                                }}
-                                                placeholder={variant.type === 'Color' ? 'e.g. Red' : 'e.g. XL, 1kg'}
-                                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
-                                            />
-                                        </div>
-                                        <div className="space-y-0.5">
-                                            <label className="text-[9px] font-semibold text-gray-500">Stock</label>
-                                            <input
-                                                type="number"
-                                                value={variant.stock}
-                                                onChange={(e) => {
-                                                    const newVariants = [...variants];
-                                                    newVariants[index].stock = e.target.value;
-                                                    setVariants(newVariants);
-                                                }}
-                                                placeholder="Qty"
-                                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
-                                            />
-                                        </div>
-                                        <div className="space-y-0.5">
-                                            <label className="text-[9px] font-semibold text-gray-500">Price</label>
-                                            <input
-                                                type="number"
-                                                value={variant.price}
-                                                onChange={(e) => {
-                                                    const newVariants = [...variants];
-                                                    newVariants[index].price = e.target.value;
-                                                    setVariants(newVariants);
-                                                }}
-                                                placeholder="₹ 0.00"
-                                                className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:border-[#0c831f] outline-none"
-                                            />
-                                        </div>
+            <Form onSubmit={handleSubmit}>
+                <Row className="g-4">
+                    <Col lg={8}>
+                        <Card className="border-0 shadow-sm mb-4">
+                            <Card.Body>
+                                <h6 className="mb-3 fw-bold">General Information</h6>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-semibold text-gray-600">Product Name <span className="text-danger">*</span></Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="e.g. Fresh Mangoes (1kg)"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        required
+                                        className="text-xs"
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <div className="d-flex justify-content-between align-items-center mb-1">
+                                        <Form.Label className="mb-0 small fw-semibold text-gray-600">Description <span className="text-danger">*</span></Form.Label>
+                                        <OverlayTrigger overlay={<Tooltip>Generate with AI</Tooltip>}>
+                                            <Button
+                                                variant="link"
+                                                className="p-0 text-success d-flex align-items-center gap-1 text-decoration-none"
+                                                onClick={() => handleAISuggestion('description')}
+                                                disabled={aiLoading.description}
+                                            >
+                                                {aiLoading.description ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
+                                                <small className="font-bold">AI Write</small>
+                                            </Button>
+                                        </OverlayTrigger>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setVariants(variants.filter((_, i) => i !== index))}
-                                        className="absolute -top-1 -right-1 md:static md:flex items-center justify-center p-1.5 md:p-1 text-red-500 hover:bg-red-50 rounded bg-white shadow-sm md:shadow-none border md:border-none border-gray-100"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
-                            ))}
-                            {variants.length === 0 && (
-                                <div className="text-center py-4 bg-gray-50/50 border border-dashed border-gray-200 rounded-lg">
-                                    <p className="text-[10px] text-gray-400">No variants added type specific details liek size, color etc.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                    <Form.Control
+                                        as="textarea" rows={4}
+                                        placeholder="Enter detailed product description..."
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                        required
+                                        className="text-xs"
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <div className="d-flex justify-content-between align-items-center mb-1">
+                                        <Form.Label className="mb-0 small fw-semibold text-gray-600">Tags (for better search)</Form.Label>
+                                        <OverlayTrigger overlay={<Tooltip>Suggest tags with AI</Tooltip>}>
+                                            <Button
+                                                variant="link"
+                                                className="p-0 text-success d-flex align-items-center gap-1 text-decoration-none"
+                                                onClick={() => handleAISuggestion('tags')}
+                                                disabled={aiLoading.tags}
+                                            >
+                                                {aiLoading.tags ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
+                                                <small className="font-bold">AI Tags</small>
+                                            </Button>
+                                        </OverlayTrigger>
+                                    </div>
+                                    <div className="d-flex flex-wrap gap-2 mb-2">
+                                        {formData.tags.map((tag, index) => (
+                                            <span key={index} className="badge rounded-pill bg-light text-dark border d-flex align-items-center gap-2 px-3 py-2 text-[10px]">
+                                                {tag}
+                                                <X size={12} className="cursor-pointer text-muted hover-danger" onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))} />
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <InputGroup size="sm">
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Type tag and press Enter..."
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                                            className="text-xs"
+                                        />
+                                        <Button variant="outline-secondary" onClick={(e) => { e.preventDefault(); addTag(); }}>Add</Button>
+                                    </InputGroup>
+                                </Form.Group>
 
-                    {/* Pricing */}
-                    <div className="space-y-2 md:space-y-3 lg:space-y-3">
-                        <h3 className="text-[10px] md:text-xs font-bold text-gray-700 border-b border-gray-50 pb-1 tracking-tight">Pricing</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 md:gap-x-6 lg:gap-x-5 gap-y-2 md:gap-y-3 lg:gap-y-3">
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-semibold text-gray-500">Price *</label>
-                                <input required type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
-                                    placeholder="0.00" />
-                            </div>
-                            <div className="space-y-0.5">
-                                <label className="text-[10px] font-semibold text-gray-500">Original price</label>
-                                <input type="number" value={formData.mrp} onChange={(e) => setFormData({ ...formData, mrp: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-400 focus:border-[#0c831f] outline-none transition-all placeholder:text-gray-300"
-                                    placeholder="0.00" />
-                            </div>
-                        </div>
-                    </div>
+                                <h6 className="mb-3 fw-bold mt-4">Pricing & Units</h6>
+                                <Row className="align-items-end g-2">
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">Selling Price (₹) <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                placeholder="0.00"
+                                                name="basePrice"
+                                                value={formData.basePrice}
+                                                onChange={handleChange}
+                                                required
+                                                className="text-xs fw-bold"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">MRP (₹)</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                placeholder="0.00"
+                                                name="mrp"
+                                                value={formData.mrp}
+                                                onChange={handleChange}
+                                                className="text-xs text-muted"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">Unit Type</Form.Label>
+                                            <Form.Select name="unitType" value={formData.unitType} onChange={handleChange} className="text-xs">
+                                                <option value="pcs">Pcs</option>
+                                                <option value="kg">Kg</option>
+                                                <option value="gm">Gm</option>
+                                                <option value="ml">Ml</option>
+                                                <option value="ltr">Ltr</option>
+                                                <option value="pkt">Pkt</option>
+                                                <option value="box">Box</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">Current Stock <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                placeholder="0"
+                                                name="stock"
+                                                value={formData.stock}
+                                                onChange={handleChange}
+                                                required
+                                                min="0"
+                                                className="text-xs fw-bold"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">Low Stock Alert at</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                placeholder="10"
+                                                name="lowStockThreshold"
+                                                value={formData.lowStockThreshold}
+                                                onChange={handleChange}
+                                                min="0"
+                                                className="text-xs"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">Veg / Non-Veg</Form.Label>
+                                            <div className="d-flex gap-2">
+                                                <Button
+                                                    variant={formData.isVeg ? "success" : "outline-success"}
+                                                    size="sm"
+                                                    className="flex-fill py-1.5 fw-bold text-[9px]"
+                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
+                                                >
+                                                    VEG
+                                                </Button>
+                                                <Button
+                                                    variant={!formData.isVeg ? "danger" : "outline-danger"}
+                                                    size="sm"
+                                                    className="flex-fill py-1.5 fw-bold text-[9px]"
+                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
+                                                >
+                                                    NON-VEG
+                                                </Button>
+                                            </div>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
 
-                    {/* Product Media - Ultra Compact */}
-                    <div className="bg-[#f9f8ff] border border-[#e5e0ff] rounded-xl p-2 md:p-3 space-y-2">
-                        <div className="flex items-center gap-1.5 md:gap-2 text-[#4c3eac]">
-                            <Upload size={12} strokeWidth={2.5} />
-                            <h3 className="text-[9px] md:text-[10px] font-bold tracking-tight">Product media</h3>
-                        </div>
+                                <Row className="g-2">
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">Physical Location (Shelf/Rack)</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="e.g. Rack 2, Section D"
+                                                name="physicalLocation"
+                                                value={formData.physicalLocation}
+                                                onChange={handleChange}
+                                                className="text-xs"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small fw-semibold text-gray-600">Unit Amount (e.g. 500 for 500g)</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                placeholder="1"
+                                                name="unitValue"
+                                                value={formData.unitValue}
+                                                onChange={handleChange}
+                                                className="text-xs"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
 
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3">
-                            <div className="md:col-span-4 bg-white border border-[#e5e0ff] rounded-lg p-2 space-y-1">
-                                <h4 className="text-[9px] font-bold text-gray-500">Main image</h4>
-                                <div onClick={() => fileInputRef.current.click()}
-                                    className="w-full h-12 border-2 border-dashed border-[#e5e0ff] rounded-lg flex items-center justify-center cursor-pointer hover:bg-purple-50/50 transition-all overflow-hidden group">
-                                    {mainImage ? (
-                                        <img src={mainImage} alt="Main" className="h-full object-contain p-1" />
+
+                            </Card.Body>
+                        </Card>
+                    </Col>
+
+                    <Col lg={4}>
+                        <Card className="border-0 shadow-sm mb-4">
+                            <Card.Body>
+                                <h6 className="mb-3 fw-bold">Classification</h6>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-semibold text-gray-600">Category <span className="text-danger">*</span></Form.Label>
+                                    <Form.Select name="category" value={formData.category} onChange={handleChange} required className="text-xs">
+                                        <option value="">Select Category...</option>
+                                        {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                    </Form.Select>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-semibold text-gray-600">Brand Name <span className="text-danger">*</span></Form.Label>
+                                    <Form.Select name="brandName" value={formData.brandName} onChange={handleChange} required disabled={!formData.category} className="text-xs">
+                                        <option value="">Select Brand...</option>
+                                        {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
+                                    </Form.Select>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small fw-semibold text-gray-600">SKU (Auto-Generated) <span className="text-danger">*</span></Form.Label>
+                                    <InputGroup size="sm">
+                                        <Form.Control
+                                            readOnly
+                                            value={formData.sku}
+                                            className="bg-light text-xs font-mono"
+                                            required
+                                        />
+                                        <Button variant="outline-secondary" onClick={handleRefreshSKU} title="Regenerate SKU">
+                                            <RefreshCw size={14} />
+                                        </Button>
+                                    </InputGroup>
+                                </Form.Group>
+
+                                {formData.sku && (
+                                    <div className="text-center mt-3 p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Product QR</div>
+                                        <div className="d-inline-block p-1 bg-white">
+                                            <QRCodeSVG value={formData.sku} size={130} level="H" />
+                                        </div>
+                                        <div className="text-[10px] mt-2 text-gray-400 font-mono italic">{formData.sku}</div>
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
+
+                        <Card className="border-0 shadow-sm mb-4">
+                            <Card.Body>
+                                <h6 className="mb-3 fw-bold">Images</h6>
+                                <div className="text-center mb-3 p-4 border-2 border-dashed rounded-xl bg-gray-50 position-relative group hover:border-[#0c831f] transition-all">
+                                    {imagePreview ? (
+                                        <div className="position-relative">
+                                            <Image src={imagePreview} alt="Preview" fluid rounded className="max-h-40" />
+                                            <Button variant="danger" size="sm" className="position-absolute top-0 end-0 m-2 rounded-circle p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md" onClick={() => { setImagePreview(null); setImageFile(null); }}>
+                                                <X size={14} />
+                                            </Button>
+                                        </div>
                                     ) : (
-                                        <div className="flex items-center gap-1.5 text-[#6355d8] font-bold text-[9px]">
-                                            <Upload size={10} />
-                                            <span>Upload image</span>
+                                        <div className="text-gray-400 py-4">
+                                            <Upload className="mb-2 mx-auto" size={24} />
+                                            <p className="text-[10px] font-bold uppercase tracking-tight">Main Product Image</p>
+                                        </div>
+                                    )}
+                                    <Form.Control
+                                        type="file"
+                                        className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
+                                        onChange={handleImageChange}
+                                        accept="image/*"
+                                        disabled={!!imagePreview}
+                                    />
+                                </div>
+
+                                <Form.Label className="small fw-bold text-gray-600 mb-2">Gallery (Up to 10)</Form.Label>
+                                <div className="d-flex flex-wrap gap-2">
+                                    {galleryPreviews.map((preview, index) => (
+                                        <div key={index} className="position-relative" style={{ width: '60px', height: '60px' }}>
+                                            <Image src={preview} alt={`Gallery ${index}`} thumbnail className="w-100 h-100 object-cover rounded-md" />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                className="position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-center shadow-sm"
+                                                style={{ width: '18px', height: '18px', marginTop: '-6px', marginRight: '-6px' }}
+                                                onClick={() => removeGalleryImage(index)}
+                                            >
+                                                <X size={10} />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {galleryFiles.length < 10 && (
+                                        <div
+                                            className="border-2 border-dashed rounded-md d-flex flex-column align-items-center justify-center cursor-pointer hover:bg-gray-100 text-gray-400 transition-all shadow-sm"
+                                            style={{ width: '60px', height: '60px' }}
+                                            onClick={() => document.getElementById('gallery-input').click()}
+                                        >
+                                            <Plus size={20} />
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                                <Form.Control
+                                    id="gallery-input"
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    className="d-none"
+                                    onChange={handleGalleryChange}
+                                />
+                                <ImageCropperModal
+                                    show={showCropper}
+                                    imageSrc={tempImage}
+                                    onCancel={() => { setShowCropper(false); setTempImage(null); }}
+                                    onCropComplete={handleCropComplete}
+                                    aspect={1}
+                                />
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-                            <div className="md:col-span-8 bg-white border border-[#e5e0ff] rounded-lg p-2 space-y-1">
-                                <h4 className="text-[9px] font-bold text-gray-500">Gallery</h4>
-                                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                                    {otherImages.map((img, i) => (
-                                        <div key={i} className="relative aspect-square rounded-md overflow-hidden border border-[#e5e0ff] bg-gray-50 p-1 group">
-                                            <img src={img} alt="" className="w-full h-full object-contain" />
-                                            <button type="button" onClick={(e) => { e.stopPropagation(); removeOtherImage(i); }}
-                                                className="absolute top-0 right-0 p-0.5 bg-white border border-gray-100 rounded-bl-md text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-all">
-                                                <X size={8} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <button type="button" onClick={() => otherFilesRef.current.click()}
-                                        className="aspect-square border-2 border-dashed border-[#e5e0ff] rounded-md flex flex-col items-center justify-center text-[#6355d8] hover:bg-purple-50/50 transition-all">
-                                        <Plus size={16} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stock Detail */}
-                    <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
-                        <div className="flex items-center gap-2">
-                            <label className="text-[11px] font-bold text-gray-600">In stock</label>
-                            <input type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                                className="w-16 px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold focus:border-[#0c831f] outline-none" />
-                        </div>
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <div className="relative">
-                                <input type="checkbox" checked={formData.isVeg} onChange={(e) => setFormData({ ...formData, isVeg: e.target.checked })} className="sr-only" />
-                                <div className={`w-8 h-4 rounded-full transition-colors ${formData.isVeg ? 'bg-[#0c831f]' : 'bg-gray-200'}`} />
-                                <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform ${formData.isVeg ? 'translate-x-4' : ''}`} />
-                            </div>
-                            <span className="text-[11px] font-bold text-gray-600">Vegetarian item</span>
-                        </label>
-                    </div>
-                </form>
-            </div>
+                <div className="d-flex justify-content-end gap-3 mb-10 pt-4 border-t border-gray-100">
+                    <Button variant="light" size="sm" className="px-5 py-2 font-bold text-gray-600 rounded-lg" onClick={() => navigate('/vendor/products')}>Discard</Button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-8 py-2 bg-[#0c831f] hover:bg-[#0a6b19] text-white rounded-lg font-bold shadow-sm transition-all flex items-center gap-2"
+                    >
+                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
+                        Save Product
+                    </button>
+                </div>
+            </Form>
         </div>
     );
 };

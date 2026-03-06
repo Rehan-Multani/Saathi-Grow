@@ -50,3 +50,26 @@ export const deleteVendorProduct = async (token, id) => {
   if (!response.ok) throw new Error(data.message || 'Failed to delete product');
   return data;
 };
+
+export const getVendorAISuggestions = async (token, productName, type) => {
+  const response = await fetch(`${API_BASE_URL}/vendors/products/ai-suggestions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ productName, type })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch AI suggestions');
+  return data;
+};
+
+export const getBranchesForVendor = async (token) => {
+  const response = await fetch(`${API_BASE_URL}/vendors/branches`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch branches');
+  return data;
+};

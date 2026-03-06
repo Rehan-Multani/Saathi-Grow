@@ -9,7 +9,6 @@ import OnlineOrders from '../pages/orders/OnlineOrders';
 import ReturnRequests from '../pages/orders/ReturnRequests';
 import AllProducts from '../pages/products/AllProducts';
 import AddProduct from '../pages/products/AddProduct';
-import ProductCategories from '../pages/products/Categories';
 import AllCategories from '../pages/categories/AllCategories';
 import AddCategory from '../pages/categories/AddCategory';
 import AllBrands from '../pages/brands/AllBrands';
@@ -127,7 +126,6 @@ const AdminRoutes = () => {
 
                         <Route path="products" element={<AllProducts />} />
                         <Route path="products/add" element={<AddProduct />} />
-                        <Route path="products/categories" element={<ProductCategories />} />
 
                         {/* Categories */}
                         <Route path="categories" element={<AllCategories />} />

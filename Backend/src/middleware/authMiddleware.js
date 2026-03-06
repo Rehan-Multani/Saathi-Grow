@@ -129,6 +129,7 @@ export const protectStoreManager = async (req, res, next) => {
       // Try to find Admin first
       const admin = await Admin.findById(decoded.id);
       if (admin) {
+        req.admin = admin;
         req.user = admin;
         req.role = 'Admin';
         return next();
@@ -137,6 +138,7 @@ export const protectStoreManager = async (req, res, next) => {
       // Try to find Vendor
       const vendor = await Vendor.findById(decoded.id);
       if (vendor) {
+        req.vendor = vendor;
         req.user = vendor;
         req.role = 'Vendor';
         return next();

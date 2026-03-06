@@ -1,7 +1,47 @@
 import Product from '../models/Product.js';
 import Branch from '../models/Branch.js';
+import InventoryLog from '../models/InventoryLog.js';
 import { cloudinary } from '../config/cloudinary.js';
 import QRCode from 'qrcode';
+import { generateProductDescription, generateProductTags } from '../utils/aiService.js';
+
+// Helper to determine status based on stock
+const determineProductStatus = (stock, threshold, existingStatus) => {
+  if (existingStatus === 'Draft') return 'Draft';
+  if (existingStatus === 'Pending Approval') return 'Pending Approval';
+  if (existingStatus === 'Rejected') return 'Rejected';
+
+  if (Number(stock) <= 0) return 'Out of Stock';
+  if (Number(stock) <= Number(threshold)) return 'Low Stock';
+  return 'Active';
+};
+
+// @desc    Get AI suggestions for product description and tags
+// @route   POST /api/vendors/products/ai-suggestions
+// @access  Private (Vendor)
+export const getVendorAISuggestions = async (req, res) => {
+  try {
+    const { productName, type } = req.body;
+
+    if (!productName) {
+      return res.status(400).json({ message: 'Product name is required' });
+    }
+
+    let suggestion = '';
+
+    if (type === 'description') {
+      suggestion = await generateProductDescription(productName);
+    } else if (type === 'tags') {
+      suggestion = await generateProductTags(productName);
+    } else {
+      return res.status(400).json({ message: 'Invalid suggestion type' });
+    }
+
+    res.json({ suggestion });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // @desc    Get products belonging to the logged-in vendor
 // @route   GET /api/vendors/products
@@ -9,7 +49,6 @@ import QRCode from 'qrcode';
 export const getVendorProducts = async (req, res) => {
   try {
     const products = await Product.find({ vendor: req.vendor._id })
-      .populate('branchStocks.branchId', 'name')
       .sort('-createdAt');
     res.json(products);
   } catch (error) {
@@ -22,20 +61,24 @@ export const getVendorProducts = async (req, res) => {
 // @access  Private (Vendor)
 export const addVendorProduct = async (req, res) => {
   try {
-    const {
+    let {
       name,
       description,
-      price,
+      basePrice,
       mrp,
       category,
-      brand,
+      brandName,
       sku,
-      stock,
-      unit,
-      isVeg,
-      variants,
+      unitType,
+      unitValue,
+      physicalLocation,
       tags,
-      unitValue
+      isVeg,
+      stock,
+      lowStockThreshold,
+      variants,
+      isSaathiGrow,
+      status
     } = req.body;
 
     // Check if product with SKU already exists
@@ -50,34 +93,46 @@ export const addVendorProduct = async (req, res) => {
       margin: 1
     });
 
-    // Initialize branch stocks for all active branches
-    const activeBranches = await Branch.find({ isActive: true });
-    const branchStocks = activeBranches.map(branch => ({
-      branchId: branch._id,
-      stock: Number(stock) || 0, // For now assigning initial stock to all branches or just first? 
-      // Let's just put it in all branches for simplicity in this mvp, or just 0
-      lowStockThreshold: 10
-    }));
+    // Determine initial status - Vendor products are "Pending Approval" initially
+    let finalStatus = status || 'Pending Approval';
+    if (finalStatus !== 'Draft' && finalStatus !== 'Pending Approval') {
+      finalStatus = determineProductStatus(stock, lowStockThreshold, finalStatus);
+    }
 
     const product = await Product.create({
       name,
       description,
-      basePrice: Number(price),
-      mrp: Number(mrp) || Number(price),
+      basePrice: Number(basePrice),
+      mrp: Number(mrp) || Number(basePrice),
       category,
-      brandName: brand,
+      brandName,
       sku,
-      unitType: unit || 'pcs',
+      unitType: unitType || 'pcs',
       unitValue: Number(unitValue) || 1,
+      physicalLocation,
       isVeg: isVeg === 'true' || isVeg === true,
       vendor: req.vendor._id,
       image: req.files?.image ? req.files.image[0].path : '',
       gallery: req.files?.gallery ? req.files.gallery.map(f => f.path) : [],
       qrCode: qrCodeDataUrl,
-      status: 'Pending Approval',
-      branchStocks,
-      variants: typeof variants === 'string' ? JSON.parse(variants) : variants,
-      tags: typeof tags === 'string' ? tags.split(',') : tags,
+      status: finalStatus,
+      stock: Number(stock) || 0,
+      lowStockThreshold: Number(lowStockThreshold) || 10,
+      variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
+      tags: typeof tags === 'string' ? tags.split(',') : (tags || []),
+      isSaathiGrow: isSaathiGrow === 'true' || isSaathiGrow === true,
+      createdByVendor: req.vendor._id
+    });
+
+    // Create Initial Inventory Log
+    await InventoryLog.create({
+      product: product._id,
+      vendorId: req.vendor._id,
+      changeAmount: product.stock,
+      previousStock: 0,
+      newStock: product.stock,
+      type: 'Addition',
+      reason: 'Vendor Product Creation'
     });
 
     res.status(201).json(product);
@@ -96,26 +151,84 @@ export const updateVendorProduct = async (req, res) => {
     if (product) {
       product.name = req.body.name || product.name;
       product.description = req.body.description || product.description;
-      product.basePrice = req.body.price ? Number(req.body.price) : product.basePrice;
-      product.mrp = req.body.mrp ? Number(req.body.mrp) : product.mrp;
+      product.basePrice = req.body.basePrice ? Number(req.body.basePrice) : product.basePrice;
+      product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
       product.category = req.body.category || product.category;
-      product.brandName = req.body.brand || product.brandName;
-      product.unitType = req.body.unit || product.unitType;
+      product.brandName = req.body.brandName || product.brandName;
+      product.unitType = req.body.unitType || product.unitType;
       product.unitValue = req.body.unitValue !== undefined ? Number(req.body.unitValue) : product.unitValue;
+      product.physicalLocation = req.body.physicalLocation || product.physicalLocation;
       product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
+      product.isSaathiGrow = req.body.isSaathiGrow !== undefined ? (req.body.isSaathiGrow === 'true' || req.body.isSaathiGrow === true) : product.isSaathiGrow;
+
+      if (req.body.tags) {
+        product.tags = typeof req.body.tags === 'string' ? req.body.tags.split(',') : req.body.tags;
+      }
 
       if (req.body.variants) {
         product.variants = typeof req.body.variants === 'string' ? JSON.parse(req.body.variants) : req.body.variants;
       }
 
+      if (req.body.sku && req.body.sku !== product.sku) {
+        product.sku = req.body.sku;
+        // Regenerate QR Code if SKU changed
+        product.qrCode = await QRCode.toDataURL(product.sku, {
+          color: { dark: '#000000', light: '#ffffff' },
+          margin: 1
+        });
+      }
+
+      // Handle Stock Updates
+      if (req.body.stock !== undefined) {
+        const newStock = Number(req.body.stock);
+        const oldStock = product.stock;
+        if (newStock !== oldStock) {
+          await InventoryLog.create({
+            product: product._id,
+            vendorId: req.vendor._id,
+            changeAmount: newStock - oldStock,
+            previousStock: oldStock,
+            newStock: newStock,
+            type: newStock > oldStock ? 'Addition' : 'Deduction',
+            reason: req.body.reason || 'Vendor Manual Update'
+          });
+          product.stock = newStock;
+        }
+      }
+
+      if (req.body.lowStockThreshold !== undefined) {
+        product.lowStockThreshold = Number(req.body.lowStockThreshold);
+      }
+
+      // Handle Image and Gallery Updates
       if (req.files) {
         if (req.files.image && req.files.image[0]) {
           product.image = req.files.image[0].path;
         }
-        if (req.files.gallery) {
-          product.gallery = req.files.gallery.map(f => f.path);
+      }
+
+      // Merge existing gallery with newly uploaded ones
+      let finalGallery = [];
+      if (req.body.existingGallery) {
+        try {
+          finalGallery = JSON.parse(req.body.existingGallery);
+        } catch (e) {
+          finalGallery = [];
         }
       }
+
+      if (req.files?.gallery) {
+        const newGalleryPaths = req.files.gallery.map(f => f.path);
+        finalGallery = [...finalGallery, ...newGalleryPaths];
+      }
+
+      // If at least one of these was provided, update the gallery
+      if (req.body.existingGallery || (req.files?.gallery && req.files.gallery.length > 0)) {
+        product.gallery = finalGallery;
+      }
+
+      // Update overall status
+      product.status = determineProductStatus(product.stock, product.lowStockThreshold, product.status);
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);

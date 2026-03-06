@@ -1,8 +1,9 @@
 ﻿import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
 import { formatCurrency } from '../../utils/formatDate';
+import { Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 const ProductList = () => {
     const { products } = useVendor();
@@ -11,282 +12,206 @@ const ProductList = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [stockFilter, setStockFilter] = useState('all');
-    const [priceRange, setPriceRange] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
 
-    // Get unique categories from products
     const categories = ['all', ...new Set(products.map(p => typeof p.category === 'object' ? p.category.name : p.category))];
 
     const filteredProducts = products.map(p => ({
         ...p,
-        totalStock: p.branchStocks?.reduce((acc, bs) => acc + bs.stock, 0) || 0
+        totalStock: p.stock || 0
     })).filter(product => {
         const categoryName = typeof product.category === 'object' ? product.category.name : (product.category || '');
-
-        // Search filter
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            categoryName.toLowerCase().includes(searchQuery.toLowerCase());
+            categoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
 
-        // Category filter
         const matchesCategory = categoryFilter === 'all' || categoryName === categoryFilter;
 
-        // Stock filter
-        const matchesStock =
-            stockFilter === 'all' ? true :
-                stockFilter === 'low' ? product.totalStock < 20 :
-                    stockFilter === 'instock' ? product.totalStock >= 20 :
-                        stockFilter === 'outofstock' ? product.totalStock === 0 : true;
+        const matchesStock = stockFilter === 'all' ? true :
+            stockFilter === 'low' ? product.totalStock < (product.lowStockThreshold || 10) :
+                stockFilter === 'instock' ? product.totalStock >= (product.lowStockThreshold || 10) :
+                    stockFilter === 'outofstock' ? product.totalStock === 0 : true;
 
-        // Price filter
-        const matchesPrice =
-            priceRange === 'all' ? true :
-                priceRange === 'under50' ? product.basePrice < 50 :
-                    priceRange === '50-100' ? product.basePrice >= 50 && product.basePrice <= 100 :
-                        priceRange === 'over100' ? product.basePrice > 100 : true;
+        const matchesStatus = statusFilter === 'all' ? true : (product.status || 'Active') === statusFilter;
 
-        return matchesSearch && matchesCategory && matchesStock && matchesPrice;
+        return matchesSearch && matchesCategory && matchesStock && matchesStatus;
     });
 
-    const clearFilters = () => {
-        setCategoryFilter('all');
-        setStockFilter('all');
-        setPriceRange('all');
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'Pending Approval':
+                return <Badge bg="warning" className="text-dark d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><Clock size={10} /> PENDING</Badge>;
+            case 'Active':
+                return <Badge bg="success" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><CheckCircle size={10} /> ACTIVE</Badge>;
+            case 'Rejected':
+                return <Badge bg="danger" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><XCircle size={10} /> REJECTED</Badge>;
+            case 'Inactive':
+                return <Badge bg="secondary" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><AlertCircle size={10} /> INACTIVE</Badge>;
+            default:
+                return <Badge bg="info" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]">ACTIVE</Badge>;
+        }
     };
 
-    const activeFilterCount = [categoryFilter, stockFilter, priceRange].filter(f => f !== 'all').length;
-
     return (
-        <div className="space-y-4 lg:space-y-5 relative pb-20 md:pb-0">
-
+        <div className="space-y-4 lg:space-y-6 relative pb-20 md:pb-0 p-3 bg-white min-vh-100">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h1 className="text-base lg:text-xl font-bold text-gray-900 tracking-tight">Products</h1>
-                    <p className="text-[10px] lg:text-xs text-gray-500 font-medium">Manage your product inventory</p>
+                    <h4 className="fw-bold mb-1">My Products</h4>
+                    <p className="text-xs text-muted mb-0">Total listing: <strong>{products.length}</strong> products</p>
                 </div>
                 <button
                     onClick={() => navigate('/vendor/products/add')}
-                    className="w-full sm:w-auto px-4 py-1.5 bg-[#0c831f] text-white text-xs font-bold rounded-lg hover:bg-[#0a6b19] flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+                    className="px-6 py-2 bg-[#0c831f] text-white text-xs font-bold rounded-lg hover:bg-[#0a6b19] flex items-center gap-2 shadow-sm transition-all"
                 >
-                    <Plus size={16} />
-                    Add product
+                    <Plus size={16} /> Add New Product
                 </button>
             </div>
 
-            {/* Filters */}
-            <div className="bg-white p-3 lg:p-4 rounded-lg border border-gray-100 sticky top-0 z-20 transition-shadow">
+            {/* Toolbar */}
+            <div className="bg-light p-3 rounded-xl border border-gray-100 sticky top-0 z-20">
                 <div className="flex flex-col md:flex-row gap-3">
                     <div className="relative flex-1">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
                         <input
                             type="text"
-                            placeholder="Search products..."
+                            placeholder="Search by name, category or SKU..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-[#0c831f] focus:outline-none text-xs"
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:border-[#0c831f] focus:outline-none text-xs shadow-sm"
                         />
                     </div>
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={`flex items-center justify-center gap-1.5 px-3 py-1.5 border rounded-lg text-[11px] font-bold transition-colors ${showFilters || activeFilterCount > 0
-                            ? 'bg-[#0c831f] text-white border-[#0c831f]'
-                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                            }`}
-                    >
-                        <Filter size={14} />
-                        Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
-                    </button>
+                    <div className="flex gap-2">
+                        <select
+                            value={categoryFilter}
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-bold bg-white outline-none focus:border-[#0c831f]"
+                        >
+                            <option value="all">All Categories</option>
+                            {categories.filter(c => c !== 'all').map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-bold bg-white outline-none focus:border-[#0c831f]"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Pending Approval">Pending</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
                 </div>
+            </div>
 
-                {/* Filter Panel */}
-                {showFilters && (
-                    <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {/* Category Filter */}
-                        <div>
-                            <label className="text-[10px] font-bold text-gray-600 uppercase mb-1.5 block">Category</label>
-                            <select
-                                value={categoryFilter}
-                                onChange={(e) => setCategoryFilter(e.target.value)}
-                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] focus:outline-none"
-                            >
-                                {categories.map(cat => (
-                                    <option key={cat} value={cat}>
-                                        {cat === 'all' ? 'All Categories' : cat}
-                                    </option>
-                                ))}
-                            </select>
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-[#f8f9fa] border-b">
+                        <tr>
+                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider">Product Info</th>
+                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider">Pricing</th>
+                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider text-center">Stock</th>
+                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider text-center">Status</th>
+                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {filteredProducts.map((product) => (
+                            <tr key={product._id} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-lg bg-white border border-gray-100 p-1 shadow-sm flex-shrink-0">
+                                            <img src={product.image} alt="" className="w-full h-full object-contain" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-bold text-dark truncate max-w-[200px] mb-0.5">{product.name}</div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge bg="light" className="text-muted border font-semibold text-[8px] uppercase">{typeof product.category === 'object' ? product.category.name : product.category}</Badge>
+                                                <span className="text-[9px] text-gray-400 font-mono italic">{product.sku}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                    <div className="text-xs font-bold text-dark">{formatCurrency(product.basePrice)}</div>
+                                    {product.mrp > product.basePrice && <div className="text-[10px] text-muted line-through">{formatCurrency(product.mrp)}</div>}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                    <div className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${product.totalStock < (product.lowStockThreshold || 10) ? 'bg-red-50 text-red-600' : 'bg-[#e7f6ec] text-[#0c831f]'}`}>
+                                        {product.totalStock} {product.unitType || 'pcs'}
+                                    </div>
+                                    <div className="text-[8px] text-muted mt-0.5 font-bold uppercase tracking-tight">Current Inventory</div>
+                                </td>
+                                <td className="px-4 py-3">
+                                    <div className="flex justify-center">
+                                        {getStatusBadge(product.status || 'Active')}
+                                    </div>
+                                </td>
+                                <td className="px-4 py-3 text-end">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <OverlayTrigger overlay={<Tooltip>Edit Details</Tooltip>}>
+                                            <button onClick={() => navigate(`edit/${product._id}`)} className="p-2 text-gray-400 hover:text-success hover:bg-success-light rounded-lg transition-colors border border-gray-100">
+                                                <Edit2 size={14} />
+                                            </button>
+                                        </OverlayTrigger>
+                                        <OverlayTrigger overlay={<Tooltip>Delete Product</Tooltip>}>
+                                            <button onClick={() => { if (window.confirm('Delete this product permanently?')) navigate(`delete/${product._id}`) }} className="p-2 text-gray-400 hover:text-danger hover:bg-danger-light rounded-lg transition-colors border border-gray-100">
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </OverlayTrigger>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Mobile View */}
+            <div className="md:hidden space-y-3">
+                {filteredProducts.map((product) => (
+                    <div key={product._id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-3">
+                        <div className="w-20 h-20 bg-white rounded-lg border border-gray-100 p-1 flex-shrink-0">
+                            <img src={product.image} alt="" className="w-full h-full object-contain" />
                         </div>
-
-                        {/* Stock Filter */}
-                        <div>
-                            <label className="text-[10px] font-bold text-gray-600 uppercase mb-1.5 block">Stock Status</label>
-                            <select
-                                value={stockFilter}
-                                onChange={(e) => setStockFilter(e.target.value)}
-                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] focus:outline-none"
-                            >
-                                <option value="all">All Stock</option>
-                                <option value="instock">In Stock (₹20)</option>
-                                <option value="low">Low Stock (&lt;20)</option>
-                                <option value="outofstock">Out of Stock</option>
-                            </select>
-                        </div>
-
-                        {/* Price Filter */}
-                        <div>
-                            <label className="text-[10px] font-bold text-gray-600 uppercase mb-1.5 block">Price Range</label>
-                            <select
-                                value={priceRange}
-                                onChange={(e) => setPriceRange(e.target.value)}
-                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0c831f] focus:outline-none"
-                            >
-                                <option value="all">All Prices</option>
-                                <option value="under50">Under ₹50</option>
-                                <option value="50-100">₹50 - ₹100</option>
-                                <option value="over100">Over ₹100</option>
-                            </select>
-                        </div>
-
-                        {/* Clear Filters */}
-                        {activeFilterCount > 0 && (
-                            <div className="md:col-span-3">
-                                <button
-                                    onClick={clearFilters}
-                                    className="text-xs font-bold text-red-600 hover:text-red-700 underline"
-                                >
-                                    Clear all filters
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                            <div>
+                                <div className="flex justify-between items-start gap-2">
+                                    <h6 className="text-xs font-bold text-dark truncate mb-0 tracking-tight">{product.name}</h6>
+                                    {getStatusBadge(product.status || 'Active')}
+                                </div>
+                                <span className="text-[10px] text-muted font-bold uppercase">{typeof product.category === 'object' ? product.category.name : product.category}</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
+                                <div className="text-sm font-bold text-[#0c831f]">{formatCurrency(product.basePrice)}</div>
+                                <div className={`text-[10px] font-bold ${product.totalStock < (product.lowStockThreshold || 10) ? 'text-red-500' : 'text-gray-400'}`}>
+                                    Stock: {product.totalStock}
+                                </div>
+                            </div>
+                            <div className="flex gap-2 mt-2">
+                                <button onClick={() => navigate(`edit/${product._id}`)} className="flex-1 py-1.5 bg-light border text-dark text-[10px] font-bold rounded-lg flex items-center justify-center gap-1">
+                                    <Edit2 size={12} /> EDIT
+                                </button>
+                                <button onClick={() => navigate(`delete/${product._id}`)} className="flex-1 py-1.5 bg-red-50 border border-red-100 text-red-600 text-[10px] font-bold rounded-lg flex items-center justify-center gap-1">
+                                    <Trash2 size={12} /> DELETE
                                 </button>
                             </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Desktop View: Table */}
-            <div className="hidden md:block bg-white rounded-lg border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[900px]">
-                        <thead className="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Product</th>
-                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Price</th>
-                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Stock</th>
-                                <th className="px-4 py-2.5 lg:py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
-                                    <tr key={product._id} className="hover:bg-gray-50 transition-colors group">
-                                        <td className="px-4 py-2 lg:py-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded bg-white border border-gray-100 p-0.5 flex-shrink-0">
-                                                    <img src={product.image} alt="" className="w-full h-full object-contain" />
-                                                </div>
-                                                <span className="text-xs font-bold text-gray-800 tracking-tight">{product.name}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 lg:py-2 text-[11px] text-gray-500 font-medium">
-                                            {typeof product.category === 'object' ? product.category.name : product.category}
-                                        </td>
-                                        <td className="px-4 py-2 lg:py-2 text-xs font-bold text-gray-900">{formatCurrency(product.basePrice)}</td>
-                                        <td className="px-4 py-2 lg:py-2">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${product.totalStock < 20
-                                                ? 'bg-red-50 text-red-600 border border-red-100/50'
-                                                : 'bg-green-50 text-green-700 border border-green-100/50'
-                                                }`}>
-                                                {product.totalStock} units
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-2 lg:py-2 text-center">
-                                            <div className="flex items-center justify-center gap-1">
-                                                <button
-                                                    onClick={() => navigate(`edit/${product._id}`)}
-                                                    className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-all"
-                                                    title="Edit product"
-                                                >
-                                                    <Edit2 size={12} />
-                                                </button>
-                                                <button
-                                                    onClick={() => navigate(`delete/${product._id}`)}
-                                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
-                                                    title="Delete product"
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" className="px-4 py-12 text-center text-gray-500">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Search size={20} className="text-gray-300" />
-                                            <p className="text-xs font-medium">No products found matching "{searchQuery}"</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Mobile View: Cards replaced with List */}
-            <div className="md:hidden divide-y divide-gray-100 bg-white rounded-lg border border-gray-100">
-                {filteredProducts.length > 0 ? (
-                    filteredProducts.map((product) => (
-                        <div key={product._id} className="p-3 flex gap-3 hover:bg-gray-50 transition-colors">
-                            {/* Image */}
-                            <div className="w-16 h-16 bg-white rounded border border-gray-100 p-0.5 flex-shrink-0">
-                                <img src={product.image} alt="" className="w-full h-full object-contain" />
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                <div>
-                                    <h3 className="text-[10px] font-bold text-gray-800 truncate tracking-tight">{product.name}</h3>
-                                    <p className="text-[10px] text-gray-400 font-bold">
-                                        {typeof product.category === 'object' ? product.category.name : product.category}
-                                    </p>
-                                </div>
-
-                                <div className="flex items-center justify-between mt-1">
-                                    <span className="text-xs font-bold text-gray-900">{formatCurrency(product.basePrice)}</span>
-                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${product.totalStock < 20
-                                        ? 'bg-red-50 text-red-600'
-                                        : 'bg-green-50 text-green-700'
-                                        }`}>
-                                        {product.totalStock} units
-                                    </span>
-                                </div>
-
-                                {/* Mobile Actions */}
-                                <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-50/50">
-                                    <button
-                                        onClick={() => navigate(`edit/${product._id}`)}
-                                        className="px-3 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold rounded hover:bg-gray-100 flex items-center gap-1"
-                                    >
-                                        <Edit2 size={10} /> Edit
-                                    </button>
-                                    <button
-                                        onClick={() => navigate(`delete/${product._id}`)}
-                                        className="px-3 py-1 bg-red-50 text-red-500 text-[10px] font-bold rounded hover:bg-red-100 flex items-center gap-1"
-                                    >
-                                        <Trash2 size={10} /> Delete
-                                    </button>
-                                </div>
-                            </div>
                         </div>
-                    ))
-                ) : (
-                    <div className="text-center py-10">
-                        <Search size={20} className="mx-auto text-gray-300 mb-2" />
-                        <p className="text-[11px] font-bold text-gray-400 tracking-tight">No products found</p>
                     </div>
-                )}
+                ))}
             </div>
+
+            {filteredProducts.length === 0 && (
+                <div className="text-center py-20 bg-light rounded-3xl border border-dashed border-gray-300 mx-3">
+                    <Search size={40} className="mx-auto text-gray-300 mb-3" />
+                    <h6 className="text-muted fw-bold">No Products Found</h6>
+                    <p className="text-xs text-gray-400">Try adjusting your search or filters</p>
+                </div>
+            )}
         </div>
     );
 };

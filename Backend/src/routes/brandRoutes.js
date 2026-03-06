@@ -6,21 +6,19 @@ import {
   updateBrand,
   deleteBrand
 } from '../controllers/brandController.js';
-import { protectAdmin, restrictTo } from '../middleware/authMiddleware.js';
+import { protectAdmin, protectStoreManager, restrictTo } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-// All brand routes are protected (Admin/Staff)
-router.use(protectAdmin);
-
+// Brand routes - Allow Admin & Vendor
 router.route('/')
-  .get(getBrands)
-  .post(upload.single('logo'), createBrand);
+  .get(protectStoreManager, getBrands)
+  .post(protectStoreManager, upload.single('logo'), createBrand);
 
 router.route('/:id')
-  .get(getBrandById)
-  .put(upload.single('logo'), updateBrand)
-  .delete(restrictTo('Admin', 'Branch Manager'), deleteBrand);
+  .get(protectStoreManager, getBrandById)
+  .put(protectStoreManager, upload.single('logo'), updateBrand)
+  .delete(protectStoreManager, deleteBrand);
 
 export default router;

@@ -29,9 +29,8 @@ const VendorSidebar = () => {
             subItems: [
                 { label: 'Manage Products', path: '/vendor/products' },
                 { label: 'Add Product', path: '/vendor/products/add' },
+                { label: 'Manage Brands', path: '/vendor/brands' },
                 { label: 'Bulk Upload', path: '/vendor/products/bulk' },
-                { label: 'Tax & Pricing', path: '/vendor/products/tax-pricing' },
-                { label: 'Product Attributes', path: '/vendor/products/attributes' },
             ]
         },
         { icon: Layers, label: 'Stock Management', path: '/vendor/stock' },

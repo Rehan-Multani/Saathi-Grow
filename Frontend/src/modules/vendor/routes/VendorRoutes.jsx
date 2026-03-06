@@ -11,8 +11,8 @@ import AddProduct from '../pages/Products/AddProduct';
 import EditProduct from '../pages/Products/EditProduct';
 import DeleteProductPage from '../pages/Products/DeleteProductPage';
 import BulkUpload from '../pages/Products/BulkUpload';
-import TaxPricing from '../pages/Products/TaxPricing';
-import ProductAttributes from '../pages/Products/ProductAttributes';
+import AllBrands from '../pages/Brands/AllBrands';
+import AddBrand from '../pages/Brands/AddBrand';
 import AllOrders from '../pages/Orders/AllOrders';
 import OrderDetail from '../pages/Orders/OrderDetail';
 import OrderTracking from '../pages/Orders/OrderTracking';
@@ -71,8 +71,8 @@ const VendorRoutes = () => {
                     <Route path="products/edit/:productId" element={<EditProduct />} />
                     <Route path="products/delete/:productId" element={<DeleteProductPage />} />
                     <Route path="products/bulk" element={<BulkUpload />} />
-                    <Route path="products/tax-pricing" element={<TaxPricing />} />
-                    <Route path="products/attributes" element={<ProductAttributes />} />
+                    <Route path="brands" element={<AllBrands />} />
+                    <Route path="brands/add" element={<AddBrand />} />
                     <Route path="orders" element={<AllOrders />} />
                     <Route path="orders/:orderId" element={<OrderDetail />} />
                     <Route path="orders/tracking" element={<OrderTracking />} />

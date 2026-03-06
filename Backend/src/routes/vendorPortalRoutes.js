@@ -9,8 +9,10 @@ import {
   getVendorProducts,
   addVendorProduct,
   updateVendorProduct,
-  deleteVendorProduct
+  deleteVendorProduct,
+  getVendorAISuggestions
 } from '../controllers/vendorProductController.js';
+import { getBranches } from '../controllers/branchController.js';
 import {
   getVendorReturnRequests,
   handleReturnRequest,
@@ -37,6 +39,9 @@ router.route('/products')
 router.route('/products/:id')
   .put(protectVendor, upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), updateVendorProduct)
   .delete(protectVendor, deleteVendorProduct);
+
+router.post('/products/ai-suggestions', protectVendor, getVendorAISuggestions);
+router.get('/branches', protectVendor, getBranches);
 
 // Return Request management for vendor (vendor store orders only)
 router.get('/returns', protectVendor, getVendorReturnRequests);

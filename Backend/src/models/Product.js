@@ -40,6 +40,16 @@ const productSchema = new mongoose.Schema({
       default: 10
     }
   }],
+  stock: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  lowStockThreshold: {
+    type: Number,
+    default: 10,
+    min: 0
+  },
   unitType: {
     type: String,
     enum: ['pcs', 'kg', 'gm', 'ml', 'ltr', 'pkt', 'box', '500g', '250g', '100g'],

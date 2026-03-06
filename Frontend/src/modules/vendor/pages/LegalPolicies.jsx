@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Spinner, ListGroup, Breadcrumb } from 'react-bootstrap';
-import { Shield, ChevronRight, FileText, Info } from 'lucide-react';
+import { Shield, ChevronRight, FileText, Info, Badge } from 'lucide-react';
 import { getPoliciesList, getPolicyContent } from '../../../common/utils/legalUtils';
 
 const LegalPolicies = () => {

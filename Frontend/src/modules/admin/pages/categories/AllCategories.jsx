@@ -96,7 +96,7 @@ const AllCategories = () => {
                         <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 border shadow-sm px-3 py-2">
                             <Download size={18} className="text-primary" /> <span className="small fw-medium">Export</span>
                         </Button>
-                        <Link to="/admin/categories/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2 text-nowrap">
+                        <Link to="/admin/categories/add" className={`btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2 text-nowrap ${adminUser.role !== 'Admin' ? 'disabled opacity-50' : ''}`}>
                             <Plus size={18} /> <span className="small fw-bold">Add New</span>
                         </Link>
                     </div>
@@ -174,6 +174,7 @@ const AllCategories = () => {
                                                 <Button
                                                     variant="light" size="sm" className="btn-icon-soft text-warning border shadow-none"
                                                     onClick={() => handleEdit(c)}
+                                                    disabled={adminUser.role !== 'Admin'}
                                                 >
                                                     <Edit size={16} />
                                                 </Button>

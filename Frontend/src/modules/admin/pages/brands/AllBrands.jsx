@@ -92,7 +92,7 @@ const AllBrands = () => {
                             <Button variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm">
                                 <Download size={18} /> <span className="d-none d-sm-inline">Export</span>
                             </Button>
-                            <Link to="/admin/brands/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                            <Link to="/admin/brands/add" className={`btn btn-primary d-flex align-items-center justify-content-center gap-2 shadow-sm ${adminUser.role !== 'Admin' ? 'disabled opacity-50' : ''}`}>
                                 <Plus size={18} />
                                 <span className="d-none d-sm-inline">Add Brand</span>
                                 <span className="d-inline d-sm-none">Add</span>
@@ -156,6 +156,7 @@ const AllBrands = () => {
                                                 <Button
                                                     variant="light" size="sm" className="btn-icon-soft text-primary"
                                                     onClick={() => handleEdit(b)}
+                                                    disabled={adminUser.role !== 'Admin'}
                                                 >
                                                     <Edit size={16} />
                                                 </Button>
