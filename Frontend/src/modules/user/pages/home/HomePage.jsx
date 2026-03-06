@@ -167,8 +167,8 @@ const HomePage = ({ }) => {
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
             {!isSearching && !loading && activeOffers.length > 0 && (
-                <div className="max-w-5xl mx-auto px-0 sm:px-6 lg:px-8 py-3 mb-2 group/offers relative">
-                    <div className="relative overflow-hidden rounded-none sm:rounded-2xl">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mb-2 group/offers relative">
+                    <div className="relative overflow-hidden sm:rounded-2xl">
                         <div
                             className={`flex ${isTransitioning && isCarousel ? 'transition-transform duration-1000 ease-in-out' : ''}`}
                             style={{
@@ -640,7 +640,7 @@ const OccasionSection = ({
             </div>
 
             {badgeText && (
-                <div className="mb-1">
+                <div className="mb-4 md:mb-6">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm" style={{ backgroundColor: `${themeColor}10`, borderColor: `${themeColor}30` }}>
                         <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: themeColor }} />
                         <span className="text-[9px] md:text-xs font-black tracking-wide uppercase" style={{ color: themeColor }}>{badgeText}</span>

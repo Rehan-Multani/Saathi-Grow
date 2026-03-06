@@ -91,7 +91,7 @@ const LowestPricesSection = ({
             </div>
 
             {/* Promotional Badge */}
-            <div className="mb-1 md:mb-2">
+            <div className="mb-4 md:mb-6">
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-red-200/50 dark:border-red-800/50">
                     <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-red-500 rounded-full animate-pulse"></div>
                     <span className="text-[9px] md:text-xs font-bold text-red-700 dark:text-red-400 tracking-wide uppercase">

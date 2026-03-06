@@ -161,7 +161,7 @@ const CategoryPage = () => {
                     {isLoading ? (
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
                             {Array.from({ length: 12 }).map((_, i) => (
-                                <div key={i} className="w-20 aspect-square bg-gray-100 dark:bg-white/5 rounded-[20px] animate-pulse" />
+                                <div key={i} className="w-20 aspect-square bg-gray-100 dark:bg-white/5 rounded-xl sm:rounded-[32px] animate-pulse" />
                             ))}
                         </div>
                     ) : (
@@ -175,7 +175,7 @@ const CategoryPage = () => {
                                         className="flex flex-col items-center group active:scale-95 transition-all"
                                     >
                                         <div
-                                            className="w-20 sm:w-28 aspect-square rounded-[20px] sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
+                                            className="w-20 sm:w-28 aspect-square rounded-xl sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
                                             style={{ backgroundColor: categoryColors[cat.slug] || '#f3f4f6' }}
                                         >
                                             <img
