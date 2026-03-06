@@ -94,7 +94,6 @@
         submenu: [
             { title: 'Branches', path: '/admin/locations/branches' },
             { title: 'Add Branch', path: '/admin/locations/branches/add' },
-            { title: 'Warehouses', path: '/admin/locations/warehouses' },
         ],
     },
     {
@@ -102,11 +101,8 @@
         icon: 'Percent',
         permission: 'MANAGE_CAMPAIGNS',
         submenu: [
-            { title: 'Offers', path: '/admin/offers' },
             { title: 'Banner Deals', path: '/admin/offers/deals' },
             { title: 'Festive Campaigns', path: '/admin/campaigns' },
-            { title: 'Sliders', path: '/admin/sliders' },
-            { title: 'Banners', path: '/admin/banners' },
         ],
     },
     {

@@ -8,7 +8,7 @@ const AppSettings = () => {
             <h4 className="fw-bold mb-4">Application Settings</h4>
 
             <Row className="g-4">
-                <Col lg={8}>
+                <Col lg={12}>
                     <Card className="border-0 shadow-sm mb-4">
                         <Card.Header className="bg-white py-3 border-0">
                             <h6 className="mb-0 fw-bold">General Setup</h6>
@@ -51,7 +51,7 @@ const AppSettings = () => {
                         </Card.Body>
                     </Card>
 
-                    <Card className="border-0 shadow-sm">
+                    <Card className="border-0 shadow-sm mb-4">
                         <Card.Header className="bg-white py-3 border-0">
                             <h6 className="mb-0 fw-bold">System Configuration</h6>
                         </Card.Header>
@@ -81,75 +81,21 @@ const AppSettings = () => {
                                         type="switch"
                                         id="maintenance-mode"
                                         label="Maintenance Mode (Close Store for public)"
-                                        className="mb-2"
-                                    />
-                                    <Form.Check
-                                        type="switch"
-                                        id="guest-checkout"
-                                        label="Allow Guest Checkout"
-                                        defaultChecked
-                                        className="mb-2"
-                                    />
-                                    <Form.Check
-                                        type="switch"
-                                        id="review-moderation"
-                                        label="Manual Review Moderation"
-                                        defaultChecked
+                                        className="mb-0"
                                     />
                                 </div>
                             </Form>
                         </Card.Body>
                     </Card>
-                </Col>
 
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-3">Branding</h6>
-                            <div className="mb-4 text-center p-3 border rounded bg-light">
-                                <Form.Label className="small text-muted d-block mb-2">Main Logo</Form.Label>
-                                <div className="bg-white p-2 rounded mb-2 d-inline-block shadow-sm">
-                                    <Layout size={40} className="text-primary" />
-                                </div>
-                                <Button variant="outline-primary" size="sm" className="w-100 d-flex align-items-center justify-content-center gap-2">
-                                    <Upload size={14} /> Upload New
-                                </Button>
-                            </div>
-                            <div className="mb-2">
-                                <Form.Label className="small text-muted fw-bold">Primary Brand Color</Form.Label>
-                                <div className="d-flex gap-2 align-items-center">
-                                    <Form.Control type="color" defaultValue="#0d6efd" style={{ width: '50px', height: '38px', padding: '2px' }} />
-                                    <span className="small font-monospace">#0D6EFD</span>
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-
-                    <Card className="border-0 shadow-sm bg-dark text-white">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between mb-4">
-                                <h6 className="mb-0 fw-bold">Mobile App Setup</h6>
-                                <Badge bg="success">Connected</Badge>
-                            </div>
-                            <div className="small mb-4 opacity-75">
-                                Your Android and iOS apps are synced with these settings.
-                            </div>
-                            <div className="d-grid gap-2">
-                                <Button variant="light" size="sm" className="d-flex align-items-center justify-content-center gap-2">
-                                    <Smartphone size={14} /> Manage App Build
-                                </Button>
-                                <Button variant="outline-light" size="sm" className="d-flex align-items-center justify-content-center gap-2">
-                                    <Globe size={14} /> Domain Manager
-                                </Button>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                    <div className="d-grid mt-4">
-                        <Button variant="primary" size="lg" className="d-flex align-items-center justify-content-center gap-2">
+                    <div className="d-flex justify-content-end mt-2">
+                        <Button variant="primary" size="lg" className="px-5 d-flex align-items-center justify-content-center gap-2">
                             <Save size={20} /> Save All Settings
                         </Button>
                     </div>
                 </Col>
+
+
             </Row>
         </div>
     );

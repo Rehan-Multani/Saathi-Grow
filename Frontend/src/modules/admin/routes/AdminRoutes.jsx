@@ -36,14 +36,7 @@ import PayoutDetails from '../pages/vendors/PayoutDetails';
 import Branches from '../pages/locations/Branches';
 import AddBranch from '../pages/locations/AddBranch';
 import EditBranch from '../pages/locations/EditBranch';
-import Warehouses from '../pages/locations/Warehouses';
-import AddWarehouse from '../pages/locations/AddWarehouse';
-import Offers from '../pages/offers/Offers';
-import CreateOffer from '../pages/offers/CreateOffer';
-import Sliders from '../pages/offers/Sliders';
-import AddSlider from '../pages/offers/AddSlider';
-import Banners from '../pages/offers/Banners';
-import AddBanner from '../pages/offers/AddBanner';
+
 import AllPromoCodes from '../pages/promocodes/AllPromoCodes';
 import CreatePromoCode from '../pages/promocodes/CreatePromoCode';
 import PushNotifications from '../pages/notifications/PushNotifications';
@@ -173,19 +166,11 @@ const AdminRoutes = () => {
                         <Route path="locations/branches" element={<Branches />} />
                         <Route path="locations/branches/add" element={<AddBranch />} />
                         <Route path="locations/branches/edit/:id" element={<EditBranch />} />
-                        <Route path="locations/warehouses" element={<Warehouses />} />
-                        <Route path="locations/warehouses/add" element={<AddWarehouse />} />
 
                         {/* Offers & Sliders */}
-                        <Route path="offers" element={<Offers />} />
                         <Route path="offers/deals" element={<AllOfferDeals />} />
                         <Route path="offers/deals/add" element={<ManageOfferDeal />} />
                         <Route path="offers/deals/edit/:id" element={<ManageOfferDeal />} />
-                        <Route path="offers/create" element={<CreateOffer />} />
-                        <Route path="sliders" element={<Sliders />} />
-                        <Route path="sliders/add" element={<AddSlider />} />
-                        <Route path="banners" element={<Banners />} />
-                        <Route path="banners/add" element={<AddBanner />} />
                         <Route path="campaigns" element={<AllCampaigns />} />
                         <Route path="campaigns/add" element={<ManageCampaign />} />
                         <Route path="campaigns/edit/:id" element={<ManageCampaign />} />
