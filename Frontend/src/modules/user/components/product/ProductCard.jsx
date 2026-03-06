@@ -15,7 +15,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const { activeStore } = useStore();
+  const { activeStore, isStoreOutOfRange } = useStore();
 
   const productId = product.id || product._id;
 
@@ -24,16 +24,18 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const savings = product.originalPrice ? product.originalPrice - product.price : 0;
 
   // Check deliverability
-  const isDeliverable = product.isDeliverable !== false; // Default true if not provided (e.g. initial load)
-  const isOutOfZone = !isDeliverable && activeStore;
+  const isDeliverable = product.isDeliverable !== false;
+  const isBtnDisabled = !isDeliverable || isStoreOutOfRange;
 
   const handleAddToCart = (e) => {
+    if (isBtnDisabled) return;
     e.preventDefault();
     e.stopPropagation();
     protectAction(() => addToCart(product));
   };
 
   const handleUpdateQuantity = (e, delta) => {
+    if (isBtnDisabled) return;
     e.preventDefault();
     e.stopPropagation();
     protectAction(() => updateQuantity(productId, delta));
@@ -126,7 +128,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
 
           {quantity > 0 ? (
             <div
-              className={`flex items-center text-white !rounded-full shadow-lg ${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isLowestPrice || isValentine || isSaathiSignature) ? 'h-[24px] sm:h-[30px] min-w-[65px] sm:min-w-[70px]' : 'h-[28px] sm:h-[36px] min-w-[75px] sm:min-w-[85px]') : (isCompact ? 'h-[21px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : 'h-[25px] sm:h-[36px] min-w-[60px] sm:min-w-[85px]')} border quantity-selector`}
+              className={`flex items-center text-white !rounded-full shadow-lg ${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isLowestPrice || isValentine || isSaathiSignature) ? 'h-[24px] sm:h-[30px] min-w-[65px] sm:min-w-[70px]' : 'h-[28px] sm:h-[36px] min-w-[75px] sm:min-w-[85px]') : (isCompact ? 'h-[21px] sm:h-[30px] min-w-[50px] sm:min-w-[70px]' : 'h-[25px] sm:h-[36px] min-w-[60px] sm:min-w-[85px]')} border quantity-selector ${isBtnDisabled ? 'cursor-not-allowed bg-gray-400' : ''}`}
               style={{
                 backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f'),
                 borderColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f')
@@ -134,7 +136,8 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
             >
               <button
                 onClick={(e) => handleUpdateQuantity(e, -1)}
-                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform"
+                disabled={isBtnDisabled}
+                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform disabled:cursor-not-allowed"
               >
                 <Minus className={`${isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3'} sm:w-4 sm:h-4`} strokeWidth={3} />
               </button>
@@ -143,7 +146,8 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
               </span>
               <button
                 onClick={(e) => handleUpdateQuantity(e, 1)}
-                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-r-full will-change-transform"
+                disabled={isBtnDisabled}
+                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-r-full will-change-transform disabled:cursor-not-allowed"
               >
                 <Plus className={`${isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3'} sm:w-4 sm:h-4`} strokeWidth={3} />
               </button>
@@ -151,25 +155,15 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
           ) : (
             <button
               onClick={handleAddToCart}
-              className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[5px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[8px]') : (isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]')} py-1 text-white border border-transparent active:scale-95 transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center`}
-              style={{ backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') }}
+              disabled={isBtnDisabled}
+              className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[5px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[8px]') : (isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]')} py-1 text-white border border-transparent transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : 'active:scale-95'}`}
+              style={!isBtnDisabled ? { backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') } : {}}
             >
               ADD
             </button>
           )}
         </div>
       </div>
-      {isOutOfZone && (
-        <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[1px] z-40 flex flex-col items-center justify-center p-4 text-center">
-          <div className="bg-red-500 text-white text-[8px] sm:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg mb-2">
-            Not Deliverable
-          </div>
-          <p className="text-[7px] sm:text-[9px] font-bold text-gray-800 dark:text-gray-200 leading-tight">
-            Not available at <br />
-            <span className="text-[#0c831f]">{activeStore.name}</span>
-          </p>
-        </div>
-      )}
 
       <style>{`
         @keyframes shine-sweep-fast {

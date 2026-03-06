@@ -1,14 +1,16 @@
 ﻿import React from 'react';
-import { X, Minus, Plus, ChevronRight, Clock, ShoppingBag, Info } from 'lucide-react';
+import { X, Minus, Plus, ChevronRight, Clock, ShoppingBag, Info, AlertCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const CartSidebar = () => {
     const { isCartOpen, setIsCartOpen, cart, updateQuantity, cartTotal, cartCount, publicSettings } = useCart();
     const { user, protectAction } = useAuth();
+    const { isStoreOutOfRange, activeStore } = useStore();
     const navigate = useNavigate();
 
     // Calculate total bill using dynamic Global Settings synced from backend
@@ -39,7 +41,7 @@ const CartSidebar = () => {
             ></div>
 
             {/* Main Container */}
-            <div className="relative w-full sm:max-w-[360px] bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] h-full shadow-2xl flex flex-col transform transition-all animate-in slide-in-from-bottom sm:slide-in-from-right duration-500 sm:rounded-l-[24px] overflow-hidden">
+            <div className={`relative w-full sm:max-w-[360px] bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] h-full shadow-2xl flex flex-col transform transition-all animate-in slide-in-from-bottom sm:slide-in-from-right duration-500 sm:rounded-l-[24px] overflow-hidden`}>
 
                 {/* Header */}
                 <div className="px-3.5 py-3.5 bg-transparent flex items-center justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-white/5">
@@ -51,6 +53,17 @@ const CartSidebar = () => {
                         <X size={18} className="text-gray-600 dark:text-gray-400" />
                     </button>
                 </div>
+
+                {/* Out of Range Banner */}
+                {isStoreOutOfRange && activeStore && (
+                    <div className="px-3.5 py-2 bg-red-50 dark:bg-red-500/10 flex items-start gap-2 border-b border-red-100 dark:border-red-500/20">
+                        <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
+                        <span className="text-red-600 dark:text-red-400 font-bold text-[8.5px] uppercase tracking-wide leading-tight">
+                            Your selected store <span className="font-black">({activeStore.name})</span> is currently out of your delivery range.
+                            Please switch location to continue.
+                        </span>
+                    </div>
+                )}
 
                 {/* Savings Banner */}
                 {savings > 0 && (
@@ -134,10 +147,22 @@ const CartSidebar = () => {
                                             <p className="!text-[8px] text-gray-400 font-bold mb-1 uppercase tracking-widest opacity-70">{item.weight}</p>
                                             <p className="font-black text-gray-900 dark:text-gray-100 !text-[12px]">₹{item.price}</p>
                                         </div>
-                                        <div className="flex items-center bg-[#0c831f] text-white rounded-lg h-6.5 w-[64px] shadow-md shadow-green-500/10 overflow-hidden flex-shrink-0 quantity-selector">
-                                            <button onClick={() => updateQuantity(item.id, -1)} className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors"><Minus size={9} strokeWidth={3} /></button>
+                                        <div className={`flex items-center bg-[#0c831f] text-white rounded-lg h-6.5 w-[64px] shadow-md shadow-green-500/10 overflow-hidden flex-shrink-0 quantity-selector ${isStoreOutOfRange ? 'bg-gray-400 cursor-not-allowed opacity-80' : ''}`}>
+                                            <button
+                                                disabled={isStoreOutOfRange}
+                                                onClick={() => !isStoreOutOfRange && updateQuantity(item.id, -1)}
+                                                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors disabled:cursor-not-allowed"
+                                            >
+                                                <Minus size={9} strokeWidth={3} />
+                                            </button>
                                             <span className="text-[9px] font-black w-4 text-center select-none">{item.quantity}</span>
-                                            <button onClick={() => updateQuantity(item.id, 1)} className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors"><Plus size={9} strokeWidth={3} /></button>
+                                            <button
+                                                disabled={isStoreOutOfRange}
+                                                onClick={() => !isStoreOutOfRange && updateQuantity(item.id, 1)}
+                                                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors disabled:cursor-not-allowed"
+                                            >
+                                                <Plus size={9} strokeWidth={3} />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -179,22 +204,24 @@ const CartSidebar = () => {
 
                         {/* Footer CTA */}
                         <button
+                            disabled={isStoreOutOfRange}
                             onClick={() => {
+                                if (isStoreOutOfRange) return;
                                 protectAction(() => {
                                     setIsCartOpen(false);
                                     navigate('/checkout');
                                 });
                             }}
                             style={{ borderRadius: '16px' }}
-                            className="w-full bg-[#0c831f] text-white px-8 flex items-center justify-between hover:bg-[#0a6b19] transition-all h-14 shadow-lg shadow-green-500/10 active:scale-[0.98] group"
+                            className={`w-full text-white px-8 flex items-center justify-between transition-all h-14 shadow-lg shadow-green-500/10 group ${isStoreOutOfRange ? 'bg-gray-400 cursor-not-allowed shadow-none' : 'bg-[#0c831f] hover:bg-[#0a6b19] active:scale-[0.98]'}`}
                         >
                             <div className="flex flex-col items-start leading-none gap-0.5">
                                 <span className="font-black text-[15px]">₹{finalTotal}</span>
                                 <span className="text-[7.5px] font-black uppercase tracking-[0.15em] opacity-80">Total Bill</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <span className="font-black text-[12px]">{user ? 'Proceed' : 'Login'}</span>
-                                <ChevronRight size={16} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                                <span className="font-black text-[12px]">{user ? (isStoreOutOfRange ? 'Out of Range' : 'Proceed') : 'Login'}</span>
+                                <ChevronRight size={16} strokeWidth={3} className={isStoreOutOfRange ? '' : 'group-hover:translate-x-1 transition-transform'} />
                             </div>
                         </button>
                     </div>

@@ -31,9 +31,12 @@ const validateStoreDistance = async (storeId, storeType, userLocation) => {
       storeCoords[1], storeCoords[0]
     );
 
-    // Max 25km Euclidean distance as a hard backend guard
-    if (distance > 25) {
-      throw new Error(`Store range validation failed. Distance: ${distance.toFixed(1)}km. Max range: 25km.`);
+    // Dynamic Hard Guard from Admin Settings
+    const settings = await GlobalSetting.findOne();
+    const maxRadius = settings?.maxDeliveryRadius || 25;
+
+    if (distance > maxRadius) {
+      throw new Error(`Store range validation failed. Distance: ${distance.toFixed(1)}km exceeds the allowed ${maxRadius}km limit.`);
     }
   } catch (error) {
     throw error;

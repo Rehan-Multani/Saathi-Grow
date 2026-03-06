@@ -59,7 +59,8 @@ export const getPublicSettings = async (req, res) => {
       baseDeliveryFee: settings.baseDeliveryFee,
       freeDeliveryThreshold: settings.freeDeliveryThreshold,
       handlingFee: settings.handlingFee,
-      surgeMultiplier: settings.surgeMultiplier
+      surgeMultiplier: settings.surgeMultiplier,
+      maxDeliveryRadius: settings.maxDeliveryRadius
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching public settings', error: error.message });

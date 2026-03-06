@@ -54,8 +54,9 @@ export const searchProducts = async (query = '', page = 1, storeParams = {}) => 
   return data;
 };
 
-export const getNearbyStores = async (lat, lng, radius = 20000) => {
-  const response = await fetch(`${API_BASE_URL}/user/stores/nearby?lat=${lat}&lng=${lng}&radius=${radius}`);
+export const getNearbyStores = async (lat, lng, radius) => {
+  const url = `${API_BASE_URL}/user/stores/nearby?lat=${lat}&lng=${lng}${radius ? `&radius=${radius}` : ''}`;
+  const response = await fetch(url);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch nearby stores');
   return data;

@@ -14,7 +14,7 @@ const ProductDetailsPage = () => {
     const { id } = useParams();
     const { addToCart, updateQuantity, cart } = useCart();
     const { protectAction } = useAuth();
-    const { activeStore } = useStore();
+    const { activeStore, isStoreOutOfRange } = useStore();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -69,7 +69,8 @@ const ProductDetailsPage = () => {
                         image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
                         price: simP.basePrice,
                         mrp: simP.mrp,
-                        weight: `${simP.unitValue} ${simP.unitType}`
+                        weight: `${simP.unitValue} ${simP.unitType}`,
+                        isDeliverable: simP.isDeliverable
                     }));
                     setSimilarProducts(sim);
                 } catch (simErr) {
@@ -90,7 +91,8 @@ const ProductDetailsPage = () => {
                     image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
                     price: recP.basePrice,
                     mrp: recP.mrp,
-                    weight: `${recP.unitValue} ${recP.unitType}`
+                    weight: `${recP.unitValue} ${recP.unitType}`,
+                    isDeliverable: recP.isDeliverable
                 }));
                 setRecommendedProducts(rec);
             } catch (recErr) {
@@ -117,6 +119,7 @@ const ProductDetailsPage = () => {
 
     const cartItem = cart.find(item => item.id === (product?.id || id));
     const quantity = cartItem ? cartItem.quantity : 0;
+    const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange;
 
     if (loading) return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">
@@ -194,8 +197,8 @@ const ProductDetailsPage = () => {
                                 <span className="text-xs font-bold text-gray-400">0.0</span>
                             </div>
                             <div className={`border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${product.isDeliverable !== false
-                                    ? 'border-gray-600 text-[#0c831f] dark:text-[#10b981]'
-                                    : 'border-red-500 text-red-500'
+                                ? 'border-gray-600 text-[#0c831f] dark:text-[#10b981]'
+                                : 'border-red-500 text-red-500'
                                 }`}>
                                 {product.isDeliverable !== false ? 'In Stock' : 'Not Deliverable'}
                             </div>
@@ -220,29 +223,31 @@ const ProductDetailsPage = () => {
                             {quantity === 0 ? (
                                 <button
                                     onClick={() => protectAction(() => addToCart(product))}
-                                    disabled={product.isDeliverable === false}
-                                    className={`w-full md:w-fit flex items-center justify-center gap-2 font-bold py-4 px-12 !rounded-full transition-all shadow-lg ${product.isDeliverable === false
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-                                            : 'bg-[#0c831f] hover:bg-[#0a6b19] text-white active:scale-95 shadow-green-500/20'
+                                    disabled={isBtnDisabled}
+                                    className={`w-full md:w-fit flex items-center justify-center gap-2 font-bold py-4 px-12 !rounded-full transition-all shadow-lg ${isBtnDisabled
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                                        : 'bg-[#0c831f] hover:bg-[#0a6b19] text-white active:scale-95 shadow-green-500/20'
                                         }`}
                                 >
-                                    <ShoppingCart size={18} className={product.isDeliverable === false ? '' : 'fill-white'} />
+                                    <ShoppingCart size={18} className={isBtnDisabled ? '' : 'fill-white'} />
                                     <span className="uppercase tracking-widest text-xs">
-                                        {product.isDeliverable === false ? 'Out of Range' : 'Add to Cart'}
+                                        {isBtnDisabled ? (isStoreOutOfRange ? 'Store Out of Range' : 'Not Deliverable') : 'Add to Cart'}
                                     </span>
                                 </button>
                             ) : (
-                                <div className="flex items-center bg-[#0c831f] rounded-2xl p-1 w-fit shadow-lg shadow-green-500/20">
+                                <div className={`flex items-center bg-[#0c831f] rounded-2xl p-1 w-fit shadow-lg shadow-green-500/20 ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : ''}`}>
                                     <button
-                                        onClick={() => protectAction(() => updateQuantity(product.id, -1))}
-                                        className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
+                                        onClick={() => !isBtnDisabled && protectAction(() => updateQuantity(product.id, -1))}
+                                        disabled={isBtnDisabled}
+                                        className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors disabled:cursor-not-allowed"
                                     >
                                         <Minus size={20} strokeWidth={3} />
                                     </button>
                                     <span className="w-12 text-center font-black text-lg text-white">{quantity}</span>
                                     <button
-                                        onClick={() => protectAction(() => updateQuantity(product.id, 1))}
-                                        className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors"
+                                        onClick={() => !isBtnDisabled && protectAction(() => updateQuantity(product.id, 1))}
+                                        disabled={isBtnDisabled}
+                                        className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-md transition-colors disabled:cursor-not-allowed"
                                     >
                                         <Plus size={20} strokeWidth={3} />
                                     </button>

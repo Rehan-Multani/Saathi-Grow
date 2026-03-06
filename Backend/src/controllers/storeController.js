@@ -1,5 +1,6 @@
 import Branch from '../models/Branch.js';
 import Vendor from '../models/Vendor.js';
+import GlobalSetting from '../models/GlobalSetting.js';
 import { getGoogleDistances } from '../services/locationService.js';
 
 // @desc    Get nearby branches and vendors with Google Maps verification
@@ -7,8 +8,13 @@ import { getGoogleDistances } from '../services/locationService.js';
 // @access  Public
 export const getNearbyStores = async (req, res) => {
   try {
-    const { lat, lng, radius = 20000 } = req.query; // Max search radius in meters
-    const MAX_ROAD_DISTANCE_KM = parseInt(radius) / 1000; // e.g. 20km
+    const settings = await GlobalSetting.findOne();
+    const globalMaxRadius = (settings?.maxDeliveryRadius || 25) * 1000; // default 25km if not set
+
+    // Admin decided radius is the absolute authority
+    const radius = globalMaxRadius;
+    const { lat, lng } = req.query;
+    const MAX_ROAD_DISTANCE_KM = radius / 1000; // in km as per Admin's config
 
     if (!lat || !lng) {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
