@@ -8,7 +8,6 @@ import { generateProductDescription, generateProductTags } from '../utils/aiServ
 // Helper to determine status based on stock
 const determineProductStatus = (stock, threshold, existingStatus) => {
   if (existingStatus === 'Draft') return 'Draft';
-  if (existingStatus === 'Pending Approval') return 'Pending Approval';
   if (existingStatus === 'Rejected') return 'Rejected';
 
   if (Number(stock) <= 0) return 'Out of Stock';
@@ -93,9 +92,9 @@ export const addVendorProduct = async (req, res) => {
       margin: 1
     });
 
-    // Determine initial status - Vendor products are "Pending Approval" initially
-    let finalStatus = status || 'Pending Approval';
-    if (finalStatus !== 'Draft' && finalStatus !== 'Pending Approval') {
+    // Determine initial status - Vendor products are "Active" by default if listed
+    let finalStatus = status || 'Active';
+    if (finalStatus !== 'Draft') {
       finalStatus = determineProductStatus(stock, lowStockThreshold, finalStatus);
     }
 
@@ -179,10 +178,12 @@ export const updateVendorProduct = async (req, res) => {
       }
 
       // Handle Stock Updates
-      if (req.body.stock !== undefined) {
-        const newStock = Number(req.body.stock);
-        const oldStock = product.stock;
-        if (newStock !== oldStock) {
+      if (req.body.stock !== undefined && req.body.stock !== '') {
+        const stockValue = Array.isArray(req.body.stock) ? req.body.stock[0] : req.body.stock;
+        const newStock = Number(stockValue);
+        const oldStock = Number(product.stock) || 0;
+
+        if (!isNaN(newStock) && newStock !== oldStock) {
           await InventoryLog.create({
             product: product._id,
             vendorId: req.vendor._id,
@@ -196,8 +197,12 @@ export const updateVendorProduct = async (req, res) => {
         }
       }
 
-      if (req.body.lowStockThreshold !== undefined) {
-        product.lowStockThreshold = Number(req.body.lowStockThreshold);
+      if (req.body.lowStockThreshold !== undefined && req.body.lowStockThreshold !== '') {
+        const thresholdValue = Array.isArray(req.body.lowStockThreshold) ? req.body.lowStockThreshold[0] : req.body.lowStockThreshold;
+        const newThreshold = Number(thresholdValue);
+        if (!isNaN(newThreshold)) {
+          product.lowStockThreshold = newThreshold;
+        }
       }
 
       // Handle Image and Gallery Updates

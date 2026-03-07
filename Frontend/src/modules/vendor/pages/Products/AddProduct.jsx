@@ -36,7 +36,7 @@ const AddProduct = () => {
         tags: [],
         stock: 0,
         lowStockThreshold: 10,
-        status: 'Pending Approval',
+        status: 'Active',
         isSaathiGrow: false
     });
 
@@ -206,7 +206,7 @@ const AddProduct = () => {
             }
 
             await addVendorProduct(vendor.token, data);
-            toast.success('Product submitted for approval!');
+            toast.success('Product created successfully!');
             navigate('/vendor/products');
         } catch (error) {
             toast.error(error.message || 'Failed to create product');

@@ -205,8 +205,6 @@ const EditProduct = () => {
                 else data.append(key, formData[key]);
             });
 
-            data.append('stock', formData.stock);
-            data.append('lowStockThreshold', formData.lowStockThreshold);
             if (imageFile) data.append('image', imageFile);
 
             // Send existing gallery image URLs that were NOT removed
