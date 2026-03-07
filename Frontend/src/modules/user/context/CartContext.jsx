@@ -151,9 +151,17 @@ export const CartProvider = ({ children }) => {
         );
     };
 
-    const clearCart = () => {
+    const clearCart = async () => {
         setCart([]);
         localStorage.removeItem('sathiGro_cart');
+        // Also wipe on server so items don't come back on next login
+        if (token) {
+            try {
+                await cartApi.clearCartOnServer(token);
+            } catch (err) {
+                console.error('Failed to clear server cart:', err);
+            }
+        }
     };
 
     const toggleCart = () => setIsCartOpen(!isCartOpen);

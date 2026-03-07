@@ -24,3 +24,13 @@ export const syncCart = async (token, cartItems) => {
   if (!response.ok) throw new Error(data.message || 'Failed to sync cart');
   return data;
 };
+
+export const clearCartOnServer = async (token) => {
+  const response = await fetch(API_URL, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to clear cart');
+  return data;
+};

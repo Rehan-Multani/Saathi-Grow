@@ -63,3 +63,18 @@ export const syncCart = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Clear user cart entirely
+// @route   DELETE /api/user/cart
+// @access  Private
+export const clearCart = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    user.cart = [];
+    await user.save();
+    res.json({ message: 'Cart cleared successfully', cart: [] });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -3,6 +3,7 @@ import * as authApi from '../api/userAuthApi';
 import { toast } from 'react-toastify';
 import { isWebView as checkWebView } from '../../../utils/deviceUtils';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 export const AuthContext = createContext();
 
