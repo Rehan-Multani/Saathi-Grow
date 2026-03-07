@@ -40,19 +40,19 @@ import AllPromoCodes from '../pages/promocodes/AllPromoCodes';
 import CreatePromoCode from '../pages/promocodes/CreatePromoCode';
 import PushNotifications from '../pages/notifications/PushNotifications';
 import SupportTickets from '../pages/support/Tickets';
-import LiveChat from '../pages/support/LiveChat';
+
 import FAQs from '../pages/support/FAQs';
 import SalesReports from '../pages/reports/SalesReports';
 import InventoryReports from '../pages/reports/InventoryReports';
 import VendorReports from '../pages/reports/VendorReports';
 import RevenueAnalytics from '../pages/analytics/RevenueAnalytics';
-import POSAnalytics from '../pages/analytics/POSAnalytics';
+
 import VendorEarnings from '../pages/analytics/VendorEarnings';
 import VendorEarningDetail from '../pages/analytics/VendorEarningDetail';
-import TaxReports from '../pages/analytics/TaxReports';
+
 import LegalManagement from '../pages/policies/LegalManagement';
 import AdminProfile from '../pages/settings/AdminProfile';
-import RolesAndPermissions from '../pages/settings/RolesAndPermissions';
+
 import BillingSettings from '../pages/settings/BillingSettings';
 import AppSettings from '../pages/settings/AppSettings';
 import SocialProfile from '../pages/settings/SocialProfile';
@@ -182,7 +182,7 @@ const AdminRoutes = () => {
 
                         {/* Support Desk */}
                         <Route path="support/tickets" element={<SupportTickets />} />
-                        <Route path="support/chat" element={<LiveChat />} />
+
                         <Route path="support/faqs" element={<FAQs />} />
 
                         {/* Reports */}
@@ -192,17 +192,17 @@ const AdminRoutes = () => {
 
                         {/* Analytics & Finance */}
                         <Route path="analytics/revenue" element={<RevenueAnalytics />} />
-                        <Route path="analytics/pos" element={<POSAnalytics />} />
+
                         <Route path="analytics/earnings" element={<VendorEarnings />} />
                         <Route path="analytics/earnings/:id" element={<VendorEarningDetail />} />
-                        <Route path="analytics/tax" element={<TaxReports />} />
+
 
                         {/* Policies */}
                         <Route path="policies" element={<LegalManagement />} />
 
                         {/* Settings */}
                         <Route path="settings/profile" element={<AdminProfile />} />
-                        <Route path="settings/roles" element={<RolesAndPermissions />} />
+
                         <Route path="settings/billing" element={<BillingSettings />} />
                         <Route path="settings/app" element={<AppSettings />} />
                         <Route path="settings/social" element={<SocialProfile />} />

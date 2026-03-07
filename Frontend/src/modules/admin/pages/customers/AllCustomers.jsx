@@ -119,8 +119,8 @@ const AllCustomers = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.length > 0 ? filtered.map((c, idx) => (
-                                <tr key={idx}>
+                            {filtered.length > 0 ? filtered.map((c) => (
+                                <tr key={c._id}>
                                     <td className="ps-4">
                                         <div className="d-flex align-items-center gap-3">
                                             {c.profileImage ? (
@@ -132,7 +132,7 @@ const AllCustomers = () => {
                                             )}
                                             <div>
                                                 <div className="fw-bold text-dark">{c.name || 'Anonymous'}</div>
-                                                <div className="small text-muted">{c._id}</div>
+                                                <div className="small text-muted text-[10px]">{c._id}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -162,26 +162,42 @@ const AllCustomers = () => {
                                         </Badge>
                                     </td>
                                     <td className="text-center">
-                                        <Dropdown align="end">
+                                        <Dropdown align="end" drop="down">
                                             <Dropdown.Toggle variant="link" className="text-muted p-0 shadow-none no-caret">
                                                 <MoreHorizontal size={20} />
                                             </Dropdown.Toggle>
-                                            <Dropdown.Menu className="border-0 shadow-sm">
-                                                <Dropdown.Item onClick={() => handleViewProfile(c)}>
-                                                    <Eye size={16} className="me-2 text-primary" /> View Profile
+                                            <Dropdown.Menu
+                                                className="border-0 shadow-lg p-2 rounded-xl"
+                                                popperConfig={{
+                                                    strategy: 'fixed',
+                                                    modifiers: [
+                                                        {
+                                                            name: 'offset',
+                                                            options: {
+                                                                offset: [0, 8],
+                                                            },
+                                                        },
+                                                    ],
+                                                }}
+                                            >
+                                                <Dropdown.Item onClick={() => handleViewProfile(c)} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
+                                                    <Eye size={16} className="text-primary" />
+                                                    <span className="fw-medium">View Profile</span>
                                                 </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => handleSendMessage(c, 'Email')}>
-                                                    <Mail size={16} className="me-2 text-info" /> Send Email
+                                                <Dropdown.Item onClick={() => handleSendMessage(c, 'Email')} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
+                                                    <Mail size={16} className="text-info" />
+                                                    <span className="fw-medium">Send Email</span>
                                                 </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => handleSendMessage(c, 'Message')}>
-                                                    <Send size={16} className="me-2 text-primary" /> Send Message
+                                                <Dropdown.Item onClick={() => handleSendMessage(c, 'Message')} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
+                                                    <Send size={16} className="text-primary" />
+                                                    <span className="fw-medium">Send Message</span>
                                                 </Dropdown.Item>
-                                                <Dropdown.Divider />
-                                                <Dropdown.Item onClick={() => handleStatusToggle(c)} className={c.isActive ? 'text-danger' : 'text-success'}>
+                                                <Dropdown.Divider className="my-1 opacity-50" />
+                                                <Dropdown.Item onClick={() => handleStatusToggle(c)} className={`rounded-lg py-2 d-flex align-items-center gap-2 small ${c.isActive ? 'text-danger' : 'text-success'}`}>
                                                     {c.isActive ? (
-                                                        <><Ban size={16} className="me-2" /> Block User</>
+                                                        <><Ban size={16} /> <span className="fw-medium">Block User</span></>
                                                     ) : (
-                                                        <><CheckCircle size={16} className="me-2" /> Unblock User</>
+                                                        <><CheckCircle size={16} /> <span className="fw-medium">Unblock User</span></>
                                                     )}
                                                 </Dropdown.Item>
                                             </Dropdown.Menu>

@@ -128,7 +128,7 @@
         permission: 'VIEW_CUSTOMERS',
         submenu: [
             { title: 'Tickets', path: '/admin/support/tickets' },
-            { title: 'Live Chat', path: '/admin/support/chat' },
+
             { title: 'FAQs', path: '/admin/support/faqs' },
         ],
     },
@@ -146,9 +146,9 @@
         icon: 'BarChart3',
         submenu: [
             { title: 'Revenue Analytics', path: '/admin/analytics/revenue' },
-            { title: 'POS Analytics', path: '/admin/analytics/pos' },
+
             { title: 'Vendor Earnings', path: '/admin/analytics/earnings' },
-            { title: 'Tax & GST Reports', path: '/admin/analytics/tax' },
+
         ],
     },
     {
@@ -162,7 +162,7 @@
         icon: 'Settings',
         submenu: [
             { title: 'Admin Profile', path: '/admin/settings/profile' },
-            { title: 'Roles & Permissions', path: '/admin/settings/roles' },
+
             { title: 'Tax & Billing Settings', path: '/admin/settings/billing' },
             { title: 'App Settings', path: '/admin/settings/app' },
             { title: 'Social Profile', path: '/admin/settings/social' },
