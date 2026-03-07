@@ -148,6 +148,7 @@
         icon: 'BarChart3',
         submenu: [
             { title: 'Revenue Analytics', path: '/admin/analytics/revenue' },
+            { title: 'Demand Analytics', path: '/admin/analytics/demand' },
 
             { title: 'Vendor Earnings', path: '/admin/analytics/earnings' },
 

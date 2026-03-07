@@ -8,6 +8,7 @@ import {
 import { useShop } from '../../context/ShopContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
@@ -29,8 +30,19 @@ const useCountdown = (targetDate) => {
 // Flyer-Style Product Card (Matched to app styling)
 const FlyerProductCard = ({ product, badgeText }) => {
     const { cart, addToCart, updateQuantity } = useCart();
+    const { isStoreOutOfRange } = useStore();
     const cartItem = cart.find(item => item.id === (product._id || product.id));
     const quantity = cartItem ? cartItem.quantity : 0;
+
+    // Check deliverability and stock
+    const isDeliverable = product.isDeliverable !== false;
+    const availableStock = product.availableStock ?? 999;
+    const lowStockThreshold = product.lowStockThreshold ?? 0;
+
+    const isOutOfStock = availableStock <= 0;
+    const isLowStock = availableStock <= lowStockThreshold && availableStock > 0;
+
+    const isBtnDisabled = !isDeliverable || isStoreOutOfRange || isOutOfStock || isLowStock;
 
     // Safety check for discount
     const validOriginal = product.originalPrice || product.price;
@@ -94,10 +106,13 @@ const FlyerProductCard = ({ product, badgeText }) => {
                     </div>
 
                     {quantity > 0 ? (
-                        <div className="flex items-center bg-[#0c831f] text-white !rounded-full shadow-lg h-[26px] sm:h-[40px] min-w-[70px] sm:min-w-[95px] border border-[#0c831f]">
+                        <div
+                            className={`flex items-center !rounded-full shadow-lg h-[26px] sm:h-[40px] min-w-[70px] sm:min-w-[95px] border ${isBtnDisabled ? 'bg-gray-300 border-gray-300 text-gray-500 opacity-70' : 'bg-[#0c831f] border-[#0c831f] text-white'}`}
+                        >
                             <button
-                                onClick={() => updateQuantity(product._id || product.id, -1)}
-                                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform"
+                                onClick={() => !isBtnDisabled && updateQuantity(product._id || product.id, -1)}
+                                disabled={isBtnDisabled}
+                                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-l-full will-change-transform disabled:cursor-not-allowed"
                             >
                                 <Minus size={12} sm:size={16} strokeWidth={2.5} />
                             </button>
@@ -105,16 +120,18 @@ const FlyerProductCard = ({ product, badgeText }) => {
                                 {quantity}
                             </span>
                             <button
-                                onClick={() => updateQuantity(product._id || product.id, 1)}
-                                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-r-full will-change-transform"
+                                onClick={() => !isBtnDisabled && updateQuantity(product._id || product.id, 1)}
+                                disabled={isBtnDisabled}
+                                className="flex-1 h-full flex items-center justify-center hover:bg-black/10 transition-colors active:bg-black/20 rounded-r-full will-change-transform disabled:cursor-not-allowed"
                             >
                                 <Plus size={12} sm:size={16} strokeWidth={2.5} />
                             </button>
                         </div>
                     ) : (
                         <button
-                            onClick={() => addToCart(product)}
-                            className="px-3 sm:px-4 py-0.5 bg-[#0c831f] text-white border border-transparent hover:bg-[#0a6b19] active:scale-95 transition-all text-[9px] sm:text-[13px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[24px] sm:h-[38px] flex items-center justify-center"
+                            onClick={() => !isBtnDisabled && addToCart(product)}
+                            disabled={isBtnDisabled}
+                            className={`px-3 sm:px-4 py-0.5 border border-transparent active:scale-95 transition-all text-[9px] sm:text-[13px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[24px] sm:h-[38px] flex items-center justify-center ${isBtnDisabled ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-70' : 'bg-[#0c831f] text-white hover:bg-[#0a6b19]'}`}
                             aria-label="Add to cart"
                         >
                             ADD
@@ -283,42 +300,15 @@ const OfferPage = () => {
                         ))}
                     </div>
 
-                    {/* Main Featured Deal Section */}
-                    <div className="space-y-6">
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-3">
-                                <div className="h-4 w-1 bg-[#0c831f] rounded-full"></div>
-                                <span className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Curated Category</span>
-                            </div>
-                            <div className="flex items-end justify-between">
-                                <h3 className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter">Deals You Can't Miss</h3>
-                                <div className="flex items-center gap-2 p-1.5 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl shadow-sm">
-                                    {['Hot Deals', 'Under ₹99', 'Buy 1 Get 1', 'Best Price'].map((f) => (
-                                        <button
-                                            key={f}
-                                            onClick={() => setActiveFilter(f)}
-                                            className={`px-6 py-2 rounded-full text-xs font-black transition-all whitespace-nowrap ${activeFilter === f
-                                                ? 'bg-[#0c831f] text-white shadow-lg shadow-green-500/20'
-                                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
-                                                }`}
-                                        >
-                                            {f}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Enhanced Grid Layout */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            {dealProducts.map(product => (
-                                <FlyerProductCard
-                                    key={product.id || product._id}
-                                    product={product}
-                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offerBadge}
-                                />
-                            ))}
-                        </div>
+                    {/* Product Grid Layout */}
+                    <div className="pt-8 grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        {dealProducts.map(product => (
+                            <FlyerProductCard
+                                key={product.id || product._id}
+                                product={product}
+                                badgeText={offerBadge}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>
@@ -385,39 +375,15 @@ const OfferPage = () => {
                     </div>
 
 
-                    {/* Hot Deals Section */}
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-4 sticky top-[72px] bg-white/80 dark:bg-black/80 backdrop-blur-md z-30 py-2 -mx-3 px-3 border-b border-gray-100 dark:border-white/5 overflow-hidden">
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                <div className="w-0.5 h-4 bg-[#0c831f] rounded-full"></div>
-                                <h3 className="text-sm font-black text-gray-900 dark:text-white tracking-tight">Featured</h3>
-                            </div>
-
-                            <div className="flex gap-2 overflow-x-auto scrollbar-hide py-0.5 pr-2">
-                                {['Hot Deals', 'Under ₹99', 'Buy 1 Get 1'].map((f) => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setActiveFilter(f)}
-                                        className={`px-3 py-1 rounded-full text-[9.5px] font-black transition-all border-2 whitespace-nowrap shadow-sm active:scale-95 ${activeFilter === f
-                                            ? 'bg-[#0c831f] text-white border-[#0c831f]'
-                                            : 'bg-white text-gray-500 border-gray-50 dark:bg-[#111] dark:border-white/5'
-                                            }`}
-                                    >
-                                        {f}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-4">
-                            {dealProducts.map(product => (
-                                <FlyerProductCard
-                                    key={product.id || product._id}
-                                    product={product}
-                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offerBadge}
-                                />
-                            ))}
-                        </div>
+                    {/* All Deal Products */}
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-4 pt-2">
+                        {dealProducts.map(product => (
+                            <FlyerProductCard
+                                key={product.id || product._id}
+                                product={product}
+                                badgeText={offerBadge}
+                            />
+                        ))}
                     </div>
 
                 </div>

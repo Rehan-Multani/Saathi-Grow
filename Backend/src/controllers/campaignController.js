@@ -98,6 +98,41 @@ export const getActiveCampaignSections = async (req, res) => {
   }
 };
 
+// @desc    Get public campaign metadata by ID
+// @route   GET /api/admin/campaigns/public/:id
+// @access  Public
+export const getCampaignMetadata = async (req, res) => {
+  try {
+    const section = await CampaignSection.findById(req.params.id, {
+      title: 1,
+      subtitle: 1,
+      highlightText: 1,
+      displayType: 1,
+      bgColor: 1,
+      textColor: 1,
+      accentColor: 1,
+      bannerImage: 1,
+      isActive: 1
+    });
+
+    if (!section || !section.isActive) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    // Include total product count
+    const fullDoc = await CampaignSection.findById(req.params.id).select('products');
+    const result = {
+      ...section.toObject(),
+      totalProducts: fullDoc?.products?.length || 0
+    };
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 // @desc    Create a new campaign section
 // @route   POST /api/admin/campaigns
 // @access  Private (Admin)

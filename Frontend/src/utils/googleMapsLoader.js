@@ -27,7 +27,7 @@ export const loadGoogleMaps = () => {
 
     // Using the modern loading pattern suggested by Google
     // Note: We use the direct URL but ensure it's only appended once
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMapsCallback&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,visualization&callback=initGoogleMapsCallback&loading=async`;
     script.async = true;
     script.defer = true;
 

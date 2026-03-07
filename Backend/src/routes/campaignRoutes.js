@@ -5,7 +5,8 @@ import {
   updateCampaignSection,
   deleteCampaignSection,
   getActiveCampaignSections,
-  getCampaignById
+  getCampaignById,
+  getCampaignMetadata
 } from '../controllers/campaignController.js';
 import { protectAdmin, restrictTo } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
@@ -14,6 +15,7 @@ const router = express.Router();
 
 // Public route for frontend
 router.get('/public', getActiveCampaignSections);
+router.get('/public/:id', getCampaignMetadata);
 
 // Admin routes
 router.use(protectAdmin);

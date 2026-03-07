@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import { normalizeProduct } from '../../pages/home/HomePage';
 import { ProductCardSkeleton } from '../common/Skeleton';
@@ -17,9 +18,11 @@ const LowestPricesSection = ({
     campaignProducts,        // Pre-curated from admin campaign (with dealPrice already applied)
     loading = false,
     sectionTitle = "Lowest Prices Ever",
-    highlightText = "🔥 Massive Discounts - Limited Time Only!"
+    highlightText = "🔥 Massive Discounts - Limited Time Only!",
+    campaignId = null
 }) => {
     const { isDarkMode } = useTheme();
+    const navigate = useNavigate();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
@@ -88,6 +91,17 @@ const LowestPricesSection = ({
                         {sectionTitle}
                     </h2>
                 </div>
+                {campaignId && (
+                    <button
+                        onClick={() => navigate(`/campaign/${campaignId}`)}
+                        className="flex items-center gap-1 group/seeall"
+                    >
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-wider text-[#0c831f] dark:text-[#f7cb15] transition-colors">See all</span>
+                        <div className="p-1 rounded-full bg-green-50 dark:bg-white/5 transition-all group-hover/seeall:translate-x-1">
+                            <ArrowRight size={14} className="text-[#0c831f] dark:text-[#f7cb15]" />
+                        </div>
+                    </button>
+                )}
             </div>
 
             {/* Promotional Badge */}

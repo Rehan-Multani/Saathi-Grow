@@ -32,6 +32,7 @@ const LoginModal = lazy(() => import('../components/auth/LoginModal'));
 const HomePage = lazy(() => import('../pages/home/HomePage'));
 const OccasionPage = lazy(() => import('../pages/home/OccasionPage'));
 const LowestPricesPage = lazy(() => import('../pages/home/LowestPricesPage'));
+const CampaignProductsPage = lazy(() => import('../pages/home/CampaignProductsPage'));
 const CategoryPage = lazy(() => import('../pages/categories/CategoryPage'));
 const ProductDetailsPage = lazy(() => import('../pages/product/ProductDetailsPage'));
 const CartPage = lazy(() => import('../pages/cart/CartPage'));
@@ -170,6 +171,7 @@ const UserRoutes = () => {
                         {/* Home & Listing */}
                         <Route path="/" element={<HomePage />} />
                         <Route path="/occasion/:slug" element={<OccasionPage />} />
+                        <Route path="/campaign/:campaignId" element={<CampaignProductsPage />} />
                         <Route path="/lowest-prices" element={<LowestPricesPage />} />
                         <Route path="/category" element={<CategoryPage />} />
                         <Route path="/category/:slug" element={<CategoryPage />} />

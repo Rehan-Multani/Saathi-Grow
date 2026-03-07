@@ -356,6 +356,7 @@ const HomePage = ({ }) => {
                                 loading={loading}
                                 sectionTitle={campaign.title}
                                 highlightText={campaign.highlightText || '🔥 Massive Discounts - Limited Time Only!'}
+                                campaignId={campaign._id}
                             />
                         ) : (
                             <OccasionSection
@@ -575,6 +576,7 @@ const OccasionSection = ({
 }) => {
     const { isDarkMode } = useTheme();
     const { activeStore } = useStore();
+    const navigate = useNavigate();
     const sectionRef = useRef(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
@@ -643,6 +645,17 @@ const OccasionSection = ({
                     </h2>
                     <p className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'opacity-70'}`} style={{ color: isDarkMode ? '' : themeColor }}>{subtitle}</p>
                 </div>
+                {campaignId && (
+                    <button
+                        onClick={() => navigate(`/campaign/${campaignId}`)}
+                        className="flex items-center gap-1 group/seeall"
+                    >
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-wider transition-colors" style={{ color: isDarkMode ? 'var(--saathi-yellow)' : themeColor }}>See all</span>
+                        <div className="p-1 rounded-full transition-all group-hover/seeall:translate-x-1" style={{ backgroundColor: isDarkMode ? '' : `${themeColor}10` }}>
+                            <ArrowRight size={14} style={{ color: isDarkMode ? 'var(--saathi-yellow)' : themeColor }} />
+                        </div>
+                    </button>
+                )}
             </div>
 
             {badgeText && (
