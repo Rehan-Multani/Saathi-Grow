@@ -50,17 +50,19 @@ const WalletPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black p-0 pt-0 pb-24 md:p-8 md:pb-8 transition-colors duration-300">
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-black p-0 pt-0 pb-24 md:p-8 md:pb-8 transition-colors duration-300">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
-                <div className="hidden md:flex items-center gap-3 mb-0 md:mb-10 px-4 py-4 md:px-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none">
+                {/* Header - Now visible and beautiful on mobile */}
+                <div className="flex items-center gap-3 mb-2 md:mb-10 px-4 py-6 md:p-0 bg-white md:bg-transparent dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none sticky top-0 z-40 md:relative">
                     <button
                         onClick={() => navigate('/profile')}
-                        className="p-1.5 md:p-2 bg-white/50 dark:bg-white/5 rounded-full shadow-sm hover:bg-gray-100 transition-colors"
+                        className="p-2 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 transition-colors"
                     >
-                        <ArrowLeft size={16} className="md:w-6 md:h-6" />
+                        <ArrowLeft size={18} className="text-gray-600 dark:text-gray-400 md:w-6 md:h-6" />
                     </button>
                     <div>
-                        <h1 className="!text-[16px] md:!text-3xl font-black text-gray-900 dark:text-gray-100 leading-none tracking-tight">sathiGro Wallet</h1>
+                        <h1 className="text-[18px] md:text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1">My Wallet</h1>
+                        <p className="hidden md:block text-[11px] text-gray-400 font-bold uppercase tracking-widest">Manage your digital balance</p>
                     </div>
                 </div>
 

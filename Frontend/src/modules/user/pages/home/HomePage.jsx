@@ -52,8 +52,14 @@ const HomePage = ({ }) => {
     }, []);
 
     const activeOffers = offers.length > 0 ? offers : [];
-    const maxItemsToShow = 1; // 1 banner at a time for gorgeous premium carousel
-    const itemsToShow = Math.min(maxItemsToShow, activeOffers.length || 1);
+    // Zepto-style multi-item carousel for desktop, single for mobile
+    const getItemsToShow = () => {
+        if (windowWidth >= 1024) return 3; // Desktop
+        if (windowWidth >= 768) return 2;  // Tablet
+        return 1;                          // Mobile
+    };
+
+    const itemsToShow = Math.min(getItemsToShow(), activeOffers.length || 1);
     const isCarousel = activeOffers.length > itemsToShow;
 
     // Manual & Infinite Scroll Logic - Starts at middle set to allow bidirectional scrolling
@@ -167,13 +173,13 @@ const HomePage = ({ }) => {
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
             {!isSearching && !loading && activeOffers.length > 0 && (
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mb-2 group/offers relative">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-4 group/offers relative">
                     <div className="relative overflow-hidden sm:rounded-2xl">
                         <div
-                            className={`flex ${isTransitioning && isCarousel ? 'transition-transform duration-1000 ease-in-out' : ''}`}
+                            className={`flex ${isTransitioning && isCarousel ? 'transition-transform duration-700 ease-in-out' : ''}`}
                             style={{
                                 transform: isCarousel ? `translateX(-${offerIndex * (100 / itemsToShow)}%)` : 'none',
-                                gap: itemsToShow === 1 ? '0px' : '16px'
+                                gap: itemsToShow === 1 ? '0px' : '12px'
                             }}
                         >
                             {(isCarousel ? [...activeOffers, ...activeOffers, ...activeOffers] : activeOffers).map((offer, idx) => (
@@ -181,7 +187,7 @@ const HomePage = ({ }) => {
                                     key={`${offer._id || offer.id}-${idx}`}
                                     className="flex-shrink-0"
                                     style={{
-                                        width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(16 * (itemsToShow - 1)) / itemsToShow}px)`
+                                        width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(12 * (itemsToShow - 1)) / itemsToShow}px)`
                                     }}
                                 >
                                     <div
@@ -190,7 +196,7 @@ const HomePage = ({ }) => {
                                         role="button"
                                         tabIndex={0}
                                     >
-                                        <div className="aspect-[16/7.5] sm:aspect-[24/8] overflow-hidden rounded-lg sm:rounded-3xl shadow-md border border-gray-100/10 pointer-events-none bg-gray-50 dark:bg-gray-900">
+                                        <div className={`overflow-hidden rounded-lg sm:rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/10 pointer-events-none bg-gray-50 dark:bg-gray-900 transition-all duration-300 ${itemsToShow === 1 ? 'aspect-[16/7.5] sm:aspect-[24/8]' : 'aspect-[16/7.5] md:aspect-[21/9]'}`}>
                                             <img
                                                 src={offer.bannerImage || offer.image}
                                                 alt={offer.title || "Special Offer"}
@@ -202,27 +208,27 @@ const HomePage = ({ }) => {
                                 </div>
                             ))}
                         </div>
-
-                        {/* Navigation Arrows */}
-                        {isCarousel && (
-                            <>
-                                <button
-                                    onClick={handlePrevOffer}
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
-                                    aria-label="Previous Offer"
-                                >
-                                    <ArrowLeft size={20} className="md:w-6 md:h-6" />
-                                </button>
-                                <button
-                                    onClick={handleNextOffer}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black text-black dark:text-white w-8 h-8 md:w-10 md:h-10 rounded-full shadow-md flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer border border-gray-200 dark:border-white/10"
-                                    aria-label="Next Offer"
-                                >
-                                    <ArrowRight size={20} className="md:w-6 md:h-6" />
-                                </button>
-                            </>
-                        )}
                     </div>
+
+                    {/* Navigation Arrows - Premium Redesigned Controls */}
+                    {isCarousel && (
+                        <>
+                            <button
+                                onClick={handlePrevOffer}
+                                className="absolute left-2 md:-left-6 top-1/2 -translate-y-1/2 z-30 bg-white/90 dark:bg-[#1c1c1c]/90 text-gray-800 dark:text-white w-9 h-9 md:w-12 md:h-12 rounded-full shadow-lg hover:shadow-2xl flex items-center justify-center transition-all duration-300 md:opacity-0 group-hover/offers:opacity-100 backdrop-blur-xl cursor-pointer border border-gray-200/50 dark:border-white/10 hover:border-[var(--saathi-green)] hover:scale-110 active:scale-90 group/btn"
+                                aria-label="Previous Offer"
+                            >
+                                <ChevronRight size={24} className="md:w-6 md:h-6 rotate-180 group-hover/btn:text-[var(--saathi-green)] transition-colors duration-300" />
+                            </button>
+                            <button
+                                onClick={handleNextOffer}
+                                className="absolute right-2 md:-right-6 top-1/2 -translate-y-1/2 z-30 bg-white/90 dark:bg-[#1c1c1c]/90 text-gray-800 dark:text-white w-9 h-9 md:w-12 md:h-12 rounded-full shadow-lg hover:shadow-2xl flex items-center justify-center transition-all duration-300 md:opacity-0 group-hover/offers:opacity-100 backdrop-blur-xl cursor-pointer border border-gray-200/50 dark:border-white/10 hover:border-[var(--saathi-green)] hover:scale-110 active:scale-90 group/btn"
+                                aria-label="Next Offer"
+                            >
+                                <ChevronRight size={24} className="md:w-6 md:h-6 group-hover/btn:text-[var(--saathi-green)] transition-colors duration-300" />
+                            </button>
+                        </>
+                    )}
 
                     {/* Pagination Lines (Blinkit Style) - Moved below image */}
                     {isCarousel && (
