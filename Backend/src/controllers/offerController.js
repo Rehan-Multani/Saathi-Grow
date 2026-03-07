@@ -5,7 +5,13 @@ import Product from '../models/Product.js';
 // @route   GET /api/admin/offers
 export const getOfferDeals = async (req, res) => {
   try {
-    const offers = await OfferDeal.find()
+    let query = {};
+    if (req.vendor) {
+      query.vendor = req.vendor._id;
+    } else {
+      query.vendor = null; // Admin only sees admin deals
+    }
+    const offers = await OfferDeal.find(query)
       .populate('products.productId', 'name image basePrice mrp sku')
       .sort('order');
     res.json(offers);
@@ -60,7 +66,8 @@ export const createOfferDeal = async (req, res) => {
       expiryDate,
       displayLocation,
       discountPercentage: discountPercentage || 0,
-      bannerImage: req.file ? req.file.path : ''
+      bannerImage: req.file ? req.file.path : '',
+      vendor: req.vendor ? req.vendor._id : null
     });
 
     const populatedOffer = await offer.populate('products.productId', 'name image basePrice mrp sku');
@@ -77,6 +84,10 @@ export const updateOfferDeal = async (req, res) => {
 
     if (!offer) {
       return res.status(404).json({ message: 'Offer deal not found' });
+    }
+
+    if (req.vendor && offer.vendor?.toString() !== req.vendor._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to update this offer' });
     }
 
     const { title, subtitle, description, bgColor, textColor, accentColor, products, order, isActive, expiryDate, displayLocation, discountPercentage } = req.body;
@@ -123,6 +134,11 @@ export const deleteOfferDeal = async (req, res) => {
   try {
     const offer = await OfferDeal.findById(req.params.id);
     if (!offer) return res.status(404).json({ message: 'Offer not found' });
+
+    if (req.vendor && offer.vendor?.toString() !== req.vendor._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete this offer' });
+    }
+
     await offer.deleteOne();
     res.json({ message: 'Offer removed' });
   } catch (error) {
@@ -130,15 +146,34 @@ export const deleteOfferDeal = async (req, res) => {
   }
 };
 
-// @desc    Get active offer deals for public
+// @desc    Get active offer deals for public (User app home screen + store pages)
 export const getActiveOfferDeals = async (req, res) => {
   try {
     const { storeId, storeType } = req.query;
 
-    const offers = await OfferDeal.find({ isActive: true })
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
-      .sort('order');
+    let offers;
 
+    if (storeType === 'vendor' && storeId) {
+      // Vendor store page: show admin deals (vendor=null) + this vendor's deals
+      offers = await OfferDeal.find({
+        isActive: true,
+        $or: [{ vendor: null }, { vendor: storeId }]
+      })
+        .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
+        .sort('order');
+    } else if (storeType === 'branch' && storeId) {
+      // Branch store page: show only admin deals
+      offers = await OfferDeal.find({ isActive: true, vendor: null })
+        .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
+        .sort('order');
+    } else {
+      // User home screen (no storeType): show ALL active offers (admin + all vendors)
+      offers = await OfferDeal.find({ isActive: true })
+        .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
+        .sort('order');
+    }
+
+    // Decorate each product with isDeliverable flag when store context is provided
     if (storeId && storeType) {
       const formattedOffers = offers.map(offer => {
         const offerObj = offer.toObject();
@@ -175,4 +210,5 @@ export const getActiveOfferDeals = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+
 };

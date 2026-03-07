@@ -120,6 +120,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         setToken(null);
+        localStorage.removeItem('sathiGro_cart'); // clear stale cart data on logout
         toast.info('Logged out');
     };
 

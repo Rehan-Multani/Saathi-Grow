@@ -32,6 +32,8 @@ import WalletHistory from '../pages/WalletHistory';
 import ProductReviews from '../pages/ProductReviews';
 import ReturnRequests from '../pages/ReturnRequests';
 import LegalPolicies from '../pages/LegalPolicies';
+import VendorAllOffers from '../pages/offers/VendorAllOffers';
+import VendorManageOffer from '../pages/offers/VendorManageOffer';
 
 import { useLocation } from 'react-router-dom';
 
@@ -87,6 +89,9 @@ const VendorRoutes = () => {
                     <Route path="earnings" element={<Earnings />} />
                     <Route path="profile" element={<ShopProfile />} />
                     <Route path="policies" element={<LegalPolicies />} />
+                    <Route path="offers" element={<VendorAllOffers />} />
+                    <Route path="offers/create" element={<VendorManageOffer />} />
+                    <Route path="offers/edit/:id" element={<VendorManageOffer />} />
 
                     {/* Default Redirect */}
                     <Route path="" element={<Navigate to="dashboard" replace />} />

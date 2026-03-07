@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw, Shield } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw, Shield, Tag } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 
 const VendorSidebar = () => {
@@ -44,6 +44,7 @@ const VendorSidebar = () => {
             ]
         },
         { icon: RotateCcw, label: 'Return Request', path: '/vendor/return-requests' },
+        { icon: Tag, label: 'Offers & Deals', path: '/vendor/offers' },
         { icon: Wallet, label: 'Earnings', path: '/vendor/earnings' },
         { icon: User, label: 'Profile', path: '/vendor/profile' },
         { icon: Shield, label: 'Legal & Policies', path: '/vendor/policies' },

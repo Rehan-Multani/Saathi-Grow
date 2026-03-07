@@ -56,6 +56,11 @@ const offerDealSchema = new mongoose.Schema({
     type: String,
     enum: ['Home Slider', 'Category Page', 'N/A'],
     default: 'Home Slider'
+  },
+  vendor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Vendor',
+    default: null
   }
 }, {
   timestamps: true

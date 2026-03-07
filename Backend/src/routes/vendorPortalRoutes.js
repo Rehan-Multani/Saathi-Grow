@@ -25,6 +25,13 @@ import {
   getVendorWallet,
   getVendorEarningsStats
 } from '../controllers/vendorWalletController.js';
+import {
+  getOfferDeals,
+  getOfferDealById,
+  createOfferDeal,
+  updateOfferDeal,
+  deleteOfferDeal
+} from '../controllers/offerController.js';
 import { protectVendor } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
@@ -63,5 +70,15 @@ router.post('/returns/:id/schedule-pickup', protectVendor, scheduleReturnPickup)
 // Wallet and Earnings
 router.get('/wallet', protectVendor, getVendorWallet);
 router.get('/wallet/stats', protectVendor, getVendorEarningsStats);
+
+// Vendor Offers
+router.route('/offers')
+  .get(protectVendor, getOfferDeals)
+  .post(protectVendor, upload.single('bannerImage'), createOfferDeal);
+
+router.route('/offers/:id')
+  .get(protectVendor, getOfferDealById)
+  .put(protectVendor, upload.single('bannerImage'), updateOfferDeal)
+  .delete(protectVendor, deleteOfferDeal);
 
 export default router;

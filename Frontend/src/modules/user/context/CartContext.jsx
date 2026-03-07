@@ -11,14 +11,11 @@ const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-    const [cart, setCart] = useState(() => {
-        try {
-            const saved = localStorage.getItem('sathiGro_cart');
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            return [];
-        }
-    });
+    // Start with an empty cart — NEVER pre-fill from localStorage on initial render.
+    // Authenticated users will get their authoritative cloud cart fetched below.
+    // Guest users will get their localStorage cart restored only if not logged in.
+    const [cart, setCart] = useState([]);
+    const [cartReady, setCartReady] = useState(false); // track if cart has been initialized
 
     const { token } = useAuth();
     const { activeStore } = useStore();
@@ -41,38 +38,45 @@ export const CartProvider = ({ children }) => {
             }
 
             if (token) {
+                // Authenticated: always use the cloud cart as the source of truth
                 try {
                     const data = await cartApi.getCart(token);
-                    // the backend returns parsed Product objects with added `quantity`
-                    // Map to Match frontend expectations securely
                     const formatted = data.map(p => ({
                         ...p,
                         id: p._id || p.id,
                         price: p.basePrice || p.price,
                         quantity: p.quantity
                     }));
-
-                    // If there's local items that need merging to the cloud
-                    const localCart = JSON.parse(localStorage.getItem('sathiGro_cart') || '[]');
-
-                    if (localCart.length > 0 && formatted.length === 0) {
-                        // The User logged into a blank account but has stuff right now. Sync up immediately.
-                        const mergedData = [...localCart];
-                        setCart(mergedData);
-                    } else {
-                        // Default to using the authoritative cloud version
-                        setCart(formatted);
-                    }
+                    // Clear stale localStorage cart and use server version
+                    localStorage.removeItem('sathiGro_cart');
+                    setCart(formatted);
                 } catch (err) {
                     console.error('Failed to fetch user cart:', err);
+                    // Fallback to localStorage only if server fetch completely fails
+                    try {
+                        const saved = localStorage.getItem('sathiGro_cart');
+                        if (saved) setCart(JSON.parse(saved));
+                    } catch { }
+                }
+            } else {
+                // Not authenticated: restore guest cart from localStorage
+                try {
+                    const saved = localStorage.getItem('sathiGro_cart');
+                    setCart(saved ? JSON.parse(saved) : []);
+                } catch {
+                    setCart([]);
                 }
             }
+            setCartReady(true);
         };
         fetchSettingsAndCart();
     }, [token]);
 
     // Continually backup to Local Storage and optionally Sync to Cloud if authenticated
+    // IMPORTANT: only sync AFTER cartReady=true to avoid overwriting the server cart with the initial []
     useEffect(() => {
+        if (!cartReady) return; // don't sync until cart has been fetched/initialized
+
         localStorage.setItem('sathiGro_cart', JSON.stringify(cart));
 
         let timeoutId;
@@ -84,7 +88,8 @@ export const CartProvider = ({ children }) => {
         }
 
         return () => clearTimeout(timeoutId);
-    }, [cart, token]);
+    }, [cart, token, cartReady]);
+
 
 
     const addToCart = (product) => {
@@ -146,7 +151,10 @@ export const CartProvider = ({ children }) => {
         );
     };
 
-    const clearCart = () => setCart([]);
+    const clearCart = () => {
+        setCart([]);
+        localStorage.removeItem('sathiGro_cart');
+    };
 
     const toggleCart = () => setIsCartOpen(!isCartOpen);
 
@@ -157,6 +165,7 @@ export const CartProvider = ({ children }) => {
         <CartContext.Provider
             value={{
                 cart,
+                cartReady,
                 addToCart,
                 removeFromCart,
                 updateQuantity,
