@@ -9,14 +9,11 @@ const VendorHeader = () => {
 
     return (
         <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 ml-0 md:ml-64 sticky top-0 z-30 transition-all duration-200">
-            {/* Left Spacer / Breadcrumb placeholder */}
-            <div className="flex items-center gap-2 md:pl-0 pl-14">
-                <div className={`w-2.5 h-2.5 rounded-full ${vendor.isOpen ? 'bg-[#0c831f]' : 'bg-red-500'} shadow-sm`}></div>
-                <span className="text-xs font-bold text-gray-600 tracking-wide">{vendor.isOpen ? 'Shop is Live' : 'Shop is Closed'}</span>
-            </div>
+            {/* Left Spacer */}
+            <div className="flex-1 md:pl-0 pl-14"></div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-2">
                 <div className="relative">
                     <button
                         onClick={() => navigate('/vendor/notifications')}
@@ -27,9 +24,9 @@ const VendorHeader = () => {
                     </button>
                 </div>
 
-                <div className="flex items-center gap-4 pl-6 h-10">
-                    <div className="text-right hidden sm:flex flex-col justify-center mr-2">
-                        <p className="text-base font-bold text-gray-900 leading-none mb-1">{vendor.name}</p>
+                <div className="flex items-center gap-3 h-10 ml-2">
+                    <div className="text-right hidden sm:flex flex-col justify-center mr-1">
+                        <p className="text-sm font-bold text-gray-900 leading-none mb-1">{vendor.name}</p>
                         <p className="text-xs text-gray-500 font-medium">{vendor.owner}</p>
                     </div>
                     <div className="w-10 h-10 rounded-full bg-gray-50 p-0.5 border border-gray-200 shadow-sm">

@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
-import { RefreshCw, Save, Upload, X, Sparkles, Plus, ArrowLeft } from 'lucide-react';
+import { RefreshCw, Save, Upload, X, Sparkles, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
@@ -200,6 +200,13 @@ const EditProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Brand is only required if brands exist for the selected category
+        const isBrandRequired = formData.category && filteredBrands.length > 0;
+
+        if (!formData.name || !formData.category || (isBrandRequired && !formData.brandName) || !formData.basePrice) {
+            return toast.error('Please fill all required fields');
+        }
         setLoading(true);
         try {
             const data = new FormData();
@@ -311,11 +318,26 @@ const EditProduct = () => {
                                     </Form.Select>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="small">Brand</Form.Label>
-                                    <Form.Select name="brandName" value={formData.brandName} onChange={handleChange} required className="text-xs">
-                                        <option value="">Select Brand...</option>
+                                    <Form.Label className="small fw-semibold text-gray-600">
+                                        Brand {formData.category && filteredBrands.length > 0 && <span className="text-danger">*</span>}
+                                    </Form.Label>
+                                    <Form.Select
+                                        name="brandName"
+                                        value={formData.brandName}
+                                        onChange={handleChange}
+                                        required={formData.category && filteredBrands.length > 0}
+                                        disabled={!formData.category || (formData.category && filteredBrands.length === 0)}
+                                        className="text-xs"
+                                    >
+                                        <option value="">{formData.category && filteredBrands.length === 0 ? 'No Brands Available' : 'Select Brand...'}</option>
                                         {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                     </Form.Select>
+                                    {formData.category && filteredBrands.length === 0 && (
+                                        <div className="text-[10px] text-muted mt-1 italic font-medium flex items-center gap-1">
+                                            <AlertCircle size={10} className="text-amber-500" />
+                                            <span>No brands found in "{formData.category}". You can skip this.</span>
+                                        </div>
+                                    )}
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label className="small">SKU</Form.Label>

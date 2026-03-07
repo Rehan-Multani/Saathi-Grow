@@ -76,7 +76,8 @@ const productSchema = new mongoose.Schema({
   },
   brandName: {
     type: String,
-    required: [true, 'Brand name is required']
+    trim: true,
+    default: ''
   },
   isAllBranches: {
     type: Boolean,
