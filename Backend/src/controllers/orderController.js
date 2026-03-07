@@ -1017,6 +1017,14 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to manage orders from other branches' });
     }
 
+    // Role-based Status Security
+    if (req.admin.role === 'Branch Manager' || req.admin.role === 'Staff') {
+      const allowedRolesStatuses = ['preparing', 'ready_for_pickup', 'cancelled'];
+      if (!allowedRolesStatuses.includes(status)) {
+        return res.status(403).json({ message: 'Managers and Staff can only mark orders as preparing, ready for pickup, or cancelled.' });
+      }
+    }
+
     const oldStatus = order.status;
     order.status = status;
     if (status === 'delivered') {
