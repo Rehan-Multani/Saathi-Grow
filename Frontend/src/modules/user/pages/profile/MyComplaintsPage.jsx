@@ -38,62 +38,67 @@ const MyComplaintsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-20 md:p-8 md:pb-8">
-      <div className="max-w-2xl md:max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="hidden md:flex items-center gap-3 mb-0 md:mb-10 p-4 md:p-0 border-b border-gray-200/50 md:border-none bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white md:dark:bg-black">
+    <div className="min-h-screen bg-[#f8fafc] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-20 md:p-10 md:pb-16">
+      <div className="max-w-2xl md:max-w-7xl mx-auto">
+        {/* Header - Professional Dashboard Style */}
+        <div className="flex items-center gap-3 px-4 py-6 md:px-0 md:py-0 md:mb-12 border-b md:border-none bg-white md:bg-transparent dark:bg-black md:dark:bg-black sticky top-0 md:relative z-40">
           <button
             onClick={() => navigate('/profile')}
-            className="p-1.5 md:p-2 bg-white/50 dark:bg-[#141414] rounded-full shadow-sm hover:bg-gray-100 transition-colors md:bg-gray-50"
+            className="p-2 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-all active:scale-95"
           >
-            <ArrowLeft size={16} className="md:w-6 md:h-6" />
+            <ArrowLeft size={18} className="text-gray-600 dark:text-gray-400 md:w-6 md:h-6" />
           </button>
-          <h1 className="!text-[16px] md:!text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">My Complaints</h1>
+          <div>
+            <h1 className="text-[18px] md:text-4xl font-black text-gray-900 dark:text-gray-100 tracking-tight">My Complaints</h1>
+            <p className="hidden md:block text-sm text-gray-400 font-bold uppercase tracking-widest mt-1">Track and manage your support tickets</p>
+          </div>
         </div>
 
         {/* Complaints List */}
-        <div className="px-0 md:px-0">
-          <p className="!text-[10px] md:!text-sm font-bold text-gray-400 px-4 py-2 md:px-0 md:mb-6 tracking-widest uppercase bg-gray-50/50 md:bg-transparent">Your Complaint History</p>
+        <div className="px-0 md:px-0 mt-2 md:mt-0">
+          <p className="!text-[10px] md:text-[11px] font-black text-gray-400/80 px-4 py-3 md:px-0 md:mb-8 tracking-[0.2em] uppercase bg-gray-50/50 md:bg-transparent border-b md:border-none">Active Support Requests</p>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 bg-transparent">
-              <Loader2 className="animate-spin text-[#0c831f] mb-4 w-8 h-8 md:w-10 md:h-10" />
-              <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Loading history...</p>
+              <Loader2 className="animate-spin text-[#0c831f] mb-4 w-8 h-8 md:w-12 md:h-12" />
+              <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Retrieving ticket history...</p>
             </div>
           ) : complaints.length > 0 ? (
-            <div className="divide-y divide-gray-200 dark:divide-white/5 md:divide-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-6 bg-transparent md:bg-transparent">
+            <div className="divide-y divide-gray-100 dark:divide-white/5 md:divide-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-0 md:gap-8">
               {complaints.map((c) => (
                 <div
                   key={c.ticketId}
-                  className="w-full py-3 px-6 md:p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-white/5 md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/5 md:rounded-2xl transition-all group cursor-pointer md:hover:shadow-md"
+                  className="w-full py-4 px-6 md:p-8 flex flex-col bg-white dark:bg-[#121212] md:bg-white dark:md:bg-[#141414] md:border md:border-gray-100 dark:md:border-white/10 md:rounded-[32px] transition-all group md:hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] md:hover:-translate-y-1.5 relative overflow-hidden"
                 >
-                  <div className="flex justify-between items-start mb-2 md:mb-6">
-                    <div className="flex items-center gap-4 md:gap-4">
-                      <div className="w-9 h-9 md:w-14 md:h-14 rounded-full md:rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm text-[#0c831f]">
-                        <MessageCircle size={18} className="md:w-7 md:h-7" />
+                  {/* Premium Brand Accent Bar - Only visible on md+ */}
+                  <div className="absolute top-0 left-0 w-full h-1.5 bg-[#0c831f] opacity-0 md:group-hover:opacity-100 transition-opacity" />
+                  <div className="flex justify-between items-start mb-3 md:mb-8">
+                    <div className="flex items-center gap-4 md:gap-5">
+                      <div className="w-10 h-10 md:w-16 md:h-16 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center shadow-sm text-[#0c831f] group-hover:scale-110 transition-transform">
+                        <MessageCircle size={18} className="md:w-8 md:h-8" />
                       </div>
                       <div>
-                        <div className="!text-[13px] md:!text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-1.5 uppercase">{c.category}</div>
-                        <div className="!text-[10px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider">{c.ticketId} • Order #{c.order?.orderId?.slice(-6).toUpperCase()}</div>
+                        <div className="text-[14px] md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-2 uppercase">{c.category}</div>
+                        <div className="text-[10px] md:text-[11px] text-gray-400 font-bold uppercase tracking-[0.15em] opacity-80">{c.ticketId} • Order #{c.order?.orderId?.slice(-6).toUpperCase()}</div>
                       </div>
                     </div>
-                    <div className={`px-2.5 py-1 md:px-3 md:py-1.5 rounded-full md:rounded-lg !text-[8px] md:!text-[10px] font-black uppercase tracking-widest border border-current bg-opacity-10 shadow-sm ${statusMap[c.status]?.color}`}>
+                    <div className={`px-2.5 py-1 md:px-4 md:py-2 rounded-full md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm md:shadow-md transition-all ${statusMap[c.status]?.color} border-current/20`}>
                       {statusMap[c.status]?.label}
                     </div>
                   </div>
 
-                  <div className="flex flex-col pl-[3.25rem] md:pl-0 md:mt-auto space-y-2">
-                    <div className="bg-gray-50 dark:bg-white/5 p-3 md:p-4 rounded-xl">
-                      <p className="!text-[11px] md:!text-sm font-medium text-gray-600 dark:text-gray-400 italic line-clamp-3">"{c.description}"</p>
+                  <div className="flex flex-col pl-[3.5rem] md:pl-0 md:mt-auto space-y-3">
+                    <div className="bg-gray-50/80 dark:bg-white/5 p-4 md:p-6 rounded-[24px] border border-gray-100 dark:border-white/5">
+                      <p className="text-[12px] md:text-[15px] font-bold text-gray-600 dark:text-gray-300 italic leading-relaxed whitespace-pre-line line-clamp-4 md:line-clamp-none">"{c.description}"</p>
                     </div>
 
                     {c.attachments && c.attachments.length > 0 && (
-                      <div className="flex gap-2 overflow-x-auto pb-1">
+                      <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
                         {c.attachments.map((img, idx) => (
                           <a key={idx} href={img} target="_blank" rel="noreferrer" className="flex-shrink-0">
                             <img
                               src={img}
                               alt="Attachment"
-                              className="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg border border-gray-100 dark:border-white/10 hover:opacity-80 transition-opacity shadow-sm"
+                              className="w-14 h-14 md:w-20 md:h-20 object-cover rounded-xl border-2 border-white dark:border-white/10 hover:border-[#0c831f] transition-all shadow-sm"
                             />
                           </a>
                         ))}
@@ -101,11 +106,11 @@ const MyComplaintsPage = () => {
                     )}
 
                     {c.resolutionSolution && (
-                      <div className="flex gap-2 md:gap-3 p-3 bg-green-50 dark:bg-[#0c831f]/5 rounded-xl border border-green-100 dark:border-[#0c831f]/10">
-                        <CheckCircle size={14} className="text-[#0c831f] flex-shrink-0 mt-0.5 md:w-5 md:h-5 md:mt-0" strokeWidth={3} />
+                      <div className="flex gap-3 md:gap-4 p-4 md:p-6 bg-green-50/80 dark:bg-[#0c831f]/10 rounded-[28px] border border-green-100 dark:border-green-500/20 shadow-sm">
+                        <CheckCircle size={16} className="text-[#0c831f] flex-shrink-0 mt-0.5 md:w-6 md:h-6 md:mt-0" strokeWidth={3} />
                         <div>
-                          <p className="!text-[9px] md:!text-xs font-black text-[#0c831f] uppercase tracking-widest mb-0.5 md:mb-1">Store Resolution</p>
-                          <p className="!text-[11px] md:!text-sm font-bold text-gray-800 dark:text-gray-200 leading-tight">{c.resolutionSolution}</p>
+                          <p className="text-[10px] md:text-[11px] font-black text-[#0c831f] uppercase tracking-[0.2em] mb-1.5">Official Resolution</p>
+                          <p className="text-[12px] md:text-[15px] font-black text-gray-900 dark:text-gray-100 leading-snug">{c.resolutionSolution}</p>
                         </div>
                       </div>
                     )}
