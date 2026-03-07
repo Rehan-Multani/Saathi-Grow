@@ -457,14 +457,16 @@ const AllProducts = () => {
                                                 >
                                                     <HistoryIcon size={16} />
                                                 </button>
-                                                <button
-                                                    className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-100"
-                                                    title="Adjust Inventory"
-                                                    onClick={() => handleRestockOpen(p)}
-                                                >
-                                                    <PackagePlus size={16} />
-                                                </button>
-                                                {(adminUser?.role === 'Admin' || adminUser?.role === 'Branch Manager' || (adminUser?.permissions && adminUser.permissions.includes('MANAGE_PRODUCTS'))) && (
+                                                {adminUser?.role === 'Admin' && (
+                                                    <button
+                                                        className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-100"
+                                                        title="Adjust Inventory"
+                                                        onClick={() => handleRestockOpen(p)}
+                                                    >
+                                                        <PackagePlus size={16} />
+                                                    </button>
+                                                )}
+                                                {(adminUser?.role === 'Admin' || (adminUser?.role === 'Staff' && adminUser?.permissions && adminUser.permissions.includes('MANAGE_PRODUCTS'))) && (
                                                     <button
                                                         className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
                                                         title="Edit"

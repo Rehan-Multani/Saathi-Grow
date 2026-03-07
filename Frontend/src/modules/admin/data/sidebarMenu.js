@@ -63,6 +63,7 @@
             { title: 'Branch-wise Stock', path: '/admin/stock/branches' },
             { title: 'Stock Adjustments', path: '/admin/stock/adjustments' },
             { title: 'Low Stock Alerts', path: '/admin/stock/alerts' },
+            { title: 'Inventory Requests', path: '/admin/stock/requests' },
         ],
     },
     {

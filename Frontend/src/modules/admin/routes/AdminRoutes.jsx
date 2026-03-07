@@ -20,6 +20,7 @@ import BranchStock from '../pages/stock/BranchStock';
 import StockAdjustments from '../pages/stock/StockAdjustments';
 import AddStockAdjustment from '../pages/stock/AddStockAdjustment';
 import LowStockAlerts from '../pages/stock/LowStockAlerts';
+import InventoryRequests from '../pages/stock/InventoryRequests';
 import DeliveryPartners from '../pages/delivery/DeliveryPartners';
 import AddDeliveryPartner from '../pages/delivery/AddDeliveryPartner';
 import AssignDeliveries from '../pages/delivery/AssignDeliveries';
@@ -143,6 +144,7 @@ const AdminRoutes = () => {
                         <Route path="stock/adjustments" element={<StockAdjustments />} />
                         <Route path="stock/adjustments/add" element={<AddStockAdjustment />} />
                         <Route path="stock/alerts" element={<LowStockAlerts />} />
+                        <Route path="stock/requests" element={<InventoryRequests />} />
 
 
                         {/* Delivery Management */}

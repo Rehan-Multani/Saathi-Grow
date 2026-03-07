@@ -2,10 +2,10 @@
 import { Plus, Download, Database, FileSpreadsheet, RefreshCcw } from 'lucide-react';
 import InventoryTable from './components/InventoryTable';
 import SearchFilterBar from './components/SearchFilterBar';
-import AddProductModal from './components/AddProductModal';
 import StockUpdateModal from './components/StockUpdateModal';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import * as productApi from '../admin/api/productApi';
+import { createInventoryRequest } from './api/inventoryRequestApi';
 import { toast } from 'react-toastify';
 
 const InventoryManagement = () => {
@@ -20,9 +20,7 @@ const InventoryManagement = () => {
     const [statusFilter, setStatusFilter] = useState('All');
 
     // Modals State
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isStockModalOpen, setIsStockModalOpen] = useState(false);
-    const [editingProduct, setEditingProduct] = useState(null);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const categories = [...new Set(products.map(p => p.category))];
@@ -68,27 +66,23 @@ const InventoryManagement = () => {
         setFilteredProducts(result);
     }, [searchTerm, categoryFilter, statusFilter, products]);
 
-    const handleAddProduct = (newProduct) => {
-        fetchInventory();
-        setEditingProduct(null);
-        setIsAddModalOpen(false);
-    };
-
-    const handleUpdateStock = async (productId, newStock) => {
-        // This will be called from Modal which hits API directly
-        fetchInventory();
-        setIsStockModalOpen(false);
-    };
-
-    const handleDeleteProduct = (productId) => {
-        if (window.confirm('Are you sure you want to delete this product?')) {
-            setProducts(products.filter(p => p.id !== productId));
+    const handleUpdateStock = async (requestData) => {
+        try {
+            setLoading(true);
+            await createInventoryRequest(managerUser.token, {
+                productId: requestData.productId,
+                currentStock: selectedProduct?.branchStocks?.find(bs => bs.branchId?._id === managerUser?.branchId || bs.branchId === managerUser?.branchId)?.stock || 0,
+                adjustment: requestData.adjustment,
+                type: requestData.type,
+                notes: requestData.notes
+            });
+            toast.success("Inventory update requested successfully!");
+        } catch (error) {
+            toast.error(error.message || "Failed to submit request");
+        } finally {
+            setLoading(false);
+            setIsStockModalOpen(false);
         }
-    };
-
-    const openEditModal = (product) => {
-        setEditingProduct(product);
-        setIsAddModalOpen(true);
     };
 
     const openStockModal = (product) => {
@@ -112,12 +106,6 @@ const InventoryManagement = () => {
                     <button className="flex items-center gap-2 px-6 py-3 text-xs font-black text-slate-600 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all shadow-sm uppercase tracking-widest active:translate-y-0.5">
                         <FileSpreadsheet size={16} className="text-emerald-500" /> Catalog Export
                     </button>
-                    <button
-                        onClick={() => { setEditingProduct(null); setIsAddModalOpen(true); }}
-                        className="flex items-center gap-2 px-8 py-3.5 text-xs font-black text-white bg-blue-600 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 uppercase tracking-widest active:scale-95"
-                    >
-                        <Plus size={18} /> New Asset
-                    </button>
                 </div>
             </div>
 
@@ -137,19 +125,10 @@ const InventoryManagement = () => {
                 </div>
                 <InventoryTable
                     products={filteredProducts}
-                    onEdit={openEditModal}
                     onUpdateStock={openStockModal}
-                    onDelete={handleDeleteProduct}
                     branchId={managerUser?.branchId?._id || managerUser?.branchId}
                 />
             </div>
-
-            <AddProductModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                onSave={handleAddProduct}
-                editingProduct={editingProduct}
-            />
 
             <StockUpdateModal
                 isOpen={isStockModalOpen}
