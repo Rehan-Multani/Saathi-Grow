@@ -245,6 +245,49 @@ export const updateVendorProduct = async (req, res) => {
   }
 };
 
+// @desc    Update specialized stock for a product (vendor version)
+// @route   PATCH /api/vendors/products/:id/stock
+// @access  Private (Vendor)
+export const updateVendorProductStock = async (req, res) => {
+  try {
+    const { stock, lowStockThreshold, reason } = req.body;
+    const product = await Product.findOne({ _id: req.params.id, vendor: req.vendor._id });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found or not authorized' });
+    }
+
+    const oldStock = Number(product.stock) || 0;
+    const newStock = Number(stock);
+
+    if (!isNaN(newStock) && newStock !== oldStock) {
+      // Create Inventory Log
+      await InventoryLog.create({
+        product: product._id,
+        vendorId: req.vendor._id,
+        changeAmount: newStock - oldStock,
+        previousStock: oldStock,
+        newStock: newStock,
+        type: newStock > oldStock ? 'Addition' : 'Deduction',
+        reason: reason || 'Vendor Manual Stock Update'
+      });
+      product.stock = newStock;
+    }
+
+    if (lowStockThreshold !== undefined) {
+      product.lowStockThreshold = Number(lowStockThreshold);
+    }
+
+    // Update overall status
+    product.status = determineProductStatus(product.stock, product.lowStockThreshold, product.status);
+
+    await product.save();
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Delete a product (vendor version)
 // @route   DELETE /api/vendors/products/:id
 // @access  Private (Vendor)

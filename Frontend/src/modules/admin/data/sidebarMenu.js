@@ -63,6 +63,7 @@
             { title: 'Branch-wise Stock', path: '/admin/stock/branches' },
             { title: 'Stock Adjustments', path: '/admin/stock/adjustments' },
             { title: 'Low Stock Alerts', path: '/admin/stock/alerts' },
+            { title: 'Inventory Requests', path: '/admin/stock/requests' },
         ],
     },
     {
@@ -74,6 +75,7 @@
             { title: 'Assign Deliveries', path: '/admin/delivery/assign' },
             { title: 'Delivery Tracking', path: '/admin/delivery/tracking' },
             { title: 'Delivery Slots', path: '/admin/delivery/slots' },
+            { title: 'Cash Settlement', path: '/admin/delivery/settlement' },
         ],
     },
     {

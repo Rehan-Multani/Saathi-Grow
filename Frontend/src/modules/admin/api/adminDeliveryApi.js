@@ -158,3 +158,25 @@ export const cancelDeliveryRun = async (runId) => {
   return data;
 };
 
+// Cash Settlement APIs
+export const getCashSettlementList = async () => {
+  const auth = getAuthDetails();
+  if (!auth) return [];
+
+  const { data } = await axios.get(`${API_URL}/cash-settlement`, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const settleRiderCash = async (partnerId) => {
+  const auth = getAuthDetails();
+  if (!auth) throw new Error('Not Authenticated');
+
+  const { data } = await axios.post(`${API_URL}/settle-cash/${partnerId}`, {}, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+

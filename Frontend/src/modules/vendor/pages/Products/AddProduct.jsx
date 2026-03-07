@@ -75,9 +75,13 @@ const AddProduct = () => {
 
     useEffect(() => {
         if (formData.category) {
-            const matches = brands.filter(b => b.category === formData.category);
+            const matches = brands.filter(b => {
+                const brandCat = (b.category || '').toLowerCase().trim();
+                const selectedCat = (formData.category || '').toLowerCase().trim();
+                return brandCat === selectedCat;
+            });
             setFilteredBrands(matches);
-            if (!matches.find(m => m.name === formData.brandName)) {
+            if (formData.brandName && !matches.find(m => m.name === formData.brandName)) {
                 setFormData(prev => ({ ...prev, brandName: '' }));
             }
         } else {

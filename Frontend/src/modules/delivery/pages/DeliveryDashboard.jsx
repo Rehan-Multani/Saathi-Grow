@@ -320,31 +320,31 @@ const DeliveryDashboard = () => {
                     <div className="relative z-10 flex flex-col justify-between h-full gap-3 md:gap-4">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-white/70 font-bold uppercase tracking-widest text-[8px] md:text-[9px] mb-0.5">Your Wallet Balance</p>
+                                <p className="text-white/70 font-bold uppercase tracking-widest text-[8px] md:text-[9px] mb-0.5">Cash Collected (COD)</p>
                                 <h2 className="text-2xl md:text-4xl font-black mb-0.5">
                                     ₹{stats?.walletBalance?.toFixed(2) || '0.00'}
                                 </h2>
                                 <div className="flex items-center gap-1.5 md:gap-2 text-white/90 text-[10px] md:text-xs font-bold">
                                     <TrendingUp size={12} md:size={14} />
-                                    <span>Lifetime: ₹{stats?.totalEarnings?.toFixed(0) || '0'}</span>
+                                    <span>Settlement Pending with Admin</span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => navigate('/delivery/wallet')}
                                 className="bg-white text-[#028A0F] px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-wider hover:bg-slate-50 transition-all shadow-lg active:scale-95"
                             >
-                                Withdraw
+                                History
                             </button>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 md:gap-4">
                             <div className="bg-white/10 backdrop-blur-sm p-2.5 md:p-3 rounded-2xl md:rounded-3xl border border-white/10">
-                                <p className="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-0.5">Today's Earnings</p>
-                                <h4 className="text-base md:text-lg font-black">₹{stats?.todayEarnings || '0'}</h4>
+                                <p className="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-0.5">Trips (Today)</p>
+                                <h4 className="text-base md:text-lg font-black">{stats?.todayDeliveries || '0'}</h4>
                             </div>
                             <div className="flex flex-col justify-center">
-                                <p className="text-white/40 text-[7px] md:text-[8px] font-black uppercase mb-0.5">Deliveries</p>
-                                <p className="font-black text-xs md:text-sm">{stats?.todayDeliveries || '0'}</p>
+                                <p className="text-white/40 text-[7px] md:text-[8px] font-black uppercase mb-0.5">Collector ID</p>
+                                <p className="font-black text-xs md:text-sm">{profile?.uniqueId || 'N/A'}</p>
                             </div>
                         </div>
                     </div>
@@ -405,69 +405,17 @@ const DeliveryDashboard = () => {
                 />
                 <StatCard
                     icon={<Wallet />}
-                    label="Earnings"
-                    value={`₹${stats?.todayEarnings || '0'}`}
+                    label="Cash on Hand"
+                    value={`₹${stats?.walletBalance || '0'}`}
                     color="from-pink-400 to-rose-500"
                     isLoading={loading}
+                    onClick={() => navigate('/delivery/wallet')}
                 />
             </div>
 
             {/* Bottom Section: Chart & Recent Orders */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Earnings Analytics */}
-                <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 md:p-6 border border-slate-100 dark:border-zinc-800 shadow-sm">
-                    <div className="flex items-center justify-between mb-4 md:mb-6">
-                        <div>
-                            <h4 className="font-bold text-lg md:text-xl tracking-tight">Analytics</h4>
-                            <p className="text-slate-500 text-[10px] md:text-xs">Weekly performance overview</p>
-                        </div>
-                        <select
-                            value={chartRange}
-                            onChange={(e) => setChartRange(e.target.value)}
-                            className="bg-slate-50 dark:bg-zinc-800 border-none rounded-lg px-2 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold font-sans outline-none"
-                        >
-                            <option value="7d">7 Days</option>
-                            <option value="30d">30 Days</option>
-                        </select>
-                    </div>
-
-                    <div className="h-[180px] md:h-[220px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData}>
-                                <defs>
-                                    <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#ec4899" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 12, fontWeight: 600, fill: '#94a3b8' }}
-                                />
-                                <YAxis hide />
-                                <Tooltip
-                                    contentStyle={{
-                                        borderRadius: '16px',
-                                        border: 'none',
-                                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                                        background: '#fff'
-                                    }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="earnings"
-                                    stroke="#ec4899"
-                                    strokeWidth={4}
-                                    fillOpacity={1}
-                                    fill="url(#colorEarnings)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                {/* Analytics removed as per physical payout policy */}
 
                 {/* Recent Orders Overview */}
                 <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 md:p-6 border border-slate-100 dark:border-zinc-800 shadow-sm">

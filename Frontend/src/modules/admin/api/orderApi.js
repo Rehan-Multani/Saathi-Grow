@@ -5,7 +5,20 @@ const API_URL = `${API_BASE_URL}/orders`;
 
 // Helper to get token based on portal
 const getAuthDetails = () => {
-  // Try Admin/Staff/Manager in order
+  const path = window.location.pathname;
+
+  if (path.startsWith('/admin')) {
+    const admin = localStorage.getItem('sathiGro_admin');
+    if (admin) return JSON.parse(admin);
+  } else if (path.startsWith('/staff')) {
+    const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('sathiGro_staff');
+    if (staff) return JSON.parse(staff);
+  } else if (path.startsWith('/store-manager')) {
+    const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');
+    if (manager) return JSON.parse(manager);
+  }
+
+  // Fallback
   const admin = localStorage.getItem('sathiGro_admin');
   const staff = localStorage.getItem('saathigro_staff') || localStorage.getItem('sathiGro_staff');
   const manager = localStorage.getItem('sathiGro_manager') || localStorage.getItem('saathigro_manager');

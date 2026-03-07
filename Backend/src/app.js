@@ -126,6 +126,7 @@ import complaintRoutes from './routes/complaintRoutes.js';
 import legalRoutes from './routes/legalRoutes.js';
 import deliverySlotRoutes from './routes/deliverySlotRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
+import inventoryRequestRoutes from './routes/inventoryRequestRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
 
 
@@ -142,6 +143,7 @@ app.use('/api/admin/products', productRoutes);
 app.use('/api/admin/campaigns', campaignRoutes);
 app.use('/api/admin/offer-deals', offerRoutes);
 app.use('/api/admin/delivery', adminDeliveryRoutes);
+app.use('/api/admin/inventory-requests', inventoryRequestRoutes);
 app.use('/api/delivery/auth', deliveryAuthRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/dashboard', dashboardRoutes);

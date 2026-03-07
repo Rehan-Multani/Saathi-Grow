@@ -23,9 +23,16 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const quantity = cartItem ? cartItem.quantity : 0;
   const savings = product.originalPrice ? product.originalPrice - product.price : 0;
 
-  // Check deliverability
+  // Check deliverability and stock
   const isDeliverable = product.isDeliverable !== false;
-  const isBtnDisabled = !isDeliverable || isStoreOutOfRange;
+  const availableStock = product.availableStock ?? 999;
+  const lowStockThreshold = product.lowStockThreshold ?? 0;
+
+  // User explicitly asked to disable for out of stock or low stock threshold products
+  const isOutOfStock = availableStock <= 0;
+  const isLowStock = availableStock <= lowStockThreshold && availableStock > 0;
+
+  const isBtnDisabled = !isDeliverable || isStoreOutOfRange || isOutOfStock || isLowStock;
 
   const handleAddToCart = (e) => {
     if (isBtnDisabled) return;

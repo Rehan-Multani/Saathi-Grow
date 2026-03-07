@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
 
 const walletSchema = new mongoose.Schema({
-    deliveryPartner: {
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'DeliveryPartner',
         required: true,
-        unique: true
+        refPath: 'ownerModel'
+    },
+    ownerModel: {
+        type: String,
+        required: true,
+        enum: ['Vendor']
     },
     balance: {
         type: Number,

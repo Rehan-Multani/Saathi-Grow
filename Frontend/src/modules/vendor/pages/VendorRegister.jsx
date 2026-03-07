@@ -1,11 +1,17 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, ArrowRight, CheckCircle, MapPin, Mail, Lock, Phone, User } from 'lucide-react';
+import { Store, ArrowRight, CheckCircle, MapPin, Mail, Lock, Phone, User, Navigation, Search } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
+import { loadGoogleMaps } from '../../../utils/googleMapsLoader';
 
 const VendorRegister = () => {
     const navigate = useNavigate();
     const { register, loading } = useVendor();
+
+    const [mapLoaded, setMapLoaded] = useState(false);
+    const [isDetecting, setIsDetecting] = useState(false);
+    const searchRef = React.useRef(null);
+    const autocompleteRef = React.useRef(null);
 
     const [formData, setFormData] = useState({
         ownerName: '',
@@ -13,9 +19,100 @@ const VendorRegister = () => {
         phone: '',
         password: '',
         storeName: '',
-        address: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            location: { type: 'Point', coordinates: [75.8577, 22.7196] }
+        },
         description: ''
     });
+
+    // Google Maps Loader
+    React.useEffect(() => {
+        loadGoogleMaps()
+            .then(() => setMapLoaded(true))
+            .catch(err => console.error("Google Maps load failed", err));
+    }, []);
+
+    // Initialize Autocomplete
+    React.useEffect(() => {
+        if (mapLoaded && searchRef.current && !autocompleteRef.current) {
+            autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
+                componentRestrictions: { country: "IN" },
+                fields: ["address_components", "geometry", "formatted_address"]
+            });
+
+            autocompleteRef.current.addListener("place_changed", () => {
+                const place = autocompleteRef.current.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
+
+                handlePlaceSelect(place);
+            });
+        }
+    }, [mapLoaded]);
+
+    const handlePlaceSelect = (place) => {
+        const components = place.address_components;
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+
+        const getComponent = (types) => {
+            return components.find(c => types.some(t => c.types.includes(t)))?.long_name || '';
+        };
+
+        const streetNumber = getComponent(['street_number']);
+        const route = getComponent(['route']);
+        const neighborhood = getComponent(['neighborhood', 'sublocality_level_1']);
+
+        const street = `${streetNumber} ${route} ${neighborhood}`.trim() || place.formatted_address.split(',')[0];
+
+        setFormData(prev => ({
+            ...prev,
+            address: {
+                street: street,
+                city: getComponent(['locality']),
+                state: getComponent(['administrative_area_level_1']),
+                zipCode: getComponent(['postal_code']),
+                location: {
+                    type: 'Point',
+                    coordinates: [lng, lat]
+                }
+            }
+        }));
+    };
+
+    const detectLocation = () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        setIsDetecting(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+
+                if (window.google) {
+                    const geocoder = new window.google.maps.Geocoder();
+                    geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+                        if (status === 'OK' && results[0]) {
+                            handlePlaceSelect(results[0]);
+                        }
+                        setIsDetecting(false);
+                    });
+                } else {
+                    setIsDetecting(false);
+                }
+            },
+            (error) => {
+                console.error(error);
+                alert('Unable to detect location');
+                setIsDetecting(false);
+            }
+        );
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -87,11 +184,59 @@ const VendorRegister = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-700 ml-1">Store Address</label>
-                            <div className="relative">
-                                <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <input name="address" required onChange={handleChange} value={formData.address} type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="Enter full business address" />
+                        <div className="space-y-4">
+                            <label className="text-xs font-bold text-gray-700 ml-1 flex items-center gap-1">
+                                <MapPin size={14} /> Store Address
+                            </label>
+
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                    <input
+                                        ref={searchRef}
+                                        type="text"
+                                        placeholder="Search your store location..."
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium shadow-sm"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={detectLocation}
+                                    disabled={isDetecting}
+                                    className="px-4 py-2 bg-green-50 text-[#0c831f] border border-green-100 rounded-xl hover:bg-green-100 transition-all flex items-center gap-2 text-xs font-bold shadow-sm whitespace-nowrap active:scale-95"
+                                >
+                                    <Navigation size={14} className={isDetecting ? "animate-pulse" : ""} />
+                                    {isDetecting ? 'Detecting...' : 'Live Location'}
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mt-2">
+                                <div className="col-span-2">
+                                    <input
+                                        name="address_street"
+                                        required
+                                        placeholder="Street / Area / Landmark"
+                                        value={formData.address.street}
+                                        onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
+                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
+                                    />
+                                </div>
+                                <input
+                                    name="address_city"
+                                    required
+                                    placeholder="City"
+                                    value={formData.address.city}
+                                    onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
+                                />
+                                <input
+                                    name="address_zip"
+                                    required
+                                    placeholder="Zip Code"
+                                    value={formData.address.zipCode}
+                                    onChange={(e) => setFormData({ ...formData, address: { ...formData.address, zipCode: e.target.value } })}
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
+                                />
                             </div>
                         </div>
 

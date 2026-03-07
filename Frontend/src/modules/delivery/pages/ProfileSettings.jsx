@@ -8,6 +8,7 @@ import {
     CreditCard,
     Bell,
     Shield,
+    History,
     HelpCircle,
     LogOut,
     ChevronRight,
@@ -62,6 +63,8 @@ const ProfileSettings = () => {
         { id: 'personal', icon: <User size={18} />, label: 'Personal information', sub: `${profile?.name || 'N/A'}, ${profile?.email || 'No email'}`, color: 'text-[#028A0F]' },
         { id: 'vehicle', icon: <Truck size={18} />, label: 'Vehicle details', sub: `${profile?.vehicleType || 'N/A'} - ${profile?.vehicleNumber || 'Pending'}`, color: 'text-orange-500' },
         { id: 'bank', icon: <CreditCard size={18} />, label: 'Bank details', sub: profile?.bankDetails?.bankName ? `${profile.bankDetails.bankName} - **** ${profile.bankDetails.accountNumber?.slice(-4)}` : 'Bank details not added', color: 'text-emerald-500' },
+        { id: 'history', icon: <History size={18} />, label: 'Order history', sub: 'View completed missions', color: 'text-blue-500', isLink: true, path: '/delivery/history' },
+        { id: 'legal', icon: <Shield size={18} />, label: 'Legal & Compliance', sub: 'T&C, Privacy Policy', color: 'text-zinc-500', isLink: true, path: '/delivery/legal' },
         { id: 'notifications', icon: <Bell size={18} />, label: 'Notifications', sub: 'Manage alerts & sounds', color: 'text-purple-500', toggle: true },
         { id: 'security', icon: <Shield size={18} />, label: 'Security & privacy', sub: 'Authentication & access', color: 'text-red-500' },
         { id: 'help', icon: <HelpCircle size={18} />, label: 'Help & support', sub: 'FAQs, Contact us', color: 'text-slate-500' },
@@ -234,7 +237,14 @@ const ProfileSettings = () => {
                 {menuItems.map((item, index) => (
                     <div
                         key={index}
-                        onClick={() => !item.toggle && setSelectedView(item.id)}
+                        onClick={() => {
+                            if (item.toggle) return;
+                            if (item.isLink) {
+                                navigate(item.path);
+                            } else {
+                                setSelectedView(item.id);
+                            }
+                        }}
                         className="flex items-center gap-4 py-3.5 border-b border-slate-50 dark:border-zinc-800/30 cursor-pointer group active:opacity-60 transition-all px-0.5"
                     >
                         <div className={`${item.color} opacity-80 group-hover:scale-105 transition-transform`}>

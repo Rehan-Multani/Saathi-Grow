@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { Edit3, Trash2, RefreshCw, AlertTriangle, ChevronRight, Package } from 'lucide-react';
 
-const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete, branchId }) => {
+const InventoryTable = ({ products, onUpdateStock, branchId }) => {
     const getBranchStock = (product) => {
         if (!branchId) return 0;
         const branchStock = product.branchStocks?.find(bs => bs.branchId?._id === branchId || bs.branchId === branchId);
@@ -100,23 +100,9 @@ const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete, branchId })
                                                 <button
                                                     onClick={() => onUpdateStock(product)}
                                                     className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                                    title="Update Volume"
+                                                    title="Request Stock Modification"
                                                 >
                                                     <RefreshCw size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => onEdit(product)}
-                                                    className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
-                                                    title="Edit Metadata"
-                                                >
-                                                    <Edit3 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => onDelete(product.id)}
-                                                    className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                                    title="Purge Entry"
-                                                >
-                                                    <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </td>
@@ -156,7 +142,7 @@ const InventoryTable = ({ products, onEdit, onUpdateStock, onDelete, branchId })
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

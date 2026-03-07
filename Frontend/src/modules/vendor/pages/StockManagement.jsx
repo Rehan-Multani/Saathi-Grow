@@ -4,7 +4,7 @@ import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../utils/formatDate';
 
 const StockManagement = () => {
-    const { products, updateProduct } = useVendor();
+    const { products, updateProductStock, fetchProducts, setLoading } = useVendor();
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // all, low, out
     const [isSyncing, setIsSyncing] = useState(false);
@@ -15,70 +15,75 @@ const StockManagement = () => {
     // Filter Logic
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const stock = stockUpdates[product._id] ?? product.stock;
         const matchesFilter =
             filterStatus === 'all' ? true :
-                filterStatus === 'low' ? product.stock < 20 && product.stock > 0 :
-                    filterStatus === 'out' ? product.stock === 0 : true;
+                filterStatus === 'low' ? stock <= (product.lowStockThreshold || 10) && stock > 0 :
+                    filterStatus === 'out' ? stock === 0 : true;
         return matchesSearch && matchesFilter;
     });
 
     // Stats Calculations
-    const lowStockCount = products.filter(p => p.stock < 20 && p.stock > 0).length;
+    const lowStockCount = products.filter(p => p.stock <= (p.lowStockThreshold || 10) && p.stock > 0).length;
     const outOfStockCount = products.filter(p => p.stock === 0).length;
 
     // Calculate Total Inventory Value (considering local updates)
     const totalValue = products.reduce((sum, product) => {
-        const currentStock = stockUpdates[product.id] ?? product.stock;
-        return sum + (product.price * currentStock);
+        const currentStock = stockUpdates[product._id] ?? product.stock;
+        return sum + ((product.basePrice || 0) * currentStock);
     }, 0);
 
     const handleStockChange = (id, delta) => {
-        const currentStock = stockUpdates[id] ?? products.find(p => p.id === id).stock;
+        const product = products.find(p => p._id === id);
+        if (!product) return;
+        const currentStock = stockUpdates[id] ?? product.stock;
         const newStock = Math.max(0, currentStock + delta);
         setStockUpdates({ ...stockUpdates, [id]: newStock });
     };
 
-    const handleSaveStock = (id) => {
+    const handleSaveStock = async (id) => {
         const newStock = stockUpdates[id];
         if (newStock !== undefined) {
-            const product = products.find(p => p.id === id);
-            updateProduct({ ...product, stock: newStock });
-
-            // Clear update state for this item
-            const newUpdates = { ...stockUpdates };
-            delete newUpdates[id];
-            setStockUpdates(newUpdates);
+            const success = await updateProductStock(id, { stock: newStock });
+            if (success) {
+                // Clear update state for this item
+                const newUpdates = { ...stockUpdates };
+                delete newUpdates[id];
+                setStockUpdates(newUpdates);
+            }
         }
     };
 
-    const handleSaveAll = () => {
-        Object.keys(stockUpdates).forEach(id => {
-            const product = products.find(p => p.id === Number(id));
-            if (product) {
-                updateProduct({ ...product, stock: stockUpdates[id] });
+    const handleSaveAll = async () => {
+        setLoading?.(true); // From context if available, otherwise manual
+        try {
+            const updates = Object.entries(stockUpdates);
+            for (const [id, stock] of updates) {
+                await updateProductStock(id, { stock });
             }
-        });
-        setStockUpdates({});
+            setStockUpdates({});
+        } finally {
+            setLoading?.(false);
+        }
     };
 
     const handleResetAll = () => {
         setStockUpdates({});
     };
 
-    const handleSync = () => {
+    const handleSync = async () => {
         setIsSyncing(true);
-        setTimeout(() => {
-            setIsSyncing(false);
-            // In a real app, this would fetch from backend
-        }, 1500);
+        await fetchProducts();
+        setIsSyncing(false);
     };
 
     const getStockValue = (product) => {
-        return stockUpdates[product.id] ?? product.stock;
+        return stockUpdates[product._id] ?? product.stock;
     };
 
     const hasUnsavedChanges = (id) => {
-        return stockUpdates[id] !== undefined && stockUpdates[id] !== products.find(p => p.id === id).stock;
+        const product = products.find(p => p._id === id);
+        return product && stockUpdates[id] !== undefined && stockUpdates[id] !== product.stock;
     };
 
     const hasAnyChanges = Object.keys(stockUpdates).length > 0;
@@ -209,9 +214,9 @@ const StockManagement = () => {
                         <tbody className="divide-y divide-gray-50">
                             {filteredProducts.map((product) => {
                                 const currentStock = getStockValue(product);
-                                const isUnsaved = hasUnsavedChanges(product.id);
+                                const isUnsaved = hasUnsavedChanges(product._id);
                                 return (
-                                    <tr key={product.id} className={`transition-colors ${isUnsaved ? 'bg-green-50/50' : 'hover:bg-gray-50'}`}>
+                                    <tr key={product._id} className={`transition-colors ${isUnsaved ? 'bg-green-50/50' : 'hover:bg-gray-50'}`}>
                                         <td className="px-4 py-3 lg:py-2.5">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden">
@@ -224,33 +229,33 @@ const StockManagement = () => {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 lg:py-2.5 text-xs font-bold text-gray-600">
-                                            {formatCurrency(product.price)}
+                                            {formatCurrency(product.basePrice)}
                                         </td>
                                         <td className="px-4 py-3 lg:py-2.5">
                                             <div className="flex items-center gap-2">
-                                                <button onClick={() => handleStockChange(product.id, -1)} className="p-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 shadow-sm border border-gray-200 active:scale-95 transition-all">
+                                                <button onClick={() => handleStockChange(product._id, -1)} className="p-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 shadow-sm border border-gray-200 active:scale-95 transition-all">
                                                     <Minus size={12} />
                                                 </button>
                                                 <span className={`w-10 text-center font-bold text-sm ${currentStock === 0 ? 'text-red-500' : isUnsaved ? 'text-[#0c831f]' : 'text-gray-900'}`}>
                                                     {currentStock}
                                                 </span>
-                                                <button onClick={() => handleStockChange(product.id, 1)} className="p-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 shadow-sm border border-gray-200 active:scale-95 transition-all">
+                                                <button onClick={() => handleStockChange(product._id, 1)} className="p-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 shadow-sm border border-gray-200 active:scale-95 transition-all">
                                                     <Plus size={12} />
                                                 </button>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 lg:py-2.5">
                                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${currentStock === 0 ? 'bg-red-50 text-red-600 border-red-100' :
-                                                currentStock < 20 ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                                currentStock <= (product.lowStockThreshold || 10) ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
                                                     'bg-green-50 text-green-700 border-green-100'
                                                 }`}>
-                                                {currentStock === 0 ? 'Out of Stock' : currentStock < 20 ? 'Low Stock' : 'In Stock'}
+                                                {currentStock === 0 ? 'Out of Stock' : currentStock <= (product.lowStockThreshold || 10) ? 'Low Stock' : 'In Stock'}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 lg:py-2.5 text-right">
                                             <button
                                                 disabled={!isUnsaved}
-                                                onClick={() => handleSaveStock(product.id)}
+                                                onClick={() => handleSaveStock(product._id)}
                                                 className={`px-3 py-1.5 text-[10px] font-bold rounded-lg flex items-center gap-1 ml-auto transition-all ${isUnsaved
                                                     ? 'bg-[#0c831f] text-white hover:bg-[#0a6b19] shadow-sm active:scale-95'
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -271,9 +276,9 @@ const StockManagement = () => {
             <div className="md:hidden space-y-3">
                 {filteredProducts.map((product) => {
                     const currentStock = getStockValue(product);
-                    const isUnsaved = hasUnsavedChanges(product.id);
+                    const isUnsaved = hasUnsavedChanges(product._id);
                     return (
-                        <div key={product.id} className={`bg-white p-3 rounded-xl shadow-sm border transition-colors ${isUnsaved ? 'border-[#0c831f] bg-green-50/10' : 'border-gray-100'}`}>
+                        <div key={product._id} className={`bg-white p-3 rounded-xl shadow-sm border transition-colors ${isUnsaved ? 'border-[#0c831f] bg-green-50/10' : 'border-gray-100'}`}>
                             <div className="flex gap-3">
                                 <div className="w-14 h-14 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden border border-gray-100">
                                     <img src={product.image} alt="" className="w-full h-full object-cover" />
@@ -283,32 +288,32 @@ const StockManagement = () => {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="text-sm font-bold text-gray-900 truncate">{product.name}</h3>
-                                            <p className="text-[10px] text-gray-500 font-medium">{product.category} ₹ {formatCurrency(product.price)}</p>
+                                            <p className="text-[10px] text-gray-500 font-medium">{product.category} ₹ {formatCurrency(product.basePrice)}</p>
                                         </div>
                                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${currentStock === 0 ? 'bg-red-50 text-red-600 border-red-100' :
-                                            currentStock < 20 ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                            currentStock <= (product.lowStockThreshold || 10) ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
                                                 'bg-green-50 text-green-700 border-green-100'
                                             }`}>
-                                            {currentStock === 0 ? 'Out' : currentStock < 20 ? 'Low' : 'Stock'}
+                                            {currentStock === 0 ? 'Out' : currentStock <= (product.lowStockThreshold || 10) ? 'Low' : 'Stock'}
                                         </span>
                                     </div>
 
                                     <div className="flex items-end justify-between mt-2">
                                         <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1 border border-gray-100">
-                                            <button onClick={() => handleStockChange(product.id, -1)} className="p-1 rounded bg-white text-gray-600 shadow-sm border border-gray-200 active:scale-95 transition-all">
+                                            <button onClick={() => handleStockChange(product._id, -1)} className="p-1 rounded bg-white text-gray-600 shadow-sm border border-gray-200 active:scale-95 transition-all">
                                                 <Minus size={12} />
                                             </button>
                                             <span className={`w-8 text-center font-bold text-xs ${currentStock === 0 ? 'text-red-500' : isUnsaved ? 'text-[#0c831f]' : 'text-gray-900'}`}>
                                                 {currentStock}
                                             </span>
-                                            <button onClick={() => handleStockChange(product.id, 1)} className="p-1 rounded bg-white text-gray-600 shadow-sm border border-gray-200 active:scale-95 transition-all">
+                                            <button onClick={() => handleStockChange(product._id, 1)} className="p-1 rounded bg-white text-gray-600 shadow-sm border border-gray-200 active:scale-95 transition-all">
                                                 <Plus size={12} />
                                             </button>
                                         </div>
 
                                         <button
                                             disabled={!isUnsaved}
-                                            onClick={() => handleSaveStock(product.id)}
+                                            onClick={() => handleSaveStock(product._id)}
                                             className={`px-3 py-1.5 text-[10px] font-bold rounded-lg flex items-center gap-1 active:scale-95 transition-all ${isUnsaved
                                                 ? 'bg-[#0c831f] text-white hover:bg-[#0a6b19]'
                                                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'

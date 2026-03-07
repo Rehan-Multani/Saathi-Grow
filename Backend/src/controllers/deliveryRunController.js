@@ -28,7 +28,7 @@ export const getOrdersBySlot = async (req, res) => {
 
     // Build base query for orders
     const orderQuery = {
-      status: { $in: ['confirmed', 'preparing', 'pending'] },
+      status: { $in: ['confirmed', 'preparing', 'pending', 'ready_for_pickup'] },
       deliveryPartnerId: null, // Unassigned
       // Only include orders created today or orders specifically scheduled for this date 
       createdAt: { $gte: startOfDay, $lte: endOfDay }

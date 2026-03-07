@@ -99,12 +99,22 @@ export const CartProvider = ({ children }) => {
             return;
         }
 
+        const availableStock = product.availableStock ?? 999;
+        if (availableStock <= 0) {
+            toast.error("This product is currently out of stock.");
+            return;
+        }
+
         setCart((prevCart) => {
             const prodId = product.id || product._id;
             const priceToUse = product.price || product.basePrice || 0; // Fallback mapping
 
             const existing = prevCart.find((item) => item.id === prodId);
             if (existing) {
+                if (existing.quantity >= availableStock) {
+                    toast.warning(`Only ${availableStock} units available in stock.`);
+                    return prevCart;
+                }
                 return prevCart.map((item) =>
                     item.id === prodId ? { ...item, quantity: item.quantity + 1 } : item
                 );
@@ -121,7 +131,14 @@ export const CartProvider = ({ children }) => {
         setCart((prevCart) =>
             prevCart.map((item) => {
                 if (item.id === id) {
+                    const availableStock = item.availableStock ?? 999;
                     const newQuantity = Math.max(0, item.quantity + delta);
+
+                    if (delta > 0 && newQuantity > availableStock) {
+                        toast.warning(`Only ${availableStock} units available in stock.`);
+                        return item;
+                    }
+
                     return { ...item, quantity: newQuantity };
                 }
                 return item;

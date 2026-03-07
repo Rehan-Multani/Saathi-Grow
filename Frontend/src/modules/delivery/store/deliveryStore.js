@@ -109,7 +109,12 @@ const useDeliveryStore = create((set, get) => ({
         set((s) => ({ _fetching: { ...s._fetching, wallet: true } }));
         try {
             const data = await getWalletTransactions(token);
-            set((s) => ({ wallet: data.wallet, transactions: data.transactions, _fetching: { ...s._fetching, wallet: false } }));
+            // Map cash collection data to wallet structure for backward compatibility or use new naming
+            set((s) => ({
+                wallet: { balance: data.cashInHand || 0 }, // Reuse wallet balance for cash in hand
+                transactions: data.history || [],
+                _fetching: { ...s._fetching, wallet: false }
+            }));
         } catch (error) {
             set((s) => ({ error: error.message, _fetching: { ...s._fetching, wallet: false } }));
         }

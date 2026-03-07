@@ -17,8 +17,8 @@ const StaffOrders = () => {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const data = await getAllOrdersAdmin();
-            setOrders(data);
+            const data = await getAllOrdersAdmin({ limit: 1000 });
+            setOrders(data.orders || []);
         } catch (error) {
             console.error('Failed to fetch orders:', error);
             Swal.fire('Error', 'Could not load orders queue', 'error');
@@ -79,6 +79,7 @@ const StaffOrders = () => {
             case 'pending': return 'warning';
             case 'confirmed': return 'info';
             case 'preparing': return 'info';
+            case 'ready_for_pickup': return 'primary';
             case 'out_for_delivery': return 'primary';
             case 'delivered': return 'success';
             case 'cancelled': return 'danger';
@@ -142,6 +143,7 @@ const StaffOrders = () => {
                                 <Dropdown.Item eventKey="pending" active={statusFilter === 'pending'}>Pending</Dropdown.Item>
                                 <Dropdown.Item eventKey="confirmed" active={statusFilter === 'confirmed'}>Confirmed</Dropdown.Item>
                                 <Dropdown.Item eventKey="preparing" active={statusFilter === 'preparing'}>Preparing</Dropdown.Item>
+                                <Dropdown.Item eventKey="ready_for_pickup" active={statusFilter === 'ready_for_pickup'}>Ready for Pickup</Dropdown.Item>
                                 <Dropdown.Item eventKey="out_for_delivery" active={statusFilter === 'out_for_delivery'}>Out for Delivery</Dropdown.Item>
                                 <Dropdown.Item eventKey="delivered" active={statusFilter === 'delivered'}>Delivered (Historic)</Dropdown.Item>
                                 <Dropdown.Item eventKey="cancelled" active={statusFilter === 'cancelled'}>Cancelled</Dropdown.Item>
@@ -201,10 +203,12 @@ const StaffOrders = () => {
                                                         {order.status !== 'cancelled' && order.status !== 'delivered' && order.status !== 'returned' && (
                                                             <>
                                                                 <Dropdown.Divider />
-                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'confirmed')}>Mark Confirmed</Dropdown.Item>
-                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'preparing')}>Mark Preparing</Dropdown.Item>
-                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'out_for_delivery')}>Out for Delivery</Dropdown.Item>
-                                                                <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'delivered')} className="text-success">Mark Delivered</Dropdown.Item>
+                                                                {['pending', 'confirmed'].includes(order.status) && (
+                                                                    <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'preparing')}>Mark Preparing</Dropdown.Item>
+                                                                )}
+                                                                {order.status === 'preparing' && (
+                                                                    <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'ready_for_pickup')}>Ready for Pickup</Dropdown.Item>
+                                                                )}
                                                                 <Dropdown.Divider />
                                                                 <Dropdown.Item className="text-danger" onClick={() => handleStatusUpdate(order._id, 'cancelled')}>Cancel Order</Dropdown.Item>
                                                             </>

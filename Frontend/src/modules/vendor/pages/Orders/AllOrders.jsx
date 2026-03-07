@@ -12,22 +12,25 @@ const AllOrders = () => {
     const [showStatusMenu, setShowStatusMenu] = useState(false);
 
     const statusColors = {
-        'Pending': 'text-amber-500 bg-amber-50 border-amber-100',
-        'Packing': 'text-blue-500 bg-blue-50 border-blue-100',
-        'Dispatched': 'text-indigo-500 bg-indigo-50 border-indigo-100',
-        'Delivered': 'text-green-600 bg-green-50 border-green-100'
+        'pending': 'text-amber-500 bg-amber-50 border-amber-100',
+        'confirmed': 'text-amber-500 bg-amber-50 border-amber-100',
+        'preparing': 'text-blue-500 bg-blue-50 border-blue-100',
+        'ready_for_pickup': 'text-indigo-500 bg-indigo-50 border-indigo-100',
+        'out_for_delivery': 'text-indigo-500 bg-indigo-50 border-indigo-100',
+        'delivered': 'text-green-600 bg-green-50 border-green-100',
+        'cancelled': 'text-red-500 bg-red-50 border-red-100'
     };
 
     const nextAction = (status) => {
-        if (status === 'Pending') return { label: 'Pack Order', next: 'Packing', icon: Package, color: 'bg-[#0c831f]' };
-        if (status === 'Packing') return { label: 'Dispatch', next: 'Dispatched', icon: Truck, color: 'bg-blue-600' };
+        if (status === 'confirmed' || status === 'pending') return { label: 'Pack Order', next: 'preparing', icon: Package, color: 'bg-[#0c831f]' };
+        if (status === 'preparing') return { label: 'Ready for Pickup', next: 'ready_for_pickup', icon: Truck, color: 'bg-blue-600' };
         return null;
     };
 
     const filteredOrders = orders.filter(o => {
-        const matchesStatus = filter === 'All' || o.status === filter;
-        const matchesSearch = o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            o.customer.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = filter === 'All' || o.status === filter.toLowerCase() || (filter === 'Pending' && (o.status === 'confirmed' || o.status === 'pending'));
+        const matchesSearch = o.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (o.user?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
         return matchesStatus && matchesSearch;
     });
 
@@ -56,10 +59,10 @@ const AllOrders = () => {
                     {/* Performance Tiles (Compact) */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {[
-                            { label: 'Pending', val: orders.filter(o => o.status === 'Pending').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-                            { label: 'To Pack', val: orders.filter(o => o.status === 'Packing').length, icon: Package, color: 'text-blue-500', bg: 'bg-blue-50' },
-                            { label: 'In Transit', val: orders.filter(o => o.status === 'Dispatched').length, icon: Truck, color: 'text-[#0c831f]', bg: 'bg-green-50' },
-                            { label: 'Revenue', val: formatCurrency(orders.reduce((sum, o) => sum + o.total, 0)), icon: DollarSign, color: 'text-gray-600', bg: 'bg-gray-100' }
+                            { label: 'Pending', val: orders.filter(o => o.status === 'confirmed' || o.status === 'pending').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+                            { label: 'To Pack', val: orders.filter(o => o.status === 'preparing').length, icon: Package, color: 'text-blue-500', bg: 'bg-blue-50' },
+                            { label: 'Ready', val: orders.filter(o => o.status === 'ready_for_pickup').length, icon: Truck, color: 'text-[#0c831f]', bg: 'bg-green-50' },
+                            { label: 'Revenue', val: formatCurrency(orders.reduce((sum, o) => o.status === 'delivered' ? sum + o.totalAmount : sum, 0)), icon: DollarSign, color: 'text-gray-600', bg: 'bg-gray-100' }
                         ].map((s, i) => (
                             <div key={i} className="premium-card p-3 lg:p-3 flex flex-col justify-between">
                                 <div className="flex justify-between items-center mb-1">
@@ -94,7 +97,7 @@ const AllOrders = () => {
                                             <>
                                                 <div className="fixed inset-0 z-10" onClick={() => setShowStatusMenu(false)} />
                                                 <div className="absolute top-full left-0 mt-2 w-36 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20 flex flex-col overflow-hidden">
-                                                    {['All', 'Pending', 'Packing', 'Dispatched', 'Delivered'].map((status) => (
+                                                    {['All', 'Confirmed', 'Preparing', 'Ready_for_pickup', 'Out_for_delivery', 'Delivered', 'Cancelled'].map((status) => (
                                                         <button
                                                             key={status}
                                                             onClick={() => {
@@ -118,28 +121,28 @@ const AllOrders = () => {
                                     const action = nextAction(order.status);
                                     return (
                                         <div
-                                            key={order.id}
-                                            onClick={() => navigate(`/vendor/orders/${order.id}`)}
+                                            key={order._id}
+                                            onClick={() => navigate(`/vendor/orders/${order._id}`)}
                                             className="p-3 lg:p-2.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-all flex items-center gap-4 group cursor-pointer"
                                         >
                                             {/* Order Identity */}
                                             <div className="w-28 shrink-0">
                                                 <div className="flex items-center gap-2 mb-0.5">
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${order.status === 'Pending' ? 'bg-amber-400 animate-pulse' : 'bg-gray-200'}`} />
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">#{order.id}</span>
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${['pending', 'confirmed'].includes(order.status) ? 'bg-amber-400 animate-pulse' : 'bg-gray-200'}`} />
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">#{order.orderId}</span>
                                                 </div>
-                                                <p className="text-xs font-bold text-gray-900">{order.time}</p>
+                                                <p className="text-xs font-bold text-gray-900">{formatDate(order.createdAt)}</p>
                                             </div>
 
                                             {/* Customer Meta */}
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-xs sm:text-sm font-bold text-gray-900 truncate group-hover:text-[#0c831f] transition-colors">{order.customer}</p>
+                                                <p className="text-xs sm:text-sm font-bold text-gray-900 truncate group-hover:text-[#0c831f] transition-colors">{order.shippingAddress?.name || order.user?.name || 'Customer'}</p>
                                                 <div className="flex items-center gap-3 mt-0.5">
                                                     <span className="flex items-center gap-1 text-[9px] text-gray-400 font-bold uppercase tracking-tight">
-                                                        <MapPin size={10} /> Delhi-NCR
+                                                        <MapPin size={10} /> {order.shippingAddress?.city || 'Delhi-NCR'}
                                                     </span>
                                                     <span className="flex items-center gap-1 text-[9px] text-gray-400 font-bold uppercase tracking-tight">
-                                                        <Package size={10} /> {order.items} Items
+                                                        <Package size={10} /> {order.items?.length || 0} Items
                                                     </span>
                                                 </div>
                                             </div>
@@ -147,13 +150,13 @@ const AllOrders = () => {
                                             {/* Status Badge */}
                                             <div className="w-28 shrink-0 hidden sm:block">
                                                 <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border ${statusColors[order.status] || 'bg-gray-100 text-gray-400 border-gray-100'}`}>
-                                                    {order.status}
+                                                    {order.status?.replace('_', ' ')}
                                                 </span>
                                             </div>
 
                                             {/* Price */}
                                             <div className="w-24 shrink-0 text-right">
-                                                <p className="text-sm font-extrabold text-gray-900">{formatCurrency(order.total)}</p>
+                                                <p className="text-sm font-extrabold text-gray-900">{formatCurrency(order.totalAmount)}</p>
                                             </div>
 
                                             {/* Quick Actions */}
@@ -161,7 +164,7 @@ const AllOrders = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        navigate(`/vendor/orders/${order.id}`);
+                                                        navigate(`/vendor/orders/${order._id}`);
                                                     }}
                                                     className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-sm md:shadow-none bg-gray-50/50"
                                                 >
@@ -173,7 +176,7 @@ const AllOrders = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            updateOrderStatus(order.id, action.next);
+                                                            updateOrderStatus(order._id, action.next);
                                                         }}
                                                         className={`h-7 w-full ${action.color} text-white text-[10px] font-bold uppercase tracking-widest rounded-md shadow-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-1.5`}
                                                     >

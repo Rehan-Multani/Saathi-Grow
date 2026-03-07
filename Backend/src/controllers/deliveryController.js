@@ -6,7 +6,9 @@ import Order from '../models/Order.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
 import DeliveryLocation from '../models/DeliveryLocation.js';
+import CashCollection from '../models/CashCollection.js';
 import { findOptimalSource } from '../services/locationService.js';
+import { creditVendorWallet, debitVendorWallet } from './orderController.js';
 
 // @desc    Get delivery partner profile
 // @route   GET /api/delivery/profile
@@ -185,30 +187,11 @@ export const updateDeliveryStatus = async (req, res) => {
             // Free Partner
             partner.assignmentStatus = 'Free';
             partner.activeRun = null;
+            partner.activeOrder = null; // Clear legacy field
             partner.currentStopIndex = 0;
             await partner.save();
 
-            // Add earnings (Bulk fee, 40 per delivered order as placeholder logic)
-            const deliveredCount = run.orders.filter(o => o.status === 'delivered').length;
-            if (deliveredCount > 0) {
-                let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
-                if (!wallet) wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
-
-                const fee = 40 * deliveredCount;
-                wallet.balance += fee;
-                wallet.totalEarnings += fee;
-                await wallet.save();
-
-                await Transaction.create({
-                    wallet: wallet._id,
-                    amount: fee,
-                    type: 'credit',
-                    category: 'delivery_fee',
-                    referenceId: run._id,
-                    referenceModel: 'DeliveryRun',
-                    description: `Earnings for delivering ${deliveredCount} stops in run ${run.runId}`
-                });
-            }
+            // Rider earnings logic removed as per Admin physical payout policy
         }
 
         // 2. Individual Stop Status Updates
@@ -227,7 +210,30 @@ export const updateDeliveryStatus = async (req, res) => {
                 }
                 stop.status = 'delivered';
                 stop.deliveredAt = Date.now();
-                await Order.findByIdAndUpdate(stopOrderId, { status: 'delivered' });
+
+                const order = await Order.findById(stopOrderId);
+                if (order) {
+                    order.status = 'delivered';
+                    await order.save();
+
+                    // Credit Vendor Wallet
+                    if (order.vendor) {
+                        await creditVendorWallet(order);
+                    }
+
+                    // 4. Handle COD (Cash Collection)
+                    if (order.paymentMethod === 'COD' || order.paymentMethod === 'cod') {
+                        partner.cashInHand = (partner.cashInHand || 0) + order.totalAmount;
+                        await partner.save();
+
+                        await CashCollection.create({
+                            deliveryPartner: partner._id,
+                            order: order._id,
+                            amount: order.totalAmount,
+                            status: 'collected'
+                        });
+                    }
+                }
 
                 // Advance current stop index
                 partner.currentStopIndex = partner.currentStopIndex + 1;
@@ -252,21 +258,22 @@ export const updateDeliveryStatus = async (req, res) => {
     }
 };
 
-// @desc    Get wallet details and transactions
+// @desc    Get cash collection and handover history
 // @route   GET /api/delivery/wallet
 // @access  Private (Rider)
 export const getWallet = async (req, res) => {
     try {
         const partner = req.partner;
-        let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
 
-        if (!wallet) {
-            wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
-        }
+        const history = await CashCollection.find({ deliveryPartner: partner._id })
+            .populate('order', 'orderId totalAmount')
+            .sort({ createdAt: -1 })
+            .limit(50);
 
-        const transactions = await Transaction.find({ wallet: wallet._id }).sort({ createdAt: -1 }).limit(20);
-
-        res.json({ wallet, transactions });
+        res.json({
+            cashInHand: partner.cashInHand || 0,
+            history
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -293,9 +300,6 @@ export const createProfile = async (req, res) => {
                 vehicleNumber,
                 bankDetails
             });
-
-            // Initialize wallet
-            await Wallet.create({ deliveryPartner: partner._id });
         }
 
         res.status(201).json(partner);
@@ -315,11 +319,6 @@ export const getDashboardStats = async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
-        if (!wallet) {
-            wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
-        }
-
         const pendingOrders = await OrderDelivery.countDocuments({ status: 'pending' });
         const todayDeliveries = await OrderDelivery.countDocuments({
             deliveryPartner: partner._id,
@@ -327,11 +326,12 @@ export const getDashboardStats = async (req, res) => {
             deliveredAt: { $gte: today }
         });
 
-        const todayEarnings = await Transaction.aggregate([
+        // Today's collected cash
+        const todayEarnings = await CashCollection.aggregate([
             {
                 $match: {
-                    wallet: wallet._id,
-                    type: 'credit',
+                    deliveryPartner: partner._id,
+                    status: 'collected',
                     createdAt: { $gte: today }
                 }
             },
@@ -344,12 +344,12 @@ export const getDashboardStats = async (req, res) => {
         ]);
 
         res.json({
-            walletBalance: wallet.balance,
-            totalEarnings: wallet.totalEarnings,
+            walletBalance: partner.cashInHand || 0, // Sending cashInHand as walletBalance for frontend compatibility
+            totalEarnings: 0, // Earnings are handled physically by admin
             todayEarnings: todayEarnings[0]?.total || 0,
             pendingOrders,
             todayDeliveries,
-            status: partner.status,
+            status: partner.dutyStatus,
             activeOrders: await OrderDelivery.countDocuments({
                 deliveryPartner: partner._id,
                 status: { $in: ['assigned', 'picked_up', 'in_transit'] }
@@ -640,29 +640,18 @@ export const updateReturnPickupStatus = async (req, res) => {
                         orderId: order._id
                     });
                 }
+
+                // Debit Vendor Wallet if it was a vendor order
+                if (order.vendor) {
+                    await debitVendorWallet(order);
+                }
                 order.paymentStatus = 'refunded';
             }
 
             await order.save();
 
-            // Credit partner with pickup fee
-            const fee = task.pickupFee || 30;
-            let wallet = await Wallet.findOne({ deliveryPartner: partner._id });
-            if (!wallet) {
-                wallet = await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
-            }
-            wallet.balance += fee;
-            wallet.totalEarnings += fee;
-            await wallet.save();
-
-            await Transaction.create({
-                wallet: wallet._id,
-                amount: fee,
-                type: 'credit',
-                category: 'return_pickup_fee',
-                referenceId: task._id,
-                referenceModel: 'OrderDelivery'
-            });
+            // Rider earnings are handled physically by admin per policy
+            // No in-app wallet transaction for partners
 
             // Free up partner
             partner.assignmentStatus = 'Free';

@@ -20,12 +20,14 @@ import BranchStock from '../pages/stock/BranchStock';
 import StockAdjustments from '../pages/stock/StockAdjustments';
 import AddStockAdjustment from '../pages/stock/AddStockAdjustment';
 import LowStockAlerts from '../pages/stock/LowStockAlerts';
+import InventoryRequests from '../pages/stock/InventoryRequests';
 import DeliveryPartners from '../pages/delivery/DeliveryPartners';
 import AddDeliveryPartner from '../pages/delivery/AddDeliveryPartner';
 import AssignDeliveries from '../pages/delivery/AssignDeliveries';
 import DeliveryTracking from '../pages/delivery/DeliveryTracking';
 import PartnerDetails from '../pages/delivery/PartnerDetails';
 import DeliverySlots from '../pages/delivery/DeliverySlots';
+import CashSettlement from '../pages/delivery/CashSettlement';
 import AllVendors from '../pages/vendors/AllVendors';
 import AddVendor from '../pages/vendors/AddVendor';
 import VendorProducts from '../pages/vendors/VendorProducts';
@@ -142,6 +144,7 @@ const AdminRoutes = () => {
                         <Route path="stock/adjustments" element={<StockAdjustments />} />
                         <Route path="stock/adjustments/add" element={<AddStockAdjustment />} />
                         <Route path="stock/alerts" element={<LowStockAlerts />} />
+                        <Route path="stock/requests" element={<InventoryRequests />} />
 
 
                         {/* Delivery Management */}
@@ -151,6 +154,7 @@ const AdminRoutes = () => {
                         <Route path="delivery/assign" element={<AssignDeliveries />} />
                         <Route path="delivery/tracking" element={<DeliveryTracking />} />
                         <Route path="delivery/slots" element={<DeliverySlots />} />
+                        <Route path="delivery/settlement" element={<CashSettlement />} />
 
                         {/* Vendors */}
                         <Route path="vendors" element={<AllVendors />} />

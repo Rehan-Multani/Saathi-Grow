@@ -11,6 +11,8 @@ import InventoryLog from '../models/InventoryLog.js';
 import Branch from '../models/Branch.js';
 import Vendor from '../models/Vendor.js';
 import DeliverySlot from '../models/DeliverySlot.js';
+import Wallet from '../models/Wallet.js';
+import Transaction from '../models/Transaction.js';
 import { findOptimalSource, geocodeAddress, calculateDistance } from '../services/locationService.js';
 
 const validateStoreDistance = async (storeId, storeType, userLocation) => {
@@ -291,27 +293,27 @@ const decrementStock = async (order) => {
           console.warn(`[STOCK-WARN] No match found for Product: ${productId} at Branch: ${branchId}`);
         }
       } else if (vendor) {
-        // Logic for Vendor Stock (Deduct from FIRST variant atomically)
+        // Logic for Vendor Stock (Deduct from top-level stock atomically)
         const updatedProduct = await Product.findOneAndUpdate(
           { _id: productId },
-          { $inc: { 'variants.0.stock': -quantity } },
+          { $inc: { stock: -quantity } },
           { new: true }
         );
 
-        if (updatedProduct && updatedProduct.variants && updatedProduct.variants[0]) {
+        if (updatedProduct) {
           console.log(`[STOCK-SUCCESS] Deducted ${quantity} from Vendor ${vendor} for Product ${productId}`);
           await InventoryLog.create({
             product: productId,
             vendorId: vendor,
             changeAmount: -quantity,
-            previousStock: (updatedProduct.variants[0].stock || 0) + quantity,
-            newStock: updatedProduct.variants[0].stock || 0,
+            previousStock: (updatedProduct.stock || 0) + quantity,
+            newStock: updatedProduct.stock || 0,
             type: 'Removal',
             reason: `Order Placement #${order.orderId}`,
             orderId: order._id
           });
         } else {
-          console.warn(`[STOCK-WARN] No match/variants found for Product: ${productId} at Vendor: ${vendor}`);
+          console.warn(`[STOCK-WARN] No match found for Product: ${productId} at Vendor: ${vendor}`);
         }
       }
     } catch (err) {
@@ -348,20 +350,20 @@ const incrementStock = async (order) => {
           });
         }
       } else if (vendor) {
-        // Restore to FIRST variant
+        // Restore to top-level stock
         const updatedProduct = await Product.findOneAndUpdate(
           { _id: productId },
-          { $inc: { 'variants.0.stock': quantity } },
+          { $inc: { stock: quantity } },
           { new: true }
         );
 
-        if (updatedProduct && updatedProduct.variants && updatedProduct.variants[0]) {
+        if (updatedProduct) {
           await InventoryLog.create({
             product: productId,
             vendorId: vendor,
             changeAmount: quantity,
-            previousStock: (updatedProduct.variants[0].stock || 0) - quantity,
-            newStock: updatedProduct.variants[0].stock || 0,
+            previousStock: (updatedProduct.stock || 0) - quantity,
+            newStock: updatedProduct.stock || 0,
             type: 'Addition',
             reason: `Order Reversal (Cancel/Return) #${order.orderId}`,
             orderId: order._id
@@ -371,6 +373,95 @@ const incrementStock = async (order) => {
     } catch (err) {
       console.error(`[STOCK-INCREMENT-FAIL] Order: ${order.orderId}, Product: ${item.product}`, err);
     }
+  }
+};
+
+/**
+ * HELPER: Credit Vendor Wallet on Delivery
+ */
+export const creditVendorWallet = async (order) => {
+  if (!order.vendor || order.status !== 'delivered') return;
+
+  try {
+    const payoutAmount = order.vendorPayoutAmount || 0;
+    if (payoutAmount <= 0) return;
+
+    let wallet = await Wallet.findOne({ owner: order.vendor, ownerModel: 'Vendor' });
+    if (!wallet) {
+      wallet = await Wallet.create({
+        owner: order.vendor,
+        ownerModel: 'Vendor',
+        balance: 0,
+        totalEarnings: 0
+      });
+    }
+
+    // Check if transaction already exists to prevent double credit
+    const existingTx = await Transaction.findOne({
+      wallet: wallet._id,
+      referenceId: order._id,
+      category: 'order_revenue'
+    });
+
+    if (existingTx) return;
+
+    wallet.balance += payoutAmount;
+    wallet.totalEarnings += payoutAmount;
+    await wallet.save();
+
+    await Transaction.create({
+      wallet: wallet._id,
+      amount: payoutAmount,
+      type: 'credit',
+      category: 'order_revenue',
+      referenceId: order._id,
+      referenceModel: 'Order',
+      description: `Revenue for Order #${order.orderId} (Net of commission)`
+    });
+  } catch (error) {
+    console.error('Error crediting vendor wallet:', error);
+  }
+};
+
+/**
+ * HELPER: Debit Vendor Wallet on Return
+ */
+export const debitVendorWallet = async (order) => {
+  if (!order.vendor || order.status !== 'returned') return;
+
+  try {
+    const payoutAmount = order.vendorPayoutAmount || 0;
+    if (payoutAmount <= 0) return;
+
+    let wallet = await Wallet.findOne({ owner: order.vendor, ownerModel: 'Vendor' });
+    if (!wallet) return; // No wallet, nothing to debit (shouldn't happen if delivered)
+
+    // Check if debit transaction already exists to prevent double debit
+    const existingTx = await Transaction.findOne({
+      wallet: wallet._id,
+      referenceId: order._id,
+      type: 'debit',
+      category: 'adjustment'
+    });
+
+    if (existingTx) return;
+
+    wallet.balance -= payoutAmount;
+    // We also reduce totalEarnings to keep stats accurate for the period
+    wallet.totalEarnings = Math.max(0, wallet.totalEarnings - payoutAmount);
+    await wallet.save();
+
+    await Transaction.create({
+      wallet: wallet._id,
+      amount: payoutAmount,
+      type: 'debit',
+      category: 'adjustment',
+      referenceId: order._id,
+      referenceModel: 'Order',
+      description: `Refund Debit for Return #${order.orderId}`
+    });
+  } catch (error) {
+    console.error('Error debiting vendor wallet:', error);
   }
 };
 
@@ -695,7 +786,7 @@ export const calculateBill = async (req, res) => {
 export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod')
+      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod deliveryOTP')
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -926,6 +1017,14 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to manage orders from other branches' });
     }
 
+    // Role-based Status Security
+    if (req.admin.role === 'Branch Manager' || req.admin.role === 'Staff') {
+      const allowedRolesStatuses = ['preparing', 'ready_for_pickup', 'cancelled'];
+      if (!allowedRolesStatuses.includes(status)) {
+        return res.status(403).json({ message: 'Managers and Staff can only mark orders as preparing, ready for pickup, or cancelled.' });
+      }
+    }
+
     const oldStatus = order.status;
     order.status = status;
     if (status === 'delivered') {
@@ -943,6 +1042,12 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     const updatedOrder = await order.save();
+
+    // Trigger Wallet Credit if status is delivered
+    if (status === 'delivered') {
+      await creditVendorWallet(updatedOrder);
+    }
+
     res.json(updatedOrder);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -999,6 +1104,67 @@ export const getReturnRequests = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get all orders for a specific vendor
+// @route   GET /api/vendors/orders
+// @access  Private (Vendor)
+export const getVendorOrders = async (req, res) => {
+  try {
+    const vendorId = req.vendor._id;
+    const { status, search } = req.query;
+
+    let query = { vendor: vendorId };
+
+    if (status && status !== 'All') {
+      query.status = status.toLowerCase();
+    }
+
+    if (search) {
+      query.$or = [
+        { orderId: { $regex: search, $options: 'i' } },
+        { 'shippingAddress.name': { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const orders = await Order.find(query)
+      .populate('user', 'name email phone')
+      .populate('items.product', 'name image unitValue unitType')
+      .sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update order status by vendor
+// @route   PUT /api/vendors/orders/:id/status
+// @access  Private (Vendor)
+export const updateVendorOrderStatus = async (req, res) => {
+  try {
+    const vendorId = req.vendor._id;
+    const { status } = req.body;
+
+    const allowedStatuses = ['preparing', 'ready_for_pickup', 'cancelled'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status update for vendor' });
+    }
+
+    const order = await Order.findOne({ _id: req.params.id, vendor: vendorId });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.json({ message: `Order status updated to ${status}`, order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 // @desc    Get return requests for vendor's own store orders ONLY
 // @route   GET /api/vendor/returns

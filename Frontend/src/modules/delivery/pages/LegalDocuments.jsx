@@ -25,20 +25,20 @@ const LegalDocuments = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-slate-100 border-t-[#028A0F] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (selectedPage) {
     return (
-      <div className="min-h-screen bg-white">
-        <header className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center gap-4 z-40">
-          <button onClick={() => setSelectedPage(null)} className="p-2 bg-gray-50 rounded-full">
+      <div className="min-h-screen bg-white dark:bg-zinc-950">
+        <header className="sticky top-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-slate-100 dark:border-zinc-800 p-4 flex items-center gap-4 z-40">
+          <button onClick={() => setSelectedPage(null)} className="p-2 bg-slate-50 dark:bg-zinc-800 rounded-xl text-slate-400 active:scale-90 transition-all">
             <ChevronLeft size={20} />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">{selectedPage.title}</h1>
+          <h1 className="text-lg font-black text-slate-800 dark:text-zinc-100 tracking-tight">{selectedPage.title}</h1>
         </header>
         <div className="p-5 overflow-y-auto">
           <div
@@ -53,53 +53,60 @@ const LegalDocuments = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 p-4 flex items-center gap-4 sticky top-0 z-40">
-        <button onClick={() => navigate(-1)} className="p-2 bg-gray-50 rounded-full">
+    <div className="space-y-4 md:space-y-6 pb-10">
+      <header className="flex items-center gap-4 py-2">
+        <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-xl text-slate-400 hover:text-[#028A0F] active:scale-90 transition-all shadow-sm">
           <ChevronLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900">Legal & Privacy</h1>
+        <div>
+          <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-zinc-100 tracking-tight">Legal & Privacy</h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Regulatory Compliance</p>
+        </div>
       </header>
 
-      <div className="p-4">
-        <div className="bg-blue-600 rounded-2xl p-6 text-white mb-6 shadow-lg shadow-blue-900/10">
+      <div className="bg-[#028A0F] rounded-[2rem] p-6 text-white mb-8 shadow-xl shadow-[#028A0F]/20 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+        <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
-            <Shield size={24} />
-            <h2 className="text-xl font-bold">Partner Safety</h2>
+            <Shield size={24} className="text-white/80" />
+            <h2 className="text-xl font-black tracking-tight">Partner Trust</h2>
           </div>
-          <p className="text-blue-100 text-sm mb-0">Your privacy and security are important to us. Review our terms below.</p>
+          <p className="text-white/70 text-xs font-medium leading-relaxed">Your data security and operational transparency are our top priorities. Review our ecosystem policies below.</p>
         </div>
+      </div>
 
-        <div className="space-y-3">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Available Documents</h3>
-          {policies.map(p => (
-            <button
-              key={p._id}
-              onClick={() => viewPolicy(p.slug)}
-              className="w-full bg-white p-4 rounded-xl flex items-center justify-between border border-gray-100 shadow-sm active:scale-[0.98] transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                  <FileText size={18} />
-                </div>
-                <span className="font-bold text-gray-800 text-sm">{p.title}</span>
+      <div className="space-y-3">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 italic">Policy Fragments</h3>
+        {policies.map(p => (
+          <button
+            key={p._id}
+            onClick={() => viewPolicy(p.slug)}
+            className="w-full bg-white dark:bg-zinc-900 p-4 rounded-2xl flex items-center justify-between border border-slate-100 dark:border-zinc-800 shadow-sm active:scale-[0.98] transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-slate-50 dark:bg-zinc-800 text-slate-400 group-hover:text-[#028A0F] transition-colors rounded-xl font-bold">
+                <FileText size={18} />
               </div>
-              <ChevronRight size={18} className="text-gray-400" />
-            </button>
-          ))}
-          {policies.length === 0 && (
-            <div className="text-center py-10 bg-white rounded-xl border border-dashed">
-              <Info size={32} className="text-gray-300 mb-2 mx-auto" />
-              <p className="text-gray-500 text-sm">No documents found.</p>
+              <div className="text-left">
+                <span className="block font-black text-slate-800 dark:text-zinc-100 text-sm tracking-tight">{p.title}</span>
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Verified document</span>
+              </div>
             </div>
-          )}
-        </div>
+            <ChevronRight size={18} className="text-slate-200" />
+          </button>
+        ))}
+        {policies.length === 0 && (
+          <div className="text-center py-10 bg-white rounded-xl border border-dashed">
+            <Info size={32} className="text-gray-300 mb-2 mx-auto" />
+            <p className="text-gray-500 text-sm">No documents found.</p>
+          </div>
+        )}
+      </div>
 
-        <div className="mt-8 text-center px-4">
-          <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">
-            Saathi-Grow Delivery Partner Ecosystem
-          </p>
-        </div>
+      <div className="mt-8 text-center px-4">
+        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">
+          Saathi-Grow Delivery Partner Ecosystem
+        </p>
       </div>
     </div>
   );

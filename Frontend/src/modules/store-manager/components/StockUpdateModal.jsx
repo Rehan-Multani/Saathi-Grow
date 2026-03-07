@@ -14,11 +14,12 @@ const StockUpdateModal = ({ isOpen, onClose, onUpdate, product }) => {
         e.preventDefault();
         if (!adjustment || isNaN(adjustment)) return;
 
-        const amount = Number(adjustment);
-        const newStock = type === 'add' ? product.stock + amount : Math.max(0, product.stock - amount);
-
-        onUpdate(product.id, newStock);
-        onClose();
+        onUpdate({
+            productId: product.id || product._id,
+            adjustment: Number(adjustment),
+            type,
+            notes: '' // Placeholder for now
+        });
     };
 
     if (!isOpen || !product) return null;

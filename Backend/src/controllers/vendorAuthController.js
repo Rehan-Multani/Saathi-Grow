@@ -28,6 +28,8 @@ export const login = async (req, res) => {
     ownerName: vendor.ownerName,
     email: vendor.email,
     phone: vendor.phone,
+    address: vendor.address,
+    description: vendor.description,
     logo: vendor.logo,
     status: vendor.status,
     token: generateToken(vendor._id)
@@ -109,6 +111,8 @@ export const updateProfile = async (req, res) => {
         ownerName: updatedVendor.ownerName,
         email: updatedVendor.email,
         phone: updatedVendor.phone,
+        address: updatedVendor.address,
+        description: updatedVendor.description,
         logo: updatedVendor.logo,
         status: updatedVendor.status,
         token: generateToken(updatedVendor._id)

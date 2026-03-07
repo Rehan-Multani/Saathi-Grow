@@ -33,7 +33,7 @@ const WalletPage = () => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `wallet_report_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute("download", `cash_collection_report_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -42,39 +42,13 @@ const WalletPage = () => {
         }, 1500);
     };
 
-    const handlePayout = () => {
-        if (!stats?.walletBalance || stats.walletBalance <= 0) {
-            return toast.error("Insufficient balance for payout");
-        }
-
-        toast.info(
-            <div className="flex flex-col gap-2">
-                <p className="font-bold">Confirm Instant Payout?</p>
-                <p className="text-[10px]">₹{stats.walletBalance.toFixed(2)} will be credited to your linked bank account.</p>
-                <button
-                    onClick={() => {
-                        toast.dismiss();
-                        const id = toast.loading("Processing transaction...");
-                        setTimeout(() => {
-                            toast.update(id, { render: "Payout successful! Funds will reflect in 15 mins.", type: "success", isLoading: false, autoClose: 3000 });
-                        }, 2000);
-                    }}
-                    className="bg-black text-white px-3 py-1 rounded-lg text-[10px] font-bold"
-                >
-                    Confirm
-                </button>
-            </div>,
-            { autoClose: false, closeButton: true }
-        );
-    };
-
     return (
         <div className="space-y-4 md:space-y-6 pb-10">
             {/* Header - Compact */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">Wallet</h1>
-                    <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] mt-0.5">Fleet Financial Control</p>
+                    <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">Cash Collection</h1>
+                    <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] mt-0.5">Physical Settlement Control</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800/60 shadow-sm active:scale-95 transition-all">
@@ -110,39 +84,29 @@ const WalletPage = () => {
 
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
                         <div>
-                            <p className="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-1 md:mb-1.5 ">Available liquidity</p>
+                            <p className="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-1 md:mb-1.5 ">Pending Deposit to Admin</p>
                             <div className="flex items-baseline gap-1 md:gap-1.5">
                                 <span className="text-xl md:text-2xl font-bold text-white tracking-tight">₹</span>
                                 <h2 className="text-3xl md:text-5xl font-black tracking-tighter">
-                                    {stats?.walletBalance?.toFixed(2) || '0.00'}
+                                    {(wallet?.balance || 0).toFixed(2)}
                                 </h2>
                             </div>
                         </div>
-                        <button
-                            onClick={handlePayout}
-                            className="bg-white text-[#028A0F] px-5 py-2 md:px-7 md:py-2.5 rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-xl shadow-black/10 active:scale-95 group/btn overflow-hidden relative"
-                        >
-                            <span className="relative z-10 flex items-center gap-1.5 md:gap-2">
-                                <CreditCard size={12} md:size={14} />
-                                Instant payout
-                            </span>
-                            <div className="absolute inset-0 bg-[#028A0F]/5 translate-y-full group-hover/btn:translate-y-0 transition-transform"></div>
-                        </button>
                     </div>
 
                     <div className="pt-6 border-t border-white/5 flex justify-between items-center">
                         <div className="flex gap-8">
                             <div>
-                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Lifetime</p>
-                                <p className="text-xs font-bold text-white tracking-widest">₹{stats?.totalEarnings?.toFixed(0) || '0'}</p>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-white/50 mb-1">Status</p>
+                                <p className="text-xs font-bold text-white tracking-widest">Awaiting Settlement</p>
                             </div>
                             <div>
-                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Rider ID</p>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-white/50 mb-1">Rider ID</p>
                                 <p className="text-xs font-bold text-white tracking-widest">{profile?.uniqueId || 'N/A'}</p>
                             </div>
                         </div>
                         <div className="w-10 h-10 border border-white/5 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <ArrowUpRight size={18} className="text-slate-500" />
+                            <TrendingUp size={18} className="text-white/30" />
                         </div>
                     </div>
                 </div>
@@ -181,7 +145,7 @@ const WalletPage = () => {
             {/* Transactions Section - Tighter List */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
-                    <h3 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 italic">Financial flow</h3>
+                    <h3 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 italic">Collection History</h3>
                     <button
                         onClick={handleExport}
                         className="text-[10px] font-black text-[#028A0F] uppercase tracking-widest hover:underline transition-all flex items-center gap-1.5"
@@ -199,36 +163,30 @@ const WalletPage = () => {
                                 className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-2xl md:rounded-3xl hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group"
                             >
                                 <div
-                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 ${tx.type === 'credit'
-                                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
-                                        : 'bg-red-50 dark:bg-red-500/10 text-red-600'
+                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 ${tx.status === 'collected'
+                                        ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600'
+                                        : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
                                         }`}
                                 >
-                                    {tx.type === 'credit' ? <ArrowDownLeft size={18} md:size={20} /> : <ArrowUpRight size={18} md:size={20} />}
+                                    <ArrowDownLeft size={18} md:size={20} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h5 className="font-bold text-slate-900 dark:text-white uppercase text-xs md:text-sm truncate">
-                                        {tx.category.replace('_', ' ')}
+                                        Order #{tx.order?.orderId || 'Unknown'}
                                     </h5>
                                     <p className="text-[10px] md:text-xs text-slate-500 font-medium truncate">
-                                        {new Date(tx.createdAt).toLocaleDateString()}
+                                        {new Date(tx.createdAt).toLocaleString()}
                                     </p>
                                 </div>
                                 <div className="text-right shrink-0">
-                                    <h5
-                                        className={`font-black text-sm md:text-base ${tx.type === 'credit'
-                                            ? 'text-emerald-500'
-                                            : 'text-slate-900 dark:text-white'
-                                            }`}
-                                    >
-                                        {tx.type === 'credit' ? '+' : '-'}
-                                        {tx.amount}
+                                    <h5 className="font-black text-sm md:text-base text-slate-900 dark:text-white">
+                                        ₹{tx.amount}
                                     </h5>
                                     <p
-                                        className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${tx.status === 'completed' ? 'text-emerald-400' : 'text-orange-400'
+                                        className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${tx.status === 'settled_with_admin' ? 'text-emerald-400' : 'text-amber-500'
                                             }`}
                                     >
-                                        {tx.status}
+                                        {tx.status.replace(/_/g, ' ')}
                                     </p>
                                 </div>
                                 <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity pl-1">

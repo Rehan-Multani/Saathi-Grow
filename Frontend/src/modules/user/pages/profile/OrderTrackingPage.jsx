@@ -352,6 +352,14 @@ const OrderTrackingPage = () => {
                   {order.status === 'picked_up' ? "On the way to home" : "Heading to store"}
                 </p>
               </div>
+
+              {order.deliveryOTP && (
+                <div className="px-4 py-2 bg-[#0c831f] text-white rounded-2xl shadow-lg shadow-green-500/20 flex flex-col items-center justify-center min-w-[80px]">
+                  <span className="text-[7px] font-black uppercase tracking-widest opacity-80 mb-0.5">PIN</span>
+                  <span className="text-xl font-black tracking-[0.2em] leading-none">{order.deliveryOTP}</span>
+                </div>
+              )}
+
               <div className="w-11 h-11 rounded-2xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center border border-green-100 dark:border-green-500/10 shadow-inner flex-shrink-0">
                 <Truck size={22} className="text-[#0c831f]" />
               </div>
