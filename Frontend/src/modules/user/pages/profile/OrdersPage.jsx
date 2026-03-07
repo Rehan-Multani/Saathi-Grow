@@ -42,7 +42,8 @@ const OrdersPage = () => {
                         date: formattedDate,
                         amount: '₹' + o.totalAmount.toFixed(2),
                         items: o.items.map(item => item.name).join(', '),
-                        color: colorClass
+                        color: colorClass,
+                        deliveryOTP: o.deliveryOTP
                     }
                 });
 
@@ -97,8 +98,15 @@ const OrdersPage = () => {
                                             <div className="!text-[10px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider">{order.date}</div>
                                         </div>
                                     </div>
-                                    <div className={`px-2.5 py-1 md:px-3 md:py-1.5 rounded-full md:rounded-lg !text-[8px] md:!text-[10px] font-black uppercase tracking-widest border border-current bg-opacity-10 ${order.color}`}>
-                                        {order.status}
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className={`px-2.5 py-1 md:px-3 md:py-1.5 rounded-full md:rounded-lg !text-[8px] md:!text-[10px] font-black uppercase tracking-widest border border-current bg-opacity-10 ${order.color}`}>
+                                            {order.status}
+                                        </div>
+                                        {order.deliveryOTP && !['delivered', 'cancelled', 'returned'].includes(order.status) && (
+                                            <div className="px-2 py-0.5 bg-[#0c831f] text-white rounded-lg text-[9px] md:text-[10px] font-black tracking-widest shadow-sm">
+                                                PIN: {order.deliveryOTP}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

@@ -78,9 +78,7 @@ const DeliveryLayout = ({ children }) => {
         { icon: <Package size={20} />, label: 'Orders', path: '/delivery/orders' },
         { icon: <RotateCcw size={20} />, label: 'Returns', path: '/delivery/returns' },
         { icon: <Wallet size={20} />, label: 'Wallet', path: '/delivery/wallet' },
-        { icon: <History size={20} />, label: 'History', path: '/delivery/history' },
-        { icon: <User size={20} />, label: 'Profile', path: '/delivery/profile' },
-        { icon: <Shield size={20} />, label: 'Legal', path: '/delivery/legal' },
+        { icon: <User size={20} />, label: 'Profile', path: '/delivery/profile' }
     ];
 
     return (

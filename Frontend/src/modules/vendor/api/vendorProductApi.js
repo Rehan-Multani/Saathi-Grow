@@ -41,6 +41,20 @@ export const updateVendorProduct = async (token, id, productData) => {
   return data;
 };
 
+export const updateVendorProductStock = async (token, id, stockData) => {
+  const response = await fetch(`${VENDOR_PRODUCTS_API_BASE_URL}/${id}/stock`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(stockData)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to update stock');
+  return data;
+};
+
 export const deleteVendorProduct = async (token, id) => {
   const response = await fetch(`${VENDOR_PRODUCTS_API_BASE_URL}/${id}`, {
     method: 'DELETE',

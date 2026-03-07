@@ -9,7 +9,9 @@ import {
   assignOrderToPartner,
   autoAssignOrder,
   unassignOrderFromPartner,
-  getActiveDeliveries
+  getActiveDeliveries,
+  getCashSettlementList,
+  settleRiderCash
 } from '../controllers/adminDeliveryController.js';
 import {
   getOrdersBySlot,
@@ -41,6 +43,8 @@ router.post('/assign', protectAdmin, requirePermission('MANAGE_DELIVERY'), assig
 router.post('/auto-assign/:orderId', protectAdmin, requirePermission('MANAGE_DELIVERY'), autoAssignOrder);
 router.post('/unassign', protectAdmin, requirePermission('MANAGE_DELIVERY'), unassignOrderFromPartner);
 router.get('/active-tracking', protectAdmin, requirePermission('MANAGE_DELIVERY'), getActiveDeliveries);
+router.get('/cash-settlement', protectAdmin, requirePermission('MANAGE_DELIVERY'), getCashSettlementList);
+router.post('/settle-cash/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), settleRiderCash);
 
 // --- Sprint 3: Delivery Run (Multi-order Batch) routes ---
 router.get('/run/orders-by-slot', protectAdmin, requirePermission('MANAGE_DELIVERY'), getOrdersBySlot);

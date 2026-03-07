@@ -4,6 +4,7 @@ import Order from '../models/Order.js';
 import Vendor from '../models/Vendor.js';
 import Branch from '../models/Branch.js';
 import OrderDelivery from '../models/OrderDelivery.js';
+import DeliveryRun from '../models/DeliveryRun.js';
 
 // Helper to generate 4-digit numeric OTP securely
 const generateOTP = () => {
@@ -132,7 +133,7 @@ export const getUnassignedOrders = async (req, res) => {
   try {
     const admin = req.admin;
     const query = {
-      status: { $in: ['confirmed', 'preparing', 'pending'] },
+      status: { $in: ['confirmed', 'preparing', 'pending', 'ready_for_pickup'] },
       deliveryPartnerId: null
     };
 
@@ -192,9 +193,7 @@ const performAssignment = async (orderId, partnerId, session) => {
     order.status = 'preparing';
   }
 
-  await order.save({ session });
-
-  // 3.5 Create/Update OrderDelivery record for tracking consistency
+  // 3.5 Create/Update OrderDelivery record for tracking consistency (Legacy Stats Support)
   let deliveryRecord = await OrderDelivery.findOne({ order: order._id }).session(session);
   if (!deliveryRecord) {
     deliveryRecord = new OrderDelivery({
@@ -211,12 +210,38 @@ const performAssignment = async (orderId, partnerId, session) => {
   }
   await deliveryRecord.save({ session });
 
+  // 3.6 Create DeliveryRun so it shows up in the rider app (Sprint 1 Architecture)
+  const runIdString = `RUN-${Date.now().toString().slice(-6)}-${partner.uniqueId.slice(-4)}`;
+  const run = new DeliveryRun({
+    runId: runIdString,
+    deliveryPartner: partner._id,
+    slotDate: new Date(),
+    isImmediate: true,
+    branchId: order.branchId || null,
+    orders: [{
+      order: order._id,
+      stopSequence: 1,
+      status: 'pending',
+      deliveryOTP: securePin
+    }],
+    status: 'assigned',
+    assignedAt: new Date()
+  });
+  await run.save({ session });
+
   // 4. Update the Delivery Partner
   partner.assignmentStatus = 'Busy';
   partner.activeOrder = order._id;
+  partner.activeRun = run._id;
+  partner.currentStopIndex = 0;
   await partner.save({ session });
 
-  return { order, partner };
+  // 5. Link Order back to Run
+  order.deliveryRunId = run._id;
+  order.stopSequence = 1;
+  await order.save({ session });
+
+  return { order, partner, run };
 };
 
 // @desc    Atomically Force-Assign an Order to a specific Free Partner
@@ -347,15 +372,26 @@ export const unassignOrderFromPartner = async (req, res) => {
     order.status = 'confirmed'; // Reset back to confirmed for re-assignment
     await order.save({ session });
 
-    // 2. Clear OrderDelivery Record if it exists
+    // 2. Clear OrderDelivery and DeliveryRun records
     if (deliveryRecord) {
       await OrderDelivery.deleteOne({ _id: deliveryRecord._id }).session(session);
+    }
+
+    const run = await DeliveryRun.findOne({
+      deliveryPartner: partnerId,
+      'orders.order': order._id,
+      status: { $in: ['assigned', 'in_progress'] }
+    }).session(session);
+    if (run) {
+      await run.deleteOne({ session });
     }
 
     // 3. Reset Partner State
     if (partner) {
       partner.assignmentStatus = 'Free';
       partner.activeOrder = null;
+      partner.activeRun = null;
+      partner.currentStopIndex = 0;
       await partner.save({ session });
     }
 
@@ -378,7 +414,7 @@ export const getActiveDeliveries = async (req, res) => {
     const admin = req.admin;
     const query = {
       deliveryPartnerId: { $ne: null },
-      status: { $in: ['preparing', 'out_for_delivery'] }
+      status: { $in: ['preparing', 'ready_for_pickup', 'out_for_delivery'] }
     };
 
     if (admin.role !== 'Admin') {
@@ -397,5 +433,58 @@ export const getActiveDeliveries = async (req, res) => {
     res.json(activeOrders);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Error fetching tracking data' });
+  }
+};
+
+/**
+ * CASH SETTLEMENT / COD CONCILIATION (PHASE 3)
+ */
+
+// @desc    Get all partners with their current cash-on-hand liability
+// @route   GET /api/admin/delivery-partners/cash-settlement
+// @access  Private (Admin)
+export const getCashSettlementList = async (req, res) => {
+  try {
+    const partners = await DeliveryPartner.find({ cashInHand: { $gt: 0 } })
+      .select('name phone uniqueId cashInHand profileImage')
+      .sort({ cashInHand: -1 });
+    res.json(partners);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Settle (Reset) a rider's cash liability after physical handover
+// @route   POST /api/admin/delivery-partners/settle-cash/:id
+// @access  Private (Admin)
+export const settleRiderCash = async (req, res) => {
+  try {
+    const partner = await DeliveryPartner.findById(req.params.id);
+    if (!partner) return res.status(404).json({ message: 'Partner not found' });
+
+    const totalSettled = partner.cashInHand;
+
+    // Update partner
+    partner.cashInHand = 0;
+    await partner.save();
+
+    // Mark CashCollection records as settled
+    const CashCollection = (await import('../models/CashCollection.js')).default;
+    await CashCollection.updateMany(
+      { deliveryPartner: partner._id, status: 'collected' },
+      {
+        status: 'settled_with_admin',
+        settledAt: new Date(),
+        adminAcknowledge: true
+      }
+    );
+
+    res.json({
+      success: true,
+      message: `Successfully settled ₹${totalSettled} with ${partner.name}`,
+      removedAmount: totalSettled
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

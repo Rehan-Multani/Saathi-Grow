@@ -109,11 +109,7 @@ const deliveryPartnerSchema = new mongoose.Schema({
         bankName: String,
         ifscCode: String
     },
-    totalEarnings: {
-        type: Number,
-        default: 0
-    },
-    walletBalance: {
+    cashInHand: {
         type: Number,
         default: 0
     },

@@ -93,12 +93,6 @@ export const verifyOTP = async (req, res) => {
     partner.otpExpires = undefined;
     await partner.save();
 
-    // Ensure wallet exists
-    const wallet = await Wallet.findOne({ deliveryPartner: partner._id });
-    if (!wallet) {
-      await Wallet.create({ deliveryPartner: partner._id, balance: 0, totalEarnings: 0 });
-    }
-
     res.json({
       success: true,
       message: 'Login successful',
@@ -112,7 +106,7 @@ export const verifyOTP = async (req, res) => {
         profileImage: partner.profileImage,
         dutyStatus: partner.dutyStatus,
         assignmentStatus: partner.assignmentStatus,
-        walletBalance: partner.walletBalance
+        cashInHand: partner.cashInHand || 0
       },
       token: generateToken(partner._id)
     });

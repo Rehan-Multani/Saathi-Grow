@@ -1,6 +1,8 @@
 ﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as vendorAuthApi from '../api/vendorAuthApi';
 import * as vendorProductApi from '../api/vendorProductApi';
+import * as vendorOrderApi from '../api/vendorOrderApi';
+import * as vendorWalletApi from '../api/vendorWalletApi';
 import { toast } from 'react-toastify';
 
 const VendorContext = createContext();
@@ -20,12 +22,25 @@ export const VendorProvider = ({ children }) => {
 
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [walletData, setWalletData] = useState({
+        balance: 0,
+        totalEarnings: 0,
+        transactions: []
+    });
+    const [earningsStats, setEarningsStats] = useState({
+        totalSales: 0,
+        totalReturns: 0,
+        orderCount: 0,
+        returnCount: 0
+    });
 
     // Fetch profile and products on initial load if token exists
     useEffect(() => {
         if (vendor?.token) {
             refreshProfile();
             fetchProducts();
+            fetchOrders();
+            fetchWalletData();
         }
     }, []);
 
@@ -51,6 +66,45 @@ export const VendorProvider = ({ children }) => {
             setStats(prev => ({ ...prev, totalProducts: data.length }));
         } catch (error) {
             console.error('Failed to fetch products:', error);
+        }
+    };
+
+    const fetchOrders = async (params = {}) => {
+        if (!vendor?.token) return;
+        try {
+            const data = await vendorOrderApi.getVendorOrders(vendor.token, params);
+            setOrders(data);
+
+            // Update stats
+            const pending = data.filter(o => o.status === 'confirmed' || o.status === 'pending').length;
+            const earnings = data.reduce((sum, o) => o.status === 'delivered' ? sum + (o.vendorPayoutAmount || o.totalAmount) : sum, 0);
+
+            setStats(prev => ({
+                ...prev,
+                totalOrders: data.length,
+                pendingOrders: pending,
+                earnings
+            }));
+        } catch (error) {
+            console.error('Failed to fetch orders:', error);
+        }
+    };
+
+    const fetchWalletData = async () => {
+        if (!vendor?.token) return;
+        try {
+            const wallet = await vendorWalletApi.getVendorWallet(vendor.token);
+            const stats = await vendorWalletApi.getVendorWalletStats(vendor.token);
+            setWalletData(wallet);
+            setEarningsStats(stats);
+
+            // Sync overall stats if needed
+            setStats(prev => ({
+                ...prev,
+                earnings: wallet.totalEarnings
+            }));
+        } catch (error) {
+            console.error('Failed to fetch wallet data:', error);
         }
     };
 
@@ -157,8 +211,39 @@ export const VendorProvider = ({ children }) => {
         }
     };
 
-    const updateOrderStatus = (orderId, newStatus) => {
-        setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    const updateProductStock = async (productId, stockData) => {
+        setLoading(true);
+        try {
+            await vendorProductApi.updateVendorProductStock(vendor.token, productId, stockData);
+            await fetchProducts();
+            toast.success('Stock updated');
+            return true;
+        } catch (error) {
+            toast.error(error.message);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const updateOrderStatus = async (orderId, newStatus) => {
+        try {
+            // Map frontend statuses to backend statuses if needed
+            const statusMap = {
+                'Packing': 'preparing',
+                'Ready for Pickup': 'ready_for_pickup',
+                'Cancelled': 'cancelled'
+            };
+            const backendStatus = statusMap[newStatus] || newStatus.toLowerCase();
+
+            await vendorOrderApi.updateVendorOrderStatus(vendor.token, orderId, backendStatus);
+            toast.success(`Order ${newStatus}`);
+            await fetchOrders();
+            return true;
+        } catch (error) {
+            toast.error(error.message);
+            return false;
+        }
     };
 
     const toggleShopStatus = () => {
@@ -172,18 +257,24 @@ export const VendorProvider = ({ children }) => {
             products,
             orders,
             loading,
+            setLoading,
             login,
             register,
             logout,
             addProduct,
             deleteProduct,
             updateProduct,
+            updateProductStock,
             updateOrderStatus,
             toggleShopStatus,
             updateVendorProfile,
             changePassword,
             refreshProfile,
-            fetchProducts
+            fetchProducts,
+            fetchOrders,
+            walletData,
+            earningsStats,
+            fetchWalletData
         }}>
             {children}
         </VendorContext.Provider>

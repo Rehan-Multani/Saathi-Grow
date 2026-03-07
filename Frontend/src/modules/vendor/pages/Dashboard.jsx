@@ -141,21 +141,21 @@ const Dashboard = () => {
                     </div>
                     <div className="flex flex-col">
                         {recentOrders.map(order => (
-                            <div key={order.id} className="p-3 lg:p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-all flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/vendor/orders')}>
+                            <div key={order._id} className="p-3 lg:p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-all flex items-center gap-4 group cursor-pointer" onClick={() => navigate(`/vendor/orders/${order._id}`)}>
                                 <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#0c831f]/10 group-hover:text-[#0c831f] transition-colors flex-shrink-0">
                                     <ShoppingBag size={18} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start mb-1">
-                                        <p className="text-sm font-bold text-gray-900 truncate pr-2">{order.customer}</p>
-                                        <p className="text-sm font-bold text-gray-900 whitespace-nowrap">{formatCurrency(order.total)}</p>
+                                        <p className="text-sm font-bold text-gray-900 truncate pr-2">{order.user?.name || 'Customer'}</p>
+                                        <p className="text-sm font-bold text-gray-900 whitespace-nowrap">{formatCurrency(order.totalAmount)}</p>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <p className="text-xs text-gray-500 font-medium">
-                                            {order.items} items <span className="text-gray-300 mx-1">₹</span> {order.time}
+                                        <p className="text-xs text-gray-500 font-medium capitalize">
+                                            {order.items?.length || 0} items <span className="text-gray-300 mx-1">·</span> {new Date(order.createdAt).toLocaleDateString()}
                                         </p>
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${order.status === 'Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
-                                            order.status === 'Dispatched' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-gray-50 text-gray-600 border-gray-100'
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border capitalize ${order.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                            order.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-gray-50 text-gray-600 border-gray-100'
                                             }`}>
                                             {order.status}
                                         </span>

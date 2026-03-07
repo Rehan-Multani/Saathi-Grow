@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon } from 'lucide-react';
+import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
 import { toast } from 'react-toastify';
@@ -93,6 +93,23 @@ const OrderDetailsPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {rawOrder?.deliveryOTP && !['delivered', 'cancelled', 'returned'].includes(rawOrder.status) && (
+                    <div className="bg-[#0c831f] text-white p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-green-500/20 mb-6 border border-white/10 animate-in slide-in-from-top duration-500">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
+                                <Shield size={20} className="text-white" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/80 leading-none mb-1">Secure Delivery PIN</p>
+                                <p className="text-xs md:text-sm font-bold tracking-tight">Share with partner at doorstep</p>
+                            </div>
+                        </div>
+                        <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/20">
+                            <span className="text-xl md:text-2xl font-black tracking-[0.15em]">{rawOrder.deliveryOTP}</span>
+                        </div>
+                    </div>
+                )}
 
                 {rawOrder?.deliveryPartnerId && !['delivered', 'cancelled', 'returned'].includes(order.status) && (
                     <button

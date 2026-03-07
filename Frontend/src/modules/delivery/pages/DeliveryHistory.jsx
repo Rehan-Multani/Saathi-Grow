@@ -18,6 +18,7 @@ import useDelivery from '../hooks/useDelivery';
 
 
 const DeliveryHistory = () => {
+    const navigate = useNavigate();
     const { history, refreshOrders } = useDelivery();
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -94,9 +95,17 @@ const DeliveryHistory = () => {
     return (
         <div className="space-y-4 md:space-y-6 pb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-1 text-slate-800 dark:text-zinc-100">History</h1>
-                    <p className="text-xs md:text-sm text-slate-500 dark:text-zinc-400 font-medium tracking-tight uppercase tracking-[0.1em]">Ops Logistics & Archival</p>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-xl text-slate-400 hover:text-[#028A0F] transition-all active:scale-90 shadow-sm"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-0.5 text-slate-800 dark:text-zinc-100">History</h1>
+                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-zinc-400 font-bold tracking-tight uppercase tracking-[0.1em]">Ops Logistics & Archival</p>
+                    </div>
                 </div>
                 <button
                     onClick={handleDownloadReport}

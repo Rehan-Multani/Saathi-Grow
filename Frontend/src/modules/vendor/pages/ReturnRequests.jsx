@@ -15,7 +15,7 @@ const getVendorAuth = () => {
     } catch { return null; }
 };
 
-const API = `${API_BASE_URL}/vendor`;
+const API = `${API_BASE_URL}/vendors`;
 
 const statusColors = {
     Pending: 'bg-amber-50 text-amber-700 border-amber-100',

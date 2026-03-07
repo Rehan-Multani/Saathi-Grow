@@ -361,11 +361,13 @@ export const getProducts = async (req, res) => {
       .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo businessType');
 
-    // Store-Aware logic: Inject isDeliverable flag
+    // Store-Aware logic: Inject isDeliverable flag and specific stock info
     if (effectiveStoreId && storeType) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
         let isDeliverable = false;
+        let availableStock = 0;
+        let lowStockThreshold = 10;
 
         if (storeType === 'branch') {
           // Check if product is in stock at this branch
@@ -373,18 +375,27 @@ export const getProducts = async (req, res) => {
             const bId = bs.branchId?._id || bs.branchId;
             return bId && bId.toString() === effectiveStoreId.toString();
           });
-          if (branchStock && branchStock.stock > (branchStock.lowStockThreshold || 0)) {
-            isDeliverable = true;
+          if (branchStock) {
+            availableStock = branchStock.stock || 0;
+            lowStockThreshold = branchStock.lowStockThreshold || 10;
+            // Deliverable if stock > 0
+            if (availableStock > 0) {
+              isDeliverable = true;
+            }
           }
         } else if (storeType === 'vendor') {
           // Check if product belongs to this vendor
           const vId = pObj.vendor?._id || pObj.vendor;
           if (vId && vId.toString() === effectiveStoreId.toString()) {
-            isDeliverable = true;
+            availableStock = pObj.stock || 0;
+            lowStockThreshold = pObj.lowStockThreshold || 10;
+            if (availableStock > 0) {
+              isDeliverable = true;
+            }
           }
         }
 
-        return { ...pObj, isDeliverable };
+        return { ...pObj, isDeliverable, availableStock, lowStockThreshold };
       });
     }
 
@@ -510,23 +521,33 @@ export const searchProductsWithAI = async (req, res) => {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
         let isDeliverable = false;
+        let availableStock = 0;
+        let lowStockThreshold = 10;
 
         if (storeType === 'branch') {
           const branchStock = pObj.branchStocks?.find(bs => {
             const bId = bs.branchId?._id || bs.branchId;
             return bId && bId.toString() === effectiveStoreId.toString();
           });
-          if (branchStock && branchStock.stock > (branchStock.lowStockThreshold || 0)) {
-            isDeliverable = true;
+          if (branchStock) {
+            availableStock = branchStock.stock || 0;
+            lowStockThreshold = branchStock.lowStockThreshold || 10;
+            if (availableStock > 0) {
+              isDeliverable = true;
+            }
           }
         } else if (storeType === 'vendor') {
           const vId = pObj.vendor?._id || pObj.vendor;
           if (vId && vId.toString() === effectiveStoreId.toString()) {
-            isDeliverable = true;
+            availableStock = pObj.stock || 0;
+            lowStockThreshold = pObj.lowStockThreshold || 10;
+            if (availableStock > 0) {
+              isDeliverable = true;
+            }
           }
         }
 
-        return { ...pObj, isDeliverable };
+        return { ...pObj, isDeliverable, availableStock, lowStockThreshold };
       });
     }
 
@@ -576,21 +597,34 @@ export const getProductById = async (req, res) => {
     const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
     if (effectiveStoreId && storeType) {
       let isDeliverable = false;
+      let availableStock = 0;
+      let lowStockThreshold = 10;
+
       if (storeType === 'branch') {
         const branchStock = pObj.branchStocks?.find(bs => {
           const bId = bs.branchId?._id || bs.branchId;
           return bId && bId.toString() === effectiveStoreId.toString();
         });
-        if (branchStock && branchStock.stock > (branchStock.lowStockThreshold || 0)) {
-          isDeliverable = true;
+        if (branchStock) {
+          availableStock = branchStock.stock || 0;
+          lowStockThreshold = branchStock.lowStockThreshold || 10;
+          if (availableStock > 0) {
+            isDeliverable = true;
+          }
         }
       } else if (storeType === 'vendor') {
         const vId = pObj.vendor?._id || pObj.vendor;
         if (vId && vId.toString() === effectiveStoreId.toString()) {
-          isDeliverable = true;
+          availableStock = pObj.stock || 0;
+          lowStockThreshold = pObj.lowStockThreshold || 10;
+          if (availableStock > 0) {
+            isDeliverable = true;
+          }
         }
       }
       pObj.isDeliverable = isDeliverable;
+      pObj.availableStock = availableStock;
+      pObj.lowStockThreshold = lowStockThreshold;
     }
 
     res.json(pObj);

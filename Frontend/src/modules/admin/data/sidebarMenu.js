@@ -74,6 +74,7 @@
             { title: 'Assign Deliveries', path: '/admin/delivery/assign' },
             { title: 'Delivery Tracking', path: '/admin/delivery/tracking' },
             { title: 'Delivery Slots', path: '/admin/delivery/slots' },
+            { title: 'Cash Settlement', path: '/admin/delivery/settlement' },
         ],
     },
     {

@@ -17,7 +17,7 @@ const transactionSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ['delivery_fee', 'incentive', 'payout', 'adjustment', 'cash_collection', 'return_pickup_fee'],
+        enum: ['delivery_fee', 'incentive', 'payout', 'adjustment', 'cash_collection', 'return_pickup_fee', 'order_revenue', 'platform_commission'],
         required: true
     },
     status: {
@@ -32,7 +32,7 @@ const transactionSchema = new mongoose.Schema({
     },
     referenceModel: {
         type: String,
-        enum: ['OrderDelivery', 'VendorPayout', 'DeliveryRun']
+        enum: ['OrderDelivery', 'VendorPayout', 'DeliveryRun', 'Order', 'Vendor']
     }
 }, {
     timestamps: true

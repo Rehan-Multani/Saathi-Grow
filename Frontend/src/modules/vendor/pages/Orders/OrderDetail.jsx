@@ -9,7 +9,7 @@ const OrderDetail = () => {
     const navigate = useNavigate();
     const { orders, updateOrderStatus } = useVendor();
 
-    const order = orders.find(o => o.id === orderId);
+    const order = orders.find(o => o._id === orderId);
 
     if (!order) {
         return (
@@ -28,22 +28,24 @@ const OrderDetail = () => {
     }
 
     const statusColors = {
-        'Pending': 'text-amber-600 bg-amber-50 border-amber-200',
-        'Packing': 'text-blue-600 bg-blue-50 border-blue-200',
-        'Dispatched': 'text-indigo-600 bg-indigo-50 border-indigo-200',
-        'Delivered': 'text-green-600 bg-green-50 border-green-200'
+        'pending': 'text-amber-600 bg-amber-50 border-amber-200',
+        'confirmed': 'text-amber-600 bg-amber-50 border-amber-200',
+        'preparing': 'text-blue-600 bg-blue-50 border-blue-200',
+        'ready_for_pickup': 'text-indigo-600 bg-indigo-50 border-indigo-200',
+        'out_for_delivery': 'text-indigo-600 bg-indigo-50 border-indigo-200',
+        'delivered': 'text-green-600 bg-green-50 border-green-200',
+        'cancelled': 'text-red-600 bg-red-50 border-red-200'
     };
 
     const nextAction = (status) => {
-        if (status === 'Pending') return { label: 'Start Packing', next: 'Packing', icon: Package, color: 'bg-[#0c831f]' };
-        if (status === 'Packing') return { label: 'Mark as Dispatched', next: 'Dispatched', icon: Truck, color: 'bg-blue-600' };
-        if (status === 'Dispatched') return { label: 'Mark as Delivered', next: 'Delivered', icon: CheckCircle2, color: 'bg-green-600' };
+        if (status === 'confirmed' || status === 'pending') return { label: 'Start Packing', next: 'preparing', icon: Package, color: 'bg-[#0c831f]' };
+        if (status === 'preparing') return { label: 'Ready for Pickup', next: 'ready_for_pickup', icon: Truck, color: 'bg-blue-600' };
         return null;
     };
 
     const action = nextAction(order.status);
 
-    const statusSteps = ['Pending', 'Packing', 'Dispatched', 'Delivered'];
+    const statusSteps = ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'delivered'];
     const currentStepIndex = statusSteps.indexOf(order.status);
 
     return (
@@ -57,13 +59,13 @@ const OrderDetail = () => {
                     <ArrowLeft size={18} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-base font-bold text-gray-900">Order #{order.id}</h1>
-                    <p className="text-[10px] text-gray-500 font-medium">Placed on {order.time}</p>
+                    <h1 className="text-base font-bold text-gray-900">Order #{order.orderId}</h1>
+                    <p className="text-[10px] text-gray-500 font-medium">Placed on {formatDate(order.createdAt)}</p>
                 </div>
                 {action && (
                     <button
                         onClick={() => {
-                            updateOrderStatus(order.id, action.next);
+                            updateOrderStatus(order._id, action.next);
                             navigate('/vendor/orders');
                         }}
                         className={`px-4 py-2 ${action.color} text-white text-xs font-bold rounded-lg hover:opacity-90 flex items-center gap-2`}
@@ -92,7 +94,7 @@ const OrderDetail = () => {
                                     </div>
                                     <p className={`text-[10px] font-bold mt-2 text-center ${isCurrent ? 'text-[#0c831f]' : isCompleted ? 'text-gray-900' : 'text-gray-400'
                                         }`}>
-                                        {step}
+                                        {step.replace('_', ' ')}
                                     </p>
                                 </div>
                                 {index < statusSteps.length - 1 && (
@@ -110,19 +112,22 @@ const OrderDetail = () => {
                 <div className="lg:col-span-2 space-y-3">
                     {/* Order Items */}
                     <div className="premium-card p-3">
-                        <h2 className="text-sm font-bold text-gray-900 mb-3">Order Items ({order.items})</h2>
+                        <h2 className="text-sm font-bold text-gray-900 mb-3">Order Items ({order.items?.length || 0})</h2>
                         <div className="space-y-3">
-                            {/* Mock items - in real app, would come from order.products */}
-                            {[1, 2, 3].slice(0, order.items).map((_, idx) => (
+                            {order.items?.map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0">
-                                        <Package size={20} className="text-gray-400 m-auto mt-3" />
+                                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                                        {item.product?.image ? (
+                                            <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Package size={20} className="text-gray-400 m-auto mt-3" />
+                                        )}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-bold text-gray-900">Product Name {idx + 1}</p>
-                                        <p className="text-xs text-gray-500">Quantity: 1</p>
+                                        <p className="text-sm font-bold text-gray-900">{item.product?.name || 'Unknown Product'}</p>
+                                        <p className="text-xs text-gray-500">Qty: {item.quantity} × {formatCurrency(item.price)}</p>
                                     </div>
-                                    <p className="text-sm font-bold text-gray-900">₹{(order.total / order.items).toFixed(2)}</p>
+                                    <p className="text-sm font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
                                 </div>
                             ))}
                         </div>
@@ -135,12 +140,12 @@ const OrderDetail = () => {
                             Delivery Address
                         </h2>
                         <div className="bg-gray-50 p-3 rounded-lg">
-                            <p className="text-sm font-bold text-gray-900">{order.customer}</p>
-                            <p className="text-xs text-gray-600 mt-1">123 Sample Street, Near Landmark</p>
-                            <p className="text-xs text-gray-600">Delhi-NCR, 110001</p>
+                            <p className="text-sm font-bold text-gray-900">{order.shippingAddress?.name || order.user?.name}</p>
+                            <p className="text-xs text-gray-600 mt-1">{order.shippingAddress?.street}</p>
+                            <p className="text-xs text-gray-600">{order.shippingAddress?.city}, {order.shippingAddress?.zipCode}</p>
                             <p className="text-xs text-gray-600 mt-2 flex items-center gap-2">
                                 <Phone size={12} />
-                                +91 98765 43210
+                                {order.shippingAddress?.phone || order.user?.phone}
                             </p>
                         </div>
                     </div>
@@ -154,31 +159,31 @@ const OrderDetail = () => {
                         <div className="space-y-2">
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-600">Order ID</span>
-                                <span className="font-bold text-gray-900">#{order.id}</span>
+                                <span className="font-bold text-gray-900">#{order.orderId}</span>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-600">Date</span>
-                                <span className="font-bold text-gray-900">{order.time}</span>
+                                <span className="font-bold text-gray-900">{formatDate(order.createdAt)}</span>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-600">Status</span>
                                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${statusColors[order.status]}`}>
-                                    {order.status}
+                                    {order.status?.replace('_', ' ')}
                                 </span>
                             </div>
                             <div className="border-t border-gray-100 my-2" />
                             <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">Subtotal</span>
-                                <span className="font-bold text-gray-900">{formatCurrency(order.total * 0.9)}</span>
+                                <span className="text-gray-600">Items Total</span>
+                                <span className="font-bold text-gray-900">{formatCurrency(order.billDetails?.itemsTotal || order.totalAmount)}</span>
                             </div>
                             <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">Tax (10%)</span>
-                                <span className="font-bold text-gray-900">{formatCurrency(order.total * 0.1)}</span>
+                                <span className="text-gray-600">Delivery Fee</span>
+                                <span className="font-bold text-gray-900">{formatCurrency(order.billDetails?.deliveryFee || 0)}</span>
                             </div>
                             <div className="border-t border-gray-100 my-2" />
                             <div className="flex justify-between text-sm">
-                                <span className="font-bold text-gray-900">Total</span>
-                                <span className="font-bold text-[#0c831f]">{formatCurrency(order.total)}</span>
+                                <span className="font-bold text-gray-900">Total Amount</span>
+                                <span className="font-bold text-[#0c831f]">{formatCurrency(order.totalAmount)}</span>
                             </div>
                         </div>
                     </div>
@@ -190,14 +195,14 @@ const OrderDetail = () => {
                             Customer Details
                         </h2>
                         <div className="space-y-2">
-                            <p className="text-sm font-bold text-gray-900">{order.customer}</p>
+                            <p className="text-sm font-bold text-gray-900">{order.user?.name}</p>
                             <p className="text-xs text-gray-600 flex items-center gap-2">
                                 <Mail size={12} />
-                                customer@example.com
+                                {order.user?.email || 'N/A'}
                             </p>
                             <p className="text-xs text-gray-600 flex items-center gap-2">
                                 <Phone size={12} />
-                                +91 98765 43210
+                                {order.user?.phone || 'N/A'}
                             </p>
                         </div>
                     </div>
@@ -209,8 +214,8 @@ const OrderDetail = () => {
                             Payment
                         </h2>
                         <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                            <p className="text-xs font-bold text-green-700">Payment Received</p>
-                            <p className="text-xs text-green-600 mt-1">Cash on Delivery</p>
+                            <p className="text-xs font-bold text-green-700">{order.paymentStatus === 'paid' ? 'Payment Received' : 'Payment Pending'}</p>
+                            <p className="text-xs text-green-600 mt-1">{order.paymentMethod?.replace('_', ' ').toUpperCase()}</p>
                         </div>
                     </div>
                 </div>
