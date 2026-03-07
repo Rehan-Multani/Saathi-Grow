@@ -166,7 +166,7 @@ const LegalManagement = () => {
                           <FileText size={20} />
                         </div>
                         <div>
-                          <div className="fw-bold text-dark">{page.title}</div>
+                          <div className="fw-black text-dark tracking-tight" style={{ fontSize: '14px' }}>{page.title}</div>
                           <div className="text-muted font-monospace" style={{ fontSize: '10px' }}>/{page.slug}</div>
                         </div>
                       </div>

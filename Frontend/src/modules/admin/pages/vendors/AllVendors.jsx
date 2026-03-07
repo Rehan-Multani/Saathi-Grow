@@ -196,18 +196,37 @@ const AllVendors = () => {
                                                 >
                                                     <Trash2 size={16} />
                                                 </Button>
-                                                <Dropdown align="end">
+                                                <Dropdown align="end" drop="down">
                                                     <Dropdown.Toggle variant="light" size="sm" className="text-muted border shadow-none p-1 no-caret btn-icon-soft">
                                                         <MoreHorizontal size={18} />
                                                     </Dropdown.Toggle>
-                                                    <Dropdown.Menu className="border shadow-sm p-2">
-                                                        <Dropdown.Item onClick={() => handleViewDetails(v)} className="rounded">View Info</Dropdown.Item>
-                                                        <Dropdown.Divider />
+                                                    <Dropdown.Menu
+                                                        className="border-0 shadow-lg p-2 rounded-xl"
+                                                        popperConfig={{
+                                                            strategy: 'fixed',
+                                                            modifiers: [
+                                                                {
+                                                                    name: 'offset',
+                                                                    options: {
+                                                                        offset: [0, 8],
+                                                                    },
+                                                                },
+                                                            ],
+                                                        }}
+                                                    >
+                                                        <Dropdown.Item onClick={() => handleViewDetails(v)} className="rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
+                                                            View Info
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Divider className="my-1 opacity-50" />
                                                         {v.status !== 'Active' && (
-                                                            <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Approval')} className="text-success rounded"><CheckCircle size={16} className="me-2" /> Approve</Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Approval')} className="text-success rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
+                                                                <CheckCircle size={16} /> Approve
+                                                            </Dropdown.Item>
                                                         )}
                                                         {v.status !== 'Inactive' && (
-                                                            <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Block')} className="text-danger rounded"><Ban size={16} className="me-2" /> Block</Dropdown.Item>
+                                                            <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Block')} className="text-danger rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
+                                                                <Ban size={16} /> Block
+                                                            </Dropdown.Item>
                                                         )}
                                                     </Dropdown.Menu>
                                                 </Dropdown>
