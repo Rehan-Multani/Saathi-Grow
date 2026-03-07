@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw, Shield, Tag } from 'lucide-react';
+import logo from '../../../assets/logo.png';
 import { useVendor } from '../contexts/VendorContext';
 
 const VendorSidebar = () => {
@@ -69,12 +70,9 @@ const VendorSidebar = () => {
 
                 {/* Brand */}
                 <div className="h-16 flex items-center px-6 pl-14 md:pl-6 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#0c831f] rounded-lg flex items-center justify-center shadow-sm">
-                            <span className="text-[#f7cb15] font-extrabold text-xl">S</span>
-                        </div>
-                        <span className="text-xl font-extrabold text-[#0c831f] tracking-tight">sathiGro</span>
-                    </div>
+                    <NavLink to="/vendor/dashboard" className="flex items-center gap-3">
+                        <img src={logo} alt="SathiGro" className="h-9 w-auto" />
+                    </NavLink>
                 </div>
 
                 {/* Nav */}

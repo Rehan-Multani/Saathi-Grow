@@ -1,9 +1,9 @@
 ﻿import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
 import { formatCurrency } from '../../utils/formatDate';
-import { Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Badge, OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
 
 const ProductList = () => {
     const { products } = useVendor();
@@ -13,6 +13,11 @@ const ProductList = () => {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [stockFilter, setStockFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
 
     const categories = ['all', ...new Set(products.map(p => typeof p.category === 'object' ? p.category.name : p.category))];
 
@@ -37,6 +42,28 @@ const ProductList = () => {
         return matchesSearch && matchesCategory && matchesStock && matchesStatus;
     });
 
+    // Pagination Logic
+    const totalItems = filteredProducts.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const paginatedProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleFilterChange = (setter, value) => {
+        setter(value);
+        setCurrentPage(1);
+    };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        window.scrollTo(0, 0);
+    };
+
     const getStatusBadge = (status) => {
         switch (status) {
             case 'Pending Approval':
@@ -51,6 +78,58 @@ const ProductList = () => {
                 return <Badge bg="info" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]">ACTIVE</Badge>;
         }
     };
+
+    const PaginationUI = () => (
+        totalItems > 0 && (
+            <div className="px-4 py-3 border-t bg-gray-50 flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                <div className="text-[11px] text-gray-500 font-medium">
+                    Showing <span className="text-dark font-bold">{indexOfFirstItem + 1}</span> to <span className="text-dark font-bold">{Math.min(indexOfLastItem, totalItems)}</span> of <span className="text-dark font-bold">{totalItems}</span> results
+                </div>
+                <div className="d-flex align-items-center gap-1">
+                    <Button
+                        variant="white" size="sm"
+                        className="p-1 border shadow-xs hover:bg-white disabled:opacity-50"
+                        disabled={currentPage === 1}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                        <ChevronLeft size={16} />
+                    </Button>
+
+                    {[...Array(totalPages)].map((_, i) => {
+                        const p = i + 1;
+                        if (totalPages > 7) {
+                            if (p !== 1 && p !== totalPages && Math.abs(currentPage - p) > 1) {
+                                if (p === 2 && currentPage > 3) return <span key="dots1" className="text-muted px-1 text-xs">...</span>;
+                                if (p === totalPages - 1 && currentPage < totalPages - 2) return <span key="dots2" className="text-muted px-1 text-xs">...</span>;
+                                return null;
+                            }
+                        }
+
+                        return (
+                            <Button
+                                key={p}
+                                variant={currentPage === p ? "success" : "white"}
+                                size="sm"
+                                className={`w-8 h-8 p-0 border shadow-xs font-bold text-[11px] ${currentPage === p ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-white hover:bg-gray-50'}`}
+                                onClick={() => handlePageChange(p)}
+                            >
+                                {p}
+                            </Button>
+                        );
+                    })}
+
+                    <Button
+                        variant="white" size="sm"
+                        className="p-1 border shadow-xs hover:bg-white disabled:opacity-50"
+                        disabled={currentPage === totalPages}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                        <ChevronRight size={16} />
+                    </Button>
+                </div>
+            </div>
+        )
+    );
 
     return (
         <div className="space-y-4 lg:space-y-6 relative pb-20 md:pb-0 p-3 bg-white min-vh-100">
@@ -77,14 +156,14 @@ const ProductList = () => {
                             type="text"
                             placeholder="Search by name, category or SKU..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={handleSearchChange}
                             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:border-[#0c831f] focus:outline-none text-xs shadow-sm"
                         />
                     </div>
                     <div className="flex gap-2">
                         <select
                             value={categoryFilter}
-                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            onChange={(e) => handleFilterChange(setCategoryFilter, e.target.value)}
                             className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-bold bg-white outline-none focus:border-[#0c831f]"
                         >
                             <option value="all">All Categories</option>
@@ -94,7 +173,7 @@ const ProductList = () => {
                         </select>
                         <select
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
+                            onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
                             className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-bold bg-white outline-none focus:border-[#0c831f]"
                         >
                             <option value="all">All Status</option>
@@ -120,7 +199,7 @@ const ProductList = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {filteredProducts.map((product) => (
+                        {paginatedProducts.map((product) => (
                             <tr key={product._id} className="hover:bg-gray-50/50 transition-colors">
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-3">
@@ -169,11 +248,12 @@ const ProductList = () => {
                         ))}
                     </tbody>
                 </table>
+                <PaginationUI />
             </div>
 
             {/* Mobile View */}
             <div className="md:hidden space-y-3">
-                {filteredProducts.map((product) => (
+                {paginatedProducts.map((product) => (
                     <div key={product._id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-3">
                         <div className="w-20 h-20 bg-white rounded-lg border border-gray-100 p-1 flex-shrink-0">
                             <img src={product.image} alt="" className="w-full h-full object-contain" />
@@ -203,9 +283,10 @@ const ProductList = () => {
                         </div>
                     </div>
                 ))}
+                <PaginationUI />
             </div>
 
-            {filteredProducts.length === 0 && (
+            {totalItems === 0 && (
                 <div className="text-center py-20 bg-light rounded-3xl border border-dashed border-gray-300 mx-3">
                     <Search size={40} className="mx-auto text-gray-300 mb-3" />
                     <h6 className="text-muted fw-bold">No Products Found</h6>

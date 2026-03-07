@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
-import { Search, Plus, Edit, Trash2, Tag, Download } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import BrandEditModal from '../../components/Brands/BrandEditModal'; // Using vendor specific modal
@@ -15,6 +15,11 @@ const AllBrands = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState(null);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+
 
   const fetchBrands = useCallback(async () => {
     setLoading(true);
@@ -37,6 +42,23 @@ const AllBrands = () => {
     b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     b.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination Logic
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedData = filtered.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
 
   const handleDelete = async (id) => {
     const result = await showDeleteConfirmation('Delete Brand', 'Are you sure you want to delete this brand? This action cannot be undone.');
@@ -82,7 +104,7 @@ const AllBrands = () => {
                 placeholder="Search by name or category..."
                 className="border-start-0 ps-0 shadow-none text-xs"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
               />
             </InputGroup>
             <div className="d-flex gap-2">
@@ -102,75 +124,129 @@ const AllBrands = () => {
               <Spinner animation="grow" variant="success" />
               <p className="mt-2 text-muted small">Loading brands...</p>
             </div>
-          ) : filtered.length > 0 ? (
-            <Table hover responsive className="mb-0 align-middle">
-              <thead className="bg-[#f8f9fa] border-b">
-                <tr>
-                  <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase">Brand</th>
-                  <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase">Category</th>
-                  <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase">Type</th>
-                  <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((b) => {
-                  const isOwnBrand = b.vendor && b.vendor === vendor._id;
-                  return (
-                    <tr key={b._id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="d-flex align-items-center gap-3">
-                          <div className="w-10 h-10 rounded bg-white border border-gray-100 p-1 flex-shrink-0 shadow-xs">
-                            {b.logo ? (
-                              <img src={b.logo} alt={b.name} className="w-full h-full object-contain" />
+          ) : paginatedData.length > 0 ? (
+            <>
+              <Table hover responsive className="mb-0 align-middle">
+                <thead className="bg-[#f8f9fa] border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase">Brand</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase">Category</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase">Type</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {paginatedData.map((b) => {
+                    const isOwnBrand = b.vendor && b.vendor === vendor._id;
+                    return (
+                      <tr key={b._id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="d-flex align-items-center gap-3">
+                            <div className="w-10 h-10 rounded bg-white border border-gray-100 p-1 flex-shrink-0 shadow-xs">
+                              {b.logo ? (
+                                <img src={b.logo} alt={b.name} className="w-full h-full object-contain" />
+                              ) : (
+                                <div className="w-full h-full d-flex align-items-center justify-content-center text-gray-300">
+                                  <Tag size={16} />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-dark">{b.name}</div>
+                              <div className="text-[10px] text-muted truncate max-w-[200px]">{b.description || 'No description'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge bg="light" className="text-muted border font-semibold text-[9px] uppercase">
+                            {b.category}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge bg={isOwnBrand ? "success" : "secondary"} className="text-[8px] font-bold px-2 py-1">
+                            {isOwnBrand ? "PRIVATE" : "GLOBAL"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-end">
+                          <div className="d-flex justify-content-end gap-2">
+                            {isOwnBrand ? (
+                              <>
+                                <Button
+                                  variant="light" size="sm" className="btn-icon text-[#0c831f] border border-[#0c831f]/10"
+                                  onClick={() => handleEdit(b)}
+                                >
+                                  <Edit size={14} />
+                                </Button>
+                                <Button
+                                  variant="light" size="sm" className="btn-icon text-danger border border-red-50"
+                                  onClick={() => handleDelete(b._id)}
+                                >
+                                  <Trash2 size={14} />
+                                </Button>
+                              </>
                             ) : (
-                              <div className="w-full h-full d-flex align-items-center justify-content-center text-gray-300">
-                                <Tag size={16} />
-                              </div>
+                              <span className="text-[10px] text-muted italic font-medium">Read-Only</span>
                             )}
                           </div>
-                          <div>
-                            <div className="text-xs font-bold text-dark">{b.name}</div>
-                            <div className="text-[10px] text-muted truncate max-w-[200px]">{b.description || 'No description'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge bg="light" className="text-muted border font-semibold text-[9px] uppercase">
-                          {b.category}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge bg={isOwnBrand ? "success" : "secondary"} className="text-[8px] font-bold px-2 py-1">
-                          {isOwnBrand ? "PRIVATE" : "GLOBAL"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-end">
-                        <div className="d-flex justify-content-end gap-2">
-                          {isOwnBrand ? (
-                            <>
-                              <Button
-                                variant="light" size="sm" className="btn-icon text-[#0c831f] border border-[#0c831f]/10"
-                                onClick={() => handleEdit(b)}
-                              >
-                                <Edit size={14} />
-                              </Button>
-                              <Button
-                                variant="light" size="sm" className="btn-icon text-danger border border-red-50"
-                                onClick={() => handleDelete(b._id)}
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            </>
-                          ) : (
-                            <span className="text-[10px] text-muted italic font-medium">Read-Only</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+
+              {/* Pagination UI */}
+              {totalItems > 0 && (
+                <div className="px-4 py-3 border-t bg-gray-50 flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                  <div className="text-[11px] text-gray-500 font-medium">
+                    Showing <span className="text-dark font-bold">{indexOfFirstItem + 1}</span> to <span className="text-dark font-bold">{Math.min(indexOfLastItem, totalItems)}</span> of <span className="text-dark font-bold">{totalItems}</span> results
+                  </div>
+                  <div className="d-flex align-items-center gap-1">
+                    <Button
+                      variant="white" size="sm"
+                      className="p-1 border shadow-xs hover:bg-white disabled:opacity-50"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+
+                    {[...Array(totalPages)].map((_, i) => {
+                      const p = i + 1;
+                      // Only show 5 pages nearby if many pages
+                      if (totalPages > 7) {
+                        if (p !== 1 && p !== totalPages && Math.abs(currentPage - p) > 1) {
+                          if (p === 2 && currentPage > 3) return <span key="dots1" className="text-muted px-1 text-xs">...</span>;
+                          if (p === totalPages - 1 && currentPage < totalPages - 2) return <span key="dots2" className="text-muted px-1 text-xs">...</span>;
+                          return null;
+                        }
+                      }
+
+                      return (
+                        <Button
+                          key={p}
+                          variant={currentPage === p ? "success" : "white"}
+                          size="sm"
+                          className={`w-8 h-8 p-0 border shadow-xs font-bold text-[11px] ${currentPage === p ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-white hover:bg-gray-50'}`}
+                          onClick={() => handlePageChange(p)}
+                        >
+                          {p}
+                        </Button>
+                      );
+                    })}
+
+                    <Button
+                      variant="white" size="sm"
+                      className="p-1 border shadow-xs hover:bg-white disabled:opacity-50"
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-10">
               <Tag size={40} className="text-muted mb-3 opacity-20" />
