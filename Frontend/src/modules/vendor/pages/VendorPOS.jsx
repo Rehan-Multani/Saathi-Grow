@@ -24,8 +24,8 @@ import { createPOSOrder, searchProductsPOS } from '../../admin/api/posApi';
 import { getPublicSettings } from '../../admin/api/settingApi';
 
 const VendorPOS = () => {
-  const { vendorUser } = useVendor();
-  const storeId = vendorUser?._id;
+  const { vendor } = useVendor();
+  const storeId = vendor?._id;
   const storeType = 'vendor';
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +62,7 @@ const VendorPOS = () => {
     if (!storeId && storeType === 'vendor') return;
     setLoading(true);
     try {
-      const data = await searchProductsPOS(query, { storeId, storeType }, vendorUser?.token);
+      const data = await searchProductsPOS(query, { storeId, storeType }, vendor?.token);
       setProducts((data.products || []).map(p => ({
         ...p,
         price: p.basePrice || 0,
@@ -116,7 +116,7 @@ const VendorPOS = () => {
         setPaymentLink('https://saathigro.com/pay');
         setShowQRModal(true); setIsProcessing(false); return;
       }
-      await createPOSOrder({ items: cart, customerDetails, paymentMethod, storeId, storeType }, vendorUser?.token);
+      await createPOSOrder({ items: cart, customerDetails, paymentMethod, storeId, storeType }, vendor?.token);
       Swal.fire('Success', 'Inventory updated and bill sent.', 'success');
       setCart([]); setCustomerDetails({ name: '', email: '', phone: '' }); fetchProducts();
     } catch (error) {
@@ -134,7 +134,7 @@ const VendorPOS = () => {
           </div>
           <div>
             <h2 className="text-lg font-black uppercase tracking-tight leading-none">Vendor POS Terminal</h2>
-            <p className="text-[10px] font-bold text-white/70 mt-1 uppercase tracking-widest">{vendorUser?.storeName || 'Active Store'}</p>
+            <p className="text-[10px] font-bold text-white/70 mt-1 uppercase tracking-widest">{vendor?.storeName || 'Active Store'}</p>
           </div>
         </div>
 
