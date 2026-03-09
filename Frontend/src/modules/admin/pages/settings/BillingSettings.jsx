@@ -23,7 +23,10 @@ const BillingSettings = () => {
         platformCommissionRate: 12,
         maxDeliveryRadius: 20,
         platformWalletBalance: 0,
-        autoInvoicingEnabled: true
+        autoInvoicingEnabled: true,
+        supportPhone: '',
+        whatsappNumber: '',
+        supportEmail: ''
     });
 
     useEffect(() => {
@@ -33,7 +36,7 @@ const BillingSettings = () => {
     const fetchSettings = async () => {
         try {
             const data = await settingApi.getAdminSettings(token);
-            setSettings(data);
+            setSettings(prev => ({ ...prev, ...data }));
         } catch (error) {
             toast.error('Failed to load billing configuration.');
         } finally {
@@ -268,6 +271,65 @@ const BillingSettings = () => {
                                 </div>
                             </div>
                             <p className="text-center text-[8px] text-gray-300 font-bold uppercase tracking-widest mt-3 italic">Applied to order value before taxes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Support & Contact Information Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-gradient-to-r from-blue-50 to-white px-4 md:px-7 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner">
+                                <ShieldCheck size={16} />
+                            </div>
+                            <h3 className="text-base font-black text-gray-900 tracking-tight">Support & Contact Information</h3>
+                        </div>
+                        <span className="bg-blue-100 text-blue-600 text-[8px] font-black px-2 py-0.5 rounded-md uppercase">Help Center</span>
+                    </div>
+
+                    <div className="p-4 md:p-7 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="group">
+                                <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-0.5">Support Phone</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="supportPhone"
+                                        placeholder="+91 911 110 5005"
+                                        value={settings.supportPhone}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3.5 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-0.5">WhatsApp Number (Ex: 919876543210)</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="whatsappNumber"
+                                        placeholder="919111105005"
+                                        value={settings.whatsappNumber}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3.5 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="group md:col-span-2">
+                                <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-0.5">Support Email</label>
+                                <div className="relative">
+                                    <input
+                                        type="email"
+                                        name="supportEmail"
+                                        placeholder="support@sathigro.com"
+                                        value={settings.supportEmail}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3.5 py-2 bg-gray-50/50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800 focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

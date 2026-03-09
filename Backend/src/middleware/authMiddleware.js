@@ -165,3 +165,29 @@ export const protectStoreManager = async (req, res, next) => {
   }
   if (!token) res.status(401).json({ message: 'Authentication required' });
 };
+// Optional Store Manager Protection - Populates req.admin or req.vendor if token exists
+export const optionalProtectStoreManager = async (req, res, next) => {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Try Admin
+      const admin = await Admin.findById(decoded.id);
+      if (admin) {
+        req.admin = admin;
+        return next();
+      }
+
+      // Try Vendor
+      const vendor = await Vendor.findById(decoded.id);
+      if (vendor) {
+        req.vendor = vendor;
+        return next();
+      }
+    } catch (error) {
+      // Silently fail
+    }
+  }
+  next();
+};

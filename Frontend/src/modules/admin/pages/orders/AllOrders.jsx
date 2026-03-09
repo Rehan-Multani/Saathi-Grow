@@ -1,7 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Eye, Filter, Download, Store, Upload, Clock } from 'lucide-react';
 import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, deleteOrder, updateOrderStatus } from '../../api/orderApi';
+import { getDeliverySlots } from '../../api/deliverySlotApi';
 import { Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
@@ -43,6 +45,18 @@ const AllOrders = () => {
     const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [deliverySlotFilter, setDeliverySlotFilter] = useState('');
+    const [orderSourceFilter, setOrderSourceFilter] = useState('');
+    const [deliverySlots, setDeliverySlots] = useState([]);
+    const [searchParams] = useSearchParams();
+
+    useEffect(() => {
+        const source = searchParams.get('source');
+        if (source) {
+            setOrderSourceFilter(source);
+            setPage(1);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -51,6 +65,18 @@ const AllOrders = () => {
         }, 500);
         return () => clearTimeout(timer);
     }, [searchTerm]);
+
+    useEffect(() => {
+        const fetchSlots = async () => {
+            try {
+                const data = await getDeliverySlots();
+                setDeliverySlots(data);
+            } catch (error) {
+                console.error('Failed to fetch delivery slots:', error);
+            }
+        };
+        fetchSlots();
+    }, []);
 
     const fetchOrders = async () => {
         try {
@@ -63,7 +89,10 @@ const AllOrders = () => {
                 paymentMethod: paymentMethodFilter,
                 paymentStatus: paymentStatusFilter,
                 startDate,
-                endDate
+                endDate,
+                orderSource: orderSourceFilter,
+                ...(deliverySlotFilter && deliverySlotFilter !== 'immediate' ? { deliverySlotId: deliverySlotFilter } : {}),
+                ...(deliverySlotFilter === 'immediate' ? { isImmediate: 'true' } : {})
             };
             const data = await getAllOrdersAdmin(params);
             if (data && data.orders) {
@@ -84,7 +113,7 @@ const AllOrders = () => {
 
     useEffect(() => {
         fetchOrders();
-    }, [page, limit, debouncedSearch, statusFilter, paymentMethodFilter, paymentStatusFilter, startDate, endDate]);
+    }, [page, limit, debouncedSearch, statusFilter, paymentMethodFilter, paymentStatusFilter, startDate, endDate, deliverySlotFilter, orderSourceFilter]);
 
     const handleFilterChange = (setter) => (e) => {
         setter(e.target.value);
@@ -98,11 +127,13 @@ const AllOrders = () => {
         setStartDate('');
         setEndDate('');
         setSearchTerm('');
+        setDeliverySlotFilter('');
+        setOrderSourceFilter('');
         setPage(1);
         setShowFilterMenu(false);
     };
 
-    const activeFiltersCount = [statusFilter, paymentMethodFilter, paymentStatusFilter, startDate, endDate].filter(Boolean).length;
+    const activeFiltersCount = [statusFilter, paymentMethodFilter, paymentStatusFilter, startDate, endDate, deliverySlotFilter, orderSourceFilter].filter(Boolean).length;
 
     const handleShowDetails = (order) => {
         setSelectedOrder(order);
@@ -247,6 +278,34 @@ const AllOrders = () => {
                                             </div>
                                         </div>
 
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-widest">Order Source</label>
+                                            <select
+                                                className="w-full bg-gray-50 border-gray-100 rounded-xl py-2 px-3 text-sm focus:ring-violet-500 font-medium"
+                                                value={orderSourceFilter}
+                                                onChange={handleFilterChange(setOrderSourceFilter)}
+                                            >
+                                                <option value="">All Sources</option>
+                                                <option value="online">Online (App/Web)</option>
+                                                <option value="pos">POS (Walk-in)</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-widest">Delivery Slot</label>
+                                            <select
+                                                className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-violet-500 block w-full p-2 outline-none"
+                                                value={deliverySlotFilter}
+                                                onChange={handleFilterChange(setDeliverySlotFilter)}
+                                            >
+                                                <option value="">All Slots</option>
+                                                <option value="immediate">Immediate Delivery (ASAP)</option>
+                                                {deliverySlots.map(slot => (
+                                                    <option key={slot._id} value={slot._id}>{slot.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
                                     </div>
                                     <div className="mt-5">
                                         <button onClick={() => setShowFilterMenu(false)} className="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2 rounded-lg text-sm transition-colors">Apply Filters</button>
@@ -301,9 +360,13 @@ const AllOrders = () => {
                                     </td>
                                     <td className="px-6 py-4 text-gray-500 text-sm">
                                         <div>{new Date(order.createdAt).toLocaleDateString()}</div>
-                                        {order.deliverySlot && (
+                                        {order.deliverySlot ? (
                                             <div className="text-[10px] font-black text-violet-600 uppercase tracking-tighter mt-0.5">
                                                 Slot: {order.deliverySlot}
+                                            </div>
+                                        ) : order.isImmediate && (
+                                            <div className="text-[10px] font-black text-violet-600 uppercase tracking-tighter mt-0.5">
+                                                Slot: IMMEDIATE
                                             </div>
                                         )}
                                     </td>

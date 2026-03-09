@@ -13,6 +13,7 @@ import StaffManagement from '../../store-manager/StaffManagement';
 import AllProducts from '../../admin/pages/products/AllProducts';
 import { StaffProfile } from '../../../components/ProfileSettings';
 import LegalSupport from '../pages/LegalSupport';
+import StaffPOS from '../pages/StaffPOS';
 
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
@@ -40,6 +41,14 @@ const ProtectedStaffRoute = () => {
     return <Outlet />;
 };
 
+const StaffPOSWrapper = () => {
+    const { staffUser } = useStaffAuth();
+    if (!staffUser?.permissions?.includes('MANAGE_POS_BILLING')) {
+        return <Navigate to="/staff/dashboard" replace />;
+    }
+    return <StaffPOS />;
+};
+
 const StaffRoutes = () => {
     return (
         <StaffAuthProvider>
@@ -52,7 +61,7 @@ const StaffRoutes = () => {
                     <Route element={<StaffLayout />}>
                         <Route path="/" element={<Navigate to="dashboard" replace />} />
                         <Route path="dashboard" element={<StaffDashboard />} />
-
+                        <Route path="pos-billing" element={<StaffPOSWrapper />} />
                         <Route path="orders/active" element={<StaffOrders />} />
                         <Route path="orders/returns" element={<StaffReturns />} />
                         <Route path="inventory" element={<StaffInventory />} />

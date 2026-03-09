@@ -6,6 +6,12 @@
         permission: 'VIEW_DASHBOARD'
     },
     {
+        title: 'POS Billing',
+        path: '/staff/pos-billing',
+        icon: 'Zap',
+        permission: 'MANAGE_POS_BILLING'
+    },
+    {
         title: 'Orders',
         icon: 'ShoppingCart',
         permission: 'VIEW_ORDERS',

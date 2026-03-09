@@ -72,7 +72,7 @@ const validateSlotAvailability = async (deliverySlotId, isImmediate) => {
   return true;
 };
 
-const computeBillDetails = async (items, storeInfo = null) => {
+export const computeBillDetails = async (items, storeInfo = null) => {
   let subTotal = 0;
 
   // Validate each item against the actual database to prevent frontend price manipulation
@@ -258,7 +258,7 @@ export const verifyRazorpayPayment = async (req, res) => {
 };
 
 // Unified Stock Helpers for Branch & Vendor
-const decrementStock = async (order) => {
+export const decrementStock = async (order) => {
   const { branchId, vendor, items } = order;
   console.log(`[STOCK-DEBUG] Starting decrement for Order: ${order.orderId}, Source: ${branchId ? 'Branch ' + branchId : 'Vendor ' + vendor}`);
 
@@ -322,7 +322,7 @@ const decrementStock = async (order) => {
   }
 };
 
-const incrementStock = async (order) => {
+export const incrementStock = async (order) => {
   const { branchId, vendor, items } = order;
   for (const item of items) {
     try {
@@ -893,7 +893,10 @@ export const getAllOrdersAdmin = async (req, res) => {
       paymentStatus,
       startDate,
       endDate,
-      branchId
+      branchId,
+      deliverySlotId,
+      isImmediate,
+      orderSource
     } = req.query;
 
     let query = {};
@@ -907,6 +910,15 @@ export const getAllOrdersAdmin = async (req, res) => {
     } else if (branchId) {
       // Super Admin filtering by branch
       query.branchId = branchId;
+    }
+
+    if (deliverySlotId && deliverySlotId !== '') query.deliverySlotId = deliverySlotId;
+    if (isImmediate !== undefined && isImmediate !== '') {
+      query.isImmediate = isImmediate === 'true';
+    }
+
+    if (orderSource && orderSource !== '') {
+      query.orderSource = orderSource;
     }
 
     // Search logic

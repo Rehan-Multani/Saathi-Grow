@@ -1,26 +1,43 @@
-﻿import React, { useState, useMemo } from 'react';
-import { Card, Table, Button, Form, InputGroup, Accordion, Badge } from 'react-bootstrap';
+﻿import React, { useState, useMemo, useEffect } from 'react';
+import { Card, Table, Button, Form, InputGroup, Accordion, Badge, Spinner } from 'react-bootstrap';
 import { Search, Plus, Edit, Trash2, HelpCircle, ChevronRight } from 'lucide-react';
-import { showDeleteConfirmation, showSuccessAlert } from '../../../../common/utils/alertUtils';
+import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 
 import FAQModal from '../../components/support/FAQModal';
-
-const FAQS_MOCK = [
-    { id: 1, question: 'What is the refund policy?', answer: 'Customers can request a refund within 30 days of purchase upon returning the item.', category: 'Orders', status: 'Published' },
-    { id: 2, question: 'How do I change my delivery address?', answer: 'You can update your delivery address in your profile settings or during checkout.', category: 'Account', status: 'Published' },
-    { id: 3, question: 'Do you offer same-day delivery?', answer: 'Yes, we offer same-day delivery in select areas for orders placed before 2 PM.', category: 'Shipping', status: 'Published' },
-];
+import { fetchFAQs, createFAQ, updateFAQ, deleteFAQ } from '../../api/faqApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 
 const FAQs = () => {
+    const { adminUser } = useAdminAuth();
+    const token = adminUser?.token;
+    const [faqs, setFaqs] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [selectedFAQ, setSelectedFAQ] = useState(null);
     const [activeKeys, setActiveKeys] = useState([]);
 
-    const filtered = useMemo(() => FAQS_MOCK.filter(f =>
+    const loadFAQs = async () => {
+        if (!token) return;
+        try {
+            setLoading(true);
+            const data = await fetchFAQs(token);
+            setFaqs(data);
+        } catch (err) {
+            showErrorAlert('Error', err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadFAQs();
+    }, [token]);
+
+    const filtered = useMemo(() => faqs.filter(f =>
         f.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
         f.answer.toLowerCase().includes(searchTerm.toLowerCase())
-    ), [searchTerm]);
+    ), [searchTerm, faqs]);
 
     const handleAdd = () => {
         setSelectedFAQ(null);
@@ -33,17 +50,32 @@ const FAQs = () => {
     };
 
     const handleSave = async (faqData) => {
-        console.log('Saving FAQ:', faqData);
-        const title = selectedFAQ ? 'FAQ Updated!' : 'FAQ Added!';
-        const message = selectedFAQ ? 'The FAQ has been successfully updated.' : 'New FAQ has been added successfully.';
-        await showSuccessAlert(title, message);
+        try {
+            if (selectedFAQ) {
+                await updateFAQ(token, selectedFAQ._id, faqData);
+            } else {
+                await createFAQ(token, faqData);
+            }
+            setShowModal(false);
+            loadFAQs();
+            const title = selectedFAQ ? 'FAQ Updated!' : 'FAQ Added!';
+            const message = selectedFAQ ? 'The FAQ has been successfully updated.' : 'New FAQ has been added successfully.';
+            await showSuccessAlert(title, message);
+        } catch (err) {
+            showErrorAlert('Error', err.message);
+        }
     };
 
     const handleDelete = async (id) => {
         const result = await showDeleteConfirmation('Delete FAQ', 'Are you sure you want to delete this FAQ? It will be removed from the help center.');
         if (result.isConfirmed) {
-            // API call would go here
-            await showSuccessAlert('Deleted!', 'FAQ has been deleted.');
+            try {
+                await deleteFAQ(token, id);
+                loadFAQs();
+                await showSuccessAlert('Deleted!', 'FAQ has been deleted.');
+            } catch (err) {
+                showErrorAlert('Error', err.message);
+            }
         }
     };
 
@@ -87,25 +119,25 @@ const FAQs = () => {
                     >
                         {filtered.length > 0 ? filtered.map((faq) => (
                             <Accordion.Item
-                                eventKey={faq.id.toString()}
-                                key={faq.id}
+                                eventKey={faq._id.toString()}
+                                key={faq._id}
                                 className="border-0 bg-white rounded-2xl mb-3 overflow-hidden border border-gray-100"
                             >
                                 <Accordion.Header className="faq-custom-header">
                                     <div className="d-flex justify-content-between w-100 me-3 align-items-center py-1">
                                         <div className="d-flex align-items-center gap-3">
-                                            <div className={`p-2 rounded-xl transition-all ${activeKeys.includes(faq.id.toString()) ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-gray-50 text-blue-600'}`}>
+                                            <div className={`p-2 rounded-xl transition-all ${activeKeys.includes(faq._id.toString()) ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-gray-50 text-blue-600'}`}>
                                                 <HelpCircle size={18} />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className={`text-[13px] tracking-tight transition-all ${activeKeys.includes(faq.id.toString()) ? 'fw-black text-blue-600' : 'fw-bold text-gray-700'}`}>
+                                                <span className={`text-[13px] tracking-tight transition-all ${activeKeys.includes(faq._id.toString()) ? 'fw-black text-blue-600' : 'fw-bold text-gray-700'}`}>
                                                     {faq.question}
                                                 </span>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <Badge bg="blue-100" className="text-blue-600 text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-none border-0">
                                                         {faq.category}
                                                     </Badge>
-                                                    <span className="text-[9px] text-gray-300 font-medium">#{faq.id}</span>
+                                                    <span className="text-[9px] text-gray-300 font-medium">#{faq._id}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -128,7 +160,7 @@ const FAQs = () => {
                                             variant="light"
                                             size="sm"
                                             className="bg-red-50 hover:bg-white hover:text-red-600 border border-red-50 rounded-lg text-[11px] font-black px-4 py-1.5 transition-all text-red-500/80 flex items-center gap-1.5"
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(faq.id); }}
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(faq._id); }}
                                         >
                                             <Trash2 size={14} /> Delete
                                         </Button>

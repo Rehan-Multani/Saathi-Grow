@@ -12,15 +12,15 @@ import {
   searchProductsWithAI,
   getUniqueBrands
 } from '../controllers/productController.js';
-import { protectAdmin, restrictTo, requirePermission, optionalProtectAdmin } from '../middleware/authMiddleware.js';
+import { protectAdmin, restrictTo, requirePermission, optionalProtectAdmin, optionalProtectStoreManager } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-// Public routes for products (Optional Auth for branch scoping)
-router.get('/', optionalProtectAdmin, getProducts);
+// Public routes for products (Optional Auth for branch/vendor scoping)
+router.get('/', optionalProtectStoreManager, getProducts);
 router.get('/brands', getUniqueBrands);
-router.get('/search/ai', searchProductsWithAI);
+router.get('/search/ai', optionalProtectStoreManager, searchProductsWithAI);
 router.get('/inventory-logs', getAllInventoryLogs);
 router.get('/:id', getProductById);
 router.get('/:id/inventory-logs', getInventoryLogs);

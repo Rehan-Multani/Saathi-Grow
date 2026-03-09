@@ -6,6 +6,12 @@
     permission: 'VIEW_DASHBOARD'
   },
   {
+    title: 'POS Billing',
+    path: '/store-manager/pos-billing',
+    icon: 'Zap',
+    permission: 'MANAGE_POS_BILLING'
+  },
+  {
     title: 'Inventory',
     path: '/store-manager/inventory',
     icon: 'Package',

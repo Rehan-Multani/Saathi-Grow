@@ -24,6 +24,7 @@ const AVAILABLE_PERMISSIONS = [
     { id: 'MANAGE_BRANCHES', label: 'Manage Branch Locations' },
     { id: 'MANAGE_CAMPAIGNS', label: 'Manage Promo Banners & Deals' },
     { id: 'MANAGE_VENDORS', label: 'Manage Vendors & Payouts' },
+    { id: 'MANAGE_POS_BILLING', label: 'Handle POS Billing & Terminal' },
     { id: 'MANAGE_SETTINGS', label: 'App Global Settings (Taxes, Delivery)' }
 ];
 
@@ -249,12 +250,15 @@ const AllStaff = () => {
                                         'MANAGE_DELIVERY',
                                         'MANAGE_DELIVERY_BOYS',
                                         'MANAGE_CUSTOMERS',
+                                        'MANAGE_STAFF',
                                         'MANAGE_BRANCHES',
                                         'MANAGE_VENDORS',
                                         'MANAGE_SETTINGS'
                                     ];
                                     if (selectedStaff.role === 'Admin') return true;
-                                    return !RESTRICTED_IDS.includes(perm.id);
+                                    // Remove MANAGE_POS_BILLING from restricted list if it's there
+                                    const ACTUAL_RESTRICTED = RESTRICTED_IDS.filter(id => id !== 'MANAGE_POS_BILLING');
+                                    return !ACTUAL_RESTRICTED.includes(perm.id);
                                 }).map((perm) => (
                                     <div key={perm.id} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light">
                                         <div className="d-flex align-items-center gap-2">

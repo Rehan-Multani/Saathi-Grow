@@ -34,7 +34,8 @@ import ReturnRequests from '../pages/ReturnRequests';
 import LegalPolicies from '../pages/LegalPolicies';
 import VendorAllOffers from '../pages/offers/VendorAllOffers';
 import VendorManageOffer from '../pages/offers/VendorManageOffer';
-
+import VendorPOS from '../pages/VendorPOS';
+import { useVendor } from '../contexts/VendorContext';
 import { useLocation } from 'react-router-dom';
 
 const VendorLayout = () => {
@@ -51,6 +52,10 @@ const VendorLayout = () => {
             </main>
         </div>
     );
+};
+
+const VendorPOSWrapper = () => {
+    return <VendorPOS />;
 };
 
 const VendorRoutes = () => {
@@ -76,6 +81,7 @@ const VendorRoutes = () => {
                     <Route path="brands" element={<AllBrands />} />
                     <Route path="brands/add" element={<AddBrand />} />
                     <Route path="orders" element={<AllOrders />} />
+                    <Route path="pos-billing" element={<VendorPOSWrapper />} />
                     <Route path="orders/:orderId" element={<OrderDetail />} />
                     <Route path="orders/tracking" element={<OrderTracking />} />
                     <Route path="inventory-reports" element={<InventoryReports />} />

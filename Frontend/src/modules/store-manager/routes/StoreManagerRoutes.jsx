@@ -14,6 +14,7 @@ import AllProducts from '../../admin/pages/products/AllProducts';
 import { ManagerProfile } from '../../../components/ProfileSettings';
 import ManagerSupportTickets from '../ManagerSupportTickets';
 import LegalPolicies from '../pages/LegalPolicies';
+import ManagerPOS from '../pages/ManagerPOS';
 
 const DeliveryPartners = lazy(() => import('../ManagerDeliveryPartners'));
 const AssignDeliveries = lazy(() => import('../ManagerAssignDeliveries'));
@@ -32,6 +33,10 @@ const ProtectedStoreManagerRoute = () => {
     return <Outlet />;
 };
 
+const ManagerPOSWrapper = () => {
+    return <ManagerPOS />;
+};
+
 const StoreManagerRoutes = () => {
     return (
         <StoreManagerAuthProvider>
@@ -45,6 +50,7 @@ const StoreManagerRoutes = () => {
                         <Route element={<StoreManagerLayout />}>
                             <Route index element={<Navigate to="dashboard" replace />} />
                             <Route path="dashboard" element={<StoreManagerDashboard />} />
+                            <Route path="pos-billing" element={<ManagerPOSWrapper />} />
                             <Route path="inventory" element={<InventoryManagement />} />
                             <Route path="orders" element={<ManagerOrders />} />
                             <Route path="staff" element={<StaffManagement />} />

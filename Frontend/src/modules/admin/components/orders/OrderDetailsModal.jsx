@@ -244,9 +244,13 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                             <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 flex items-center">
                                 <Clock size={14} className="mr-1.5" /> {displayDate}
                             </span>
-                            {order.deliverySlot && (
+                            {order.deliverySlot ? (
                                 <span className="px-3 py-1.5 rounded-full text-sm font-black bg-violet-600 text-white flex items-center shadow-lg shadow-violet-500/20">
                                     <Truck size={14} className="mr-1.5" /> Slot: {order.deliverySlot}
+                                </span>
+                            ) : order.isImmediate && (
+                                <span className="px-3 py-1.5 rounded-full text-sm font-black bg-violet-600 text-white flex items-center shadow-lg shadow-violet-500/20">
+                                    <Truck size={14} className="mr-1.5" /> Slot: IMMEDIATE
                                 </span>
                             )}
                         </div>

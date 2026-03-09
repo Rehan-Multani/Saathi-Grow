@@ -16,3 +16,8 @@ export const updateAdminSettings = async (token, settingsData) => {
   });
   return response.data;
 };
+
+export const getPublicSettings = async () => {
+  const response = await axios.get(`${API_URL}/public`);
+  return response.data;
+};

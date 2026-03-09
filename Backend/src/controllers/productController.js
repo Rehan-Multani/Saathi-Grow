@@ -318,17 +318,25 @@ export const getProducts = async (req, res) => {
       query.vendor = { $exists: false };
     }
 
-    // Branch Scoping
-    if (req.admin && req.admin.role !== 'Admin') {
-      if (req.admin.branchId) {
-        query['branchStocks.branchId'] = req.admin.branchId;
-      } else {
-        return res.json({ products: [], total: 0, pages: 0 });
-      }
+    // 2. Branch/Store Scoping Filter (Database Level)
+    // Priority 1: Auth-based scoping (req.admin/req.vendor)
+    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+      query['branchStocks.branchId'] = req.admin.branchId;
+    } else if (req.vendor) {
+      query.vendor = req.vendor._id;
+    }
+    // Priority 2: Explicit parameter scoping (for POS/Frontend requests that pass these)
+    else if (effectiveStoreId && storeType === 'branch') {
+      query['branchStocks.branchId'] = effectiveStoreId;
+    } else if (effectiveStoreId && storeType === 'vendor') {
+      query.vendor = effectiveStoreId;
     }
 
     // Pagination logic
     const skip = (Number(page) - 1) * Number(limit);
+
+    console.log("DEBUG: getProducts query:", JSON.stringify(query));
+    console.log("DEBUG: req.vendor:", req.vendor ? req.vendor._id : null);
 
     const total = await Product.countDocuments(query);
 
@@ -352,8 +360,8 @@ export const getProducts = async (req, res) => {
       .skip(skip)
       .limit(Number(limit));
 
-    // If it's a public/user request (no admin), select only necessary fields
-    if (!req.admin) {
+    // If it's a public/user request (no admin/vendor), select only necessary fields
+    if (!req.admin && !req.vendor) {
       productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks');
     }
 
@@ -431,6 +439,7 @@ export const getProducts = async (req, res) => {
 export const searchProductsWithAI = async (req, res) => {
   try {
     const { q, storeId, storeType } = req.query;
+    const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
     if (!q) {
       return res.json([]);
     }
@@ -492,13 +501,15 @@ export const searchProductsWithAI = async (req, res) => {
       ]
     };
 
-    // Branch Scoping for Search
-    if (req.admin && req.admin.role !== 'Admin') {
-      if (req.admin.branchId) {
-        searchQuery['branchStocks.branchId'] = req.admin.branchId;
-      } else {
-        return res.json([]);
-      }
+    // 2. Branch/Store Scoping Filter (Database Level)
+    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+      searchQuery['branchStocks.branchId'] = req.admin.branchId;
+    } else if (req.vendor) {
+      searchQuery.vendor = req.vendor._id;
+    } else if (effectiveStoreId && storeType === 'branch') {
+      searchQuery['branchStocks.branchId'] = effectiveStoreId;
+    } else if (effectiveStoreId && storeType === 'vendor') {
+      searchQuery.vendor = effectiveStoreId;
     }
 
     const page = Number(req.query.page) || 1;
@@ -516,7 +527,6 @@ export const searchProductsWithAI = async (req, res) => {
       .limit(limit);
 
     // Store-Aware logic for search results
-    const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
     if (effectiveStoreId && storeType) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;

@@ -41,6 +41,7 @@ const VendorSidebar = () => {
             path: '/vendor/orders',
             subItems: [
                 { label: 'All Orders', path: '/vendor/orders' },
+                { label: 'POS Billing', path: '/vendor/pos-billing' },
                 { label: 'Order Tracking', path: '/vendor/orders/tracking' },
             ]
         },

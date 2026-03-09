@@ -128,6 +128,8 @@ import deliverySlotRoutes from './routes/deliverySlotRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
 import inventoryRequestRoutes from './routes/inventoryRequestRoutes.js';
 import demandRoutes from './routes/demandRoutes.js';
+import faqRoutes from './routes/faqRoutes.js';
+import posRoutes from './routes/posRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
 
 
@@ -162,6 +164,8 @@ app.use('/api/legal', legalRoutes);
 app.use('/api/delivery-slots', deliverySlotRoutes);
 app.use('/api/user/stores', storeRoutes);
 app.use('/api/demand', demandRoutes);
+app.use('/api/faqs', faqRoutes);
+app.use('/api/pos', posRoutes);
 
 
 

@@ -11,7 +11,29 @@ export const StaffAuthProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : null;
     });
 
-    // Mock login function
+    // Auto-refresh profile on mount to sync permissions/status
+    useEffect(() => {
+        if (staffUser?.token) {
+            refreshProfile();
+        }
+    }, []);
+
+    const refreshProfile = async () => {
+        try {
+            const { getProfile } = await import('../../admin/api/adminApi');
+            const data = await getProfile(staffUser.token);
+            // Sync user data keeping token
+            const updatedUser = { ...data, token: staffUser.token };
+            setStaffUser(updatedUser);
+            localStorage.setItem('saathigro_staff', JSON.stringify(updatedUser));
+        } catch (error) {
+            console.error('Failed to refresh staff profile:', error);
+            if (error.response?.status === 401) {
+                staffLogout();
+            }
+        }
+    };
+
     const staffLogin = async (email, password) => {
         try {
             const data = await loginAdmin(email, password);
@@ -31,8 +53,6 @@ export const StaffAuthProvider = ({ children }) => {
         localStorage.removeItem('saathigro_staff');
     };
 
-
-    // Correct implementation based on AdminAuthContext pattern:
     const updateProfile = async (profileData) => {
         if (!staffUser?.token) throw new Error('Not authenticated');
         const { updateProfile: updateApi } = await import('../../admin/api/adminApi');

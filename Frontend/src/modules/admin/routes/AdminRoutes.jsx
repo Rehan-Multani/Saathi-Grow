@@ -4,7 +4,6 @@ import AdminLogin from '../pages/auth/AdminLogin';
 import AdminLayout from '../AdminLayout';
 import Dashboard from '../pages/Dashboard';
 import AllOrders from '../pages/orders/AllOrders';
-import PosOrders from '../pages/orders/PosOrders';
 import OnlineOrders from '../pages/orders/OnlineOrders';
 import ReturnRequests from '../pages/orders/ReturnRequests';
 import AllProducts from '../pages/products/AllProducts';
@@ -116,7 +115,6 @@ const AdminRoutes = () => {
 
                         {/* Orders */}
                         <Route path="orders" element={<AllOrders />} />
-                        <Route path="orders/pos" element={<PosOrders />} />
                         <Route path="orders/online" element={<OnlineOrders />} />
                         <Route path="orders/returns" element={<ReturnRequests />} />
 

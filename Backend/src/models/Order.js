@@ -9,7 +9,7 @@ const orderSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
     },
     items: [{
         product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
@@ -61,7 +61,7 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['cod', 'online', 'wallet'],
+        enum: ['cod', 'online', 'wallet', 'cash'],
         required: true
     },
     razorpayOrderId: {
@@ -168,6 +168,16 @@ const orderSchema = new mongoose.Schema({
         isCancelled: { type: Boolean, default: false },
         reason: { type: String, default: null },
         cancelledAt: { type: Date, default: null }
+    },
+    orderSource: {
+        type: String,
+        enum: ['online', 'pos'],
+        default: 'online'
+    },
+    posCustomer: {
+        name: String,
+        email: String,
+        phone: String
     }
 }, {
     timestamps: true

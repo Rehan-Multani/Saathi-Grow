@@ -60,7 +60,10 @@ export const getPublicSettings = async (req, res) => {
       freeDeliveryThreshold: settings.freeDeliveryThreshold,
       handlingFee: settings.handlingFee,
       surgeMultiplier: settings.surgeMultiplier,
-      maxDeliveryRadius: settings.maxDeliveryRadius
+      maxDeliveryRadius: settings.maxDeliveryRadius,
+      supportPhone: settings.supportPhone,
+      whatsappNumber: settings.whatsappNumber,
+      supportEmail: settings.supportEmail
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching public settings', error: error.message });

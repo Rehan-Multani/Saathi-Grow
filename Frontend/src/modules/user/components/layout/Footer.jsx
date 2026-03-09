@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 import { getPoliciesList } from '../../../../common/utils/legalUtils';
 import logo from '../../../../assets/logo.png';
+import { useShop } from '../../context/ShopContext';
 
 const Footer = ({ customTheme }) => {
   const [policies, setPolicies] = useState([]);
+  const { categories } = useShop();
 
   useEffect(() => {
     const fetchPolicies = async () => {
@@ -44,10 +46,25 @@ const Footer = ({ customTheme }) => {
           <div className="flex flex-col items-start text-left">
             <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Categories</h3>
             <ul className="space-y-2 sm:space-y-3 p-0 list-none">
-              <li><Link to="/category/fruit-and-vegetables" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Fruits</Link></li>
-              <li><Link to="/category/dairy-egg-frozen" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Dairy</Link></li>
-              <li><Link to="/category/snacks-bakery" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Snacks</Link></li>
-              <li><Link to="/category/staples-and-grains" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Grains</Link></li>
+              {categories && categories.length > 0 ? (
+                categories.map((cat) => (
+                  <li key={cat._id || cat.id}>
+                    <Link
+                      to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`}
+                      className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors"
+                    >
+                      {cat.name}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li><Link to="/category/fruit-and-vegetables" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Fruits</Link></li>
+                  <li><Link to="/category/dairy-egg-frozen" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Dairy</Link></li>
+                  <li><Link to="/category/snacks-bakery" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Snacks</Link></li>
+                  <li><Link to="/category/staples-and-grains" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Grains</Link></li>
+                </>
+              )}
             </ul>
           </div>
 
