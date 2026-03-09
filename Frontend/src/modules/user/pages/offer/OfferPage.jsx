@@ -5,6 +5,12 @@ import {
     Copy, Check, Zap, ShoppingBag, Info, ShoppingCart, Truck,
     TrendingUp, Gift, Percent, Plus, Minus
 } from 'lucide-react';
+
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+
 import { useShop } from '../../context/ShopContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -205,96 +211,162 @@ const OfferPage = () => {
 
     return (
         <>
+            <style>
+                {`
+                    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+                    
+                    .font-jakarta {
+                        font-family: 'Plus Jakarta Sans', sans-serif;
+                    }
+
+                    @keyframes fadeInUp {
+                        from { opacity: 0; transform: translateY(20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+
+                    @keyframes fadeInRight {
+                        from { opacity: 0; transform: translateX(-20px); }
+                        to { opacity: 1; transform: translateX(0); }
+                    }
+
+                    @keyframes pulse-soft {
+                        0%, 100% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(1.05); opacity: 0.8; }
+                    }
+
+                    .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+                    .animate-fadeInRight { animation: fadeInRight 0.8s ease-out forwards; }
+                    .animate-pulse-soft { animation: pulse-soft 3s infinite ease-in-out; }
+                `}
+            </style>
+
             {/* Desktop-only rebuilt layout */}
-            <div className="hidden md:block min-h-screen bg-gray-50 dark:bg-black font-sans pb-24 transition-colors duration-500">
-                {/* Desktop Header - Floating Glass Effect */}
-                <div className="sticky top-0 z-[60] px-8 pt-6 pointer-events-none">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between bg-white/70 dark:bg-black/70 backdrop-blur-2xl border border-white/20 dark:border-white/5 px-6 py-3 rounded-[2rem] shadow-2xl shadow-black/5 pointer-events-auto">
-                        <div className="flex items-center gap-4">
-                            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-all active:scale-90">
-                                <ArrowLeft size={20} className="text-gray-900 dark:text-white" />
+            <div className="hidden md:block min-h-screen bg-[#fcfcfc] dark:bg-black font-jakarta pb-24 transition-colors duration-500">
+                {/* Desktop Header - Matched to Reference */}
+                <div className="sticky top-0 z-[60] px-12 pt-8 pointer-events-none">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between bg-white/95 dark:bg-[#111]/95 backdrop-blur-md border border-gray-100 dark:border-white/5 px-10 py-5 rounded-[2.5rem] shadow-[0_12px_45px_-10px_rgba(0,0,0,0.06)] pointer-events-auto">
+                        <div className="flex items-center gap-8">
+                            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-white/5 rounded-full transition-all active:scale-90">
+                                <ArrowLeft size={22} className="text-[#111827] dark:text-white" />
                             </button>
-                            <div className="h-6 w-[1px] bg-gray-200 dark:bg-white/10"></div>
+                            <div className="h-8 w-[1px] bg-gray-100 dark:bg-white/10"></div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-[#0c831f] uppercase tracking-[0.2em] leading-none mb-1">Active Offer</span>
-                                <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-none capitalize">{offer.title.toLowerCase()}</h1>
+                                <span className="text-[11px] font-extrabold text-[#0c831f] uppercase tracking-[0.2em] leading-none mb-2">Active Offer</span>
+                                <h1 className="text-4xl font-extrabold text-[#111827] dark:text-white leading-none tracking-tight capitalize">{offer.title.toLowerCase()}</h1>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-8">
-                            <div className="flex items-center gap-3">
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ending In</p>
-                                <div className="flex gap-2 text-sm font-mono font-black text-gray-900 dark:text-white">
-                                    <span className="bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">{hours}h</span>
-                                    <span className="opacity-30">:</span>
-                                    <span className="bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">{minutes}m</span>
-                                    <span className="opacity-30">:</span>
-                                    <span className="bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">{seconds}s</span>
+                        <div className="flex items-center gap-12">
+                            <div className="flex items-center gap-5">
+                                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Ending In</p>
+                                <div className="flex items-center gap-2.5 text-xs font-bold text-gray-900 dark:text-white">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[35px] text-center">{hours}h</span>
+                                        <span className="opacity-30">:</span>
+                                        <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[35px] text-center">{minutes}m</span>
+                                        <span className="opacity-30">:</span>
+                                        <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[35px] text-center">{seconds}s</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-lg active:scale-95 cursor-pointer"
-                                style={{ backgroundColor: offer.accentColor || '#0c831f', boxShadow: `0 4px 14px 0 ${offer.accentColor || '#0c831f'}40` }}>
+                            <div className="flex items-center gap-2 text-white px-8 py-3 rounded-full text-[13px] font-black uppercase tracking-widest shadow-lg active:scale-95 cursor-pointer transition-all hover:shadow-xl"
+                                style={{ backgroundColor: offer.accentColor || '#0c831f', boxShadow: `0 8px 18px -4px ${offer.accentColor || '#0c831f'}80` }}>
                                 {offerDiscountDisplay} OFF
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-8 mt-6 space-y-8">
-                    {/* Re-designed Split Hero Section (Balanced Image Size) */}
-                    <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-[3rem] bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/10 shadow-2xl shadow-black/5 min-h-[400px]">
-                        <div className="p-10 flex flex-col justify-center space-y-6 relative overflow-hidden">
-                            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/10 dark:bg-green-500/5 blur-[100px] rounded-full"></div>
+                <div className="max-w-7xl mx-auto px-12 mt-8 space-y-12">
+                    {/* Premium Hero Section - 1:1 Match with Reference Image */}
+                    <div className="grid grid-cols-[1.1fr_0.9fr] gap-0 overflow-hidden rounded-[3.5rem] bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/10 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.04)] min-h-[400px] animate-fadeInUp">
+                        <div className="p-12 md:p-14 flex flex-col justify-center space-y-6 relative overflow-hidden bg-[#f3f9f4]/30 dark:bg-[#0c831f]/5">
+                            <div className="absolute top-[-15%] left-[-15%] w-[50%] h-[50%] bg-green-500/10 blur-[120px] rounded-full"></div>
 
-                            <div className="relative space-y-4">
-                                <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-[#0c831f]/10 px-3 py-1 rounded-full border border-green-100 dark:border-[#0c831f]/20"
-                                    style={{ color: offer.accentColor || '#0c831f' }}>
-                                    <Zap size={14} style={{ fill: offer.accentColor || '#0c831f' }} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{offer.subtitle || 'Mega Savings Day'}</span>
+                            <div className="relative space-y-6">
+                                <div className="inline-flex items-center gap-2 bg-white dark:bg-[#0c831f]/10 px-5 py-2 rounded-full border border-green-100/60 dark:border-[#0c831f]/20 shadow-sm animate-fadeInRight">
+                                    <Zap size={14} className="text-[#0c831f] fill-[#0c831f]" />
+                                    <span className="text-[12px] font-extrabold uppercase tracking-[0.3em] text-[#0c831f]">{offer.subtitle || 'MEGA SAVINGS DAY'}</span>
                                 </div>
-                                <h2 className="text-7xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter capitalize">
-                                    {offer.title.split(' ')[0]}<br />
-                                    <span style={{ color: offer.accentColor || '#0c831f' }}>{offer.title.split(' ').slice(1).join(' ') || offerDiscountDisplay}</span>
-                                </h2>
-                                <p className="text-lg text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-[90%]">
-                                    "{offer.description}"
-                                </p>
+
+                                <div className="flex flex-col space-y-2">
+                                    <h2 className="text-5xl font-extrabold text-[#111827] dark:text-white leading-tight uppercase tracking-tight">
+                                        {offer.title.split(' ')[0]}
+                                    </h2>
+                                    <h3 className="text-6xl font-black leading-none tracking-tight" style={{ color: offer.accentColor || '#0c831f' }}>
+                                        {offerDiscountDisplay} OFF
+                                    </h3>
+                                    <p className="mt-4 text-lg text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-[85%]">
+                                        "{offer.description}"
+                                    </p>
+                                </div>
+
+                                {/* Pixel-Perfect Unlock with Code Box */}
+                                <div className="pt-4">
+                                    <div className="inline-flex items-center bg-white dark:bg-[#111] p-4 pl-6 rounded-3xl border-2 border-dashed border-gray-200 dark:border-white/10 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.05)] relative group overflow-hidden">
+                                        <div className="w-14 h-14 rounded-2xl bg-[#0f172a] flex items-center justify-center text-white mr-6 shadow-xl shrink-0 group-hover:scale-105 transition-transform">
+                                            <Tag size={24} />
+                                        </div>
+                                        <div className="flex flex-col mr-12 min-w-[140px]">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Unlock with code</span>
+                                            <span className="text-2xl font-black text-[#111827] dark:text-white tracking-widest uppercase">
+                                                {offer.couponCode || 'CLEAN10'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(offer.couponCode || 'CLEAN10');
+                                                setCopied(true);
+                                                setTimeout(() => setCopied(false), 2000);
+                                            }}
+                                            className={`px-8 py-3.5 rounded-2xl text-[13px] font-black transition-all active:scale-95 whitespace-nowrap shadow-sm ${copied
+                                                ? 'bg-green-100 text-[#0c831f]'
+                                                : 'bg-gray-50 dark:bg-white/10 text-[#64748b] dark:text-gray-300 hover:bg-gray-100'
+                                                }`}
+                                        >
+                                            {copied ? 'Copied!' : 'Copy'}
+                                        </button>
+
+                                        {/* Subtle Yellow Ambient Glow */}
+                                        <div className="absolute -inset-2 bg-yellow-400/5 blur-3xl rounded-full opacity-60 pointer-events-none"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="relative h-full overflow-hidden group bg-white dark:bg-[#0a0a0a] flex items-center justify-center p-8">
+                        <div className="relative h-full overflow-hidden group flex items-center justify-center p-8 bg-white dark:bg-[#0a0a0a]">
                             <img
                                 src={offer.bannerImage || offer.image}
                                 alt={offer.title}
-                                className="w-full h-full object-contain transition-transform duration-[3s] group-hover:scale-105"
+                                className="w-full h-full object-contain transition-transform duration-[6s] group-hover:scale-105"
                             />
-                            {/* Smooth Blend Edge */}
-                            <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white dark:from-[#0a0a0a] to-transparent"></div>
 
-                            {offer.discountPercentage > 0 && (
-                                <div className="absolute top-10 right-10 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full w-24 h-24 flex flex-col items-center justify-center text-white scale-100 group-hover:scale-110 transition-transform duration-700" style={{ backgroundColor: offer.accentColor || '#0c831f' }}>
-                                    <span className="text-[10px] font-black uppercase">Save</span>
-                                    <span className="text-2xl font-black leading-none">{offerDiscountDisplay}</span>
-                                </div>
-                            )}
+                            {/* Glassmorphism Circle Badge */}
+                            <div className="absolute top-16 right-16 bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/60 dark:border-white/10 rounded-full w-28 h-28 flex flex-col items-center justify-center shadow-[0_20px_40px_rgba(0,0,0,0.1)] z-20 animate-pulse-soft">
+                                <span className="text-[20px] font-black uppercase text-[#1e293b] dark:text-white leading-none mb-1">{offerDiscountDisplay}</span>
+                                <span className="text-[11px] font-black uppercase text-[#1e293b] dark:text-white opacity-40">OFF</span>
+                            </div>
+
+                            {/* Decorative Accent Pill Bar */}
+                            <div className="absolute bottom-16 left-[25%] w-12 h-2 bg-[#0c831f] rounded-full opacity-100 z-20 shadow-sm" style={{ backgroundColor: offer.accentColor || '#0c831f' }}></div>
                         </div>
                     </div>
 
-                    {/* Trust Pillar Row */}
-                    <div className="grid grid-cols-4 gap-6">
+                    {/* Trust Pillar Row - Refined */}
+                    <div className="grid grid-cols-4 gap-8">
                         {[
-                            { icon: Truck, title: "Superfast Delivery", desc: "Arrives in 15 mins", color: "text-blue-500" },
-                            { icon: Gift, title: "Special Gift", desc: "On first application", color: "text-purple-500" },
-                            { icon: Sparkles, title: "Premium Quality", desc: "Handpicked basics", color: "text-yellow-500" },
-                            { icon: ShoppingBag, title: "Easy Returns", desc: "No questions asked", color: "text-red-500" }
+                            { icon: LocalShippingOutlinedIcon, title: "Superfast Delivery", desc: "Arrives in 15 mins", color: "bg-blue-50 text-blue-600 dark:bg-blue-500/10" },
+                            { icon: CardGiftcardOutlinedIcon, title: "Special Gift", desc: "On first application", color: "bg-purple-50 text-purple-600 dark:bg-purple-500/10" },
+                            { icon: AutoAwesomeOutlinedIcon, title: "Premium Quality", desc: "Handpicked basics", color: "bg-orange-50 text-orange-600 dark:bg-orange-500/10" },
+                            { icon: ShoppingBagOutlinedIcon, title: "Easy Returns", desc: "No questions asked", color: "bg-red-50 text-red-600 dark:bg-red-500/10" }
                         ].map((item, i) => (
-                            <div key={i} className="bg-white dark:bg-[#0a0a0a] p-6 rounded-3xl border border-gray-100 dark:border-white/5 flex items-center gap-4 transition-all hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1">
-                                <div className={`w-12 h-12 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center ${item.color}`}>
-                                    <item.icon size={24} />
+                            <div key={i} className="bg-white dark:bg-[#0a0a0a] p-10 rounded-[3rem] border border-gray-100 dark:border-white/5 flex items-center gap-6 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] hover:-translate-y-2 group">
+                                <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all group-hover:rotate-6 ${item.color}`}>
+                                    <item.icon style={{ fontSize: '28px' }} />
                                 </div>
-                                <div>
-                                    <p className="text-sm font-black text-gray-900 dark:text-white leading-none mb-1">{item.title}</p>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{item.desc}</p>
+                                <div className="flex flex-col">
+                                    <p className="text-lg font-black text-[#111827] dark:text-white leading-none mb-2">{item.title}</p>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{item.desc}</p>
                                 </div>
                             </div>
                         ))}
@@ -309,6 +381,44 @@ const OfferPage = () => {
                                 badgeText={offerBadge}
                             />
                         ))}
+                    </div>
+
+                    {/* Main Featured Deal Section */}
+                    <div className="space-y-8 pt-10">
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-3">
+                                <div className="h-4 w-1 bg-[#0c831f] rounded-full"></div>
+                                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest font-jakarta">Curated Hot Deals</span>
+                            </div>
+                            <div className="flex items-end justify-between">
+                                <h3 className="text-4xl md:text-5xl font-extrabold text-[#1e293b] dark:text-white tracking-tight font-jakarta">Deals You Can't Miss</h3>
+                                <div className="flex items-center gap-1 p-1.5 bg-[#f8fafc] dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-full shadow-inner">
+                                    {['Hot Deals', 'Under ₹99', 'Buy 1 Get 1', 'Best Price'].map((f) => (
+                                        <button
+                                            key={f}
+                                            onClick={() => setActiveFilter(f)}
+                                            className={`px-8 py-2.5 rounded-full text-[14px] font-bold transition-all whitespace-nowrap ${activeFilter === f
+                                                ? 'bg-[#dcfce7] text-[#15803d] shadow-sm'
+                                                : 'text-gray-500 hover:text-[#1e293b] dark:hover:text-white'
+                                                }`}
+                                        >
+                                            {f}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Enhanced Grid Layout */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10">
+                            {dealProducts.map(product => (
+                                <FlyerProductCard
+                                    key={product.id || product._id}
+                                    product={product}
+                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offerBadge}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -335,43 +445,79 @@ const OfferPage = () => {
 
                 <div className="px-3 py-1.5 space-y-3">
 
-                    {/* Mobile Hero Section (Redesigned to Match Home Carousel) */}
-                    <div className="relative w-full bg-gradient-to-r from-[#718355] to-[#4f5c3a] dark:from-[#141414] dark:to-[#141414] pb-3 pt-1.5 px-5 overflow-hidden shadow-sm border border-white/50 dark:border-white/5 rounded-2xl">
-                        <div className="relative z-10 py-1">
-                            <span className="bg-white/20 backdrop-blur-md text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-white/30 mb-1.5 inline-block">
-                                Fresh Product with Great Price
+                    {/* Mobile Hero Section (Refined exactly to User's Posters) */}
+                    <div className="relative w-full pb-5 pt-4 px-6 overflow-hidden shadow-lg border border-white/10 rounded-[1.25rem] bg-[#566846]">
+                        <div className="relative z-10">
+                            {/* Subtitle Pill */}
+                            <span className="text-white text-[9.5px] font-black px-3.5 py-1 rounded-full uppercase tracking-widest border border-white/60 mb-3 inline-block shadow-sm">
+                                {offer.subtitle || 'Fresh Product with Great Price'}
                             </span>
-                            <h1 className="text-2xl font-black text-white leading-[1.1] mb-2 tracking-tight">
-                                {offer.title.split(' ')[0]}<br />
-                                <span className="text-[#e2e8db]">{offer.discount}</span>
+
+                            {/* Main Title */}
+                            <h1 className="text-4xl font-extrabold text-white leading-[1.1] mb-2 tracking-tight">
+                                {offer.title}<br />
+                                <span>{offerDiscountDisplay || (offer.discountPercentage > 0 ? `${offer.discountPercentage}% OFF` : (offer.discount || 'Special Offer'))}</span>
                             </h1>
-                            <div className="flex items-center gap-2 mt-3">
-                                <div className="bg-white dark:bg-zinc-800 text-[#556b2f] dark:text-gray-200 px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1 border border-white/20">
-                                    Live <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+
+                            {/* Coupon Code Pill */}
+                            <div
+                                onClick={() => {
+                                    navigator.clipboard.writeText(offer.couponCode || 'CLEAN10');
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+                                }}
+                                className="inline-block border border-white/70 bg-white/5 active:bg-white/20 text-white text-[11px] font-bold px-4 py-1.5 rounded-full mb-5 mt-1 transition-all cursor-pointer select-none shadow-sm"
+                            >
+                                {copied ? "COPIED ✓" : `Code: ${offer.couponCode || 'CLEAN10'} - Tap to Apply`}
+                            </div>
+
+                            {/* Bottom Status Pills */}
+                            <div className="flex items-center gap-2.5">
+                                <div className="bg-white text-[#566846] px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
+                                    LIVE <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_5px_#10b981]"></div>
                                 </div>
-                                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1 border border-white/20 animate-pulse-subtle">
-                                    <Truck size={10} strokeWidth={3} /> Free Delivery
+                                <div className="bg-[#ffae00] text-black px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
+                                    <Truck size={12} strokeWidth={3} /> FREE DELIVERY
                                 </div>
                             </div>
                         </div>
 
-                        {/* Floating Hero Icons (Dynamic Matching Home) */}
-                        <div className="absolute right-[-10px] top-[15px] w-[110px] h-[110px] z-0 pointer-events-none">
+                        {/* Floating Hero Icons (Dynamic by Content) */}
+                        <div className="absolute right-[-10px] top-[10px] w-[140px] h-[150px] z-0 pointer-events-none">
                             {(() => {
-                                const icons = ['🎁', '₹', '🛍️']; // Simplified for dynamic
+                                let icons = [];
+                                const searchString = `${offer.title} ${offer.subtitle || ''} ${offer.description || ''} ${offer.category || ''}`.toLowerCase();
+
+                                if (searchString.includes('clean') || searchString.includes('wash') || searchString.includes('household')) {
+                                    icons = ['🧹', '🧽', '🧼'];
+                                } else if (searchString.includes('fruit') || searchString.includes('apple') || searchString.includes('fiesta')) {
+                                    icons = ['🍎', '🍇', '🍌'];
+                                } else if (searchString.includes('veg') || searchString.includes('super') || searchString.includes('sale')) {
+                                    icons = ['�', '🥦', '🥕'];
+                                } else if (searchString.includes('mega') || searchString.includes('staple') || searchString.includes('dal') || searchString.includes('rice') || searchString.includes('shop') || searchString.includes('daily') || searchString.includes('need') || searchString.includes('one stop')) {
+                                    icons = ['�', '🥛', '🌾'];
+                                } else if (searchString.includes('snack') || searchString.includes('bakery') || searchString.includes('biscuit')) {
+                                    icons = ['🍿', '🍪', '🍫'];
+                                } else if (searchString.includes('meat') || searchString.includes('chicken') || searchString.includes('fish')) {
+                                    icons = ['🍗', '🐔', '🥚'];
+                                } else if (searchString.includes('treat') || searchString.includes('wholesale') || searchString.includes('brand') || searchString.includes('smart') || searchString.includes('test') || searchString.includes('effective')) {
+                                    icons = ['🥫', '🍫', '🧃']; // Packaged FMCG / Groceries
+                                } else {
+                                    icons = ['🎁', '₹', '🛍️']; // Generic Fallback
+                                }
+
                                 return (
                                     <>
-                                        <div className="absolute top-0 right-0 text-[60px] drop-shadow-xl animate-bounce duration-[3000ms] select-none text-opacity-90">{icons[0]}</div>
-                                        <div className="absolute bottom-0 left-[-10px] text-[40px] drop-shadow-lg animate-pulse duration-[2000ms] select-none text-opacity-90">{icons[1]}</div>
-                                        <div className="absolute top-[40px] left-[-20px] text-[30px] drop-shadow-md animate-spin-slow select-none text-opacity-90">{icons[2]}</div>
+                                        <div className="absolute top-2 right-0 text-[70px] lg:text-[75px] drop-shadow-2xl animate-spin-slow select-none origin-center opacity-95" style={{ animationDuration: '8s' }}>{icons[0]}</div>
+                                        <div className="absolute bottom-[35px] right-[45px] text-[35px] drop-shadow-xl animate-bounce select-none opacity-95" style={{ animationDuration: '3s' }}>{icons[1]}</div>
+                                        <div className="absolute bottom-[20px] right-[25px] text-[40px] drop-shadow-md animate-pulse select-none opacity-90" style={{ animationDuration: '2s' }}>{icons[2]}</div>
                                     </>
                                 );
                             })()}
                         </div>
 
-                        {/* Decorative Elements */}
-                        <div className="absolute top-10 right-20 w-8 h-8 rounded-full bg-yellow-400/20 blur-xl pointer-events-none"></div>
-                        <div className="absolute bottom-5 left-10 w-12 h-12 rounded-full bg-green-400/10 blur-xl pointer-events-none"></div>
+                        {/* Subtle lighting / glare */}
+                        <div className="absolute top-0 left-10 w-32 h-32 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
                     </div>
 
 

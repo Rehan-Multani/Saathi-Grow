@@ -2,7 +2,7 @@
 import axios from 'axios';
 import {
     RotateCcw, Package, CheckCircle, XCircle, Clock, Search,
-    Eye, X, AlertCircle, Loader2, Truck, Store, MapPin, Phone, User, IndianRupee
+    Eye, X, AlertCircle, Loader2, Truck, Store, MapPin, Phone, User, IndianRupee, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { API_BASE_URL } from '../../../config/apiConfig';
 import Swal from 'sweetalert2';
@@ -45,6 +45,8 @@ const ReturnRequests = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [processing, setProcessing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     const fetchReturns = useCallback(async () => {
         const auth = getVendorAuth();
@@ -156,6 +158,17 @@ const ReturnRequests = () => {
         return matchesStatus && matchesSearch;
     });
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterStatus]);
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentRequests = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     const stats = {
         total: returnRequests.length,
         pending: returnRequests.filter(r => r.returnRequest?.status === 'Pending').length,
@@ -253,7 +266,7 @@ const ReturnRequests = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {filteredRequests.map(request => (
+                                {currentRequests.map(request => (
                                     <tr key={request._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-4 py-3">
                                             <span className="font-mono font-bold text-gray-800 text-xs">{request.orderId}</span>
@@ -299,6 +312,62 @@ const ReturnRequests = () => {
                     </div>
                 )}
             </div>
+
+            {/* Pagination Controls */}
+            {true && (
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-3 mt-4">
+                    <span className="text-xs text-gray-500 font-medium">
+                        Showing {filteredRequests.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredRequests.length)} of {filteredRequests.length} entries
+                    </span>
+                    <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-hide">
+                        <button
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`p-1.5 rounded-lg border transition-all ${currentPage === 1 ? 'border-transparent text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95'}`}
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages || 1 }).map((_, i) => {
+                                const pageNumber = i + 1;
+                                if (
+                                    pageNumber === 1 ||
+                                    pageNumber === (totalPages || 1) ||
+                                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                                ) {
+                                    return (
+                                        <button
+                                            key={pageNumber}
+                                            onClick={() => paginate(pageNumber)}
+                                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currentPage === pageNumber
+                                                    ? 'bg-purple-600 text-white shadow-sm'
+                                                    : 'text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                                                }`}
+                                        >
+                                            {pageNumber}
+                                        </button>
+                                    );
+                                } else if (
+                                    pageNumber === currentPage - 2 ||
+                                    pageNumber === currentPage + 2
+                                ) {
+                                    return <span key={pageNumber} className="text-gray-400 text-xs px-1">...</span>;
+                                }
+                                return null;
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className={`p-1.5 rounded-lg border transition-all ${currentPage === totalPages || totalPages === 0 ? 'border-transparent text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95'}`}
+                        >
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Detail Modal */}
             {selectedRequest && (

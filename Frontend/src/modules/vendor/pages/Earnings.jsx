@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, X, AlertCircle } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, X, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../utils/formatDate';
 
@@ -9,8 +9,18 @@ const Earnings = () => {
     const [withdrawAmount, setWithdrawAmount] = useState('');
     const [upiId, setUpiId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     const transactions = walletData.transactions || [];
+
+    // Pagination Logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(transactions.length / itemsPerPage);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const handleWithdraw = (e) => {
         e.preventDefault();
@@ -100,7 +110,7 @@ const Earnings = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {transactions.map((tx) => (
+                            {currentTransactions.map((tx) => (
                                 <tr key={tx._id} className="hover:bg-gray-50">
                                     <td className="p-3 lg:p-3">
                                         <div className="flex items-center gap-3">
@@ -123,16 +133,16 @@ const Earnings = () => {
 
             {/* Mobile Cards View */}
             <div className="md:hidden space-y-3">
-                {transactions.map((tx) => (
+                {currentTransactions.map((tx) => (
                     <div key={tx._id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                         <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-full ${tx.type === 'credit' ? 'bg-green-100 text-green-600' : tx.type === 'debit' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                                <div className={`p-2 rounded-full flex-shrink-0 ${tx.type === 'credit' ? 'bg-green-100 text-green-600' : tx.type === 'debit' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
                                     <ArrowUpRight size={16} className={tx.type === 'debit' ? 'rotate-180' : ''} />
                                 </div>
                                 <span className="text-sm font-bold text-gray-800">{tx.description}</span>
                             </div>
-                            <span className={`text-sm font-bold ${tx.type === 'credit' ? 'text-green-600' : tx.type === 'debit' ? 'text-red-600' : 'text-gray-900'}`}>
+                            <span className={`text-sm font-bold whitespace-nowrap ${tx.type === 'credit' ? 'text-green-600' : tx.type === 'debit' ? 'text-red-600' : 'text-gray-900'}`}>
                                 {tx.type === 'debit' ? '-' : '+'}{formatCurrency(tx.amount)}
                             </span>
                         </div>
@@ -142,6 +152,62 @@ const Earnings = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Pagination Controls */}
+            {true && (
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-3 mt-4">
+                    <span className="text-xs text-gray-500 font-medium">
+                        Showing {transactions.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, transactions.length)} of {transactions.length} entries
+                    </span>
+                    <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-hide">
+                        <button
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`p-1.5 rounded-lg border transition-all ${currentPage === 1 ? 'border-transparent text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95'}`}
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages || 1 }).map((_, i) => {
+                                const pageNumber = i + 1;
+                                if (
+                                    pageNumber === 1 ||
+                                    pageNumber === (totalPages || 1) ||
+                                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                                ) {
+                                    return (
+                                        <button
+                                            key={pageNumber}
+                                            onClick={() => paginate(pageNumber)}
+                                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currentPage === pageNumber
+                                                    ? 'bg-[#0c831f] text-white shadow-sm'
+                                                    : 'text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                                                }`}
+                                        >
+                                            {pageNumber}
+                                        </button>
+                                    );
+                                } else if (
+                                    pageNumber === currentPage - 2 ||
+                                    pageNumber === currentPage + 2
+                                ) {
+                                    return <span key={pageNumber} className="text-gray-400 text-xs px-1">...</span>;
+                                }
+                                return null;
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className={`p-1.5 rounded-lg border transition-all ${currentPage === totalPages || totalPages === 0 ? 'border-transparent text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95'}`}
+                        >
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Withdraw Modal */}
             {showWithdrawModal && (

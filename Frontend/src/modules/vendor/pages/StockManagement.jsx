@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Package, AlertTriangle, Search, Filter, Save, RefreshCw, Plus, Minus, Layers, RotateCcw, Check } from 'lucide-react';
+import { Package, AlertTriangle, Search, Filter, Save, RefreshCw, Plus, Minus, Layers, RotateCcw, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../utils/formatDate';
 
@@ -8,9 +8,16 @@ const StockManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // all, low, out
     const [isSyncing, setIsSyncing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8; // Adjust to show right amount of lines
 
     // Local state for stock changes before saving
     const [stockUpdates, setStockUpdates] = useState({});
+
+    // Reset page to 1 on search or filter change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterStatus]);
 
     // Filter Logic
     const filteredProducts = products.filter(product => {
@@ -22,6 +29,14 @@ const StockManagement = () => {
                     filterStatus === 'out' ? stock === 0 : true;
         return matchesSearch && matchesFilter;
     });
+
+    // Pagination Logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     // Stats Calculations
     const lowStockCount = products.filter(p => p.stock <= (p.lowStockThreshold || 10) && p.stock > 0).length;
@@ -212,7 +227,7 @@ const StockManagement = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {filteredProducts.map((product) => {
+                            {currentProducts.map((product) => {
                                 const currentStock = getStockValue(product);
                                 const isUnsaved = hasUnsavedChanges(product._id);
                                 return (
@@ -274,7 +289,7 @@ const StockManagement = () => {
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-3">
-                {filteredProducts.map((product) => {
+                {currentProducts.map((product) => {
                     const currentStock = getStockValue(product);
                     const isUnsaved = hasUnsavedChanges(product._id);
                     return (
@@ -328,6 +343,63 @@ const StockManagement = () => {
                     );
                 })}
             </div>
+
+            {/* Pagination Controls */}
+            {true && (
+                <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-3 mt-4">
+                    <span className="text-xs text-gray-500 font-medium">
+                        Showing {filteredProducts.length > 0 ? indexOfFirstItem + 1 : 0} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} entries
+                    </span>
+                    <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-hide">
+                        <button
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`p-1.5 rounded-lg border transition-all ${currentPage === 1 ? 'border-transparent text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95'}`}
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages || 1 }).map((_, i) => {
+                                const pageNumber = i + 1;
+                                // Condense rendering logic to show ends and neighborhood of current page
+                                if (
+                                    pageNumber === 1 ||
+                                    pageNumber === (totalPages || 1) ||
+                                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                                ) {
+                                    return (
+                                        <button
+                                            key={pageNumber}
+                                            onClick={() => paginate(pageNumber)}
+                                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${currentPage === pageNumber
+                                                    ? 'bg-[#0c831f] text-white shadow-sm'
+                                                    : 'text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                                                }`}
+                                        >
+                                            {pageNumber}
+                                        </button>
+                                    );
+                                } else if (
+                                    pageNumber === currentPage - 2 ||
+                                    pageNumber === currentPage + 2
+                                ) {
+                                    return <span key={pageNumber} className="text-gray-400 text-xs px-1">...</span>;
+                                }
+                                return null;
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                            className={`p-1.5 rounded-lg border transition-all ${currentPage === totalPages || totalPages === 0 ? 'border-transparent text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95'}`}
+                        >
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
