@@ -112,8 +112,8 @@ const RevenueAnalytics = () => {
                     <Badge bg="success" className="bg-opacity-10 text-success fw-normal px-2">Live Update</Badge>
                 </Card.Header>
                 <Card.Body className="pt-0">
-                    <div style={{ width: '100%', height: 350 }}>
-                        <ResponsiveContainer>
+                    <div style={{ width: '100%', height: 350, minHeight: '350px' }}>
+                        <ResponsiveContainer minWidth={0} minHeight={0}>
                             <AreaChart
                                 data={CHART_DATA}
                                 margin={{ top: 20, right: 20, left: 0, bottom: 0 }}

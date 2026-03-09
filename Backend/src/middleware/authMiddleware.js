@@ -21,6 +21,20 @@ export const protect = async (req, res, next) => {
   if (!token) res.status(401).json({ message: 'Not authorized, no token' });
 };
 
+// Optional User Protection - Populates req.user if token exists, but doesn't error if not
+export const optionalProtect = async (req, res, next) => {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id);
+    } catch (error) {
+      // Silently fail, req.user will remain undefined
+    }
+  }
+  next();
+};
+
 // Protect Vendor Portal Routes
 export const protectVendor = async (req, res, next) => {
   let token;

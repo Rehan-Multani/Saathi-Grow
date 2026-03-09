@@ -1,13 +1,14 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchProductById, fetchProducts } from '../../api/shopApi';
+import { fetchProductById, fetchProducts, logDemandRequest } from '../../api/shopApi';
 import { useCart } from '../../context/CartContext';
-import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp, AlertCircle } from 'lucide-react';
+import { Minus, Plus, ChevronRight, Star, ShoppingCart, Sparkles, TrendingUp, AlertCircle, Bell, MapPin } from 'lucide-react';
 import { ProductDetailSkeleton } from '../../components/common/Skeleton';
 import ProductCard from '../../components/product/ProductCard';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
+import { toast } from 'react-toastify';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const ProductDetailsPage = () => {
@@ -22,6 +23,8 @@ const ProductDetailsPage = () => {
     const [similarProducts, setSimilarProducts] = useState([]);
     const [recommendedProducts, setRecommendedProducts] = useState([]);
     const [error, setError] = useState(false);
+    const [isSubmittingDemand, setIsSubmittingDemand] = useState(false);
+    const [demandLogged, setDemandLogged] = useState(false);
 
     const loadProduct = async (silent = false) => {
         try {
@@ -114,6 +117,40 @@ const ProductDetailsPage = () => {
         window.addEventListener('saathi_refresh', handleRefresh);
         return () => window.removeEventListener('saathi_refresh', handleRefresh);
     }, [id]);
+
+    const handleDemandRequest = async () => {
+        if (demandLogged) return;
+        setIsSubmittingDemand(true);
+        try {
+            const requestType = isStoreOutOfRange ? 'OUT_OF_ZONE' : 'OUT_OF_STOCK';
+
+            // Get user location from local storage (matched with LocationContext)
+            const savedLocation = JSON.parse(localStorage.getItem('sathiGro_location') || '{}');
+            const coordinates = savedLocation.coordinates || [0, 0];
+            const address = savedLocation.address || 'Unknown Address';
+
+            await logDemandRequest({
+                productId: id,
+                storeId: activeStore?.id,
+                storeType: activeStore?.type,
+                requestType,
+                location: {
+                    coordinates,
+                    address
+                }
+            }, localStorage.getItem('token'));
+
+            setDemandLogged(true);
+            toast.success(requestType === 'OUT_OF_ZONE'
+                ? "We've recorded your interest for this area!"
+                : "We'll prioritize restocking this item for you!");
+        } catch (err) {
+            console.error("Demand Logging Failed:", err);
+            toast.error("Couldn't save your request. Try again later.");
+        } finally {
+            setIsSubmittingDemand(false);
+        }
+    };
 
     if (error || (!loading && !product)) return <div className="p-8 text-center text-gray-500">Product not found. <Link to="/" className="text-green-600 underline">Return Home</Link></div>;
 
@@ -257,6 +294,30 @@ const ProductDetailsPage = () => {
                                         <Plus size={20} strokeWidth={3} />
                                     </button>
                                 </div>
+                            )}
+
+                            {/* New Demand Button */}
+                            {isBtnDisabled && (
+                                <button
+                                    onClick={handleDemandRequest}
+                                    disabled={isSubmittingDemand || demandLogged}
+                                    className={`w-full md:w-fit mt-4 flex items-center justify-center gap-3 font-black py-4 px-10 rounded-[20px] transition-all border-2 ${demandLogged
+                                        ? 'bg-green-50 border-green-200 text-green-600'
+                                        : 'bg-white dark:bg-[#18181b] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white hover:border-[#0c831f] hover:text-[#0c831f]'
+                                        }`}
+                                >
+                                    {demandLogged ? (
+                                        <Sparkles size={18} className="animate-pulse" />
+                                    ) : (
+                                        isStoreOutOfRange ? <MapPin size={18} /> : <Bell size={18} />
+                                    )}
+                                    <span className="uppercase tracking-[0.1em] text-[10px]">
+                                        {demandLogged
+                                            ? 'Interest Recorded'
+                                            : (isStoreOutOfRange ? 'Request in my area' : 'Notify me when available')
+                                        }
+                                    </span>
+                                </button>
                             )}
                         </div>
 

@@ -51,6 +51,7 @@ import RevenueAnalytics from '../pages/analytics/RevenueAnalytics';
 
 import VendorEarnings from '../pages/analytics/VendorEarnings';
 import VendorEarningDetail from '../pages/analytics/VendorEarningDetail';
+import DemandAnalytics from '../pages/analytics/DemandAnalytics';
 
 import LegalManagement from '../pages/policies/LegalManagement';
 import AdminProfile from '../pages/settings/AdminProfile';
@@ -199,6 +200,7 @@ const AdminRoutes = () => {
 
                         <Route path="analytics/earnings" element={<VendorEarnings />} />
                         <Route path="analytics/earnings/:id" element={<VendorEarningDetail />} />
+                        <Route path="analytics/demand" element={<DemandAnalytics />} />
 
 
                         {/* Policies */}

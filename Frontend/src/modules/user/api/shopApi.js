@@ -39,6 +39,13 @@ export const fetchActiveCampaigns = async (params = {}) => {
   return data;
 };
 
+export const fetchCampaignMetadata = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/admin/campaigns/public/${id}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch campaign metadata');
+  return data;
+};
+
 export const fetchActiveOfferDeals = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
   const response = await fetch(`${API_BASE_URL}/admin/offer-deals/public?${query}`);
@@ -59,5 +66,19 @@ export const getNearbyStores = async (lat, lng, radius) => {
   const response = await fetch(url);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch nearby stores');
+  return data;
+};
+
+export const logDemandRequest = async (payload, token = null) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}/demand`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to log demand');
   return data;
 };

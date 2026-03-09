@@ -8,9 +8,8 @@ export const getOfferDeals = async (req, res) => {
     let query = {};
     if (req.vendor) {
       query.vendor = req.vendor._id;
-    } else {
-      query.vendor = null; // Admin only sees admin deals
     }
+    // If Admin (no req.vendor), query remains empty to see ALL offers
     const offers = await OfferDeal.find(query)
       .populate('products.productId', 'name image basePrice mrp sku')
       .sort('order');
@@ -151,27 +150,11 @@ export const getActiveOfferDeals = async (req, res) => {
   try {
     const { storeId, storeType } = req.query;
 
-    let offers;
-
-    if (storeType === 'vendor' && storeId) {
-      // Vendor store page: show admin deals (vendor=null) + this vendor's deals
-      offers = await OfferDeal.find({
-        isActive: true,
-        $or: [{ vendor: null }, { vendor: storeId }]
-      })
-        .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
-        .sort('order');
-    } else if (storeType === 'branch' && storeId) {
-      // Branch store page: show only admin deals
-      offers = await OfferDeal.find({ isActive: true, vendor: null })
-        .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
-        .sort('order');
-    } else {
-      // User home screen (no storeType): show ALL active offers (admin + all vendors)
-      offers = await OfferDeal.find({ isActive: true })
-        .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
-        .sort('order');
-    }
+    // Fetch ALL active offers (admin + all vendors) to show on home screen
+    // This allows users to see all available deals as requested.
+    const offers = await OfferDeal.find({ isActive: true })
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
+      .sort('order');
 
     // Decorate each product with isDeliverable flag when store context is provided
     if (storeId && storeType) {
@@ -181,6 +164,8 @@ export const getActiveOfferDeals = async (req, res) => {
           if (!cp.productId) return cp;
 
           let isDeliverable = false;
+          let availableStock = 0;
+          let lowStockThreshold = 10;
           const pObj = cp.productId;
 
           if (storeType === 'branch') {
@@ -188,17 +173,27 @@ export const getActiveOfferDeals = async (req, res) => {
               const bId = bs.branchId?._id || bs.branchId;
               return bId && bId.toString() === storeId.toString();
             });
-            if (branchStock && branchStock.stock > 0) {
-              isDeliverable = true;
+            if (branchStock) {
+              availableStock = branchStock.stock || 0;
+              lowStockThreshold = branchStock.lowStockThreshold || 10;
+              if (availableStock > 0) {
+                isDeliverable = true;
+              }
             }
           } else if (storeType === 'vendor') {
             const vId = pObj.vendor?._id || pObj.vendor;
             if (vId && vId.toString() === storeId.toString()) {
-              isDeliverable = true;
+              availableStock = pObj.stock || 0;
+              lowStockThreshold = pObj.lowStockThreshold || 10;
+              if (availableStock > 0) {
+                isDeliverable = true;
+              }
             }
           }
 
           cp.productId.isDeliverable = isDeliverable;
+          cp.productId.availableStock = availableStock;
+          cp.productId.lowStockThreshold = lowStockThreshold;
           return cp;
         });
         return offerObj;
