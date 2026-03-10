@@ -50,7 +50,10 @@ const ProductDetailsPage = () => {
                 description: data.description,
                 weight: `${data.unitValue} ${data.unitType}`,
                 tags: data.tags,
-                isDeliverable: data.isDeliverable
+                isDeliverable: data.isDeliverable,
+                availableStock: data.availableStock,
+                lowStockThreshold: data.lowStockThreshold,
+                inStore: data.inStore
             };
 
             setProduct(p);
@@ -156,7 +159,11 @@ const ProductDetailsPage = () => {
 
     const cartItem = cart.find(item => item.id === (product?.id || id));
     const quantity = cartItem ? cartItem.quantity : 0;
-    const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange;
+
+    // Check if product is disabled based on stock/delivery
+    const isOutOfStock = (product?.availableStock ?? 999) <= 0;
+    const isLowStock = (product?.availableStock ?? 999) <= (product?.lowStockThreshold ?? 0);
+    const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange || isOutOfStock || isLowStock;
 
     if (loading) return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">
@@ -236,10 +243,10 @@ const ProductDetailsPage = () => {
                             <div className={`border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isStoreOutOfRange
                                 ? 'border-orange-500 text-orange-500'
                                 : (product.isDeliverable !== false
-                                    ? 'border-gray-600 text-[#0c831f] dark:text-[#10b981]'
-                                    : 'border-red-500 text-red-500')
+                                    ? (isLowStock ? 'border-orange-500 text-orange-500' : 'border-gray-600 text-[#0c831f] dark:text-[#10b981]')
+                                    : (product.inStore ? 'border-red-500 text-red-500' : 'border-orange-500 text-orange-500'))
                                 }`}>
-                                {isStoreOutOfRange ? 'Out of Zone' : (product.isDeliverable !== false ? 'In Stock' : 'Out of Stock')}
+                                {isStoreOutOfRange ? 'Out of Zone' : (product.isDeliverable !== false ? (isLowStock ? 'Low Stock' : 'In Stock') : (product.inStore ? 'Out of Stock' : 'Out of Zone'))}
                             </div>
                         </div>
 
@@ -271,7 +278,7 @@ const ProductDetailsPage = () => {
                                     <ShoppingCart size={18} className={isBtnDisabled ? '' : 'fill-white'} />
                                     <span className="uppercase tracking-widest text-[11px] font-black">
                                         {isBtnDisabled
-                                            ? (isStoreOutOfRange ? 'Out of Zone' : 'Out of Stock')
+                                            ? (isStoreOutOfRange || !product.inStore ? 'Out of Zone' : (isLowStock ? 'Low Stock' : 'Out of Stock'))
                                             : 'Add to Cart'
                                         }
                                     </span>
@@ -336,17 +343,20 @@ const ProductDetailsPage = () => {
                                         Please select a closer store or update your delivery location to order this item.
                                     </p>
                                 </div>
-                            ) : (product.isDeliverable === false && activeStore && (
-                                <div className="flex flex-col gap-2 p-5 bg-red-50 dark:bg-red-500/5 rounded-3xl border border-red-200/50 dark:border-red-500/20 mb-8 shadow-sm">
+                            ) : (!product.isDeliverable && activeStore && (
+                                <div className={`flex flex-col gap-2 p-5 ${!product.inStore ? 'bg-orange-50 dark:bg-orange-500/5 border-orange-200/50' : 'bg-red-50 dark:bg-red-500/5 border-red-200/50'} rounded-3xl border mb-8 shadow-sm`}>
                                     <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-                                            <AlertCircle size={18} className="text-red-600" />
+                                        <div className={`w-8 h-8 rounded-full ${!product.inStore ? 'bg-orange-500/10' : 'bg-red-500/10'} flex items-center justify-center`}>
+                                            <AlertCircle size={18} className={!product.inStore ? 'text-orange-600' : 'text-red-600'} />
                                         </div>
-                                        <p className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest">Out of Stock</p>
+                                        <p className={`text-xs font-black ${!product.inStore ? 'text-orange-700' : 'text-red-700'} uppercase tracking-widest`}>
+                                            {!product.inStore ? 'Out of Zone' : 'Out of Stock'}
+                                        </p>
                                     </div>
-                                    <p className="text-[11px] text-red-600/80 dark:text-red-400/80 font-semibold leading-relaxed pl-10">
-                                        This product has reached its minimum delivery threshold at <b>{activeStore.name}</b>.
-                                        It is temporarily unavailable for purchase at this location.
+                                    <p className={`text-[11px] ${!product.inStore ? 'text-orange-600/80' : 'text-red-600/80'} font-semibold leading-relaxed pl-10`}>
+                                        {!product.inStore
+                                            ? `This product is not currently available at your selected store: ${activeStore.name}.`
+                                            : `This product has reached its minimum delivery threshold at ${activeStore.name}.`}
                                     </p>
                                 </div>
                             ))}

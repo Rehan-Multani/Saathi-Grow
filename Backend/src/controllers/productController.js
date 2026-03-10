@@ -325,11 +325,15 @@ export const getProducts = async (req, res) => {
     } else if (req.vendor) {
       query.vendor = req.vendor._id;
     }
-    // Priority 2: Explicit parameter scoping (for POS/Frontend requests that pass these)
-    else if (effectiveStoreId && storeType === 'branch') {
-      query['branchStocks.branchId'] = effectiveStoreId;
-    } else if (effectiveStoreId && storeType === 'vendor') {
-      query.vendor = effectiveStoreId;
+    // Priority 2: Explicit parameter scoping (for POS/Admin requests)
+    // For Public User Frontend (req.admin/req.vendor is null), we DON'T hard-filter by storeId
+    // to allow global visibility with store-specific status flags.
+    else if ((req.admin || req.vendor) && effectiveStoreId) {
+      if (storeType === 'branch') {
+        query['branchStocks.branchId'] = effectiveStoreId;
+      } else if (storeType === 'vendor') {
+        query.vendor = effectiveStoreId;
+      }
     }
 
     // Pagination logic
@@ -362,7 +366,7 @@ export const getProducts = async (req, res) => {
 
     // If it's a public/user request (no admin/vendor), select only necessary fields
     if (!req.admin && !req.vendor) {
-      productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks');
+      productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks stock lowStockThreshold');
     }
 
     let products = await productQuery
@@ -376,6 +380,7 @@ export const getProducts = async (req, res) => {
         let isDeliverable = false;
         let availableStock = 0;
         let lowStockThreshold = 10;
+        let inStore = false;
 
         if (storeType === 'branch') {
           // Check if product is in stock at this branch
@@ -384,6 +389,7 @@ export const getProducts = async (req, res) => {
             return bId && bId.toString() === effectiveStoreId.toString();
           });
           if (branchStock) {
+            inStore = true;
             availableStock = branchStock.stock || 0;
             lowStockThreshold = branchStock.lowStockThreshold || 10;
             // Deliverable if stock > 0
@@ -395,6 +401,7 @@ export const getProducts = async (req, res) => {
           // Check if product belongs to this vendor
           const vId = pObj.vendor?._id || pObj.vendor;
           if (vId && vId.toString() === effectiveStoreId.toString()) {
+            inStore = true;
             availableStock = pObj.stock || 0;
             lowStockThreshold = pObj.lowStockThreshold || 10;
             if (availableStock > 0) {
@@ -403,7 +410,7 @@ export const getProducts = async (req, res) => {
           }
         }
 
-        return { ...pObj, isDeliverable, availableStock, lowStockThreshold };
+        return { ...pObj, isDeliverable, availableStock, lowStockThreshold, inStore };
       });
     }
 
@@ -506,10 +513,12 @@ export const searchProductsWithAI = async (req, res) => {
       searchQuery['branchStocks.branchId'] = req.admin.branchId;
     } else if (req.vendor) {
       searchQuery.vendor = req.vendor._id;
-    } else if (effectiveStoreId && storeType === 'branch') {
-      searchQuery['branchStocks.branchId'] = effectiveStoreId;
-    } else if (effectiveStoreId && storeType === 'vendor') {
-      searchQuery.vendor = effectiveStoreId;
+    } else if ((req.admin || req.vendor) && effectiveStoreId) {
+      if (storeType === 'branch') {
+        searchQuery['branchStocks.branchId'] = effectiveStoreId;
+      } else if (storeType === 'vendor') {
+        searchQuery.vendor = effectiveStoreId;
+      }
     }
 
     const page = Number(req.query.page) || 1;
@@ -519,7 +528,7 @@ export const searchProductsWithAI = async (req, res) => {
     const total = await Product.countDocuments(searchQuery);
 
     let products = await Product.find(searchQuery)
-      .select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks')
+      .select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks stock lowStockThreshold')
       .populate('branchStocks.branchId', 'name code')
       .populate('vendor', 'storeName logo')
       .sort({ isSaathiGrow: -1, createdAt: -1 })
@@ -533,6 +542,7 @@ export const searchProductsWithAI = async (req, res) => {
         let isDeliverable = false;
         let availableStock = 0;
         let lowStockThreshold = 10;
+        let inStore = false;
 
         if (storeType === 'branch') {
           const branchStock = pObj.branchStocks?.find(bs => {
@@ -540,6 +550,7 @@ export const searchProductsWithAI = async (req, res) => {
             return bId && bId.toString() === effectiveStoreId.toString();
           });
           if (branchStock) {
+            inStore = true;
             availableStock = branchStock.stock || 0;
             lowStockThreshold = branchStock.lowStockThreshold || 10;
             if (availableStock > 0) {
@@ -549,6 +560,7 @@ export const searchProductsWithAI = async (req, res) => {
         } else if (storeType === 'vendor') {
           const vId = pObj.vendor?._id || pObj.vendor;
           if (vId && vId.toString() === effectiveStoreId.toString()) {
+            inStore = true;
             availableStock = pObj.stock || 0;
             lowStockThreshold = pObj.lowStockThreshold || 10;
             if (availableStock > 0) {
@@ -557,7 +569,7 @@ export const searchProductsWithAI = async (req, res) => {
           }
         }
 
-        return { ...pObj, isDeliverable, availableStock, lowStockThreshold };
+        return { ...pObj, isDeliverable, availableStock, lowStockThreshold, inStore };
       });
     }
 
@@ -609,6 +621,7 @@ export const getProductById = async (req, res) => {
       let isDeliverable = false;
       let availableStock = 0;
       let lowStockThreshold = 10;
+      let inStore = false;
 
       if (storeType === 'branch') {
         const branchStock = pObj.branchStocks?.find(bs => {
@@ -616,6 +629,7 @@ export const getProductById = async (req, res) => {
           return bId && bId.toString() === effectiveStoreId.toString();
         });
         if (branchStock) {
+          inStore = true;
           availableStock = branchStock.stock || 0;
           lowStockThreshold = branchStock.lowStockThreshold || 10;
           if (availableStock > 0) {
@@ -625,6 +639,7 @@ export const getProductById = async (req, res) => {
       } else if (storeType === 'vendor') {
         const vId = pObj.vendor?._id || pObj.vendor;
         if (vId && vId.toString() === effectiveStoreId.toString()) {
+          inStore = true;
           availableStock = pObj.stock || 0;
           lowStockThreshold = pObj.lowStockThreshold || 10;
           if (availableStock > 0) {
@@ -635,6 +650,7 @@ export const getProductById = async (req, res) => {
       pObj.isDeliverable = isDeliverable;
       pObj.availableStock = availableStock;
       pObj.lowStockThreshold = lowStockThreshold;
+      pObj.inStore = inStore;
     }
 
     res.json(pObj);
