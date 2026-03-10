@@ -119,12 +119,6 @@ const Branches = () => {
                         />
                     </InputGroup>
                     <div className="d-flex flex-row gap-2 w-100 w-md-auto">
-                        <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 border shadow-sm px-2 px-lg-3 py-2" onClick={handleImport}>
-                            <Upload size={18} className="text-success" /> <span className="small fw-medium">Import</span>
-                        </Button>
-                        <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 border shadow-sm px-2 px-lg-3 py-2" onClick={handleExport}>
-                            <Download size={18} className="text-primary" /> <span className="small fw-medium">Export</span>
-                        </Button>
                         <Link to="/admin/locations/branches/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 px-2 px-lg-4 shadow-sm py-2 text-nowrap">
                             <Plus size={18} /> <span className="small fw-bold">Add Branch</span>
                         </Link>

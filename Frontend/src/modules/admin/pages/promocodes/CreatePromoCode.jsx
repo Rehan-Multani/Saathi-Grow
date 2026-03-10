@@ -28,20 +28,22 @@ const CreatePromoCode = () => {
 
     return (
         <div className="p-3">
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0 text-nowrap">Create New Promo Code</h4>
-                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto">
-                    <Button variant="light" onClick={() => navigate('/admin/promocodes')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center">
-                        <X size={18} /> Cancel
-                    </Button>
-                </div>
-            </div>
-
-            <Row className="justify-content-center">
-                <Col lg={8}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-3">Code Configuration</h6>
+            <Row className="g-0">
+                <Col xs={12}>
+                    <Card className="border-0 shadow-sm overflow-hidden mb-4">
+                        <Card.Header className="bg-gradient-to-r from-blue-50 to-white py-4 px-4 border-b border-gray-100 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 className="mb-0 fw-black text-gray-900 uppercase tracking-tight">Create New Promo Code</h6>
+                                <p className="text-gray-400 text-[10px] fw-bold uppercase tracking-widest mt-1 opacity-60">Generate and Configure Discount Assets</p>
+                            </div>
+                            <Button variant="light" onClick={() => navigate('/admin/promocodes')} className="d-flex align-items-center gap-2 shadow-sm px-4 fw-bold">
+                                <X size={18} /> Cancel
+                            </Button>
+                        </Card.Header>
+                        <Card.Body className="p-4 p-md-5">
+                            <h6 className="fw-bold mb-4 flex items-center gap-2 text-primary">
+                                <Ticket size={20} /> Code Configuration
+                            </h6>
                             <Form.Group className="mb-3">
                                 <Form.Label>Promo Code</Form.Label>
                                 <InputGroup>

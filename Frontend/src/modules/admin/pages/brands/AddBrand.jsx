@@ -104,138 +104,148 @@ const AddBrand = () => {
     };
 
     return (
-        <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="fw-bold mb-0">Add New Brand</h4>
-                <Button variant="light" onClick={() => navigate('/admin/brands')} disabled={loading}>
-                    <X size={18} className="me-2" /> Cancel
-                </Button>
-            </div>
+        <Form onSubmit={handleSubmit}>
+            <Row className="g-0">
+                <Col xs={12}>
+                    <Card className="border-0 shadow-sm overflow-hidden mb-4">
+                        <Card.Header className="bg-gradient-to-r from-blue-50 to-white py-4 px-4 border-b border-gray-100 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 className="mb-0 fw-black text-gray-900 uppercase tracking-tight">Add New Brand</h6>
+                                <p className="text-gray-400 text-[10px] fw-bold uppercase tracking-widest mt-1 opacity-60">Register and Configure Marketplace Brands</p>
+                            </div>
+                            <Button variant="light" onClick={() => navigate('/admin/brands')} className="d-flex align-items-center gap-2 shadow-sm px-4 fw-bold" disabled={loading}>
+                                <X size={18} /> Cancel
+                            </Button>
+                        </Card.Header>
+                        <Card.Body className="p-4 p-md-5">
+                            <Row>
+                                <Col lg={8}>
+                                    <Card className="border-0 shadow-sm mb-4">
+                                        <Card.Body>
+                                            <h6 className="fw-bold mb-3">Brand Details</h6>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label>Brand Name <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="e.g. Nike"
+                                                    name="name"
+                                                    value={formData.name}
+                                                    onChange={handleChange}
+                                                    required
+                                                />
+                                            </Form.Group>
 
-            <Form onSubmit={handleSubmit}>
-                <Row>
-                    <Col lg={8}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="fw-bold mb-3">Brand Details</h6>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Brand Name <span className="text-danger">*</span></Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="e.g. Nike"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </Form.Group>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label>Category <span className="text-danger">*</span></Form.Label>
+                                                <Form.Select name="category" value={formData.category} onChange={handleChange} required>
+                                                    <option value="">Select Category</option>
+                                                    {categories.map((cat) => (
+                                                        <option key={cat._id} value={cat.name}>
+                                                            {cat.name}
+                                                        </option>
+                                                    ))}
+                                                </Form.Select>
+                                            </Form.Group>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Category <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select name="category" value={formData.category} onChange={handleChange} required>
-                                        <option value="">Select Category</option>
-                                        {categories.map((cat) => (
-                                            <option key={cat._id} value={cat.name}>
-                                                {cat.name}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                </Form.Group>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label>Website (Optional)</Form.Label>
+                                                <Form.Control
+                                                    type="url"
+                                                    placeholder="https://example.com"
+                                                    name="website"
+                                                    value={formData.website}
+                                                    onChange={handleChange}
+                                                />
+                                            </Form.Group>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Website (Optional)</Form.Label>
-                                    <Form.Control
-                                        type="url"
-                                        placeholder="https://example.com"
-                                        name="website"
-                                        value={formData.website}
-                                        onChange={handleChange}
-                                    />
-                                </Form.Group>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label>Description</Form.Label>
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={4}
+                                                    name="description"
+                                                    value={formData.description}
+                                                    onChange={handleChange}
+                                                    placeholder="Tell us about the brand..."
+                                                />
+                                            </Form.Group>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Description</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={4}
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        placeholder="Tell us about the brand..."
-                                    />
-                                </Form.Group>
-                            </Card.Body>
-                        </Card>
-                    </Col>
+                                <Col lg={4}>
+                                    <Card className="border-0 shadow-sm mb-4">
+                                        <Card.Body>
+                                            <h6 className="fw-bold mb-3">Brand Logo</h6>
+                                            <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative">
+                                                {logoPreview ? (
+                                                    <div className="position-relative">
+                                                        <Image src={logoPreview} fluid rounded style={{ maxHeight: '150px' }} />
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            className="position-absolute top-0 end-0 m-2 rounded-circle p-1"
+                                                            onClick={() => { setLogoPreview(null); setLogoFile(null); }}
+                                                        >
+                                                            <X size={16} />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-muted">
+                                                        <Upload className="mb-2" size={32} />
+                                                        <p className="small mb-0">Upload Logo</p>
+                                                    </div>
+                                                )}
+                                                <Form.Control
+                                                    type="file"
+                                                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
+                                                    onChange={handleLogoChange}
+                                                    accept="image/*"
+                                                    disabled={!!logoPreview || loading}
+                                                />
+                                                <ImageCropperModal
+                                                    show={showCropper}
+                                                    imageSrc={tempLogo}
+                                                    onCancel={() => { setShowCropper(false); setTempLogo(null); }}
+                                                    onCropComplete={handleCropComplete}
+                                                    aspect={1}
+                                                />
+                                            </div>
+                                            <p className="text-center text-muted small">Square logo recommended (e.g. 512x512)</p>
+                                        </Card.Body>
+                                    </Card>
 
-                    <Col lg={4}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="fw-bold mb-3">Brand Logo</h6>
-                                <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative">
-                                    {logoPreview ? (
-                                        <div className="position-relative">
-                                            <Image src={logoPreview} fluid rounded style={{ maxHeight: '150px' }} />
-                                            <Button
-                                                variant="danger"
-                                                size="sm"
-                                                className="position-absolute top-0 end-0 m-2 rounded-circle p-1"
-                                                onClick={() => { setLogoPreview(null); setLogoFile(null); }}
-                                            >
-                                                <X size={16} />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className="text-muted">
-                                            <Upload className="mb-2" size={32} />
-                                            <p className="small mb-0">Upload Logo</p>
-                                        </div>
-                                    )}
-                                    <Form.Control
-                                        type="file"
-                                        className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
-                                        onChange={handleLogoChange}
-                                        accept="image/*"
-                                        disabled={!!logoPreview || loading}
-                                    />
-                                    <ImageCropperModal
-                                        show={showCropper}
-                                        imageSrc={tempLogo}
-                                        onCancel={() => { setShowCropper(false); setTempLogo(null); }}
-                                        onCropComplete={handleCropComplete}
-                                        aspect={1}
-                                    />
-                                </div>
-                                <p className="text-center text-muted small">Square logo recommended (e.g. 512x512)</p>
-                            </Card.Body>
-                        </Card>
-
-                        <Card className="border-0 shadow-sm">
-                            <Card.Body>
-                                <h6 className="fw-bold mb-3">Status</h6>
-                                <Form.Select name="status" value={formData.status} onChange={handleChange} disabled={loading}>
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
-                                </Form.Select>
-                                <Button
-                                    type="submit"
-                                    variant="primary"
-                                    className="w-100 mt-4 d-flex align-items-center justify-content-center gap-2"
-                                    disabled={loading}
-                                >
-                                    {loading ? (
-                                        <Spinner animation="border" size="sm" />
-                                    ) : (
-                                        <Save size={18} />
-                                    )}
-                                    {loading ? 'Saving...' : 'Save Brand'}
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            </Form>
-        </div>
+                                    <Card className="border-0 shadow-sm">
+                                        <Card.Body>
+                                            <h6 className="fw-bold mb-3">Status</h6>
+                                            <Form.Select name="status" value={formData.status} onChange={handleChange} disabled={loading}>
+                                                <option value="Active">Active</option>
+                                                <option value="Inactive">Inactive</option>
+                                            </Form.Select>
+                                            <div className="d-flex justify-content-center mt-4">
+                                                <Button
+                                                    type="submit"
+                                                    variant="primary"
+                                                    className="px-5 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold shadow-sm"
+                                                    disabled={loading}
+                                                >
+                                                    {loading ? (
+                                                        <Spinner animation="border" size="sm" />
+                                                    ) : (
+                                                        <Save size={18} />
+                                                    )}
+                                                    {loading ? 'Saving...' : 'Save Brand'}
+                                                </Button>
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </Form>
     );
 };
 

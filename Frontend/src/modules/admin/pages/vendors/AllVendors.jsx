@@ -114,12 +114,6 @@ const AllVendors = () => {
                             />
                         </InputGroup>
                         <div className="d-flex gap-2 w-100 w-md-auto">
-                            <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 border shadow-sm px-3">
-                                <Upload size={18} className="text-success" /> <span className="d-none d-sm-inline">Import</span>
-                            </Button>
-                            <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 border shadow-sm px-3">
-                                <Download size={18} className="text-primary" /> <span className="d-none d-sm-inline">Export</span>
-                            </Button>
                             <Link to="/admin/vendors/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm">
                                 <Plus size={18} /> <span>Add New</span>
                             </Link>

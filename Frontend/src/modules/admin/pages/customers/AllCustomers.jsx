@@ -107,12 +107,6 @@ const AllCustomers = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
-                        <Button variant="outline-success" className="d-flex align-items-center gap-2 shadow-sm">
-                            <Upload size={18} /> <span className="d-none d-md-inline">Import</span>
-                        </Button>
-                        <Button variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm">
-                            <Download size={18} /> <span className="d-none d-md-inline">Export</span>
-                        </Button>
                     </div>
                 </Card.Body>
             </Card>
