@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { Card, Table, Row, Col, Form, Button } from 'react-bootstrap';
-import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag } from 'lucide-react';
+import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const SALES_DATA = [
     { id: 'ORD-5001', date: '2023-11-01', customer: 'John Doe', items: 3, total: '₹120.00', status: 'Completed', payment: 'Credit Card' },
@@ -10,6 +10,13 @@ const SALES_DATA = [
 ];
 
 const SalesReports = () => {
+    const [page, setPage] = useState(1);
+    const limit = 10;
+
+    const totalFiltered = SALES_DATA.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedSales = SALES_DATA.slice((page - 1) * limit, page * limit);
+
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
@@ -107,7 +114,7 @@ const SalesReports = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {SALES_DATA.map((order, idx) => (
+                            {paginatedSales.map((order, idx) => (
                                 <tr key={idx}>
                                     <td className="ps-4 fw-bold text-primary">{order.id}</td>
                                     <td className="text-muted small">{order.date}</td>
@@ -125,6 +132,58 @@ const SalesReports = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+
+                {/* Pagination Controls */}
+                {totalFiltered > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> orders
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {(() => {
+                                    return [...Array(totalPages)].map((_, i) => {
+                                        const p = i + 1;
+                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                            return (
+                                                <Button
+                                                    key={p}
+                                                    variant={page === p ? 'primary' : 'light'}
+                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                    style={{ width: '36px', height: '36px', padding: 0 }}
+                                                    onClick={() => setPage(p)}
+                                                >
+                                                    {p}
+                                                </Button>
+                                            );
+                                        } else if (p === page - 2 || p === page + 2) {
+                                            return <span key={p} className="text-muted px-1">...</span>;
+                                        }
+                                        return null;
+                                    });
+                                })()}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
         </div>
     );

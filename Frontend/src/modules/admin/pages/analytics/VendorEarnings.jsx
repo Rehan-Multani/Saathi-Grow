@@ -1,6 +1,6 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 import { Card, Table, Button, Form, Row, Col, Badge } from 'react-bootstrap';
-import { Download, IndianRupee, Wallet, TrendingUp } from 'lucide-react';
+import { Download, IndianRupee, Wallet, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
@@ -12,6 +12,14 @@ const EARNINGS_DATA = [
 
 const VendorEarnings = () => {
     const navigate = useNavigate();
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
+
+    const totalFiltered = EARNINGS_DATA.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedEarnings = EARNINGS_DATA.slice((page - 1) * limit, page * limit);
 
     const handleExport = () => {
         // CSV Generation Logic
@@ -73,8 +81,8 @@ const VendorEarnings = () => {
                     <div className="flex-grow-1 flex-sm-grow-0" style={{ minWidth: '180px' }}>
                         <Form.Select
                             size="sm"
-                            className="shadow-none border-0 bg-light px-3 py-2 w-100"
-                            style={{ height: '40px' }}
+                            className="shadow-sm border bg-white px-3 py-2 w-100 fw-medium text-dark"
+                            style={{ height: '40px', cursor: 'pointer' }}
                         >
                             <option>All Vendors</option>
                             <option>Pending Payouts</option>
@@ -156,7 +164,7 @@ const VendorEarnings = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {EARNINGS_DATA.map((p, idx) => (
+                            {paginatedEarnings.map((p, idx) => (
                                 <tr key={idx} className="cursor-pointer">
                                     <td className="ps-4 fw-bold font-monospace text-secondary" onClick={() => navigate(`${p.id}`)}>{p.id}</td>
                                     <td className="fw-medium text-dark" onClick={() => navigate(`${p.id}`)}>{p.vendor}</td>
@@ -187,6 +195,58 @@ const VendorEarnings = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+
+                {/* Pagination Controls */}
+                {totalFiltered > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> payouts
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {(() => {
+                                    return [...Array(totalPages)].map((_, i) => {
+                                        const p = i + 1;
+                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                            return (
+                                                <Button
+                                                    key={p}
+                                                    variant={page === p ? 'primary' : 'light'}
+                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                    style={{ width: '36px', height: '36px', padding: 0 }}
+                                                    onClick={() => setPage(p)}
+                                                >
+                                                    {p}
+                                                </Button>
+                                            );
+                                        } else if (p === page - 2 || p === page + 2) {
+                                            return <span key={p} className="text-muted px-1">...</span>;
+                                        }
+                                        return null;
+                                    });
+                                })()}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
         </div>
     );

@@ -9,6 +9,7 @@ const LegalManagement = () => {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('All');
   const [showModal, setShowModal] = useState(false);
   const [selectedPage, setSelectedPage] = useState(null);
   const [formData, setFormData] = useState({
@@ -105,10 +106,12 @@ const LegalManagement = () => {
     }));
   };
 
-  const filtered = pages.filter(p =>
-    p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = pages.filter(p => {
+    const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.slug.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = selectedRole === 'All' || p.targetAudience.includes(selectedRole);
+    return matchesSearch && matchesRole;
+  });
 
   return (
     <div className="p-2 p-md-4">
@@ -137,6 +140,22 @@ const LegalManagement = () => {
             <Plus size={18} /> <span className="small fw-bold">Add Policy</span>
           </Button>
         </div>
+      </div>
+      <div className="d-flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-3 shadow-sm border border-gray-100">
+        <div className="d-flex align-items-center me-3 text-muted small fw-bold text-uppercase">
+          Filter by Role:
+        </div>
+        {['All', ...audienceOptions].map(role => (
+          <Button
+            key={role}
+            size="sm"
+            variant={selectedRole === role ? 'primary' : 'light'}
+            onClick={() => setSelectedRole(role)}
+            className={`rounded-pill px-4 py-2 border shadow-none transition-all fw-bold ${selectedRole === role ? 'shadow-sm' : 'text-secondary bg-light border-0'}`}
+          >
+            {role === 'All' ? 'View All' : role}
+          </Button>
+        ))}
       </div>
 
       <Card className="border-0 shadow-sm overflow-hidden">

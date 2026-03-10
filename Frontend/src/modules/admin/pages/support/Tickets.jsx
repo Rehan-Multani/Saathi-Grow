@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
-import { Search, Plus, MessageCircle, MoreHorizontal, Edit, Trash2, Info, ArrowUpRight } from 'lucide-react';
+import { Search, Plus, MessageCircle, MoreHorizontal, Edit, Trash2, Info, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as complaintApi from '../../api/complaintApi';
 import { toast } from 'react-toastify';
@@ -16,6 +16,10 @@ const SupportTickets = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [complaints, setComplaints] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     const loadComplaints = async () => {
         try {
@@ -40,6 +44,15 @@ const SupportTickets = () => {
         t.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.category?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const totalFiltered = filtered.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedTickets = filtered.slice((page - 1) * limit, page * limit);
+
+    // Reset pagination when search changes
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
 
     const handleEdit = (ticket) => {
         setSelectedTicket(ticket);
@@ -113,7 +126,7 @@ const SupportTickets = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.map((t, idx) => (
+                                {paginatedTickets.map((t, idx) => (
                                     <tr key={idx} className="border-bottom border-gray-50">
                                         <td className="ps-4 fw-black text-[#0c831f]">{t.ticketId}</td>
                                         <td className="small font-black">{t.order?.orderId || 'N/A'}</td>
@@ -156,6 +169,58 @@ const SupportTickets = () => {
                         </Table>
                     )}
                 </Card.Body>
+
+                {/* Pagination Controls */}
+                {!isLoading && totalFiltered > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> tickets
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {(() => {
+                                    return [...Array(totalPages)].map((_, i) => {
+                                        const p = i + 1;
+                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                            return (
+                                                <Button
+                                                    key={p}
+                                                    variant={page === p ? 'success' : 'light'}
+                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                    style={{ width: '36px', height: '36px', padding: 0 }}
+                                                    onClick={() => setPage(p)}
+                                                >
+                                                    {p}
+                                                </Button>
+                                            );
+                                        } else if (p === page - 2 || p === page + 2) {
+                                            return <span key={p} className="text-muted px-1">...</span>;
+                                        }
+                                        return null;
+                                    });
+                                })()}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             <TicketEditModal

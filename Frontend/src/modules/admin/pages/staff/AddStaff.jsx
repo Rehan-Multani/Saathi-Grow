@@ -166,6 +166,7 @@ const AddStaff = () => {
                                                 onChange={handleChange}
                                                 className="shadow-none border-light-subtle bg-light-subtle"
                                             />
+                                            <Form.Control.Feedback type="invalid">Last name is required.</Form.Control.Feedback>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
@@ -177,12 +178,13 @@ const AddStaff = () => {
                                                     required
                                                     type="email"
                                                     placeholder="name@company.com"
+                                                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                                                     name="email"
                                                     value={formData.email}
                                                     onChange={handleChange}
                                                     className="shadow-none border-light-subtle bg-light-subtle"
                                                 />
-                                                <Form.Control.Feedback type="invalid">Please provide a valid email.</Form.Control.Feedback>
+                                                <Form.Control.Feedback type="invalid">Please provide a valid email address (e.g., name@gmail.com).</Form.Control.Feedback>
                                             </InputGroup>
                                         </Form.Group>
                                     </Col>
@@ -194,12 +196,14 @@ const AddStaff = () => {
                                                 <Form.Control
                                                     required
                                                     type="tel"
-                                                    placeholder="+91 98765 43210"
+                                                    placeholder="10-digit mobile number"
+                                                    pattern="^[6-9]\d{9}$"
                                                     name="phone"
                                                     value={formData.phone}
                                                     onChange={handleChange}
                                                     className="shadow-none border-light-subtle bg-light-subtle"
                                                 />
+                                                <Form.Control.Feedback type="invalid">Please enter a valid 10-digit Indian phone number.</Form.Control.Feedback>
                                             </InputGroup>
                                         </Form.Group>
                                     </Col>
@@ -217,13 +221,14 @@ const AddStaff = () => {
                                             <Form.Control
                                                 required
                                                 type="password"
-                                                placeholder="₹₹₹₹₹₹₹₹"
+                                                placeholder="********"
                                                 name="password"
                                                 value={formData.password}
                                                 onChange={handleChange}
                                                 minLength={8}
                                                 className="shadow-none border-light-subtle bg-light-subtle"
                                             />
+                                            <Form.Control.Feedback type="invalid">Password must be at least 8 characters long.</Form.Control.Feedback>
                                             <Form.Text className="text-muted small">Min. 8 characters</Form.Text>
                                         </Form.Group>
                                     </Col>
@@ -233,7 +238,7 @@ const AddStaff = () => {
                                             <Form.Control
                                                 required
                                                 type="password"
-                                                placeholder="₹₹₹₹₹₹₹₹"
+                                                placeholder="********"
                                                 name="confirmPassword"
                                                 value={formData.confirmPassword}
                                                 onChange={handleChange}
