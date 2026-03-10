@@ -85,8 +85,8 @@ const AddCategory = () => {
         <div className="p-3">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h4 className="fw-bold mb-0">Add New Category</h4>
-                <Button variant="light" onClick={() => navigate('/admin/categories')} className="shadow-sm border" disabled={loading}>
-                    <X size={18} className="me-2" /> Cancel
+                <Button variant="light" onClick={() => navigate('/admin/categories')} className="shadow-sm border d-flex align-items-center gap-1 px-3 py-2" disabled={loading}>
+                    <X size={16} /> <span className="fw-medium text-sm">Cancel</span>
                 </Button>
             </div>
 

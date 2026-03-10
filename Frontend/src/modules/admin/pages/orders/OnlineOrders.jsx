@@ -224,7 +224,7 @@ const OnlineOrders = () => {
                                         <div>
                                             <label className="block text-xs text-gray-500 mb-1">Order Status</label>
                                             <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg block w-full p-2 outline-none" value={statusFilter} onChange={handleFilterChange(setStatusFilter)}>
-                                                <option value="">All Statuses</option>
+                                                <option value="">All Status</option>
                                                 <option value="pending">Pending</option>
                                                 <option value="confirmed">Confirmed</option>
                                                 <option value="preparing">Preparing</option>
@@ -238,7 +238,7 @@ const OnlineOrders = () => {
                                         <div>
                                             <label className="block text-xs text-gray-500 mb-1">Payment Status</label>
                                             <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg block w-full p-2 outline-none" value={paymentStatusFilter} onChange={handleFilterChange(setPaymentStatusFilter)}>
-                                                <option value="">All Payment Statuses</option>
+                                                <option value="">All Payment Status</option>
                                                 <option value="paid">Paid</option>
                                                 <option value="pending">Pending</option>
                                                 <option value="failed">Failed</option>
@@ -262,15 +262,6 @@ const OnlineOrders = () => {
                                 </div>
                             )}
                         </div>
-
-                        {/* Refresh */}
-                        <button
-                            onClick={fetchOrders}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-                        >
-                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                            <span className="hidden sm:inline">Refresh</span>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -402,7 +393,7 @@ const OnlineOrders = () => {
                 </div>
 
                 {/* Pagination */}
-                {!loading && pagination.totalPages > 1 && (
+                {!loading && pagination.total > 0 && (
                     <div className="bg-white border-t border-gray-100 px-6 py-3 flex items-center justify-between gap-4">
                         <div className="text-sm text-gray-500">
                             Showing <span className="font-semibold text-gray-700">{((page - 1) * limit) + 1}</span>–<span className="font-semibold text-gray-700">{Math.min(page * limit, pagination.total)}</span> of <span className="font-semibold text-gray-700">{pagination.total}</span> online orders

@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Search, Eye, CheckCircle, XCircle, RotateCcw, Package, Calendar, User, IndianRupee, Loader2, AlertCircle, Truck, Clock } from 'lucide-react';
+import { Search, Eye, CheckCircle, XCircle, RotateCcw, Package, Calendar, User, IndianRupee, Loader2, AlertCircle, Truck, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getReturnRequests, handleReturnRequest, scheduleReturnPickup } from '../../api/orderApi';
 import Swal from 'sweetalert2';
 
@@ -35,6 +35,10 @@ const ReturnRequests = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [processing, setProcessing] = useState(false);
 
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
+
     const fetchReturns = async () => {
         try {
             setLoading(true);
@@ -59,6 +63,15 @@ const ReturnRequests = () => {
             req.user?.email?.toLowerCase().includes(search);
         return matchesStatus && matchesSearch;
     });
+
+    const totalFiltered = filteredRequests.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedRequests = filteredRequests.slice((page - 1) * limit, page * limit);
+
+    // Reset pagination when search or filter changes
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm, filterStatus]);
 
     const handleAction = async (id, action) => {
         if (action === 'Rejected') {
@@ -179,16 +192,16 @@ const ReturnRequests = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex flex-wrap gap-3">
                 {[
                     { label: 'Total', value: stats.total, color: 'text-gray-800', bg: 'bg-gray-50', border: 'border-gray-100' },
                     { label: 'Pending', value: stats.pending, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-100' },
                     { label: 'Approved', value: stats.approved, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-100' },
                     { label: 'Rejected', value: stats.rejected, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-100' },
                 ].map(stat => (
-                    <div key={stat.label} className={`bg-white rounded-xl border ${stat.border} p-4 shadow-sm`}>
-                        <p className="text-xs font-bold text-gray-500 uppercase">{stat.label}</p>
-                        <p className={`text-3xl font-black mt-1 ${stat.color}`}>{stat.value}</p>
+                    <div key={stat.label} className={`bg-white rounded-lg border ${stat.border} px-4 py-2.5 shadow-sm flex-1 min-w-[120px] max-w-[180px]`}>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{stat.label}</p>
+                        <p className={`text-2xl font-black mt-0.5 ${stat.color}`}>{stat.value}</p>
                     </div>
                 ))}
             </div>
@@ -199,7 +212,7 @@ const ReturnRequests = () => {
                     <button
                         key={s}
                         onClick={() => setFilterStatus(s)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold capitalize border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}
+                        className={`px-5 py-2 rounded-lg text-[13px] font-bold capitalize border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                     >
                         {s}
                     </button>
@@ -227,7 +240,7 @@ const ReturnRequests = () => {
                                 <tr><td colSpan="8" className="text-center py-12">
                                     <Loader2 size={24} className="animate-spin text-blue-600 mx-auto" />
                                 </td></tr>
-                            ) : filteredRequests.length === 0 ? (
+                            ) : paginatedRequests.length === 0 ? (
                                 <tr><td colSpan="8" className="text-center py-12">
                                     <div className="flex flex-col items-center gap-2">
                                         <AlertCircle size={32} className="text-gray-200" />
@@ -235,7 +248,7 @@ const ReturnRequests = () => {
                                     </div>
                                 </td></tr>
                             ) : (
-                                filteredRequests.map((req) => (
+                                paginatedRequests.map((req) => (
                                     <tr key={req._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 font-bold text-blue-600 text-sm">{req.orderId}</td>
                                         <td className="px-6 py-4">
@@ -299,6 +312,54 @@ const ReturnRequests = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {!loading && totalFiltered > 0 && (
+                    <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-sm text-gray-500">
+                            Showing <span className="font-semibold text-gray-700">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-gray-700">{Math.min(page * limit, totalFiltered)}</span> of <span className="font-semibold text-gray-700">{totalFiltered}</span> requests
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className={`p-2 rounded-lg border ${page === 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-all duration-300`}
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            <div className="flex items-center gap-1">
+                                {[...Array(totalPages)].map((_, i) => {
+                                    const p = i + 1;
+                                    const isFirstPage = p === 1;
+                                    const isLastPage = p === totalPages;
+                                    const isNearCurrent = Math.abs(page - p) <= 1;
+
+                                    if (isFirstPage || isLastPage || isNearCurrent) {
+                                        return (
+                                            <button
+                                                key={p}
+                                                onClick={() => setPage(p)}
+                                                className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-300 ${page === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-500 hover:bg-gray-100'}`}
+                                            >
+                                                {p}
+                                            </button>
+                                        );
+                                    } else if (p === page - 2 || p === page + 2) {
+                                        return <span key={p} className="text-gray-400 px-1">...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                                className={`p-2 rounded-lg border ${page === totalPages ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-all duration-300`}
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Detail Modal */}

@@ -9,7 +9,7 @@ import connectDB from './config/db.js';
 import noCache from './utils/noCache.js';
 
 // Database Connection
-connectDB();
+await connectDB();
 
 const app = express();
 app.use(noCache);
