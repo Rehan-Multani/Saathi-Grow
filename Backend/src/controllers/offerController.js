@@ -166,6 +166,7 @@ export const getActiveOfferDeals = async (req, res) => {
           let isDeliverable = false;
           let availableStock = 0;
           let lowStockThreshold = 10;
+          let inStore = false;
           const pObj = cp.productId;
 
           if (storeType === 'branch') {
@@ -174,6 +175,7 @@ export const getActiveOfferDeals = async (req, res) => {
               return bId && bId.toString() === storeId.toString();
             });
             if (branchStock) {
+              inStore = true;
               availableStock = branchStock.stock || 0;
               lowStockThreshold = branchStock.lowStockThreshold || 10;
               if (availableStock > 0) {
@@ -183,6 +185,7 @@ export const getActiveOfferDeals = async (req, res) => {
           } else if (storeType === 'vendor') {
             const vId = pObj.vendor?._id || pObj.vendor;
             if (vId && vId.toString() === storeId.toString()) {
+              inStore = true;
               availableStock = pObj.stock || 0;
               lowStockThreshold = pObj.lowStockThreshold || 10;
               if (availableStock > 0) {
@@ -194,6 +197,7 @@ export const getActiveOfferDeals = async (req, res) => {
           cp.productId.isDeliverable = isDeliverable;
           cp.productId.availableStock = availableStock;
           cp.productId.lowStockThreshold = lowStockThreshold;
+          cp.productId.inStore = inStore;
           return cp;
         });
         return offerObj;
