@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import { X, CheckCircle, XCircle, ShoppingBag, AlertCircle, Fingerprint, RefreshCcw, ShieldCheck } from 'lucide-react';
+import React from 'react';
+import { X, CheckCircle, XCircle, ShoppingBag, AlertCircle, Fingerprint, RefreshCcw, ShieldCheck, Image } from 'lucide-react';
 
 const ReturnApprovalModal = ({ isOpen, onClose, onApprove, onReject, request }) => {
     if (!isOpen || !request) return null;
@@ -54,9 +54,27 @@ const ReturnApprovalModal = ({ isOpen, onClose, onApprove, onReject, request }) 
                             <AlertCircle size={12} className="text-amber-500" /> Discrepancy Observation
                         </label>
                         <div className="p-5 bg-amber-50/30 border border-amber-100/50 rounded-[1.5rem] text-sm text-slate-700 italic leading-relaxed shadow-sm">
-                            "{request.reason}"
+                            <p className="font-bold">"{request.reason}"</p>
+                            {request.description && <p className="text-xs text-slate-500 mt-2 non-italic">{request.description}</p>}
                         </div>
                     </div>
+
+                    {/* Image Proof Display */}
+                    {request.images && request.images.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Evidence Documentation</p>
+                            <div className="flex flex-wrap gap-2">
+                                {request.images.map((img, i) => (
+                                    <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="relative w-16 h-16 rounded-2xl overflow-hidden border border-slate-100 group shadow-sm transition-transform hover:scale-105">
+                                        <img src={img} alt="proof" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                            <Image size={14} className="text-white" />
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="bg-blue-900 p-6 rounded-[2rem] border border-blue-800 shadow-2xl relative overflow-hidden group">
                         <div className="absolute inset-0 bg-blue-600/10 transition-opacity opacity-0 group-hover:opacity-100"></div>

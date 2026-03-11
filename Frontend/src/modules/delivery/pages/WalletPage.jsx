@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Wallet,
@@ -115,7 +115,7 @@ const WalletPage = () => {
             {/* Quick Stats Grid - High Density */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <div className="bg-white dark:bg-zinc-900 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1 md:gap-1.5">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Today p&l</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Today Collected</p>
                     <h4 className="text-base md:text-lg font-black text-slate-800 dark:text-zinc-100">₹{stats?.todayEarnings || '0'}</h4>
                     <div className="flex items-center gap-1 text-[8px] font-bold text-emerald-500 mt-0.5 md:mt-1">
                         <TrendingUp size={10} />

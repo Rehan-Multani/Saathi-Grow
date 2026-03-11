@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RotateCcw, CheckCircle2, XCircle, AlertCircle, Info, ChevronRight, Package, Calendar } from 'lucide-react';
 import ReturnApprovalModal from './components/ReturnApprovalModal';
 import { getReturnRequests, handleReturnRequest } from '../admin/api/orderApi';
@@ -135,7 +135,9 @@ const ReturnsApproval = () => {
                                                                 productName: request.items?.[0]?.product?.name || 'Items',
                                                                 quantity: request.items?.length || 1,
                                                                 status: request.returnRequest?.status || 'Pending',
-                                                                reason: request.returnRequest?.reason
+                                                                reason: request.returnRequest?.reason,
+                                                                description: request.returnRequest?.description,
+                                                                images: request.returnRequest?.images
                                                             }); setIsModalOpen(true);
                                                         }}
                                                         className="px-5 py-2 text-[10px] font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 uppercase tracking-widest active:scale-95"

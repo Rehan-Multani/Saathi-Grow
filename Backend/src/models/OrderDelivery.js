@@ -50,7 +50,7 @@ const orderDeliverySchema = new mongoose.Schema({
     },
     pickupFee: {
         type: Number,
-        default: 30  // default return pickup earning for partner
+        default: 0  // delivery partners are paid monthly, no per-task fee
     },
     returnPickedUpAt: { type: Date, default: null },
     returnDeliveredAt: { type: Date, default: null },

@@ -13,6 +13,9 @@ import Vendor from '../models/Vendor.js';
 import DeliverySlot from '../models/DeliverySlot.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
+import mongoose from 'mongoose';
+import DeliveryPartner from '../models/DeliveryPartner.js';
+import DeliveryRun from '../models/DeliveryRun.js';
 import { findOptimalSource, geocodeAddress, calculateDistance } from '../services/locationService.js';
 
 const validateStoreDistance = async (storeId, storeType, userLocation) => {
@@ -232,17 +235,20 @@ export const verifyRazorpayPayment = async (req, res) => {
       }
     }
     // Legacy/Fallback Logic
-    else if (coords) {
-      const optimalSource = await findOptimalSource(coords, orderData.items);
-      if (optimalSource) {
-        if (optimalSource.type === 'branch') {
-          order.branchId = optimalSource.id;
-        } else {
-          order.vendor = optimalSource.id;
+    else {
+      const coords = orderData.shippingAddress?.location?.coordinates;
+      if (coords) {
+        const optimalSource = await findOptimalSource(coords, orderData.items);
+        if (optimalSource) {
+          if (optimalSource.type === 'branch') {
+            order.branchId = optimalSource.id;
+          } else {
+            order.vendor = optimalSource.id;
+          }
         }
+      } else if (orderData.branchId) {
+        order.branchId = orderData.branchId;
       }
-    } else if (orderData.branchId) {
-      order.branchId = orderData.branchId;
     }
 
     const createdOrder = await order.save();
@@ -518,17 +524,20 @@ export const createCODOrder = async (req, res) => {
       }
     }
     // Legacy/Fallback Logic
-    else if (coords) {
-      const optimalSource = await findOptimalSource(coords, orderData.items);
-      if (optimalSource) {
-        if (optimalSource.type === 'branch') {
-          order.branchId = optimalSource.id;
-        } else {
-          order.vendor = optimalSource.id;
+    else {
+      const coords = orderData.shippingAddress?.location?.coordinates;
+      if (coords) {
+        const optimalSource = await findOptimalSource(coords, orderData.items);
+        if (optimalSource) {
+          if (optimalSource.type === 'branch') {
+            order.branchId = optimalSource.id;
+          } else {
+            order.vendor = optimalSource.id;
+          }
         }
+      } else if (orderData.branchId) {
+        order.branchId = orderData.branchId;
       }
-    } else if (orderData.branchId) {
-      order.branchId = orderData.branchId;
     }
 
     const createdOrder = await order.save();
@@ -748,11 +757,13 @@ export const requestReturn = async (req, res) => {
       return res.status(400).json({ message: 'A return request already exists for this order' });
     }
 
+    const imageProof = req.files ? req.files.map(file => file.path) : [];
+
     order.returnRequest = {
       isRequested: true,
       reason,
       description: description || null,
-      images: [],
+      images: imageProof,
       status: 'Pending',
       requestDate: new Date()
     };
@@ -860,16 +871,16 @@ export const getOrderRoute = async (req, res) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API;
     if (!apiKey) return res.status(500).json({ message: 'Maps logic restricted on server currently' });
 
-    console.log(`🗺️ Order Route Request: Origin ${originStr}, Destination ${destination}`);
+    console.log(`ðŸ—ºï¸ Order Route Request: Origin ${originStr}, Destination ${destination}`);
     const mapUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destination}&key=${apiKey}`;
     const response = await axios.get(mapUrl);
 
     if (response.data.status !== "OK") {
-      console.error('❌ Google Maps Order Route Error:', response.data.status, response.data.error_message);
+      console.error('âŒ Google Maps Order Route Error:', response.data.status, response.data.error_message);
       return res.status(400).json({ message: response.data.error_message || "Maps engine responded with error" });
     }
 
-    console.log(`✅ Order Route fetched successfully`);
+    console.log(`âœ… Order Route fetched successfully`);
     res.json({ routes: response.data.routes });
   } catch (error) {
     console.error('getOrderRoute issue:', error);
@@ -1090,17 +1101,21 @@ export const deleteOrder = async (req, res) => {
   }
 };
 
-// @desc    Get all return requests (Admin/Staff)
+// @desc    Get return requests for Admin/Staff (Central control)
 // @route   GET /api/orders/admin/returns
 // @access  Private (Admin/Staff)
 export const getReturnRequests = async (req, res) => {
   try {
+    const { status } = req.query; // all, Pending, Accepted, Scheduled
     let query = { 'returnRequest.isRequested': true };
 
-    if (req.admin.role !== 'Admin') {
-      if (!req.admin.branchId) {
-        return res.status(403).json({ message: 'No branch assigned' });
-      }
+    if (status && status !== 'all') {
+      query['returnRequest.status'] = status;
+    }
+
+    // Branch Security: Staff only see their branch returns
+    if (req.admin?.role !== 'Admin') {
+      if (!req.admin?.branchId) return res.status(403).json({ message: 'No branch assigned' });
       query.branchId = req.admin.branchId;
     }
 
@@ -1198,119 +1213,113 @@ export const getVendorReturnRequests = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
-// @desc    Approve or Reject Return Request
-// @route   PUT /api/orders/admin/:id/return
-// @access  Private (Admin/Staff/Vendor)
-export const handleReturnRequest = async (req, res) => {
+export const handleStoreReturnAction = async (req, res) => {
   try {
-    const { action, rejectionReason } = req.body; // action: 'Approved' or 'Rejected'
+    const { action, rejectionReason } = req.body; // action: "Accepted" or "Rejected"
     const order = await Order.findById(req.params.id);
 
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
-    // Auth: Admin can always act. Staff restricted to their branch.
-    // Vendor can act on their own store's orders.
-    const isAdmin = req.admin?.role === 'Admin';
-    const isStaffForBranch = req.admin && order.branchId?.toString() === req.admin.branchId?.toString();
+    // Auth: Vendor owns order OR Staff belongs to the branch
     const isVendorOwner = req.vendor && order.vendor?.toString() === req.vendor._id?.toString();
+    const isStaffForBranch = req.admin && order.branchId?.toString() === req.admin.branchId?.toString();
+    const isAdmin = req.admin?.role === "Admin";
 
-    if (!isAdmin && !isStaffForBranch && !isVendorOwner) {
-      return res.status(403).json({ message: 'Not authorized to manage returns for this order' });
+    if (!isVendorOwner && !isStaffForBranch && !isAdmin) {
+      return res.status(403).json({ message: "Not authorized to manage returns for this store" });
     }
 
-    if (!order.returnRequest.isRequested) {
-      return res.status(400).json({ message: 'No return request found for this order' });
+
+    if (order.returnRequest.status !== "Pending") {
+      return res.status(400).json({ message: "Return request already processed" });
     }
 
     order.returnRequest.status = action;
-
-    if (action === 'Approved') {
-      // Keep order in 'return_requested' until pickup is scheduled/completed.
-      // Stock is restored immediately (items are approved for return).
-      await incrementStock(order);
-
-      // NOTE: Refund is intentionally deferred to when the delivery partner
-      // marks 'return_delivered' (item physically back at branch/vendor store).
-      // This ensures money is not refunded before item is actually returned.
-      // Exception: if no delivery pickup is ever scheduled (rare edge case),
-      // admin can manually trigger refund separately.
-
-    } else if (action === 'Rejected') {
-      order.status = 'delivered'; // Revert — order stays delivered if return is rejected
-      order.returnRequest.rejectionReason = rejectionReason || 'Return request rejected';
+    
+    if (action === "Accepted") {
+      // Stock increment MOVED to final return (when rider brings item back to store)
+      // to avoid ghost stock in inventory.
+      
+      // Generate Secure Return OTP for Pickup verification
+      order.returnRequest.returnOTP = Math.floor(1000 + Math.random() * 9000).toString();
+    } else {
+      order.status = "delivered";
+      order.returnRequest.rejectionReason = rejectionReason || "Rejected by store";
       order.returnRequest.resolvedAt = new Date();
     }
 
-    const updatedOrder = await order.save();
-    res.json(updatedOrder);
+    await order.save();
+    res.json({ 
+      message: `Return ${action} successfully`, 
+      order: {
+        ...order.toObject(),
+        returnOTP: action === "Accepted" ? order.returnRequest.returnOTP : null
+      } 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Admin schedules physical return pickup by creating an OrderDelivery record
-// @route   POST /api/orders/admin/:id/return/schedule-pickup
-// @access  Private (Admin/Staff)
-export const scheduleReturnPickup = async (req, res) => {
+// @desc    Admin batch creates a Return Pickup Run
+// @route   POST /api/admin/returns/batch-schedule
+// @access  Private (Admin)
+export const createReturnBatch = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const { pickupFee = 30 } = req.body;
+    const { partnerId, orderIds, destinationType, destinationId } = req.body;
 
-    // Populate both branchId and vendor so we know the drop destination
-    const order = await Order.findById(req.params.id)
-      .populate('user', 'name phone')
-      .populate('branchId', 'name address phone')
-      .populate('vendor', 'storeName address phone');
+    const partner = await DeliveryPartner.findById(partnerId);
+    if (!partner || partner.assignmentStatus !== 'Free') throw new Error('Partner not found or busy');
 
-    if (!order) return res.status(404).json({ message: 'Order not found' });
+    const orders = await Order.find({ _id: { $in: orderIds } });
+    if (orders.length !== orderIds.length) throw new Error('Some orders not found');
 
-    // Auth guard: Admin bypasses all | Staff limited to their branch | Vendor must own order
-    const isAdmin = req.admin?.role === 'Admin';
-    const isStaffForBranch = req.admin && order.branchId?.toString() === req.admin.branchId?.toString();
-    const isVendorOwner = req.vendor && order.vendor?._id?.toString() === req.vendor._id?.toString();
+    const runId = 'RET-RUN-' + Date.now().toString().slice(-6);
 
-    if (!isAdmin && !isStaffForBranch && !isVendorOwner) {
-      return res.status(403).json({ message: 'Not authorized to schedule pickup for this order' });
-    }
-
-    if (order.returnRequest.status !== 'Approved') {
-      return res.status(400).json({ message: 'Return must be approved before scheduling pickup' });
-    }
-
-    if (order.returnRequest.pickupDeliveryId) {
-      return res.status(400).json({ message: 'Pickup already scheduled for this return' });
-    }
-
-    // Determine where the item needs to be dropped back
-    // Branch order → drop to branch | Vendor order → drop to vendor store
-    const dropDestinationType = order.branchId ? 'branch' : 'vendor';
-    const dropDestinationId = order.branchId ? order.branchId._id : order.vendor?._id;
-
-    if (!dropDestinationId) {
-      return res.status(400).json({ message: 'Order has no linked branch or vendor store. Cannot schedule pickup.' });
-    }
-
-    // Create an OrderDelivery record for the return pickup
-    const returnDelivery = await OrderDelivery.create({
-      type: 'return_pickup',
+    const stops = orders.map((order, index) => ({
       order: order._id,
+      stopSequence: index + 1,
       status: 'pending',
-      pickupFee,
-      dropDestinationType,
-      dropDestinationId,
-    });
+      pickupPoint: {
+        street: order.shippingAddress.street,
+        city: order.shippingAddress.city,
+        location: order.shippingAddress.location
+      }
+    }));
 
-    // Link back to order
-    order.returnRequest.pickupDeliveryId = returnDelivery._id;
-    order.returnRequest.pickupScheduledAt = new Date();
-    order.status = 'return_pickup_scheduled';
-    await order.save();
+    const run = await DeliveryRun.create([{
+      runId,
+      deliveryPartner: partnerId,
+      runType: 'return',
+      destinationType,
+      destinationId,
+      destinationTypeModel: destinationType === 'branch' ? 'Branch' : 'Vendor',
+      slotDate: new Date(),
+      orders: stops,
+      status: 'assigned',
+      assignedAt: new Date()
+    }], { session });
 
-    res.json({ success: true, returnDelivery, order });
+    for (const order of orders) {
+      order.returnRequest.status = 'Scheduled';
+      order.returnRequest.pickupPartnerId = partnerId;
+      order.returnRequest.pickupScheduledAt = new Date();
+      order.status = 'return_pickup_scheduled';
+      await order.save({ session });
+    }
+
+    partner.activeRun = run[0]._id;
+    partner.assignmentStatus = 'Busy';
+    await partner.save({ session });
+
+    await session.commitTransaction();
+    res.json({ success: true, run: run[0] });
   } catch (error) {
+    await session.abortTransaction();
     res.status(500).json({ message: error.message });
+  } finally {
+    session.endSession();
   }
 };

@@ -17,6 +17,24 @@ const deliveryRunSchema = new mongoose.Schema({
     unique: true,
     required: true
   },
+  runType: {
+    type: String,
+    enum: ['delivery', 'return'],
+    default: 'delivery'
+  },
+  destinationType: {
+    type: String,
+    enum: ['branch', 'vendor'],
+    default: null
+  },
+  destinationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    refPath: 'destinationTypeModel'
+  },
+  destinationTypeModel: {
+    type: String,
+    enum: ['Branch', 'Vendor']
+  },
 
   // The delivery partner executing this run
   deliveryPartner: {
@@ -59,6 +77,15 @@ const deliveryRunSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
         required: true
+      },
+      pickupPoint: { 
+        // For returns, this is the customer's location
+        street: String,
+        city: String,
+        location: {
+            type: { type: String, enum: ['Point'] },
+            coordinates: [Number]
+        }
       },
 
       // Position in the delivery sequence (1 = first stop, 2 = second, ...)

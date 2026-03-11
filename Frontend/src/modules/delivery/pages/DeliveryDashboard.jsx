@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Clock,
@@ -487,8 +487,8 @@ const DeliveryDashboard = () => {
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-black text-[#028A0F]">{incomingOrder.fare}</div>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Estimated Fare</p>
+                                        <div className="text-2xl font-black text-[#028A0F]">READY</div>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Mission Ready</p>
                                     </div>
                                 </div>
 
@@ -604,7 +604,7 @@ const DeliveryDashboard = () => {
                                         </div>
                                         <div>
                                             <h4 className="font-black text-2xl">Order #{acceptedOrder.order?.orderId || acceptedOrder._id}</h4>
-                                            <p className="text-slate-500 font-medium">Earn {acceptedOrder.fare} on completion</p>
+                                            <p className="text-slate-500 font-medium">Delivery mission in progress</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">

@@ -1,8 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Send, ShieldCheck, CheckCircle, RefreshCw,
-    Package, AlertTriangle, ChevronRight, Loader2, Clock
+    Package, AlertTriangle, ChevronRight, Loader2, Clock, Camera, X, Image
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
@@ -26,6 +26,8 @@ const ReturnOrderPage = () => {
     const [isLoadingOrder, setIsLoadingOrder] = useState(true);
     const [selectedReason, setSelectedReason] = useState('');
     const [description, setDescription] = useState('');
+    const [images, setImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
@@ -37,15 +39,8 @@ const ReturnOrderPage = () => {
                 const data = await orderApi.fetchOrderDetails(token, id);
                 setOrder(data);
 
-                // Guard: only delivered orders can be returned
                 if (data.status !== 'delivered') {
                     toast.error('Returns are only allowed for delivered orders.');
-                    navigate(`/orders/${id}`);
-                    return;
-                }
-                // Guard: already has a return request
-                if (data.returnRequest?.isRequested) {
-                    toast.info('A return request already exists for this order.');
                     navigate(`/orders/${id}`);
                     return;
                 }
@@ -59,6 +54,26 @@ const ReturnOrderPage = () => {
         loadOrder();
     }, [token, id, navigate]);
 
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (images.length + files.length > 5) {
+            toast.warning('You can only upload up to 5 images.');
+            return;
+        }
+
+        setImages(prev => [...prev, ...files]);
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+    };
+
+    const removeImage = (index) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => {
+            URL.revokeObjectURL(prev[index]);
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
     const handleSubmit = async () => {
         if (!selectedReason) {
             toast.warning('Please select a return reason.');
@@ -67,10 +82,15 @@ const ReturnOrderPage = () => {
 
         try {
             setSubmitting(true);
-            await orderApi.submitReturnRequest(token, id, {
-                reason: RETURN_REASONS.find(r => r.id === selectedReason)?.label || selectedReason,
-                description: description.trim() || null,
+            const formData = new FormData();
+            formData.append('reason', RETURN_REASONS.find(r => r.id === selectedReason)?.label || selectedReason);
+            formData.append('description', description.trim());
+            
+            images.forEach((image) => {
+                formData.append('images', image);
             });
+
+            await orderApi.submitReturnRequest(token, id, formData);
             setSubmitted(true);
         } catch (err) {
             toast.error(err.message || 'Failed to submit return request. Please try again.');
@@ -89,33 +109,46 @@ const ReturnOrderPage = () => {
     }
 
     // ── Success State ──
-    if (submitted) {
+    if (submitted || order?.returnRequest?.isRequested) {
+        const req = order?.returnRequest;
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-[#141414] dark:to-[#1a1a2e] flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-20 h-20 bg-blue-100 dark:bg-blue-500/10 rounded-full flex items-center justify-center mb-6 text-blue-600 shadow-lg shadow-blue-500/20 animate-bounce">
                     <CheckCircle size={36} strokeWidth={2.5} />
                 </div>
                 <h2 className="text-xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">
-                    Return Request Submitted!
+                    {submitted ? 'Return Request Submitted!' : 'Return Status'}
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 max-w-[300px] leading-relaxed">
-                    Your return request for Order #{order?.orderId || id} has been received.
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-[300px] leading-relaxed">
+                    Order #{order?.orderId || id} · {req?.status || 'Pending Review'}
                 </p>
-                <p className="text-xs text-blue-600 font-bold mb-8 max-w-[260px]">
-                    Our team will review your request within 24–48 hours.
-                </p>
+
+                {/* OTP CARD - ONLY FOR ACCEPTED/SCHEDULED */}
+                {(req?.status === 'Accepted' || req?.status === 'Scheduled') && req?.returnOTP && (
+                    <div className="w-full max-w-sm bg-blue-600 rounded-3xl p-6 mb-8 text-white shadow-2xl shadow-blue-500/40 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                            <ShieldCheck size={100} />
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 text-white/70">Secure Handover Code</p>
+                        <h3 className="text-5xl font-black tracking-[0.2em] mb-4 drop-shadow-md">{req.returnOTP}</h3>
+                        <div className="flex items-center justify-center gap-2 bg-white/20 px-4 py-2 rounded-xl border border-white/10">
+                            <AlertTriangle size={14} />
+                            <p className="text-[10px] font-bold">Give this to the rider ONLY during pickup</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Timeline */}
                 <div className="w-full max-w-sm bg-white dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 p-5 mb-8 text-left shadow-sm">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">What happens next</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">Live Progress</p>
                     {[
-                        { icon: '🔍', step: 'Request under review', sub: 'Admin will verify your claim', active: true },
-                        { icon: '✅', step: 'Return approved', sub: 'Pickup will be scheduled' },
-                        { icon: '🚚', step: 'Rider picks up item', sub: 'Delivery partner collects from you' },
-                        { icon: '🏪', step: 'Item returned to store', sub: 'Partner delivers to branch' },
-                        { icon: '💰', step: 'Refund processed', sub: 'Credited to your SaathiGro Wallet' },
+                        { icon: '🔍', step: 'Request under review', sub: 'Admin is verifying your claim', active: req?.status === 'Pending' },
+                        { icon: '✅', step: 'Return approved', sub: 'OTP generated for pickup', active: req?.status === 'Accepted' },
+                        { icon: '🚚', step: 'Rider scheduled', sub: 'Pickup assigned to partner', active: req?.status === 'Scheduled' },
+                        { icon: '📦', step: 'Item picked up', sub: 'Rider has collected the item', active: req?.status === 'PickedUp' },
+                        { icon: '💰', step: 'Returned & Refunded', sub: 'Refund credited to your wallet', active: req?.status === 'Returned' },
                     ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 mb-3 last:mb-0">
+                        <div key={i} className={`flex items-start gap-3 mb-3 last:mb-0 transition-opacity ${item.active ? 'opacity-100' : 'opacity-40'}`}>
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${item.active ? 'bg-blue-100 dark:bg-blue-500/20' : 'bg-gray-50 dark:bg-white/5'}`}>
                                 {item.icon}
                             </div>
@@ -220,6 +253,33 @@ const ReturnOrderPage = () => {
                                 </div>
                             </button>
                         ))}
+                    </div>
+                </div>
+
+                {/* Image Proof Upload */}
+                <div>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">
+                        Upload Image Proof <span className="text-gray-300 dark:text-gray-600 font-medium normal-case">(Max 5)</span>
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                        {imagePreviews.map((preview, index) => (
+                            <div key={index} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-100 dark:border-white/10 group animate-in zoom-in duration-300">
+                                <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                                <button 
+                                    onClick={() => removeImage(index)}
+                                    className="absolute top-1 right-1 p-1.5 bg-black/60 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X size={12} />
+                                </button>
+                            </div>
+                        ))}
+                        {images.length < 5 && (
+                            <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-100 dark:border-white/5 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+                                <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
+                                <Camera size={20} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Add Photo</span>
+                            </label>
+                        )}
                     </div>
                 </div>
 
