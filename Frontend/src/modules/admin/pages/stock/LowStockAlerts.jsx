@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, ProgressBar, Spinner } from 'react-bootstrap';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { showSuccessAlert } from '../../../../common/utils/alertUtils';
 import RestockModal from '../../components/products/RestockModal';
 import { getProducts } from '../../api/productApi';
@@ -13,6 +13,10 @@ const LowStockAlerts = () => {
     const [loading, setLoading] = useState(true);
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -100,7 +104,7 @@ const LowStockAlerts = () => {
                                         <span className="ms-2">Loading data...</span>
                                     </td>
                                 </tr>
-                            ) : alertsList.length > 0 ? alertsList.map((item, idx) => (
+                            ) : alertsList.length > 0 ? alertsList.slice((page - 1) * limit, page * limit).map((item, idx) => (
                                 <tr key={`${item.id}-${idx}`}>
                                     <td className="ps-4">
                                         <div className="d-flex align-items-center gap-2">
@@ -149,6 +153,58 @@ const LowStockAlerts = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+
+                {!loading && alertsList.length > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, alertsList.length)}</span> of <span className="fw-semibold text-dark">{alertsList.length}</span> alerts
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {(() => {
+                                    const totalPages = Math.ceil(alertsList.length / limit);
+                                    return [...Array(totalPages)].map((_, i) => {
+                                        const p = i + 1;
+                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                            return (
+                                                <Button
+                                                    key={p}
+                                                    variant={page === p ? 'primary' : 'light'}
+                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                    style={{ width: '36px', height: '36px', padding: 0 }}
+                                                    onClick={() => setPage(p)}
+                                                >
+                                                    {p}
+                                                </Button>
+                                            );
+                                        } else if (p === page - 2 || p === page + 2) {
+                                            return <span key={p} className="text-muted px-1">...</span>;
+                                        }
+                                        return null;
+                                    });
+                                })()}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === Math.ceil(alertsList.length / limit) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(Math.ceil(alertsList.length / limit), p + 1))}
+                                disabled={page === Math.ceil(alertsList.length / limit)}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             {selectedProduct && (
@@ -167,4 +223,3 @@ const LowStockAlerts = () => {
 };
 
 export default LowStockAlerts;
-

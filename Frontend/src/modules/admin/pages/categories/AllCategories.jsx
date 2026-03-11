@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, OverlayTrigger, Tooltip, Image as BSImage, Spinner } from 'react-bootstrap';
-import { Search, Plus, Edit, Trash2, ImageIcon, Info, Upload, Download } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, ImageIcon, Info, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CategoryEditModal from '../../components/products/CategoryEditModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -36,6 +36,18 @@ const AllCategories = () => {
     const filtered = categories.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
+    const totalFiltered = filtered.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedCategories = filtered.slice((page - 1) * limit, page * limit);
+
+    // Reset pagination when search changes
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
 
     const handleEdit = (category) => {
         setSelectedCategory(category);
@@ -90,12 +102,6 @@ const AllCategories = () => {
                         />
                     </InputGroup>
                     <div className="d-flex flex-row gap-2 w-100 w-md-auto">
-                        <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 border shadow-sm px-3 py-2">
-                            <Upload size={18} className="text-success" /> <span className="small fw-medium">Import</span>
-                        </Button>
-                        <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 border shadow-sm px-3 py-2">
-                            <Download size={18} className="text-primary" /> <span className="small fw-medium">Export</span>
-                        </Button>
                         <Link to="/admin/categories/add" className={`btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2 text-nowrap ${adminUser.role !== 'Admin' ? 'disabled opacity-50' : ''}`}>
                             <Plus size={18} /> <span className="small fw-bold">Add New</span>
                         </Link>
@@ -122,7 +128,7 @@ const AllCategories = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.length > 0 ? filtered.map((c) => (
+                                {paginatedCategories.length > 0 ? paginatedCategories.map((c) => (
                                     <tr key={c._id}>
                                         <td className="ps-4">
                                             <div className="d-flex align-items-center gap-3">
@@ -199,6 +205,60 @@ const AllCategories = () => {
                         </Table>
                     )}
                 </Card.Body>
+
+                {/* Pagination Controls */}
+                {!loading && totalFiltered > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> categories
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {[...Array(totalPages)].map((_, i) => {
+                                    const p = i + 1;
+                                    const isFirstPage = p === 1;
+                                    const isLastPage = p === totalPages;
+                                    const isNearCurrent = Math.abs(page - p) <= 1;
+
+                                    if (isFirstPage || isLastPage || isNearCurrent) {
+                                        return (
+                                            <Button
+                                                key={p}
+                                                variant={page === p ? 'primary' : 'light'}
+                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                style={{ width: '36px', height: '36px', padding: 0 }}
+                                                onClick={() => setPage(p)}
+                                            >
+                                                {p}
+                                            </Button>
+                                        );
+                                    } else if (p === page - 2 || p === page + 2) {
+                                        return <span key={p} className="text-muted px-1">...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             <CategoryEditModal

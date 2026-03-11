@@ -65,7 +65,7 @@ const SearchFilterBar = ({
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
-                        <option value="All">All Statuses</option>
+                        <option value="All">All Status</option>
                         <option value="In Stock">In Stock (Healthy)</option>
                         <option value="Low Stock">Critical Levels</option>
                         <option value="Out of Stock">Depleted</option>

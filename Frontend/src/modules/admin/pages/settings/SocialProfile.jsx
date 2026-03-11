@@ -7,16 +7,19 @@ const SocialProfile = () => {
         <div className="p-3">
             <h4 className="fw-bold mb-4">Social Media Profiles</h4>
 
-            <Row className="justify-content-center">
-                <Col lg={8}>
-                    <Card className="border-0 shadow-sm">
-                        <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                            <h6 className="mb-0 fw-bold">Connect Your Platesforms</h6>
-                            <Button variant="primary" size="sm" className="d-flex align-items-center gap-2">
+            <Row className="g-0">
+                <Col xs={12}>
+                    <Card className="border-0 shadow-sm overflow-hidden">
+                        <Card.Header className="bg-gradient-to-r from-blue-50 to-white py-4 px-4 border-b border-gray-100 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 className="mb-0 fw-black text-gray-900 uppercase tracking-tight">Connect Your Platforms</h6>
+                                <p className="text-gray-400 text-[10px] fw-bold uppercase tracking-widest mt-1 opacity-60">Social Media & Contact Assets</p>
+                            </div>
+                            <Button variant="primary" size="sm" className="d-flex align-items-center gap-2 px-4 shadow-sm fw-bold">
                                 <Save size={16} /> Save Links
                             </Button>
                         </Card.Header>
-                        <Card.Body className="p-4">
+                        <Card.Body className="p-4 p-md-5">
                             <Form>
                                 <p className="text-muted small mb-4">These links will be displayed in your store footer and "Contact Us" pages.</p>
 

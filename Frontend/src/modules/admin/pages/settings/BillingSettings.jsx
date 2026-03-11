@@ -106,20 +106,23 @@ const BillingSettings = () => {
                 </button>
             </div>
 
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="w-full space-y-6">
                 {/* Tax Information Section */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-4 md:p-7">
-                        <div className="flex items-center gap-2.5 mb-6">
+                    <div className="bg-gradient-to-r from-blue-50 to-white px-4 md:px-7 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner">
                                 <Receipt size={18} />
                             </div>
                             <div>
-                                <h2 className="text-base font-black text-gray-900 tracking-tight leading-none">Tax Information</h2>
+                                <h3 className="text-base font-black text-gray-900 tracking-tight leading-none">Tax Information</h3>
                                 <p className="text-gray-400 text-[8px] font-black uppercase tracking-widest mt-1 opacity-60">Legal Compliance & Models</p>
                             </div>
                         </div>
+                        <span className="bg-blue-100 text-blue-600 text-[8px] font-black px-2 py-0.5 rounded-md uppercase">Compliance</span>
+                    </div>
 
+                    <div className="p-4 md:p-7">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="group">
                                 <label className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-0.5 transition-colors group-focus-within:text-blue-600">

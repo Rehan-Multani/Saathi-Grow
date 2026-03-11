@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Modal, Spinner } from 'react-bootstrap';
-import { Search, Plus, User, Shield, Briefcase, Mail, Phone, Edit, Trash2, Key, X, Store } from 'lucide-react';
+import { Search, Plus, User, Shield, Briefcase, Mail, Phone, Edit, Trash2, Key, X, Store, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StaffEditModal from '../../components/staff/StaffEditModal';
 import { getAllStaff, updateStaff, deleteStaff } from '../../api/adminApi';
@@ -37,6 +37,10 @@ const AllStaff = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [tempPermissions, setTempPermissions] = useState([]);
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     const fetchStaffData = useCallback(async () => {
         setLoading(true);
@@ -116,6 +120,15 @@ const AllStaff = () => {
         s.branchId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const totalFiltered = filtered.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedStaff = filtered.slice((page - 1) * limit, page * limit);
+
+    // Reset pagination when search changes
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
+
     return (
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
@@ -159,7 +172,7 @@ const AllStaff = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.map((s) => (
+                                {paginatedStaff.map((s) => (
                                     <tr key={s._id}>
                                         <td className="ps-4">
                                             <div className="d-flex align-items-center gap-3">
@@ -220,6 +233,60 @@ const AllStaff = () => {
                         </Table>
                     )}
                 </Card.Body>
+
+                {/* Pagination Controls */}
+                {!loading && totalFiltered > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> staff members
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {[...Array(totalPages)].map((_, i) => {
+                                    const p = i + 1;
+                                    const isFirstPage = p === 1;
+                                    const isLastPage = p === totalPages;
+                                    const isNearCurrent = Math.abs(page - p) <= 1;
+
+                                    if (isFirstPage || isLastPage || isNearCurrent) {
+                                        return (
+                                            <Button
+                                                key={p}
+                                                variant={page === p ? 'primary' : 'light'}
+                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                style={{ width: '36px', height: '36px', padding: 0 }}
+                                                onClick={() => setPage(p)}
+                                            >
+                                                {p}
+                                            </Button>
+                                        );
+                                    } else if (p === page - 2 || p === page + 2) {
+                                        return <span key={p} className="text-muted px-1">...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             {/* Permission Modal */}

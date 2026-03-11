@@ -709,11 +709,11 @@ const AddProduct = () => {
                     </Col>
                 </Row>
 
-                <div className="d-flex justify-content-end gap-2 mb-5">
-                    <Button variant="light" size="lg" className="px-4" onClick={() => navigate('/admin/products')}>Cancel</Button>
-                    <Button variant="primary" size="lg" type="submit" className="px-4" disabled={loading}>
-                        {loading ? <Spinner animation="border" size="sm" className="me-2" /> : <Save size={20} className="me-2" />}
-                        Save Product
+                <div className="d-flex justify-content-end gap-3 mb-5">
+                    <Button variant="light" className="px-4 fw-bold" onClick={() => navigate('/admin/products')}>Cancel</Button>
+                    <Button variant="primary" type="submit" className="px-4 fw-bold d-flex align-items-center justify-content-center gap-2" disabled={loading}>
+                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
+                        <span>Save Product</span>
                     </Button>
                 </div>
             </Form>

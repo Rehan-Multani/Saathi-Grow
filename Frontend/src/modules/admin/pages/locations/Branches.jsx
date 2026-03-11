@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Row, Col, Spinner } from 'react-bootstrap';
-import { Search, Plus, MapPin, Store, Edit, Trash2, Info, Upload, Download } from 'lucide-react';
+import { Search, Plus, MapPin, Store, Edit, Trash2, Info, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BranchDetailsModal from '../../components/locations/BranchDetailsModal';
 import EditBranchModal from '../../components/locations/EditBranchModal';
@@ -17,6 +17,10 @@ const Branches = () => {
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState(null);
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     const fetchBranchesData = useCallback(async () => {
         setLoading(true);
@@ -39,6 +43,15 @@ const Branches = () => {
         b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         b.code?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const totalFiltered = filtered.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedBranches = filtered.slice((page - 1) * limit, page * limit);
+
+    // Reset pagination when search changes
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
 
     const handleShowDetails = (branch) => {
         setSelectedBranch(branch);
@@ -106,12 +119,6 @@ const Branches = () => {
                         />
                     </InputGroup>
                     <div className="d-flex flex-row gap-2 w-100 w-md-auto">
-                        <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 border shadow-sm px-2 px-lg-3 py-2" onClick={handleImport}>
-                            <Upload size={18} className="text-success" /> <span className="small fw-medium">Import</span>
-                        </Button>
-                        <Button variant="light" className="flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 border shadow-sm px-2 px-lg-3 py-2" onClick={handleExport}>
-                            <Download size={18} className="text-primary" /> <span className="small fw-medium">Export</span>
-                        </Button>
                         <Link to="/admin/locations/branches/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 px-2 px-lg-4 shadow-sm py-2 text-nowrap">
                             <Plus size={18} /> <span className="small fw-bold">Add Branch</span>
                         </Link>
@@ -138,7 +145,7 @@ const Branches = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.length > 0 ? filtered.map((b) => (
+                                {paginatedBranches.length > 0 ? paginatedBranches.map((b) => (
                                     <tr key={b._id}>
                                         <td className="ps-4">
                                             <div className="d-flex align-items-center gap-3">
@@ -210,6 +217,58 @@ const Branches = () => {
                         </Table>
                     )}
                 </Card.Body>
+
+                {/* Pagination Controls */}
+                {!loading && totalFiltered > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> branches
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {(() => {
+                                    return [...Array(totalPages)].map((_, i) => {
+                                        const p = i + 1;
+                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                            return (
+                                                <Button
+                                                    key={p}
+                                                    variant={page === p ? 'primary' : 'light'}
+                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                    style={{ width: '36px', height: '36px', padding: 0 }}
+                                                    onClick={() => setPage(p)}
+                                                >
+                                                    {p}
+                                                </Button>
+                                            );
+                                        } else if (p === page - 2 || p === page + 2) {
+                                            return <span key={p} className="text-muted px-1">...</span>;
+                                        }
+                                        return null;
+                                    });
+                                })()}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             <BranchDetailsModal

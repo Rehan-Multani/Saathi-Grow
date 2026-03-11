@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCcw, Check, X, Search, Database } from 'lucide-react';
+import { RefreshCcw, Check, X, Search, Database, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getInventoryRequests, approveInventoryRequest, rejectInventoryRequest } from '../../../store-manager/api/inventoryRequestApi';
 import { toast } from 'react-toastify';
@@ -10,6 +10,8 @@ const InventoryRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   const fetchRequests = async () => {
     try {
@@ -53,6 +55,15 @@ const InventoryRequests = () => {
     req.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     req.branchId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalFiltered = filteredRequests.length;
+  const totalPages = Math.ceil(totalFiltered / limit) || 1;
+  const paginatedRequests = filteredRequests.slice((page - 1) * limit, page * limit);
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
 
   return (
     <div className="space-y-6">
@@ -98,8 +109,8 @@ const InventoryRequests = () => {
                     Loading mapping requests...
                   </td>
                 </tr>
-              ) : filteredRequests.length > 0 ? (
-                filteredRequests.map(req => (
+              ) : paginatedRequests.length > 0 ? (
+                paginatedRequests.map(req => (
                   <tr key={req._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -170,6 +181,58 @@ const InventoryRequests = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalFiltered > 0 && (
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-gray-500">
+              Showing <span className="font-semibold text-gray-900">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-gray-900">{Math.min(page * limit, totalFiltered)}</span> of <span className="font-semibold text-gray-900">{totalFiltered}</span> requests
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                className={`p-2 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition-all ${page === 1 ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                <ChevronLeft size={18} className="text-gray-600" />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, i) => {
+                  const p = i + 1;
+                  const isNear = Math.abs(page - p) <= 1;
+                  const isEdge = p === 1 || p === totalPages;
+
+                  if (isEdge || isNear) {
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p)}
+                        className={`w-9 h-9 text-sm font-medium rounded-lg transition-all ${page === p
+                          ? 'bg-[#0c831f] text-white shadow-md'
+                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm'}`}
+                      >
+                        {p}
+                      </button>
+                    );
+                  } else if (p === page - 2 || p === page + 2) {
+                    return <span key={p} className="text-gray-400 px-1 font-bold">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                className={`p-2 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition-all ${page === totalPages ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                <ChevronRight size={18} className="text-gray-600" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

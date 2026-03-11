@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { Card, Table, Button, Form, Badge } from 'react-bootstrap';
-import { Star, Download, TrendingUp, Users } from 'lucide-react';
+import { Star, Download, TrendingUp, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import VendorPerformanceModal from './VendorPerformanceModal';
 
 const VENDOR_DATA = [
@@ -12,11 +12,30 @@ const VENDOR_DATA = [
 const VendorReports = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedVendor, setSelectedVendor] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     const handleShowDetails = (vendor) => {
         setSelectedVendor(vendor);
         setShowModal(true);
     };
+
+    const filteredVendors = VENDOR_DATA.filter(v =>
+        v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalFiltered = filteredVendors.length;
+    const totalPages = Math.ceil(totalFiltered / limit) || 1;
+    const paginatedVendors = filteredVendors.slice((page - 1) * limit, page * limit);
+
+    // Reset pagination when search changes
+    React.useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
 
     return (
         <div className="p-3">
@@ -34,9 +53,17 @@ const VendorReports = () => {
             <Card className="border-0 shadow-sm">
                 <Card.Header className="bg-white py-3 border-0 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                     <h6 className="mb-0 fw-bold">Top Performing Vendors</h6>
-                    <div className="d-flex align-items-center gap-2 w-100 w-sm-auto border rounded px-2 bg-light">
+                    <div className="d-flex align-items-center gap-2 w-sm-auto border rounded px-2 bg-light" style={{ width: '250px' }}>
                         <Users size={16} className="text-muted" />
-                        <Form.Control size="sm" type="search" placeholder="Search Vendor..." className="border-0 bg-transparent shadow-none" style={{ minWidth: '200px' }} />
+                        <Form.Control
+                            size="sm"
+                            type="search"
+                            placeholder="Search Vendor..."
+                            className="border-0 bg-transparent shadow-none"
+                            style={{ width: '100%' }}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                 </Card.Header>
                 <Card.Body className="p-0">
@@ -52,7 +79,7 @@ const VendorReports = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {VENDOR_DATA.map((vendor, idx) => (
+                            {paginatedVendors.map((vendor, idx) => (
                                 <tr key={idx}>
                                     <td className="ps-4">
                                         <div className="fw-bold text-dark">{vendor.name}</div>
@@ -91,6 +118,58 @@ const VendorReports = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+
+                {/* Pagination Controls */}
+                {totalFiltered > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> vendors
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {(() => {
+                                    return [...Array(totalPages)].map((_, i) => {
+                                        const p = i + 1;
+                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                            return (
+                                                <Button
+                                                    key={p}
+                                                    variant={page === p ? 'primary' : 'light'}
+                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                    style={{ width: '36px', height: '36px', padding: 0 }}
+                                                    onClick={() => setPage(p)}
+                                                >
+                                                    {p}
+                                                </Button>
+                                            );
+                                        } else if (p === page - 2 || p === page + 2) {
+                                            return <span key={p} className="text-muted px-1">...</span>;
+                                        }
+                                        return null;
+                                    });
+                                })()}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             <VendorPerformanceModal

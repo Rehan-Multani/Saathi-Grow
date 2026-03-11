@@ -104,14 +104,7 @@ const VendorPayouts = () => {
                         <p className="text-muted small mb-0">Track all financial transfers to your vendors.</p>
                     </div>
                 </div>
-                <Button
-                    variant="outline-primary"
-                    size="sm"
-                    className="d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2"
-                    onClick={handleExport}
-                >
-                    <Download size={16} /> Export History
-                </Button>
+
             </div>
 
             {/* Quick Stats */}

@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Eye, Filter, Download, Store, Upload, Clock } from 'lucide-react';
+import { Search, Eye, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, deleteOrder, updateOrderStatus } from '../../api/orderApi';
 import { getDeliverySlots } from '../../api/deliverySlotApi';
@@ -235,7 +235,7 @@ const AllOrders = () => {
                                         <div>
                                             <label className="block text-xs text-gray-500 mb-1">Order Status</label>
                                             <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-violet-500 block w-full p-2 outline-none" value={statusFilter} onChange={handleFilterChange(setStatusFilter)}>
-                                                <option value="">All Statuses</option>
+                                                <option value="">All Status</option>
                                                 <option value="pending">Pending</option>
                                                 <option value="confirmed">Confirmed</option>
                                                 <option value="preparing">Preparing</option>
@@ -258,7 +258,7 @@ const AllOrders = () => {
                                             <div>
                                                 <label className="block text-xs text-gray-500 mb-1">Payment Status</label>
                                                 <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-violet-500 block w-full p-2 outline-none" value={paymentStatusFilter} onChange={handleFilterChange(setPaymentStatusFilter)}>
-                                                    <option value="">All Statuses</option>
+                                                    <option value="">All Payment Status</option>
                                                     <option value="pending">Pending</option>
                                                     <option value="paid">Paid</option>
                                                     <option value="failed">Failed</option>
@@ -313,16 +313,12 @@ const AllOrders = () => {
                                 </div>
                             )}
                         </div>
-                        <button onClick={fetchOrders} className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
-                            <Clock size={18} />
-                            <span className="hidden sm:inline">Refresh</span>
-                        </button>
                     </div>
                 </div>
             </div>
 
             {/* Orders Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[calc(100vh-280px)] min-h-[400px]">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[650px]">
                 <div className="overflow-x-auto flex-1">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold sticky top-0 z-10">
@@ -422,8 +418,8 @@ const AllOrders = () => {
                 </div>
 
                 {/* Pagination Controls */}
-                {!loading && pagination.totalPages > 1 && (
-                    <div className="bg-white border-t border-gray-100 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                {!loading && pagination.total > 0 && (
+                    <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div className="text-sm text-gray-500">
                             Showing <span className="font-semibold text-gray-700">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-gray-700">{Math.min(page * limit, pagination.total)}</span> of <span className="font-semibold text-gray-700">{pagination.total}</span> orders
                         </div>
@@ -431,26 +427,29 @@ const AllOrders = () => {
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className={`p-2 rounded-lg border ${page === 1 ? 'border-gray-100 text-gray-300' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-colors`}
+                                className={`p-2 rounded-lg border ${page === 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-all duration-300`}
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                <ChevronLeft size={18} />
                             </button>
                             <div className="flex items-center gap-1">
                                 {[...Array(pagination.totalPages)].map((_, i) => {
-                                    // Complex pagination logic to show max 5 buttons securely
                                     const p = i + 1;
-                                    if (p === 1 || p === pagination.totalPages || Math.abs(page - p) <= 1) {
+                                    const isFirstPage = p === 1;
+                                    const isLastPage = p === pagination.totalPages;
+                                    const isNearCurrent = Math.abs(page - p) <= 1;
+
+                                    if (isFirstPage || isLastPage || isNearCurrent) {
                                         return (
                                             <button
                                                 key={p}
                                                 onClick={() => setPage(p)}
-                                                className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${page === p ? 'bg-violet-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                                                className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-300 ${page === p ? 'bg-violet-600 text-white shadow-lg shadow-violet-200' : 'text-gray-500 hover:bg-gray-100'}`}
                                             >
                                                 {p}
                                             </button>
                                         );
                                     } else if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-gray-400">...</span>
+                                        return <span key={p} className="text-gray-400 px-1">...</span>;
                                     }
                                     return null;
                                 })}
@@ -458,9 +457,9 @@ const AllOrders = () => {
                             <button
                                 onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
                                 disabled={page === pagination.totalPages}
-                                className={`p-2 rounded-lg border ${page === pagination.totalPages ? 'border-gray-100 text-gray-300' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-colors`}
+                                className={`p-2 rounded-lg border ${page === pagination.totalPages ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-all duration-300`}
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                <ChevronRight size={18} />
                             </button>
                         </div>
                     </div>
