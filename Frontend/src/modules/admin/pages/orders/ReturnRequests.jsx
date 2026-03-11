@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { 
     Search, Eye, CheckCircle, XCircle, RotateCcw, Package, 
     User, Loader2, Truck, ChevronLeft, ChevronRight, Filter,
-    Plus, MapPin, Store, Check, Layers
+    Plus, MapPin, Store, Check, Layers, Image, ShieldCheck
 } from 'lucide-react';
-import { API_BASE_URL } from '../../../../config/apiConfig';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
-
-const getAdminAuth = () => {
-    try {
-        const a = localStorage.getItem('sathiGro_admin') || localStorage.getItem('saathigro_admin');
-        return a ? JSON.parse(a) : null;
-    } catch { return null; }
-};
+import { getReturnRequests, handleReturnRequest, createReturnBatch } from '../../api/orderApi';
+import { getDeliveryPartners } from '../../api/adminDeliveryApi';
 
 const statusColors = {
     Pending: 'bg-amber-100 text-amber-700 border-amber-200',
@@ -29,6 +22,7 @@ const ReturnRequests = () => {
     const [returnRequests, setReturnRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [activeTab, setActiveTab] = useState('Pending');
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [processing, setProcessing] = useState(false);
@@ -36,15 +30,31 @@ const ReturnRequests = () => {
     const [showBatchModal, setShowBatchModal] = useState(false);
     const [partners, setPartners] = useState([]);
     const [selectedPartner, setSelectedPartner] = useState('');
+    const [page, setPage] = useState(1);
+    const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
+
+    const tabStatusMap = {
+        Pending: 'Pending',
+        Accepted: 'Accepted',
+        Scheduled: 'Scheduled,PickedUp',
+        History: 'Rejected,Returned'
+    };
 
     const fetchReturns = async () => {
-        const auth = getAdminAuth();
         try {
             setLoading(true);
-            const { data } = await axios.get(`${API_BASE_URL}/orders/admin/returns`, {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            });
-            setReturnRequests(Array.isArray(data) ? data : []);
+            const { returns, pagination: paginationData } = await getReturnRequests(
+                {
+                    page,
+                    limit,
+                    search: debouncedSearch,
+                    status: tabStatusMap[activeTab] || 'Pending'
+                },
+                { paginated: true }
+            );
+            setReturnRequests(Array.isArray(returns) ? returns : []);
+            setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             toast.error('Failed to load returns');
         } finally {
@@ -53,11 +63,8 @@ const ReturnRequests = () => {
     };
 
     const fetchPartners = async () => {
-        const auth = getAdminAuth();
         try {
-            const { data } = await axios.get(`${API_BASE_URL}/partners`, {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            });
+            const data = await getDeliveryPartners();
             // Filter only Free and Online partners
             setPartners(data.filter(p => p.assignmentStatus === 'Free' && p.dutyStatus === 'Online'));
         } catch (error) {
@@ -66,12 +73,26 @@ const ReturnRequests = () => {
     };
 
     useEffect(() => {
-        fetchReturns();
         fetchPartners();
     }, []);
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPage(1);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        fetchReturns();
+    }, [page, activeTab, debouncedSearch]);
+
+    useEffect(() => {
+        setSelectedForBatch([]);
+    }, [page, activeTab, debouncedSearch]);
+
     const handleApproval = async (id, action) => {
-        const auth = getAdminAuth();
         let reason = null;
         if (action === 'Rejected') {
             const { value } = await Swal.fire({
@@ -96,12 +117,7 @@ const ReturnRequests = () => {
 
         try {
             setProcessing(true);
-            await axios.put(`${API_BASE_URL}/orders/admin/${id}/return/accept`, { 
-                action: action === 'Approved' ? 'Accepted' : 'Rejected', 
-                rejectionReason: reason 
-            }, {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            });
+            await handleReturnRequest(id, action, reason);
             toast.success(`Return ${action} successfully`);
             fetchReturns();
             setSelectedRequest(null);
@@ -120,9 +136,11 @@ const ReturnRequests = () => {
         if (!selectedPartner) return toast.error('Please select a rider');
         if (selectedForBatch.length === 0) return toast.error('No orders selected');
 
-        const auth = getAdminAuth();
         // Determine destination from first selected order
         const firstOrder = returnRequests.find(r => r._id === selectedForBatch[0]);
+        if (!firstOrder) {
+            return toast.error('Selected returns are not available on this page. Please re-select.');
+        }
         const destType = firstOrder.vendor ? 'vendor' : 'branch';
         const destId = firstOrder.vendor || firstOrder.branchId;
 
@@ -147,13 +165,11 @@ const ReturnRequests = () => {
 
         try {
             setProcessing(true);
-            await axios.post(`${API_BASE_URL}/orders/admin/returns/batch-schedule`, {
+            await createReturnBatch({
                 partnerId: selectedPartner,
                 orderIds: selectedForBatch,
                 destinationType: destType,
                 destinationId: destId
-            }, {
-                headers: { Authorization: `Bearer ${auth.token}` }
             });
             toast.success('Batch Return Run created successfully!');
             setShowBatchModal(false);
@@ -166,18 +182,6 @@ const ReturnRequests = () => {
             setProcessing(false);
         }
     };
-
-    const filtered = returnRequests.filter(r => {
-        const s = r.returnRequest?.status || 'Pending';
-        const matchesTab = (activeTab === 'History') 
-            ? ['Returned', 'Rejected'].includes(s)
-            : (activeTab === 'Scheduled') 
-                ? ['Scheduled', 'PickedUp'].includes(s)
-                : s === activeTab;
-        
-        const search = searchTerm.toLowerCase();
-        return matchesTab && (r.orderId.toLowerCase().includes(search) || r.user?.name.toLowerCase().includes(search));
-    });
 
     return (
         <div className="p-6 space-y-6">
@@ -208,7 +212,11 @@ const ReturnRequests = () => {
                 {['Pending', 'Accepted', 'Scheduled', 'History'].map(tab => (
                     <button
                         key={tab}
-                        onClick={() => { setActiveTab(tab); setSelectedForBatch([]); }}
+                        onClick={() => {
+                            setActiveTab(tab);
+                            setSelectedForBatch([]);
+                            setPage(1);
+                        }}
                         className={`px-8 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${activeTab === tab ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
                     >
                         {tab}
@@ -245,7 +253,7 @@ const ReturnRequests = () => {
                         <Loader2 className="animate-spin text-purple-600" size={32} />
                         <p className="text-sm font-bold text-gray-400">Loading Logistic Data...</p>
                     </div>
-                ) : filtered.length === 0 ? (
+                ) : returnRequests.length === 0 ? (
                     <div className="py-24 text-center">
                         <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <RotateCcw className="text-gray-200" size={32} />
@@ -267,7 +275,7 @@ const ReturnRequests = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {filtered.map(r => (
+                            {returnRequests.map(r => (
                                 <tr key={r._id} className={`hover:bg-gray-50/80 transition-colors group ${selectedForBatch.includes(r._id) ? 'bg-purple-50/30' : ''}`}>
                                     {activeTab === 'Accepted' && (
                                         <td className="px-6 py-4">
@@ -313,6 +321,32 @@ const ReturnRequests = () => {
                     </table>
                 )}
             </div>
+            {!loading && pagination.total > 0 && (
+                <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-xs text-gray-500">
+                        Showing <span className="font-semibold text-gray-700">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-gray-700">{Math.min(page * limit, pagination.total)}</span> of <span className="font-semibold text-gray-700">{pagination.total}</span> returns
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className={`p-2 rounded-lg border ${page === 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-colors`}
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+                        <span className="text-xs font-semibold text-gray-600">
+                            Page {page} / {pagination.totalPages || 1}
+                        </span>
+                        <button
+                            onClick={() => setPage((p) => Math.min(pagination.totalPages || 1, p + 1))}
+                            disabled={page >= (pagination.totalPages || 1)}
+                            className={`p-2 rounded-lg border ${page >= (pagination.totalPages || 1) ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-colors`}
+                        >
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {selectedRequest && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">

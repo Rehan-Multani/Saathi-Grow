@@ -10,6 +10,10 @@ export const adminLogin = async (req, res) => {
   const admin = await Admin.findOne({ email }).select('+password');
 
   if (admin && (await admin.comparePassword(password, admin.password))) {
+    if (!admin.isActive) {
+      return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+    }
+
     res.json({
       _id: admin._id,
       name: admin.name,
@@ -33,6 +37,7 @@ export const adminLogin = async (req, res) => {
 export const getAllAdmins = async (req, res) => {
   try {
     const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const includeMeta = req.query.includeMeta === 'true';
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const search = (req.query.search || '').trim();
@@ -63,8 +68,10 @@ export const getAllAdmins = async (req, res) => {
     }
 
     const listQuery = Admin.find(query)
+      .select('name email phone role permissions branchId isActive createdAt updatedAt profileImage')
       .populate('branchId', 'name code')
-      .sort('-createdAt');
+      .sort('-createdAt')
+      .lean();
 
     if (hasPagination) {
       const total = await Admin.countDocuments(query);
@@ -76,11 +83,29 @@ export const getAllAdmins = async (req, res) => {
       res.set('X-Page', String(pageNumber));
       res.set('X-Limit', String(limitNumber));
       res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      if (includeMeta) {
+        return res.json({
+          success: true,
+          admins,
+          pagination: {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(total / limitNumber) || 1
+          }
+        });
+      }
       return res.json(admins);
     }
 
     const admins = await listQuery;
 
+    if (includeMeta) {
+      return res.json({
+        success: true,
+        admins
+      });
+    }
     res.json(admins);
   } catch (error) {
     res.status(500).json({ message: error.message });

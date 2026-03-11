@@ -12,24 +12,40 @@ const buildQuery = (params = {}) => {
   return query ? `?${query}` : '';
 };
 
+const extractVendors = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.vendors)) return payload.vendors;
+  if (Array.isArray(payload?.data?.vendors)) return payload.data.vendors;
+  return [];
+};
+
+const extractPayouts = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.payouts)) return payload.payouts;
+  if (Array.isArray(payload?.data?.payouts)) return payload.data.payouts;
+  return [];
+};
+
 export const getVendors = async (token, params = {}, options = {}) => {
   const response = await fetch(`${VENDORS_API_BASE_URL}${buildQuery(params)}`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch vendors');
+  const vendors = extractVendors(data);
   if (options.paginated) {
+    const pagination = data?.pagination || {};
     return {
-      vendors: data,
+      vendors,
       pagination: {
-        total: Number(response.headers.get('x-total-count') || 0),
-        page: Number(response.headers.get('x-page') || params.page || 1),
-        limit: Number(response.headers.get('x-limit') || params.limit || 10),
-        totalPages: Number(response.headers.get('x-total-pages') || 1)
+        total: Number(pagination.total ?? response.headers.get('x-total-count') ?? 0),
+        page: Number(pagination.page ?? response.headers.get('x-page') ?? params.page ?? 1),
+        limit: Number(pagination.limit ?? response.headers.get('x-limit') ?? params.limit ?? 10),
+        totalPages: Number(pagination.totalPages ?? response.headers.get('x-total-pages') ?? 1)
       }
     };
   }
-  return data;
+  return vendors;
 };
 
 export const createVendor = async (token, vendorData) => {
@@ -88,18 +104,20 @@ export const getPayouts = async (token, params = {}, options = {}) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch payouts');
+  const payouts = extractPayouts(data);
   if (options.paginated) {
+    const pagination = data?.pagination || {};
     return {
-      payouts: data,
+      payouts,
       pagination: {
-        total: Number(response.headers.get('x-total-count') || 0),
-        page: Number(response.headers.get('x-page') || params.page || 1),
-        limit: Number(response.headers.get('x-limit') || params.limit || 10),
-        totalPages: Number(response.headers.get('x-total-pages') || 1)
+        total: Number(pagination.total ?? response.headers.get('x-total-count') ?? 0),
+        page: Number(pagination.page ?? response.headers.get('x-page') ?? params.page ?? 1),
+        limit: Number(pagination.limit ?? response.headers.get('x-limit') ?? params.limit ?? 10),
+        totalPages: Number(pagination.totalPages ?? response.headers.get('x-total-pages') ?? 1)
       }
     };
   }
-  return data;
+  return payouts;
 };
 
 export const updatePayoutStatus = async (token, id, payoutData) => {

@@ -34,6 +34,8 @@ const getAuthToken = () => {
   return null;
 };
 
+export const getPOSAuthToken = () => getAuthToken();
+
 /**
  * Create a POS Order
  * @param {Object} payload - { items, customerDetails, paymentMethod, storeId, storeType, razorpayDetails }

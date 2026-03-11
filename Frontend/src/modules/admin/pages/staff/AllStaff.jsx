@@ -17,7 +17,7 @@ const AVAILABLE_PERMISSIONS = [
     { id: 'MANAGE_PRODUCTS', label: 'Add/Edit/Delete Products' },
     { id: 'MANAGE_CATEGORIES_BRANDS', label: 'Add/Edit Categories & Brands' },
     { id: 'MANAGE_INVENTORY', label: 'Update Stock/Inventory' },
-    { id: 'MANAGE_DELIVERY_BOYS', label: 'Manage Delivery Partners' },
+    { id: 'MANAGE_DELIVERY', label: 'Manage Delivery Partners' },
     { id: 'VIEW_CUSTOMERS', label: 'View Customer Info' },
     { id: 'MANAGE_CUSTOMERS', label: 'Block/Unblock/Wallet Edit' },
     { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' },

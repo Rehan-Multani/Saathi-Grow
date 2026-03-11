@@ -4,6 +4,11 @@ import Admin from '../models/Admin.js';
 import Vendor from '../models/Vendor.js';
 import DeliveryPartner from '../models/DeliveryPartner.js';
 
+const PERMISSION_ALIASES = {
+  MANAGE_DELIVERY: ['MANAGE_DELIVERY_BOYS'],
+  MANAGE_DELIVERY_BOYS: ['MANAGE_DELIVERY']
+};
+
 // Protect Customer/User Routes
 export const protect = async (req, res, next) => {
   let token;
@@ -62,6 +67,7 @@ export const protectAdmin = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.admin = await Admin.findById(decoded.id);
       if (!req.admin) return res.status(401).json({ message: 'Admin access denied' });
+      if (req.admin.isActive === false) return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
       next();
     } catch (error) {
       res.status(401).json({ message: 'Session expired, please login again' });
@@ -76,7 +82,10 @@ export const optionalProtectAdmin = async (req, res, next) => {
     try {
       const token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.admin = await Admin.findById(decoded.id);
+      const admin = await Admin.findById(decoded.id);
+      if (admin?.isActive !== false) {
+        req.admin = admin;
+      }
     } catch (error) {
       // Silently fail, req.admin will remain undefined
     }
@@ -103,7 +112,9 @@ export const requirePermission = (requiredPermission) => {
     }
 
     // Branch Managers and Staff must possess the required permission in their array
-    const hasPermission = Array.isArray(req.admin.permissions) && req.admin.permissions.includes(requiredPermission);
+    const permissions = Array.isArray(req.admin.permissions) ? req.admin.permissions : [];
+    const acceptedPermissions = [requiredPermission, ...(PERMISSION_ALIASES[requiredPermission] || [])];
+    const hasPermission = acceptedPermissions.some((permission) => permissions.includes(permission));
 
     if (hasPermission) {
       return next();
@@ -143,6 +154,9 @@ export const protectStoreManager = async (req, res, next) => {
       // Try to find Admin first
       const admin = await Admin.findById(decoded.id);
       if (admin) {
+        if (admin.isActive === false) {
+          return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+        }
         req.admin = admin;
         req.user = admin;
         req.role = 'Admin';
@@ -174,7 +188,7 @@ export const optionalProtectStoreManager = async (req, res, next) => {
 
       // Try Admin
       const admin = await Admin.findById(decoded.id);
-      if (admin) {
+      if (admin && admin.isActive !== false) {
         req.admin = admin;
         return next();
       }

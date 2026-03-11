@@ -39,7 +39,7 @@ const ReturnsApproval = () => {
     };
 
     const handleApprove = (request) => {
-        processReturn(request._id, 'Approved');
+        processReturn(request._id, 'Accepted');
     };
 
     const handleReject = (id) => {
@@ -48,14 +48,21 @@ const ReturnsApproval = () => {
 
     const getStatusBadge = (status) => {
         const styles = {
+            Accepted: 'bg-emerald-50 text-emerald-600 border-emerald-100',
             Approved: 'bg-emerald-50 text-emerald-600 border-emerald-100',
             Rejected: 'bg-rose-50 text-rose-600 border-rose-100',
             Pending: 'bg-amber-50 text-amber-600 border-amber-100'
         };
+        const label = status === 'Accepted' ? 'APPROVED' : status.toUpperCase();
+        const dotClass = status === 'Accepted' || status === 'Approved'
+            ? 'bg-emerald-600'
+            : status === 'Rejected'
+                ? 'bg-rose-600'
+                : 'bg-amber-600';
         return (
-            <span className={`px-3 py-1.5 rounded-full text-[9px] font-black border tracking-widest flex items-center gap-2 w-fit ${styles[status]}`}>
-                <div className={`w-1 h-1 rounded-full ${status === 'Approved' ? 'bg-emerald-600' : status === 'Rejected' ? 'bg-rose-600' : 'bg-amber-600'}`}></div>
-                {status.toUpperCase()}
+            <span className={`px-3 py-1.5 rounded-full text-[9px] font-black border tracking-widest flex items-center gap-2 w-fit ${styles[status] || styles.Pending}`}>
+                <div className={`w-1 h-1 rounded-full ${dotClass}`}></div>
+                {label}
             </span>
         );
     };

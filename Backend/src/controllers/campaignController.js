@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import CampaignSection from '../models/CampaignSection.js';
 import Product from '../models/Product.js';
 
@@ -6,9 +7,46 @@ import Product from '../models/Product.js';
 // @access  Private (Admin/Staff)
 export const getCampaignSections = async (req, res) => {
   try {
-    const sections = await CampaignSection.find()
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const includeMeta = req.query.includeMeta === 'true';
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+
+    const listQuery = CampaignSection.find()
+      .select('title subtitle highlightText displayType bgColor textColor accentColor order isActive bannerImage products')
       .populate('products.productId', 'name image basePrice mrp sku')
-      .sort('order');
+      .sort('order')
+      .lean();
+
+    if (hasPagination) {
+      const total = await CampaignSection.countDocuments();
+      const sections = await listQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      if (includeMeta) {
+        return res.json({
+          success: true,
+          sections,
+          pagination: {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(total / limitNumber) || 1
+          }
+        });
+      }
+      return res.json(sections);
+    }
+
+    const sections = await listQuery;
+    if (includeMeta) {
+      return res.json({ success: true, sections });
+    }
     res.json(sections);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -21,7 +59,8 @@ export const getCampaignSections = async (req, res) => {
 export const getCampaignById = async (req, res) => {
   try {
     const section = await CampaignSection.findById(req.params.id)
-      .populate('products.productId', 'name image basePrice mrp sku');
+      .populate('products.productId', 'name image basePrice mrp sku')
+      .lean();
     if (!section) return res.status(404).json({ message: 'Campaign not found' });
     res.json(section);
   } catch (error) {
@@ -49,15 +88,21 @@ export const getActiveCampaignSections = async (req, res) => {
       products: { $slice: 10 } // Initial batch
     })
       .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg branchStocks vendor')
-      .sort('order');
+      .sort('order')
+      .lean();
 
     // Inject isDeliverable if store context provided
     const { storeId, storeType } = req.query;
 
     // Also send total product count per section to help frontend pagination
-    const sectionsWithCount = await Promise.all(sections.map(async (s) => {
-      const fullDoc = await CampaignSection.findById(s._id).select('products');
-      const sectionObj = s.toObject();
+    const counts = await CampaignSection.aggregate([
+      { $match: { isActive: true } },
+      { $project: { totalProducts: { $size: '$products' } } }
+    ]);
+    const countById = new Map(counts.map((c) => [String(c._id), c.totalProducts || 0]));
+
+    const sectionsWithCount = sections.map((s) => {
+      const sectionObj = { ...s };
 
       if (storeId && storeType) {
         sectionObj.products = sectionObj.products.map(cp => {
@@ -104,9 +149,9 @@ export const getActiveCampaignSections = async (req, res) => {
 
       return {
         ...sectionObj,
-        totalProducts: fullDoc.products.length
+        totalProducts: countById.get(String(sectionObj._id)) || 0
       };
-    }));
+    });
 
     res.json(sectionsWithCount);
   } catch (error) {
@@ -119,30 +164,34 @@ export const getActiveCampaignSections = async (req, res) => {
 // @access  Public
 export const getCampaignMetadata = async (req, res) => {
   try {
-    const section = await CampaignSection.findById(req.params.id, {
-      title: 1,
-      subtitle: 1,
-      highlightText: 1,
-      displayType: 1,
-      bgColor: 1,
-      textColor: 1,
-      accentColor: 1,
-      bannerImage: 1,
-      isActive: 1
-    });
-
-    if (!section || !section.isActive) {
+    const campaignId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(campaignId)) {
       return res.status(404).json({ message: 'Campaign not found' });
     }
 
-    // Include total product count
-    const fullDoc = await CampaignSection.findById(req.params.id).select('products');
-    const result = {
-      ...section.toObject(),
-      totalProducts: fullDoc?.products?.length || 0
-    };
+    const results = await CampaignSection.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(campaignId), isActive: true } },
+      {
+        $project: {
+          title: 1,
+          subtitle: 1,
+          highlightText: 1,
+          displayType: 1,
+          bgColor: 1,
+          textColor: 1,
+          accentColor: 1,
+          bannerImage: 1,
+          isActive: 1,
+          totalProducts: { $size: '$products' }
+        }
+      }
+    ]);
 
-    res.json(result);
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    res.json(results[0]);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -166,10 +215,17 @@ export const createCampaignSection = async (req, res) => {
     }
 
     if (parsedProducts && parsedProducts.length > 0) {
-      for (const p of parsedProducts) {
-        if (p.basePrice !== undefined) {
-          await Product.findByIdAndUpdate(p.productId, { basePrice: p.basePrice });
-        }
+      const productUpdates = parsedProducts
+        .filter((p) => p && p.productId && p.basePrice !== undefined)
+        .map((p) => ({
+          updateOne: {
+            filter: { _id: p.productId },
+            update: { $set: { basePrice: p.basePrice } }
+          }
+        }));
+
+      if (productUpdates.length > 0) {
+        await Product.bulkWrite(productUpdates);
       }
     }
 
@@ -221,10 +277,17 @@ export const updateCampaignSection = async (req, res) => {
       section.products = parsedProducts;
 
       if (parsedProducts && parsedProducts.length > 0) {
-        for (const p of parsedProducts) {
-          if (p.basePrice !== undefined) {
-            await Product.findByIdAndUpdate(p.productId, { basePrice: p.basePrice });
-          }
+        const productUpdates = parsedProducts
+          .filter((p) => p && p.productId && p.basePrice !== undefined)
+          .map((p) => ({
+            updateOne: {
+              filter: { _id: p.productId },
+              update: { $set: { basePrice: p.basePrice } }
+            }
+          }));
+
+        if (productUpdates.length > 0) {
+          await Product.bulkWrite(productUpdates);
         }
       }
     }

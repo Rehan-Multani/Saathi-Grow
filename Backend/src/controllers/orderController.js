@@ -944,7 +944,7 @@ export const getAllOrdersAdmin = async (req, res) => {
           { email: searchRegex },
           { phone: searchRegex }
         ]
-      }).select('_id');
+      }).select('_id').lean();
       const userIds = matchingUsers.map(user => user._id);
 
       query.$or = [
@@ -981,7 +981,8 @@ export const getAllOrdersAdmin = async (req, res) => {
         .populate('vendor', 'storeName')
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limitNumber),
+        .limit(limitNumber)
+        .lean(),
       Order.countDocuments(query),
       // Aggregate across ALL matching docs (no pagination) for accurate stats
       Order.aggregate([
@@ -1140,10 +1141,6 @@ export const getReturnRequests = async (req, res) => {
     const includeStats = req.query.includeStats === 'true';
     let query = { 'returnRequest.isRequested': true };
 
-    if (status && status !== 'all') {
-      query['returnRequest.status'] = status;
-    }
-
     // Branch Security: Staff only see their branch returns
     if (req.admin?.role !== 'Admin') {
       if (!req.admin?.branchId) return res.status(403).json({ message: 'No branch assigned' });
@@ -1151,7 +1148,24 @@ export const getReturnRequests = async (req, res) => {
     }
 
     if (status && status.toLowerCase() !== 'all') {
-      query['returnRequest.status'] = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      const rawStatuses = status
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const normalizedStatuses = rawStatuses.map(
+        (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+      );
+
+      const expandedStatuses = normalizedStatuses.flatMap((s) => {
+        if (s === 'Approved') return ['Approved', 'Accepted'];
+        if (s === 'Accepted') return ['Accepted', 'Approved'];
+        return [s];
+      });
+
+      const uniqueStatuses = [...new Set(expandedStatuses)];
+      query['returnRequest.status'] = uniqueStatuses.length === 1
+        ? uniqueStatuses[0]
+        : { $in: uniqueStatuses };
     }
 
     if (search) {
@@ -1173,7 +1187,8 @@ export const getReturnRequests = async (req, res) => {
       .populate('items.product', 'name category image')
       .populate('branchId', 'name address')
       .populate('vendor', 'storeName address')
-      .sort({ 'returnRequest.requestDate': -1 });
+      .sort({ 'returnRequest.requestDate': -1 })
+      .lean();
 
     if (hasPagination) {
       const total = await Order.countDocuments(query);
@@ -1204,11 +1219,13 @@ export const getReturnRequests = async (req, res) => {
           ];
         }
 
-        const [pending, approved, rejected] = await Promise.all([
+        const [pending, accepted, approvedLegacy, rejected] = await Promise.all([
           Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Pending' }),
+          Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Accepted' }),
           Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Approved' }),
           Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Rejected' })
         ]);
+        const approved = accepted + approvedLegacy;
 
         return res.json({
           returns,
@@ -1312,7 +1329,8 @@ export const getVendorReturnRequests = async (req, res) => {
     })
       .populate('user', 'name email phone')
       .populate('items.product', 'name category image')
-      .sort({ 'returnRequest.requestDate': -1 });
+      .sort({ 'returnRequest.requestDate': -1 })
+      .lean();
 
     res.json(returns);
   } catch (error) {
@@ -1341,12 +1359,12 @@ export const handleStoreReturnAction = async (req, res) => {
     }
 
 
-    if (order.returnRequest.status !== "Pending") {
-      return res.status(400).json({ message: "Return request already processed" });
-    }
-
     if (order.returnRequest.status === normalizedAction) {
       return res.json(order);
+    }
+
+    if (order.returnRequest.status !== "Pending") {
+      return res.status(400).json({ message: "Return request already processed" });
     }
 
     order.returnRequest.status = normalizedAction;
@@ -1381,60 +1399,88 @@ export const handleStoreReturnAction = async (req, res) => {
 // @access  Private (Admin)
 export const createReturnBatch = async (req, res) => {
   const session = await mongoose.startSession();
-  session.startTransaction();
   try {
     const { partnerId, orderIds, destinationType, destinationId } = req.body;
+    const normalizedOrderIds = Array.isArray(orderIds)
+      ? [...new Set(orderIds.map((id) => String(id)))]
+      : [];
 
-    const partner = await DeliveryPartner.findById(partnerId);
-    if (!partner || partner.assignmentStatus !== 'Free') throw new Error('Partner not found or busy');
-
-    const orders = await Order.find({ _id: { $in: orderIds } });
-    if (orders.length !== orderIds.length) throw new Error('Some orders not found');
-
-    const runId = 'RET-RUN-' + Date.now().toString().slice(-6);
-
-    const stops = orders.map((order, index) => ({
-      order: order._id,
-      stopSequence: index + 1,
-      status: 'pending',
-      pickupPoint: {
-        street: order.shippingAddress.street,
-        city: order.shippingAddress.city,
-        location: order.shippingAddress.location
-      }
-    }));
-
-    const run = await DeliveryRun.create([{
-      runId,
-      deliveryPartner: partnerId,
-      runType: 'return',
-      destinationType,
-      destinationId,
-      destinationTypeModel: destinationType === 'branch' ? 'Branch' : 'Vendor',
-      slotDate: new Date(),
-      orders: stops,
-      status: 'assigned',
-      assignedAt: new Date()
-    }], { session });
-
-    for (const order of orders) {
-      order.returnRequest.status = 'Scheduled';
-      order.returnRequest.pickupPartnerId = partnerId;
-      order.returnRequest.pickupScheduledAt = new Date();
-      order.status = 'return_pickup_scheduled';
-      await order.save({ session });
+    if (!partnerId || normalizedOrderIds.length === 0 || !destinationType || !destinationId) {
+      return res.status(400).json({ message: 'partnerId, orderIds, destinationType, and destinationId are required' });
     }
 
-    partner.activeRun = run[0]._id;
-    partner.assignmentStatus = 'Busy';
-    await partner.save({ session });
+    let createdRun = null;
 
-    await session.commitTransaction();
-    res.json({ success: true, run: run[0] });
+    await session.withTransaction(async () => {
+      const partner = await DeliveryPartner.findById(partnerId).session(session);
+      if (!partner || partner.assignmentStatus !== 'Free') {
+        const err = new Error('Partner not found or busy');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      const orders = await Order.find({ _id: { $in: normalizedOrderIds } }).session(session);
+      if (orders.length !== normalizedOrderIds.length) {
+        const err = new Error('Some orders not found');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      const ineligibleOrders = orders.filter((order) => {
+        if (!order.returnRequest?.isRequested) return true;
+        return !['Accepted', 'Approved'].includes(order.returnRequest.status);
+      });
+
+      if (ineligibleOrders.length > 0) {
+        const err = new Error('Only accepted return requests can be batch scheduled');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      const runId = `RET-RUN-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 10)}`;
+      const now = new Date();
+      const stops = orders.map((order, index) => ({
+        order: order._id,
+        stopSequence: index + 1,
+        status: 'pending',
+        pickupPoint: {
+          street: order.shippingAddress?.street,
+          city: order.shippingAddress?.city,
+          location: order.shippingAddress?.location
+        }
+      }));
+
+      const run = await DeliveryRun.create([{
+        runId,
+        deliveryPartner: partnerId,
+        runType: 'return',
+        destinationType,
+        destinationId,
+        destinationTypeModel: destinationType === 'branch' ? 'Branch' : 'Vendor',
+        slotDate: now,
+        orders: stops,
+        status: 'assigned',
+        assignedAt: now
+      }], { session });
+
+      for (const order of orders) {
+        order.returnRequest.status = 'Scheduled';
+        order.returnRequest.pickupPartnerId = partnerId;
+        order.returnRequest.pickupScheduledAt = now;
+        order.status = 'return_pickup_scheduled';
+        await order.save({ session });
+      }
+
+      partner.activeRun = run[0]._id;
+      partner.assignmentStatus = 'Busy';
+      await partner.save({ session });
+      createdRun = run[0];
+    });
+
+    res.json({ success: true, run: createdRun, scheduledCount: normalizedOrderIds.length });
   } catch (error) {
-    await session.abortTransaction();
-    res.status(500).json({ message: error.message });
+    res.status(error.statusCode || 500).json({ message: error.message });
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 };

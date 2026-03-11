@@ -12,24 +12,37 @@ const buildQuery = (params = {}) => {
   return query ? `?${query}` : '';
 };
 
+const extractCustomers = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.users)) return payload.users;
+  if (Array.isArray(payload?.data?.users)) return payload.data.users;
+  return [];
+};
+
+const extractUser = (payload) => {
+  return payload?.user || payload?.data?.user || payload?.data || null;
+};
+
 export const getAllCustomers = async (token, params = {}, options = {}) => {
   const response = await fetch(`${API_URL}${buildQuery(params)}`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch customers');
+  const customers = extractCustomers(data);
   if (options.paginated) {
+    const pagination = data?.pagination || {};
     return {
-      customers: data.users,
+      customers,
       pagination: {
-        total: Number(response.headers.get('x-total-count') || 0),
-        page: Number(response.headers.get('x-page') || params.page || 1),
-        limit: Number(response.headers.get('x-limit') || params.limit || 10),
-        totalPages: Number(response.headers.get('x-total-pages') || 1)
+        total: Number(pagination.total ?? response.headers.get('x-total-count') ?? 0),
+        page: Number(pagination.page ?? response.headers.get('x-page') ?? params.page ?? 1),
+        limit: Number(pagination.limit ?? response.headers.get('x-limit') ?? params.limit ?? 10),
+        totalPages: Number(pagination.totalPages ?? response.headers.get('x-total-pages') ?? 1)
       }
     };
   }
-  return data.users;
+  return customers;
 };
 
 export const getCustomerById = async (token, id) => {
@@ -38,7 +51,7 @@ export const getCustomerById = async (token, id) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch customer');
-  return data.user;
+  return extractUser(data);
 };
 
 export const createCustomer = async (token, formData) => {
@@ -49,7 +62,7 @@ export const createCustomer = async (token, formData) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to create customer');
-  return data.user;
+  return extractUser(data);
 };
 
 export const updateCustomer = async (token, id, formData) => {
@@ -60,7 +73,7 @@ export const updateCustomer = async (token, id, formData) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to update customer');
-  return data.user;
+  return extractUser(data);
 };
 
 export const deleteCustomer = async (token, id) => {

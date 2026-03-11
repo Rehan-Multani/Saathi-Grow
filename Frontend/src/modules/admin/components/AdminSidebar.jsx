@@ -20,7 +20,11 @@ const AdminSidebar = ({ showMobile, onClose }) => {
         // Role 'Admin' is Super Admin and has all permissions
         if (adminUser.role === 'Admin') return true;
         if (!permissionCode) return true;
-        return Array.isArray(adminUser.permissions) && adminUser.permissions.includes(permissionCode);
+        const permissions = Array.isArray(adminUser.permissions) ? adminUser.permissions : [];
+        if (permissions.includes(permissionCode)) return true;
+        if (permissionCode === 'MANAGE_DELIVERY' && permissions.includes('MANAGE_DELIVERY_BOYS')) return true;
+        if (permissionCode === 'MANAGE_DELIVERY_BOYS' && permissions.includes('MANAGE_DELIVERY')) return true;
+        return false;
     };
 
     useEffect(() => {

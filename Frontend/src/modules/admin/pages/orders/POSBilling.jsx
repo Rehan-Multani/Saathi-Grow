@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-import { createPOSOrder, searchProductsPOS } from '../../api/posApi';
+import { createPOSOrder, searchProductsPOS, getPOSAuthToken } from '../../api/posApi';
 import { getAdminSettings } from '../../api/settingApi';
 
 const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
@@ -38,8 +38,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
 
   const fetchSettings = async () => {
     try {
-      const admin = localStorage.getItem('sathiGro_admin');
-      const token = admin ? JSON.parse(admin).token : null;
+      const token = getPOSAuthToken();
       if (!token) return;
 
       const data = await getAdminSettings(token);

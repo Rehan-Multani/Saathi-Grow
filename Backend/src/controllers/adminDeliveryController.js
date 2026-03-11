@@ -12,6 +12,13 @@ const generateOTP = () => {
   return Math.floor(1000 + Math.random() * 9000).toString();
 };
 
+const getPaginationParams = (query = {}) => {
+  const hasPagination = query.page !== undefined || query.limit !== undefined;
+  const pageNumber = Math.max(parseInt(query.page, 10) || 1, 1);
+  const limitNumber = Math.min(Math.max(parseInt(query.limit, 10) || 20, 1), 100);
+  return { hasPagination, pageNumber, limitNumber };
+};
+
 /**
  * Dispatch Controller Engine - Core Logic for Assignment / Tracking
  */
@@ -87,7 +94,7 @@ export const getDeliveryPartners = async (req, res) => {
       ];
     }
 
-    const partnersQuery = DeliveryPartner.find(query).sort({ createdAt: -1 });
+    const partnersQuery = DeliveryPartner.find(query).sort({ createdAt: -1 }).lean();
 
     if (hasPagination) {
       const total = await DeliveryPartner.countDocuments(query);
@@ -158,6 +165,7 @@ export const deleteDeliveryPartner = async (req, res) => {
 // @access  Private (Admin/Manager)
 export const getUnassignedOrders = async (req, res) => {
   try {
+    const { hasPagination, pageNumber, limitNumber } = getPaginationParams(req.query);
     const admin = req.admin;
     const query = {
       status: { $in: ['confirmed', 'preparing', 'pending', 'ready_for_pickup'] },
@@ -169,7 +177,26 @@ export const getUnassignedOrders = async (req, res) => {
       query.branchId = admin.branchId;
     }
 
-    const orders = await Order.find(query).populate('user', 'name phone').sort({ createdAt: 1 }); // Oldest first (FIFO)
+    const listQuery = Order.find(query)
+      .select('orderId user shippingAddress totalAmount paymentMethod status createdAt deliverySlot isImmediate branchId vendor')
+      .populate('user', 'name phone')
+      .sort({ createdAt: 1 }) // Oldest first (FIFO)
+      .lean();
+
+    if (hasPagination) {
+      const total = await Order.countDocuments(query);
+      const orders = await listQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json(orders);
+    }
+
+    const orders = await listQuery;
 
     res.json(orders);
   } catch (error) {
@@ -186,7 +213,10 @@ export const getAvailablePartners = async (req, res) => {
       authStatus: 'Active',
       // Allowing admin to assign orders to riders even if they haven't explicitly started their 'Online' shift
       assignmentStatus: 'Free'
-    }).select('-password').sort({ 'createdAt': -1 });
+    })
+      .select('name phone uniqueId vehicleType vehicleNumber profileImage authStatus dutyStatus assignmentStatus currentLocation activeOrder createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json(partners);
   } catch (error) {
@@ -442,6 +472,7 @@ export const unassignOrderFromPartner = async (req, res) => {
 // @access  Private (Admin/Manager)
 export const getActiveDeliveries = async (req, res) => {
   try {
+    const { hasPagination, pageNumber, limitNumber } = getPaginationParams(req.query);
     const admin = req.admin;
     const query = {
       deliveryPartnerId: { $ne: null },
@@ -453,13 +484,29 @@ export const getActiveDeliveries = async (req, res) => {
       query.branchId = admin.branchId;
     }
 
-    // Fetch orders that are in intermediate delivery states
-    const activeOrders = await Order.find(query)
+    const listQuery = Order.find(query)
+      .select('orderId status shippingAddress totalAmount createdAt updatedAt deliveryPartnerId vendor branchId user')
       .populate('deliveryPartnerId', 'name phone currentLocation vehicleType vehicleNumber')
       .populate('vendor', 'storeName address')
       .populate('branchId', 'name address')
       .populate('user', 'name phone')
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    if (hasPagination) {
+      const total = await Order.countDocuments(query);
+      const activeOrders = await listQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json(activeOrders);
+    }
+
+    const activeOrders = await listQuery;
 
     res.json(activeOrders);
   } catch (error) {
@@ -478,7 +525,8 @@ export const getCashSettlementList = async (req, res) => {
   try {
     const partners = await DeliveryPartner.find({ cashInHand: { $gt: 0 } })
       .select('name phone uniqueId cashInHand profileImage')
-      .sort({ cashInHand: -1 });
+      .sort({ cashInHand: -1 })
+      .lean();
     res.json(partners);
   } catch (error) {
     res.status(500).json({ message: error.message });
