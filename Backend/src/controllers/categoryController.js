@@ -48,8 +48,11 @@ export const getCategories = async (req, res) => {
       .sort('-createdAt');
 
     if (hasProducts === 'true') {
-      // Find distinct category names that have active products
-      const activeCategoryNames = await Product.distinct('category', { status: 'Active' });
+      // Find distinct category names that have available products (including low/out of stock for visibility)
+      // This is global across all stores per the new requirement.
+      const activeCategoryNames = await Product.distinct('category', {
+        status: { $in: ['Active', 'Low Stock', 'Out of Stock'] }
+      });
       const activeCategoryNamesLower = activeCategoryNames.map(name => name.toLowerCase());
 
       // Filter categories to only include those in the active distinct list

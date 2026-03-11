@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
-import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw } from 'lucide-react';
+import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import Swal from 'sweetalert2';
 import OrderDetailsModal from '../../../admin/components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, updateOrderStatus } from '../../../admin/api/orderApi';
@@ -13,6 +13,8 @@ const StaffOrders = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     const fetchOrders = async () => {
         try {
@@ -30,6 +32,10 @@ const StaffOrders = () => {
     useEffect(() => {
         fetchOrders();
     }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
 
     const handleStatusUpdate = async (id, newStatus) => {
         try {
@@ -104,6 +110,9 @@ const StaffOrders = () => {
         return matchesSearch && matchesStatus;
     });
 
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div>
             <OrderDetailsModal show={showModal} onHide={() => setShowModal(false)} order={selectedOrder} />
@@ -171,8 +180,8 @@ const StaffOrders = () => {
                                         Loading orders...
                                     </td>
                                 </tr>
-                            ) : filteredOrders.length > 0 ? (
-                                filteredOrders.map((order) => (
+                            ) : paginatedOrders.length > 0 ? (
+                                paginatedOrders.map((order) => (
                                     <tr key={order._id}>
                                         <td className="ps-4 fw-bold">{order.orderId}</td>
                                         <td>
@@ -229,6 +238,46 @@ const StaffOrders = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+                {filteredOrders.length > 0 && (
+                    <Card.Footer className="bg-white border-top-0 py-3 px-4">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div className="text-muted small">
+                                Showing <span className="fw-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, filteredOrders.length)}</span> to <span className="fw-bold">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> of <span className="fw-bold">{filteredOrders.length}</span> orders
+                            </div>
+                            <div className="d-flex gap-2">
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(prev => prev - 1)}
+                                    className="border shadow-sm px-3"
+                                >
+                                    <ChevronLeft size={16} />
+                                </Button>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? "primary" : "light"}
+                                        size="sm"
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`border shadow-sm px-3 ${currentPage === page ? 'text-white' : ''}`}
+                                    >
+                                        {page}
+                                    </Button>
+                                ))}
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(prev => prev + 1)}
+                                    className="border shadow-sm px-3"
+                                >
+                                    <ChevronRight size={16} />
+                                </Button>
+                            </div>
+                        </div>
+                    </Card.Footer>
+                )}
             </Card>
         </div>
     );

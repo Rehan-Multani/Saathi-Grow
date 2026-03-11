@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Modal, Form, Spinner } from 'react-bootstrap';
-import { MessageSquare, Send, ArrowUpRight, CheckCircle, Search, Filter, Loader2, Package, User as UserIcon } from 'lucide-react';
+import { MessageSquare, Send, ArrowUpRight, CheckCircle, Search, Filter, Loader2, Package, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStaffAuth } from '../../context/StaffAuthContext';
 import * as complaintApi from '../../../admin/api/complaintApi';
 import { toast } from 'react-toastify';
@@ -18,6 +18,8 @@ const StaffTickets = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [adminNotes, setAdminNotes] = useState('');
     const [isActionLoading, setIsActionLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     const loadComplaints = async () => {
         try {
@@ -36,6 +38,10 @@ const StaffTickets = () => {
     useEffect(() => {
         if (token) loadComplaints();
     }, [token]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterStatus]);
 
     const handleAction = async (action) => {
         try {
@@ -79,6 +85,9 @@ const StaffTickets = () => {
         return matchesStatus && matchesSearch;
     });
 
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    const paginatedTickets = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className="p-1">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
@@ -115,7 +124,7 @@ const StaffTickets = () => {
                         <tbody className="font-bold border-0">
                             {isLoading ? (
                                 <tr><td colSpan="5" className="text-center py-5"><Spinner animation="border" variant="success" /></td></tr>
-                            ) : filtered.map((c) => (
+                            ) : paginatedTickets.map((c) => (
                                 <tr key={c.ticketId} className="border-bottom border-light">
                                     <td className="ps-4">
                                         <div className="text-[#0c831f] xs fw-black uppercase">{c.ticketId}</div>
@@ -153,86 +162,180 @@ const StaffTickets = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+                {filtered.length > 0 && (
+                    <Card.Footer className="bg-white border-top-0 py-3 px-4">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div className="text-muted small font-bold uppercase tracking-wider">
+                                Showing <span className="text-[#0c831f]">{Math.min((currentPage - 1) * itemsPerPage + 1, filtered.length)}</span> to <span className="text-[#0c831f]">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="text-[#0c831f]">{filtered.length}</span> tickets
+                            </div>
+                            <div className="d-flex gap-2">
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(prev => prev - 1)}
+                                    className="border-0 bg-light rounded-2 px-3 hover:bg-[#0c831f] hover:text-white transition-all shadow-none"
+                                >
+                                    <ChevronLeft size={16} />
+                                </Button>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? "success" : "light"}
+                                        size="sm"
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`border-0 rounded-2 px-3 font-black transition-all shadow-none ${currentPage === page ? 'bg-[#0c831f] text-white' : 'bg-light text-muted'}`}
+                                    >
+                                        {page}
+                                    </Button>
+                                ))}
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(prev => prev + 1)}
+                                    className="border-0 bg-light rounded-2 px-3 hover:bg-[#0c831f] hover:text-white transition-all shadow-none"
+                                >
+                                    <ChevronRight size={16} />
+                                </Button>
+                            </div>
+                        </div>
+                    </Card.Footer>
+                )}
             </Card>
 
-            <Modal show={showDetailModal} onHide={() => setShowDetailModal(false)} centered size="lg">
-                <Modal.Header closeButton className="border-0 pb-0">
-                    <Modal.Title className="fw-black text-[#0c831f] uppercase tracking-tight">Manage Ticket: {selectedTicket?.ticketId}</Modal.Title>
+            <Modal 
+                show={showDetailModal} 
+                onHide={() => setShowDetailModal(false)} 
+                centered 
+                size="lg"
+                contentClassName="border-0 rounded-[2rem] overflow-hidden shadow-2xl"
+            >
+                <Modal.Header className="bg-gradient-to-r from-[#0c831f] to-[#14a32a] p-4 border-0">
+                    <div className="d-flex justify-content-between align-items-center w-100 px-2">
+                        <div className="d-flex align-items-center gap-3">
+                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                                <MessageSquare className="text-white" size={20} />
+                            </div>
+                            <div>
+                                <h5 className="mb-0 text-white font-black uppercase tracking-tight">Manage Ticket</h5>
+                                <div className="text-white/70 text-[10px] font-bold tracking-widest">{selectedTicket?.ticketId}</div>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setShowDetailModal(false)}
+                            className="w-8 h-8 rounded-full bg-black/10 text-white hover:bg-black/20 flex items-center justify-center transition-all border-0"
+                        >
+                            <Loader2 size={18} className={isActionLoading ? "animate-spin" : ""} />
+                        </button>
+                    </div>
                 </Modal.Header>
-                <Modal.Body className="py-4">
+                <Modal.Body className="p-0 bg-slate-50/50">
                     {selectedTicket && (
-                        <div className="row g-4">
-                            <div className="col-md-7">
-                                <div className="p-3 bg-light rounded-4 mb-4">
-                                    <label className="xs font-black text-muted uppercase tracking-widest mb-1 d-block">Original Complaint</label>
-                                    <p className="small mb-2 fw-bold italic text-dark">"{selectedTicket.description}"</p>
-
-                                    {selectedTicket.attachments && selectedTicket.attachments.length > 0 && (
-                                        <div className="d-flex gap-2 mt-2 overflow-auto pb-2">
-                                            {selectedTicket.attachments.map((img, idx) => (
-                                                <a key={idx} href={img} target="_blank" rel="noreferrer" className="flex-shrink-0">
-                                                    <img
-                                                        src={img}
-                                                        alt="Evidence"
-                                                        className="rounded border border-gray-200 shadow-sm hover:opacity-80 transition-opacity"
-                                                        style={{ width: '50px', height: '50px', objectFit: 'cover' }}
-                                                    />
-                                                </a>
-                                            ))}
+                        <div className="row g-0">
+                            {/* Left Side: Details */}
+                            <div className="col-md-7 p-4 p-lg-5">
+                                <div className="space-y-6">
+                                    <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Original Complaint</label>
                                         </div>
-                                    )}
-                                </div>
-
-
-                                <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">Resolution Thread</label>
-                                <div className="border-start border-2 border-success ms-2 ps-3 space-y-3">
-                                    {selectedTicket.resolutionThread?.map((msg, idx) => (
-                                        <div key={idx} className="mb-2">
-                                            <div className="xs text-muted uppercase font-black">{msg.senderName} ({msg.senderModel})</div>
-                                            <div className="small fw-bold">{msg.message}</div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-50 relative">
+                                            <p className="text-sm font-bold text-slate-700 leading-relaxed mb-0">"{selectedTicket.description}"</p>
                                         </div>
-                                    ))}
+
+                                        {selectedTicket.attachments && selectedTicket.attachments.length > 0 && (
+                                            <div className="mt-4">
+                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Attached Evidence</label>
+                                                <div className="d-flex gap-2 overflow-auto pb-2 scroll-hide">
+                                                    {selectedTicket.attachments.map((img, idx) => (
+                                                        <a key={idx} href={img} target="_blank" rel="noreferrer" className="group">
+                                                            <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
+                                                                <img src={img} alt="Evidence" className="w-100 h-100 object-cover" />
+                                                            </div>
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-4 ms-2">
+                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resolution Thread</label>
+                                        </div>
+                                        <div className="ms-2 ps-4 border-l-2 border-slate-100 space-y-4">
+                                            {selectedTicket.resolutionThread?.length > 0 ? (
+                                                selectedTicket.resolutionThread.map((msg, idx) => (
+                                                    <div key={idx} className="relative mb-3 last:mb-0">
+                                                        <div className="absolute -left-[25px] top-1 w-2.5 h-2.5 bg-white border-2 border-slate-200 rounded-full" />
+                                                        <div className="bg-white p-3 rounded-2xl border border-slate-50 shadow-sm inline-block max-w-full">
+                                                            <div className="text-[9px] text-[#0c831f] font-black uppercase tracking-widest mb-1">{msg.senderName}</div>
+                                                            <div className="text-xs font-bold text-slate-600 leading-snug">{msg.message}</div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-[11px] text-slate-400 font-bold italic py-2">No resolution updates yet.</div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="col-md-5 border-start">
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="xs font-black text-muted uppercase tracking-widest">Admin/Staff Notes</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={4}
-                                        className="bg-light border-0 small font-bold"
-                                        placeholder="Add notes for the store manager..."
-                                        value={adminNotes}
-                                        onChange={(e) => setAdminNotes(e.target.value)}
-                                    />
-                                </Form.Group>
 
-                                <div className="d-grid gap-2">
-                                    {selectedTicket.status === 'OPEN' && (
-                                        <Button
-                                            variant="warning"
-                                            className="fw-black uppercase xs tracking-widest py-3 border-0 rounded-3 shadow-sm"
-                                            onClick={() => handleAction('ESCALATE')}
-                                            disabled={isActionLoading}
+                            {/* Right Side: Actions */}
+                            <div className="col-md-5 bg-white border-l border-slate-50 p-4 p-lg-5">
+                                <div className="flex flex-col h-100">
+                                    <div className="mb-auto">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Internal Notes</label>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all focus-within:border-[#0c831f] focus-within:shadow-lg focus-within:shadow-[#0c831f]/5">
+                                            <textarea
+                                                rows={5}
+                                                className="w-100 bg-transparent border-0 text-sm font-bold text-slate-700 focus:outline-none resize-none"
+                                                placeholder="Add private notes for the store manager..."
+                                                value={adminNotes}
+                                                onChange={(e) => setAdminNotes(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8 space-y-3">
+                                        {selectedTicket.status === 'OPEN' && (
+                                            <Button
+                                                variant="warning"
+                                                className="w-100 bg-gradient-to-r from-amber-400 to-amber-500 border-0 text-white font-black uppercase text-[11px] tracking-[0.15em] py-3.5 rounded-2xl shadow-xl shadow-amber-400/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                                onClick={() => handleAction('ESCALATE')}
+                                                disabled={isActionLoading}
+                                            >
+                                                {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <ArrowUpRight size={18} />}
+                                                Escalate to Store
+                                            </Button>
+                                        )}
+
+                                        {['STORE_RESPONDED', 'RESOLVED'].includes(selectedTicket.status) && (
+                                            <Button
+                                                variant="success"
+                                                className="w-100 bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white font-black uppercase text-[11px] tracking-[0.15em] py-3.5 rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                                onClick={() => handleAction('CLOSE')}
+                                                disabled={isActionLoading}
+                                            >
+                                                {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
+                                                Close Ticket
+                                            </Button>
+                                        )}
+
+                                        <button 
+                                            onClick={() => setShowDetailModal(false)}
+                                            className="w-100 bg-slate-50 border-0 text-slate-400 font-black uppercase text-[10px] tracking-widest py-3 rounded-2xl hover:bg-slate-100 transition-all"
                                         >
-                                            <ArrowUpRight size={18} className="me-2" /> Escalate to Store
-                                        </Button>
-                                    )}
-
-                                    {['STORE_RESPONDED', 'RESOLVED'].includes(selectedTicket.status) && (
-                                        <Button
-                                            variant="success"
-                                            className="fw-black uppercase xs tracking-widest py-3 border-0 rounded-3 shadow-sm"
-                                            onClick={() => handleAction('CLOSE')}
-                                            disabled={isActionLoading}
-                                        >
-                                            <CheckCircle size={18} className="me-2" /> Close Ticket
-                                        </Button>
-                                    )}
-
-                                    <Button variant="light" onClick={() => setShowDetailModal(false)} className="fw-black xs uppercase tracking-widest text-muted border-0">
-                                        Back to List
-                                    </Button>
+                                            Dismiss View
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

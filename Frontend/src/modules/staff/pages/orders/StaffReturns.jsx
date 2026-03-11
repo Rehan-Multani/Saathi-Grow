@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Modal, Form, Spinner } from 'react-bootstrap';
-import { RefreshCcw, Check, X, AlertCircle } from 'lucide-react';
+import { RefreshCcw, Check, X, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getReturnRequests, handleReturnRequest } from '../../../admin/api/orderApi';
 import Swal from 'sweetalert2';
 
@@ -9,6 +9,8 @@ const StaffReturns = () => {
     const [loading, setLoading] = useState(true);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [selectedReturn, setSelectedReturn] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     const fetchReturns = async () => {
         try {
@@ -55,6 +57,9 @@ const StaffReturns = () => {
         processReturn(selectedReturn._id, 'Rejected');
     };
 
+    const totalPages = Math.ceil(returns.length / itemsPerPage);
+    const paginatedReturns = returns.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div>
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
@@ -87,8 +92,8 @@ const StaffReturns = () => {
                                         Loading return requests...
                                     </td>
                                 </tr>
-                            ) : returns.length > 0 ? (
-                                returns.map((ret) => (
+                            ) : paginatedReturns.length > 0 ? (
+                                paginatedReturns.map((ret) => (
                                     <tr key={ret._id}>
                                         <td className="ps-4 fw-bold text-primary">{ret._id.substring(ret._id.length - 6).toUpperCase()}</td>
                                         <td>{ret.orderId}</td>
@@ -139,6 +144,46 @@ const StaffReturns = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+                {returns.length > 0 && (
+                    <Card.Footer className="bg-white border-top-0 py-3 px-4">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div className="text-muted small">
+                                Showing <span className="fw-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, returns.length)}</span> to <span className="fw-bold">{Math.min(currentPage * itemsPerPage, returns.length)}</span> of <span className="fw-bold">{returns.length}</span> items
+                            </div>
+                            <div className="d-flex gap-2">
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(prev => prev - 1)}
+                                    className="border shadow-sm px-3"
+                                >
+                                    <ChevronLeft size={16} />
+                                </Button>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? "primary" : "light"}
+                                        size="sm"
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`border shadow-sm px-3 ${currentPage === page ? 'text-white' : ''}`}
+                                    >
+                                        {page}
+                                    </Button>
+                                ))}
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(prev => prev + 1)}
+                                    className="border shadow-sm px-3"
+                                >
+                                    <ChevronRight size={16} />
+                                </Button>
+                            </div>
+                        </div>
+                    </Card.Footer>
+                )}
             </Card>
 
             <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)} centered>

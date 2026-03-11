@@ -9,14 +9,12 @@ import {
   Mail,
   Phone,
   Banknote,
-  QrCode,
   CheckCircle,
   Store,
   Printer,
   Package,
   IndianRupee
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -35,10 +33,8 @@ const VendorPOS = () => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [paymentLink, setPaymentLink] = useState('');
 
   useEffect(() => {
     fetchSettings();
@@ -117,9 +113,6 @@ const VendorPOS = () => {
     if (cart.length === 0) return;
     const result = await Swal.fire({
       title: 'Complete Vendor Billing?',
-      text: `Confirming ₹${totalAmount.toFixed(0)} via ${paymentMethod.toUpperCase()}`,
-      icon: 'question',
-      showCancelButton: true,
       confirmButtonColor: '#0c831f', // Vendor Green
       confirmButtonText: 'Yes, Finalize'
     });
@@ -127,11 +120,7 @@ const VendorPOS = () => {
 
     setIsProcessing(true);
     try {
-      if (paymentMethod === 'online' && !showQRModal) {
-        setPaymentLink('https://saathigro.com/pay');
-        setShowQRModal(true); setIsProcessing(false); return;
-      }
-      await createPOSOrder({ items: cart, customerDetails, paymentMethod, storeId, storeType }, vendor?.token);
+      await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, vendor?.token);
       Swal.fire('Success', 'Inventory updated and bill sent.', 'success');
       setCart([]); setCustomerDetails({ name: '', email: '', phone: '' }); fetchProducts();
     } catch (error) {

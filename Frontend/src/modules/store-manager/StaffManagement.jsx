@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Form, Modal, InputGroup, Spinner, ListGroup } from 'react-bootstrap';
 import { Search, UserPlus, Mail, Phone, Edit, Trash2, Key, Shield, Eye, CheckCircle, XCircle, Calendar, MapPin } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -31,6 +31,7 @@ const StaffManagement = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [selectedStaff, setSelectedStaff] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -85,6 +86,17 @@ const StaffManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Password validation for new staff or password update
+    if (!editingStaff && formData.password.length < 8) {
+      Swal.fire('Error', 'Password must be at least 8 characters long.', 'error');
+      return;
+    }
+    if (editingStaff && formData.password && formData.password.length < 8) {
+      Swal.fire('Error', 'New password must be at least 8 characters long.', 'error');
+      return;
+    }
+
     try {
       const token = currentUser?.token;
       if (editingStaff) {
@@ -365,7 +377,23 @@ const StaffManagement = () => {
               <div className="col-md-6 text-start">
                 <Form.Group>
                   <Form.Label className="small fw-bold text-muted uppercase">Password {editingStaff && '(Optional)'}</Form.Label>
-                  <Form.Control type="password" required={!editingStaff} className="bg-light border-0 py-2 shadow-none" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="₹₹₹₹₹₹₹₹" />
+                  <InputGroup className="bg-light border-0 py-0 rounded overflow-hidden">
+                    <Form.Control 
+                      type={showPassword ? "text" : "password"} 
+                      required={!editingStaff} 
+                      className="bg-transparent border-0 shadow-none py-2" 
+                      value={formData.password} 
+                      onChange={e => setFormData({ ...formData, password: e.target.value })} 
+                      placeholder="••••••••" 
+                    />
+                    <Button 
+                      variant="transparent" 
+                      className="border-0 text-muted hover:text-primary transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </Button>
+                  </InputGroup>
                 </Form.Group>
               </div>
               <div className="col-12 text-start">

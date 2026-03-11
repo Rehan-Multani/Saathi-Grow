@@ -9,7 +9,7 @@ const walletSchema = new mongoose.Schema({
     ownerModel: {
         type: String,
         required: true,
-        enum: ['Vendor']
+        enum: ['Vendor', 'Admin']
     },
     balance: {
         type: Number,

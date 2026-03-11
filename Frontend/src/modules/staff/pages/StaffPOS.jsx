@@ -9,13 +9,11 @@ import {
   Mail,
   Phone,
   Banknote,
-  QrCode,
   CheckCircle,
   Zap,
   Printer,
   Package
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -34,10 +32,8 @@ const StaffPOS = () => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [paymentLink, setPaymentLink] = useState('');
 
   useEffect(() => {
     fetchSettings();
@@ -114,9 +110,6 @@ const StaffPOS = () => {
     if (cart.length === 0) return toast.warning('Cart is empty');
     const { value: confirmResult } = await Swal.fire({
       title: 'Complete Sale?',
-      text: `Confirming ₹${totalAmount.toFixed(0)} via ${paymentMethod.toUpperCase()}`,
-      icon: 'question',
-      showCancelButton: true,
       confirmButtonColor: '#10b981', // Staff theme green
       cancelButtonColor: '#f43f5e',
       confirmButtonText: 'Confirm'
@@ -125,13 +118,7 @@ const StaffPOS = () => {
 
     setIsProcessing(true);
     try {
-      if (paymentMethod === 'online' && !showQRModal) {
-        setPaymentLink(`https://saathigro.com/pay?amount=${totalAmount.toFixed(0)}`);
-        setShowQRModal(true);
-        setIsProcessing(false);
-        return;
-      }
-      await createPOSOrder({ items: cart, customerDetails, paymentMethod, storeId, storeType }, staffUser?.token);
+      await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, staffUser?.token);
       await Swal.fire({ title: 'Success!', text: 'Order processed successfully.', icon: 'success' });
       setCart([]);
       setCustomerDetails({ name: '', email: '', phone: '' });
@@ -288,19 +275,12 @@ const StaffPOS = () => {
             </div>
 
             {/* Payment Selection */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <button
-                onClick={() => setPaymentMethod('cash')}
-                className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-[10px] font-black transition-all ${paymentMethod === 'cash' ? 'bg-emerald-600 text-white border-transparent' : 'bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100'}`}
+            <div className="grid grid-cols-1 mb-4">
+              <div
+                className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-[10px] font-black transition-all bg-emerald-600 text-white border-transparent`}
               >
-                <Banknote size={16} /> CASH
-              </button>
-              <button
-                onClick={() => setPaymentMethod('online')}
-                className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-[10px] font-black transition-all ${paymentMethod === 'online' ? 'bg-emerald-600 text-white border-transparent' : 'bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100'}`}
-              >
-                <QrCode size={16} /> QR / UPI
-              </button>
+                <Banknote size={16} /> CASH ONLY
+              </div>
             </div>
 
             <button
@@ -314,24 +294,6 @@ const StaffPOS = () => {
         </div>
       </div>
 
-      <Modal show={showQRModal} onHide={() => setShowQRModal(false)} centered>
-        <Modal.Header closeButton className="border-0 bg-emerald-50 rounded-t-2xl">
-          <Modal.Title className="text-sm font-black uppercase tracking-widest text-emerald-700">Scan to Pay</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-10 text-center bg-emerald-50 rounded-b-2xl">
-          <div className="bg-white p-8 rounded-[2.5rem] inline-block mb-6 shadow-2xl shadow-emerald-200/50">
-            <QRCodeSVG value={paymentLink} size={200} fgColor="#059669" />
-          </div>
-          <h3 className="text-2xl font-black text-gray-800 mb-2 tracking-tighter">₹{totalAmount.toFixed(0)}</h3>
-          <p className="text-[10px] text-emerald-600 font-black mb-8 uppercase tracking-[0.2em] opacity-60">Live UPI Terminal</p>
-          <button
-            onClick={() => { setShowQRModal(false); handleCompleteOrder(); }}
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-200 hover:bg-emerald-700 transition-all"
-          >
-            Success Received
-          </button>
-        </Modal.Body>
-      </Modal>
 
       <style dangerouslySetInnerHTML={{
         __html: `

@@ -1,6 +1,11 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import GlobalSetting from '../models/GlobalSetting.js';
+import Vendor from '../models/Vendor.js';
+import Branch from '../models/Branch.js';
+import Admin from '../models/Admin.js';
+import Wallet from '../models/Wallet.js';
+import Transaction from '../models/Transaction.js';
 import { computeBillDetails, decrementStock } from './orderController.js';
 import { sendInvoiceEmail } from '../services/emailService.js';
 
@@ -11,7 +16,7 @@ import { sendInvoiceEmail } from '../services/emailService.js';
  */
 export const createPOSOrder = async (req, res) => {
   try {
-    const { items, customerDetails, paymentMethod, storeId, storeType, razorpayDetails } = req.body;
+    const { items, customerDetails, storeId, storeType } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'Cart items are required' });
@@ -37,6 +42,14 @@ export const createPOSOrder = async (req, res) => {
     // Recompute bill on backend for security and accuracy (applying latest tax configs)
     const bill = await computeBillDetails(items, { storeId, storeType });
 
+    // Fetch Store Details for Location/Address accuracy
+    let store;
+    if (storeType === 'branch') {
+      store = await Branch.findById(storeId);
+    } else {
+      store = await Vendor.findById(storeId);
+    }
+
     const order = new Order({
       orderId: 'POS-' + Date.now().toString(),
       items: items.map(item => ({
@@ -49,24 +62,76 @@ export const createPOSOrder = async (req, res) => {
       subTotal: bill.subTotal,
       taxAmount: bill.taxAmount,
       totalAmount: bill.totalAmount,
-      paymentMethod: paymentMethod || 'cash',
-      paymentStatus: paymentMethod === 'cash' ? 'paid' : 'pending',
+      platformCommission: bill.platformCommission,
+      vendorPayoutAmount: bill.vendorPayoutAmount,
+      paymentMethod: 'cash',
+      paymentStatus: 'paid',
       status: 'delivered', // POS orders are instant delivery
       orderSource: 'pos',
       posCustomer: customerDetails, // { name, email, phone }
       vendor: storeType === 'vendor' ? storeId : null,
       branchId: storeType === 'branch' ? storeId : null,
-      razorpayPaymentId: razorpayDetails?.razorpayPaymentId || null,
-      razorpayOrderId: razorpayDetails?.razorpayOrderId || null,
-      razorpaySignature: razorpayDetails?.razorpaySignature || null
+      shippingAddress: {
+        name: customerDetails?.name || 'Walk-in Customer',
+        phone: customerDetails?.phone || '',
+        street: store?.address?.street || '',
+        city: store?.address?.city || 'Local Store',
+        state: store?.address?.state || '',
+        zipCode: store?.address?.zipCode || ''
+      }
     });
 
-    // If paying via online QR, we expect verification to Have happened or we record details
-    if (paymentMethod === 'online' && razorpayDetails) {
-      order.paymentStatus = 'paid';
-    }
-
     const createdOrder = await order.save();
+
+    // Wallet Logic: If Vendor POS, deduct Total Amount from Vendor Wallet and add to Admin Wallet
+    if (storeType === 'vendor') {
+      const amountToDeduct = bill.totalAmount;
+
+      if (amountToDeduct > 0) {
+        // Find Super Admin to receive the balance
+        const adminUser = await Admin.findOne({ role: 'Admin' });
+        if (adminUser) {
+          // Update Vendor Wallet
+          let vendorWallet = await Wallet.findOne({ owner: storeId, ownerModel: 'Vendor' });
+          if (!vendorWallet) {
+            vendorWallet = await Wallet.create({ owner: storeId, ownerModel: 'Vendor', balance: 0 });
+          }
+
+          // Update Admin Wallet
+          let adminWallet = await Wallet.findOne({ owner: adminUser._id, ownerModel: 'Admin' });
+          if (!adminWallet) {
+            adminWallet = await Wallet.create({ owner: adminUser._id, ownerModel: 'Admin', balance: 0 });
+          }
+
+          vendorWallet.balance -= amountToDeduct;
+          await vendorWallet.save();
+
+          adminWallet.balance += amountToDeduct;
+          await adminWallet.save();
+
+          // Record formal transactions for accounting
+          await Transaction.create({
+            wallet: vendorWallet._id,
+            amount: amountToDeduct,
+            type: 'debit',
+            category: 'order_revenue',
+            description: `POS Order Value Deduction: ${createdOrder.orderId}`,
+            referenceId: createdOrder._id,
+            referenceModel: 'Order'
+          });
+
+          await Transaction.create({
+            wallet: adminWallet._id,
+            amount: amountToDeduct,
+            type: 'credit',
+            category: 'order_revenue',
+            description: `POS Order Revenue from Vendor: ${createdOrder.orderId}`,
+            referenceId: createdOrder._id,
+            referenceModel: 'Order'
+          });
+        }
+      }
+    }
 
     // Immediately deduct stock for the selected products at the specific branch/vendor
     await decrementStock(createdOrder);

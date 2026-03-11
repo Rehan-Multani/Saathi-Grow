@@ -10,7 +10,6 @@ import {
   Phone,
   CreditCard,
   Banknote,
-  QrCode,
   CheckCircle,
   Package,
   ArrowLeft,
@@ -29,7 +28,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
-  const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'online'
+  const [paymentMethod] = useState('cash'); // Only 'cash' allowed
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -293,22 +292,13 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
               </div>
             </div>
 
-            {/* Payment Selector */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <button
-                onClick={() => setPaymentMethod('cash')}
-                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${paymentMethod === 'cash' ? 'border-violet-600 bg-violet-50 text-violet-700' : 'border-gray-100 text-gray-500 hover:border-gray-200'}`}
+            <div className="grid grid-cols-1 mb-6">
+              <div
+                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-violet-600 bg-violet-50 text-violet-700`}
               >
                 <Banknote size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Cash</span>
-              </button>
-              <button
-                onClick={() => setPaymentMethod('online')}
-                className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${paymentMethod === 'online' ? 'border-violet-600 bg-violet-50 text-violet-700' : 'border-gray-100 text-gray-500 hover:border-gray-200'}`}
-              >
-                <QrCode size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Online QR</span>
-              </button>
+                <span className="text-[10px] font-black uppercase tracking-widest">CASH ONLY</span>
+              </div>
             </div>
 
             <button

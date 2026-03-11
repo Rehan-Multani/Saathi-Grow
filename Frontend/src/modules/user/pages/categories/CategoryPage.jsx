@@ -96,7 +96,7 @@ const CategoryPage = () => {
                 page: pageNum,
                 limit: 12,
                 sort: sortOption,
-                status: ['Active', 'Low Stock']
+                status: ['Active', 'Low Stock', 'Out of Stock']
             };
 
             if (categoryName) params.category = categoryName;
