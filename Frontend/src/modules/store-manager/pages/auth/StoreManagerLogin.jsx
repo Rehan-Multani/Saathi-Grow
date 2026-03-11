@@ -1,27 +1,34 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStoreManagerAuth } from '../../context/StoreManagerAuthContext';
-import { Card, Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
-import { Store } from 'lucide-react';
+import { Card, Form, Button, Alert, Container, Row, Col, InputGroup } from 'react-bootstrap';
+import { Store, Eye, EyeOff } from 'lucide-react';
 
 const StoreManagerLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { managerLogin } = useStoreManagerAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       await managerLogin(email, password);
       navigate('/store-manager/dashboard');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -57,15 +64,24 @@ const StoreManagerLogin = () => {
                   </Form.Group>
                   <Form.Group className="mb-4">
                     <Form.Label className="fw-bold small text-uppercase">Password</Form.Label>
-                    <Form.Control
-                      type="password"
-                      placeholder="₹₹₹₹₹₹₹₹"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      size="lg"
-                      className="bg-light border-0"
-                    />
+                    <InputGroup size="lg">
+                      <Form.Control
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="bg-light border-0"
+                      />
+                      <Button 
+                        variant="light" 
+                        className="bg-light border-0"
+                        onClick={() => setShowPassword(!showPassword)}
+                        type="button"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </Button>
+                    </InputGroup>
                   </Form.Group>
                   <Button variant="success" type="submit" size="lg" className="w-100 fw-bold shadow-sm" disabled={loading}>
                     {loading ? 'Authenticating...' : 'Sign In'}

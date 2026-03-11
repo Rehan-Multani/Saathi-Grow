@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
-import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Send } from 'lucide-react';
+import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStaffAuth } from '../../context/StaffAuthContext';
 import * as customerApi from '../../../admin/api/customerManagementApi';
 import { toast } from 'react-toastify';
@@ -18,6 +18,8 @@ const StaffCustomers = () => {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [messageType, setMessageType] = useState('Message');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const fetchCustomers = async () => {
     try {
@@ -42,6 +44,13 @@ const StaffCustomers = () => {
     (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.phone || '').includes(searchTerm)
   );
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedCustomers = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleViewProfile = (customer) => {
     setSelectedCustomer(customer);
@@ -110,7 +119,7 @@ const StaffCustomers = () => {
                 </tr>
               </thead>
               <tbody className="border-top-0">
-                {filtered.length > 0 ? filtered.map((c, idx) => (
+                {paginatedCustomers.length > 0 ? paginatedCustomers.map((c, idx) => (
                   <tr key={idx} className="border-bottom">
                     <td className="ps-4">
                       <div className="d-flex align-items-center gap-3">
@@ -181,6 +190,46 @@ const StaffCustomers = () => {
             </Table>
           </div>
         </Card.Body>
+        {filtered.length > 0 && (
+          <Card.Footer className="bg-white border-top-0 py-3 px-4">
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="text-muted small font-bold uppercase tracking-wider">
+                Showing <span className="text-primary">{Math.min((currentPage - 1) * itemsPerPage + 1, filtered.length)}</span> to <span className="text-primary">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="text-primary">{filtered.length}</span> customers
+              </div>
+              <div className="d-flex gap-2">
+                <Button 
+                  variant="light" 
+                  size="sm" 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="border-0 bg-light rounded-2 px-3 hover:bg-primary hover:text-white transition-all shadow-none"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "primary" : "light"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                    className={`border-0 rounded-2 px-3 font-black transition-all shadow-none ${currentPage === page ? 'bg-primary text-white' : 'bg-light text-muted'}`}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button 
+                  variant="light" 
+                  size="sm" 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="border-0 bg-light rounded-2 px-3 hover:bg-primary hover:text-white transition-all shadow-none"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+              </div>
+            </div>
+          </Card.Footer>
+        )}
       </Card>
 
       <CustomerDetailsModal

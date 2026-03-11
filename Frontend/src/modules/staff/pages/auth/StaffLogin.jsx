@@ -1,27 +1,35 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStaffAuth } from '../../context/StaffAuthContext';
-import { Card, Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
-import { UserCheck } from 'lucide-react';
+import { UserCheck, Eye, EyeOff } from 'lucide-react';
+import { Card, Form, Button, Alert, Container, Row, Col, InputGroup } from 'react-bootstrap';
 
 const StaffLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const { staffLogin } = useStaffAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        // Basic password validation
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters long.');
+            return;
+        }
+
         setLoading(true);
 
         try {
             await staffLogin(email, password);
             navigate('/staff/dashboard');
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Login failed. Please check your credentials.');
         } finally {
             setLoading(false);
         }
@@ -57,15 +65,24 @@ const StaffLogin = () => {
                                     </Form.Group>
                                     <Form.Group className="mb-4">
                                         <Form.Label className="fw-bold small text-uppercase">Password</Form.Label>
-                                        <Form.Control
-                                            type="password"
-                                            placeholder="₹₹₹₹₹₹₹₹"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            required
-                                            size="lg"
-                                            className="bg-light border-0"
-                                        />
+                                        <InputGroup size="lg">
+                                            <Form.Control
+                                                type={showPassword ? "text" : "password"}
+                                                placeholder="••••••••"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                required
+                                                className="bg-light border-0"
+                                            />
+                                            <Button 
+                                                variant="light" 
+                                                className="bg-light border-0"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                type="button"
+                                            >
+                                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            </Button>
+                                        </InputGroup>
                                     </Form.Group>
                                     <Button variant="primary" type="submit" size="lg" className="w-100 fw-bold shadow-sm" disabled={loading}>
                                         {loading ? 'Signing in...' : 'Sign In'}
