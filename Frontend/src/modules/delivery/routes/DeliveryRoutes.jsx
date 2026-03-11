@@ -1,4 +1,4 @@
-﻿import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DeliveryLayout from '../hooks/components/DeliveryLayout';
 import { NotificationProvider } from '../hooks/components/NotificationProvider';
@@ -9,7 +9,7 @@ const Wallet = lazy(() => import('../pages/WalletPage'));
 const History = lazy(() => import('../pages/DeliveryHistory'));
 const Profile = lazy(() => import('../pages/ProfileSettings'));
 const Tracking = lazy(() => import('../pages/LiveTracking'));
-const ReturnPickups = lazy(() => import('../pages/ReturnPickups'));
+const RunDetail = lazy(() => import('../pages/RunDetail'));
 const Login = lazy(() => import('../pages/DeliveryLogin'));
 const Grievances = lazy(() => import('../pages/Grievances'));
 const Legal = lazy(() => import('../pages/LegalDocuments'));
@@ -43,10 +43,10 @@ const DeliveryRoutes = () => {
                                         <Route path="/" element={<Navigate to="dashboard" replace />} />
                                         <Route path="/dashboard" element={<Dashboard />} />
                                         <Route path="/orders" element={<Orders />} />
-                                        <Route path="/returns" element={<ReturnPickups />} />
                                         <Route path="/wallet" element={<Wallet />} />
                                         <Route path="/history" element={<History />} />
                                         <Route path="/profile" element={<Profile />} />
+                                        <Route path="/run/:id" element={<RunDetail />} />
                                         <Route path="/tracking/:id" element={<Tracking />} />
                                         <Route path="/grievances" element={<Grievances />} />
                                         <Route path="/legal" element={<Legal />} />

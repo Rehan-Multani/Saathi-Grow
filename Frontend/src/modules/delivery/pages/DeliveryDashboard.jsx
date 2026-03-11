@@ -433,7 +433,7 @@ const DeliveryDashboard = () => {
                         {orders.length > 0 ? orders.map((run) => (
                             <div
                                 key={run._id}
-                                onClick={() => navigate(`/delivery/tracking/${run._id}`)}
+                                onClick={() => navigate(`/delivery/run/${run._id}`)}
                                 className="flex items-center gap-4 p-4 rounded-3xl border border-slate-50 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                             >
                                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-[#028A0F] font-bold shrink-0">

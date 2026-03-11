@@ -98,7 +98,7 @@ const deliveryRunSchema = new mongoose.Schema({
       // Delivery status at this specific stop
       status: {
         type: String,
-        enum: ['pending', 'out_for_delivery', 'delivered', 'failed'],
+        enum: ['pending', 'out_for_delivery', 'delivered', 'picked_up', 'failed'],
         default: 'pending'
       },
 

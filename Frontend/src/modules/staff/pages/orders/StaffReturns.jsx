@@ -132,13 +132,15 @@ const StaffReturns = () => {
                                     </td>
                                     <td className="px-6 py-4 font-bold">₹{r.totalAmount}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
-                                            r.returnRequest.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 
-                                            r.returnRequest.status === 'Accepted' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                        }`}>
-                                            {r.returnRequest.status}
-                                        </span>
-                                    </td>
+                                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                                             r.returnRequest.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 
+                                             ['Accepted', 'Approved'].includes(r.returnRequest.status) ? 'bg-green-100 text-green-700' : 
+                                             r.returnRequest.status === 'Rejected' ? 'bg-orange-100 text-orange-700' :
+                                             'bg-red-100 text-red-700'
+                                         }`}>
+                                             {r.returnRequest.status === 'FinalRejected' ? 'Final Rejected' : r.returnRequest.status}
+                                         </span>
+                                     </td>
                                     <td className="px-6 py-4 text-center text-gray-400">
                                         <button onClick={() => setSelected(r)} className="hover:text-indigo-600 transition-colors"><Eye size={18} /></button>
                                     </td>
@@ -218,9 +220,24 @@ const StaffReturns = () => {
                                 </div>
                             )}
 
-                            {selected.returnRequest.status === 'Accepted' && (
-                                <div className="p-4 bg-blue-50 text-blue-700 rounded-xl text-center text-xs font-bold border border-blue-100 animate-pulse">
-                                    Accepted. Waiting for Admin scheduled pickup.
+                            {['Accepted', 'Approved'].includes(selected.returnRequest.status) && (
+                                <div className="p-4 bg-blue-50 text-blue-700 rounded-xl text-center text-xs font-bold border border-blue-100">
+                                    <p>{selected.returnRequest.status === 'Approved' ? 'Admin overrule & approved.' : 'Accepted.'}</p>
+                                    <p className="text-[10px] mt-1 opacity-70 italic">Waiting for Admin scheduled pickup.</p>
+                                </div>
+                            )}
+
+                            {selected.returnRequest.status === 'Rejected' && (
+                                <div className="p-4 bg-orange-50 text-orange-700 rounded-xl text-center text-xs font-bold border border-orange-100">
+                                    <p>Rejected by Branch Staff</p>
+                                    <p className="text-[10px] mt-1 opacity-70 italic">Admin will review this recommendation.</p>
+                                </div>
+                            )}
+
+                            {selected.returnRequest.status === 'FinalRejected' && (
+                                <div className="p-4 bg-red-50 text-red-700 rounded-xl text-center text-xs font-bold border border-red-100">
+                                    <p>Final Rejected by Admin</p>
+                                    <p className="text-[10px] mt-1 opacity-70 italic">Return request closed.</p>
                                 </div>
                             )}
                         </div>

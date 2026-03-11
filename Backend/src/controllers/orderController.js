@@ -797,7 +797,7 @@ export const calculateBill = async (req, res) => {
 export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod deliveryOTP')
+      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod deliveryOTP returnRequest')
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -1219,13 +1219,13 @@ export const getReturnRequests = async (req, res) => {
           ];
         }
 
-        const [pending, accepted, approvedLegacy, rejected] = await Promise.all([
+        const [pending, accepted, approved, rejected, finalRejected] = await Promise.all([
           Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Pending' }),
           Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Accepted' }),
           Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Approved' }),
-          Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Rejected' })
+          Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Rejected' }),
+          Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'FinalRejected' })
         ]);
-        const approved = accepted + approvedLegacy;
 
         return res.json({
           returns,
@@ -1236,10 +1236,10 @@ export const getReturnRequests = async (req, res) => {
             totalPages: Math.ceil(total / limitNumber) || 1
           },
           stats: {
-            total: pending + approved + rejected,
+            total: pending + accepted + approved + rejected + finalRejected,
             pending,
-            approved,
-            rejected
+            approved: accepted + approved,
+            rejected: rejected + finalRejected
           }
         });
       }
@@ -1339,11 +1339,10 @@ export const getVendorReturnRequests = async (req, res) => {
 };
 export const handleStoreReturnAction = async (req, res) => {
   try {
-    const { action, rejectionReason } = req.body; // accepts "Approved"/"Accepted" or "Rejected"
-    const normalizedAction = action === 'Approved' ? 'Accepted' : action;
+    const { action, rejectionReason } = req.body; // accepts "Accepted" or "Rejected"
     const allowedActions = ['Accepted', 'Rejected'];
-    if (!allowedActions.includes(normalizedAction)) {
-      return res.status(400).json({ message: 'Invalid action. Use Accepted/Approved or Rejected.' });
+    if (!allowedActions.includes(action)) {
+      return res.status(400).json({ message: 'Invalid action. Use Accepted or Rejected.' });
     }
     const order = await Order.findById(req.params.id);
 
@@ -1351,42 +1350,46 @@ export const handleStoreReturnAction = async (req, res) => {
 
     // Auth: Vendor owns order OR Staff belongs to the branch
     const isVendorOwner = req.vendor && order.vendor?.toString() === req.vendor._id?.toString();
-    const isStaffForBranch = req.admin && order.branchId?.toString() === req.admin.branchId?.toString();
+    const isStaffForBranch = req.admin && (order.branchId?.toString() === req.admin.branchId?.toString() || req.admin.role === 'Admin');
     const isAdmin = req.admin?.role === "Admin";
 
     if (!isVendorOwner && !isStaffForBranch && !isAdmin) {
       return res.status(403).json({ message: "Not authorized to manage returns for this store" });
     }
 
-
-    if (order.returnRequest.status === normalizedAction) {
-      return res.json(order);
-    }
-
-    if (order.returnRequest.status !== "Pending") {
-      return res.status(400).json({ message: "Return request already processed" });
-    }
-
-    order.returnRequest.status = normalizedAction;
-    
-    if (normalizedAction === "Accepted") {
-      // Stock increment MOVED to final return (when rider brings item back to store)
-      // to avoid ghost stock in inventory.
-      
-      // Generate Secure Return OTP for Pickup verification
-      order.returnRequest.returnOTP = Math.floor(1000 + Math.random() * 9000).toString();
+    // Role-based logic
+    if (isAdmin) {
+      // Admin makes the final call
+      if (action === 'Accepted') {
+        order.returnRequest.status = 'Approved';
+        order.returnRequest.returnOTP = Math.floor(1000 + Math.random() * 9000).toString();
+      } else {
+        order.returnRequest.status = 'FinalRejected';
+        order.status = 'delivered';
+        order.returnRequest.rejectionReason = rejectionReason || "Rejected by admin";
+        order.returnRequest.resolvedAt = new Date();
+      }
     } else {
-      order.status = "delivered";
-      order.returnRequest.rejectionReason = rejectionReason || "Rejected by store";
-      order.returnRequest.resolvedAt = new Date();
+      // Store/Vendor/Staff makes a recommendation
+      order.returnRequest.status = action; // "Accepted" or "Rejected"
+      
+      if (action === "Accepted") {
+        // Generate OTP early if store accepts, or wait for admin approval?
+        // Let's generate it now so it's ready, but admin still needs to assign partner.
+        order.returnRequest.returnOTP = Math.floor(1000 + Math.random() * 9000).toString();
+      } else {
+        // If store rejects, we just keep the status as "Rejected"
+        // Admin will see this and decide.
+        order.returnRequest.rejectionReason = rejectionReason || "Rejected by store";
+      }
     }
 
     await order.save();
     res.json({ 
-      message: `Return ${normalizedAction} successfully`, 
+      message: `Return ${action} successfully`, 
       order: {
         ...order.toObject(),
-        returnOTP: normalizedAction === "Accepted" ? order.returnRequest.returnOTP : null
+        returnOTP: (order.returnRequest.status === "Accepted" || order.returnRequest.status === "Approved") ? order.returnRequest.returnOTP : null
       } 
     });
   } catch (error) {

@@ -126,7 +126,8 @@ export const getDeliveryDetail = async (req, res) => {
                 path: 'orders.order',
                 populate: [
                     { path: 'user', select: 'name phone' },
-                    { path: 'branchId', select: 'name address phone location' }
+                    { path: 'branchId', select: 'name address phone location' },
+                    { path: 'items.product', select: 'name images price' }
                 ]
             });
 
@@ -352,11 +353,40 @@ export const getDashboardStats = async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const pendingOrders = await OrderDelivery.countDocuments({ status: 'pending' });
-        const todayDeliveries = await OrderDelivery.countDocuments({
+        const [pendingDeliveries, pendingReturns, activeRuns] = await Promise.all([
+            Order.countDocuments({ 
+                status: 'ready_for_pickup', 
+                deliveryRunId: { $exists: false } 
+            }),
+            Order.countDocuments({ 
+                'returnRequest.isRequested': true, 
+                'returnRequest.status': { $in: ['Accepted', 'Approved'] },
+                'returnRequest.pickupPartnerId': { $exists: false }
+            }),
+            DeliveryRun.find({
+                deliveryPartner: partner._id,
+                status: { $in: ['assigned', 'in_progress'] }
+            })
+        ]);
+
+        const pendingTotal = pendingDeliveries + pendingReturns;
+
+        // Today's completed tasks (delivered orders + picked up returns)
+        const completedRuns = await DeliveryRun.find({
             deliveryPartner: partner._id,
-            status: 'delivered',
-            deliveredAt: { $gte: today }
+            status: { $in: ['completed', 'partial_complete'] },
+            updatedAt: { $gte: today }
+        });
+
+        let todayDeliveries = 0;
+        completedRuns.forEach(run => {
+            todayDeliveries += run.orders.filter(o => ['delivered', 'picked_up'].includes(o.status)).length;
+        });
+
+        // Current active stops
+        let activeOrders = 0;
+        activeRuns.forEach(run => {
+            activeOrders += run.orders.filter(o => ['pending', 'out_for_delivery'].includes(o.status)).length;
         });
 
         // Today's collected cash
@@ -380,18 +410,11 @@ export const getDashboardStats = async (req, res) => {
             walletBalance: partner.cashInHand || 0, // Sending cashInHand as walletBalance for frontend compatibility
             totalEarnings: 0, // Earnings are handled physically by admin
             todayEarnings: todayEarnings[0]?.total || 0,
-            pendingOrders,
+            pendingOrders: pendingTotal,
             todayDeliveries,
             status: partner.dutyStatus,
-            activeOrders: await OrderDelivery.countDocuments({
-                deliveryPartner: partner._id,
-                status: { $in: ['assigned', 'picked_up', 'in_transit'] }
-            }),
-            returnPickups: await OrderDelivery.countDocuments({
-                type: 'return_pickup',
-                status: 'pending',
-                deliveryPartner: { $exists: false }
-            })
+            activeOrders,
+            returnPickups: pendingReturns 
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -495,49 +518,7 @@ export const getRouteDirections = async (req, res) => {
     }
 };
 
-// @desc    Get returns assigned to or available for the partner
-// @route   GET /api/delivery/returns
-// @access  Private (Rider)
-export const getReturnPickups = async (req, res) => {
-    try {
-        const partnerId = req.partner._id;
-        const returns = await DeliveryRun.find({
-            deliveryPartner: partnerId,
-            runType: 'return'
-        }).populate({
-            path: 'orders.order',
-            populate: { path: 'user', select: 'name phone' }
-        });
 
-        res.json(returns);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Accept a return pickup (Optional if already assigned)
-// @route   PATCH /api/delivery/returns/:id/accept
-// @access  Private (Rider)
-export const acceptReturnPickup = async (req, res) => {
-    try {
-        const run = await DeliveryRun.findById(req.params.id);
-        if (!run || run.runType !== 'return') return res.status(404).json({ message: 'Return run not found' });
-
-        run.status = 'in_progress';
-        await run.save();
-        res.json({ message: 'Return pickup accepted', run });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Update return pickup status for an order
-// @route   PATCH /api/delivery/returns/:id/status
-// @access  Private (Rider)
-export const updateReturnPickupStatus = async (req, res) => {
-    // This is a wrapper around updateDeliveryStatus or can be implemented separately
-    return updateDeliveryStatus(req, res);
-};
 
 // End of Delivery Controller
 
