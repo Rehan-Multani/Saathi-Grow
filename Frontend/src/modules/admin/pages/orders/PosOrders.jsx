@@ -20,9 +20,9 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import {
     createPOSOrder,
-    searchProductsPOS
+    searchProductsPOS,
+    getPOSAuthToken
 } from '../../api/posApi';
-import { getAllOrdersAdmin } from '../../api/orderApi';
 import { getAdminSettings } from '../../api/settingApi';
 
 const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
@@ -42,11 +42,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
 
     const fetchSettings = async () => {
         try {
-            // Check storage for token from any role
-            const token = localStorage.getItem('sathiGro_admin') ? JSON.parse(localStorage.getItem('sathiGro_admin')).token :
-                localStorage.getItem('sathiGro_staff') ? JSON.parse(localStorage.getItem('sathiGro_staff')).token :
-                    localStorage.getItem('saathigro_staff') ? JSON.parse(localStorage.getItem('saathigro_staff')).token :
-                        localStorage.getItem('sathiGro_manager') ? JSON.parse(localStorage.getItem('sathiGro_manager')).token : null;
+            const token = getPOSAuthToken();
 
             if (!token) return;
 

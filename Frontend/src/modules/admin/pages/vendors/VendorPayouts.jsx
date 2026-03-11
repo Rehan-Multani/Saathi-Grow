@@ -21,13 +21,16 @@ const VendorPayouts = () => {
         const fetchPayouts = async () => {
             try {
                 setLoading(true);
-                const { payouts: payoutList, pagination: paginationData } = await getPayouts(
+                const { payouts: payoutList, pagination: paginationData, stats: payoutStats } = await getPayouts(
                     adminUser.token,
-                    { page, limit },
+                    { page, limit, includeMeta: true, includeStats: true },
                     { paginated: true }
                 );
                 setPayouts(Array.isArray(payoutList) ? payoutList : []);
                 setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
+                if (payoutStats) {
+                    setAllPayouts(payoutStats);
+                }
             } catch (error) {
                 toast.error('Failed to load payout logs');
             } finally {
@@ -40,38 +43,15 @@ const VendorPayouts = () => {
         }
     }, [adminUser.token, page]);
 
-    useEffect(() => {
-        const fetchPayoutStatsData = async () => {
-            try {
-                const data = await getPayouts(adminUser.token);
-                setAllPayouts(Array.isArray(data) ? data : []);
-            } catch (error) {
-                // Keep table functional even if stats fetch fails
-                setAllPayouts([]);
-            }
-        };
-
-        if (adminUser?.token) {
-            fetchPayoutStatsData();
-        }
-    }, [adminUser.token]);
-
     const stats = {
-        total: allPayouts.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0),
-        processing: allPayouts.reduce((acc, curr) => acc + (curr.status === 'Processing' ? curr.amount : 0), 0),
-        settledMonth: allPayouts.reduce((acc, curr) => {
-            const date = new Date(curr.payoutDate);
-            const now = new Date();
-            if (curr.status === 'Paid' && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
-                return acc + curr.amount;
-            }
-            return acc;
-        }, 0)
+        total: allPayouts?.totals?.paid || 0,
+        processing: allPayouts?.totals?.processing || 0,
+        settledMonth: allPayouts?.totals?.paid || 0
     };
 
     const handleExport = () => {
         const headers = ['Payout ID', 'Vendor', 'Amount', 'Date', 'Method', 'Reference No.', 'Status'];
-        const csvRows = allPayouts.map(p => [
+        const csvRows = payouts.map(p => [
             p._id,
             `"${p.vendor?.storeName || 'Unknown'}"`,
             p.amount,

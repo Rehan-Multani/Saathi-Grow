@@ -9,6 +9,7 @@ import { geocodeAddress, getFullAddress } from '../services/locationService.js';
 export const getVendors = async (req, res) => {
   try {
     const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const includeMeta = req.query.includeMeta === 'true';
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const search = (req.query.search || '').trim();
@@ -23,7 +24,10 @@ export const getVendors = async (req, res) => {
       ];
     }
 
-    const vendorsQuery = Vendor.find(query).sort({ createdAt: -1 });
+    const vendorsQuery = Vendor.find(query)
+      .select('storeName ownerName email phone status logo rating products createdAt updatedAt')
+      .sort({ createdAt: -1 })
+      .lean();
 
     if (hasPagination) {
       const total = await Vendor.countDocuments(query);
@@ -35,10 +39,25 @@ export const getVendors = async (req, res) => {
       res.set('X-Page', String(pageNumber));
       res.set('X-Limit', String(limitNumber));
       res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      if (includeMeta) {
+        return res.json({
+          success: true,
+          vendors,
+          pagination: {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(total / limitNumber) || 1
+          }
+        });
+      }
       return res.json(vendors);
     }
 
     const vendors = await vendorsQuery;
+    if (includeMeta) {
+      return res.json({ success: true, vendors });
+    }
     res.json(vendors);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -195,6 +214,8 @@ export const deleteVendor = async (req, res) => {
 export const getPayouts = async (req, res) => {
   try {
     const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const includeMeta = req.query.includeMeta === 'true';
+    const includeStats = req.query.includeStats === 'true';
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const status = (req.query.status || '').trim();
@@ -204,24 +225,120 @@ export const getPayouts = async (req, res) => {
     }
 
     const payoutsQuery = VendorPayout.find(query)
+      .select('vendor amount payoutDate paymentMethod referenceNumber status note processedBy createdAt updatedAt')
       .populate('vendor', 'storeName ownerName logo')
       .populate('processedBy', 'name email')
-      .sort('-createdAt');
+      .sort('-createdAt')
+      .lean();
+
+    const baseStatsQuery = status ? { status } : {};
 
     if (hasPagination) {
-      const total = await VendorPayout.countDocuments(query);
-      const payouts = await payoutsQuery
-        .skip((pageNumber - 1) * limitNumber)
-        .limit(limitNumber);
+      const [total, payouts] = await Promise.all([
+        VendorPayout.countDocuments(query),
+        payoutsQuery
+          .skip((pageNumber - 1) * limitNumber)
+          .limit(limitNumber)
+      ]);
 
       res.set('X-Total-Count', String(total));
       res.set('X-Page', String(pageNumber));
       res.set('X-Limit', String(limitNumber));
       res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      if (includeMeta) {
+        let stats = null;
+        if (includeStats) {
+          const statsAgg = await VendorPayout.aggregate([
+            { $match: baseStatsQuery },
+            {
+              $group: {
+                _id: '$status',
+                totalAmount: { $sum: '$amount' },
+                count: { $sum: 1 }
+              }
+            }
+          ]);
+          stats = {
+            totals: {
+              paid: 0,
+              processing: 0,
+              failed: 0
+            },
+            counts: {
+              paid: 0,
+              processing: 0,
+              failed: 0
+            }
+          };
+          statsAgg.forEach((row) => {
+            if (row._id === 'Paid') {
+              stats.totals.paid = row.totalAmount || 0;
+              stats.counts.paid = row.count || 0;
+            } else if (row._id === 'Processing') {
+              stats.totals.processing = row.totalAmount || 0;
+              stats.counts.processing = row.count || 0;
+            } else if (row._id === 'Failed') {
+              stats.totals.failed = row.totalAmount || 0;
+              stats.counts.failed = row.count || 0;
+            }
+          });
+        }
+        return res.json({
+          success: true,
+          payouts,
+          pagination: {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(total / limitNumber) || 1
+          },
+          ...(includeStats ? { stats } : {})
+        });
+      }
       return res.json(payouts);
     }
 
     const payouts = await payoutsQuery;
+    if (includeMeta && includeStats) {
+      const statsAgg = await VendorPayout.aggregate([
+        { $match: baseStatsQuery },
+        {
+          $group: {
+            _id: '$status',
+            totalAmount: { $sum: '$amount' },
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+      const stats = {
+        totals: {
+          paid: 0,
+          processing: 0,
+          failed: 0
+        },
+        counts: {
+          paid: 0,
+          processing: 0,
+          failed: 0
+        }
+      };
+      statsAgg.forEach((row) => {
+        if (row._id === 'Paid') {
+          stats.totals.paid = row.totalAmount || 0;
+          stats.counts.paid = row.count || 0;
+        } else if (row._id === 'Processing') {
+          stats.totals.processing = row.totalAmount || 0;
+          stats.counts.processing = row.count || 0;
+        } else if (row._id === 'Failed') {
+          stats.totals.failed = row.totalAmount || 0;
+          stats.counts.failed = row.count || 0;
+        }
+      });
+      return res.json({ success: true, payouts, stats });
+    }
+    if (includeMeta) {
+      return res.json({ success: true, payouts });
+    }
     res.json(payouts);
   } catch (error) {
     res.status(500).json({ message: error.message });

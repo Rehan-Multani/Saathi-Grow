@@ -1,10 +1,7 @@
 import rateLimit from 'express-rate-limit';
 
 const getClientIp = (req) => {
-  const forwardedFor = req.headers['x-forwarded-for'];
-  if (typeof forwardedFor === 'string' && forwardedFor.length > 0) {
-    return forwardedFor.split(',')[0].trim();
-  }
+  // Prefer Express-derived IP (honors trusted proxy config) over raw headers.
   return req.ip || req.socket?.remoteAddress || 'unknown';
 };
 

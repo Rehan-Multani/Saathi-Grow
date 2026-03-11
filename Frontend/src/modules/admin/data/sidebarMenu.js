@@ -69,7 +69,7 @@
     {
         title: 'Delivery Management',
         icon: 'Truck',
-        permission: 'MANAGE_DELIVERY_BOYS',
+        permission: 'MANAGE_DELIVERY',
         submenu: [
             { title: 'Delivery Partners', path: '/admin/delivery/partners' },
             { title: 'Assign Deliveries', path: '/admin/delivery/assign' },

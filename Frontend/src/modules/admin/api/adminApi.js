@@ -12,6 +12,15 @@ const buildQuery = (params = {}) => {
   return query ? `?${query}` : '';
 };
 
+const extractStaffList = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.staff)) return payload.staff;
+  if (Array.isArray(payload?.admins)) return payload.admins;
+  if (Array.isArray(payload?.data?.staff)) return payload.data.staff;
+  if (Array.isArray(payload?.data?.admins)) return payload.data.admins;
+  return [];
+};
+
 export const loginAdmin = async (email, password) => {
   const response = await fetch(`${ADMIN_BASE_URL}/login`, {
     method: 'POST',
@@ -73,18 +82,20 @@ export const getAllStaff = async (token, params = {}, options = {}) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch staff');
+  const staff = extractStaffList(data);
   if (options.paginated) {
+    const pagination = data?.pagination || {};
     return {
-      staff: data,
+      staff,
       pagination: {
-        total: Number(response.headers.get('x-total-count') || 0),
-        page: Number(response.headers.get('x-page') || params.page || 1),
-        limit: Number(response.headers.get('x-limit') || params.limit || 10),
-        totalPages: Number(response.headers.get('x-total-pages') || 1)
+        total: Number(pagination.total ?? response.headers.get('x-total-count') ?? 0),
+        page: Number(pagination.page ?? response.headers.get('x-page') ?? params.page ?? 1),
+        limit: Number(pagination.limit ?? response.headers.get('x-limit') ?? params.limit ?? 10),
+        totalPages: Number(pagination.totalPages ?? response.headers.get('x-total-pages') ?? 1)
       }
     };
   }
-  return data;
+  return staff;
 };
 
 export const createStaff = async (token, staffData) => {

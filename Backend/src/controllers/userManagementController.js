@@ -8,6 +8,7 @@ import { cloudinary } from '../config/cloudinary.js';
 export const getAllUsers = async (req, res) => {
   try {
     const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const includeMeta = req.query.includeMeta === 'true';
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const search = (req.query.search || '').trim();
@@ -29,7 +30,10 @@ export const getAllUsers = async (req, res) => {
       ];
     }
 
-    const usersQuery = User.find(query).sort({ createdAt: -1 });
+    const usersQuery = User.find(query)
+      .select('name email phone profileImage addresses walletBalance isActive role createdAt updatedAt')
+      .sort({ createdAt: -1 })
+      .lean();
 
     if (hasPagination) {
       const total = await User.countDocuments(query);
@@ -41,10 +45,25 @@ export const getAllUsers = async (req, res) => {
       res.set('X-Page', String(pageNumber));
       res.set('X-Limit', String(limitNumber));
       res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      if (includeMeta) {
+        return res.json({
+          success: true,
+          users,
+          pagination: {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(total / limitNumber) || 1
+          }
+        });
+      }
       return res.json({ success: true, users });
     }
 
     const users = await usersQuery;
+    if (includeMeta) {
+      return res.json({ success: true, users });
+    }
     res.json({ success: true, users });
   } catch (error) {
     console.error('Error fetching users:', error);

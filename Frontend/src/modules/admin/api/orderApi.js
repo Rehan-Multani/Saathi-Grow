@@ -122,17 +122,18 @@ export const handleReturnRequest = async (id, action, rejectionReason = null) =>
   const auth = getAuthDetails();
   if (!auth) return null;
 
-  const { data } = await axios.put(`${API_URL}/admin/${id}/return`, { action, rejectionReason }, {
+  const normalizedAction = action === 'Approved' ? 'Accepted' : action;
+  const { data } = await axios.put(`${API_URL}/admin/${id}/return/accept`, { action: normalizedAction, rejectionReason }, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;
 };
 
-export const scheduleReturnPickup = async (id, pickupFee = 30) => {
+export const createReturnBatch = async (payload) => {
   const auth = getAuthDetails();
   if (!auth) return null;
 
-  const { data } = await axios.post(`${API_URL}/admin/${id}/return/schedule-pickup`, { pickupFee }, {
+  const { data } = await axios.post(`${API_URL}/admin/returns/batch-schedule`, payload, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;
