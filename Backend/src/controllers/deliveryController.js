@@ -154,6 +154,11 @@ export const updateDeliveryStatus = async (req, res) => {
         // Firebase RTDB Tracking setup
         const { db } = await import('../config/firebase.js');
 
+        // 1. Run Level Status Update
+        if (status === 'in_progress' || status === 'assigned') {
+            run.status = status;
+        }
+
         // 2. Individual Stop Status Updates
         if (stopOrderId && stopStatus) {
             const stopIndex = run.orders.findIndex(s => s.order.toString() === stopOrderId.toString());
