@@ -1,6 +1,6 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, Table, Badge, ProgressBar, Button } from 'react-bootstrap';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const MOCK_STOCK = [
@@ -10,6 +10,12 @@ const MOCK_STOCK = [
 ];
 
 const StaffInventory = () => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
+    const totalPages = Math.ceil(MOCK_STOCK.length / itemsPerPage);
+    const paginatedStock = MOCK_STOCK.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     const handleSyncStock = () => {
         Swal.fire({
             title: 'Syncing Inventory',
@@ -66,7 +72,7 @@ const StaffInventory = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {MOCK_STOCK.map((item) => (
+                            {paginatedStock.map((item) => (
                                 <tr key={item.id}>
                                     <td className="ps-4 fw-medium">{item.name}</td>
                                     <td className="fw-bold">{item.stock} / {item.min}</td>
@@ -90,6 +96,46 @@ const StaffInventory = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+                {MOCK_STOCK.length > 0 && (
+                    <Card.Footer className="bg-white border-top-0 py-3 px-4">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div className="text-muted small">
+                                Showing <span className="fw-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, MOCK_STOCK.length)}</span> to <span className="fw-bold">{Math.min(currentPage * itemsPerPage, MOCK_STOCK.length)}</span> of <span className="fw-bold">{MOCK_STOCK.length}</span> items
+                            </div>
+                            <div className="d-flex gap-2">
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(prev => prev - 1)}
+                                    className="border shadow-sm px-3"
+                                >
+                                    <ChevronLeft size={16} />
+                                </Button>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? "primary" : "light"}
+                                        size="sm"
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`border shadow-sm px-3 ${currentPage === page ? 'text-white' : ''}`}
+                                    >
+                                        {page}
+                                    </Button>
+                                ))}
+                                <Button 
+                                    variant="light" 
+                                    size="sm" 
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(prev => prev + 1)}
+                                    className="border shadow-sm px-3"
+                                >
+                                    <ChevronRight size={16} />
+                                </Button>
+                            </div>
+                        </div>
+                    </Card.Footer>
+                )}
             </Card>
         </div>
     );

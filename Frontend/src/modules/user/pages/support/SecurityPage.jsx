@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Shield, Key, Eye, EyeOff, Smartphone, Monitor, ChevronRight, ArrowLeft, CheckCircle, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -9,6 +9,10 @@ const SecurityPage = () => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showSuccessToast, setShowSuccessToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
 
     const devices = [
         { name: "iPhone 15 Pro", location: "Delhi, India", active: true, icon: Smartphone },
@@ -29,7 +33,20 @@ const SecurityPage = () => {
 
     const handleChangePassword = (e) => {
         e.preventDefault();
+        
+        if (newPassword.length < 8) {
+            triggerToast("New password must be at least 8 characters long.");
+            return;
+        }
+
+        if (oldPassword === newPassword) {
+            triggerToast("New password cannot be the same as old password.");
+            return;
+        }
+
         setShowPasswordModal(false);
+        setOldPassword("");
+        setNewPassword("");
         triggerToast("Password changed successfully!");
     };
 
@@ -145,11 +162,43 @@ const SecurityPage = () => {
                         <form onSubmit={handleChangePassword} className="space-y-3">
                             <div>
                                 <label className="!text-[8.5px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">Old Password</label>
-                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="₹₹₹₹₹₹₹₹" />
+                                <div className="relative">
+                                    <input 
+                                        type={showOldPassword ? "text" : "password"} 
+                                        required 
+                                        value={oldPassword}
+                                        onChange={(e) => setOldPassword(e.target.value)}
+                                        className="w-full px-4 pr-10 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" 
+                                        placeholder="••••••••" 
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowOldPassword(!showOldPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        {showOldPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label className="!text-[8.5px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-1.5 block">New Password</label>
-                                <input type="password" required className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" placeholder="₹₹₹₹₹₹₹₹" />
+                                <div className="relative">
+                                    <input 
+                                        type={showNewPassword ? "text" : "password"} 
+                                        required 
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="w-full px-4 pr-10 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl !text-xs font-bold focus:outline-none focus:border-[#0c831f] transition-all" 
+                                        placeholder="••••••••" 
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
                             <button type="submit" className="w-full bg-[#0c831f] text-white py-3 rounded-xl font-black !text-[11px] shadow-lg shadow-green-500/20 active:scale-[0.98] transition-all mt-4 uppercase tracking-widest">
                                 Update Password

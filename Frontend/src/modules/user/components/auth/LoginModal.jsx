@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as authApi from '../../api/userAuthApi';
@@ -148,7 +148,7 @@ const LoginModal = () => {
                                 <input
                                     type="text" maxLength="6" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                     className="block w-full px-3 py-3 border border-gray-200 rounded-xl text-center text-2xl tracking-[0.2em] font-black focus:ring-1 focus:ring-[var(--saathi-green)] focus:border-[var(--saathi-green)] outline-none bg-gray-50"
-                                    placeholder="₹₹₹₹₹₹" required />
+                                    placeholder="••••••" required />
                                 <div className="flex justify-between mt-2">
                                     <button type="button" onClick={handleResendOTP} disabled={resendTimer > 0 || loading} className="text-xs text-[var(--saathi-green)] font-bold hover:underline disabled:opacity-50">
                                         {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
