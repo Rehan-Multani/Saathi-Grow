@@ -1,471 +1,470 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Search, Eye, CheckCircle, XCircle, RotateCcw, Package, Calendar, User, IndianRupee, Loader2, AlertCircle, Truck, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getReturnRequests, handleReturnRequest, scheduleReturnPickup } from '../../api/orderApi';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { 
+    Search, Eye, CheckCircle, XCircle, RotateCcw, Package, 
+    User, Loader2, Truck, ChevronLeft, ChevronRight, Filter,
+    Plus, MapPin, Store, Check, Layers
+} from 'lucide-react';
+import { API_BASE_URL } from '../../../../config/apiConfig';
 import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
-const ReturnStatusBadge = ({ status, hasPickup }) => {
-    const variants = {
-        Approved: hasPickup ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-green-100 text-green-700 border-green-200',
-        Pending: 'bg-amber-100 text-amber-700 border-amber-200',
-        Rejected: 'bg-red-100 text-red-700 border-red-200',
-        PickupScheduled: 'bg-blue-100 text-blue-700 border-blue-200',
-    };
-    const dots = {
-        Approved: hasPickup ? 'bg-blue-500' : 'bg-green-500',
-        Pending: 'bg-amber-500',
-        Rejected: 'bg-red-500',
-        PickupScheduled: 'bg-blue-500',
-    };
-    const label = hasPickup ? 'Pickup Scheduled' : status;
-    const key = hasPickup ? 'PickupScheduled' : status;
-    return (
-        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 w-fit ${variants[key] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${dots[key] || 'bg-gray-400'}`} />
-            {label}
-        </span>
-    );
+const getAdminAuth = () => {
+    try {
+        const a = localStorage.getItem('sathiGro_admin') || localStorage.getItem('saathigro_admin');
+        return a ? JSON.parse(a) : null;
+    } catch { return null; }
+};
+
+const statusColors = {
+    Pending: 'bg-amber-100 text-amber-700 border-amber-200',
+    Accepted: 'bg-green-100 text-green-700 border-green-200',
+    Rejected: 'bg-red-100 text-red-700 border-red-200',
+    Scheduled: 'bg-blue-100 text-blue-700 border-blue-200',
+    PickedUp: 'bg-purple-100 text-purple-700 border-purple-200',
+    Returned: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
 
 const ReturnRequests = () => {
     const [returnRequests, setReturnRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState('all');
+    const [activeTab, setActiveTab] = useState('Pending');
     const [selectedRequest, setSelectedRequest] = useState(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
     const [processing, setProcessing] = useState(false);
-
-    // Pagination State
-    const [page, setPage] = useState(1);
-    const limit = 10;
-    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
-    const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+    const [selectedForBatch, setSelectedForBatch] = useState([]);
+    const [showBatchModal, setShowBatchModal] = useState(false);
+    const [partners, setPartners] = useState([]);
+    const [selectedPartner, setSelectedPartner] = useState('');
 
     const fetchReturns = async () => {
+        const auth = getAdminAuth();
         try {
             setLoading(true);
-            const data = await getReturnRequests(
-                { page, limit, search: searchTerm, status: filterStatus },
-                { paginated: true }
-            );
-            setReturnRequests(Array.isArray(data.returns) ? data.returns : []);
-            setPagination(data.pagination || { total: 0, totalPages: 1, page, limit });
-            setStats(data.stats || { total: 0, pending: 0, approved: 0, rejected: 0 });
+            const { data } = await axios.get(`${API_BASE_URL}/orders/admin/returns`, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            setReturnRequests(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error('Error fetching returns:', error);
+            toast.error('Failed to load returns');
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => { fetchReturns(); }, [page, searchTerm, filterStatus]);
-
-    const totalFiltered = pagination.total || 0;
-    const totalPages = pagination.totalPages || 1;
-    const paginatedRequests = returnRequests;
-
-    // Reset pagination when search or filter changes
-    useEffect(() => {
-        setPage(1);
-    }, [searchTerm, filterStatus]);
-
-    const handleAction = async (id, action) => {
-        if (action === 'Rejected') {
-            const result = await Swal.fire({
-                title: 'Reject Return Request?',
-                html: `
-                    <p class="text-sm text-gray-600 mb-4">Please provide a reason for rejection:</p>
-                    <textarea id="swal-rejection-reason" class="swal2-textarea" placeholder="e.g. Item is not eligible for return..."></textarea>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Reject',
-                confirmButtonColor: '#dc2626',
-                cancelButtonText: 'Cancel',
-                preConfirm: () => {
-                    const reason = document.getElementById('swal-rejection-reason').value;
-                    return reason || 'Return request rejected by admin';
-                }
+    const fetchPartners = async () => {
+        const auth = getAdminAuth();
+        try {
+            const { data } = await axios.get(`${API_BASE_URL}/partners`, {
+                headers: { Authorization: `Bearer ${auth.token}` }
             });
-            if (!result.isConfirmed) return;
-
-            try {
-                setProcessing(true);
-                await handleReturnRequest(id, action, result.value);
-                Swal.fire('Rejected', 'Return request has been rejected.', 'info');
-                setShowDetailModal(false);
-                fetchReturns();
-            } catch (err) {
-                Swal.fire('Error', err.response?.data?.message || 'Failed to reject return', 'error');
-            } finally {
-                setProcessing(false);
-            }
-        } else {
-            const result = await Swal.fire({
-                title: 'Approve Return Request?',
-                html: `<p class="text-sm text-gray-600">Stock will be restored and refund will be credited to the customer's wallet automatically.</p>`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Approve & Refund',
-                confirmButtonColor: '#16a34a',
-            });
-            if (!result.isConfirmed) return;
-
-            try {
-                setProcessing(true);
-                await handleReturnRequest(id, action);
-                Swal.fire('Approved!', 'Return approved. Refund has been credited to customer wallet.', 'success');
-                setShowDetailModal(false);
-                fetchReturns();
-            } catch (err) {
-                Swal.fire('Error', err.response?.data?.message || 'Failed to approve return', 'error');
-            } finally {
-                setProcessing(false);
-            }
+            // Filter only Free and Online partners
+            setPartners(data.filter(p => p.assignmentStatus === 'Free' && p.dutyStatus === 'Online'));
+        } catch (error) {
+            console.error('Error fetching partners:', error);
         }
     };
 
-    const handleSchedulePickup = async (id) => {
-        const result = await Swal.fire({
-            title: '🚚 Schedule Return Pickup',
-            html: `
-                <p class="text-sm text-gray-600 mb-4">A delivery partner will be assigned to collect the item from the customer.</p>
-                <label class="text-xs font-bold text-gray-500">Pickup Fee for Partner (₹)</label>
-                <input id="swal-pickup-fee" type="number" class="swal2-input" value="30" min="10" max="200">
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Schedule Pickup',
-            confirmButtonColor: '#2563eb',
-            preConfirm: () => {
-                return parseInt(document.getElementById('swal-pickup-fee').value) || 30;
-            }
-        });
-        if (!result.isConfirmed) return;
+    useEffect(() => {
+        fetchReturns();
+        fetchPartners();
+    }, []);
+
+    const handleApproval = async (id, action) => {
+        const auth = getAdminAuth();
+        let reason = null;
+        if (action === 'Rejected') {
+            const { value } = await Swal.fire({
+                title: 'Reject Return Request',
+                input: 'textarea',
+                inputLabel: 'Reason',
+                showCancelButton: true,
+                inputValidator: (v) => !v && 'Reason required'
+            });
+            if (!value) return;
+            reason = value;
+        } else {
+            const confirm = await Swal.fire({
+                title: 'Approve Return?',
+                text: 'This will move it to the dispatch queue.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a'
+            });
+            if (!confirm.isConfirmed) return;
+        }
+
         try {
             setProcessing(true);
-            await scheduleReturnPickup(id, result.value);
-            Swal.fire('Scheduled!', 'Pickup task has been created. A delivery partner can now accept it.', 'success');
-            setShowDetailModal(false);
+            await axios.put(`${API_BASE_URL}/orders/admin/${id}/return/accept`, { 
+                action: action === 'Approved' ? 'Accepted' : 'Rejected', 
+                rejectionReason: reason 
+            }, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            toast.success(`Return ${action} successfully`);
             fetchReturns();
+            setSelectedRequest(null);
         } catch (err) {
-            Swal.fire('Error', err.response?.data?.message || 'Failed to schedule pickup', 'error');
+            toast.error(err.response?.data?.message || 'Update failed');
         } finally {
             setProcessing(false);
         }
     };
 
+    const toggleSelection = (id) => {
+        setSelectedForBatch(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const handleBatchSchedule = async () => {
+        if (!selectedPartner) return toast.error('Please select a rider');
+        if (selectedForBatch.length === 0) return toast.error('No orders selected');
+
+        const auth = getAdminAuth();
+        // Determine destination from first selected order
+        const firstOrder = returnRequests.find(r => r._id === selectedForBatch[0]);
+        const destType = firstOrder.vendor ? 'vendor' : 'branch';
+        const destId = firstOrder.vendor || firstOrder.branchId;
+
+        // Verify all selected have same destination for batching efficiency
+        const allSame = selectedForBatch.every(id => {
+            const o = returnRequests.find(r => r._id === id);
+            const myDestId = o.vendor || o.branchId;
+            return myDestId === destId;
+        });
+
+        if (!allSame) {
+            const confirmed = await Swal.fire({
+                title: 'Mixed Destinations',
+                text: 'Some selected returns belong to different stores/branches. Batched runs typically go to ONE final destination. Continue anyway?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, I know',
+                confirmButtonColor: '#7c3aed'
+            });
+            if (!confirmed.isConfirmed) return;
+        }
+
+        try {
+            setProcessing(true);
+            await axios.post(`${API_BASE_URL}/orders/admin/returns/batch-schedule`, {
+                partnerId: selectedPartner,
+                orderIds: selectedForBatch,
+                destinationType: destType,
+                destinationId: destId
+            }, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            toast.success('Batch Return Run created successfully!');
+            setShowBatchModal(false);
+            setSelectedForBatch([]);
+            fetchReturns();
+            fetchPartners();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to create batch');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const filtered = returnRequests.filter(r => {
+        const s = r.returnRequest?.status || 'Pending';
+        const matchesTab = (activeTab === 'History') 
+            ? ['Returned', 'Rejected'].includes(s)
+            : (activeTab === 'Scheduled') 
+                ? ['Scheduled', 'PickedUp'].includes(s)
+                : s === activeTab;
+        
+        const search = searchTerm.toLowerCase();
+        return matchesTab && (r.orderId.toLowerCase().includes(search) || r.user?.name.toLowerCase().includes(search));
+    });
+
     return (
         <div className="p-6 space-y-6">
-            {/* Header */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-md shadow-blue-200">
-                            <RotateCcw size={20} />
-                        </div>
-                        <div>
-                            <h5 className="font-bold text-gray-800 text-lg">Return Requests</h5>
-                            <p className="text-xs text-gray-500 mt-0.5">Manage product returns and issue refunds</p>
-                        </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-purple-600 rounded-2xl text-white shadow-lg shadow-purple-100">
+                        <RotateCcw size={24} />
                     </div>
-                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden w-full max-w-[300px] focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-                        <div className="pl-3 text-gray-400"><Search size={16} /></div>
-                        <input
-                            type="text"
-                            placeholder="Search order ID, customer..."
-                            className="w-full px-2 py-2 bg-transparent border-none outline-none text-sm text-gray-700"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                    <div>
+                        <h2 className="font-black text-gray-800 text-2xl tracking-tight">Return Management</h2>
+                        <p className="text-sm text-gray-400 font-medium tracking-wide uppercase">Refined Reverse Logistics System</p>
                     </div>
+                </div>
+
+                <div className="flex items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-2 w-full md:w-96 focus-within:ring-2 focus-within:ring-purple-200 transition-all">
+                    <Search className="text-gray-400 mr-3" size={18} />
+                    <input 
+                        type="text" 
+                        placeholder="Search across returns..." 
+                        className="bg-transparent border-none outline-none text-sm w-full font-medium"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="flex flex-wrap gap-3">
-                {[
-                    { label: 'Total', value: stats.total, color: 'text-gray-800', bg: 'bg-gray-50', border: 'border-gray-100' },
-                    { label: 'Pending', value: stats.pending, color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-100' },
-                    { label: 'Approved', value: stats.approved, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-100' },
-                    { label: 'Rejected', value: stats.rejected, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-100' },
-                ].map(stat => (
-                    <div key={stat.label} className={`bg-white rounded-lg border ${stat.border} px-4 py-2.5 shadow-sm flex-1 min-w-[120px] max-w-[180px]`}>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{stat.label}</p>
-                        <p className={`text-2xl font-black mt-0.5 ${stat.color}`}>{stat.value}</p>
-                    </div>
-                ))}
-            </div>
-
-            {/* Filter Chips */}
-            <div className="flex gap-2 flex-wrap">
-                {['all', 'pending', 'approved', 'rejected'].map(s => (
+            <div className="flex gap-2 p-1 bg-white border border-gray-100 rounded-2xl w-fit shadow-sm overflow-x-auto">
+                {['Pending', 'Accepted', 'Scheduled', 'History'].map(tab => (
                     <button
-                        key={s}
-                        onClick={() => setFilterStatus(s)}
-                        className={`px-5 py-2 rounded-lg text-[13px] font-bold capitalize border transition-all ${filterStatus === s ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                        key={tab}
+                        onClick={() => { setActiveTab(tab); setSelectedForBatch([]); }}
+                        className={`px-8 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${activeTab === tab ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
                     >
-                        {s}
+                        {tab}
+                        {tab === 'Accepted' && returnRequests.filter(r => r.returnRequest.status === 'Accepted').length > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-white text-purple-600 rounded-full text-[9px]">{returnRequests.filter(r => r.returnRequest.status === 'Accepted').length}</span>
+                        )}
                     </button>
                 ))}
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
-                            <tr>
-                                <th className="px-6 py-4">Order ID</th>
-                                <th className="px-6 py-4">Customer</th>
-                                <th className="px-6 py-4">Items</th>
-                                <th className="px-6 py-4">Reason</th>
-                                <th className="px-6 py-4">Amount</th>
-                                <th className="px-6 py-4">Request Date</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                                <th className="px-6 py-4 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
-                                <tr><td colSpan="8" className="text-center py-12">
-                                    <Loader2 size={24} className="animate-spin text-blue-600 mx-auto" />
-                                </td></tr>
-                            ) : paginatedRequests.length === 0 ? (
-                                <tr><td colSpan="8" className="text-center py-12">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <AlertCircle size={32} className="text-gray-200" />
-                                        <p className="text-sm text-gray-400 font-medium">No return requests found</p>
-                                    </div>
-                                </td></tr>
-                            ) : (
-                                paginatedRequests.map((req) => (
-                                    <tr key={req._id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 font-bold text-blue-600 text-sm">{req.orderId}</td>
-                                        <td className="px-6 py-4">
-                                            <p className="font-medium text-gray-800 text-sm">{req.user?.name || 'Customer'}</p>
-                                            <p className="text-xs text-gray-500">{req.user?.email}</p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <Package size={14} className="text-gray-400" />
-                                                <span className="text-sm text-gray-600">{req.items?.[0]?.name || 'Multiple Items'}</span>
-                                            </div>
-                                            {req.items?.length > 1 && <p className="text-xs text-gray-400 ml-5">+{req.items.length - 1} more</p>}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-gray-600 max-w-[200px]">
-                                            <p className="font-medium">{req.returnRequest?.reason}</p>
-                                            {req.returnRequest?.description && (
-                                                <p className="text-gray-400 mt-0.5 line-clamp-1">{req.returnRequest.description}</p>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 font-bold text-gray-800">₹{req.totalAmount?.toFixed(2)}</td>
-                                        <td className="px-6 py-4 text-xs text-gray-500">
-                                            {req.returnRequest?.requestDate ? new Date(req.returnRequest.requestDate).toLocaleDateString('en-IN') : '—'}
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <ReturnStatusBadge status={req.returnRequest?.status || 'Pending'} />
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex items-center justify-center gap-1.5">
-                                                <button
-                                                    onClick={() => { setSelectedRequest(req); setShowDetailModal(true); }}
-                                                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="View Details"
-                                                >
-                                                    <Eye size={16} />
-                                                </button>
-                                                {req.returnRequest?.status === 'Pending' && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleAction(req._id, 'Approved')}
-                                                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                                            title="Approve"
-                                                            disabled={processing}
-                                                        >
-                                                            <CheckCircle size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAction(req._id, 'Rejected')}
-                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                            title="Reject"
-                                                            disabled={processing}
-                                                        >
-                                                            <XCircle size={16} />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination Controls */}
-                {!loading && totalFiltered > 0 && (
-                    <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="text-sm text-gray-500">
-                            Showing <span className="font-semibold text-gray-700">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-gray-700">{Math.min(page * limit, totalFiltered)}</span> of <span className="font-semibold text-gray-700">{totalFiltered}</span> requests
+            {activeTab === 'Accepted' && selectedForBatch.length > 0 && (
+                <div className="bg-purple-600 rounded-2xl p-4 flex justify-between items-center text-white shadow-xl shadow-purple-200 animate-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <Layers size={20} />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className={`p-2 rounded-lg border ${page === 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-all duration-300`}
-                            >
-                                <ChevronLeft size={18} />
-                            </button>
-                            <div className="flex items-center gap-1">
-                                {[...Array(totalPages)].map((_, i) => {
-                                    const p = i + 1;
-                                    const isFirstPage = p === 1;
-                                    const isLastPage = p === totalPages;
-                                    const isNearCurrent = Math.abs(page - p) <= 1;
-
-                                    if (isFirstPage || isLastPage || isNearCurrent) {
-                                        return (
-                                            <button
-                                                key={p}
-                                                onClick={() => setPage(p)}
-                                                className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-300 ${page === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-500 hover:bg-gray-100'}`}
-                                            >
-                                                {p}
-                                            </button>
-                                        );
-                                    } else if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-gray-400 px-1">...</span>;
-                                    }
-                                    return null;
-                                })}
-                            </div>
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className={`p-2 rounded-lg border ${page === totalPages ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-600 hover:bg-gray-50'} transition-all duration-300`}
-                            >
-                                <ChevronRight size={18} />
-                            </button>
+                        <div>
+                            <p className="font-black text-lg">{selectedForBatch.length} Selected</p>
+                            <p className="text-xs text-white/70">Ready to batch dispatch for pickup</p>
                         </div>
                     </div>
+                    <button 
+                        onClick={() => setShowBatchModal(true)}
+                        className="px-6 py-2.5 bg-white text-purple-600 rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform active:scale-95"
+                    >
+                        Schedule Batch
+                    </button>
+                </div>
+            )}
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                {loading ? (
+                    <div className="py-20 text-center flex flex-col items-center gap-4">
+                        <Loader2 className="animate-spin text-purple-600" size={32} />
+                        <p className="text-sm font-bold text-gray-400">Loading Logistic Data...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="py-24 text-center">
+                        <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <RotateCcw className="text-gray-200" size={32} />
+                        </div>
+                        <p className="font-bold text-gray-800">No Return Records</p>
+                        <p className="text-xs text-gray-400">Everything looks clear in this section.</p>
+                    </div>
+                ) : (
+                    <table className="w-full text-sm">
+                        <thead className="bg-gray-50/50 border-b border-gray-100">
+                            <tr>
+                                {activeTab === 'Accepted' && <th className="px-6 py-4 w-12"></th>}
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Order / ID</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Customer / Source</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Reason / Description</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {filtered.map(r => (
+                                <tr key={r._id} className={`hover:bg-gray-50/80 transition-colors group ${selectedForBatch.includes(r._id) ? 'bg-purple-50/30' : ''}`}>
+                                    {activeTab === 'Accepted' && (
+                                        <td className="px-6 py-4">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={selectedForBatch.includes(r._id)}
+                                                onChange={() => toggleSelection(r._id)}
+                                                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                            />
+                                        </td>
+                                    )}
+                                    <td className="px-6 py-4 font-mono font-bold text-purple-600">{r.orderId}</td>
+                                    <td className="px-6 py-4">
+                                        <p className="font-black text-gray-800">{r.user?.name}</p>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            {r.vendor ? <Store size={10} className="text-purple-400" /> : <MapPin size={10} className="text-blue-400" />}
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase">{r.vendor ? 'Vendor' : 'Branch'}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <p className="font-bold text-gray-700 text-xs line-clamp-1">{r.returnRequest.reason}</p>
+                                        <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1 italic">{r.returnRequest.description}</p>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <p className="font-black text-gray-800">₹{r.totalAmount}</p>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black border uppercase ${statusColors[r.returnRequest.status]}`}>
+                                            {r.returnRequest.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <button 
+                                            onClick={() => setSelectedRequest(r)}
+                                            className="p-2 text-gray-300 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+                                        >
+                                            <Eye size={20} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </div>
 
-            {/* Detail Modal */}
-            {showDetailModal && selectedRequest && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowDetailModal(false)}>
-                    <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-                        {/* Modal Header */}
-                        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                            <div>
-                                <h2 className="font-bold text-gray-800 text-lg">Return Request Details</h2>
-                                <p className="text-xs text-gray-400 mt-0.5">{selectedRequest.orderId}</p>
-                            </div>
-                            <button onClick={() => setShowDetailModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500">✕</button>
-                        </div>
-
-                        <div className="p-6 space-y-5">
-                            {/* Customer + Order Info */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-gray-50 rounded-xl p-4">
-                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Customer</p>
-                                    <p className="font-bold text-gray-800">{selectedRequest.user?.name}</p>
-                                    <p className="text-xs text-gray-500">{selectedRequest.user?.email}</p>
-                                    <p className="text-xs text-gray-500">{selectedRequest.user?.phone}</p>
+            {selectedRequest && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200">
+                        <button onClick={() => setSelectedRequest(null)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 z-10"><XCircle /></button>
+                        
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-purple-100 rounded-2xl text-purple-600">
+                                    <RotateCcw size={22} />
                                 </div>
-                                <div className="bg-gray-50 rounded-xl p-4">
-                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Order Value</p>
-                                    <p className="font-black text-gray-800 text-xl">₹{selectedRequest.totalAmount?.toFixed(2)}</p>
-                                    <p className="text-xs text-gray-500">{selectedRequest.paymentMethod?.toUpperCase()} · {selectedRequest.paymentStatus}</p>
+                                <div>
+                                    <h3 className="font-black text-gray-800 text-xl tracking-tight">Return Insight</h3>
+                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{selectedRequest.orderId}</p>
                                 </div>
                             </div>
 
-                            {/* Return Info */}
-                            <div className="border border-blue-100 bg-blue-50 rounded-xl p-4 space-y-2">
-                                <p className="text-xs font-bold text-blue-700 uppercase">Return Request</p>
-                                <p className="font-bold text-gray-800">{selectedRequest.returnRequest?.reason}</p>
-                                {selectedRequest.returnRequest?.description && (
-                                    <p className="text-sm text-gray-600 bg-white p-3 rounded-lg border border-blue-100">{selectedRequest.returnRequest.description}</p>
-                                )}
-                                <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
-                                    <span>Requested: {selectedRequest.returnRequest?.requestDate ? new Date(selectedRequest.returnRequest.requestDate).toLocaleString('en-IN') : '—'}</span>
-                                </div>
-                            </div>
-
-                            {/* Items */}
-                            <div>
-                                <p className="text-xs font-bold text-gray-500 uppercase mb-2">Ordered Items</p>
-                                <div className="space-y-2">
-                                    {selectedRequest.items?.map((item, i) => (
-                                        <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                            {item.image && <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover" />}
-                                            <div className="flex-1">
-                                                <p className="font-bold text-gray-800 text-sm">{item.name}</p>
-                                                <p className="text-xs text-gray-500">Qty: {item.quantity} · ₹{item.price}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Rejection reason if rejected */}
-                            {selectedRequest.returnRequest?.status === 'Rejected' && selectedRequest.returnRequest?.rejectionReason && (
-                                <div className="border border-red-100 bg-red-50 rounded-xl p-4">
-                                    <p className="text-xs font-bold text-red-600 uppercase mb-1">Rejection Reason</p>
-                                    <p className="text-sm text-gray-700">{selectedRequest.returnRequest.rejectionReason}</p>
+                            {/* IMAGE PROOF */}
+                            {selectedRequest.returnRequest.images && selectedRequest.returnRequest.images.length > 0 && (
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Image Proof</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedRequest.returnRequest.images.map((img, i) => (
+                                            <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="relative w-20 h-20 rounded-xl overflow-hidden border border-zinc-100 dark:border-white/5 hover:scale-105 transition-transform group">
+                                                <img src={img} alt="proof" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                    <Image size={16} className="text-white" />
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
-                            {selectedRequest.returnRequest?.status === 'Pending' && (
-                                <div className="flex gap-3 pt-2">
-                                    <button
-                                        onClick={() => handleAction(selectedRequest._id, 'Approved')}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Customer</p>
+                                    <p className="font-black text-gray-800 text-sm">{selectedRequest.user?.name}</p>
+                                    <p className="text-[11px] text-gray-500">{selectedRequest.user?.phone}</p>
+                                </div>
+                                <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100">
+                                    <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Refund Amount</p>
+                                    <p className="font-black text-purple-600 text-xl">₹{selectedRequest.totalAmount}</p>
+                                </div>
+                                {['Accepted', 'Scheduled', 'PickedUp'].includes(selectedRequest.returnRequest.status) && selectedRequest.returnRequest.returnOTP && (
+                                    <div className="col-span-2 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex justify-between items-center">
+                                       <div>
+                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Pickup Verification OTP</p>
+                                            <p className="font-black text-emerald-700 text-lg tracking-[0.2em]">{selectedRequest.returnRequest.returnOTP}</p>
+                                       </div>
+                                       <ShieldCheck className="text-emerald-200" size={32} />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Product Details</p>
+                                {selectedRequest.items?.map((item, i) => (
+                                    <div key={i} className="flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
+                                            {item.image ? <img src={item.image} alt="" className="object-cover h-full w-full" /> : <Package className="text-gray-200" />}
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-gray-800 text-xs">{item.name}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold">Qty: {item.quantity} · ₹{item.price}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="p-5 bg-amber-50 border border-amber-100 rounded-2xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-2 opacity-5"><RotateCcw size={48} /></div>
+                                <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Statement of Return</p>
+                                <p className="text-sm font-bold text-gray-800 tracking-tight italic">"{selectedRequest.returnRequest.reason}"</p>
+                            </div>
+
+                            {selectedRequest.returnRequest.status === 'Pending' && (
+                                <div className="flex gap-4 pt-4 border-t border-gray-100">
+                                    <button 
+                                        onClick={() => handleApproval(selectedRequest._id, 'Approved')}
                                         disabled={processing}
-                                        className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-green-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="flex-1 py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-100 transition-all active:scale-95 disabled:opacity-50"
                                     >
-                                        {processing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={16} />}
-                                        Approve & Stock Restore
+                                        Approve Return
                                     </button>
-                                    <button
-                                        onClick={() => handleAction(selectedRequest._id, 'Rejected')}
+                                    <button 
+                                        onClick={() => handleApproval(selectedRequest._id, 'Rejected')}
                                         disabled={processing}
-                                        className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-red-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-100 transition-all active:scale-95 disabled:opacity-50"
                                     >
-                                        {processing ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={16} />}
                                         Reject
                                     </button>
                                 </div>
                             )}
 
-                            {/* Schedule Pickup — shown after approval, before pickup is scheduled */}
-                            {selectedRequest.returnRequest?.status === 'Approved' && !selectedRequest.returnRequest?.pickupDeliveryId && (
-                                <div className="pt-2 space-y-2">
-                                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-100 rounded-xl">
-                                        <CheckCircle size={16} className="text-green-600" />
-                                        <p className="text-xs font-bold text-green-700">Return approved · Stock restored</p>
-                                    </div>
-                                    <button
-                                        onClick={() => handleSchedulePickup(selectedRequest._id)}
-                                        disabled={processing}
-                                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-blue-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {processing ? <Loader2 size={14} className="animate-spin" /> : <Truck size={16} />}
-                                        Schedule Return Pickup · Assign Rider
-                                    </button>
+                            {selectedRequest.returnRequest.status === 'Accepted' && (
+                                <div className="p-4 bg-blue-50 text-blue-700 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest border border-blue-100 flex items-center justify-center gap-3">
+                                    <Clock size={16} />
+                                    Ready for Dispatch scheduling
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
-                            {/* Pickup Already Scheduled */}
-                            {selectedRequest.returnRequest?.pickupDeliveryId && (
-                                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                                    <Truck size={16} className="text-blue-600" />
-                                    <div>
-                                        <p className="text-xs font-bold text-blue-700">Pickup Scheduled</p>
-                                        <p className="text-[10px] text-blue-600">A delivery partner will collect the item from the customer.</p>
-                                    </div>
+            {showBatchModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2rem] max-w-lg w-full shadow-2xl p-8 relative animate-in slide-in-from-bottom-8 duration-300">
+                        <button onClick={() => setShowBatchModal(false)} className="absolute top-6 right-6 text-gray-400"><XCircle /></button>
+                        
+                        <div className="space-y-8">
+                            <div>
+                                <h3 className="font-black text-gray-800 text-2xl">Batch Dispatch</h3>
+                                <p className="text-sm text-gray-400 font-medium">Assign a rider for {selectedForBatch.length} pickups</p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Available Logistic Partners</label>
+                                <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-100">
+                                    {partners.length === 0 ? (
+                                        <div className="p-4 bg-amber-50 rounded-2xl text-amber-600 text-xs font-bold text-center border border-amber-100">
+                                            No free riders available right now.
+                                        </div>
+                                    ) : partners.map(p => (
+                                        <button
+                                            key={p._id}
+                                            onClick={() => setSelectedPartner(p._id)}
+                                            className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-between group ${selectedPartner === p._id ? 'border-purple-600 bg-purple-50/50 shadow-md shadow-purple-50' : 'border-gray-50 hover:border-purple-200 bg-gray-50/50'}`}
+                                        >
+                                            <div className="flex items-center gap-3 text-left">
+                                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                                    <Truck size={20} className={selectedPartner === p._id ? 'text-purple-600' : 'text-gray-400'} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-black text-sm text-gray-800">{p.user?.name}</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold">{p.vehicleType} · {p.vehicleNumber}</p>
+                                                </div>
+                                            </div>
+                                            {selectedPartner === p._id && <Check size={18} className="text-purple-600" />}
+                                        </button>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+
+                            <button
+                                onClick={handleBatchSchedule}
+                                disabled={processing || !selectedPartner}
+                                className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-purple-200 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                                {processing ? 'Initializing Logic...' : 'Create Return Delivery Run'}
+                            </button>
                         </div>
                     </div>
                 </div>

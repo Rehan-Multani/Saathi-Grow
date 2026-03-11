@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 import axios from 'axios';
 
 const API_URL = `${API_BASE_URL}/orders`;
@@ -108,10 +108,13 @@ export const cancelOrder = async (token, orderId, reason) => {
   }
 };
 
-export const submitReturnRequest = async (token, orderId, { reason, description }) => {
+export const submitReturnRequest = async (token, orderId, formData) => {
   try {
-    const { data } = await axios.post(`${API_URL}/${orderId}/return`, { reason, description }, {
-      headers: { Authorization: `Bearer ${token}` }
+    const { data } = await axios.post(`${API_URL}/${orderId}/return`, formData, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
     });
     return data;
   } catch (error) {

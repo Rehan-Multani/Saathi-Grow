@@ -16,8 +16,7 @@ import {
 import { getBranches } from '../controllers/branchController.js';
 import {
   getVendorReturnRequests,
-  handleReturnRequest,
-  scheduleReturnPickup,
+  handleStoreReturnAction,
   getVendorOrders,
   updateVendorOrderStatus
 } from '../controllers/orderController.js';
@@ -64,8 +63,7 @@ router.put('/orders/:id/status', protectVendor, updateVendorOrderStatus);
 
 // Return Request management for vendor (vendor store orders only)
 router.get('/returns', protectVendor, getVendorReturnRequests);
-router.put('/returns/:id', protectVendor, handleReturnRequest);
-router.post('/returns/:id/schedule-pickup', protectVendor, scheduleReturnPickup);
+router.put('/returns/:id', protectVendor, handleStoreReturnAction);
 
 // Wallet and Earnings
 router.get('/wallet', protectVendor, getVendorWallet);

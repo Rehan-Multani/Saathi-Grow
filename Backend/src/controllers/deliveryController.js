@@ -79,28 +79,30 @@ export const getOrders = async (req, res) => {
         const partner = req.partner;
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
-        const { type } = req.query; // pending, active, completed
+        const { type, runType } = req.query; // type: pending, active, completed; runType: delivery, return
+
+        const query = {
+            deliveryPartner: partner._id
+        };
+
+        if (runType) query.runType = runType;
 
         if (type === 'active') {
-            const activeRun = await DeliveryRun.findOne({
-                deliveryPartner: partner._id,
-                status: { $in: ['assigned', 'in_progress'] }
-            }).populate({
+            query.status = { $in: ['assigned', 'in_progress'] };
+            const activeRuns = await DeliveryRun.find(query).populate({
                 path: 'orders.order',
                 populate: [
                     { path: 'user', select: 'name phone' },
-                    { path: 'branchId', select: 'name address' }
+                    { path: 'branchId', select: 'name address' },
+                    { path: 'vendor', select: 'storeName address phone' }
                 ]
             }).populate('branchId');
 
-            // Return as an array to maintain frontend compatibility, even though it's one run
-            return res.json(activeRun ? [activeRun] : []);
+            return res.json(activeRuns);
 
         } else if (type === 'history') {
-            const completedRuns = await DeliveryRun.find({
-                deliveryPartner: partner._id,
-                status: { $in: ['completed', 'partial_complete'] }
-            })
+            query.status = { $in: ['completed', 'partial_complete'] };
+            const completedRuns = await DeliveryRun.find(query)
                 .populate({ path: 'orders.order' })
                 .sort({ createdAt: -1 })
                 .limit(20);
@@ -152,80 +154,32 @@ export const updateDeliveryStatus = async (req, res) => {
         // Firebase RTDB Tracking setup
         const { db } = await import('../config/firebase.js');
 
-        // 1. Overall Run Status Updates (e.g. marking the whole run as in_progress/picked_up)
-        if (status === 'in_progress') {
-            run.status = 'in_progress';
-            run.startedAt = Date.now();
-
-            // Create Firebase Tracking Node for full run
-            const trackingRef = db.ref(`active_trackings/${run._id}`);
-            await trackingRef.set({
-                driverId: partner._id.toString(),
-                location: partner.currentLocation ? {
-                    lat: partner.currentLocation.coordinates[1],
-                    lng: partner.currentLocation.coordinates[0]
-                } : { lat: 22.7196, lng: 75.8577 },
-                heading: 0,
-                isActive: true,
-                updatedAt: Date.now()
-            });
-
-        } else if (status === 'completed') {
-            // Check if all stops are done
-            const pendingStops = run.orders.filter(o => o.status === 'pending' || o.status === 'out_for_delivery');
-            if (pendingStops.length > 0) {
-                return res.status(400).json({ message: 'Cannot complete run. Some stops are still pending.' });
-            }
-
-            run.status = run.orders.some(o => o.status === 'failed') ? 'partial_complete' : 'completed';
-            run.completedAt = Date.now();
-
-            // Remove Firebase Tracking
-            const trackingRef = db.ref(`active_trackings/${run._id}`);
-            await trackingRef.remove();
-
-            // Free Partner
-            partner.assignmentStatus = 'Free';
-            partner.activeRun = null;
-            partner.activeOrder = null; // Clear legacy field
-            partner.currentStopIndex = 0;
-            await partner.save();
-
-            // Rider earnings logic removed as per Admin physical payout policy
-        }
-
         // 2. Individual Stop Status Updates
         if (stopOrderId && stopStatus) {
             const stopIndex = run.orders.findIndex(s => s.order.toString() === stopOrderId.toString());
             if (stopIndex === -1) return res.status(404).json({ message: 'Stop not found in run' });
 
             const stop = run.orders[stopIndex];
+            const order = await Order.findById(stopOrderId);
+            if (!order) return res.status(404).json({ message: 'Order not found' });
 
-            // Verify OTP if delivering
-            if (stopStatus === 'delivered') {
-                if (stop.deliveryOTP && stop.deliveryOTP !== otp) {
-                    stop.otpAttempts += 1;
-                    await run.save();
-                    return res.status(400).json({ message: 'Invalid OTP', attempts: stop.otpAttempts });
-                }
-                stop.status = 'delivered';
-                stop.deliveredAt = Date.now();
-
-                const order = await Order.findById(stopOrderId);
-                if (order) {
+            // -- DELIVERY RUN LOGIC --
+            if (run.runType === 'delivery') {
+                if (stopStatus === 'delivered') {
+                    if (stop.deliveryOTP && stop.deliveryOTP !== otp) {
+                        stop.otpAttempts += 1;
+                        await run.save();
+                        return res.status(400).json({ message: 'Invalid OTP', attempts: stop.otpAttempts });
+                    }
+                    stop.status = 'delivered';
+                    stop.deliveredAt = Date.now();
                     order.status = 'delivered';
                     await order.save();
+                    if (order.vendor) await creditVendorWallet(order);
 
-                    // Credit Vendor Wallet
-                    if (order.vendor) {
-                        await creditVendorWallet(order);
-                    }
-
-                    // 4. Handle COD (Cash Collection)
-                    if (order.paymentMethod === 'COD' || order.paymentMethod === 'cod') {
+                    if (order.paymentMethod?.toLowerCase() === 'cod') {
                         partner.cashInHand = (partner.cashInHand || 0) + order.totalAmount;
                         await partner.save();
-
                         await CashCollection.create({
                             deliveryPartner: partner._id,
                             order: order._id,
@@ -233,22 +187,96 @@ export const updateDeliveryStatus = async (req, res) => {
                             status: 'collected'
                         });
                     }
+                    partner.currentStopIndex += 1;
+                    await partner.save();
+                } else if (stopStatus === 'out_for_delivery') {
+                    stop.status = 'out_for_delivery';
+                    order.status = 'out_for_delivery';
+                    await order.save();
                 }
+            } 
+            // -- RETURN RUN LOGIC --
+            else if (run.runType === 'return') {
+                if (stopStatus === 'picked_up') {
+                    // SECURE PICKUP: Verification OTP
+                    if (order.returnRequest.returnOTP && order.returnRequest.returnOTP !== otp) {
+                        return res.status(400).json({ message: 'Invalid Return OTP. Please ask the customer for the code.' });
+                    }
 
-                // Advance current stop index
-                partner.currentStopIndex = partner.currentStopIndex + 1;
-                await partner.save();
-            } else if (stopStatus === 'failed') {
+                    stop.status = 'picked_up';
+                    stop.pickedUpAt = Date.now();
+                    order.status = 'return_picked_up';
+                    order.returnRequest.status = 'PickedUp';
+                    order.returnRequest.pickedUpAt = Date.now();
+                    await order.save();
+                    partner.currentStopIndex += 1;
+                    await partner.save();
+                }
+            }
+
+            if (stopStatus === 'failed') {
                 stop.status = 'failed';
                 stop.failedAt = Date.now();
-                // We keep Order status as is or mark returned. Leaving it as confirmed/preparing for admin re-assign.
-                partner.currentStopIndex = partner.currentStopIndex + 1;
+                partner.currentStopIndex += 1;
                 await partner.save();
-            } else if (stopStatus === 'out_for_delivery') {
-                stop.status = 'out_for_delivery';
-                stop.startedAt = Date.now();
-                await Order.findByIdAndUpdate(stopOrderId, { status: 'out_for_delivery' });
             }
+        }
+
+        // Finalize completed run (All types)
+        if (status === 'completed') {
+            run.status = run.orders.some(o => o.status === 'failed') ? 'partial_complete' : 'completed';
+            run.completedAt = Date.now();
+
+            // Special logic for returns: Mark all successfully picked up orders as fully RETURNED
+            if (run.runType === 'return') {
+                // Import incrementStock from orderController
+                const { incrementStock } = await import('./orderController.js');
+
+                for (const stop of run.orders) {
+                    if (stop.status === 'picked_up') {
+                        const order = await Order.findById(stop.order);
+                        if (order) {
+                            order.status = 'returned';
+                            order.returnRequest.status = 'Returned';
+                            order.returnRequest.resolvedAt = new Date();
+                            
+                            // RESTORE STOCK (Now done here upon reaching store)
+                            await incrementStock(order);
+
+                            // REFUND LOGIC & VENDOR DEBIT
+                            if (order.paymentStatus === 'paid') {
+                                const User = (await import('../models/User.js')).default;
+                                const user = await User.findById(order.user);
+                                if (user) {
+                                    user.walletBalance = (user.walletBalance || 0) + order.totalAmount;
+                                    await user.save();
+                                    const UserTransaction = (await import('../models/UserTransaction.js')).default;
+                                    await UserTransaction.create({
+                                        user: user._id,
+                                        amount: order.totalAmount,
+                                        type: 'credit',
+                                        category: 'order_refund',
+                                        status: 'completed',
+                                        description: `Refund for Returned Order #${order.orderId}`,
+                                        orderId: order._id
+                                    });
+                                }
+                                order.paymentStatus = 'refunded';
+                            }
+                            if (order.vendor) await debitVendorWallet(order);
+                            await order.save();
+                        }
+                    }
+                }
+            }
+
+            const trackingRef = db.ref(`active_trackings/${run._id}`);
+            await trackingRef.remove();
+
+            partner.assignmentStatus = 'Free';
+            partner.activeRun = null;
+            partner.currentStopIndex = 0;
+            await partner.save();
         }
 
         await run.save();
@@ -462,211 +490,49 @@ export const getRouteDirections = async (req, res) => {
     }
 };
 
-// ─────────────────────────────────────────────────────
-// RETURN PICKUP MODULE — Delivery Partner Side
-// ─────────────────────────────────────────────────────
-
-// @desc    Get all pending/active return pickup tasks for delivery partner
+// @desc    Get returns assigned to or available for the partner
 // @route   GET /api/delivery/returns
 // @access  Private (Rider)
 export const getReturnPickups = async (req, res) => {
     try {
-        const partner = req.partner;
-        const { type = 'available' } = req.query;
-
-        let query = { type: 'return_pickup' };
-
-        if (type === 'available') {
-            query.status = 'pending';
-            query.deliveryPartner = { $exists: false };
-        } else if (type === 'active') {
-            query.deliveryPartner = partner._id;
-            query.status = { $in: ['return_pickup_assigned', 'return_in_transit'] };
-        } else if (type === 'history') {
-            query.deliveryPartner = partner._id;
-            query.status = 'return_delivered';
-        }
-
-        const tasks = await OrderDelivery.find(query)
-            .populate({
-                path: 'order',
-                populate: [
-                    { path: 'user', select: 'name phone' },
-                    { path: 'branchId', select: 'name address phone' },
-                    { path: 'vendor', select: 'storeName address phone' }
-                ]
-            })
-            .sort({ createdAt: -1 });
-
-        // Attach unified dropDestinationInfo so frontend doesn't need to determine source type
-        const enrichedTasks = tasks.map(task => {
-            const t = task.toObject();
-            const order = t.order;
-
-            if (t.dropDestinationType === 'branch' && order?.branchId) {
-                t.dropDestinationInfo = {
-                    type: 'branch',
-                    name: order.branchId.name,
-                    address: typeof order.branchId.address === 'object'
-                        ? `${order.branchId.address.street || ''}, ${order.branchId.address.city || ''}`.trim().replace(/^,|,$/g, '')
-                        : order.branchId.address,
-                    phone: order.branchId.phone
-                };
-            } else if (t.dropDestinationType === 'vendor' && order?.vendor) {
-                t.dropDestinationInfo = {
-                    type: 'vendor',
-                    name: order.vendor.storeName,
-                    address: typeof order.vendor.address === 'object'
-                        ? `${order.vendor.address.street || ''}, ${order.vendor.address.city || ''}`.trim().replace(/^,|,$/g, '')
-                        : order.vendor.address,
-                    phone: order.vendor.phone
-                };
-            } else {
-                t.dropDestinationInfo = null;
-            }
-            return t;
+        const partnerId = req.partner._id;
+        const returns = await DeliveryRun.find({
+            deliveryPartner: partnerId,
+            runType: 'return'
+        }).populate({
+            path: 'orders.order',
+            populate: { path: 'user', select: 'name phone' }
         });
 
-        res.json(enrichedTasks);
+        res.json(returns);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-
-// @desc    Accept a return pickup task
+// @desc    Accept a return pickup (Optional if already assigned)
 // @route   PATCH /api/delivery/returns/:id/accept
 // @access  Private (Rider)
 export const acceptReturnPickup = async (req, res) => {
     try {
-        const partner = req.partner;
-        const task = await OrderDelivery.findById(req.params.id);
+        const run = await DeliveryRun.findById(req.params.id);
+        if (!run || run.runType !== 'return') return res.status(404).json({ message: 'Return run not found' });
 
-        if (!task || task.type !== 'return_pickup') {
-            return res.status(404).json({ message: 'Return pickup task not found' });
-        }
-
-        if (task.status !== 'pending') {
-            return res.status(400).json({ message: 'This return pickup has already been assigned' });
-        }
-
-        task.deliveryPartner = partner._id;
-        task.status = 'return_pickup_assigned';
-        task.assignedAt = new Date();
-        await task.save();
-
-        // Link partner to the order's returnRequest
-        await Order.findByIdAndUpdate(task.order, {
-            'returnRequest.pickupPartnerId': partner._id
-        });
-
-        // Mark partner as busy
-        partner.assignmentStatus = 'Busy';
-        await partner.save();
-
-        const populated = await OrderDelivery.findById(task._id).populate({
-            path: 'order',
-            populate: [
-                { path: 'user', select: 'name phone' },
-                { path: 'branchId', select: 'name address phone' },
-                { path: 'vendor', select: 'storeName address phone' }
-            ]
-        });
-
-        res.json({ success: true, task: populated });
+        run.status = 'in_progress';
+        await run.save();
+        res.json({ message: 'Return pickup accepted', run });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Update return pickup task status
-//          return_in_transit  = picked up from customer
-//          return_delivered   = delivered back to branch/store
+// @desc    Update return pickup status for an order
 // @route   PATCH /api/delivery/returns/:id/status
 // @access  Private (Rider)
 export const updateReturnPickupStatus = async (req, res) => {
-    try {
-        const { status, proofImage } = req.body;
-        const partner = req.partner;
-
-        const task = await OrderDelivery.findById(req.params.id);
-        if (!task || task.type !== 'return_pickup') {
-            return res.status(404).json({ message: 'Return pickup task not found' });
-        }
-
-        if (task.deliveryPartner?.toString() !== partner._id.toString()) {
-            return res.status(403).json({ message: 'This task is not assigned to you' });
-        }
-
-        const order = await Order.findById(task.order);
-        if (!order) return res.status(404).json({ message: 'Order not found' });
-
-        if (status === 'return_in_transit') {
-            // Partner has picked item from customer
-            task.returnPickedUpAt = new Date();
-            task.status = 'return_in_transit';
-
-            // Update order status
-            order.status = 'return_picked_up';
-            order.returnRequest.pickedUpAt = new Date();
-            if (proofImage) order.returnRequest.pickupProofImage = proofImage;
-            await order.save();
-
-        } else if (status === 'return_delivered') {
-            // Partner has returned item to store/branch — FULL COMPLETION
-            task.returnDeliveredAt = new Date();
-            task.status = 'return_delivered';
-
-            // Mark order as fully returned
-            order.status = 'returned';
-            order.returnRequest.resolvedAt = new Date();
-
-            // Restore stock (if not already done on approval)
-            // Note: stock was restored on admin approval — skip here
-
-            // Process refund if not already done
-            if (order.paymentStatus === 'paid') {
-                const User = (await import('../models/User.js')).default;
-                const UserTransaction = (await import('../models/UserTransaction.js')).default;
-
-                const user = await User.findById(order.user);
-                if (user) {
-                    user.walletBalance = (user.walletBalance || 0) + order.totalAmount;
-                    await user.save();
-
-                    await UserTransaction.create({
-                        user: order.user,
-                        amount: order.totalAmount,
-                        type: 'credit',
-                        category: 'order_refund',
-                        status: 'completed',
-                        description: `Refund for Returned Order #${order.orderId}`,
-                        orderId: order._id
-                    });
-                }
-
-                // Debit Vendor Wallet if it was a vendor order
-                if (order.vendor) {
-                    await debitVendorWallet(order);
-                }
-                order.paymentStatus = 'refunded';
-            }
-
-            await order.save();
-
-            // Rider earnings are handled physically by admin per policy
-            // No in-app wallet transaction for partners
-
-            // Free up partner
-            partner.assignmentStatus = 'Free';
-            partner.activeOrder = null;
-            await partner.save();
-        }
-
-        await task.save();
-        res.json({ success: true, task });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    // This is a wrapper around updateDeliveryStatus or can be implemented separately
+    return updateDeliveryStatus(req, res);
 };
+
+// End of Delivery Controller
 
