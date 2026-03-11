@@ -9,14 +9,12 @@ import {
     Mail,
     Phone,
     Banknote,
-    QrCode,
     CheckCircle,
     ArrowLeft,
     Zap,
     Printer,
     Link as LinkIcon
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -34,10 +32,8 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
     const [loading, setLoading] = useState(false);
     const [settings, setSettings] = useState(null);
     const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
-    const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' or 'online'
+    const [paymentMethod] = useState('cash'); // Only 'cash' allowed
     const [isProcessing, setIsProcessing] = useState(false);
-    const [showQRModal, setShowQRModal] = useState(false);
-    const [paymentLink, setPaymentLink] = useState('');
 
     useEffect(() => {
         fetchSettings();
@@ -48,9 +44,9 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
         try {
             // Check storage for token from any role
             const token = localStorage.getItem('sathiGro_admin') ? JSON.parse(localStorage.getItem('sathiGro_admin')).token :
-                          localStorage.getItem('sathiGro_staff') ? JSON.parse(localStorage.getItem('sathiGro_staff')).token :
-                          localStorage.getItem('saathigro_staff') ? JSON.parse(localStorage.getItem('saathigro_staff')).token :
-                          localStorage.getItem('sathiGro_manager') ? JSON.parse(localStorage.getItem('sathiGro_manager')).token : null;
+                localStorage.getItem('sathiGro_staff') ? JSON.parse(localStorage.getItem('sathiGro_staff')).token :
+                    localStorage.getItem('saathigro_staff') ? JSON.parse(localStorage.getItem('saathigro_staff')).token :
+                        localStorage.getItem('sathiGro_manager') ? JSON.parse(localStorage.getItem('sathiGro_manager')).token : null;
 
             if (!token) return;
 
@@ -142,19 +138,9 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
 
         setIsProcessing(true);
         try {
-            // If online, we simulate/request a payment link first or just proceed after QR scan
-            if (paymentMethod === 'online' && !showQRModal) {
-                // In a real scenario, call backend to generate Razorpay Payment Link / QR
-                setPaymentLink(`https://saathigro.com/pay?amount=${totalAmount.toFixed(0)}&order=${Date.now()}`);
-                setShowQRModal(true);
-                setIsProcessing(false);
-                return;
-            }
-
             const payload = {
                 items: cart,
                 customerDetails,
-                paymentMethod,
                 storeId: storeId || (storeType === 'branch' ? settings?.branchId : null),
                 storeType
             };
@@ -348,19 +334,12 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 mb-4">
-                            <button
-                                onClick={() => setPaymentMethod('cash')}
-                                className={`flex items-center justify-center gap-2 p-2 rounded-xl border text-[10px] font-black transition-all ${paymentMethod === 'cash' ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-gray-400 border-gray-200'}`}
+                        <div className="grid grid-cols-1 gap-2 mb-4">
+                            <div
+                                className={`flex items-center justify-center gap-2 p-2 rounded-xl border text-[10px] font-black transition-all bg-violet-600 text-white border-violet-600`}
                             >
-                                <Banknote size={14} /> CASH
-                            </button>
-                            <button
-                                onClick={() => setPaymentMethod('online')}
-                                className={`flex items-center justify-center gap-2 p-2 rounded-xl border text-[10px] font-black transition-all ${paymentMethod === 'online' ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-gray-400 border-gray-200'}`}
-                            >
-                                <QrCode size={14} /> QR
-                            </button>
+                                <Banknote size={14} /> CASH ONLY
+                            </div>
                         </div>
 
                         <button
@@ -374,30 +353,6 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                 </div>
             </div>
 
-            {/* Online Payment QR Modal */}
-            <Modal show={showQRModal} onHide={() => setShowQRModal(false)} centered>
-                <Modal.Header closeButton className="border-0">
-                    <Modal.Title className="text-sm font-black uppercase tracking-widest text-violet-600">Scan to Pay</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="p-10 text-center">
-                    <div className="bg-violet-50 p-8 rounded-3xl inline-block mb-6 shadow-sm">
-                        <QRCodeSVG value={paymentLink} size={200} fgColor="#6366f1" />
-                    </div>
-                    <h3 className="text-xl font-black text-gray-800 mb-2">₹{totalAmount.toFixed(0)}</h3>
-                    <p className="text-xs text-gray-500 font-bold mb-6">ASK CUSTOMER TO SCAN AND PAY</p>
-
-                    <button
-                        onClick={() => {
-                            setShowQRModal(false);
-                            setPaymentMethod('online');
-                            handleCompleteOrder(); // Proceed to finalize
-                        }}
-                        className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all"
-                    >
-                        I've Received Payment
-                    </button>
-                </Modal.Body>
-            </Modal>
 
             <style dangerouslySetInnerHTML={{
                 __html: `

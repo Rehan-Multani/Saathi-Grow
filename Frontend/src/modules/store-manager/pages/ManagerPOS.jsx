@@ -9,14 +9,12 @@ import {
   Mail,
   Phone,
   Banknote,
-  QrCode,
   Activity,
   Printer,
   Package,
   Navigation,
   ShieldCheck
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -35,10 +33,8 @@ const ManagerPOS = () => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [paymentLink, setPaymentLink] = useState('');
 
   useEffect(() => {
     fetchSettings();
@@ -103,9 +99,6 @@ const ManagerPOS = () => {
     if (cart.length === 0) return;
     const result = await Swal.fire({
       title: 'Authorize Payment?',
-      text: `Confirming ₹${totalAmount.toFixed(0)} deposit via ${paymentMethod.toUpperCase()}`,
-      icon: 'info',
-      showCancelButton: true,
       confirmButtonColor: '#2563eb', // Manager Blue
       confirmButtonText: 'Authorize'
     });
@@ -113,11 +106,7 @@ const ManagerPOS = () => {
 
     setIsProcessing(true);
     try {
-      if (paymentMethod === 'online' && !showQRModal) {
-        setPaymentLink('https://saathigro.com/pay');
-        setShowQRModal(true); setIsProcessing(false); return;
-      }
-      await createPOSOrder({ items: cart, customerDetails, paymentMethod, storeId, storeType }, managerUser?.token);
+      await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, managerUser?.token);
       Swal.fire('Success', 'Transaction logged successfully', 'success');
       setCart([]); setCustomerDetails({ name: '', email: '', phone: '' }); fetchProducts();
     } catch (error) {
@@ -258,13 +247,10 @@ const ManagerPOS = () => {
             </div>
 
             {/* Protocol Selection */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <button onClick={() => setPaymentMethod('cash')} className={`py-4 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black transition-all ${paymentMethod === 'cash' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}>
-                <Banknote size={16} /> CASH
-              </button>
-              <button onClick={() => setPaymentMethod('online')} className={`py-4 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black transition-all ${paymentMethod === 'online' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}>
-                <QrCode size={16} /> NETWORK
-              </button>
+            <div className="grid grid-cols-1 mb-6">
+              <div className={`py-4 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black transition-all bg-blue-600 text-white shadow-xl shadow-blue-500/20`}>
+                <Banknote size={16} /> CASH ONLY
+              </div>
             </div>
 
             <button
@@ -278,19 +264,6 @@ const ManagerPOS = () => {
         </div>
       </div>
 
-      <Modal show={showQRModal} onHide={() => setShowQRModal(false)} centered>
-        <Modal.Header closeButton className="border-0 bg-slate-900 text-white rounded-t-3xl p-6">
-          <Modal.Title className="text-xs font-black uppercase tracking-[0.3em]">Network Payment Bridge</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-12 text-center bg-slate-900 text-white rounded-b-3xl">
-          <div className="bg-white p-10 rounded-[3rem] inline-block mb-8 shadow-2xl shadow-blue-500/10">
-            <QRCodeSVG value={paymentLink} size={220} fgColor="#1e293b" />
-          </div>
-          <h3 className="text-4xl font-black mb-2 tracking-tighter">₹{totalAmount.toFixed(0)}</h3>
-          <p className="text-[10px] text-blue-500 font-black uppercase tracking-[0.4em] mb-10 opacity-60">Authorize Terminal</p>
-          <button onClick={() => { setShowQRModal(false); handleCompleteOrder(); }} className="w-full bg-blue-600 py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-widest shadow-2xl shadow-blue-600/30">Confirmation Received</button>
-        </Modal.Body>
-      </Modal>
 
       <style dangerouslySetInnerHTML={{
         __html: `

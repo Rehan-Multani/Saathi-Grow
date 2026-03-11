@@ -9,13 +9,11 @@ import {
   Mail,
   Phone,
   Banknote,
-  QrCode,
   CheckCircle,
   Store,
   Printer,
   Package
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -34,10 +32,8 @@ const VendorPOS = () => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', phone: '' });
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [paymentLink, setPaymentLink] = useState('');
 
   useEffect(() => {
     fetchSettings();
@@ -116,9 +112,6 @@ const VendorPOS = () => {
     if (cart.length === 0) return;
     const result = await Swal.fire({
       title: 'Complete Vendor Billing?',
-      text: `Confirming ₹${totalAmount.toFixed(0)} via ${paymentMethod.toUpperCase()}`,
-      icon: 'question',
-      showCancelButton: true,
       confirmButtonColor: '#0c831f', // Vendor Green
       confirmButtonText: 'Yes, Finalize'
     });
@@ -126,11 +119,7 @@ const VendorPOS = () => {
 
     setIsProcessing(true);
     try {
-      if (paymentMethod === 'online' && !showQRModal) {
-        setPaymentLink('https://saathigro.com/pay');
-        setShowQRModal(true); setIsProcessing(false); return;
-      }
-      await createPOSOrder({ items: cart, customerDetails, paymentMethod, storeId, storeType }, vendor?.token);
+      await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, vendor?.token);
       Swal.fire('Success', 'Inventory updated and bill sent.', 'success');
       setCart([]); setCustomerDetails({ name: '', email: '', phone: '' }); fetchProducts();
     } catch (error) {
@@ -418,35 +407,23 @@ const VendorPOS = () => {
 
             {/* Premium Payment Selector */}
             <div className="p-1 bg-gray-100/50 rounded-[2.5rem] flex gap-1 mb-8 border border-gray-100 shadow-inner">
-              <button
-                onClick={() => setPaymentMethod('cash')}
-                className={`flex-1 py-3 rounded-[1.8rem] flex flex-col items-center justify-center gap-1.5 text-[10px] font-black transition-all duration-500 relative overflow-hidden ${paymentMethod === 'cash' ? 'bg-gray-900 text-white shadow-2xl shadow-black/20' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}
+              <div
+                className={`flex-1 py-3 rounded-[1.8rem] flex flex-col items-center justify-center gap-1.5 text-[10px] font-black transition-all duration-500 relative overflow-hidden bg-gray-900 text-white shadow-2xl shadow-black/20`}
               >
                 <div className="flex items-center gap-3">
-                  <Banknote size={15} strokeWidth={paymentMethod === 'cash' ? 2 : 1.5} />
-                  <span className="tracking-[0.2em] uppercase">CASH</span>
+                  <Banknote size={15} strokeWidth={2} />
+                  <span className="tracking-[0.2em] uppercase">CASH ONLY</span>
                 </div>
-                {paymentMethod === 'cash' && <div className="absolute bottom-2 w-1 h-1 bg-green-400 rounded-full"></div>}
-              </button>
-
-              <button
-                onClick={() => setPaymentMethod('online')}
-                className={`flex-1 py-3 rounded-[1.8rem] flex flex-col items-center justify-center gap-1.5 text-[10px] font-black transition-all duration-500 relative overflow-hidden ${paymentMethod === 'online' ? 'bg-gray-900 text-white shadow-2xl shadow-black/20' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}
-              >
-                <div className="flex items-center gap-3">
-                  <QrCode size={22} strokeWidth={paymentMethod === 'online' ? 2 : 1.5} />
-                  <span className="tracking-[0.2em] uppercase">ONLINE</span>
-                </div>
-                {paymentMethod === 'online' && <div className="absolute bottom-2 w-1 h-1 bg-green-400 rounded-full"></div>}
-              </button>
+                <div className="absolute bottom-2 w-1 h-1 bg-green-400 rounded-full"></div>
+              </div>
             </div>
 
             <button
               disabled={isProcessing || cart.length === 0}
               onClick={handleCompleteOrder}
               className={`w-full py-6 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.3em] shadow-2xl active:scale-[0.98] transition-all duration-500 relative overflow-hidden group/btn ${cart.length === 0
-                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-gradient-to-tr from-[#0c831f] to-[#10b981] text-white shadow-[#0c831f]/25 hover:shadow-[#0c831f]/40 hover:-translate-y-0.5'
+                ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                : 'bg-gradient-to-tr from-[#0c831f] to-[#10b981] text-white shadow-[#0c831f]/25 hover:shadow-[#0c831f]/40 hover:-translate-y-0.5'
                 }`}
             >
               {isProcessing ? (
@@ -471,67 +448,6 @@ const VendorPOS = () => {
         </div>
       </div>
 
-      {/* QR Modal with Premium Enhancement */}
-      <Modal show={showQRModal} onHide={() => setShowQRModal(false)} centered className="pos-qr-modal">
-        <div className="bg-white/90 backdrop-blur-3xl rounded-[3.5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border border-white/50">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#0c831f] via-[#22c55e] to-[#10b981]"></div>
-
-          <Modal.Header closeButton className="border-0 p-10 pb-0">
-            <Modal.Title className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#0c831f] mb-1">Secure Checkout</span>
-              <span className="text-2xl font-black text-gray-900 tracking-tight">Payment Authorization</span>
-            </Modal.Title>
-          </Modal.Header>
-
-          <Modal.Body className="p-12 text-center">
-            <div className="inline-block relative mb-12">
-              <div className="absolute -inset-10 bg-gradient-to-tr from-[#0c831f]/20 via-[#0c831f]/10 to-transparent blur-3xl rounded-full"></div>
-              <div className="bg-white p-10 rounded-[4rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.12)] border border-gray-100 relative z-10 group cursor-pointer hover:scale-105 transition-transform duration-700">
-                <QRCodeSVG value={paymentLink} size={240} fgColor="#111827" includeMargin={true} level="H" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl border border-gray-50">
-                  <div className="w-10 h-10 bg-[#0c831f] rounded-xl flex items-center justify-center text-white">
-                    <QrCode size={24} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4 mb-12">
-              <div className="flex flex-col items-center">
-                <span className="px-4 py-1.5 bg-gray-100 rounded-full text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Amount Due</span>
-                <div className="flex items-start">
-                  <span className="text-2xl font-black text-gray-300 mt-2 mr-1">₹</span>
-                  <h3 className="text-7xl font-black text-gray-900 tracking-tightest leading-none">{totalAmount.toFixed(0)}</h3>
-                </div>
-              </div>
-              <p className="text-[9px] text-[#0c831f] font-black uppercase tracking-[0.6em] pt-4 opacity-50 flex items-center justify-center gap-3">
-                <div className="w-1 h-1 bg-[#0c831f] rounded-full"></div>
-                UPI DYNAMIC SECURE QR
-                <div className="w-1 h-1 bg-[#0c831f] rounded-full"></div>
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <button
-                onClick={() => { setShowQRModal(false); handleCompleteOrder(); }}
-                className="w-full bg-gray-900 text-white py-6 rounded-[2.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-black/20 hover:bg-black transition-all flex items-center justify-center gap-4 group/modal-btn"
-              >
-                Verify & Confirm
-                <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover/modal-btn:bg-[#0c831f] transition-colors">
-                  <CheckCircle size={16} />
-                </div>
-              </button>
-
-              <button
-                onClick={() => setShowQRModal(false)}
-                className="py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-rose-500 transition-colors"
-              >
-                Cancel Transaction
-              </button>
-            </div>
-          </Modal.Body>
-        </div>
-      </Modal>
 
       <style dangerouslySetInnerHTML={{
         __html: `

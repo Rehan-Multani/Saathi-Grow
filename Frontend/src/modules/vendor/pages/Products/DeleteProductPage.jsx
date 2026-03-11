@@ -9,10 +9,13 @@ const DeleteProductPage = () => {
     const navigate = useNavigate();
     const { products, deleteProduct } = useVendor();
 
-    const product = products.find(p => p.id === parseInt(productId));
+    const product = products.find(p => (p._id || p.id) === productId);
+
+    const productPrice = product?.price || product?.basePrice || 0;
+    const productStock = product?.stock || 0;
 
     const handleConfirmDelete = () => {
-        deleteProduct(parseInt(productId));
+        deleteProduct(productId);
         navigate('/vendor/products');
     };
 
@@ -69,10 +72,10 @@ const DeleteProductPage = () => {
                         </div>
                         <div className="flex-1">
                             <h3 className="font-bold text-gray-900 mb-1">{product.name}</h3>
-                            <p className="text-sm text-gray-500 mb-1">{product.category}</p>
+                            <p className="text-sm text-gray-500 mb-1">{typeof product.category === 'object' ? product.category.name : product.category}</p>
                             <div className="flex items-center gap-4">
-                                <span className="text-sm font-bold text-gray-900">{formatCurrency(product.price)}</span>
-                                <span className="text-xs text-gray-500">Stock: {product.stock} units</span>
+                                <span className="text-sm font-bold text-gray-900">{formatCurrency(productPrice)}</span>
+                                <span className="text-xs text-gray-500">Stock: {productStock} units</span>
                             </div>
                         </div>
                     </div>
