@@ -21,12 +21,18 @@ const AllVendors = () => {
     // Pagination State
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const fetchVendors = async () => {
         try {
             setLoading(true);
-            const data = await getVendors(adminUser.token);
-            setVendors(data);
+            const { vendors: vendorList, pagination: paginationData } = await getVendors(
+                adminUser.token,
+                { page, limit, search: searchTerm },
+                { paginated: true }
+            );
+            setVendors(Array.isArray(vendorList) ? vendorList : []);
+            setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             toast.error(error.message || 'Failed to fetch vendors');
         } finally {
@@ -36,17 +42,11 @@ const AllVendors = () => {
 
     useEffect(() => {
         if (adminUser?.token) fetchVendors();
-    }, [adminUser]);
+    }, [adminUser?.token, page, searchTerm]);
 
-    const filtered = vendors.filter(v =>
-        v.storeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const totalFiltered = filtered.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedVendors = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
+    const paginatedVendors = vendors;
 
     // Reset pagination when search changes
     useEffect(() => {
@@ -100,7 +100,7 @@ const AllVendors = () => {
                         </div>
                         <div className="d-flex align-items-center gap-3 text-nowrap">
                             <h5 className="mb-0 fw-bold">All Vendors</h5>
-                            <Badge bg="primary" pill>{filtered.length}</Badge>
+                            <Badge bg="primary" pill>{totalFiltered}</Badge>
                         </div>
                     </div>
                     <div className="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-lg-end">

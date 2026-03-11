@@ -2,6 +2,16 @@
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/admin/delivery`;
+const buildQuery = (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
+};
 
 // Helper to get token based on portal
 const getAuthDetails = () => {
@@ -12,13 +22,24 @@ const getAuthDetails = () => {
   return null;
 };
 
-export const getDeliveryPartners = async () => {
+export const getDeliveryPartners = async (params = {}, options = {}) => {
   const auth = getAuthDetails();
   if (!auth) return [];
 
-  const { data } = await axios.get(API_URL, {
+  const { data, headers } = await axios.get(`${API_URL}${buildQuery(params)}`, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
+  if (options.paginated) {
+    return {
+      partners: data,
+      pagination: {
+        total: Number(headers['x-total-count'] || 0),
+        page: Number(headers['x-page'] || params.page || 1),
+        limit: Number(headers['x-limit'] || params.limit || 10),
+        totalPages: Number(headers['x-total-pages'] || 1)
+      }
+    };
+  }
   return data;
 };
 

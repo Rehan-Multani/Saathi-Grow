@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = `${API_BASE_URL}/complaints`;
 
 export const raiseComplaint = async (token, complaintData) => {
   const isFormData = complaintData instanceof FormData;
@@ -10,7 +11,7 @@ export const raiseComplaint = async (token, complaintData) => {
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await axios.post(`${BASE_URL}/complaints/raise`, complaintData, {
+  const response = await axios.post(`${BASE_URL}/raise`, complaintData, {
     headers
   });
   return response.data;
@@ -18,7 +19,7 @@ export const raiseComplaint = async (token, complaintData) => {
 
 
 export const getUserComplaints = async (token) => {
-  const response = await axios.get(`${BASE_URL}/complaints/my`, {
+  const response = await axios.get(`${BASE_URL}/my`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return response.data;

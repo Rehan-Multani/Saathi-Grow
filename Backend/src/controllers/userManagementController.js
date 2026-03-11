@@ -7,6 +7,10 @@ import { cloudinary } from '../config/cloudinary.js';
 // @access  Private (Admin/Manager)
 export const getAllUsers = async (req, res) => {
   try {
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const search = (req.query.search || '').trim();
     const admin = req.admin;
     let query = {};
 
@@ -17,7 +21,30 @@ export const getAllUsers = async (req, res) => {
       query._id = { $in: customerIdsInBranch };
     }
 
-    const users = await User.find(query).sort({ createdAt: -1 });
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const usersQuery = User.find(query).sort({ createdAt: -1 });
+
+    if (hasPagination) {
+      const total = await User.countDocuments(query);
+      const users = await usersQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json({ success: true, users });
+    }
+
+    const users = await usersQuery;
     res.json({ success: true, users });
   } catch (error) {
     console.error('Error fetching users:', error);

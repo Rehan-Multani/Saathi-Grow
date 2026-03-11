@@ -370,6 +370,10 @@ export const getDashboardStats = async (req, res) => {
 // @access  Public (For testing)
 export const simulateOrder = async (req, res) => {
     try {
+        if (process.env.NODE_ENV === 'production') {
+            return res.status(404).json({ message: 'Route not found' });
+        }
+
         // Find a random user to be the customer
         const User = (await import('../models/User.js')).default;
         const customer = await User.findOne({ role: 'user' });

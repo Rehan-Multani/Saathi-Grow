@@ -17,12 +17,21 @@ const AllCustomers = () => {
     const [showMessageModal, setShowMessageModal] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [messageType, setMessageType] = useState('Message');
+    const [page, setPage] = useState(1);
+    const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
-                const data = await customerApi.getAllCustomers(adminUser.token);
-                setCustomers(data);
+                setLoading(true);
+                const { customers: customerList, pagination: paginationData } = await customerApi.getAllCustomers(
+                    adminUser.token,
+                    { page, limit, search: searchTerm },
+                    { paginated: true }
+                );
+                setCustomers(Array.isArray(customerList) ? customerList : []);
+                setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
             } catch (error) {
                 toast.error(error.message);
             } finally {
@@ -33,20 +42,11 @@ const AllCustomers = () => {
         if (adminUser?.token) {
             fetchCustomers();
         }
-    }, [adminUser.token]);
+    }, [adminUser.token, page, searchTerm]);
 
-    const filtered = customers.filter(c =>
-        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.phone || '').includes(searchTerm)
-    );
-
-    // Pagination State
-    const [page, setPage] = useState(1);
-    const limit = 10;
-    const totalFiltered = filtered.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedCustomers = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
+    const paginatedCustomers = customers;
 
     // Reset pagination when search changes
     useEffect(() => {
@@ -95,7 +95,7 @@ const AllCustomers = () => {
                 <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                     <div className="d-flex align-items-center gap-3 text-nowrap">
                         <h5 className="mb-0 fw-bold">All Customers</h5>
-                        <Badge bg="primary" pill>{filtered.length}</Badge>
+                        <Badge bg="primary" pill>{totalFiltered}</Badge>
                     </div>
                     <div className="d-flex gap-2 flex-grow-1 justify-content-md-end">
                         <InputGroup style={{ maxWidth: '300px' }}>

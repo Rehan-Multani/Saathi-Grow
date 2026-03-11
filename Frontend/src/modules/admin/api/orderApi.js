@@ -2,6 +2,16 @@
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/orders`;
+const buildQuery = (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
+};
 
 // Helper to get token based on portal
 const getAuthDetails = () => {
@@ -70,14 +80,42 @@ export const deleteOrder = async (id) => {
   return data;
 };
 
-export const getReturnRequests = async () => {
+export const getReturnRequests = async (params = {}, options = {}) => {
   const auth = getAuthDetails();
-  if (!auth) return [];
+  if (!auth) {
+    return options.paginated
+      ? { returns: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 1 }, stats: { total: 0, pending: 0, approved: 0, rejected: 0 } }
+      : [];
+  }
 
-  const { data } = await axios.get(`${API_URL}/admin/returns`, {
+  const requestParams = options.paginated
+    ? { ...params, includeStats: true }
+    : params;
+  const { data, headers } = await axios.get(`${API_URL}/admin/returns${buildQuery(requestParams)}`, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
-  return data;
+
+  if (options.paginated) {
+    if (Array.isArray(data)) {
+      return {
+        returns: data,
+        pagination: {
+          total: Number(headers['x-total-count'] || 0),
+          page: Number(headers['x-page'] || params.page || 1),
+          limit: Number(headers['x-limit'] || params.limit || 10),
+          totalPages: Number(headers['x-total-pages'] || 1)
+        },
+        stats: { total: Number(headers['x-total-count'] || 0), pending: 0, approved: 0, rejected: 0 }
+      };
+    }
+    return {
+      returns: data.returns || [],
+      pagination: data.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 },
+      stats: data.stats || { total: 0, pending: 0, approved: 0, rejected: 0 }
+    };
+  }
+
+  return Array.isArray(data) ? data : (data.returns || []);
 };
 
 export const handleReturnRequest = async (id, action, rejectionReason = null) => {

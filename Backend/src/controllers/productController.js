@@ -23,6 +23,14 @@ const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
+// Build a bounded, literal search regex to avoid malformed/expensive patterns.
+const buildSafeSearchRegex = (value, maxLen = 80) => {
+  if (value === undefined || value === null) return null;
+  const normalized = String(value).trim().slice(0, maxLen);
+  if (!normalized) return null;
+  return new RegExp(escapeRegExp(normalized), 'i');
+};
+
 // Helper to handle comma-separated strings or arrays
 const parseParam = (val) => {
   if (!val) return null;
@@ -301,12 +309,17 @@ export const getProducts = async (req, res) => {
     }
 
     if (search) {
+      const safeSearchRegex = buildSafeSearchRegex(search);
+      if (!safeSearchRegex) {
+        return res.status(400).json({ message: 'Invalid search query' });
+      }
+
       query.$and = query.$and || [];
       query.$and.push({
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { tags: { $in: [new RegExp(search, 'i')] } }
+          { name: { $regex: safeSearchRegex } },
+          { description: { $regex: safeSearchRegex } },
+          { tags: { $in: [safeSearchRegex] } }
         ]
       });
     }
@@ -835,7 +848,7 @@ export const adjustInventory = async (req, res) => {
       let newStock = amount;
 
       product.branchStocks.push({
-        branchId,
+        branchId: finalBranchId,
         stock: newStock,
         lowStockThreshold: 10
       });
@@ -848,7 +861,7 @@ export const adjustInventory = async (req, res) => {
       const log = await InventoryLog.create({
         product: product._id,
         admin: req.admin._id,
-        branchId,
+        branchId: finalBranchId,
         changeAmount: amount,
         previousStock,
         newStock,
@@ -885,7 +898,7 @@ export const adjustInventory = async (req, res) => {
     const log = await InventoryLog.create({
       product: product._id,
       admin: req.admin._id,
-      branchId,
+      branchId: finalBranchId,
       changeAmount: type === 'Audit' ? newStock - previousStock : (type === 'Addition' || type === 'Return' ? amount : -amount),
       previousStock,
       newStock,

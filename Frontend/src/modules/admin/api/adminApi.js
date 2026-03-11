@@ -1,6 +1,16 @@
 ﻿import { API_BASE_URL } from '../../../config/apiConfig';
 
 const ADMIN_BASE_URL = `${API_BASE_URL}/admin`;
+const buildQuery = (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
+};
 
 export const loginAdmin = async (email, password) => {
   const response = await fetch(`${ADMIN_BASE_URL}/login`, {
@@ -57,12 +67,23 @@ export const updateProfile = async (token, profileData) => {
   return data;
 };
 
-export const getAllStaff = async (token) => {
-  const response = await fetch(`${ADMIN_BASE_URL}/staff`, {
+export const getAllStaff = async (token, params = {}, options = {}) => {
+  const response = await fetch(`${ADMIN_BASE_URL}/staff${buildQuery(params)}`, {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch staff');
+  if (options.paginated) {
+    return {
+      staff: data,
+      pagination: {
+        total: Number(response.headers.get('x-total-count') || 0),
+        page: Number(response.headers.get('x-page') || params.page || 1),
+        limit: Number(response.headers.get('x-limit') || params.limit || 10),
+        totalPages: Number(response.headers.get('x-total-pages') || 1)
+      }
+    };
+  }
   return data;
 };
 

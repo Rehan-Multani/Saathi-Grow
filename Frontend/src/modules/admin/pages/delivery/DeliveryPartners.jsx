@@ -16,12 +16,17 @@ const DeliveryPartners = () => {
     // Pagination State
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const fetchPartners = async () => {
         try {
             setLoading(true);
-            const data = await api.getDeliveryPartners();
-            setPartners(data);
+            const { partners: partnerList, pagination: paginationData } = await api.getDeliveryPartners(
+                { page, limit, search: searchTerm },
+                { paginated: true }
+            );
+            setPartners(Array.isArray(partnerList) ? partnerList : []);
+            setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             Swal.fire('Error', 'Failed to load delivery partners', 'error');
         } finally {
@@ -31,15 +36,11 @@ const DeliveryPartners = () => {
 
     useEffect(() => {
         fetchPartners();
-    }, []);
+    }, [page, searchTerm]);
 
-    const filtered = partners.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const totalFiltered = filtered.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedPartners = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
+    const paginatedPartners = partners;
 
     // Reset pagination when search changes
     useEffect(() => {
@@ -59,7 +60,7 @@ const DeliveryPartners = () => {
             if (result.isConfirmed) {
                 try {
                     await api.deleteDeliveryPartner(id);
-                    setPartners(partners.filter(p => p._id !== id));
+                    fetchPartners();
                     Swal.fire('Deleted!', 'Partner has been removed.', 'success');
                 } catch (err) {
                     Swal.fire('Error', err?.response?.data?.message || 'Failed to delete partner', 'error');
@@ -75,8 +76,8 @@ const DeliveryPartners = () => {
 
     const handleSave = async (updatedPartner) => {
         try {
-            const apiRes = await api.updateDeliveryPartnerStatus(updatedPartner._id, updatedPartner.authStatus);
-            setPartners(partners.map(p => p._id === apiRes._id ? apiRes : p));
+            await api.updateDeliveryPartnerStatus(updatedPartner._id, updatedPartner.authStatus);
+            fetchPartners();
             Swal.fire({
                 title: 'Updated!',
                 text: 'Partner permission status updated successfully.',

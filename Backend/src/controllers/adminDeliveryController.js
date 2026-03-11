@@ -5,6 +5,7 @@ import Vendor from '../models/Vendor.js';
 import Branch from '../models/Branch.js';
 import OrderDelivery from '../models/OrderDelivery.js';
 import DeliveryRun from '../models/DeliveryRun.js';
+import CashCollection from '../models/CashCollection.js';
 
 // Helper to generate 4-digit numeric OTP securely
 const generateOTP = () => {
@@ -69,13 +70,39 @@ export const addDeliveryPartner = async (req, res) => {
 // @access  Private (Admin/Manager)
 export const getDeliveryPartners = async (req, res) => {
   try {
-    const admin = req.admin;
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const search = (req.query.search || '').trim();
     let query = {};
 
     // If Branch Manager, we show all partners (fleet is usually shared)
     // but we could filter by proximity in the future if branch has its own geo-fence
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { uniqueId: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { vehicleType: { $regex: search, $options: 'i' } }
+      ];
+    }
 
-    const partners = await DeliveryPartner.find(query).sort({ createdAt: -1 });
+    const partnersQuery = DeliveryPartner.find(query).sort({ createdAt: -1 });
+
+    if (hasPagination) {
+      const total = await DeliveryPartner.countDocuments(query);
+      const partners = await partnersQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json(partners);
+    }
+
+    const partners = await partnersQuery;
     res.json(partners);
   } catch (error) {
     res.status(500).json({ message: error.message || 'Error fetching delivery partners' });
@@ -249,21 +276,18 @@ const performAssignment = async (orderId, partnerId, session) => {
 // @access  Private (Admin)
 export const assignOrderToPartner = async (req, res) => {
   const session = await mongoose.startSession();
-  session.startTransaction();
-
+  let result;
   try {
     const { orderId, partnerId } = req.body;
-    const result = await performAssignment(orderId, partnerId, session);
-
-    // 5. Commit the Transaction safely
-    await session.commitTransaction();
-    session.endSession();
+    await session.withTransaction(async () => {
+      result = await performAssignment(orderId, partnerId, session);
+    });
 
     res.json({ message: 'Order Assigned Successfully', ...result });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     res.status(400).json({ message: error.message || 'Assignment Transaction Failed' });
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -272,58 +296,67 @@ export const assignOrderToPartner = async (req, res) => {
 // @access  Private (Admin)
 export const autoAssignOrder = async (req, res) => {
   const session = await mongoose.startSession();
-  session.startTransaction();
-
+  let result;
   try {
     const { orderId } = req.params;
-    const order = await Order.findById(orderId).populate('vendor').populate('branchId');
+    await session.withTransaction(async () => {
+      const order = await Order.findById(orderId)
+        .populate('vendor')
+        .populate('branchId')
+        .session(session);
 
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (order.deliveryPartnerId) return res.status(400).json({ message: 'Order already assigned' });
-
-    // Determine pickup coordinates
-    let pickupLocation = null;
-    if (order.vendor && order.vendor.address && order.vendor.address.location) {
-      pickupLocation = order.vendor.address.location;
-    } else if (order.branchId && order.branchId.address && order.branchId.address.location) {
-      pickupLocation = order.branchId.address.location;
-    }
-
-    if (!pickupLocation || !pickupLocation.coordinates || pickupLocation.coordinates.length < 2) {
-      return res.status(400).json({ message: 'Pickup location (Vendor/Branch) missing valid coordinates' });
-    }
-
-    // Find the nearest available partner within 10km (10000 meters)
-    const nearestPartner = await DeliveryPartner.findOne({
-      authStatus: 'Active',
-      assignmentStatus: 'Free',
-      currentLocation: {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: pickupLocation.coordinates
-          },
-          $maxDistance: 10000 // 10km radius
-        }
+      if (!order) {
+        const err = new Error('Order not found');
+        err.statusCode = 404;
+        throw err;
       }
-    }).session(session);
+      if (order.deliveryPartnerId) {
+        const err = new Error('Order already assigned');
+        err.statusCode = 400;
+        throw err;
+      }
 
-    if (!nearestPartner) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({ message: 'No available delivery partners found near the pickup location' });
-    }
+      let pickupLocation = null;
+      if (order.vendor && order.vendor.address && order.vendor.address.location) {
+        pickupLocation = order.vendor.address.location;
+      } else if (order.branchId && order.branchId.address && order.branchId.address.location) {
+        pickupLocation = order.branchId.address.location;
+      }
 
-    const result = await performAssignment(order._id, nearestPartner._id, session);
+      if (!pickupLocation || !pickupLocation.coordinates || pickupLocation.coordinates.length < 2) {
+        const err = new Error('Pickup location (Vendor/Branch) missing valid coordinates');
+        err.statusCode = 400;
+        throw err;
+      }
 
-    await session.commitTransaction();
-    session.endSession();
+      const nearestPartner = await DeliveryPartner.findOne({
+        authStatus: 'Active',
+        assignmentStatus: 'Free',
+        currentLocation: {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: pickupLocation.coordinates
+            },
+            $maxDistance: 10000
+          }
+        }
+      }).session(session);
+
+      if (!nearestPartner) {
+        const err = new Error('No available delivery partners found near the pickup location');
+        err.statusCode = 404;
+        throw err;
+      }
+
+      result = await performAssignment(order._id, nearestPartner._id, session);
+    });
 
     res.json({ message: 'Auto-assigned to nearest partner', ...result });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    res.status(500).json({ message: error.message || 'Auto-assignment failed' });
+    res.status(error.statusCode || 500).json({ message: error.message || 'Auto-assignment failed' });
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -332,77 +365,75 @@ export const autoAssignOrder = async (req, res) => {
 // @access  Private (Admin)
 export const unassignOrderFromPartner = async (req, res) => {
   const session = await mongoose.startSession();
-  session.startTransaction();
-
+  let unassignedOrderId = null;
   try {
     const { orderId } = req.body;
+    await session.withTransaction(async () => {
+      const query = mongoose.isValidObjectId(orderId)
+        ? { _id: orderId }
+        : { orderId };
 
-    // Support finding by both hex _id and human-readable orderId string
-    const query = mongoose.isValidObjectId(orderId)
-      ? { _id: orderId }
-      : { orderId: orderId };
+      const order = await Order.findOne(query).session(session);
+      if (!order) {
+        const err = new Error('Order record not found');
+        err.statusCode = 404;
+        throw err;
+      }
 
-    const order = await Order.findOne(query).session(session);
+      const deliveryRecord = await OrderDelivery.findOne({ order: order._id }).session(session);
+      const partnerId = order.deliveryPartnerId || deliveryRecord?.deliveryPartner;
 
-    if (!order) throw new Error('Order record not found');
+      if (!partnerId) {
+        const err = new Error(`Order ${order.orderId} is not currently assigned to any driver in the system.`);
+        err.statusCode = 400;
+        throw err;
+      }
 
-    // Find corresponding OrderDelivery record
-    const deliveryRecord = await OrderDelivery.findOne({ order: order._id }).session(session);
+      if (['out_for_delivery', 'delivered'].includes(order.status)) {
+        const err = new Error('Cannot unassign an order that has already been picked up or delivered');
+        err.statusCode = 400;
+        throw err;
+      }
 
-    // Check if assigned in either place
-    const partnerId = order.deliveryPartnerId || deliveryRecord?.deliveryPartner;
+      const partner = await DeliveryPartner.findById(partnerId).session(session);
 
-    if (!partnerId) {
-      throw new Error(`Order ${order.orderId} is not currently assigned to any driver in the system.`);
-    }
+      order.deliveryPartnerId = null;
+      order.deliveryOTP = null;
+      if (order.deliveryTimestamps) {
+        order.deliveryTimestamps.assignedAt = null;
+      }
+      order.status = 'confirmed';
+      await order.save({ session });
 
-    // Cannot unassign if rider already picked up or in transit (optional policy, usually restricted)
-    if (['out_for_delivery', 'delivered'].includes(order.status)) {
-      throw new Error('Cannot unassign an order that has already been picked up or delivered');
-    }
+      if (deliveryRecord) {
+        await OrderDelivery.deleteOne({ _id: deliveryRecord._id }).session(session);
+      }
 
-    const partner = await DeliveryPartner.findById(partnerId).session(session);
+      const run = await DeliveryRun.findOne({
+        deliveryPartner: partnerId,
+        'orders.order': order._id,
+        status: { $in: ['assigned', 'in_progress'] }
+      }).session(session);
+      if (run) {
+        await run.deleteOne({ session });
+      }
 
-    // 1. Reset Order State
-    order.deliveryPartnerId = null;
-    order.deliveryOTP = null;
-    if (order.deliveryTimestamps) {
-      order.deliveryTimestamps.assignedAt = null;
-    }
-    order.status = 'confirmed'; // Reset back to confirmed for re-assignment
-    await order.save({ session });
+      if (partner) {
+        partner.assignmentStatus = 'Free';
+        partner.activeOrder = null;
+        partner.activeRun = null;
+        partner.currentStopIndex = 0;
+        await partner.save({ session });
+      }
 
-    // 2. Clear OrderDelivery and DeliveryRun records
-    if (deliveryRecord) {
-      await OrderDelivery.deleteOne({ _id: deliveryRecord._id }).session(session);
-    }
+      unassignedOrderId = order.orderId;
+    });
 
-    const run = await DeliveryRun.findOne({
-      deliveryPartner: partnerId,
-      'orders.order': order._id,
-      status: { $in: ['assigned', 'in_progress'] }
-    }).session(session);
-    if (run) {
-      await run.deleteOne({ session });
-    }
-
-    // 3. Reset Partner State
-    if (partner) {
-      partner.assignmentStatus = 'Free';
-      partner.activeOrder = null;
-      partner.activeRun = null;
-      partner.currentStopIndex = 0;
-      await partner.save({ session });
-    }
-
-    await session.commitTransaction();
-    session.endSession();
-
-    res.json({ message: 'Order unassigned and returned to pool', orderId: order.orderId });
+    res.json({ message: 'Order unassigned and returned to pool', orderId: unassignedOrderId });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    res.status(400).json({ message: error.message || 'Unassignment failed' });
+    res.status(error.statusCode || 400).json({ message: error.message || 'Unassignment failed' });
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -458,33 +489,42 @@ export const getCashSettlementList = async (req, res) => {
 // @route   POST /api/admin/delivery-partners/settle-cash/:id
 // @access  Private (Admin)
 export const settleRiderCash = async (req, res) => {
+  const session = await mongoose.startSession();
   try {
-    const partner = await DeliveryPartner.findById(req.params.id);
-    if (!partner) return res.status(404).json({ message: 'Partner not found' });
+    let payload = null;
 
-    const totalSettled = partner.cashInHand;
-
-    // Update partner
-    partner.cashInHand = 0;
-    await partner.save();
-
-    // Mark CashCollection records as settled
-    const CashCollection = (await import('../models/CashCollection.js')).default;
-    await CashCollection.updateMany(
-      { deliveryPartner: partner._id, status: 'collected' },
-      {
-        status: 'settled_with_admin',
-        settledAt: new Date(),
-        adminAcknowledge: true
+    await session.withTransaction(async () => {
+      const partner = await DeliveryPartner.findById(req.params.id).session(session);
+      if (!partner) {
+        const err = new Error('Partner not found');
+        err.statusCode = 404;
+        throw err;
       }
-    );
 
-    res.json({
-      success: true,
-      message: `Successfully settled ₹${totalSettled} with ${partner.name}`,
-      removedAmount: totalSettled
+      const totalSettled = partner.cashInHand || 0;
+      partner.cashInHand = 0;
+      await partner.save({ session });
+
+      await CashCollection.updateMany(
+        { deliveryPartner: partner._id, status: 'collected' },
+        {
+          status: 'settled_with_admin',
+          settledAt: new Date(),
+          adminAcknowledge: true
+        }
+      ).session(session);
+
+      payload = {
+        success: true,
+        message: `Successfully settled Rs ${totalSettled} with ${partner.name}`,
+        removedAmount: totalSettled
+      };
     });
+
+    res.json(payload);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(error.statusCode || 500).json({ message: error.message });
+  } finally {
+    await session.endSession();
   }
 };

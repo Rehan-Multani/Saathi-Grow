@@ -38,12 +38,19 @@ const ReturnRequests = () => {
     // Pagination State
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
+    const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
 
     const fetchReturns = async () => {
         try {
             setLoading(true);
-            const data = await getReturnRequests();
-            setReturnRequests(Array.isArray(data) ? data : []);
+            const data = await getReturnRequests(
+                { page, limit, search: searchTerm, status: filterStatus },
+                { paginated: true }
+            );
+            setReturnRequests(Array.isArray(data.returns) ? data.returns : []);
+            setPagination(data.pagination || { total: 0, totalPages: 1, page, limit });
+            setStats(data.stats || { total: 0, pending: 0, approved: 0, rejected: 0 });
         } catch (error) {
             console.error('Error fetching returns:', error);
         } finally {
@@ -51,22 +58,11 @@ const ReturnRequests = () => {
         }
     };
 
-    useEffect(() => { fetchReturns(); }, []);
+    useEffect(() => { fetchReturns(); }, [page, searchTerm, filterStatus]);
 
-    const filteredRequests = returnRequests.filter(req => {
-        const status = req.returnRequest?.status || 'Pending';
-        const matchesStatus = filterStatus === 'all' || status.toLowerCase() === filterStatus;
-        const search = searchTerm.toLowerCase();
-        const matchesSearch = !searchTerm ||
-            req.orderId?.toLowerCase().includes(search) ||
-            req.user?.name?.toLowerCase().includes(search) ||
-            req.user?.email?.toLowerCase().includes(search);
-        return matchesStatus && matchesSearch;
-    });
-
-    const totalFiltered = filteredRequests.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedRequests = filteredRequests.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
+    const paginatedRequests = returnRequests;
 
     // Reset pagination when search or filter changes
     useEffect(() => {
@@ -155,13 +151,6 @@ const ReturnRequests = () => {
         } finally {
             setProcessing(false);
         }
-    };
-
-    const stats = {
-        total: returnRequests.length,
-        pending: returnRequests.filter(r => r.returnRequest?.status === 'Pending').length,
-        approved: returnRequests.filter(r => r.returnRequest?.status === 'Approved').length,
-        rejected: returnRequests.filter(r => r.returnRequest?.status === 'Rejected').length,
     };
 
     return (

@@ -11,6 +11,7 @@ import {
 } from '../controllers/vendorController.js';
 import { protectAdmin, restrictTo } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
+import { idempotencyGuard, sensitiveAdminActionLimiter, auditAction } from '../middleware/securityMiddleware.js';
 
 const router = express.Router();
 
@@ -18,8 +19,8 @@ router.use(protectAdmin);
 
 // Vendor Payouts
 router.get('/payouts', restrictTo('Admin', 'Staff'), getPayouts);
-router.post('/payouts', restrictTo('Admin'), createPayout);
-router.patch('/payouts/:id', restrictTo('Admin'), updatePayoutStatus);
+router.post('/payouts', restrictTo('Admin'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('VENDOR_PAYOUT_CREATE'), createPayout);
+router.patch('/payouts/:id', restrictTo('Admin'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('VENDOR_PAYOUT_STATUS_UPDATE'), updatePayoutStatus);
 
 // Vendor CRUD
 router.route('/')
@@ -29,6 +30,6 @@ router.route('/')
 router.route('/:id')
   .get(getVendorById)
   .put(upload.single('logo'), updateVendor)
-  .delete(restrictTo('Admin'), deleteVendor);
+  .delete(restrictTo('Admin'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('VENDOR_DELETE'), deleteVendor);
 
 export default router;

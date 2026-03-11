@@ -5,13 +5,18 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { randomUUID } from 'crypto';
 import connectDB from './config/db.js';
 import noCache from './utils/noCache.js';
+import { validateRuntimeEnv, printEnvValidationSummary } from './config/validateEnv.js';
 
 // Database Connection
+const envSummary = validateRuntimeEnv();
+printEnvValidationSummary(envSummary);
 await connectDB();
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(noCache);
 const httpServer = createServer(app);
 
@@ -89,6 +94,12 @@ app.use(cors({
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Body parser
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  const requestId = randomUUID();
+  req.requestId = requestId;
+  res.setHeader('X-Request-Id', requestId);
+  next();
+});
 
 // Root Route
 app.get('/', (req, res) => {
@@ -167,6 +178,13 @@ app.use('/api/demand', demandRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/pos', posRoutes);
 
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    requestId: req.requestId || null,
+  });
+});
 
 
 // Socket logic placeholder
@@ -182,7 +200,9 @@ io.on('connection', (socket) => {
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
+    success: false,
     message: err.message || 'Internal Server Error',
+    requestId: req.requestId || null,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 });

@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
+    "check:syntax": "node scripts/check-syntax.mjs",
+    "check:env": "node scripts/validate-env.mjs",
+    "ci:check": "npm run check:syntax",
     "seed:products": "node src/seedProducts.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -21,13 +21,13 @@ const router = express.Router();
 router.get('/', optionalProtectStoreManager, getProducts);
 router.get('/brands', getUniqueBrands);
 router.get('/search/ai', optionalProtectStoreManager, searchProductsWithAI);
-router.get('/inventory-logs', getAllInventoryLogs);
 router.get('/:id', getProductById);
-router.get('/:id/inventory-logs', getInventoryLogs);
 
 // Admin Only Routes
 router.use(protectAdmin);
 router.post('/ai-suggestions', requirePermission('VIEW_PRODUCTS'), getAISuggestions);
+router.get('/inventory-logs', requirePermission('MANAGE_INVENTORY'), getAllInventoryLogs);
+router.get('/:id/inventory-logs', requirePermission('MANAGE_INVENTORY'), getInventoryLogs);
 
 router.post('/', requirePermission('MANAGE_PRODUCTS'), upload.fields([{ name: 'image', maxCount: 1 }, { name: 'gallery', maxCount: 10 }]), createProduct);
 

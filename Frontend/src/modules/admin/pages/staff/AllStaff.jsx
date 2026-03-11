@@ -41,19 +41,26 @@ const AllStaff = () => {
     // Pagination State
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const fetchStaffData = useCallback(async () => {
+        if (!adminUser?.token) return;
         setLoading(true);
         try {
-            const data = await getAllStaff(adminUser.token);
-            setStaffList(data);
+            const { staff, pagination: paginationData } = await getAllStaff(
+                adminUser.token,
+                { page, limit, search: searchTerm },
+                { paginated: true }
+            );
+            setStaffList(Array.isArray(staff) ? staff : []);
+            setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             console.error('Error fetching staff:', error);
             toast.error('Failed to load staff members');
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token]);
+    }, [adminUser.token, page, searchTerm]);
 
     useEffect(() => {
         fetchStaffData();
@@ -70,7 +77,7 @@ const AllStaff = () => {
         if (result.isConfirmed) {
             try {
                 await deleteStaff(adminUser.token, id);
-                setStaffList(prev => prev.filter(s => s._id !== id));
+                fetchStaffData();
                 showSuccessAlert('Removed!', 'Staff member has been removed.');
             } catch (error) {
                 showErrorAlert('Error', error.message || 'Failed to remove staff');
@@ -114,15 +121,9 @@ const AllStaff = () => {
         }
     };
 
-    const filtered = staffList.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.branchId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const totalFiltered = filtered.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedStaff = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
+    const paginatedStaff = staffList;
 
     // Reset pagination when search changes
     useEffect(() => {
@@ -172,7 +173,7 @@ const AllStaff = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginatedStaff.map((s) => (
+                                {paginatedStaff.length > 0 ? paginatedStaff.map((s) => (
                                     <tr key={s._id}>
                                         <td className="ps-4">
                                             <div className="d-flex align-items-center gap-3">
@@ -228,7 +229,13 @@ const AllStaff = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                )) : (
+                                    <tr>
+                                        <td colSpan="5" className="text-center py-5 text-muted small">
+                                            No staff members found.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </Table>
                     )}

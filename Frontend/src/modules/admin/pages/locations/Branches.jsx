@@ -21,32 +21,34 @@ const Branches = () => {
     // Pagination State
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const fetchBranchesData = useCallback(async () => {
+        if (!adminUser?.token) return;
         setLoading(true);
         try {
-            const data = await getBranches(adminUser.token);
-            setBranches(data);
+            const { branches: branchList, pagination: paginationData } = await getBranches(
+                adminUser.token,
+                { page, limit, search: searchTerm },
+                { paginated: true }
+            );
+            setBranches(Array.isArray(branchList) ? branchList : []);
+            setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             console.error('Error fetching branches:', error);
             toast.error('Failed to load branches');
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token]);
+    }, [adminUser.token, page, searchTerm]);
 
     useEffect(() => {
         fetchBranchesData();
     }, [fetchBranchesData]);
 
-    const filtered = branches.filter(b =>
-        b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.code?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const totalFiltered = filtered.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedBranches = filtered.slice((page - 1) * limit, page * limit);
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
+    const paginatedBranches = branches;
 
     // Reset pagination when search changes
     useEffect(() => {
@@ -79,7 +81,7 @@ const Branches = () => {
         if (result.isConfirmed) {
             try {
                 await deleteBranch(adminUser.token, id);
-                setBranches(branches.filter(b => b._id !== id));
+                fetchBranchesData();
                 showSuccessAlert('Deleted!', 'Branch has been removed.');
             } catch (error) {
                 showErrorAlert('Error', error.message || 'Failed to delete branch');

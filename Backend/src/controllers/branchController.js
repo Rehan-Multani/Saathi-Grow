@@ -41,7 +41,38 @@ export const createBranch = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getBranches = async (req, res) => {
   try {
-    const branches = await Branch.find({});
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const search = (req.query.search || '').trim();
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { code: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { 'address.city': { $regex: search, $options: 'i' } },
+        { 'address.state': { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const branchesQuery = Branch.find(query);
+
+    if (hasPagination) {
+      const total = await Branch.countDocuments(query);
+      const branches = await branchesQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json(branches);
+    }
+
+    const branches = await branchesQuery;
     res.json(branches);
   } catch (error) {
     res.status(500).json({ message: error.message });

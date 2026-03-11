@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Table, Button, Badge, Spinner } from 'react-bootstrap';
-import { Download, IndianRupee, CheckCircle, Clock, Wallet } from 'lucide-react';
+import { Download, IndianRupee, CheckCircle, Clock, Wallet, ChevronLeft, ChevronRight } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { getPayouts } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -12,12 +12,22 @@ const VendorPayouts = () => {
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(true);
     const [payouts, setPayouts] = useState([]);
+    const [allPayouts, setAllPayouts] = useState([]);
+    const [page, setPage] = useState(1);
+    const limit = 10;
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     useEffect(() => {
         const fetchPayouts = async () => {
             try {
-                const data = await getPayouts(adminUser.token);
-                setPayouts(data);
+                setLoading(true);
+                const { payouts: payoutList, pagination: paginationData } = await getPayouts(
+                    adminUser.token,
+                    { page, limit },
+                    { paginated: true }
+                );
+                setPayouts(Array.isArray(payoutList) ? payoutList : []);
+                setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
             } catch (error) {
                 toast.error('Failed to load payout logs');
             } finally {
@@ -28,12 +38,28 @@ const VendorPayouts = () => {
         if (adminUser?.token) {
             fetchPayouts();
         }
+    }, [adminUser.token, page]);
+
+    useEffect(() => {
+        const fetchPayoutStatsData = async () => {
+            try {
+                const data = await getPayouts(adminUser.token);
+                setAllPayouts(Array.isArray(data) ? data : []);
+            } catch (error) {
+                // Keep table functional even if stats fetch fails
+                setAllPayouts([]);
+            }
+        };
+
+        if (adminUser?.token) {
+            fetchPayoutStatsData();
+        }
     }, [adminUser.token]);
 
     const stats = {
-        total: payouts.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0),
-        processing: payouts.reduce((acc, curr) => acc + (curr.status === 'Processing' ? curr.amount : 0), 0),
-        settledMonth: payouts.reduce((acc, curr) => {
+        total: allPayouts.reduce((acc, curr) => acc + (curr.status === 'Paid' ? curr.amount : 0), 0),
+        processing: allPayouts.reduce((acc, curr) => acc + (curr.status === 'Processing' ? curr.amount : 0), 0),
+        settledMonth: allPayouts.reduce((acc, curr) => {
             const date = new Date(curr.payoutDate);
             const now = new Date();
             if (curr.status === 'Paid' && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
@@ -45,7 +71,7 @@ const VendorPayouts = () => {
 
     const handleExport = () => {
         const headers = ['Payout ID', 'Vendor', 'Amount', 'Date', 'Method', 'Reference No.', 'Status'];
-        const csvRows = payouts.map(p => [
+        const csvRows = allPayouts.map(p => [
             p._id,
             `"${p.vendor?.storeName || 'Unknown'}"`,
             p.amount,
@@ -219,6 +245,58 @@ const VendorPayouts = () => {
                         </tbody>
                     </Table>
                 </Card.Body>
+                {!loading && pagination.total > 0 && (
+                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div className="text-secondary small">
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> of <span className="fw-semibold text-dark">{pagination.total}</span> payouts
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                <ChevronLeft size={16} />
+                            </Button>
+
+                            <div className="d-flex align-items-center gap-1">
+                                {[...Array(pagination.totalPages || 1)].map((_, i) => {
+                                    const p = i + 1;
+                                    const isFirstPage = p === 1;
+                                    const isLastPage = p === pagination.totalPages;
+                                    const isNearCurrent = Math.abs(page - p) <= 1;
+
+                                    if (isFirstPage || isLastPage || isNearCurrent) {
+                                        return (
+                                            <Button
+                                                key={p}
+                                                variant={page === p ? 'primary' : 'light'}
+                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                style={{ width: '36px', height: '36px', padding: 0 }}
+                                                onClick={() => setPage(p)}
+                                            >
+                                                {p}
+                                            </Button>
+                                        );
+                                    } else if (p === page - 2 || p === page + 2) {
+                                        return <span key={p} className="text-muted px-1">...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+
+                            <Button
+                                variant="light"
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage((p) => Math.min(pagination.totalPages || 1, p + 1))}
+                                disabled={page === pagination.totalPages}
+                            >
+                                <ChevronRight size={16} />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Card>
         </div>
     );

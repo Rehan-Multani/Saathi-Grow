@@ -8,7 +8,37 @@ import { geocodeAddress, getFullAddress } from '../services/locationService.js';
 // @access  Private (Admin/Staff)
 export const getVendors = async (req, res) => {
   try {
-    const vendors = await Vendor.find().sort({ createdAt: -1 });
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const search = (req.query.search || '').trim();
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { storeName: { $regex: search, $options: 'i' } },
+        { ownerName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const vendorsQuery = Vendor.find(query).sort({ createdAt: -1 });
+
+    if (hasPagination) {
+      const total = await Vendor.countDocuments(query);
+      const vendors = await vendorsQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json(vendors);
+    }
+
+    const vendors = await vendorsQuery;
     res.json(vendors);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -164,10 +194,34 @@ export const deleteVendor = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getPayouts = async (req, res) => {
   try {
-    const payouts = await VendorPayout.find({})
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const status = (req.query.status || '').trim();
+    const query = {};
+    if (status) {
+      query.status = status;
+    }
+
+    const payoutsQuery = VendorPayout.find(query)
       .populate('vendor', 'storeName ownerName logo')
       .populate('processedBy', 'name email')
       .sort('-createdAt');
+
+    if (hasPagination) {
+      const total = await VendorPayout.countDocuments(query);
+      const payouts = await payoutsQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json(payouts);
+    }
+
+    const payouts = await payoutsQuery;
     res.json(payouts);
   } catch (error) {
     res.status(500).json({ message: error.message });

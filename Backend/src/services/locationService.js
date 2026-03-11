@@ -198,7 +198,7 @@ export const getFullAddress = async (addressString) => {
         city: "",
         state: "",
         zipCode: "",
-        coordinates: [place.geometry.location.lng, place.geometry.location.lat()],
+        coordinates: [place.geometry.location.lng, place.geometry.location.lat],
         fullAddress: place.formatted_address
       };
 

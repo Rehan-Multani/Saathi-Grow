@@ -32,6 +32,10 @@ export const adminLogin = async (req, res) => {
 // @access  Private (Admin/Branch Manager)
 export const getAllAdmins = async (req, res) => {
   try {
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const search = (req.query.search || '').trim();
     let query = { _id: { $ne: req.admin._id } };
 
     // Hierarchy Logic:
@@ -49,9 +53,33 @@ export const getAllAdmins = async (req, res) => {
       }
     }
 
-    const admins = await Admin.find(query)
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { role: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const listQuery = Admin.find(query)
       .populate('branchId', 'name code')
       .sort('-createdAt');
+
+    if (hasPagination) {
+      const total = await Admin.countDocuments(query);
+      const admins = await listQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      return res.json(admins);
+    }
+
+    const admins = await listQuery;
 
     res.json(admins);
   } catch (error) {
@@ -248,8 +276,6 @@ export const getAdminProfile = async (req, res) => {
 // @access  Private
 export const updateAdminProfile = async (req, res) => {
   try {
-    console.log('Update Request Body:', req.body);
-    console.log('Update Request File:', req.file);
     const admin = await Admin.findById(req.admin._id);
 
     if (admin) {

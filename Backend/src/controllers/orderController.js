@@ -1018,6 +1018,28 @@ export const getAllOrdersAdmin = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
+    const allowedOrderStatuses = Order?.schema?.path('status')?.enumValues || [
+      'pending',
+      'confirmed',
+      'preparing',
+      'ready_for_pickup',
+      'out_for_delivery',
+      'delivered',
+      'cancelled',
+      'return_requested',
+      'return_pickup_scheduled',
+      'return_picked_up',
+      'returned'
+    ];
+
+    if (!status) {
+      return res.status(400).json({ message: 'Order status is required' });
+    }
+
+    if (!allowedOrderStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid order status' });
+    }
+
     const order = await Order.findById(req.params.id);
 
     if (!order) {
@@ -1038,6 +1060,10 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     const oldStatus = order.status;
+    if (oldStatus === status) {
+      return res.json(order);
+    }
+
     order.status = status;
     if (status === 'delivered') {
       order.paymentStatus = 'paid';
@@ -1095,6 +1121,12 @@ export const deleteOrder = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getReturnRequests = async (req, res) => {
   try {
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const search = (req.query.search || '').trim();
+    const status = (req.query.status || '').trim();
+    const includeStats = req.query.includeStats === 'true';
     let query = { 'returnRequest.isRequested': true };
 
     if (req.admin.role !== 'Admin') {
@@ -1104,12 +1136,87 @@ export const getReturnRequests = async (req, res) => {
       query.branchId = req.admin.branchId;
     }
 
-    const returns = await Order.find(query)
+    if (status && status.toLowerCase() !== 'all') {
+      query['returnRequest.status'] = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    }
+
+    if (search) {
+      const matchingUsers = await User.find({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      }).distinct('_id');
+
+      query.$or = [
+        { orderId: { $regex: search, $options: 'i' } },
+        { user: { $in: matchingUsers } }
+      ];
+    }
+
+    const returnsQuery = Order.find(query)
       .populate('user', 'name email phone')
       .populate('items.product', 'name category image')
       .populate('branchId', 'name address')
       .populate('vendor', 'storeName address')
       .sort({ 'returnRequest.requestDate': -1 });
+
+    if (hasPagination) {
+      const total = await Order.countDocuments(query);
+      const returns = await returnsQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+
+      if (includeStats) {
+        const baseStatsQuery = { 'returnRequest.isRequested': true };
+        if (req.admin.role !== 'Admin') {
+          baseStatsQuery.branchId = req.admin.branchId;
+        }
+        if (search) {
+          const matchingUsers = await User.find({
+            $or: [
+              { name: { $regex: search, $options: 'i' } },
+              { email: { $regex: search, $options: 'i' } }
+            ]
+          }).distinct('_id');
+          baseStatsQuery.$or = [
+            { orderId: { $regex: search, $options: 'i' } },
+            { user: { $in: matchingUsers } }
+          ];
+        }
+
+        const [pending, approved, rejected] = await Promise.all([
+          Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Pending' }),
+          Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Approved' }),
+          Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Rejected' })
+        ]);
+
+        return res.json({
+          returns,
+          pagination: {
+            total,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(total / limitNumber) || 1
+          },
+          stats: {
+            total: pending + approved + rejected,
+            pending,
+            approved,
+            rejected
+          }
+        });
+      }
+
+      return res.json(returns);
+    }
+
+    const returns = await returnsQuery;
 
     res.json(returns);
   } catch (error) {
@@ -1206,6 +1313,11 @@ export const getVendorReturnRequests = async (req, res) => {
 export const handleReturnRequest = async (req, res) => {
   try {
     const { action, rejectionReason } = req.body; // action: 'Approved' or 'Rejected'
+    const allowedActions = ['Approved', 'Rejected'];
+    if (!allowedActions.includes(action)) {
+      return res.status(400).json({ message: 'Invalid action. Use Approved or Rejected.' });
+    }
+
     const order = await Order.findById(req.params.id);
 
     if (!order) {
@@ -1224,6 +1336,10 @@ export const handleReturnRequest = async (req, res) => {
 
     if (!order.returnRequest.isRequested) {
       return res.status(400).json({ message: 'No return request found for this order' });
+    }
+
+    if (order.returnRequest.status === action) {
+      return res.json(order);
     }
 
     order.returnRequest.status = action;
