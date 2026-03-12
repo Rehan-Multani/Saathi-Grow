@@ -131,6 +131,9 @@ const AllProducts = () => {
     }, [localSearch, searchTerm, updateParams]);
 
     const getTotalStock = (p) => {
+        if (p.vendor) {
+            return Number(p.stock || 0);
+        }
         if (!p.branchStocks || p.branchStocks.length === 0) return 0;
         if (adminUser?.role !== 'Admin' && adminUser?.branchId) {
             const myStock = p.branchStocks.find(bs => (bs.branchId?._id || bs.branchId) === adminUser.branchId);

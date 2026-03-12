@@ -81,7 +81,9 @@ const InventoryLogsModal = ({ show, onHide, product }) => {
                       <div className="small fw-medium">{format(new Date(log.createdAt), 'MMM dd, HH:mm')}</div>
                     </td>
                     <td>
-                      <div className="small fw-bold text-primary">{log.branchId?.name || 'Main'}</div>
+                      <div className="small fw-bold text-primary">
+                        {log.branchId?.name || log.vendorId?.storeName || 'Main'}
+                      </div>
                     </td>
                     <td>
                       <Badge bg={getBadgeVariant(log.type)} className="text-uppercase" style={{ fontSize: '10px' }}>

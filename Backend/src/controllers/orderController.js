@@ -210,6 +210,7 @@ export const verifyRazorpayPayment = async (req, res) => {
       paymentMethod: 'online',
       paymentStatus: 'paid', // Mark as paid for razorpay
       status: 'confirmed',
+      orderSource: 'online',
       totalAmount: computedBill.totalAmount, // Securely injected
       subTotal: computedBill.subTotal,
       taxAmount: computedBill.taxAmount,
@@ -502,6 +503,7 @@ export const createCODOrder = async (req, res) => {
       paymentMethod: 'cod',
       paymentStatus: 'pending',
       status: 'pending',
+      orderSource: 'online',
       totalAmount: computedBill.totalAmount, // Securely injected
       subTotal: computedBill.subTotal,
       taxAmount: computedBill.taxAmount,
@@ -588,6 +590,7 @@ export const createWalletOrder = async (req, res) => {
       paymentMethod: 'wallet',
       paymentStatus: 'paid',
       status: 'confirmed',
+      orderSource: 'online',
       totalAmount: computedBill.totalAmount,
       subTotal: computedBill.subTotal,
       taxAmount: computedBill.taxAmount,
@@ -956,7 +959,10 @@ export const getAllOrdersAdmin = async (req, res) => {
 
       query.$or = [
         { orderId: searchRegex },
-        { user: { $in: userIds } }
+        { user: { $in: userIds } },
+        { 'posCustomer.name': searchRegex },
+        { 'posCustomer.email': searchRegex },
+        { 'posCustomer.phone': searchRegex }
       ];
     }
 

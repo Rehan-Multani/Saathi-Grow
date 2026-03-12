@@ -345,8 +345,10 @@ const AllOrders = () => {
                                 <tr key={order._id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 font-medium text-violet-600">{order.orderId || order._id.slice(-8)}</td>
                                     <td className="px-6 py-4 font-medium text-gray-800">
-                                        <div>{order.user?.name || 'Guest'}</div>
-                                        <div className="text-xs text-muted">{order.user?.email || order.user?.phone || ''}</div>
+                                        <div>{order.user?.name || order.posCustomer?.name || 'Guest'}</div>
+                                        <div className="text-xs text-muted">
+                                            {order.user?.email || order.user?.phone || order.posCustomer?.phone || order.posCustomer?.email || ''}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">

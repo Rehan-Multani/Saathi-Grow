@@ -11,6 +11,7 @@
         permission: 'VIEW_ORDERS',
         submenu: [
             { title: 'All Orders', path: '/admin/orders' },
+            { title: 'POS Billing', path: '/admin/orders/pos-billing' },
             { title: 'POS History', path: '/admin/orders?source=pos' },
             { title: 'Online Orders', path: '/admin/orders/online' },
             { title: 'Return Requests', path: '/admin/orders/returns' },

@@ -18,6 +18,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
     const [reason, setReason] = useState('');
     const [branchId, setBranchId] = useState('');
     const [loading, setLoading] = useState(false);
+    const isVendorProduct = Boolean(product?.vendor);
 
     useEffect(() => {
         if (show) {
@@ -25,23 +26,25 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
             setType('Addition');
             setReason('');
             // Set initial branch if product has branches
-            if (product?.branchStocks?.length > 0) {
+            if (!isVendorProduct && product?.branchStocks?.length > 0) {
                 setBranchId(product.branchStocks[0].branchId._id || product.branchStocks[0].branchId);
             } else {
                 setBranchId('');
             }
         }
-    }, [show, product]);
+    }, [show, product, isVendorProduct]);
 
-    const getSelectedBranchStock = () => {
-        if (!product || !branchId) return 0;
+    const getSelectedStock = () => {
+        if (!product) return 0;
+        if (isVendorProduct) return product.stock || 0;
+        if (!branchId) return 0;
         const bs = product.branchStocks.find(s => (s.branchId._id || s.branchId) === branchId);
         return bs ? bs.stock : 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!branchId) return toast.warning('Please select a branch');
+        if (!isVendorProduct && !branchId) return toast.warning('Please select a branch');
         if (!amount || amount <= 0) return toast.warning('Please enter a valid amount');
         if (!reason) return toast.warning('Please provide a reason for adjustment');
 
@@ -51,7 +54,8 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                 amount: Number(amount),
                 type,
                 reason,
-                branchId
+                branchId,
+                storeType: isVendorProduct ? 'vendor' : 'branch'
             });
             toast.success(`Inventory updated: ${product.name}`);
             if (onRestockSuccess) onRestockSuccess(result.product);
@@ -78,27 +82,33 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                         <div className="fw-bold text-dark">{product.name}</div>
                         <div className="text-sm text-secondary font-monospace mb-2">{product.sku}</div>
 
-                        <Form.Group className="mb-2">
-                            <Form.Label className="fw-bold small mb-1">Select Branch</Form.Label>
-                            <Form.Select
-                                size="sm"
-                                value={branchId}
-                                onChange={(e) => setBranchId(e.target.value)}
-                                className="border-secondary"
-                            >
-                                <option value="">Select Branch...</option>
-                                {product.branchStocks.map(bs => (
-                                    <option key={bs.branchId._id || bs.branchId} value={bs.branchId._id || bs.branchId}>
-                                        {bs.branchId.name || 'Unknown Branch'} (Current: {bs.stock})
-                                    </option>
-                                ))}
-                            </Form.Select>
-                        </Form.Group>
+                        {!isVendorProduct ? (
+                            <Form.Group className="mb-2">
+                                <Form.Label className="fw-bold small mb-1">Select Branch</Form.Label>
+                                <Form.Select
+                                    size="sm"
+                                    value={branchId}
+                                    onChange={(e) => setBranchId(e.target.value)}
+                                    className="border-secondary"
+                                >
+                                    <option value="">Select Branch...</option>
+                                    {product.branchStocks.map(bs => (
+                                        <option key={bs.branchId._id || bs.branchId} value={bs.branchId._id || bs.branchId}>
+                                            {bs.branchId.name || 'Unknown Branch'} (Current: {bs.stock})
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                            </Form.Group>
+                        ) : (
+                            <div className="mb-2 small text-muted">
+                                Vendor: <span className="fw-bold text-dark">{product.vendor?.storeName || 'Vendor Store'}</span>
+                            </div>
+                        )}
 
                         <div className="pt-2 border-top d-flex justify-content-between align-items-center mt-2">
-                            <span className="text-sm">Stock in Selected Branch:</span>
-                            <span className={`fw-bold ${getSelectedBranchStock() <= 10 ? 'text-danger' : 'text-success'}`}>
-                                {getSelectedBranchStock()} {product.unitType || 'pcs'}
+                            <span className="text-sm">{isVendorProduct ? 'Vendor Stock:' : 'Stock in Selected Branch:'}</span>
+                            <span className={`fw-bold ${getSelectedStock() <= 10 ? 'text-danger' : 'text-success'}`}>
+                                {getSelectedStock()} {product.unitType || 'pcs'}
                             </span>
                         </div>
                     </div>
@@ -146,7 +156,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                         variant="primary"
                         type="submit"
                         className="w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2"
-                        disabled={loading || !branchId}
+                        disabled={loading || (!isVendorProduct && !branchId)}
                     >
                         {loading ? <Spinner animation="border" size="sm" /> : <RefreshCw size={18} />}
                         Confirm Adjustment
