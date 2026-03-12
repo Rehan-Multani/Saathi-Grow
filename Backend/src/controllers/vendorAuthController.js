@@ -124,3 +124,66 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// @desc    Get vendor's saved bank account
+// @route   GET /api/vendors/bank-account
+// @access  Private (Vendor)
+export const getBankAccount = async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.vendor._id).select('bankAccount');
+    res.json({ bankAccount: vendor?.bankAccount || null });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Save/update vendor bank account (only one allowed)
+// @route   PUT /api/vendors/bank-account
+// @access  Private (Vendor)
+export const saveBankAccount = async (req, res) => {
+  try {
+    const { accountHolderName, accountNumber, ifscCode, bankName, upiId } = req.body;
+
+    // At minimum need either a UPI ID or full bank details
+    if (!upiId && (!accountNumber || !ifscCode)) {
+      return res.status(400).json({
+        message: 'Provide either a UPI ID or full bank details (Account No. + IFSC)'
+      });
+    }
+
+    const vendor = await Vendor.findById(req.vendor._id);
+    vendor.bankAccount = {
+      accountHolderName: accountHolderName || vendor.bankAccount?.accountHolderName || '',
+      accountNumber: accountNumber || '',
+      ifscCode: (ifscCode || '').toUpperCase(),
+      bankName: bankName || '',
+      upiId: upiId || '',
+      addedAt: new Date()
+    };
+    await vendor.save();
+
+    res.json({ success: true, bankAccount: vendor.bankAccount });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete vendor bank account
+// @route   DELETE /api/vendors/bank-account
+// @access  Private (Vendor)
+export const deleteBankAccount = async (req, res) => {
+  try {
+    await Vendor.findByIdAndUpdate(req.vendor._id, {
+      $set: {
+        'bankAccount.accountHolderName': '',
+        'bankAccount.accountNumber': '',
+        'bankAccount.ifscCode': '',
+        'bankAccount.bankName': '',
+        'bankAccount.upiId': '',
+        'bankAccount.addedAt': null
+      }
+    });
+    res.json({ success: true, message: 'Bank account removed' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

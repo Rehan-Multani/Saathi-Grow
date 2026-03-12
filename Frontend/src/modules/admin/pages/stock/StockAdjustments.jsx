@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Badge, Spinner } from 'react-bootstrap';
 import { Plus, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -86,7 +86,11 @@ const StockAdjustments = () => {
                                         </td>
                                         <td>
                                             <Badge bg="light" className="text-secondary fw-normal border">
-                                                {log.branchId?.name || 'Main'}
+                                                {log.vendorId ? (
+                                                    <span className="text-purple-600">📦 {log.vendorId.storeName}</span>
+                                                ) : (
+                                                    log.branchId?.name || 'Main'
+                                                )}
                                             </Badge>
                                         </td>
                                         <td>

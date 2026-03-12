@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Modal, Button, Form, Row, Col, Badge } from 'react-bootstrap';
 import { Save, X, ArrowUpRight, CheckCircle, Package, User, MessageCircle } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -10,6 +10,8 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
     const token = adminUser?.token;
 
     const [adminNotes, setAdminNotes] = useState('');
+    const [processRefund, setProcessRefund] = useState(ticket?.storeRecommendedRefund || false);
+    const [refundAmount, setRefundAmount] = useState(ticket?.order?.totalAmount || 0);
 
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -21,9 +23,9 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
             if (action === 'ESCALATE') {
                 await onEscalate(ticket.ticketId, adminNotes);
             } else if (action === 'CLOSE') {
-                const res = await complaintApi.closeTicket(token, ticket.ticketId);
+                const res = await complaintApi.closeTicket(token, ticket.ticketId, processRefund, refundAmount);
                 if (res.success) {
-                    toast.success('Ticket closed successfully');
+                    toast.success(processRefund ? 'Ticket closed & Refund processed' : 'Ticket closed successfully');
                     onRefresh();
                 }
             }
@@ -97,11 +99,16 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                                 <div className="border-start border-2 border-success ms-2 ps-3 space-y-3">
                                     {ticket.resolutionThread.map((msg, idx) => (
                                         <div key={idx} className="mb-2">
-                                            <Badge bg="light" text="dark" className="xs border mb-1 uppercase">{msg.role}</Badge>
+                                            <Badge bg="light" text="dark" className="xs border mb-1 uppercase">{msg.role || msg.senderModel}</Badge>
                                             <div className="small fw-bold">{msg.message}</div>
                                             <div className="xs text-muted">By {msg.senderName}</div>
                                         </div>
                                     ))}
+                                    {ticket.storeRecommendedRefund && !ticket.refundProcessed && (
+                                        <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 xs fw-black uppercase">
+                                            ⚠️ Store has recommended a refund for this ticket
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -133,15 +140,43 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                                 </Button>
                             )}
 
-                            {['STORE_RESPONDED', 'RESOLVED'].includes(ticket.status) && (
-                                <Button
-                                    variant="success"
-                                    className="fw-black uppercase tracking-widest py-2 d-flex align-items-center justify-content-center gap-2 border-0 shadow-sm"
-                                    onClick={() => handleAction('CLOSE')}
-                                    disabled={isProcessing}
-                                >
-                                    <CheckCircle size={18} /> Close Ticket
-                                </Button>
+                            {['STORE_RESPONDED', 'RESOLVED', 'OVERDUE'].includes(ticket.status) && (
+                                <div className="bg-light p-3 rounded-3 border mb-3">
+                                    <label className="xs font-black text-muted uppercase tracking-widest mb-3 d-block">Resolution Action</label>
+                                    
+                                    {ticket.order && !ticket.refundProcessed && (
+                                        <div className="mb-3">
+                                            <Form.Check 
+                                                type="checkbox"
+                                                id="refund-check"
+                                                label={<span className="small fw-black text-success uppercase">Process Wallet Refund</span>}
+                                                checked={processRefund}
+                                                onChange={(e) => setProcessRefund(e.target.checked)}
+                                                className="mb-2"
+                                            />
+                                            {processRefund && (
+                                                <InputGroup size="sm">
+                                                    <InputGroup.Text className="bg-white">₹</InputGroup.Text>
+                                                    <Form.Control 
+                                                        type="number"
+                                                        value={refundAmount}
+                                                        onChange={(e) => setRefundAmount(e.target.value)}
+                                                        className="fw-bold"
+                                                    />
+                                                </InputGroup>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        variant="success"
+                                        className="w-100 fw-black uppercase tracking-widest py-2 d-flex align-items-center justify-content-center gap-2 border-0 shadow-sm"
+                                        onClick={() => handleAction('CLOSE')}
+                                        disabled={isProcessing}
+                                    >
+                                        <CheckCircle size={18} /> {processRefund ? 'Refund & Close' : 'Close Ticket'}
+                                    </Button>
+                                </div>
                             )}
 
                             <Button variant="light" onClick={onHide} className="fw-black uppercase xs tracking-tighter text-muted mt-2">

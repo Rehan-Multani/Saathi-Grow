@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { Package, RefreshCw, AlertCircle } from 'lucide-react';
 import { adjustInventory } from '../../api/productApi';
@@ -27,6 +27,8 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
             // Set initial branch if product has branches
             if (product?.branchStocks?.length > 0) {
                 setBranchId(product.branchStocks[0].branchId._id || product.branchStocks[0].branchId);
+            } else if (product?.vendor) {
+                setBranchId('vendor');
             } else {
                 setBranchId('');
             }
@@ -35,6 +37,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
 
     const getSelectedBranchStock = () => {
         if (!product || !branchId) return 0;
+        if (branchId === 'vendor') return product.stock || 0;
         const bs = product.branchStocks.find(s => (s.branchId._id || s.branchId) === branchId);
         return bs ? bs.stock : 0;
     };
@@ -51,7 +54,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                 amount: Number(amount),
                 type,
                 reason,
-                branchId
+                branchId: branchId === 'vendor' ? null : branchId
             });
             toast.success(`Inventory updated: ${product.name}`);
             if (onRestockSuccess) onRestockSuccess(result.product);
@@ -79,24 +82,27 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                         <div className="text-sm text-secondary font-monospace mb-2">{product.sku}</div>
 
                         <Form.Group className="mb-2">
-                            <Form.Label className="fw-bold small mb-1">Select Branch</Form.Label>
+                            <Form.Label className="fw-bold small mb-1">Target Storage</Form.Label>
                             <Form.Select
                                 size="sm"
                                 value={branchId}
                                 onChange={(e) => setBranchId(e.target.value)}
                                 className="border-secondary"
                             >
-                                <option value="">Select Branch...</option>
-                                {product.branchStocks.map(bs => (
+                                <option value="">Select...</option>
+                                {product.vendor && (
+                                    <option value="vendor">📦 Vendor Direct Stock ({product.vendor.storeName})</option>
+                                )}
+                                {product.branchStocks?.map(bs => (
                                     <option key={bs.branchId._id || bs.branchId} value={bs.branchId._id || bs.branchId}>
-                                        {bs.branchId.name || 'Unknown Branch'} (Current: {bs.stock})
+                                        🏢 Branch: {bs.branchId.name || 'Unknown'} (Current: {bs.stock})
                                     </option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
 
                         <div className="pt-2 border-top d-flex justify-content-between align-items-center mt-2">
-                            <span className="text-sm">Stock in Selected Branch:</span>
+                            <span className="text-sm">Current Stock:</span>
                             <span className={`fw-bold ${getSelectedBranchStock() <= 10 ? 'text-danger' : 'text-success'}`}>
                                 {getSelectedBranchStock()} {product.unitType || 'pcs'}
                             </span>

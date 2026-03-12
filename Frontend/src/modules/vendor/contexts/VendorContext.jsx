@@ -26,7 +26,10 @@ export const VendorProvider = ({ children }) => {
     const [walletData, setWalletData] = useState({
         balance: 0,
         totalEarnings: 0,
-        transactions: []
+        pendingPayouts: 0,
+        bankAccount: null,
+        transactions: [],
+        pagination: { total: 0, page: 1, limit: 10, totalPages: 1 }
     });
     const [earningsStats, setEarningsStats] = useState({
         totalSales: 0,
@@ -92,29 +95,32 @@ export const VendorProvider = ({ children }) => {
         }
     };
 
-    const fetchReturns = async () => {
+    const fetchReturns = async (params = {}) => {
         if (!vendor?.token) return;
         try {
-            const data = await vendorOrderApi.getVendorReturns(vendor.token);
-            setReturnRequests(data);
+            const data = await vendorOrderApi.getVendorReturns(vendor.token, params);
+            // Handle paginated response
+            if (data.returns) {
+              setReturnRequests(data.returns);
+              return data; // Return full object for component pagination state
+            } else {
+              setReturnRequests(data);
+              return { returns: data, pagination: { total: data.length, totalPages: 1 } };
+            }
         } catch (error) {
             console.error('Failed to fetch return requests:', error);
+            return { returns: [], pagination: { total: 0, totalPages: 1 } };
         }
     };
 
-    const fetchWalletData = async () => {
+    const fetchWalletData = async (page = 1) => {
         if (!vendor?.token) return;
         try {
-            const wallet = await vendorWalletApi.getVendorWallet(vendor.token);
+            const wallet = await vendorWalletApi.getVendorWallet(vendor.token, page, 10);
             const stats = await vendorWalletApi.getVendorWalletStats(vendor.token);
             setWalletData(wallet);
             setEarningsStats(stats);
-
-            // Sync overall stats if needed
-            setStats(prev => ({
-                ...prev,
-                earnings: wallet.totalEarnings
-            }));
+            setStats(prev => ({ ...prev, earnings: wallet.totalEarnings }));
         } catch (error) {
             console.error('Failed to fetch wallet data:', error);
         }

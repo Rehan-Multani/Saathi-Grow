@@ -48,8 +48,7 @@ const StaffManagement = () => {
     { id: 'VIEW_PRODUCTS', label: 'View Products Catalog' },
     { id: 'MANAGE_INVENTORY', label: 'Update Stock/Inventory' },
     { id: 'VIEW_CUSTOMERS', label: 'View Customer Info' },
-    { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' },
-    { id: 'MANAGE_OFFERS_SLIDERS', label: 'Manage Promo Banners & Deals' }
+    { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' }
   ];
 
   const fetchStaff = async () => {

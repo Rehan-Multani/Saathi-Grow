@@ -3,7 +3,10 @@ import {
   login,
   register,
   getProfile,
-  updateProfile
+  updateProfile,
+  getBankAccount,
+  saveBankAccount,
+  deleteBankAccount
 } from '../controllers/vendorAuthController.js';
 import {
   getVendorProducts,
@@ -22,7 +25,9 @@ import {
 } from '../controllers/orderController.js';
 import {
   getVendorWallet,
-  getVendorEarningsStats
+  getVendorEarningsStats,
+  requestWithdrawal,
+  getWithdrawalRequests
 } from '../controllers/vendorWalletController.js';
 import {
   getOfferDeals,
@@ -68,6 +73,13 @@ router.put('/returns/:id', protectVendor, handleStoreReturnAction);
 // Wallet and Earnings
 router.get('/wallet', protectVendor, getVendorWallet);
 router.get('/wallet/stats', protectVendor, getVendorEarningsStats);
+router.post('/wallet/withdraw', protectVendor, requestWithdrawal);
+router.get('/wallet/withdrawals', protectVendor, getWithdrawalRequests);
+
+// Bank Account (one per vendor)
+router.get('/bank-account', protectVendor, getBankAccount);
+router.put('/bank-account', protectVendor, saveBankAccount);
+router.delete('/bank-account', protectVendor, deleteBankAccount);
 
 // Vendor Offers
 router.route('/offers')

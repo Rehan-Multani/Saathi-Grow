@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Spinner, Image } from 'react-bootstrap';
-import { Save, X, Camera, Plus, Sparkles } from 'lucide-react';
+import { Save, X, Camera, Plus, Sparkles, Store } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
@@ -41,7 +41,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         unitValue: 1,
         description: '',
         tags: [],
-        isSaathiGrow: false
+        isSaathiGrow: false,
+        stock: 0,
+        lowStockThreshold: 10
     });
 
     const [imagePreview, setImagePreview] = useState(null);
@@ -84,7 +86,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                 unitValue: product.unitValue || 1,
                 description: product.description || '',
                 tags: product.tags || [],
-                isSaathiGrow: product.isSaathiGrow || false
+                isSaathiGrow: product.isSaathiGrow || false,
+                stock: product.stock || 0,
+                lowStockThreshold: product.lowStockThreshold || 10
             });
 
             // Map existing stocks by branchId for quick lookup
@@ -237,7 +241,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (branchStocks.length === 0) {
+        if (!product.vendor && branchStocks.length === 0) {
             return toast.error('Product must be available in at least one branch');
         }
 
@@ -485,70 +489,108 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     </Form.Group>
                                 </Col>
 
-                                <Col md={12}>
-                                    <h6 className="mt-3 mb-3 fw-bold border-bottom pb-2 text-primary">Branch Availability & Inventory</h6>
+                                 <Col md={12}>
+                                    <h6 className="mt-3 mb-3 fw-bold border-bottom pb-2 text-primary">Inventory Management</h6>
 
-                                    <div className="p-2 bg-light rounded border mb-3">
-                                        <Form.Label className="small fw-bold mb-2">Available In:</Form.Label>
-                                        <div className="d-flex flex-wrap gap-2">
-                                            {branches.map(branch => {
-                                                const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
-                                                return (
-                                                    <Form.Check
-                                                        key={branch._id}
-                                                        type="checkbox"
-                                                        id={`edit-branch-${branch._id}`}
-                                                        label={<span className="small">{branch.name}</span>}
-                                                        checked={isSelected}
-                                                        onChange={() => handleBranchToggle(branch)}
-                                                        className="fw-medium"
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
-                                        {branchStocks.length > 0 ? (
-                                            branchStocks.map((branch) => (
-                                                <div key={branch.branchId} className="p-2 border rounded mb-2 bg-white border-start border-3 border-primary shadow-sm">
-                                                    <Row className="align-items-center g-2">
-                                                        <Col xs={4}>
-                                                            <div className="small fw-bold text-truncate" title={branch.name}>{branch.name}</div>
-                                                        </Col>
-                                                        <Col xs={4}>
-                                                            <Form.Group>
-                                                                <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Current Stock</Form.Label>
-                                                                <Form.Control
-                                                                    size="sm"
-                                                                    type="number"
-                                                                    value={branch.stock}
-                                                                    onChange={(e) => handleBranchStockChange(branch.branchId, 'stock', e.target.value)}
-                                                                    className="bg-light border-0 shadow-none"
-                                                                />
-                                                            </Form.Group>
-                                                        </Col>
-                                                        <Col xs={4}>
-                                                            <Form.Group>
-                                                                <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Low Threshold</Form.Label>
-                                                                <Form.Control
-                                                                    size="sm"
-                                                                    type="number"
-                                                                    value={branch.lowStockThreshold}
-                                                                    onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
-                                                                    className="bg-light border-0 shadow-none"
-                                                                />
-                                                            </Form.Group>
-                                                        </Col>
-                                                    </Row>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-3 border border-dashed rounded bg-light">
-                                                <p className="text-muted mb-0 small">No branches selected.</p>
+                                    {product?.vendor ? (
+                                        <div className="p-3 bg-purple-50/30 border border-purple-100 rounded-xl mb-3">
+                                            <div className="text-xs font-black text-purple-800 uppercase tracking-wider mb-3 d-flex align-items-center gap-2">
+                                                <Store size={14} className="text-purple-600" />
+                                                Vendor Direct Stock
                                             </div>
-                                        )}
-                                    </div>
+                                            <Row className="g-3">
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="small fw-medium text-muted">Total Stock</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            name="stock"
+                                                            value={formData.stock}
+                                                            onChange={handleChange}
+                                                            className="bg-white border-purple-100 py-2"
+                                                            required
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col md={6}>
+                                                    <Form.Group>
+                                                        <Form.Label className="small fw-medium text-muted">Low Stock Threshold</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            name="lowStockThreshold"
+                                                            value={formData.lowStockThreshold}
+                                                            onChange={handleChange}
+                                                            className="bg-white border-purple-100 py-2"
+                                                        />
+                                                    </Form.Group>
+                                                </Col>
+                                            </Row>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="p-2 bg-light rounded border mb-3">
+                                                <Form.Label className="small fw-bold mb-2">Available In:</Form.Label>
+                                                <div className="d-flex flex-wrap gap-2">
+                                                    {branches.map(branch => {
+                                                        const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
+                                                        return (
+                                                            <Form.Check
+                                                                key={branch._id}
+                                                                type="checkbox"
+                                                                id={`edit-branch-${branch._id}`}
+                                                                label={<span className="small">{branch.name}</span>}
+                                                                checked={isSelected}
+                                                                onChange={() => handleBranchToggle(branch)}
+                                                                className="fw-medium"
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '10px' }}>
+                                                {branchStocks.length > 0 ? (
+                                                    branchStocks.map((branch) => (
+                                                        <div key={branch.branchId} className="p-2 border rounded mb-2 bg-white border-start border-3 border-primary shadow-sm">
+                                                            <Row className="align-items-center g-2">
+                                                                <Col xs={4}>
+                                                                    <div className="small fw-bold text-truncate" title={branch.name}>{branch.name}</div>
+                                                                </Col>
+                                                                <Col xs={4}>
+                                                                    <Form.Group>
+                                                                        <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Current Stock</Form.Label>
+                                                                        <Form.Control
+                                                                            size="sm"
+                                                                            type="number"
+                                                                            value={branch.stock}
+                                                                            onChange={(e) => handleBranchStockChange(branch.branchId, 'stock', e.target.value)}
+                                                                            className="bg-light border-0 shadow-none"
+                                                                        />
+                                                                    </Form.Group>
+                                                                </Col>
+                                                                <Col xs={4}>
+                                                                    <Form.Group>
+                                                                        <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Low Threshold</Form.Label>
+                                                                        <Form.Control
+                                                                            size="sm"
+                                                                            type="number"
+                                                                            value={branch.lowStockThreshold}
+                                                                            onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
+                                                                            className="bg-light border-0 shadow-none"
+                                                                        />
+                                                                    </Form.Group>
+                                                                </Col>
+                                                            </Row>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-3 border border-dashed rounded bg-light">
+                                                        <p className="text-muted mb-0 small">No branches selected.</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </Col>
                             </Row>
                         </Col>

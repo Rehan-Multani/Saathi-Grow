@@ -180,6 +180,9 @@ export const updateDeliveryStatus = async (req, res) => {
                     stop.status = 'delivered';
                     stop.deliveredAt = Date.now();
                     order.status = 'delivered';
+                    if (order.paymentMethod === 'cod') {
+                        order.paymentStatus = 'paid';
+                    }
                     await order.save();
                     if (order.vendor) await creditVendorWallet(order);
 

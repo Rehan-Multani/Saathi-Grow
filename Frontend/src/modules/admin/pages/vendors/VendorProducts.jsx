@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner, Image } from 'react-bootstrap';
 import { Search, Filter, ExternalLink, X, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getProducts } from '../../api/productApi';
@@ -191,7 +191,7 @@ const VendorProducts = () => {
                         </thead>
                         <tbody>
                             {paginatedProducts.length > 0 ? paginatedProducts.map((p, idx) => {
-                                const totalStock = p.branchStocks?.reduce((acc, curr) => acc + curr.stock, 0) || 0;
+                                const totalStock = p.vendor ? (p.stock || 0) : (p.branchStocks?.reduce((acc, curr) => acc + curr.stock, 0) || 0);
                                 return (
                                     <tr key={idx}>
                                         <td className="ps-4 py-3">

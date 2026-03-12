@@ -88,11 +88,24 @@ const OrderDetailsPage = () => {
                             <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${['out_for_delivery', 'delivered'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>Shipped</span>
                         </div>
                         <div className="flex flex-col items-center gap-1 z-10 relative">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${order.status === 'delivered' ? 'bg-[#0c831f] text-white shadow-green-500/10' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}><CheckCircle size={10} /></div>
-                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${order.status === 'delivered' ? 'text-[#0c831f]' : 'text-gray-400'}`}>Delivered</span>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${['delivered', 'returned'].includes(order.status) ? 'bg-[#0c831f] text-white shadow-green-500/10' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}><CheckCircle size={10} /></div>
+                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${['delivered', 'returned'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>{order.status === 'returned' ? 'Returned' : 'Delivered'}</span>
                         </div>
                     </div>
                 </div>
+
+                {/* Refund Success Pulse */}
+                {order.status === 'returned' && (
+                    <div className="bg-[#0c831f]/10 border border-[#0c831f]/20 p-4 rounded-2xl flex items-center gap-4 mb-6 animate-pulse">
+                        <div className="w-10 h-10 rounded-xl bg-[#0c831f] flex items-center justify-center text-white">
+                            <ShieldCheck size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[#0c831f] mb-1">Refund Processed</p>
+                            <p className="text-xs font-bold text-gray-600 dark:text-gray-400">Total amount has been credited back to your wallet.</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Secure Delivery PIN Display */}
                 {rawOrder?.deliveryOTP && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(rawOrder.status) && (

@@ -78,7 +78,9 @@ const MyComplaintsPage = () => {
                       </div>
                       <div>
                         <div className="text-[14px] md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1 md:mb-2 uppercase">{c.category}</div>
-                        <div className="text-[10px] md:text-[11px] text-gray-400 font-bold uppercase tracking-[0.15em] opacity-80">{c.ticketId} • Order #{c.order?.orderId?.slice(-6).toUpperCase()}</div>
+                        <div className="text-[10px] md:text-[11px] text-gray-400 font-bold uppercase tracking-[0.15em] opacity-80">
+                          {c.ticketId} • {c.order?.orderId ? `Order #${c.order.orderId.slice(-6).toUpperCase()}` : 'General Ticket'}
+                        </div>
                       </div>
                     </div>
                     <div className={`px-2.5 py-1 md:px-4 md:py-2 rounded-full md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm md:shadow-md transition-all ${statusMap[c.status]?.color} border-current/20`}>

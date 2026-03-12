@@ -392,15 +392,12 @@ export const creditVendorWallet = async (order) => {
     const payoutAmount = order.vendorPayoutAmount || 0;
     if (payoutAmount <= 0) return;
 
-    let wallet = await Wallet.findOne({ owner: order.vendor, ownerModel: 'Vendor' });
-    if (!wallet) {
-      wallet = await Wallet.create({
-        owner: order.vendor,
-        ownerModel: 'Vendor',
-        balance: 0,
-        totalEarnings: 0
-      });
-    }
+    // Atomically upsert vendor wallet (safe from duplicate-key errors)
+    const wallet = await Wallet.findOneAndUpdate(
+      { owner: order.vendor, ownerModel: 'Vendor' },
+      { $setOnInsert: { balance: 0, totalEarnings: 0, pendingPayouts: 0 } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     // Check if transaction already exists to prevent double credit
     const existingTx = await Transaction.findOne({
@@ -411,9 +408,10 @@ export const creditVendorWallet = async (order) => {
 
     if (existingTx) return;
 
-    wallet.balance += payoutAmount;
-    wallet.totalEarnings += payoutAmount;
-    await wallet.save();
+    // Atomically increment the balance
+    await Wallet.findByIdAndUpdate(wallet._id, {
+      $inc: { balance: payoutAmount, totalEarnings: payoutAmount }
+    });
 
     await Transaction.create({
       wallet: wallet._id,
@@ -976,6 +974,7 @@ export const getAllOrdersAdmin = async (req, res) => {
     // Run paginated results, total count, AND full-dataset aggregate stats in parallel
     const [orders, totalOrders, statsAgg] = await Promise.all([
       Order.find(query)
+        .select('orderId user items totalAmount status createdAt')
         .populate('user', 'name email phone')
         .populate('branchId', 'name')
         .populate('vendor', 'storeName')
@@ -1322,17 +1321,81 @@ export const updateVendorOrderStatus = async (req, res) => {
 export const getVendorReturnRequests = async (req, res) => {
   try {
     const vendorId = req.vendor._id;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+    const search = (req.query.search || '').trim();
+    const status = (req.query.status || '').trim();
+    const includeStats = req.query.includeStats === 'true';
 
-    const returns = await Order.find({
+    let query = { 
       'returnRequest.isRequested': true,
-      vendor: vendorId
-    })
+      vendor: vendorId 
+    };
+
+    if (status && status.toLowerCase() !== 'all') {
+      const rawStatuses = status.split(',').map(s => s.trim()).filter(Boolean);
+      const normalizedStatuses = rawStatuses.map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase());
+      
+      const expandedStatuses = normalizedStatuses.flatMap(s => {
+        if (s === 'Approved') return ['Approved', 'Accepted'];
+        if (s === 'Accepted') return ['Accepted', 'Approved'];
+        return [s];
+      });
+      
+      const uniqueStatuses = [...new Set(expandedStatuses)];
+      query['returnRequest.status'] = uniqueStatuses.length === 1 
+        ? uniqueStatuses[0] 
+        : { $in: uniqueStatuses };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      const matchingUsers = await User.find({
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { phone: searchRegex }
+        ]
+      }).select('_id').lean();
+      const userIds = matchingUsers.map(user => user._id);
+
+      query.$or = [
+        { orderId: searchRegex },
+        { user: { $in: userIds } }
+      ];
+    }
+
+    const total = await Order.countDocuments(query);
+    const returns = await Order.find(query)
       .populate('user', 'name email phone')
       .populate('items.product', 'name category image')
       .sort({ 'returnRequest.requestDate': -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
       .lean();
 
-    res.json(returns);
+    let stats = null;
+    if (includeStats) {
+      const baseStatsQuery = { 'returnRequest.isRequested': true, vendor: vendorId };
+      const [pending, approved, rejected, completed] = await Promise.all([
+        Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Pending' }),
+        Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': { $in: ['Accepted', 'Approved'] } }),
+        Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': { $in: ['Rejected', 'FinalRejected'] } }),
+        Order.countDocuments({ ...baseStatsQuery, 'returnRequest.status': 'Returned' })
+      ]);
+      stats = { total: pending + approved + rejected + completed, pending, approved, rejected, completed };
+    }
+
+    res.json({
+      returns,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit) || 1
+      },
+      stats
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

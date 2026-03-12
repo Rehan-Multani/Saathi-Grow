@@ -1,11 +1,10 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Spinner } from 'react-bootstrap';
 import ProductEditModal from '../../components/products/ProductEditModal';
 import RestockModal from '../../components/products/RestockModal';
-import InventoryLogsModal from '../../components/products/InventoryLogsModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
 import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
@@ -49,6 +48,7 @@ const SourceBadge = ({ vendor }) => {
 };
 
 const AllProducts = () => {
+    const navigate = useNavigate();
     const adminContext = useAdminAuth();
     const staffContext = useStaffAuth();
     const managerContext = useStoreManagerAuth();
@@ -75,7 +75,6 @@ const AllProducts = () => {
 
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
-    const [showLogsModal, setShowLogsModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const updateParams = useCallback((newParams) => {
@@ -131,7 +130,12 @@ const AllProducts = () => {
     }, [localSearch, searchTerm, updateParams]);
 
     const getTotalStock = (p) => {
+        // If it's a vendor product, return the direct stock field
+        if (p.vendor) return p.stock || 0;
+        
+        // If not vendor and no branch stocks, it's truly empty
         if (!p.branchStocks || p.branchStocks.length === 0) return 0;
+        
         if (adminUser?.role !== 'Admin' && adminUser?.branchId) {
             const myStock = p.branchStocks.find(bs => (bs.branchId?._id || bs.branchId) === adminUser.branchId);
             return myStock ? myStock.stock : 0;
@@ -173,19 +177,26 @@ const AllProducts = () => {
         }
     };
 
-    const handleEdit = (product) => {
-        setSelectedProduct(product);
-        setShowEditModal(true);
+    const handleLogsOpen = (p) => {
+        navigate(`/admin/products/${p._id}/inventory-logs`);
     };
 
-    const handleRestockOpen = (product) => {
-        setSelectedProduct(product);
+    const handleRestockOpen = (p) => {
+        if (p.vendor && adminUser?.role === 'Admin') {
+            toast.info("Vendor products must be managed by the vendor.");
+            return;
+        }
+        setSelectedProduct(p);
         setShowRestockModal(true);
     };
 
-    const handleLogsOpen = (product) => {
-        setSelectedProduct(product);
-        setShowLogsModal(true);
+    const handleEdit = (p) => {
+        if (p.vendor && adminUser?.role === 'Admin') {
+            toast.info("Admin cannot edit vendor products.");
+            return;
+        }
+        setSelectedProduct(p);
+        setShowEditModal(true);
     };
 
     const handleSave = async (updatedProductData) => {
@@ -392,7 +403,7 @@ const AllProducts = () => {
                                         <td className="px-6 py-4 text-gray-500 text-center text-sm">{p.brandName}</td>
                                         <td className="px-6 py-4 text-gray-500 text-center text-sm">{p.category}</td>
 
-                                        {/* Source Column — Admin only */}
+                                        {/* Source Column â€” Admin only */}
                                         {adminUser?.role === 'Admin' && (
                                             <td className="px-6 py-4 text-center">
                                                 <SourceBadge vendor={p.vendor} />
@@ -404,7 +415,7 @@ const AllProducts = () => {
                                             <div className="flex flex-wrap justify-center gap-1">
                                                 {adminUser?.role === 'Admin' ? (
                                                     p.vendor ? (
-                                                        // Vendor product — show vendor store name
+                                                        // Vendor product â€” show vendor store name
                                                         <span className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-bold flex items-center gap-1">
                                                             <Store size={9} /> {p.vendor.storeName}
                                                         </span>
@@ -457,7 +468,7 @@ const AllProducts = () => {
                                                 >
                                                     <HistoryIcon size={16} />
                                                 </button>
-                                                {adminUser?.role === 'Admin' && (
+                                                {adminUser?.role === 'Admin' && !p.vendor && (
                                                     <button
                                                         className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-100"
                                                         title="Adjust Inventory"
@@ -466,7 +477,7 @@ const AllProducts = () => {
                                                         <PackagePlus size={16} />
                                                     </button>
                                                 )}
-                                                {(adminUser?.role === 'Admin' || (adminUser?.role === 'Staff' && adminUser?.permissions && adminUser.permissions.includes('MANAGE_PRODUCTS'))) && (
+                                                {!p.vendor && ((adminUser?.role === 'Admin') || (adminUser?.role === 'Staff' && adminUser?.permissions && adminUser.permissions.includes('MANAGE_PRODUCTS'))) && (
                                                     <button
                                                         className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
                                                         title="Edit"
@@ -483,6 +494,11 @@ const AllProducts = () => {
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
+                                                )}
+                                                {p.vendor && (
+                                                    <span className="text-[10px] text-purple-600 font-bold bg-purple-50 px-2 py-1 rounded border border-purple-100">
+                                                        Managed by Vendor
+                                                    </span>
                                                 )}
                                             </div>
                                             {showQR === p._id && (
@@ -596,13 +612,7 @@ const AllProducts = () => {
                 show={showRestockModal}
                 onHide={() => setShowRestockModal(false)}
                 product={selectedProduct}
-                onRestockSuccess={handleRestockSuccess}
-            />
-
-            <InventoryLogsModal
-                show={showLogsModal}
-                onHide={() => setShowLogsModal(false)}
-                product={selectedProduct}
+                onRestockSuccess={fetchData}
             />
         </div>
     );

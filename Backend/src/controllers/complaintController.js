@@ -23,38 +23,38 @@ export const raiseComplaint = async (req, res) => {
       finalAttachments = Array.isArray(req.body.attachments) ? req.body.attachments : [req.body.attachments];
     }
 
-    // Search by either custom orderId or MongoDB _id to support both frontend routing patterns
-    const order = await Order.findOne({
-      $or: [
-        { orderId: orderId },
-        { _id: mongoose.isValidObjectId(orderId) ? orderId : new mongoose.Types.ObjectId() }
-      ]
-    }); // No need to populate for just IDs, but let's check for store
+    let order = null;
+    let storeId = null;
+    let storeModel = null;
+    let isGeneralTicket = true;
 
-    if (!order) {
-      return res.status(404).json({ success: false, message: 'Order strictly not found' });
+    if (orderId) {
+      // Search by either custom orderId or MongoDB _id
+      order = await Order.findOne({
+        $or: [
+          { orderId: orderId },
+          { _id: mongoose.isValidObjectId(orderId) ? orderId : new mongoose.Types.ObjectId() }
+        ]
+      });
+
+      if (order) {
+        storeId = order.vendor || order.branchId;
+        storeModel = order.vendor ? 'Vendor' : 'Branch';
+        isGeneralTicket = false;
+      }
     }
 
-    // Determine store (Vendor or Branch)
-    // Use the raw IDs directly from the order document
-    const storeId = order.vendor || order.branchId;
-    const storeModel = order.vendor ? 'Vendor' : 'Branch';
-
-    if (!storeId) {
-      return res.status(400).json({ success: false, message: 'This order is not associated with a specific store.' });
-    }
-
-    // Generate Ticket ID manually to avoid "required" validation issues before pre-save hook
-    const count = await Complaint.countDocuments();
-    const ticketId = `TKT-${1000 + count + 1}`;
+    // Generate Ticket ID with timestamp to prevent collisions
+    const ticketId = `TKT-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`;
 
     const complaint = await Complaint.create({
       ticketId,
-      order: order._id,
+      order: order ? order._id : null,
       user: userId,
       store: storeId,
       storeModel,
-      deliveryPartner: order.deliveryPartnerId,
+      isGeneralTicket,
+      deliveryPartner: order?.deliveryPartnerId || null,
       category,
       description: description || 'No description provided',
       attachments: finalAttachments
@@ -62,12 +62,11 @@ export const raiseComplaint = async (req, res) => {
 
     // Notify Admins
     await notifyAdmins({
-      title: `New Ticket Raised: ${complaint.ticketId}`,
-      body: `Order #${order.orderId} - ${category}`
+      title: `New Ticket: ${complaint.ticketId}`,
+      body: order ? `Order #${order.orderId} - ${category}` : `General - ${category}`
     }, {
       ticketId: complaint.ticketId,
-      orderId: order.orderId,
-
+      orderId: order?.orderId || 'GENERAL',
       type: 'complaint'
     });
 
@@ -157,7 +156,7 @@ export const escalateToStore = async (req, res) => {
  */
 export const resolveComplaintByStore = async (req, res) => {
   try {
-    const { ticketId, resolutionSolution, storeNotes } = req.body;
+    const { ticketId, resolutionSolution, storeNotes, storeRecommendedRefund } = req.body;
 
     const complaint = await Complaint.findOne({ ticketId }).populate('order user');
     if (!complaint) {
@@ -180,6 +179,7 @@ export const resolveComplaintByStore = async (req, res) => {
     complaint.status = 'STORE_RESPONDED';
     complaint.resolutionSolution = resolutionSolution;
     complaint.storeNotes = storeNotes;
+    complaint.storeRecommendedRefund = storeRecommendedRefund || false;
     complaint.resolvedAt = new Date();
 
 
@@ -222,24 +222,58 @@ export const resolveComplaintByStore = async (req, res) => {
  */
 export const closeTicket = async (req, res) => {
   try {
-    const { ticketId } = req.body;
-    const complaint = await Complaint.findOne({ ticketId });
+    const { ticketId, processRefund, refundAmount: customAmount } = req.body;
+    const complaint = await Complaint.findOne({ ticketId }).populate('order user');
     if (!complaint) return res.status(404).json({ success: false, message: 'Ticket not found' });
 
     complaint.status = 'CLOSED';
     complaint.closedAt = new Date();
 
+    // REFUND PROCESSING
+    if (processRefund && complaint.order && !complaint.refundProcessed) {
+      const { debitVendorWallet } = await import('./orderController.js');
+      const UserTransaction = (await import('../models/UserTransaction.js')).default;
+      const User = (await import('../models/User.js')).default;
+
+      const amountToRefund = customAmount || complaint.order.totalAmount;
+      const user = await User.findById(complaint.user._id || complaint.user);
+      
+      if (user) {
+        user.walletBalance = (user.walletBalance || 0) + amountToRefund;
+        await user.save();
+
+        await UserTransaction.create({
+          user: user._id,
+          amount: amountToRefund,
+          type: 'credit',
+          category: 'order_refund',
+          status: 'completed',
+          description: `Support Refund for Ticket ${ticketId} (Order #${complaint.order.orderId})`,
+          orderId: complaint.order._id
+        });
+
+        // Debit Vendor if applicable
+        if (complaint.order.vendor) {
+          // Creating a mock "returned" state for debit function if needed, 
+          // but better to use a direct debit or ensure debitVendorWallet handles it
+          await debitVendorWallet(complaint.order);
+        }
+
+        complaint.refundProcessed = true;
+        complaint.refundAmount = amountToRefund;
+      }
+    }
+
     complaint.resolutionThread.push({
       sender: req.admin._id,
       senderModel: 'Admin',
       senderName: req.admin.name || 'System Admin',
-      message: `Ticket closed by Admin.`
+      message: `Ticket closed by Admin.${complaint.refundProcessed ? ` Refund of ₹${complaint.refundAmount} processed.` : ""}`
     });
 
     await complaint.save();
 
-
-    res.json({ success: true, message: 'Ticket closed successfully' });
+    res.json({ success: true, message: 'Ticket closed successfully', refundProcessed: complaint.refundProcessed });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

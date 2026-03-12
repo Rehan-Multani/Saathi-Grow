@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Eye, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
@@ -16,6 +16,8 @@ const OrderStatusBadge = ({ status }) => {
         confirmed: 'bg-cyan-100 text-cyan-700',
         out_for_delivery: 'bg-indigo-100 text-indigo-700',
         cancelled: 'bg-red-100 text-red-700',
+        return_requested: 'bg-orange-100 text-orange-700',
+        returned: 'bg-gray-100 text-gray-700',
     };
     return (
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${variants[status] || 'bg-gray-100 text-gray-600'} whitespace-nowrap uppercase`}>

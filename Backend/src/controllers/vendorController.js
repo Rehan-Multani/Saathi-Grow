@@ -1,5 +1,7 @@
 import Vendor from '../models/Vendor.js';
 import VendorPayout from '../models/VendorPayout.js';
+import Wallet from '../models/Wallet.js';
+import Transaction from '../models/Transaction.js';
 import { cloudinary } from '../config/cloudinary.js';
 import { geocodeAddress, getFullAddress } from '../services/locationService.js';
 
@@ -208,7 +210,7 @@ export const deleteVendor = async (req, res) => {
   }
 };
 
-// @desc    Get all payouts
+// @desc    Get all payouts (Admin view — includes vendor withdrawal requests)
 // @route   GET /api/admin/vendors/payouts
 // @access  Private (Admin/Staff)
 export const getPayouts = async (req, res) => {
@@ -225,10 +227,10 @@ export const getPayouts = async (req, res) => {
     }
 
     const payoutsQuery = VendorPayout.find(query)
-      .select('vendor amount payoutDate paymentMethod referenceNumber status note processedBy createdAt updatedAt')
+      .select('vendor amount upiId payoutDate paymentMethod referenceNumber status note processedBy requestType processedAt createdAt updatedAt')
       .populate('vendor', 'storeName ownerName logo')
       .populate('processedBy', 'name email')
-      .sort('-createdAt')
+      .sort({ status: 1, createdAt: -1 }) // Pending first, then newest
       .lean();
 
     const baseStatsQuery = status ? { status } : {};
@@ -249,7 +251,7 @@ export const getPayouts = async (req, res) => {
         let stats = null;
         if (includeStats) {
           const statsAgg = await VendorPayout.aggregate([
-            { $match: baseStatsQuery },
+            { $match: {} },
             {
               $group: {
                 _id: '$status',
@@ -259,27 +261,14 @@ export const getPayouts = async (req, res) => {
             }
           ]);
           stats = {
-            totals: {
-              paid: 0,
-              processing: 0,
-              failed: 0
-            },
-            counts: {
-              paid: 0,
-              processing: 0,
-              failed: 0
-            }
+            totals: { pending: 0, paid: 0, processing: 0, rejected: 0, failed: 0 },
+            counts: { pending: 0, paid: 0, processing: 0, rejected: 0, failed: 0 }
           };
           statsAgg.forEach((row) => {
-            if (row._id === 'Paid') {
-              stats.totals.paid = row.totalAmount || 0;
-              stats.counts.paid = row.count || 0;
-            } else if (row._id === 'Processing') {
-              stats.totals.processing = row.totalAmount || 0;
-              stats.counts.processing = row.count || 0;
-            } else if (row._id === 'Failed') {
-              stats.totals.failed = row.totalAmount || 0;
-              stats.counts.failed = row.count || 0;
+            const key = (row._id || '').toLowerCase();
+            if (stats.totals[key] !== undefined) {
+              stats.totals[key] = row.totalAmount || 0;
+              stats.counts[key] = row.count || 0;
             }
           });
         }
@@ -301,37 +290,18 @@ export const getPayouts = async (req, res) => {
     const payouts = await payoutsQuery;
     if (includeMeta && includeStats) {
       const statsAgg = await VendorPayout.aggregate([
-        { $match: baseStatsQuery },
-        {
-          $group: {
-            _id: '$status',
-            totalAmount: { $sum: '$amount' },
-            count: { $sum: 1 }
-          }
-        }
+        { $match: {} },
+        { $group: { _id: '$status', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } }
       ]);
       const stats = {
-        totals: {
-          paid: 0,
-          processing: 0,
-          failed: 0
-        },
-        counts: {
-          paid: 0,
-          processing: 0,
-          failed: 0
-        }
+        totals: { pending: 0, paid: 0, processing: 0, rejected: 0, failed: 0 },
+        counts: { pending: 0, paid: 0, processing: 0, rejected: 0, failed: 0 }
       };
       statsAgg.forEach((row) => {
-        if (row._id === 'Paid') {
-          stats.totals.paid = row.totalAmount || 0;
-          stats.counts.paid = row.count || 0;
-        } else if (row._id === 'Processing') {
-          stats.totals.processing = row.totalAmount || 0;
-          stats.counts.processing = row.count || 0;
-        } else if (row._id === 'Failed') {
-          stats.totals.failed = row.totalAmount || 0;
-          stats.counts.failed = row.count || 0;
+        const key = (row._id || '').toLowerCase();
+        if (stats.totals[key] !== undefined) {
+          stats.totals[key] = row.totalAmount || 0;
+          stats.counts[key] = row.count || 0;
         }
       });
       return res.json({ success: true, payouts, stats });
@@ -345,21 +315,24 @@ export const getPayouts = async (req, res) => {
   }
 };
 
-// @desc    Create a payout
+// @desc    Create a payout (Admin-initiated)
 // @route   POST /api/admin/vendors/payouts
 // @access  Private (Admin)
 export const createPayout = async (req, res) => {
   try {
-    const { vendor, amount, paymentMethod, referenceNumber, note, status } = req.body;
+    const { vendor, amount, paymentMethod, referenceNumber, note, status, upiId } = req.body;
 
     const payout = await VendorPayout.create({
       vendor,
       amount,
-      paymentMethod,
+      upiId: upiId || '',
+      paymentMethod: paymentMethod || 'Bank Transfer',
       referenceNumber,
       note,
       status: status || 'Processing',
-      processedBy: req.admin._id
+      requestType: 'admin_payout',
+      processedBy: req.admin._id,
+      processedAt: new Date()
     });
 
     const populatedPayout = await VendorPayout.findById(payout._id)
@@ -371,7 +344,7 @@ export const createPayout = async (req, res) => {
   }
 };
 
-// @desc    Update payout status
+// @desc    Approve/Reject/Update payout status (Admin action)
 // @route   PATCH /api/admin/vendors/payouts/:id
 // @access  Private (Admin)
 export const updatePayoutStatus = async (req, res) => {
@@ -379,19 +352,82 @@ export const updatePayoutStatus = async (req, res) => {
     const { status, referenceNumber, note } = req.body;
     const payout = await VendorPayout.findById(req.params.id);
 
-    if (payout) {
-      payout.status = status || payout.status;
-      payout.referenceNumber = referenceNumber || payout.referenceNumber;
-      payout.note = note || payout.note;
-
-      const updatedPayout = await payout.save();
-      const populatedPayout = await VendorPayout.findById(updatedPayout._id)
-        .populate('vendor', 'storeName ownerName logo');
-
-      res.json(populatedPayout);
-    } else {
-      res.status(404).json({ message: 'Payout not found' });
+    if (!payout) {
+      return res.status(404).json({ message: 'Payout request not found' });
     }
+
+    const prevStatus = payout.status;
+
+    payout.status = status || payout.status;
+    payout.referenceNumber = referenceNumber || payout.referenceNumber;
+    payout.note = note || payout.note;
+    payout.processedBy = req.admin._id;
+    payout.processedAt = new Date();
+
+    // ── WALLET DEDUCTION: Only when marking as Paid for the first time ──────
+    if (status === 'Paid' && prevStatus !== 'Paid') {
+      const wallet = await Wallet.findOneAndUpdate(
+        { owner: payout.vendor, ownerModel: 'Vendor' },
+        { $setOnInsert: { balance: 0, totalEarnings: 0, pendingPayouts: 0 } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      // Check sufficient balance
+      if (wallet.balance < payout.amount) {
+        return res.status(400).json({
+          message: `Insufficient vendor wallet balance. Available: ₹${wallet.balance}, Requested: ₹${payout.amount}`
+        });
+      }
+
+      // Deduct balance from vendor wallet
+      await Wallet.findByIdAndUpdate(wallet._id, {
+        $inc: { balance: -payout.amount, pendingPayouts: -payout.amount }
+      });
+
+      // Record withdrawal transaction
+      await Transaction.create({
+        wallet: wallet._id,
+        amount: payout.amount,
+        type: 'debit',
+        category: 'withdrawal',
+        description: `Withdrawal Processed by Admin: Ref ${referenceNumber || payout._id}`,
+        referenceId: payout._id,
+        referenceModel: 'VendorPayout'
+      });
+
+      payout.payoutDate = new Date();
+    }
+
+    // ── WALLET RESTORE: If Rejected, release any pending hold ───────────────
+    if (status === 'Rejected' && prevStatus !== 'Rejected') {
+      // Release pendingPayouts hold if it was set when request was submitted
+      const wallet = await Wallet.findOne({ owner: payout.vendor, ownerModel: 'Vendor' });
+      if (wallet && wallet.pendingPayouts >= payout.amount) {
+        await Wallet.findByIdAndUpdate(wallet._id, {
+          $inc: { pendingPayouts: -payout.amount }
+        });
+      }
+
+      // Record rejection transaction for audit
+      if (wallet) {
+        await Transaction.create({
+          wallet: wallet._id,
+          amount: payout.amount,
+          type: 'credit',
+          category: 'withdrawal_rejection',
+          description: `Withdrawal Request Rejected: ${note || 'Rejected by Admin'}`,
+          referenceId: payout._id,
+          referenceModel: 'VendorPayout'
+        });
+      }
+    }
+
+    const updatedPayout = await payout.save();
+    const populatedPayout = await VendorPayout.findById(updatedPayout._id)
+      .populate('vendor', 'storeName ownerName logo')
+      .populate('processedBy', 'name email');
+
+    res.json(populatedPayout);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

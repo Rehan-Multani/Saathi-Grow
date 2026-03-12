@@ -9,7 +9,13 @@ const vendorPayoutSchema = new mongoose.Schema({
   amount: {
     type: Number,
     required: [true, 'Payout amount is required'],
-    min: 0
+    min: [1, 'Minimum withdrawal amount is ₹1']
+  },
+  // Withdrawal destination (UPI ID or Bank details provided by vendor)
+  upiId: {
+    type: String,
+    trim: true,
+    default: ''
   },
   payoutDate: {
     type: Date,
@@ -17,13 +23,12 @@ const vendorPayoutSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Paid', 'Processing', 'Failed'],
-    default: 'Processing'
+    enum: ['Pending', 'Processing', 'Paid', 'Rejected', 'Failed'],
+    default: 'Pending'
   },
   paymentMethod: {
     type: String,
-    required: [true, 'Payment method is required'],
-    default: 'Bank Transfer'
+    default: 'UPI'
   },
   referenceNumber: {
     type: String,
@@ -33,9 +38,18 @@ const vendorPayoutSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // requestType: 'vendor_request' for vendor-initiated, 'admin_payout' for admin-created
+  requestType: {
+    type: String,
+    enum: ['vendor_request', 'admin_payout'],
+    default: 'vendor_request'
+  },
   processedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin'
+  },
+  processedAt: {
+    type: Date
   }
 }, {
   timestamps: true
@@ -43,3 +57,4 @@ const vendorPayoutSchema = new mongoose.Schema({
 
 const VendorPayout = mongoose.model('VendorPayout', vendorPayoutSchema);
 export default VendorPayout;
+

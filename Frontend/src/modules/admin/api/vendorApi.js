@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 const VENDORS_API_BASE_URL = `${API_BASE_URL}/admin/vendors`;
 const buildQuery = (params = {}) => {
@@ -109,6 +109,7 @@ export const getPayouts = async (token, params = {}, options = {}) => {
     const pagination = data?.pagination || {};
     return {
       payouts,
+      stats: data?.stats || null,
       pagination: {
         total: Number(pagination.total ?? response.headers.get('x-total-count') ?? 0),
         page: Number(pagination.page ?? response.headers.get('x-page') ?? params.page ?? 1),
@@ -131,5 +132,22 @@ export const updatePayoutStatus = async (token, id, payoutData) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to update payout status');
+  return data;
+};
+
+export const approvePayoutRequest = async (token, id, referenceNumber, note) => {
+  return updatePayoutStatus(token, id, { status: 'Paid', referenceNumber, note });
+};
+
+export const rejectPayoutRequest = async (token, id, note) => {
+  return updatePayoutStatus(token, id, { status: 'Rejected', note });
+};
+
+export const getPayoutById = async (token, id) => {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/payouts/${id}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch payout');
   return data;
 };

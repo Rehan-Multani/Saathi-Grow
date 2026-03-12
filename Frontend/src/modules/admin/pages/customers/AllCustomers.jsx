@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import CustomerDetailsModal from '../../components/customers/CustomerDetailsModal';
@@ -53,9 +53,15 @@ const AllCustomers = () => {
         setPage(1);
     }, [searchTerm]);
 
-    const handleViewProfile = (customer) => {
-        setSelectedCustomer(customer);
-        setShowDetailsModal(true);
+    const handleViewProfile = async (customer) => {
+        try {
+            // Fetch complete profile before showing modal
+            const fullProfile = await customerApi.getCustomerById(adminUser.token, customer._id);
+            setSelectedCustomer(fullProfile);
+            setShowDetailsModal(true);
+        } catch (error) {
+            toast.error('Failed to fetch user profile');
+        }
     };
 
     const handleSendMessage = (customer, type) => {

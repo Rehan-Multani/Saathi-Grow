@@ -17,7 +17,7 @@ const transactionSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ['delivery_fee', 'incentive', 'payout', 'adjustment', 'cash_collection', 'return_pickup_fee', 'order_revenue', 'platform_commission'],
+        enum: ['delivery_fee', 'incentive', 'payout', 'adjustment', 'cash_collection', 'return_pickup_fee', 'order_revenue', 'platform_commission', 'withdrawal', 'withdrawal_rejection'],
         required: true
     },
     status: {

@@ -1,4 +1,4 @@
-﻿import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle } from 'lucide-react';
+import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle } from 'lucide-react';
 import { getAvailablePartners, assignOrder, autoAssignOrder } from '../../api/adminDeliveryApi';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -83,13 +83,23 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
             image: `https://placehold.co/50`
         }));
 
-    // Helper for status badge colors
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Delivered': return 'bg-green-100 text-green-700';
-            case 'Pending': return 'bg-amber-100 text-amber-700';
-            case 'Cancelled': return 'bg-red-100 text-red-700';
-            default: return 'bg-blue-100 text-blue-700';
+    // Helper for status badge colors (Handles lowercase from backend)
+    const getStatusColor = (status = '') => {
+        const s = status.toLowerCase();
+        switch (s) {
+            case 'delivered':
+            case 'returned':
+                return 'bg-green-100 text-green-700';
+            case 'pending': 
+                return 'bg-amber-100 text-amber-700';
+            case 'cancelled': 
+                return 'bg-red-100 text-red-700';
+            case 'confirmed':
+            case 'preparing':
+                return 'bg-blue-100 text-blue-700';
+            case 'out_for_delivery':
+                return 'bg-indigo-100 text-indigo-700';
+            default: return 'bg-gray-100 text-gray-700';
         }
     };
 
@@ -290,70 +300,90 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     </div>
 
                     {/* Delivery Management Section */}
-                    <div className="mb-6 border border-blue-100 rounded-xl p-5 bg-blue-50/30">
-                        <h6 className="flex items-center mb-4 font-bold text-gray-800">
-                            <Truck size={18} className="mr-2 text-blue-600" /> Delivery Management
-                        </h6>
+                    {order.orderSource === 'pos' ? (
+                        <div className="mb-6 border border-gray-100 rounded-xl p-5 bg-gray-50/50">
+                            <h6 className="flex items-center mb-2 font-bold text-gray-800 uppercase tracking-tighter text-sm">
+                                <Package size={18} className="mr-2 text-gray-400" /> POS Transaction
+                            </h6>
+                            <p className="text-sm text-gray-500 italic">This is an in-store POS order. No delivery partner assignment required.</p>
+                        </div>
+                    ) : (
+                        <div className="mb-6 border border-blue-100 rounded-xl p-5 bg-blue-50/30">
+                            <h6 className="flex items-center mb-4 font-bold text-gray-800">
+                                <Truck size={18} className="mr-2 text-blue-600" /> Delivery Management
+                            </h6>
 
-                        {order.deliveryPartnerId ? (
-                            <div className="flex items-center justify-between p-3 bg-white border border-green-100 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-green-50 text-green-600 rounded-full">
-                                        <CheckCircle size={20} />
+                            {order.deliveryPartnerId ? (
+                                <div className="flex items-center justify-between p-3 bg-white border border-green-100 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-green-50 text-green-600 rounded-full">
+                                            <CheckCircle size={20} />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold text-gray-800">Partner Assigned</div>
+                                            <div className="text-xs text-gray-500">ID: {order.deliveryPartnerId?._id || order.deliveryPartnerId}</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-800">Partner Assigned</div>
-                                        <div className="text-xs text-gray-500">ID: {order.deliveryPartnerId?._id || order.deliveryPartnerId}</div>
-                                    </div>
+                                    {order.deliveryOTP && (
+                                        <div className="bg-green-600 text-white px-3 py-1 rounded text-sm font-black">
+                                            OTP: {order.deliveryOTP}
+                                        </div>
+                                    )}
                                 </div>
-                                {order.deliveryOTP && (
-                                    <div className="bg-green-600 text-white px-3 py-1 rounded text-sm font-black">
-                                        OTP: {order.deliveryOTP}
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <button
-                                        disabled={assigning}
-                                        onClick={handleAutoAssign}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
-                                    >
-                                        {assigning ? <span className="animate-spin">₹</span> : <Zap size={16} fill="currentColor" />}
-                                        Auto Assign Nearest
-                                    </button>
+                            ) : (
+                                // Assignment logic based on status
+                                ['confirmed', 'preparing', 'ready_for_pickup'].includes(order.status) ? (
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                            <button
+                                                disabled={assigning}
+                                                onClick={handleAutoAssign}
+                                                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
+                                            >
+                                                {assigning ? <span className="animate-spin text-lg">⏳</span> : <Zap size={16} fill="currentColor" />}
+                                                Auto Assign Nearest
+                                            </button>
 
-                                    <div className="flex-1 flex gap-2">
-                                        <select
-                                            className="flex-grow bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={selectedPartner}
-                                            onChange={(e) => setSelectedPartner(e.target.value)}
-                                        >
-                                            <option value="">Select Rider</option>
-                                            {availablePartners.length > 0 ? (
-                                                availablePartners.map(p => (
-                                                    <option key={p._id} value={p._id}>{p.name} ({p.vehicleType})</option>
-                                                ))
-                                            ) : (
-                                                <option disabled value="">No Available Riders</option>
-                                            )}
-                                        </select>
-                                        <button
-                                            disabled={assigning || !selectedPartner}
-                                            onClick={handleManualAssign}
-                                            className="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-bold transition-all disabled:opacity-50"
-                                        >
-                                            Assign
-                                        </button>
+                                            <div className="flex-1 flex gap-2">
+                                                <select
+                                                    className="flex-grow bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    value={selectedPartner}
+                                                    onChange={(e) => setSelectedPartner(e.target.value)}
+                                                >
+                                                    <option value="">Select Rider</option>
+                                                    {availablePartners.length > 0 ? (
+                                                        availablePartners.map(p => (
+                                                            <option key={p._id} value={p._id}>{p.name} ({p.vehicleType})</option>
+                                                        ))
+                                                    ) : (
+                                                        <option disabled value="">No Available Riders</option>
+                                                    )}
+                                                </select>
+                                                <button
+                                                    disabled={assigning || !selectedPartner}
+                                                    onClick={handleManualAssign}
+                                                    className="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-bold transition-all disabled:opacity-50"
+                                                >
+                                                    Assign
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p className="text-[11px] text-gray-500 text-center italic">
+                                            * Auto-assignment searches for the nearest online partner within 10km of {order.vendor ? 'Vendor store' : 'Branch location'}.
+                                        </p>
                                     </div>
-                                </div>
-                                <p className="text-[11px] text-gray-500 text-center italic">
-                                    * Auto-assignment searches for the nearest online partner within 10km of {order.vendor ? 'Vendor store' : 'Branch location'}.
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                                ) : order.status === 'pending' ? (
+                                    <div className="text-center py-2 bg-blue-50/50 rounded-lg border border-blue-100">
+                                        <p className="text-sm text-blue-600 font-medium">Please confirm the order status before assigning a delivery partner.</p>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-2 bg-gray-50 rounded-lg border border-gray-100">
+                                        <p className="text-sm text-gray-500 italic">Delivery assignment is not available for orders with status: <span className="font-bold uppercase">{displayStatus}</span></p>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
 
                     <h6 className="flex items-center mb-4 font-bold text-gray-800">
                         <Package size={18} className="mr-2 text-blue-600" /> Order Items

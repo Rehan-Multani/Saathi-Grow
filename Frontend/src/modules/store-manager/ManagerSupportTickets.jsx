@@ -14,6 +14,7 @@ const ManagerSupportTickets = () => {
   const [complaints, setComplaints] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recommendRefund, setRecommendRefund] = useState(false);
 
   const loadComplaints = async () => {
     try {
@@ -57,7 +58,8 @@ const ManagerSupportTickets = () => {
       const res = await complaintApi.resolveComplaintByStore(token, {
         ticketId: selectedTicket.ticketId,
         storeNotes: resolutionText,
-        resolutionSolution: resolutionText
+        resolutionSolution: resolutionText,
+        storeRecommendedRefund: recommendRefund
       });
 
       if (res.success) {
@@ -189,6 +191,21 @@ const ManagerSupportTickets = () => {
                     className="w-full h-32 p-4 bg-gray-50 border-0 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#0c831f]/10 outline-none transition-all placeholder:text-gray-300"
                   />
                 </div>
+                
+                {selectedTicket.order && (
+                  <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                    <input 
+                      type="checkbox" 
+                      id="recommend-refund"
+                      checked={recommendRefund}
+                      onChange={(e) => setRecommendRefund(e.target.checked)}
+                      className="w-5 h-5 accent-[#0c831f]"
+                    />
+                    <label htmlFor="recommend-refund" className="text-[11px] font-black text-amber-900 uppercase tracking-tight cursor-pointer">
+                      Recommend Refund to User (Admin Approval Required)
+                    </label>
+                  </div>
+                )}
                 <button
                   onClick={handleSendResolution}
                   disabled={!resolutionText.trim() || isSubmitting}

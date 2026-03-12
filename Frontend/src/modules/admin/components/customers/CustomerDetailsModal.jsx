@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { X, Mail, Phone, MapPin, Calendar, ShoppingBag, Star, ShieldAlert } from 'lucide-react';
 
 const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {
@@ -35,7 +35,9 @@ const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {
                         </div>
                         <div>
                             <h5 className="text-xl font-bold text-gray-800">{customer.name}</h5>
-                            <span className="text-sm text-gray-500">Member since Oct 2023</span>
+                            <span className="text-sm text-gray-500">
+                                Member since {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : 'Unknown'}
+                            </span>
                         </div>
                     </div>
                     <button
@@ -47,104 +49,104 @@ const CustomerDetailsModal = ({ show, onHide, customer, onSendMessage }) => {
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto">
+                <div className="p-5 overflow-y-auto">
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-                        <div className="p-3 sm:p-4 bg-green-50 rounded-xl text-center border border-green-100 flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
-                            <span className="block text-xl sm:text-2xl font-bold text-green-700">{customer.orders}</span>
-                            <span className="text-xs font-semibold text-green-600 uppercase">Total Orders</span>
+                    <div className="grid grid-cols-3 gap-3 mb-6">
+                        <div className="py-3 px-2 bg-emerald-50/50 rounded-2xl text-center border border-emerald-100 flex flex-col items-center justify-center gap-0.5">
+                            <span className="text-lg font-black text-emerald-700 leading-tight">{customer.stats?.totalOrders || 0}</span>
+                            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-tighter">Orders</span>
                         </div>
-                        <div className="p-3 sm:p-4 bg-blue-50 rounded-xl text-center border border-blue-100 flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
-                            <span className="block text-xl sm:text-2xl font-bold text-blue-700">{customer.spent}</span>
-                            <span className="text-xs font-semibold text-blue-600 uppercase">Total Spent</span>
+                        <div className="py-3 px-2 bg-blue-50/50 rounded-2xl text-center border border-blue-100 flex flex-col items-center justify-center gap-0.5">
+                            <span className="text-lg font-black text-blue-700 leading-tight">₹{(customer.stats?.totalSpent || 0).toLocaleString()}</span>
+                            <span className="text-[9px] font-bold text-blue-600 uppercase tracking-tighter">Spent</span>
                         </div>
-                        <div className="p-3 sm:p-4 bg-amber-50 rounded-xl text-center border border-amber-100 flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center">
-                            <span className="block text-xl sm:text-2xl font-bold text-amber-700">{customer.points}</span>
-                            <span className="text-xs font-semibold text-amber-600 uppercase">Reward Points</span>
+                        <div className="py-3 px-2 bg-amber-50/50 rounded-2xl text-center border border-amber-100 flex flex-col items-center justify-center gap-0.5">
+                            <span className="text-lg font-black text-amber-700 leading-tight">₹{(customer.walletBalance || 0).toLocaleString()}</span>
+                            <span className="text-[9px] font-bold text-amber-600 uppercase tracking-tighter">Wallet</span>
                         </div>
                     </div>
 
                     {/* Contact Info */}
-                    <h6 className="font-bold text-gray-800 mb-4 flex items-center">
-                        <ShieldAlert size={18} className="mr-2 text-gray-400" /> Account Details
-                    </h6>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 mb-8">
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1"><Mail size={16} className="text-gray-400" /></div>
-                            <div>
-                                <span className="block text-sm text-gray-500">Email Address</span>
-                                <span className="font-medium text-gray-800">{customer.email}</span>
+                    <div className="mb-6">
+                        <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <ShieldAlert size={14} /> Account Details
+                        </h6>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight block">Email Address</span>
+                                <span className="text-xs font-bold text-gray-800 break-all">{customer.email || 'N/A'}</span>
                             </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1"><Phone size={16} className="text-gray-400" /></div>
-                            <div>
-                                <span className="block text-sm text-gray-500">Phone Number</span>
-                                <span className="font-medium text-gray-800">{customer.phone}</span>
+                            <div className="space-y-1">
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight block">Phone Number</span>
+                                <span className="text-xs font-bold text-gray-800">+91 {customer.phone}</span>
                             </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1"><MapPin size={16} className="text-gray-400" /></div>
-                            <div>
-                                <span className="block text-sm text-gray-500">Main Location</span>
-                                <span className="font-medium text-gray-800">{customer.city}, USA</span>
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1"><Calendar size={16} className="text-gray-400" /></div>
-                            <div>
-                                <span className="block text-sm text-gray-500">Status</span>
-                                <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${customer.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {customer.status}
+                            <div className="col-span-2 space-y-1 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight block">Default Delivery Address</span>
+                                <span className="text-[11px] font-bold text-gray-700 leading-normal">
+                                    {(() => {
+                                        const addr = customer.addresses?.find(a => a.isDefault) || customer.addresses?.[0];
+                                        if (!addr) return 'No address saved';
+                                        return `${addr.street ? addr.street + ', ' : ''}${addr.city}, ${addr.state} - ${addr.zipCode}`;
+                                    })()}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Recent Activity Mockup */}
-                    <h6 className="font-bold text-gray-800 mb-3 flex items-center">
-                        <ShoppingBag size={18} className="mr-2 text-gray-400" /> Recent Activity
-                    </h6>
-                    <div className="border border-gray-200 rounded-xl overflow-hidden">
-                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase">
-                            Last 3 Orders
-                        </div>
-                        <div className="divide-y divide-gray-100">
-                            {[1, 2, 3].map((_, i) => (
-                                <div key={i} className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-800">Order #ORD-{2024000 + i}</div>
-                                        <div className="text-xs text-gray-500">Oct {20 - i}, 2023</div>
+                    {/* Recent Activity */}
+                    <div>
+                        <h6 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <ShoppingBag size={14} /> Recent Activity
+                        </h6>
+                        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden divide-y divide-gray-50 shadow-sm">
+                            {customer.recentOrders && customer.recentOrders.length > 0 ? (
+                                customer.recentOrders.map((order) => (
+                                    <div key={order._id} className="flex justify-between items-center p-3 hover:bg-gray-50 transition-colors">
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-[11px] font-black text-gray-800">#{order.orderId}</span>
+                                            <span className="text-[9px] text-gray-400 font-bold uppercase">
+                                                {new Date(order.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                        </div>
+                                        <div className="text-right flex flex-col gap-0.5">
+                                            <span className="text-xs font-black text-gray-800">₹{order.totalAmount.toLocaleString()}</span>
+                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full w-fit ml-auto ${
+                                                order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 
+                                                order.status === 'cancelled' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'
+                                            }`}>
+                                                {order.status}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-sm font-bold text-gray-800">₹{(Math.random() * 500).toFixed(2)}</div>
-                                        <div className="text-xs text-green-600">Delivered</div>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-6 text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                                    No Active Orders
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
 
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
                     <button
                         onClick={() => onSendMessage(customer, 'Email')}
-                        className="px-4 py-2 border border-blue-100 text-blue-600 bg-blue-50/50 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+                        className="px-4 py-2 border border-blue-100 text-blue-600 bg-white rounded-xl hover:bg-blue-50 font-black text-[10px] uppercase tracking-wider transition-all"
                     >
-                        Send Email
+                        Email
                     </button>
                     <button
                         onClick={() => onSendMessage(customer, 'Message')}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors"
+                        className="px-4 py-2 border border-gray-200 text-gray-700 bg-white rounded-xl hover:bg-gray-50 font-black text-[10px] uppercase tracking-wider transition-all"
                     >
-                        Send Message
+                        SMS
                     </button>
                     <button
                         onClick={onHide}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-wider transition-all shadow-md shadow-blue-100"
                     >
                         Done
                     </button>

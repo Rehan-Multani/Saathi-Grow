@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Search, Plus, MessageCircle, MoreHorizontal, Edit, Trash2, Info, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -76,7 +76,8 @@ const SupportTickets = () => {
         'ESCALATED_TO_STORE': { bg: 'warning', label: 'ESCALATED' },
         'STORE_RESPONDED': { bg: 'info', label: 'RESPONDED' },
         'RESOLVED': { bg: 'success', label: 'RESOLVED' },
-        'CLOSED': { bg: 'secondary', label: 'CLOSED' }
+        'CLOSED': { bg: 'secondary', label: 'CLOSED' },
+        'OVERDUE': { bg: 'danger', label: 'SLA BREACH' }
     };
 
     return (

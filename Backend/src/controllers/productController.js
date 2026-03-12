@@ -2,15 +2,24 @@ import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import InventoryLog from '../models/InventoryLog.js';
 import CampaignSection from '../models/CampaignSection.js';
+import Branch from '../models/Branch.js';
+import Category from '../models/Category.js';
 import { generateProductDescription, generateProductTags, analyzeSearchQuery } from '../utils/aiService.js';
 import QRCode from 'qrcode';
 
 // Helper to determine status based on total stock
-const determineProductStatus = (branchStocks) => {
-  if (!branchStocks || branchStocks.length === 0) return 'Draft';
+const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshold = null) => {
+  let totalStock = 0;
+  let totalThreshold = 0;
 
-  const totalStock = branchStocks.reduce((sum, item) => sum + Number(item.stock || 0), 0);
-  const totalThreshold = branchStocks.reduce((sum, item) => sum + Number(item.lowStockThreshold || 0), 0);
+  if (vendorStock !== null) {
+    totalStock = Number(vendorStock);
+    totalThreshold = Number(vendorThreshold || 10);
+  } else {
+    if (!branchStocks || branchStocks.length === 0) return 'Draft';
+    totalStock = branchStocks.reduce((sum, item) => sum + Number(item.stock || 0), 0);
+    totalThreshold = branchStocks.reduce((sum, item) => sum + Number(item.lowStockThreshold || 0), 0);
+  }
 
   if (totalStock <= 0) return 'Out of Stock';
   if (totalStock <= totalThreshold) return 'Low Stock';
@@ -93,6 +102,8 @@ export const createProduct = async (req, res) => {
       sku,
       status,
       vendor,
+      stock,
+      lowStockThreshold,
       mrp,
       isVeg,
       variants,
@@ -129,7 +140,11 @@ export const createProduct = async (req, res) => {
     // Determine initial status if not Draft
     let finalStatus = status || 'Active';
     if (finalStatus !== 'Draft') {
-      finalStatus = determineProductStatus(parsedBranchStocks);
+      if (vendor) {
+        finalStatus = determineProductStatus([], req.body.stock || 0, req.body.lowStockThreshold || 10);
+      } else {
+        finalStatus = determineProductStatus(parsedBranchStocks);
+      }
     }
 
     // Generate QR Code from SKU
@@ -160,6 +175,8 @@ export const createProduct = async (req, res) => {
       image,
       gallery,
       vendor: vendor || null,
+      stock: vendor ? (Number(stock) || 0) : 0,
+      lowStockThreshold: vendor ? (Number(lowStockThreshold) || 10) : 10,
       mrp: Number(mrp) || Number(basePrice),
       isVeg: isVeg === 'true' || isVeg === true,
       variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
@@ -436,7 +453,11 @@ export const getProducts = async (req, res) => {
           return bsBranchId && bsBranchId.toString() === req.admin.branchId.toString();
         });
         if (pObj.status !== 'Draft') {
-          pObj.status = determineProductStatus(pObj.branchStocks);
+          if (pObj.vendor) {
+            pObj.status = determineProductStatus([], pObj.stock, pObj.lowStockThreshold);
+          } else {
+            pObj.status = determineProductStatus(pObj.branchStocks);
+          }
         }
         return pObj;
       });
@@ -595,7 +616,11 @@ export const searchProductsWithAI = async (req, res) => {
           return bsBranchId && bsBranchId.toString() === req.admin.branchId.toString();
         });
         if (pObj.status !== 'Draft') {
-          pObj.status = determineProductStatus(pObj.branchStocks);
+          if (pObj.vendor) {
+            pObj.status = determineProductStatus([], pObj.stock, pObj.lowStockThreshold);
+          } else {
+            pObj.status = determineProductStatus(pObj.branchStocks);
+          }
         }
         return pObj;
       });
@@ -680,6 +705,11 @@ export const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (product) {
+      // Restriction: Admin/Staff/Store Managers cannot edit vendor products via this controller
+      if (product.vendor) {
+        return res.status(403).json({ message: 'Only vendors can manage their own products. Admin/Staff editing is restricted for vendor partners.' });
+      }
+
       product.name = req.body.name || product.name;
       product.description = req.body.description || product.description;
       if (req.body.tags) {
@@ -692,6 +722,13 @@ export const updateProduct = async (req, res) => {
       product.category = req.body.category || product.category;
       product.brandName = req.body.brandName || product.brandName;
       product.vendor = req.body.vendor !== undefined ? (req.body.vendor || null) : product.vendor;
+      
+      // Update vendor stock/threshold if it's a vendor product
+      if (product.vendor) {
+        if (req.body.stock !== undefined) product.stock = Number(req.body.stock);
+        if (req.body.lowStockThreshold !== undefined) product.lowStockThreshold = Number(req.body.lowStockThreshold);
+      }
+
       product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
       product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
       product.isSaathiGrow = req.body.isSaathiGrow !== undefined ? (req.body.isSaathiGrow === 'true' || req.body.isSaathiGrow === true) : product.isSaathiGrow;
@@ -777,9 +814,17 @@ export const updateProduct = async (req, res) => {
 
       // Automatically update status if it's not Draft
       if (product.status !== 'Draft') {
-        product.status = determineProductStatus(product.branchStocks);
+        if (product.vendor) {
+          product.status = determineProductStatus([], product.stock, product.lowStockThreshold);
+        } else {
+          product.status = determineProductStatus(product.branchStocks);
+        }
       } else if (req.body.status && req.body.status !== 'Draft') {
-        product.status = determineProductStatus(product.branchStocks);
+        if (product.vendor) {
+          product.status = determineProductStatus([], product.stock, product.lowStockThreshold);
+        } else {
+          product.status = determineProductStatus(product.branchStocks);
+        }
       } else if (req.body.status === 'Draft') {
         product.status = 'Draft';
       }
@@ -817,6 +862,56 @@ export const adjustInventory = async (req, res) => {
     const { branchId, amount, type, reason } = req.body;
     let finalBranchId = branchId;
 
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Restriction: Any admin portal user cannot adjust inventory for vendor products
+    if (product.vendor) {
+      return res.status(403).json({ message: 'Vendor product inventory is managed exclusively by the vendor. Admin/Staff access is restricted.' });
+    }
+
+    // 1. Handle Vendor Products (Direct Stock)
+    if (product.vendor && (!branchId || branchId === 'vendor')) {
+      const previousStock = product.stock || 0;
+      let newStock = previousStock;
+
+      if (type === 'Addition' || type === 'Return') {
+        newStock += Number(amount);
+      } else if (type === 'Deduction' || type === 'Sale' || type === 'Damage') {
+        newStock -= Number(amount);
+      } else if (type === 'Audit') {
+        newStock = Number(amount);
+      } else {
+        return res.status(400).json({ message: 'Invalid adjustment type' });
+      }
+
+      if (newStock < 0) {
+        return res.status(400).json({ message: 'Stock cannot be negative' });
+      }
+
+      product.stock = newStock;
+      if (product.status !== 'Draft') {
+        product.status = determineProductStatus([], product.stock, product.lowStockThreshold);
+      }
+      await product.save();
+
+      const log = await InventoryLog.create({
+        product: product._id,
+        admin: req.admin._id,
+        vendorId: product.vendor,
+        changeAmount: type === 'Audit' ? newStock - previousStock : (type === 'Addition' || type === 'Return' ? amount : -amount),
+        previousStock,
+        newStock,
+        type,
+        reason: reason || 'Inventory Adjustment (Vendor Direct)'
+      });
+
+      return res.json({ product, log });
+    }
+
+    // 2. Handle Branch Products
     // Security check: Staff and Branch Managers can ONLY adjust their own branch's inventory
     if (req.admin.role !== 'Admin') {
       if (!req.admin.branchId) {
@@ -833,11 +928,6 @@ export const adjustInventory = async (req, res) => {
 
     if (!finalBranchId) {
       return res.status(400).json({ message: 'Branch ID is required for inventory adjustment' });
-    }
-
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
     }
 
     const branchStockIndex = product.branchStocks.findIndex(bs => bs.branchId.toString() === finalBranchId.toString());
@@ -912,6 +1002,103 @@ export const adjustInventory = async (req, res) => {
   }
 };
 
+// @desc    Bulk Adjust inventory
+// @route   POST /api/admin/products/inventory/bulk-adjust
+// @access  Private (Admin/Staff)
+export const bulkAdjustInventory = async (req, res) => {
+  try {
+    const { adjustments, commonData } = req.body; // adjustments: [{ productId, branchId, amount }], commonData: { type, reason, notes }
+
+    if (!adjustments || !Array.isArray(adjustments) || adjustments.length === 0) {
+      return res.status(400).json({ message: 'Invalid adjustments data' });
+    }
+
+    const { type, reason, notes } = commonData || {};
+    const finalReason = (reason || 'Inventory Adjustment') + (notes ? ` - ${notes}` : '');
+    const results = [];
+
+    for (const adj of adjustments) {
+      const { productId, branchId, amount } = adj;
+      const product = await Product.findById(productId);
+      
+      if (!product) continue;
+      
+      // Skip vendor products
+      if (product.vendor) continue;
+
+      let finalBranchId = branchId;
+      if (req.admin.role !== 'Admin') {
+        if (!req.admin.branchId) continue;
+        finalBranchId = req.admin.branchId;
+      }
+
+      if (!finalBranchId) continue;
+
+      const branchStockIndex = product.branchStocks.findIndex(bs => bs.branchId.toString() === finalBranchId.toString());
+
+      if (branchStockIndex === -1) {
+        const previousStock = 0;
+        let newStock = Number(amount);
+        product.branchStocks.push({
+          branchId: finalBranchId,
+          stock: newStock,
+          lowStockThreshold: 10
+        });
+        if (product.status !== 'Draft') {
+          product.status = determineProductStatus(product.branchStocks);
+        }
+        await product.save();
+        await InventoryLog.create({
+          product: product._id,
+          admin: req.admin._id,
+          branchId: finalBranchId,
+          changeAmount: amount,
+          previousStock,
+          newStock,
+          type: type || 'Addition',
+          reason: finalReason || 'Bulk Inventory Adjustment (New Branch)'
+        });
+      } else {
+        const previousStock = product.branchStocks[branchStockIndex].stock;
+        let newStock = previousStock;
+
+        if (type === 'Addition' || type === 'Return') {
+          newStock += Number(amount);
+        } else if (type === 'Deduction' || type === 'Sale' || type === 'Damage') {
+          newStock -= Number(amount);
+        } else if (type === 'Audit') {
+          newStock = Number(amount);
+        } else {
+          newStock += Number(amount); // Default to addition
+        }
+
+        if (newStock < 0) newStock = 0;
+
+        product.branchStocks[branchStockIndex].stock = newStock;
+        if (product.status !== 'Draft') {
+          product.status = determineProductStatus(product.branchStocks);
+        }
+        await product.save();
+        await InventoryLog.create({
+          product: product._id,
+          admin: req.admin._id,
+          branchId: finalBranchId,
+          changeAmount: type === 'Audit' ? newStock - previousStock : (type === 'Addition' || type === 'Return' ? amount : -amount),
+          previousStock,
+          newStock,
+          type: type || 'Addition',
+          reason: finalReason || 'Bulk Inventory Adjustment'
+        });
+      }
+      results.push(productId);
+    }
+
+    res.json({ success: true, message: `Successfully adjusted ${results.length} products`, results });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get all inventory logs (Global)
 // @route   GET /api/admin/products/inventory-logs
 // @access  Private (Admin/Staff)
@@ -929,6 +1116,7 @@ export const getAllInventoryLogs = async (req, res) => {
       .populate('product', 'name sku image')
       .populate('admin', 'name email')
       .populate('branchId', 'name code')
+      .populate('vendorId', 'storeName logo')
       .sort('-createdAt')
       .limit(100);
     res.json(logs);
@@ -942,20 +1130,35 @@ export const getAllInventoryLogs = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getInventoryLogs = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     let query = { product: req.params.id };
+    
     if (req.admin && req.admin.role !== 'Admin') {
       if (req.admin.branchId) {
         query.branchId = req.admin.branchId;
       } else {
-        return res.json([]);
+        return res.json({ logs: [], total: 0 });
       }
     }
+
+    const total = await InventoryLog.countDocuments(query);
     const logs = await InventoryLog.find(query)
       .populate('admin', 'name email')
       .populate('branchId', 'name code')
+      .populate('vendorId', 'storeName logo')
       .sort('-createdAt')
-      .limit(50);
-    res.json(logs);
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      logs,
+      total,
+      page,
+      pages: Math.ceil(total / limit)
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -986,14 +1189,195 @@ export const getUniqueBrands = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (product) {
-      await product.deleteOne();
-      res.json({ message: 'Product removed' });
-    } else {
-      res.status(404).json({ message: 'Product not found' });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
     }
+
+    // Restriction: Only Super Admins can delete vendor products. Other portal roles (Staff/Managers) are blocked.
+    if (product.vendor && req.admin.role !== 'Admin') {
+      return res.status(403).json({ message: 'Access denied. Only Super Admins or the vendor partner can delete this product.' });
+    }
+
+    await product.deleteOne();
+    res.json({ message: 'Product removed' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get inventory analytical stats
+// @route   GET /api/admin/products/inventory/stats
+// @access  Private (Admin/Staff)
+export const getInventoryStats = async (req, res) => {
+  try {
+    const { branchId, role } = req.admin;
+    const targetBranchId = (role !== 'Admin') ? branchId : req.query.branchId;
+
+    let matchQuery = {};
+    if (targetBranchId) {
+      matchQuery['branchStocks.branchId'] = new mongoose.Types.ObjectId(targetBranchId);
+    }
+
+    // 1. Basic KPI Stats
+    const statsResult = await Product.aggregate([
+      { $match: matchQuery },
+      {
+        $project: {
+          category: 1,
+          basePrice: 1,
+          status: 1,
+          branchStocks: targetBranchId 
+            ? { $filter: { input: "$branchStocks", as: "bs", cond: { $eq: ["$$bs.branchId", new mongoose.Types.ObjectId(targetBranchId)] } } }
+            : "$branchStocks"
+        }
+      },
+      { $unwind: "$branchStocks" },
+      {
+        $group: {
+          _id: null,
+          totalStock: { $sum: "$branchStocks.stock" },
+          inventoryValue: { $sum: { $multiply: ["$branchStocks.stock", "$basePrice"] } },
+          lowStockCount: {
+            $sum: { 
+              $cond: [
+                { $and: [
+                  { $gt: ["$branchStocks.stock", 0] },
+                  { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
+                ]}, 1, 0] 
+            }
+          },
+          outOfStockCount: {
+            $sum: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+
+    const stats = statsResult[0] || { totalStock: 0, inventoryValue: 0, lowStockCount: 0, outOfStockCount: 0 };
+
+    // 2. Category Distribution
+    const categoryDistribution = await Product.aggregate([
+      { $match: matchQuery },
+      { $unwind: "$branchStocks" },
+      {
+        $match: targetBranchId 
+          ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) } 
+          : {}
+      },
+      {
+        $group: {
+          _id: "$category",
+          stock: { $sum: "$branchStocks.stock" }
+        }
+      },
+      { $sort: { stock: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // 3. Branch Health (If Super Admin)
+    let branchHealth = [];
+    if (!targetBranchId) {
+      branchHealth = await Product.aggregate([
+        { $unwind: "$branchStocks" },
+        {
+          $group: {
+            _id: "$branchStocks.branchId",
+            totalProducts: { $sum: 1 },
+            lowStock: {
+              $sum: { 
+                $cond: [
+                  { $and: [
+                    { $gt: ["$branchStocks.stock", 0] },
+                    { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
+                  ]}, 1, 0] 
+              }
+            },
+            outOfStock: {
+              $sum: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, 1, 0] }
+            },
+            totalStock: { $sum: "$branchStocks.stock" }
+          }
+        },
+        {
+          $lookup: {
+            from: 'branches',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'branchInfo'
+          }
+        },
+        { $unwind: "$branchInfo" },
+        {
+          $project: {
+            name: "$branchInfo.name",
+            code: "$branchInfo.branchCode",
+            totalProducts: 1,
+            lowStock: 1,
+            outOfStock: 1,
+            totalStock: 1,
+            healthScore: {
+              $subtract: [
+                100, 
+                { 
+                  $multiply: [
+                    { $divide: [{ $add: ["$lowStock", "$outOfStock"] }, "$totalProducts"] }, 
+                    100
+                  ] 
+                }
+              ]
+            }
+          }
+        }
+      ]);
+    }
+
+    // 4. Critical Items (Top 5 Low Stock)
+    const criticalItems = await Product.aggregate([
+        { $match: matchQuery },
+        { $unwind: "$branchStocks" },
+        {
+          $match: targetBranchId 
+            ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) } 
+            : {}
+        },
+        { 
+          $match: { 
+            $expr: { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] } 
+          } 
+        }, 
+        { $sort: { "branchStocks.stock": 1 } },
+        { $limit: 5 },
+        {
+            $lookup: {
+                from: 'branches',
+                localField: 'branchStocks.branchId',
+                foreignField: '_id',
+                as: 'branch'
+            }
+        },
+        { $unwind: "$branch" },
+        {
+            $project: {
+                name: 1,
+                sku: 1,
+                image: 1,
+                stock: "$branchStocks.stock",
+                threshold: "$branchStocks.lowStockThreshold",
+                branchName: "$branch.name"
+            }
+        }
+    ]);
+
+    res.json({
+      success: true,
+      stats,
+      categoryDistribution: categoryDistribution.map(c => ({ name: c._id, stock: c.stock })),
+      branchHealth,
+      criticalItems
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

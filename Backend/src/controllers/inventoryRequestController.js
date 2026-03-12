@@ -20,6 +20,10 @@ export const createRequest = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
+    if (product.vendor) {
+      return res.status(400).json({ message: 'Inventory requests are not allowed for vendor products. Please contact the vendor partner.' });
+    }
+
     const amount = Number(adjustment);
     const newStock = type === 'add' ? currentStock + amount : Math.max(0, currentStock - amount);
 
@@ -46,7 +50,7 @@ export const getRequests = async (req, res) => {
   try {
     let query = {};
 
-    if (req.admin.role === 'Branch Manager') {
+    if (req.admin.role === 'Branch Manager' || req.admin.role === 'Staff') {
       query.branchId = req.admin.branchId;
     }
 
@@ -85,6 +89,10 @@ export const approveRequest = async (req, res) => {
     const product = await Product.findById(request.product).session(session);
     if (!product) {
       throw new Error('Product not found');
+    }
+
+    if (product.vendor) {
+      throw new Error('Approval denied. This is a vendor product and cannot be updated via branch inventory requests.');
     }
 
     // Apply to specific branch

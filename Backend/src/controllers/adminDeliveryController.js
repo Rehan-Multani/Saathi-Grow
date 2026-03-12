@@ -229,8 +229,13 @@ const performAssignment = async (orderId, partnerId, session) => {
   // 1. Fetch both with write-locks logic applied (or transaction guaranteed isolation)
   const order = await Order.findById(orderId).session(session);
   if (!order) throw new Error('Order not found');
+  if (order.orderSource === 'pos') throw new Error('Assignment failed: POS orders do not require delivery partners');
   if (order.deliveryPartnerId) throw new Error('Order is already assigned to a driver');
-  if (order.status === 'cancelled') throw new Error('Cannot assign a cancelled order');
+  
+  const finalizedStatuses = ['delivered', 'cancelled', 'returned', 'return_picked_up'];
+  if (finalizedStatuses.includes(order.status)) {
+    throw new Error(`Cannot assign a partner to an order that is already ${order.status.replace(/_/g, ' ')}`);
+  }
 
   const partner = await DeliveryPartner.findById(partnerId).session(session);
   if (!partner) throw new Error('Delivery Partner not found');

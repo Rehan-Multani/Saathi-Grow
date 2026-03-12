@@ -1,4 +1,4 @@
-﻿import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AdminAuthProvider, useAdminAuth } from '../context/AdminAuthContext';
 import AdminLogin from '../pages/auth/AdminLogin';
 import AdminLayout from '../AdminLayout';
@@ -8,6 +8,7 @@ import OnlineOrders from '../pages/orders/OnlineOrders';
 import ReturnRequests from '../pages/orders/ReturnRequests';
 import AllProducts from '../pages/products/AllProducts';
 import AddProduct from '../pages/products/AddProduct';
+import ProductInventoryLogs from '../pages/products/ProductInventoryLogs';
 import AllCategories from '../pages/categories/AllCategories';
 import AddCategory from '../pages/categories/AddCategory';
 import AllBrands from '../pages/brands/AllBrands';
@@ -120,6 +121,7 @@ const AdminRoutes = () => {
 
                         <Route path="products" element={<AllProducts />} />
                         <Route path="products/add" element={<AddProduct />} />
+                        <Route path="products/:id/inventory-logs" element={<ProductInventoryLogs />} />
 
                         {/* Categories */}
                         <Route path="categories" element={<AllCategories />} />

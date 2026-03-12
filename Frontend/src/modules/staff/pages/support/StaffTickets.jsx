@@ -17,7 +17,9 @@ const StaffTickets = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [adminNotes, setAdminNotes] = useState('');
+    const [resolutionText, setResolutionText] = useState('');
     const [isActionLoading, setIsActionLoading] = useState(false);
+    const [recommendRefund, setRecommendRefund] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
@@ -53,10 +55,15 @@ const StaffTickets = () => {
                     loadComplaints();
                     setShowDetailModal(false);
                 }
-            } else if (action === 'CLOSE') {
-                const res = await complaintApi.closeTicket(token, selectedTicket.ticketId);
+            } else if (action === 'RESOLVE') {
+                const res = await complaintApi.resolveComplaintByStore(token, {
+                    ticketId: selectedTicket.ticketId,
+                    storeNotes: adminNotes || resolutionText,
+                    resolutionSolution: resolutionText,
+                    storeRecommendedRefund: recommendRefund
+                });
                 if (res.success) {
-                    toast.success('Ticket closed');
+                    toast.success('Resolution & Recommendation sent to Admin');
                     loadComplaints();
                     setShowDetailModal(false);
                 }
@@ -74,7 +81,8 @@ const StaffTickets = () => {
         'ESCALATED_TO_STORE': { bg: 'danger', label: 'IN STORE RESOLUTION' },
         'STORE_RESPONDED': { bg: 'primary', label: 'STORE RESPONDED' },
         'RESOLVED': { bg: 'success', label: 'RESOLVED' },
-        'CLOSED': { bg: 'secondary', label: 'CLOSED' }
+        'CLOSED': { bg: 'secondary', label: 'CLOSED' },
+        'OVERDUE': { bg: 'danger', label: 'SLA BREACH' }
     };
 
     const filtered = complaints.filter(c => {
@@ -295,7 +303,7 @@ const StaffTickets = () => {
                                         </div>
                                         <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all focus-within:border-[#0c831f] focus-within:shadow-lg focus-within:shadow-[#0c831f]/5">
                                             <textarea
-                                                rows={5}
+                                                rows={4}
                                                 className="w-100 bg-transparent border-0 text-sm font-bold text-slate-700 focus:outline-none resize-none"
                                                 placeholder="Add private notes for the store manager..."
                                                 value={adminNotes}
@@ -305,28 +313,44 @@ const StaffTickets = () => {
                                     </div>
 
                                     <div className="mt-8 space-y-3">
-                                        {selectedTicket.status === 'OPEN' && (
-                                            <Button
-                                                variant="warning"
-                                                className="w-100 bg-gradient-to-r from-amber-400 to-amber-500 border-0 text-white font-black uppercase text-[11px] tracking-[0.15em] py-3.5 rounded-2xl shadow-xl shadow-amber-400/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                                                onClick={() => handleAction('ESCALATE')}
-                                                disabled={isActionLoading}
-                                            >
-                                                {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <ArrowUpRight size={18} />}
-                                                Escalate to Store
-                                            </Button>
-                                        )}
+                                        {['OPEN', 'ESCALATED_TO_STORE', 'OVERDUE'].includes(selectedTicket.status) && (
+                                            <div className="mt-4 space-y-4">
+                                                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all focus-within:border-[#0c831f]">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Resolution Response</label>
+                                                    <textarea
+                                                        rows={3}
+                                                        className="w-100 bg-transparent border-0 text-sm font-bold text-slate-700 focus:outline-none resize-none"
+                                                        placeholder="Describe how the issue was resolved..."
+                                                        value={resolutionText}
+                                                        onChange={(e) => setResolutionText(e.target.value)}
+                                                    />
+                                                </div>
 
-                                        {['STORE_RESPONDED', 'RESOLVED'].includes(selectedTicket.status) && (
-                                            <Button
-                                                variant="success"
-                                                className="w-100 bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white font-black uppercase text-[11px] tracking-[0.15em] py-3.5 rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                                                onClick={() => handleAction('CLOSE')}
-                                                disabled={isActionLoading}
-                                            >
-                                                {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
-                                                Close Ticket
-                                            </Button>
+                                                {selectedTicket.order && (
+                                                    <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-2xl border border-amber-100">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            id="staff-recommend-refund"
+                                                            checked={recommendRefund}
+                                                            onChange={(e) => setRecommendRefund(e.target.checked)}
+                                                            className="w-4 h-4 accent-[#0c831f]"
+                                                        />
+                                                        <label htmlFor="staff-recommend-refund" className="text-[10px] font-black text-amber-900 uppercase cursor-pointer">
+                                                            Recommend Refund (Requires Central Admin Approval)
+                                                        </label>
+                                                    </div>
+                                                )}
+
+                                                <Button
+                                                    variant="success"
+                                                    className="w-100 bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white font-black uppercase text-[11px] tracking-[0.15em] py-3.5 rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                                    disabled={!resolutionText.trim() || isActionLoading}
+                                                    onClick={() => handleAction('RESOLVE')}
+                                                >
+                                                    {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
+                                                    Submit Resolution
+                                                </Button>
+                                            </div>
                                         )}
 
                                         <button 

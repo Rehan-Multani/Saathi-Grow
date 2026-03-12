@@ -33,8 +33,8 @@ export const resolveComplaintByStore = async (token, resolutionData) => {
   return response.data;
 };
 
-export const closeTicket = async (token, ticketId) => {
-  const response = await axios.put(`${BASE_URL}/admin/close`, { ticketId }, {
+export const closeTicket = async (token, ticketId, processRefund, refundAmount) => {
+  const response = await axios.put(`${BASE_URL}/admin/close`, { ticketId, processRefund, refundAmount }, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return response.data;

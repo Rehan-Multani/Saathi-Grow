@@ -67,6 +67,15 @@ const vendorSchema = new mongoose.Schema({
   fcmToken: {
     type: String,
     default: null
+  },
+  // One bank account / UPI per vendor for withdrawals
+  bankAccount: {
+    accountHolderName: { type: String, trim: true, default: '' },
+    accountNumber:     { type: String, trim: true, default: '' },
+    ifscCode:          { type: String, trim: true, uppercase: true, default: '' },
+    bankName:          { type: String, trim: true, default: '' },
+    upiId:             { type: String, trim: true, default: '' },
+    addedAt:           { type: Date }
   }
 }, {
   timestamps: true

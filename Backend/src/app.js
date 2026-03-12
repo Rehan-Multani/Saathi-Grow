@@ -210,6 +210,9 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 
+import { initCronJobs } from './services/cronJobs.js';
+initCronJobs();
+
 httpServer.listen(PORT, () => {
   console.log(`📡 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });

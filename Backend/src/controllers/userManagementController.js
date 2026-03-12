@@ -31,7 +31,7 @@ export const getAllUsers = async (req, res) => {
     }
 
     const usersQuery = User.find(query)
-      .select('name email phone profileImage addresses walletBalance isActive role createdAt updatedAt')
+      .select('name email phone profileImage walletBalance isActive addresses.city createdAt')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -76,11 +76,46 @@ export const getAllUsers = async (req, res) => {
 // @access  Private (Admin)
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const userId = req.params.id;
+    const user = await User.findById(userId).lean();
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ success: true, user });
+
+    // Fetch Statistics
+    const [stats] = await Order.aggregate([
+      { $match: { user: user._id, status: 'delivered' } },
+      {
+        $group: {
+          _id: null,
+          totalSpent: { $sum: '$totalAmount' },
+          totalOrders: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Fetch Total Orders (all statuses)
+    const totalOrdersCount = await Order.countDocuments({ user: user._id });
+
+    // Fetch Last 3 Orders
+    const recentOrders = await Order.find({ user: user._id })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .select('orderId totalAmount status createdAt')
+      .lean();
+
+    res.json({ 
+      success: true, 
+      user: {
+        ...user,
+        stats: {
+          totalSpent: stats?.totalSpent || 0,
+          totalOrders: totalOrdersCount || 0
+        },
+        recentOrders
+      } 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching user' });
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Error fetching user profile details' });
   }
 };
 

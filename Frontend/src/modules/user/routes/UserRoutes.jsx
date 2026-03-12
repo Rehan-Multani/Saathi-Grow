@@ -1,4 +1,4 @@
-﻿import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation, matchPath, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getOccasionConfig } from '../data/occasions';
@@ -201,6 +201,7 @@ const UserRoutes = () => {
                         <Route path="/orders/:id/cancel" element={<ProtectedRoute><CancelOrderPage /></ProtectedRoute>} />
                         <Route path="/orders/:id/return" element={<ProtectedRoute><ReturnOrderPage /></ProtectedRoute>} />
                         <Route path="/orders/:id/complaint" element={<ProtectedRoute><RaiseComplaintPage /></ProtectedRoute>} />
+                        <Route path="/support/raise-ticket" element={<ProtectedRoute><RaiseComplaintPage /></ProtectedRoute>} />
                         <Route path="/my-complaints" element={<ProtectedRoute><MyComplaintsPage /></ProtectedRoute>} />
                         <Route path="/orders/:id/support-chat" element={<ProtectedRoute><SupportChatPage /></ProtectedRoute>} />
 

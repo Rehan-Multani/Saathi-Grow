@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Modal, Spinner } from 'react-bootstrap';
 import { Search, Plus, User, Shield, Briefcase, Mail, Phone, Edit, Trash2, Key, X, Store, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -22,7 +22,6 @@ const AVAILABLE_PERMISSIONS = [
     { id: 'MANAGE_CUSTOMERS', label: 'Block/Unblock/Wallet Edit' },
     { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' },
     { id: 'MANAGE_BRANCHES', label: 'Manage Branch Locations' },
-    { id: 'MANAGE_CAMPAIGNS', label: 'Manage Promo Banners & Deals' },
     { id: 'MANAGE_VENDORS', label: 'Manage Vendors & Payouts' },
     { id: 'MANAGE_POS_BILLING', label: 'Handle POS Billing & Terminal' },
     { id: 'MANAGE_SETTINGS', label: 'App Global Settings (Taxes, Delivery)' }

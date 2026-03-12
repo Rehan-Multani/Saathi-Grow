@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, ShieldCheck, CheckCircle, Camera, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -17,7 +17,11 @@ const RaiseComplaintPage = () => {
     const [images, setImages] = useState([]);
     const [ticketId, setTicketId] = useState('');
 
-    const issues = ['Missing Item', 'Damaged Goods', 'Poor Quality', 'Payment Issue', 'Late Delivery', 'Wrong Item', 'Other'];
+    const issues = id 
+        ? ['Missing Item', 'Damaged Goods', 'Poor Quality', 'Payment Issue', 'Late Delivery', 'Wrong Item', 'Other']
+        : ['Wallet Issue', 'App Glitch', 'Account Issue', 'Payment Failure', 'Store Experience', 'Other'];
+
+    const isGeneral = !id;
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
@@ -38,7 +42,7 @@ const RaiseComplaintPage = () => {
 
             // Use FormData for multipart/form-data upload
             const formData = new FormData();
-            formData.append('orderId', id);
+            if (id) formData.append('orderId', id);
             formData.append('category', selectedIssue);
             formData.append('description', comment || 'No comments provided');
 
@@ -72,12 +76,16 @@ const RaiseComplaintPage = () => {
                 <div className="w-16 h-16 bg-green-50 dark:bg-[#0c831f]/10 rounded-full flex items-center justify-center mb-6 text-[#0c831f] animate-bounce shadow-xl">
                     <CheckCircle size={32} strokeWidth={3} />
                 </div>
-                <h2 className="text-[17px] md:text-2xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight uppercase">Complaint registered!</h2>
+                <h2 className="text-[17px] md:text-2xl font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight uppercase">{isGeneral ? 'Request Received' : 'Complaint registered!'}</h2>
                 <div className="bg-gray-100 dark:bg-white/5 px-4 py-2 rounded-lg mb-4">
                     <span className="text-[10px] font-black text-gray-400 mr-2">TICKET ID:</span>
                     <span className="text-[14px] font-black text-[#0c831f]">{ticketId}</span>
                 </div>
-                <p className="text-[11px] md:text-sm text-gray-500 mb-8 max-w-[250px] font-bold">Your complaint for Order #{id.slice(-6).toUpperCase()} is being reviewed by our Admin team.</p>
+                <p className="text-[11px] md:text-sm text-gray-500 mb-8 max-w-[250px] font-bold">
+                    {isGeneral 
+                        ? 'Our technical support team will investigate your request shortly.' 
+                        : `Your complaint for Order #${id.slice(-6).toUpperCase()} is being reviewed by our Admin team.`}
+                </p>
                 <button
                     onClick={() => navigate('/orders')}
                     className="px-8 py-3 bg-[#0c831f] text-white rounded-xl font-black text-[12px] uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-green-500/20"
@@ -96,7 +104,7 @@ const RaiseComplaintPage = () => {
                     <button onClick={() => navigate(-1)} className="p-2 bg-white dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all border border-gray-100 dark:border-white/10">
                         <ArrowLeft size={16} />
                     </button>
-                    <h1 className="text-[13.5px] md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none uppercase">Raise complaint</h1>
+                    <h1 className="text-[13.5px] md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none uppercase">{isGeneral ? 'Get Help & Support' : 'Raise complaint'}</h1>
                 </div>
             </div>
 

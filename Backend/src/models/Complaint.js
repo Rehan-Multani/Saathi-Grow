@@ -9,7 +9,11 @@ const complaintSchema = new mongoose.Schema({
   order: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order',
-    required: true
+    required: false // Now optional for general support
+  },
+  isGeneralTicket: {
+    type: Boolean,
+    default: false
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -20,11 +24,11 @@ const complaintSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     // Can be a Vendor or a Branch depending on the order
     refPath: 'storeModel',
-    required: true
+    required: false
   },
   storeModel: {
     type: String,
-    required: true,
+    required: false,
     enum: ['Vendor', 'Branch']
   },
   deliveryPartner: {
@@ -42,6 +46,9 @@ const complaintSchema = new mongoose.Schema({
       'Payment Issue',
       'Late Delivery',
       'Wrong Item',
+      'Wallet Issue',
+      'App Glitch',
+      'Account Issue',
       'Other'
     ]
   },
@@ -59,8 +66,16 @@ const complaintSchema = new mongoose.Schema({
   }],
   status: {
     type: String,
-    enum: ['OPEN', 'ESCALATED_TO_STORE', 'STORE_RESPONDED', 'RESOLVED', 'CLOSED'],
+    enum: ['OPEN', 'ESCALATED_TO_STORE', 'STORE_RESPONDED', 'RESOLVED', 'CLOSED', 'OVERDUE'],
     default: 'OPEN'
+  },
+  refundProcessed: {
+    type: Boolean,
+    default: false
+  },
+  refundAmount: {
+    type: Number,
+    default: 0
   },
   resolutionThread: [{
     sender: {
@@ -82,6 +97,10 @@ const complaintSchema = new mongoose.Schema({
   adminNotes: String,
   storeNotes: String,
   resolutionSolution: String,
+  storeRecommendedRefund: {
+    type: Boolean,
+    default: false
+  },
   slaExpiry: {
     type: Date
   },
