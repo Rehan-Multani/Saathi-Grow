@@ -2,33 +2,28 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
     RotateCcw, Package, CheckCircle, XCircle, Search,
-    Eye, X, Loader2, Store, Phone, User, ChevronLeft, ChevronRight, Image
+    Eye, X, Loader2, Store, Phone, User, ChevronLeft, ChevronRight, Image, Clock
 } from 'lucide-react';
 import { API_BASE_URL } from '../../../config/apiConfig';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 
-const getVendorAuth = () => {
-    try {
-        const v = localStorage.getItem('sathiGro_vendor') || localStorage.getItem('saathigro_vendor');
-        return v ? JSON.parse(v) : null;
-    } catch { return null; }
-};
-
-const API = `${API_BASE_URL}/vendors`;
+import { useVendor } from '../contexts/VendorContext';
 
 const statusColors = {
-    Pending: 'bg-amber-50 text-amber-700 border-amber-100',
-    Accepted: 'bg-green-50 text-green-700 border-green-100 text-uppercase',
-    Rejected: 'bg-red-50 text-red-700 border-red-100',
-    Scheduled: 'bg-blue-50 text-blue-700 border-blue-100',
-    PickedUp: 'bg-purple-50 text-purple-700 border-purple-100',
-    Returned: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    Pending: 'bg-amber-100 text-amber-700 border-amber-200',
+    Accepted: 'bg-green-100 text-green-700 border-green-200',
+    Approved: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    Rejected: 'bg-orange-100 text-orange-700 border-orange-200',
+    FinalRejected: 'bg-red-100 text-red-700 border-red-200',
+    Scheduled: 'bg-blue-100 text-blue-700 border-blue-200',
+    PickedUp: 'bg-purple-100 text-purple-700 border-purple-200',
+    Returned: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
 
 const ReturnRequests = () => {
-    const [returnRequests, setReturnRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { returnRequests, handleReturnAction, fetchReturns } = useVendor();
+    const [loading, setLoading] = useState(false);
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRequest, setSelectedRequest] = useState(null);
@@ -36,29 +31,12 @@ const ReturnRequests = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const fetchReturns = useCallback(async () => {
-        const auth = getVendorAuth();
-        if (!auth) { setLoading(false); return; }
-        try {
-            setLoading(true);
-            const { data } = await axios.get(`${API}/returns`, {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            });
-            setReturnRequests(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error('Error fetching vendor returns:', err);
-            setReturnRequests([]);
-        } finally {
-            setLoading(false);
-        }
+    useEffect(() => { 
+        setLoading(true);
+        fetchReturns().finally(() => setLoading(false)); 
     }, []);
 
-    useEffect(() => { fetchReturns(); }, [fetchReturns]);
-
-    const handleAction = async (orderId, action) => {
-        const auth = getVendorAuth();
-        if (!auth) return;
-
+    const onAction = async (orderId, action) => {
         let rejectionReason = null;
         if (action === 'Rejected') {
             const result = await Swal.fire({
@@ -76,7 +54,7 @@ const ReturnRequests = () => {
         } else {
             const confirm = await Swal.fire({
                 title: 'Accept Return?',
-                html: '<p class="text-sm text-gray-600">This signifies your store accepts the return. Admin will then schedule a rider to collect the item. Stock will be restored now.</p>',
+                html: '<p class="text-sm text-gray-600">This signifies your store accepts the return. Admin will then schedule a rider to collect the item.</p>',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, Accept',
@@ -85,18 +63,11 @@ const ReturnRequests = () => {
             if (!confirm.isConfirmed) return;
         }
 
-        try {
-            setProcessing(true);
-            await axios.put(`${API}/returns/${orderId}`, { action: action === 'Accepted' ? 'Accepted' : 'Rejected', rejectionReason }, {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            });
-            toast.success(action === 'Accepted' ? 'Return accepted! Stock restored.' : 'Return rejected.');
+        setProcessing(true);
+        const success = await handleReturnAction(orderId, action === 'Accepted' ? 'Accepted' : 'Rejected', rejectionReason);
+        setProcessing(false);
+        if (success) {
             setSelectedRequest(null);
-            fetchReturns();
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to update return request');
-        } finally {
-            setProcessing(false);
         }
     };
 
@@ -239,14 +210,14 @@ const ReturnRequests = () => {
                             {selectedRequest.returnRequest?.status === 'Pending' && (
                                 <div className="flex gap-3 pt-4 border-t">
                                     <button
-                                        onClick={() => handleAction(selectedRequest._id, 'Accepted')}
+                                        onClick={() => onAction(selectedRequest._id, 'Accepted')}
                                         disabled={processing}
                                         className="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold transition-all hover:bg-green-700 disabled:opacity-50"
                                     >
                                         {processing ? 'Processing...' : 'Accept Return'}
                                     </button>
                                     <button
-                                        onClick={() => handleAction(selectedRequest._id, 'Rejected')}
+                                        onClick={() => onAction(selectedRequest._id, 'Rejected')}
                                         disabled={processing}
                                         className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold transition-all hover:bg-red-700 disabled:opacity-50"
                                     >
@@ -255,10 +226,26 @@ const ReturnRequests = () => {
                                 </div>
                             )}
 
-                            {selectedRequest.returnRequest?.status === 'Accepted' && (
+                            {(selectedRequest.returnRequest?.status === 'Accepted' || selectedRequest.returnRequest?.status === 'Approved') && (
                                 <div className="p-4 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-center">
                                     <p className="text-sm font-bold">Waiting for Admin to assign rider</p>
-                                    <p className="text-[10px] mt-1 opacity-70">You accepted this return. Logistics are being managed centrally.</p>
+                                    <p className="text-[10px] mt-1 opacity-70">
+                                        {selectedRequest.returnRequest?.status === 'Approved' ? 'Admin has overruled and approved this return.' : 'Logistics are being managed centrally.'}
+                                    </p>
+                                </div>
+                            )}
+
+                            {selectedRequest.returnRequest?.status === 'Rejected' && (
+                                <div className="p-4 bg-orange-50 text-orange-700 border border-orange-100 rounded-xl text-center">
+                                    <p className="text-sm font-bold">Rejected by Store</p>
+                                    <p className="text-[10px] mt-1 opacity-70">Admin will review this rejection and make a final decision.</p>
+                                </div>
+                            )}
+
+                            {selectedRequest.returnRequest?.status === 'FinalRejected' && (
+                                <div className="p-4 bg-red-50 text-red-700 border border-red-100 rounded-xl text-center">
+                                    <p className="text-sm font-bold">Final Rejection by Admin</p>
+                                    <p className="text-[10px] mt-1 opacity-70">This return request has been definitively closed.</p>
                                 </div>
                             )}
                         </div>

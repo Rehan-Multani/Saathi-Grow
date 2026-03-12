@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as vendorAuthApi from '../api/vendorAuthApi';
 import * as vendorProductApi from '../api/vendorProductApi';
 import * as vendorOrderApi from '../api/vendorOrderApi';
@@ -22,6 +22,7 @@ export const VendorProvider = ({ children }) => {
 
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [returnRequests, setReturnRequests] = useState([]);
     const [walletData, setWalletData] = useState({
         balance: 0,
         totalEarnings: 0,
@@ -40,6 +41,7 @@ export const VendorProvider = ({ children }) => {
             refreshProfile();
             fetchProducts();
             fetchOrders();
+            fetchReturns();
             fetchWalletData();
         }
     }, []);
@@ -87,6 +89,16 @@ export const VendorProvider = ({ children }) => {
             }));
         } catch (error) {
             console.error('Failed to fetch orders:', error);
+        }
+    };
+
+    const fetchReturns = async () => {
+        if (!vendor?.token) return;
+        try {
+            const data = await vendorOrderApi.getVendorReturns(vendor.token);
+            setReturnRequests(data);
+        } catch (error) {
+            console.error('Failed to fetch return requests:', error);
         }
     };
 
@@ -246,6 +258,18 @@ export const VendorProvider = ({ children }) => {
         }
     };
 
+    const handleReturnAction = async (orderId, action, rejectionReason) => {
+        try {
+            await vendorOrderApi.handleStoreReturnAction(vendor.token, orderId, action, rejectionReason);
+            toast.success(`Return ${action} successfully`);
+            await fetchReturns();
+            return true;
+        } catch (error) {
+            toast.error(error.message);
+            return false;
+        }
+    };
+
     const toggleShopStatus = () => {
         setVendor(prev => ({ ...prev, isOpen: !prev.isOpen }));
     };
@@ -272,6 +296,9 @@ export const VendorProvider = ({ children }) => {
             refreshProfile,
             fetchProducts,
             fetchOrders,
+            returnRequests,
+            fetchReturns,
+            handleReturnAction,
             walletData,
             earningsStats,
             fetchWalletData

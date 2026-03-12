@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -94,7 +94,8 @@ const OrderDetailsPage = () => {
                     </div>
                 </div>
 
-                {rawOrder?.deliveryOTP && !['delivered', 'cancelled', 'returned'].includes(rawOrder.status) && (
+                {/* Secure Delivery PIN Display */}
+                {rawOrder?.deliveryOTP && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(rawOrder.status) && (
                     <div className="bg-[#0c831f] text-white p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-green-500/20 mb-6 border border-white/10 animate-in slide-in-from-top duration-500">
                         <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
@@ -111,7 +112,28 @@ const OrderDetailsPage = () => {
                     </div>
                 )}
 
-                {rawOrder?.deliveryPartnerId && !['delivered', 'cancelled', 'returned'].includes(order.status) && (
+                {/* Secure Return PIN Display */}
+                {rawOrder?.returnRequest?.isRequested && 
+                 ['Accepted', 'Approved', 'Scheduled', 'PickedUp'].includes(rawOrder.returnRequest.status) && 
+                 rawOrder.returnRequest.returnOTP && 
+                 rawOrder.status !== 'returned' && (
+                    <div className="bg-orange-600 text-white p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-orange-500/20 mb-6 border border-white/10 animate-in slide-in-from-top duration-500">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
+                                <Shield size={20} className="text-white" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/80 leading-none mb-1">Secure Return PIN</p>
+                                <p className="text-xs md:text-sm font-bold tracking-tight">Share with partner for pickup</p>
+                            </div>
+                        </div>
+                        <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/20">
+                            <span className="text-xl md:text-2xl font-black tracking-[0.15em]">{rawOrder.returnRequest.returnOTP}</span>
+                        </div>
+                    </div>
+                )}
+
+                {rawOrder?.deliveryPartnerId && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(order.status) && (
                     <button
                         onClick={() => navigate(`/orders/${order.id}/tracking`)}
                         className="w-full bg-[#0c831f] text-white mb-6 py-4 rounded-xl flex items-center justify-center gap-2 font-black !text-[12px] uppercase tracking-widest shadow-lg shadow-green-500/20 active:scale-95 transition-all"

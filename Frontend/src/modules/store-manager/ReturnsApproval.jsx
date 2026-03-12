@@ -50,13 +50,18 @@ const ReturnsApproval = () => {
         const styles = {
             Accepted: 'bg-emerald-50 text-emerald-600 border-emerald-100',
             Approved: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-            Rejected: 'bg-rose-50 text-rose-600 border-rose-100',
+            Rejected: 'bg-orange-50 text-orange-600 border-orange-100',
+            FinalRejected: 'bg-rose-50 text-rose-600 border-rose-100',
             Pending: 'bg-amber-50 text-amber-600 border-amber-100'
         };
-        const label = status === 'Accepted' ? 'APPROVED' : status.toUpperCase();
+        const label = status === 'Accepted' ? 'STORE APPROVED' : 
+                      status === 'Approved' ? 'ADMIN APPROVED' : 
+                      status === 'Rejected' ? 'STORE REJECTED' :
+                      status === 'FinalRejected' ? 'FINAL REJECTED' :
+                      status.toUpperCase();
         const dotClass = status === 'Accepted' || status === 'Approved'
             ? 'bg-emerald-600'
-            : status === 'Rejected'
+            : status === 'Rejected' || status === 'FinalRejected'
                 ? 'bg-rose-600'
                 : 'bg-amber-600';
         return (

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ShoppingBag, Package, ChevronRight, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -43,7 +43,8 @@ const OrdersPage = () => {
                         amount: '₹' + o.totalAmount.toFixed(2),
                         items: o.items.map(item => item.name).join(', '),
                         color: colorClass,
-                        deliveryOTP: o.deliveryOTP
+                        deliveryOTP: o.deliveryOTP,
+                        returnRequest: o.returnRequest
                     }
                 });
 
@@ -102,9 +103,19 @@ const OrdersPage = () => {
                                         <div className={`px-2.5 py-1 md:px-3 md:py-1.5 rounded-full md:rounded-lg !text-[8px] md:!text-[10px] font-black uppercase tracking-widest border border-current bg-opacity-10 ${order.color}`}>
                                             {order.status}
                                         </div>
-                                        {order.deliveryOTP && !['delivered', 'cancelled', 'returned'].includes(order.status) && (
+                                        {/* Delivery OTP Flow */}
+                                        {order.deliveryOTP && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(order.status) && (
                                             <div className="px-2 py-0.5 bg-[#0c831f] text-white rounded-lg text-[9px] md:text-[10px] font-black tracking-widest shadow-sm">
                                                 PIN: {order.deliveryOTP}
+                                            </div>
+                                        )}
+                                        {/* Return OTP Flow */}
+                                        {order.returnRequest?.isRequested && 
+                                         ['Accepted', 'Approved', 'Scheduled', 'PickedUp'].includes(order.returnRequest.status) && 
+                                         order.returnRequest.returnOTP && 
+                                         order.status !== 'returned' && (
+                                            <div className="px-2 py-0.5 bg-orange-600 text-white rounded-lg text-[9px] md:text-[10px] font-black tracking-widest shadow-sm">
+                                                RETURN PIN: {order.returnRequest.returnOTP}
                                             </div>
                                         )}
                                     </div>

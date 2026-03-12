@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -76,7 +76,6 @@ const DeliveryLayout = ({ children }) => {
     const navItems = [
         { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/delivery/dashboard' },
         { icon: <Package size={20} />, label: 'Orders', path: '/delivery/orders' },
-        { icon: <RotateCcw size={20} />, label: 'Returns', path: '/delivery/returns' },
         { icon: <Wallet size={20} />, label: 'Wallet', path: '/delivery/wallet' },
         { icon: <User size={20} />, label: 'Profile', path: '/delivery/profile' }
     ];

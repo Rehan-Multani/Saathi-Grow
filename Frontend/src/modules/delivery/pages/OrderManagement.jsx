@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin,
@@ -92,7 +92,7 @@ const OrderManagement = () => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.03 }}
-                                onClick={() => navigate(`/delivery/tracking/${run._id}`)}
+                                onClick={() => navigate(`/delivery/run/${run._id}`)}
                                 className="bg-white dark:bg-zinc-900 rounded-2xl md:rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(2,138,15,0.1)] transition-all duration-300 group cursor-pointer flex flex-col"
                             >
                                 {/* Card Header */}

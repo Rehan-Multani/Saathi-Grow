@@ -152,34 +152,62 @@ const LiveTracking = () => {
         }
     };
 
-    const partnerPos = profile?.currentLocation?.coordinates ? [profile.currentLocation.coordinates[1], profile.currentLocation.coordinates[0]] : [22.7196, 75.8577];
+    const partnerLat = profile?.currentLocation?.coordinates?.[1] || 22.7196;
+    const partnerLng = profile?.currentLocation?.coordinates?.[0] || 75.8577;
+
+    const partnerPos = useMemo(() => [partnerLat, partnerLng], [partnerLat, partnerLng]);
 
     // In return runs, the final destination is the Store/Branch. In delivery, it's the start.
-    const runDestinationPos = run?.branchId?.location?.coordinates ? [run.branchId.location.coordinates[1], run.branchId.location.coordinates[0]] : [22.7196, 75.8577];
+    const runDestinationLat = run?.branchId?.location?.coordinates?.[1] || 22.7196;
+    const runDestinationLng = run?.branchId?.location?.coordinates?.[0] || 75.8577;
+
+    const runDestinationPos = useMemo(() => [runDestinationLat, runDestinationLng], [runDestinationLat, runDestinationLng]);
     
     // Find next unvisited stop
     const currentStop = run?.orders?.find(s => run.runType === 'return' ? s.status === 'pending' : (s.status === 'pending' || s.status === 'out_for_delivery'));
-    const currentStopPos = currentStop?.order?.shippingAddress?.location?.coordinates ? [currentStop.order.shippingAddress.location.coordinates[1], currentStop.order.shippingAddress.location.coordinates[0]] : null;
+    const currentStopLat = currentStop?.order?.shippingAddress?.location?.coordinates?.[1] || null;
+    const currentStopLng = currentStop?.order?.shippingAddress?.location?.coordinates?.[0] || null;
+
+    const currentStopPos = useMemo(() => currentStopLat && currentStopLng ? [currentStopLat, currentStopLng] : null, [currentStopLat, currentStopLng]);
 
     useEffect(() => {
         if (markerRef.current) markerRef.current.slideTo(partnerPos, { duration: 1200 });
-    }, [partnerPos]);
+    }, [partnerLat, partnerLng]);
+
+    const lastFetchedDestRef = React.useRef(null);
+    const lastFetchedOriginRef = React.useRef(null);
 
     useEffect(() => {
         const fetchRoute = async () => {
-            if (partnerPos[0] === 0 || !id) return;
+            if (partnerLat === 0 || !id) return;
             const dest = (run?.status === 'in_progress' && currentStopPos) ? currentStopPos : (run?.status === 'assigned' && run.runType === 'delivery') ? runDestinationPos : runDestinationPos;
             if (!dest) return;
+
+            const isSameDest = lastFetchedDestRef.current && 
+                lastFetchedDestRef.current[0] === dest[0] && 
+                lastFetchedDestRef.current[1] === dest[1];
+            
+            // Limit API calls: Only reroute if destination changed OR rider moved > 200m from last fetched point
+            if (isSameDest && lastFetchedOriginRef.current) {
+                const distanceMoved = getDistance(partnerPos, lastFetchedOriginRef.current);
+                if (distanceMoved < 200) {
+                    return; 
+                }
+            }
+
             try {
                 const response = await getRouteDirections(token, partnerPos, dest);
                 if (response.routes?.length > 0) {
                     setRouteCoordinates(polylineUtil.decode(response.routes[0].overview_polyline.points));
+                    lastFetchedDestRef.current = dest;
+                    lastFetchedOriginRef.current = partnerPos;
                 }
             } catch {}
         };
-        fetchRoute();
-    }, [partnerPos, currentStopPos, run?.status]);
 
+        const timeoutId = setTimeout(fetchRoute, 1500); 
+        return () => clearTimeout(timeoutId);
+    }, [id, run?.status, run?.runType, partnerLat, partnerLng, currentStopLat, currentStopLng, runDestinationLat, runDestinationLng, token]);
     useEffect(() => {
         if (!routeCoordinates.length) return;
         const dest = routeCoordinates[routeCoordinates.length - 1];

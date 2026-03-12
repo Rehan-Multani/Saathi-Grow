@@ -19,3 +19,19 @@ export const updateVendorOrderStatus = async (token, orderId, status) => {
   const { data } = await axios.put(`${API_URL}/orders/${orderId}/status`, { status }, config);
   return data;
 };
+
+export const getVendorReturns = async (token) => {
+  const config = {
+    headers: { Authorization: `Bearer ${token}` }
+  };
+  const { data } = await axios.get(`${API_URL}/returns`, config);
+  return data;
+};
+
+export const handleStoreReturnAction = async (token, orderId, action, rejectionReason) => {
+  const config = {
+    headers: { Authorization: `Bearer ${token}` }
+  };
+  const { data } = await axios.put(`${API_URL}/returns/${orderId}`, { action, rejectionReason }, config);
+  return data;
+};

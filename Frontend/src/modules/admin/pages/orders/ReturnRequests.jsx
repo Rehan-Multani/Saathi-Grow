@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Search, Eye, CheckCircle, XCircle, RotateCcw, Package, 
+import {
+    Search, Eye, CheckCircle, XCircle, RotateCcw, Package,
     User, Loader2, Truck, ChevronLeft, ChevronRight, Filter,
-    Plus, MapPin, Store, Check, Layers, Image, ShieldCheck
+    Plus, MapPin, Store, Check, Layers, Image, ShieldCheck, Clock
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
@@ -12,7 +12,9 @@ import { getDeliveryPartners } from '../../api/adminDeliveryApi';
 const statusColors = {
     Pending: 'bg-amber-100 text-amber-700 border-amber-200',
     Accepted: 'bg-green-100 text-green-700 border-green-200',
-    Rejected: 'bg-red-100 text-red-700 border-red-200',
+    Approved: 'bg-green-100 text-green-700 border-green-200',
+    Rejected: 'bg-orange-100 text-orange-700 border-orange-200',
+    FinalRejected: 'bg-red-100 text-red-700 border-red-200',
     Scheduled: 'bg-blue-100 text-blue-700 border-blue-200',
     PickedUp: 'bg-purple-100 text-purple-700 border-purple-200',
     Returned: 'bg-emerald-100 text-emerald-700 border-emerald-200',
@@ -35,10 +37,10 @@ const ReturnRequests = () => {
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
     const tabStatusMap = {
-        Pending: 'Pending',
-        Accepted: 'Accepted',
+        Pending: 'Pending,Rejected',
+        Accepted: 'Accepted,Approved',
         Scheduled: 'Scheduled,PickedUp',
-        History: 'Rejected,Returned'
+        History: 'FinalRejected,Returned'
     };
 
     const fetchReturns = async () => {
@@ -226,8 +228,11 @@ const ReturnRequests = () => {
                         className={`px-8 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${activeTab === tab ? 'bg-purple-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
                     >
                         {tab}
-                        {tab === 'Accepted' && returnRequests.filter(r => r.returnRequest.status === 'Accepted').length > 0 && (
-                            <span className="ml-2 px-1.5 py-0.5 bg-white text-purple-600 rounded-full text-[9px]">{returnRequests.filter(r => r.returnRequest.status === 'Accepted').length}</span>
+                        {tab === 'Accepted' && returnRequests.filter(r => ['Accepted', 'Approved'].includes(r.returnRequest.status)).length > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-white text-purple-600 rounded-full text-[9px]">{returnRequests.filter(r => ['Accepted', 'Approved'].includes(r.returnRequest.status)).length}</span>
+                        )}
+                        {tab === 'Pending' && returnRequests.filter(r => r.returnRequest.status === 'Rejected').length > 0 && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[9px]">{returnRequests.filter(r => r.returnRequest.status === 'Rejected').length} Rejections</span>
                         )}
                     </button>
                 ))}
@@ -309,9 +314,14 @@ const ReturnRequests = () => {
                                         <p className="font-black text-gray-800">₹{r.totalAmount}</p>
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black border uppercase ${statusColors[r.returnRequest.status]}`}>
-                                            {r.returnRequest.status}
-                                        </span>
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-black border uppercase ${statusColors[r.returnRequest.status]}`}>
+                                                {r.returnRequest.status}
+                                            </span>
+                                            {r.returnRequest.status === 'Rejected' && (
+                                                <span className="text-[9px] text-red-500 font-bold uppercase tracking-tight">Store Rejected</span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <button 
@@ -429,22 +439,31 @@ const ReturnRequests = () => {
                                 <p className="text-sm font-bold text-gray-800 tracking-tight italic">"{selectedRequest.returnRequest.reason}"</p>
                             </div>
 
-                            {selectedRequest.returnRequest.status === 'Pending' && (
-                                <div className="flex gap-4 pt-4 border-t border-gray-100">
-                                    <button 
-                                        onClick={() => handleApproval(selectedRequest._id, 'Approved')}
-                                        disabled={processing}
-                                        className="flex-1 py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-100 transition-all active:scale-95 disabled:opacity-50"
-                                    >
-                                        Approve Return
-                                    </button>
-                                    <button 
-                                        onClick={() => handleApproval(selectedRequest._id, 'Rejected')}
-                                        disabled={processing}
-                                        className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-100 transition-all active:scale-95 disabled:opacity-50"
-                                    >
-                                        Reject
-                                    </button>
+                            {['Pending', 'Rejected'].includes(selectedRequest.returnRequest.status) && (
+                                <div className="space-y-4">
+                                    {selectedRequest.returnRequest.status === 'Rejected' && (
+                                        <div className="p-4 bg-red-50 border border-red-100 rounded-2xl">
+                                            <p className="text-[10px] font-black text-red-600 uppercase mb-1">Store Rejection Reason</p>
+                                            <p className="text-xs font-bold text-gray-700 italic">"{selectedRequest.returnRequest.rejectionReason || 'No reason provided'}"</p>
+                                            <p className="text-[9px] text-red-400 mt-2 font-black uppercase">Admin can overrule this rejection below</p>
+                                        </div>
+                                    )}
+                                    <div className="flex gap-4 pt-4 border-t border-gray-100">
+                                        <button 
+                                            onClick={() => handleApproval(selectedRequest._id, 'Accepted')}
+                                            disabled={processing}
+                                            className="flex-1 py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-100 transition-all active:scale-95 disabled:opacity-50"
+                                        >
+                                            {selectedRequest.returnRequest.status === 'Rejected' ? 'Overrule & Approve' : 'Approve Return'}
+                                        </button>
+                                        <button 
+                                            onClick={() => handleApproval(selectedRequest._id, 'Rejected')}
+                                            disabled={processing}
+                                            className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-100 transition-all active:scale-95 disabled:opacity-50"
+                                        >
+                                            {selectedRequest.returnRequest.status === 'Rejected' ? 'Final Reject' : 'Reject Request'}
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
