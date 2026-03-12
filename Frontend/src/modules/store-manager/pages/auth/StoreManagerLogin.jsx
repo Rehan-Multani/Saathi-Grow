@@ -59,7 +59,7 @@ const StoreManagerLogin = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       size="lg"
-                      className="bg-light border-0"
+                      className="bg-light border-0 text-dark"
                     />
                   </Form.Group>
                   <Form.Group className="mb-4">
@@ -71,11 +71,11 @@ const StoreManagerLogin = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="bg-light border-0"
+                        className="bg-light border-0 text-dark"
                       />
                       <Button 
                         variant="light" 
-                        className="bg-light border-0"
+                        className="bg-light border-0 text-dark"
                         onClick={() => setShowPassword(!showPassword)}
                         type="button"
                       >

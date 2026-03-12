@@ -18,6 +18,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
     const [reason, setReason] = useState('');
     const [branchId, setBranchId] = useState('');
     const [loading, setLoading] = useState(false);
+    const isVendorProduct = Boolean(product?.vendor);
 
     useEffect(() => {
         if (show) {
@@ -25,7 +26,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
             setType('Addition');
             setReason('');
             // Set initial branch if product has branches
-            if (product?.branchStocks?.length > 0) {
+            if (!isVendorProduct && product?.branchStocks?.length > 0) {
                 setBranchId(product.branchStocks[0].branchId._id || product.branchStocks[0].branchId);
             } else if (product?.vendor) {
                 setBranchId('vendor');
@@ -33,7 +34,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                 setBranchId('');
             }
         }
-    }, [show, product]);
+    }, [show, product, isVendorProduct]);
 
     const getSelectedBranchStock = () => {
         if (!product || !branchId) return 0;
@@ -44,7 +45,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!branchId) return toast.warning('Please select a branch');
+        if (!isVendorProduct && !branchId) return toast.warning('Please select a branch');
         if (!amount || amount <= 0) return toast.warning('Please enter a valid amount');
         if (!reason) return toast.warning('Please provide a reason for adjustment');
 
@@ -152,7 +153,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                         variant="primary"
                         type="submit"
                         className="w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2"
-                        disabled={loading || !branchId}
+                        disabled={loading || (!isVendorProduct && !branchId)}
                     >
                         {loading ? <Spinner animation="border" size="sm" /> : <RefreshCw size={18} />}
                         Confirm Adjustment

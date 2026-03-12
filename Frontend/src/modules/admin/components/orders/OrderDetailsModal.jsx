@@ -65,7 +65,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
 
     // Support both Backend and Mock structures
     const displayId = order.orderId || order.id;
-    const displayCustomer = order.user?.name || order.customer || 'Guest';
+    const displayCustomer = order.user?.name || order.posCustomer?.name || order.customer || 'Guest';
     const displayTotal = order.totalAmount !== undefined ? `₹${order.totalAmount}` : order.total;
     const displayDate = order.createdAt ? new Date(order.createdAt).toLocaleString() : order.date;
     const displayStatus = order.status ? order.status.replace(/_/g, ' ') : 'Pending';
@@ -107,7 +107,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
         const invoiceContent = `
             <html>
             <head>
-                <title>Invoice #${order.id}</title>
+                <title>Invoice #${displayId}</title>
                 <style>
                     body { font-family: 'Helvetica', 'Arial', sans-serif; padding: 40px; color: #333; }
                     .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
@@ -150,8 +150,8 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     </div>
                     <div>
                         <div class="section-title">Payment Info:</div>
-                        Status: ${displayPayment}<br>
-                        Method: ${order.paymentInfo?.method || 'N/A'}
+                        Status: ${order.paymentStatus || 'pending'}<br>
+                        Method: ${order.paymentMethod || 'N/A'}
                     </div>
                 </div>
 
@@ -278,8 +278,8 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 <User size={16} className="mr-2" /> Customer Info
                             </h6>
                             <p className="font-bold text-gray-900 mb-1">{displayCustomer}</p>
-                            <p className="text-gray-500 text-sm mb-1">{order.user?.email || 'N/A'}</p>
-                            <p className="text-gray-500 text-sm mb-0">{order.user?.phone || 'N/A'}</p>
+                            <p className="text-gray-500 text-sm mb-1">{order.user?.email || order.posCustomer?.email || 'N/A'}</p>
+                            <p className="text-gray-500 text-sm mb-0">{order.user?.phone || order.posCustomer?.phone || 'N/A'}</p>
                         </div>
                         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <h6 className="flex items-center mb-3 text-gray-500 text-sm font-medium uppercase tracking-wider">

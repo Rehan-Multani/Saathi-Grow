@@ -145,8 +145,11 @@ const ReturnRequests = () => {
 
         const allSame = selectedForBatch.every(id => {
             const o = returnRequests.find(r => r._id === id);
-            const myDestId = o.vendor || o.branchId;
-            return myDestId === destId;
+            if (!o) return false;
+            const myVendorId = o.vendor?._id || o.vendor;
+            const myBranchId = o.branchId?._id || o.branchId;
+            const myDestId = myVendorId || myBranchId;
+            return myDestId && String(myDestId) === destIdStr;
         });
 
         if (!allSame) {

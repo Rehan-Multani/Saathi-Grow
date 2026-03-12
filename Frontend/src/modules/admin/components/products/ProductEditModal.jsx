@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
+import { getVendors } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
 import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
@@ -23,6 +24,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
     const [branches, setBranches] = useState([]);
+    const [vendors, setVendors] = useState([]);
     const [branchStocks, setBranchStocks] = useState([]);
     const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
     const [tagInput, setTagInput] = useState('');
@@ -51,18 +53,21 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [galleryPreviews, setGalleryPreviews] = useState([]);
     const [galleryFiles, setGalleryFiles] = useState([]);
     const [existingGallery, setExistingGallery] = useState([]);
+    const isVendorProduct = Boolean(formData.vendor);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [categoriesData, brandsData, branchesData] = await Promise.all([
+                const [categoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
                     getCategories(adminUser.token),
                     getBrands(adminUser.token),
-                    getBranches(adminUser.token)
+                    getBranches(adminUser.token),
+                    getVendors(adminUser.token)
                 ]);
                 setCategories(categoriesData.filter(c => c.status === 'Active'));
                 setBrands(brandsData.filter(b => b.status === 'Active'));
                 setBranches(branchesData.filter(b => b.isActive));
+                setVendors(vendorsData.filter(v => v.status === 'Active'));
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -168,8 +173,15 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : ((name === 'basePrice' || name === 'mrp' || name === 'unitValue') ? parseFloat(value) : value)
+            [name]: type === 'checkbox'
+                ? checked
+                : (['basePrice', 'mrp', 'unitValue', 'stock', 'lowStockThreshold'].includes(name)
+                    ? (value === '' ? '' : Number(value))
+                    : value)
         }));
+        if (name === 'vendor' && value) {
+            setBranchStocks([]);
+        }
     };
 
     const handleAISuggestion = async (type) => {
@@ -250,7 +262,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             const data = new FormData();
 
             const selectedBranchIds = branchStocks.map(bs => bs.branchId);
-            const isAll = selectedBranchIds.length === branches.length;
+            const isAll = !isVendorProduct && selectedBranchIds.length === branches.length;
 
             Object.keys(formData).forEach(key => {
                 if (key === 'tags') {
@@ -261,11 +273,15 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             });
 
             // Add branch selection info
-            data.append('specificBranches', selectedBranchIds.join(','));
-            data.append('isAllBranches', isAll);
-
-            // Add branch stocks
-            data.append('branchStocks', JSON.stringify(branchStocks));
+            if (!isVendorProduct) {
+                data.append('specificBranches', selectedBranchIds.join(','));
+                data.append('isAllBranches', isAll);
+                data.append('branchStocks', JSON.stringify(branchStocks));
+            } else {
+                data.append('specificBranches', '');
+                data.append('isAllBranches', false);
+                data.append('branchStocks', JSON.stringify([]));
+            }
 
             if (imageFile) {
                 data.append('image', imageFile);
@@ -343,6 +359,23 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         >
                                             <option value="">Select Brand</option>
                                             {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="small fw-medium text-muted">Assign Vendor (Optional)</Form.Label>
+                                        <Form.Select
+                                            name="vendor"
+                                            value={formData.vendor}
+                                            onChange={handleChange}
+                                            className="bg-light border-0 py-2"
+                                        >
+                                            <option value="">Admin / In-house</option>
+                                            {vendors.map(v => (
+                                                <option key={v._id} value={v._id}>{v.storeName}</option>
+                                            ))}
                                         </Form.Select>
                                     </Form.Group>
                                 </Col>

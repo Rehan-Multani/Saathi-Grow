@@ -21,10 +21,23 @@ const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshol
     totalThreshold = branchStocks.reduce((sum, item) => sum + Number(item.lowStockThreshold || 0), 0);
   }
 
-  if (totalStock <= 0) return 'Out of Stock';
-  if (totalStock <= totalThreshold) return 'Low Stock';
-  return 'Active';
-};
+    if (totalStock <= 0) return 'Out of Stock';
+    if (totalStock <= totalThreshold) return 'Low Stock';
+    return 'Active';
+  }
+
+  if (vendorStock !== undefined && vendorStock !== null) {
+    const normalizedStock = Number(vendorStock);
+    const normalizedThreshold = Number(vendorThreshold);
+    const safeStock = Number.isFinite(normalizedStock) ? normalizedStock : 0;
+    const safeThreshold = Number.isFinite(normalizedThreshold) ? normalizedThreshold : 10;
+
+    if (safeStock <= 0) return 'Out of Stock';
+    if (safeStock <= safeThreshold) return 'Low Stock';
+    return 'Active';
+  }
+
+  return 'Draft';
 
 // Helper to escape regex special characters
 const escapeRegExp = (string) => {
@@ -137,6 +150,9 @@ export const createProduct = async (req, res) => {
       }
     }
 
+    const normalizedVendorStock = Number.isFinite(Number(stock)) ? Number(stock) : 0;
+    const normalizedVendorThreshold = Number.isFinite(Number(lowStockThreshold)) ? Number(lowStockThreshold) : 10;
+
     // Determine initial status if not Draft
     let finalStatus = status || 'Active';
     if (finalStatus !== 'Draft') {
@@ -168,7 +184,9 @@ export const createProduct = async (req, res) => {
       category,
       brandName,
       isAllBranches: isAllBranches === 'true' || isAllBranches === true,
-      specificBranches: typeof specificBranches === 'string' ? specificBranches.split(',') : specificBranches,
+      specificBranches: typeof specificBranches === 'string'
+        ? specificBranches.split(',').map(s => s.trim()).filter(Boolean)
+        : (specificBranches || []).filter(Boolean),
       sku,
       qrCode: qrCodeDataUrl,
       status: finalStatus,
@@ -181,6 +199,8 @@ export const createProduct = async (req, res) => {
       isVeg: isVeg === 'true' || isVeg === true,
       variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
       isSaathiGrow: isSaathiGrow === 'true' || isSaathiGrow === true,
+      stock: vendor ? normalizedVendorStock : 0,
+      lowStockThreshold: vendor ? normalizedVendorThreshold : 10,
       createdBy: req.admin._id
     });
 
@@ -197,6 +217,19 @@ export const createProduct = async (req, res) => {
         reason: 'Initial Product Creation'
       }));
       await InventoryLog.insertMany(logs);
+    }
+
+    if (vendor) {
+      await InventoryLog.create({
+        product: product._id,
+        admin: req.admin._id,
+        vendorId: vendor,
+        changeAmount: normalizedVendorStock,
+        previousStock: 0,
+        newStock: normalizedVendorStock,
+        type: 'Addition',
+        reason: 'Initial Product Creation'
+      });
     }
 
     res.status(201).json(product);
@@ -401,7 +434,8 @@ export const getProducts = async (req, res) => {
 
     let products = await productQuery
       .populate('branchStocks.branchId', 'name code')
-      .populate('vendor', 'storeName logo businessType');
+      .populate('vendor', 'storeName logo businessType')
+      .lean();
 
     // Store-Aware logic: Inject isDeliverable flag and specific stock info
     if (effectiveStoreId && storeType) {
@@ -732,6 +766,18 @@ export const updateProduct = async (req, res) => {
       product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
       product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
       product.isSaathiGrow = req.body.isSaathiGrow !== undefined ? (req.body.isSaathiGrow === 'true' || req.body.isSaathiGrow === true) : product.isSaathiGrow;
+      if (req.body.stock !== undefined) {
+        const parsedStock = Number(req.body.stock);
+        if (Number.isFinite(parsedStock)) {
+          product.stock = parsedStock;
+        }
+      }
+      if (req.body.lowStockThreshold !== undefined) {
+        const parsedThreshold = Number(req.body.lowStockThreshold);
+        if (Number.isFinite(parsedThreshold)) {
+          product.lowStockThreshold = parsedThreshold;
+        }
+      }
 
       if (req.body.variants) {
         product.variants = typeof req.body.variants === 'string' ? JSON.parse(req.body.variants) : req.body.variants;
@@ -750,7 +796,9 @@ export const updateProduct = async (req, res) => {
         product.isAllBranches = req.body.isAllBranches === 'true' || req.body.isAllBranches === true;
       }
       if (req.body.specificBranches) {
-        product.specificBranches = typeof req.body.specificBranches === 'string' ? req.body.specificBranches.split(',') : req.body.specificBranches;
+        product.specificBranches = typeof req.body.specificBranches === 'string'
+          ? req.body.specificBranches.split(',').map(s => s.trim()).filter(Boolean)
+          : (req.body.specificBranches || []).filter(Boolean);
       }
       product.sku = req.body.sku || product.sku;
 
@@ -812,6 +860,19 @@ export const updateProduct = async (req, res) => {
         product.specificBranches = newBranchIds;
       }
 
+      if (product.vendor && req.body.stock !== undefined && Number.isFinite(Number(req.body.stock)) && Number(req.body.stock) !== previousVendorStock) {
+        await InventoryLog.create({
+          product: product._id,
+          admin: req.admin._id,
+          vendorId: product.vendor,
+          changeAmount: Number(req.body.stock) - previousVendorStock,
+          previousStock: previousVendorStock,
+          newStock: Number(req.body.stock),
+          type: Number(req.body.stock) > previousVendorStock ? 'Addition' : 'Deduction',
+          reason: req.body.reason || 'Manual Update'
+        });
+      }
+
       // Automatically update status if it's not Draft
       if (product.status !== 'Draft') {
         if (product.vendor) {
@@ -859,7 +920,7 @@ export const updateProduct = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const adjustInventory = async (req, res) => {
   try {
-    const { branchId, amount, type, reason } = req.body;
+    const { branchId, amount, type, reason, storeType } = req.body;
     let finalBranchId = branchId;
 
     const product = await Product.findById(req.params.id);
@@ -1113,12 +1174,14 @@ export const getAllInventoryLogs = async (req, res) => {
       }
     }
     const logs = await InventoryLog.find(query)
+      .select('product admin branchId vendorId changeAmount previousStock newStock type reason createdAt')
       .populate('product', 'name sku image')
       .populate('admin', 'name email')
       .populate('branchId', 'name code')
       .populate('vendorId', 'storeName logo')
       .sort('-createdAt')
-      .limit(100);
+      .limit(100)
+      .lean();
     res.json(logs);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -1146,6 +1209,7 @@ export const getInventoryLogs = async (req, res) => {
 
     const total = await InventoryLog.countDocuments(query);
     const logs = await InventoryLog.find(query)
+      .select('admin branchId vendorId changeAmount previousStock newStock type reason createdAt')
       .populate('admin', 'name email')
       .populate('branchId', 'name code')
       .populate('vendorId', 'storeName logo')

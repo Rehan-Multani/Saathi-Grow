@@ -5,6 +5,7 @@ import AdminLayout from '../AdminLayout';
 import Dashboard from '../pages/Dashboard';
 import AllOrders from '../pages/orders/AllOrders';
 import OnlineOrders from '../pages/orders/OnlineOrders';
+import POSBillingPage from '../pages/orders/POSBillingPage';
 import ReturnRequests from '../pages/orders/ReturnRequests';
 import AllProducts from '../pages/products/AllProducts';
 import AddProduct from '../pages/products/AddProduct';
@@ -116,6 +117,7 @@ const AdminRoutes = () => {
 
                         {/* Orders */}
                         <Route path="orders" element={<AllOrders />} />
+                        <Route path="orders/pos-billing" element={<POSBillingPage />} />
                         <Route path="orders/online" element={<OnlineOrders />} />
                         <Route path="orders/returns" element={<ReturnRequests />} />
 
