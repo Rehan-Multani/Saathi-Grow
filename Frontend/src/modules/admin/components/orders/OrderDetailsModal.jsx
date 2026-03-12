@@ -85,10 +85,11 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
 
     // Helper for status badge colors
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Delivered': return 'bg-green-100 text-green-700';
-            case 'Pending': return 'bg-amber-100 text-amber-700';
-            case 'Cancelled': return 'bg-red-100 text-red-700';
+        const normalized = (status || '').toString().toLowerCase();
+        switch (normalized) {
+            case 'delivered': return 'bg-green-100 text-green-700';
+            case 'pending': return 'bg-amber-100 text-amber-700';
+            case 'cancelled': return 'bg-red-100 text-red-700';
             default: return 'bg-blue-100 text-blue-700';
         }
     };
@@ -97,7 +98,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
         const invoiceContent = `
             <html>
             <head>
-                <title>Invoice #${order.id}</title>
+                <title>Invoice #${displayId}</title>
                 <style>
                     body { font-family: 'Helvetica', 'Arial', sans-serif; padding: 40px; color: #333; }
                     .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
@@ -140,8 +141,8 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     </div>
                     <div>
                         <div class="section-title">Payment Info:</div>
-                        Status: ${displayPayment}<br>
-                        Method: ${order.paymentInfo?.method || 'N/A'}
+                        Status: ${order.paymentStatus || 'pending'}<br>
+                        Method: ${order.paymentMethod || 'N/A'}
                     </div>
                 </div>
 

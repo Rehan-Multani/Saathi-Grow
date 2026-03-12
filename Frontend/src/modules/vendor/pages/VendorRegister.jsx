@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, ArrowRight, CheckCircle, MapPin, Mail, Lock, Phone, User, Navigation, Search } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
@@ -150,28 +150,28 @@ const VendorRegister = () => {
                                 <label className="text-xs font-bold text-gray-700 ml-1">Owner Name</label>
                                 <div className="relative">
                                     <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="ownerName" required onChange={handleChange} value={formData.ownerName} type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="Rahul Kumar" />
+                                    <input name="ownerName" required onChange={handleChange} value={formData.ownerName} type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="Rahul Kumar" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-700 ml-1">Email Address</label>
                                 <div className="relative">
                                     <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="email" required onChange={handleChange} value={formData.email} type="email" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="rahul@example.com" />
+                                    <input name="email" required onChange={handleChange} value={formData.email} type="email" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="rahul@example.com" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-700 ml-1">Mobile Number</label>
                                 <div className="relative">
                                     <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="phone" required onChange={handleChange} value={formData.phone} type="tel" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="+91 98765 43210" />
+                                    <input name="phone" required onChange={handleChange} value={formData.phone} type="tel" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="+91 98765 43210" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-700 ml-1">Password</label>
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="••••••••" />
                                 </div>
                             </div>
                         </div>
@@ -180,7 +180,7 @@ const VendorRegister = () => {
                             <label className="text-xs font-bold text-gray-700 ml-1">Store Name</label>
                             <div className="relative">
                                 <Store size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <input name="storeName" required onChange={handleChange} value={formData.storeName} type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="Fresh Mart Details" />
+                                <input name="storeName" required onChange={handleChange} value={formData.storeName} type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="Fresh Mart Details" />
                             </div>
                         </div>
 
@@ -196,7 +196,7 @@ const VendorRegister = () => {
                                         ref={searchRef}
                                         type="text"
                                         placeholder="Search your store location..."
-                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium shadow-sm"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium shadow-sm"
                                     />
                                 </div>
                                 <button
@@ -218,7 +218,7 @@ const VendorRegister = () => {
                                         placeholder="Street / Area / Landmark"
                                         value={formData.address.street}
                                         onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
-                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
+                                        className="w-full px-4 py-2 bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
                                     />
                                 </div>
                                 <input
@@ -227,7 +227,7 @@ const VendorRegister = () => {
                                     placeholder="City"
                                     value={formData.address.city}
                                     onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
+                                    className="w-full px-4 py-2 bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
                                 />
                                 <input
                                     name="address_zip"
@@ -235,14 +235,14 @@ const VendorRegister = () => {
                                     placeholder="Zip Code"
                                     value={formData.address.zipCode}
                                     onChange={(e) => setFormData({ ...formData, address: { ...formData.address, zipCode: e.target.value } })}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
+                                    className="w-full px-4 py-2 bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-gray-700 ml-1">Description (Optional)</label>
-                            <textarea name="description" onChange={handleChange} value={formData.description} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium resize-none" placeholder="Tell us about your store..." />
+                            <textarea name="description" onChange={handleChange} value={formData.description} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium resize-none" placeholder="Tell us about your store..." />
                         </div>
 
                         <button

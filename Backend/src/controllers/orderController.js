@@ -929,7 +929,14 @@ export const getAllOrdersAdmin = async (req, res) => {
     }
 
     if (orderSource && orderSource !== '') {
-      query.orderSource = orderSource;
+      if (orderSource === 'pos') {
+        query.orderSource = 'pos';
+      } else if (orderSource === 'online') {
+        // Treat "online" as any non-POS order (legacy orders often have no orderSource)
+        query.orderSource = { $ne: 'pos' };
+      } else {
+        query.orderSource = orderSource;
+      }
     }
 
     // Search logic

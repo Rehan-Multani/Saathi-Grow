@@ -128,7 +128,7 @@ const RegisterPage = () => {
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="John Doe"
-                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all dark:text-white text-[13px] font-bold"
+                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
                                         disabled={loading}
                                     />
                                 </div>
@@ -146,7 +146,7 @@ const RegisterPage = () => {
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                                         placeholder="98765 43210"
-                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all dark:text-white text-[13px] font-bold"
+                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
                                         disabled={loading}
                                     />
                                 </div>
@@ -162,7 +162,7 @@ const RegisterPage = () => {
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         placeholder="john@example.com"
-                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all dark:text-white text-[13px] font-bold"
+                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
                                         disabled={loading}
                                     />
                                 </div>
@@ -187,7 +187,7 @@ const RegisterPage = () => {
                                     maxLength="6"
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                                    className="block w-full px-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl text-center text-xl tracking-[0.2em] focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none bg-gray-50/50 dark:bg-white/5 dark:text-white font-black"
+                                    className="block w-full px-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl text-center text-xl tracking-[0.2em] focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none bg-gray-50/50 dark:bg-white/5 text-gray-900 dark:text-white font-black placeholder:text-gray-400"
                                     placeholder="••••••"
                                     required
                                     disabled={loading}

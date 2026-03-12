@@ -141,14 +141,20 @@ const ReturnRequests = () => {
         if (!firstOrder) {
             return toast.error('Selected returns are not available on this page. Please re-select.');
         }
-        const destType = firstOrder.vendor ? 'vendor' : 'branch';
-        const destId = firstOrder.vendor || firstOrder.branchId;
+        const firstVendorId = firstOrder.vendor?._id || firstOrder.vendor;
+        const firstBranchId = firstOrder.branchId?._id || firstOrder.branchId;
+        const destType = firstVendorId ? 'vendor' : 'branch';
+        const destId = firstVendorId || firstBranchId;
+        const destIdStr = destId ? String(destId) : '';
 
         // Verify all selected have same destination for batching efficiency
         const allSame = selectedForBatch.every(id => {
             const o = returnRequests.find(r => r._id === id);
-            const myDestId = o.vendor || o.branchId;
-            return myDestId === destId;
+            if (!o) return false;
+            const myVendorId = o.vendor?._id || o.vendor;
+            const myBranchId = o.branchId?._id || o.branchId;
+            const myDestId = myVendorId || myBranchId;
+            return myDestId && String(myDestId) === destIdStr;
         });
 
         if (!allSame) {
