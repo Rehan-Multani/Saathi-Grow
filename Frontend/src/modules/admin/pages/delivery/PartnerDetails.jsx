@@ -1,95 +1,143 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Badge, Button, Table, ProgressBar } from 'react-bootstrap';
+import { Card, Row, Col, Badge, Button, Table, Spinner } from 'react-bootstrap';
 import {
-    Truck, Phone, Mail, MapPin, Calendar, Star,
-    ChevronLeft, Package, User, Clock, CheckCircle,
-    AlertCircle, DollarSign, Activity, FileText
+    Truck, Phone, Mail, MapPin, Calendar,
+    ChevronLeft, Package, Clock, CheckCircle,
+    DollarSign, Activity, CreditCard
 } from 'lucide-react';
+import axios from 'axios';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
-import { showSuccessAlert } from '../../../../common/utils/alertUtils';
+import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
+import { getDeliveryPartnerById, updateDeliveryPartner } from '../../api/adminDeliveryApi';
+import { showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 
-const PARTNER_DATA = {
-    'DP-001': {
-        name: 'FastTrack Logistics',
-        type: 'Agency',
-        email: 'contact@fasttrack.com',
-        phone: '+1 555-0199',
-        address: '123 Logistics Way, New York, NY',
-        joinedDate: 'Jan 15, 2024',
-        rating: 4.8,
-        totalDeliveries: 1245,
-        activeDrivers: 12,
-        status: 'Active',
-        currentBalance: 4500.00,
-        earningsThisMonth: 1250.00,
-        recentDeliveries: [
-            { id: 'ORD-5541', customer: 'Alice Johnson', date: '2026-02-03', status: 'Delivered', amount: 45.00 },
-            { id: 'ORD-5538', customer: 'Bob Smith', date: '2026-02-03', status: 'On the Way', amount: 120.50 },
-            { id: 'ORD-5522', customer: 'Charlie Brown', date: '2026-02-02', status: 'Delivered', amount: 89.99 },
-        ],
-        drivers: [
-            { id: 'D-01', name: 'Mike Ross', vehicle: 'Van (NYC-441)', status: 'Active', rating: 4.9 },
-            { id: 'D-02', name: 'Harvey Specter', vehicle: 'Motorcycle (M-99)', status: 'On Delivery', rating: 4.7 },
-        ]
-    },
-    'DP-002': {
-        name: 'John Doe (Freelancer)',
-        type: 'Individual',
-        email: 'john.doe@email.com',
-        phone: '+1 555-0200',
-        address: '45 Sunset Blvd, Los Angeles, CA',
-        joinedDate: 'Feb 10, 2024',
-        rating: 4.5,
-        totalDeliveries: 342,
-        activeDrivers: 1,
-        status: 'Active',
-        currentBalance: 850.00,
-        earningsThisMonth: 420.00,
-        recentDeliveries: [
-            { id: 'ORD-9912', customer: 'Sarah Connor', date: '2026-02-02', status: 'Delivered', amount: 35.00 },
-        ],
-        drivers: [
-            { id: 'D-10', name: 'John Doe', vehicle: 'Scooter (LA-22)', status: 'Idle', rating: 4.5 }
-        ]
-    }
-};
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const PartnerDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [partner, setPartner] = useState(PARTNER_DATA[id] || PARTNER_DATA['DP-001']);
+    const [partner, setPartner] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [showOrderModal, setShowOrderModal] = useState(false);
+    const [locationName, setLocationName] = useState('Fetching address...');
 
-    if (!partner) return <div className="p-4">Partner not found</div>;
+    useEffect(() => {
+        fetchPartnerDetails();
+    }, [id]);
+
+    useEffect(() => {
+        if (partner?.currentLocation?.coordinates) {
+            const [lng, lat] = partner.currentLocation.coordinates;
+            if (lat !== 0 || lng !== 0) {
+                reverseGeocode(lat, lng);
+            } else {
+                setLocationName('Location not tracked');
+            }
+        }
+    }, [partner]);
+
+    const reverseGeocode = async (lat, lng) => {
+        try {
+            const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
+            if (response.data.results && response.data.results[0]) {
+                setLocationName(response.data.results[0].formatted_address);
+            } else {
+                setLocationName(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+            }
+        } catch (error) {
+            console.error('Geocoding error:', error);
+            setLocationName(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        }
+    };
+
+    const fetchPartnerDetails = async () => {
+        try {
+            setLoading(true);
+            const data = await getDeliveryPartnerById(id);
+            setPartner(data);
+        } catch (error) {
+            console.error('Error fetching partner details:', error);
+            showErrorAlert('Error', 'Failed to fetch partner details');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSave = async (updatedPartner) => {
-        setPartner(prev => ({ ...prev, ...updatedPartner }));
-        await showSuccessAlert('Profile Updated!', 'The partner profile has been successfully updated.');
+        try {
+            await updateDeliveryPartner(id, updatedPartner);
+            fetchPartnerDetails();
+            await showSuccessAlert('Profile Updated!', 'The partner profile has been successfully updated.');
+            setShowEditModal(false);
+        } catch (error) {
+            console.error('Error updating partner:', error);
+            showErrorAlert('Error', 'Failed to update partner profile');
+        }
     };
+
+    const handleViewOrder = (order) => {
+        setSelectedOrder(order);
+        setShowOrderModal(true);
+    };
+
+    if (loading) {
+        return (
+            <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
+                <Spinner animation="border" variant="primary" />
+            </div>
+        );
+    }
+
+    if (!partner) {
+        return (
+            <div className="p-4 text-center bg-light min-vh-100">
+                <h3>Partner not found</h3>
+                <Button variant="primary" onClick={() => navigate(-1)} className="mt-3">
+                    Go Back
+                </Button>
+            </div>
+        );
+    }
 
     return (
         <div className="p-2 p-md-4 bg-light min-vh-100">
             {/* Header */}
             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
-                <div className="d-flex align-items-center gap-2 gap-md-3">
+                <div className="d-flex align-items-center gap-2 gap-md-3 flex-grow-1">
                     <Button
                         variant="white"
                         onClick={() => navigate(-1)}
-                        className="rounded-circle shadow-sm p-2 border"
+                        className="rounded-circle shadow-sm p-2 border shrink-0"
                     >
                         <ChevronLeft size={20} />
                     </Button>
-                    <div>
-                        <h4 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '200px' }}>{partner.name}</h4>
-                        <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
-                            <span className="badge bg-primary bg-opacity-10 text-primary px-2">{partner.type}</span>
-                            <span className="d-none d-sm-inline">₹</span>
-                            <span>ID: {id}</span>
-                            <span className="d-none d-sm-inline">₹</span>
-                            <span className={`fw-bold d-flex align-items-center gap-1 ${partner.status === 'Active' ? 'text-success' : 'text-danger'}`}>
-                                <CheckCircle size={14} /> {partner.status}
-                            </span>
+                    <div className="d-flex align-items-center gap-3 overflow-hidden">
+                        {partner.profileImage ? (
+                            <img 
+                                src={partner.profileImage} 
+                                alt={partner.name} 
+                                className="rounded-circle object-cover border shadow-sm shrink-0"
+                                style={{ width: 60, height: 60 }}
+                            />
+                        ) : (
+                            <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center border shrink-0" style={{ width: 60, height: 60 }}>
+                                <Truck size={30} />
+                            </div>
+                        )}
+                        <div className="overflow-hidden">
+                            <h4 className="fw-bold mb-0 text-truncate">{partner.name}</h4>
+                            <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
+                                <span className="badge bg-primary bg-opacity-10 text-primary px-2">{partner.vehicleType}</span>
+                                <span className="text-secondary opacity-50">|</span>
+                                <span className="text-truncate">ID: {partner.uniqueId}</span>
+                                <span className="text-secondary opacity-50">|</span>
+                                <span className={`fw-bold d-flex align-items-center gap-1 ${partner.authStatus === 'Active' ? 'text-success' : 'text-danger'}`}>
+                                    <CheckCircle size={14} /> {partner.authStatus}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -117,15 +165,13 @@ const PartnerDetails = () => {
                     {/* Key Metrics */}
                     <Row className="g-2 g-md-3 mb-4">
                         {[
-                            { label: 'Total Deliveries', value: partner.totalDeliveries, icon: <Package size={20} />, color: 'blue' },
-                            { label: 'Avg. Rating', value: partner.rating, icon: <Star size={20} fill="currentColor" />, color: 'warning' },
-                            { label: 'Active Drivers', value: partner.activeDrivers, icon: <User size={20} />, color: 'purple' },
-                            { label: 'Current Balance', value: `₹${partner.currentBalance}`, icon: <DollarSign size={20} />, color: 'green' }
+                            { label: 'Total Deliveries', value: partner.totalDeliveries || 0, icon: <Package size={20} />, color: 'blue' },
+                            { label: 'Cash In Hand', value: `₹${partner.cashInHand || 0}`, icon: <DollarSign size={20} />, color: 'green' }
                         ].map((stat, i) => (
-                            <Col xs={6} md={3} key={i}>
+                            <Col xs={12} md={6} key={i}>
                                 <Card className="border-0 shadow-sm h-100">
                                     <Card.Body className="p-3">
-                                        <div className={`p-2 rounded bg-${stat.color === 'warning' ? 'amber' : stat.color}-50 text-${stat.color === 'warning' ? 'amber' : stat.color}-600 mb-2 w-fit-content`}>
+                                        <div className={`p-2 rounded bg-${stat.color}-50 text-${stat.color}-600 mb-2 w-fit-content`}>
                                             {stat.icon}
                                         </div>
                                         <div className="text-muted small mb-1">{stat.label}</div>
@@ -136,7 +182,7 @@ const PartnerDetails = () => {
                         ))}
                     </Row>
 
-                    {/* Delivery List */}
+                    {/* Recent Delivery List */}
                     <Card className="border-0 shadow-sm mb-4">
                         <Card.Header className="bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
                             <h6 className="fw-bold mb-0">Recent Deliveries</h6>
@@ -155,80 +201,65 @@ const PartnerDetails = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {partner.recentDeliveries.map((delivery, i) => (
-                                        <tr key={i} className="align-middle">
-                                            <td className="ps-4 fw-bold">{delivery.id}</td>
-                                            <td className="text-muted">{delivery.customer}</td>
-                                            <td className="text-muted">{delivery.date}</td>
-                                            <td className="fw-bold">₹{delivery.amount}</td>
-                                            <td>
-                                                <Badge bg={delivery.status === 'Delivered' ? 'success' : 'warning'} className="fw-normal">
-                                                    {delivery.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="text-end pe-4">
-                                                <Button variant="light" size="sm">View</Button>
-                                            </td>
+                                    {partner.recentDeliveries && partner.recentDeliveries.length > 0 ? (
+                                        partner.recentDeliveries.map((delivery, i) => (
+                                            <tr key={i} className="align-middle">
+                                                <td className="ps-4 fw-bold">{delivery.orderId}</td>
+                                                <td className="text-muted">{delivery.user?.name || 'Walk-in'}</td>
+                                                <td className="text-muted small">
+                                                    {new Date(delivery.createdAt).toLocaleDateString()}
+                                                </td>
+                                                <td className="fw-bold">₹{delivery.totalAmount}</td>
+                                                <td>
+                                                    <Badge bg={delivery.status === 'delivered' ? 'success' : 'warning'} className="fw-normal">
+                                                        {delivery.status.charAt(0).toUpperCase() + delivery.status.slice(1).replace(/_/g, ' ')}
+                                                    </Badge>
+                                                </td>
+                                                 <td className="text-end pe-4">
+                                                    <Button variant="light" size="sm" onClick={() => handleViewOrder(delivery)}>View</Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="text-center py-4 text-muted small">No recent deliveries found</td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </Table>
                         </Card.Body>
                     </Card>
 
-                    {/* Driver Management (If Agency) */}
-                    {partner.type === 'Agency' && (
-                        <Card className="border-0 shadow-sm">
-                            <Card.Header className="bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
-                                <h6 className="fw-bold mb-0">Registered Drivers</h6>
-                                <Button variant="outline-primary" size="sm">+ Add Driver</Button>
-                            </Card.Header>
-                            <Card.Body className="p-0">
-                                <Table hover responsive className="mb-0">
-                                    <thead className="bg-light text-muted small">
-                                        <tr>
-                                            <th className="ps-4">NAME</th>
-                                            <th>VEHICLE</th>
-                                            <th>STATUS</th>
-                                            <th>RATING</th>
-                                            <th className="text-end pe-4">ACTION</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {partner.drivers.map((driver, i) => (
-                                            <tr key={i} className="align-middle">
-                                                <td className="ps-4">
-                                                    <div className="d-flex align-items-center gap-2">
-                                                        <div className="bg-light rounded-circle p-1 capitalize text-primary font-bold" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                            {driver.name.charAt(0)}
-                                                        </div>
-                                                        <span className="fw-bold">{driver.name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="text-muted small">{driver.vehicle}</td>
-                                                <td>
-                                                    <span className={`px-2 py-1 rounded-pill small ${driver.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                                                        {driver.status}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div className="d-flex align-items-center gap-1 text-warning">
-                                                        <Star size={12} fill="currentColor" /> <span className="small fw-bold">{driver.rating}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="text-end pe-4">
-                                                    <Button variant="link" className="p-0 text-primary small">Track</Button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            </Card.Body>
-                        </Card>
-                    )}
+                    {/* Status Information */}
+                    <Card className="border-0 shadow-sm">
+                        <Card.Header className="bg-white border-bottom-0 py-3">
+                            <h6 className="fw-bold mb-0 text-muted small text-uppercase tracking-wider">Duty & Assignment Information</h6>
+                        </Card.Header>
+                        <Card.Body>
+                            <Row className="g-3">
+                                <Col md={6}>
+                                    <div className="p-3 border rounded-3 bg-light bg-opacity-50 h-100 d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div className="text-muted small mb-1 uppercase font-bold tracking-tight">Duty Status</div>
+                                        <div className={`h5 fw-bold mb-0 d-flex align-items-center gap-2 ${partner.dutyStatus === 'Online' ? 'text-success' : 'text-danger'}`}>
+                                            <div className={`w-2 h-2 rounded-circle ${partner.dutyStatus === 'Online' ? 'bg-success animate-pulse' : 'bg-danger'}`}></div>
+                                            {partner.dutyStatus}
+                                        </div>
+                                    </div>
+                                </Col>
+                                <Col md={6}>
+                                    <div className="p-3 border rounded-3 bg-light bg-opacity-50 h-100 d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div className="text-muted small mb-1 uppercase font-bold tracking-tight">Assignment Status</div>
+                                        <div className={`h6 fw-bold mb-0 ${partner.assignmentStatus === 'Free' ? 'text-success' : 'text-warning'}`}>
+                                            {partner.assignmentStatus}
+                                        </div>
+                                    </div>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
                 </Col>
 
-                {/* Right Column - Contact & Documents */}
+                {/* Right Column - Contact & Duty */}
                 <Col lg={4}>
                     <Card className="border-0 shadow-sm mb-4">
                         <Card.Body>
@@ -238,9 +269,9 @@ const PartnerDetails = () => {
                                     <div className="p-2 bg-light rounded text-muted">
                                         <Mail size={18} />
                                     </div>
-                                    <div>
+                                    <div className="overflow-hidden">
                                         <div className="small text-muted mb-0">Email Address</div>
-                                        <div className="fw-medium">{partner.email}</div>
+                                        <div className="fw-medium text-truncate">{partner.email || 'N/A'}</div>
                                     </div>
                                 </div>
                                 <div className="d-flex align-items-start gap-3">
@@ -254,11 +285,11 @@ const PartnerDetails = () => {
                                 </div>
                                 <div className="d-flex align-items-start gap-3">
                                     <div className="p-2 bg-light rounded text-muted">
-                                        <MapPin size={18} />
+                                        <Truck size={18} />
                                     </div>
                                     <div>
-                                        <div className="small text-muted mb-0">Business Address</div>
-                                        <div className="fw-medium">{partner.address}</div>
+                                        <div className="small text-muted mb-0">Vehicle Info</div>
+                                        <div className="fw-medium">{partner.vehicleNumber || 'N/A'} ({partner.vehicleType})</div>
                                     </div>
                                 </div>
                                 <div className="d-flex align-items-start gap-3">
@@ -266,59 +297,51 @@ const PartnerDetails = () => {
                                         <Calendar size={18} />
                                     </div>
                                     <div>
-                                        <div className="small text-muted mb-0">Join Date</div>
-                                        <div className="fw-medium">{partner.joinedDate}</div>
+                                        <div className="small text-muted mb-0">Registered On</div>
+                                        <div className="fw-medium">{new Date(partner.createdAt).toLocaleDateString()}</div>
                                     </div>
                                 </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-4">Performance Insights</h6>
-                            <div className="mb-4">
-                                <div className="d-flex justify-content-between mb-2 small">
-                                    <span className="text-muted">On-Time Delivery</span>
-                                    <span className="text-success fw-bold">94%</span>
+                                 <div className="d-flex align-items-start gap-3">
+                                    <div className="p-2 bg-light rounded text-muted">
+                                        <MapPin size={18} />
+                                    </div>
+                                    <div>
+                                        <div className="small text-muted mb-0">Last Known Location</div>
+                                        <div className="fw-medium">
+                                            {locationName}
+                                        </div>
+                                    </div>
                                 </div>
-                                <ProgressBar now={94} variant="success" style={{ height: 6 }} />
-                            </div>
-                            <div className="mb-4">
-                                <div className="d-flex justify-content-between mb-2 small">
-                                    <span className="text-muted">User Satisfaction</span>
-                                    <span className="text-primary fw-bold">88%</span>
-                                </div>
-                                <ProgressBar now={88} variant="primary" style={{ height: 6 }} />
-                            </div>
-                            <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                                <div className="d-flex align-items-center gap-2 text-blue-700 mb-2">
-                                    <Activity size={18} />
-                                    <h6 className="mb-0 small fw-bold">Active Activity</h6>
-                                </div>
-                                <p className="small text-blue-600 mb-0">Partner is currently delivering 8 orders across 3 sectors.</p>
                             </div>
                         </Card.Body>
                     </Card>
 
                     <Card className="border-0 shadow-sm">
                         <Card.Body>
-                            <h6 className="fw-bold mb-4">Verification Documents</h6>
-                            <div className="d-flex flex-column gap-2">
-                                {[
-                                    { name: 'Business_License.pdf', size: '1.2 MB' },
-                                    { name: 'Insurance_Contract.pdf', size: '2.4 MB' },
-                                    { name: 'Identity_Proof.jpg', size: '800 KB' }
-                                ].map((doc, i) => (
-                                    <div key={i} className="p-2 border rounded d-flex align-items-center justify-content-between hover:bg-light cursor-pointer transition-colors">
-                                        <div className="d-flex align-items-center gap-2 overflow-hidden">
-                                            <FileText size={16} className="text-muted flex-shrink-0" />
-                                            <span className="small text-truncate">{doc.name}</span>
-                                        </div>
-                                        <span className="text-[10px] text-muted flex-shrink-0">{doc.size}</span>
+                            <h6 className="fw-bold mb-4">Live Activity</h6>
+                            {partner.assignmentStatus === 'Busy' ? (
+                                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                    <div className="d-flex align-items-center gap-2 text-blue-700 mb-2">
+                                        <Activity size={18} />
+                                        <h6 className="mb-0 small fw-bold">Currently On Delivery</h6>
                                     </div>
-                                ))}
-                            </div>
+                                    <p className="small text-blue-600 mb-0">The partner is currently executing an assigned delivery run.</p>
+                                    <Button 
+                                        variant="outline-primary" 
+                                        size="sm" 
+                                        className="mt-3 w-100 bg-white"
+                                        onClick={() => navigate('/admin/delivery/tracking')}
+                                    >
+                                        Track Live Map
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                                    <Clock size={32} className="text-muted mb-2 mx-auto" />
+                                    <p className="small text-muted mb-0">Currently Idle</p>
+                                    <p className="text-[10px] text-muted">No active orders or runs assigned.</p>
+                                </div>
+                            )}
                         </Card.Body>
                     </Card>
                 </Col>
@@ -329,6 +352,12 @@ const PartnerDetails = () => {
                 onHide={() => setShowEditModal(false)}
                 partner={partner}
                 onSave={handleSave}
+            />
+
+            <OrderDetailsModal
+                show={showOrderModal}
+                onHide={() => setShowOrderModal(false)}
+                order={selectedOrder}
             />
         </div>
     );

@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/orders`;
@@ -64,7 +64,17 @@ export const getOrderDetails = async (id) => {
   const auth = getAuthDetails();
   if (!auth) return null;
 
-  const { data } = await axios.get(`${API_URL}/${id}`, {
+  const path = window.location.pathname;
+  const isAdminToken = !!(localStorage.getItem('sathiGro_admin') || localStorage.getItem('sathiGro_staff') || localStorage.getItem('saathigro_staff'));
+  
+  const isAdminRequest = isAdminToken || 
+    path.startsWith('/admin') ||
+    path.startsWith('/staff') ||
+    path.startsWith('/store-manager');
+
+  const url = isAdminRequest ? `${API_URL}/admin/${id}` : `${API_URL}/${id}`;
+
+  const { data } = await axios.get(url, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;

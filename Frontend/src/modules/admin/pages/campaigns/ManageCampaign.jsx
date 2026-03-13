@@ -1,11 +1,13 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Form, Row, Col, Card, Spinner, InputGroup, Breadcrumb } from 'react-bootstrap';
 import { Save, X, Plus, Trash2, Search, ArrowLeft, Eye, Sparkles, LayoutGrid, TrendingDown, PartyPopper } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getProducts } from '../../api/productApi';
+import { getCategories } from '../../api/categoryApi';
 import { createCampaign, updateCampaign, getCampaignById } from '../../api/campaignApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import ProductPickerModal from '../../components/common/ProductPickerModal';
 
 const ManageCampaign = () => {
   const { id } = useParams();
@@ -14,8 +16,12 @@ const ManageCampaign = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(id ? true : false);
   const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [showPicker, setShowPicker] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -32,8 +38,10 @@ const ManageCampaign = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsData = await getProducts(adminUser.token);
-        setProducts(productsData.products || []);
+        const [categoriesData] = await Promise.all([
+          getCategories(adminUser.token)
+        ]);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
         if (id) {
           const campaign = await getCampaignById(adminUser.token, id);
@@ -74,17 +82,17 @@ const ManageCampaign = () => {
     }));
   };
 
-  const addProductToCampaign = (product) => {
-    if (selectedProducts.find(p => p.productId === product._id)) {
-      return toast.warning('Product already added');
-    }
-    setSelectedProducts([...selectedProducts, {
+  const handlePickerSelect = (newProducts) => {
+    const formatted = newProducts.map(product => ({
       productId: product._id,
       name: product.name,
       image: product.image,
       mrp: product.mrp || product.basePrice,
       basePrice: product.basePrice
-    }]);
+    }));
+
+    setSelectedProducts([...selectedProducts, ...formatted]);
+    toast.success(`${formatted.length} products added to campaign`);
   };
 
   const removeProduct = (id) => {
@@ -96,6 +104,40 @@ const ManageCampaign = () => {
       p.productId === id ? { ...p, basePrice: Number(price) } : p
     ));
   };
+
+  const paginatedProducts = selectedProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(selectedProducts.length / itemsPerPage);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
+
 
 
 
@@ -131,10 +173,6 @@ const ManageCampaign = () => {
     }
   };
 
-  const filteredItems = products.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (fetching) {
     return (
@@ -310,40 +348,14 @@ const ManageCampaign = () => {
                   <Plus size={20} /> Manage Selection & Deal Pricing
                 </h6>
 
-                <div className="mb-4 position-relative">
-                  <Form.Label className="small fw-bold text-muted">Add Products to this Section</Form.Label>
-                  <InputGroup className="shadow-sm rounded-lg overflow-hidden border">
-                    <InputGroup.Text className="bg-white border-0"><Search size={18} className="text-muted" /></InputGroup.Text>
-                    <Form.Control
-                      placeholder="Search by product name or SKU code..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="border-0 py-2"
-                    />
-                  </InputGroup>
-
-                  {searchTerm && (
-                    <div className="border rounded-xl shadow-xl mt-2 bg-white position-absolute w-100 z-3 animate-in fade-in slide-in-from-top-2 duration-200" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                      {filteredItems.length > 0 ? filteredItems.map(p => (
-                        <div key={p._id} className="p-3 border-bottom d-flex align-items-center justify-content-between cursor-pointer hover:bg-blue-50 transition-colors" onClick={() => { addProductToCampaign(p); setSearchTerm(''); }}>
-                          <div className="d-flex align-items-center gap-3">
-                            <div className="bg-white border border-gray-100 p-1 rounded">
-                              <img src={p.image} className="rounded" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
-                            </div>
-                            <div>
-                              <div className="small fw-bold text-gray-800">{p.name}</div>
-                              <div className="text-[11px] text-muted font-mono">{p.sku} | Price: ₹{p.basePrice}</div>
-                            </div>
-                          </div>
-                          <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg">
-                            <Plus size={18} />
-                          </div>
-                        </div>
-                      )) : (
-                        <div className="p-4 text-center text-muted small">No products found matching your search.</div>
-                      )}
+                <div className="mb-4">
+                  <div className="flex bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-8 items-center justify-center flex-col hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group" onClick={() => setShowPicker(true)}>
+                    <div className="bg-white p-3 rounded-full shadow-sm text-blue-600 mb-3 group-hover:scale-110 transition-transform">
+                      <Plus size={28} />
                     </div>
-                  )}
+                    <div className="fw-bold text-gray-700">Browse & Add Products</div>
+                    <div className="text-[11px] text-gray-400 mt-1 uppercase tracking-widest font-bold text-center px-4">Search, filter by category and pick multiple products at once</div>
+                  </div>
                 </div>
 
                 <div className="table-responsive">
@@ -358,7 +370,7 @@ const ManageCampaign = () => {
                       </tr>
                     </thead>
                     <tbody className="border-0">
-                      {selectedProducts.length > 0 ? selectedProducts.map(p => (
+                      {paginatedProducts.length > 0 ? paginatedProducts.map(p => (
                         <tr key={p.productId} className="border-bottom border-gray-50">
                           <td className="px-3 py-3 border-0">
                             <div className="d-flex align-items-center gap-3">
@@ -400,6 +412,52 @@ const ManageCampaign = () => {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {selectedProducts.length > itemsPerPage && (
+                  <div className="d-flex justify-content-between align-items-center mt-3 px-2">
+                    <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+                      Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, selectedProducts.length)} of {selectedProducts.length}
+                    </div>
+                    <div className="d-flex gap-2">
+                      <Button 
+                        variant="light" 
+                        size="sm" 
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => prev - 1)}
+                        className="rounded-lg px-3"
+                      >
+                        Prev
+                      </Button>
+                      <div className="d-flex gap-1">
+                        {getPageNumbers().map((page, i) => (
+                           page === '...' ? (
+                            <span key={`dots-${i}`} className="d-flex align-items-center px-2 text-gray-400">...</span>
+                          ) : (
+                            <Button 
+                              key={page}
+                              variant={currentPage === page ? "primary" : "light"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className="rounded-lg w-8 h-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          )
+                        ))}
+                      </div>
+                      <Button 
+                        variant="light" 
+                        size="sm" 
+                        disabled={currentPage === Math.ceil(selectedProducts.length / itemsPerPage)}
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        className="rounded-lg px-3"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -415,6 +473,13 @@ const ManageCampaign = () => {
           </div>
         </div>
       </Form>
+      <ProductPickerModal
+        show={showPicker}
+        onHide={() => setShowPicker(false)}
+        onSelect={handlePickerSelect}
+        existingProductIds={selectedProducts.map(p => p.productId)}
+        token={adminUser?.token}
+      />
       <div className="mb-5 py-4"></div>
     </div>
   );

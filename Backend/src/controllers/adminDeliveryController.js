@@ -136,6 +136,81 @@ export const updateDeliveryPartnerStatus = async (req, res) => {
   }
 };
 
+// @desc    Update delivery partner generic details
+// @route   PUT /api/admin/delivery-partners/:id
+// @access  Private (Admin)
+export const updateDeliveryPartner = async (req, res) => {
+  try {
+    const { name, phone, authStatus, vehicleType, vehicleNumber, email } = req.body;
+    const partner = await DeliveryPartner.findById(req.params.id);
+
+    if (partner) {
+      partner.name = name || partner.name;
+      partner.phone = phone || partner.phone;
+      partner.authStatus = authStatus || partner.authStatus;
+      partner.vehicleType = vehicleType || partner.vehicleType;
+      partner.vehicleNumber = vehicleNumber || partner.vehicleNumber;
+      partner.email = email || partner.email;
+
+      const updatedPartner = await partner.save();
+      res.json(updatedPartner);
+    } else {
+      res.status(404).json({ message: 'Delivery partner not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error updating partner' });
+  }
+};
+
+// @desc    Get single delivery partner with stats and recent orders
+// @route   GET /api/admin/delivery-partners/:id
+// @access  Private (Admin/Manager)
+export const getDeliveryPartnerById = async (req, res) => {
+  try {
+    const partner = await DeliveryPartner.findById(req.params.id).lean();
+
+    if (!partner) {
+      return res.status(404).json({ message: 'Delivery partner not found' });
+    }
+
+    // Fetch recent deliveries
+    const recentOrders = await Order.find({ deliveryPartnerId: partner._id })
+      .select('orderId status items totalAmount createdAt paymentStatus shippingAddress')
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('user', 'name phone')
+      .lean();
+
+    // Fetch total deliveries count (Actual count from orders)
+    const totalDeliveriesCount = await Order.countDocuments({
+      deliveryPartnerId: partner._id,
+      status: 'delivered'
+    });
+
+    // Calculate this month's earnings
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const monthOrders = await Order.find({
+      deliveryPartnerId: partner._id,
+      status: 'delivered',
+      'deliveryTimestamps.deliveredAt': { $gte: startOfMonth }
+    }).select('deliveryFee').lean();
+
+    const earningsThisMonth = monthOrders.reduce((acc, order) => acc + (order.deliveryFee || 0), 0);
+
+    res.json({
+      ...partner,
+      totalDeliveries: totalDeliveriesCount,
+      recentDeliveries: recentOrders,
+      earningsThisMonth
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error fetching partner details' });
+  }
+};
+
 // @desc    Delete a delivery partner
 // @route   DELETE /api/admin/delivery-partners/:id
 // @access  Private (Admin)
@@ -528,13 +603,65 @@ export const getActiveDeliveries = async (req, res) => {
 // @access  Private (Admin)
 export const getCashSettlementList = async (req, res) => {
   try {
-    const partners = await DeliveryPartner.find({ cashInHand: { $gt: 0 } })
-      .select('name phone uniqueId cashInHand profileImage')
+    const { hasPagination, pageNumber, limitNumber } = getPaginationParams(req.query);
+    const { search } = req.query;
+
+    const query = { cashInHand: { $gt: 0 } };
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { uniqueId: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Get summary stats (total pending cash and active collector count)
+    const summaryStats = await DeliveryPartner.aggregate([
+      { $match: { cashInHand: { $gt: 0 } } },
+      {
+        $group: {
+          _id: null,
+          totalPendingCash: { $sum: '$cashInHand' },
+          activeCollectors: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const stats = summaryStats[0] || { totalPendingCash: 0, activeCollectors: 0 };
+
+    const listQuery = DeliveryPartner.find(query)
+      .select('name phone uniqueId cashInHand profileImage lastSettledAt')
       .sort({ cashInHand: -1 })
       .lean();
-    res.json(partners);
+
+    if (hasPagination) {
+      const total = await DeliveryPartner.countDocuments(query);
+      const partners = await listQuery
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
+      res.set('X-Total-Count', String(total));
+      res.set('X-Page', String(pageNumber));
+      res.set('X-Limit', String(limitNumber));
+      res.set('X-Total-Pages', String(Math.ceil(total / limitNumber) || 1));
+      
+      return res.json({
+        partners,
+        stats,
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages: Math.ceil(total / limitNumber)
+        }
+      });
+    }
+
+    const partners = await listQuery;
+    res.json({ partners, stats });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || 'Error fetching settlement list' });
   }
 };
 
@@ -556,6 +683,7 @@ export const settleRiderCash = async (req, res) => {
 
       const totalSettled = partner.cashInHand || 0;
       partner.cashInHand = 0;
+      partner.lastSettledAt = new Date();
       await partner.save({ session });
 
       await CashCollection.updateMany(

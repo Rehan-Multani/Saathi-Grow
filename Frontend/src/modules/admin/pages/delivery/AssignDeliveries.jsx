@@ -1,6 +1,24 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, Badge, Dropdown, Spinner, Row, Col, Modal } from 'react-bootstrap';
-import { Clock, MapPin, UserCheck, RefreshCw, Zap, Calendar, Truck, AlertCircle, X, Shield, Map, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Badge, Spinner, Modal, Form } from 'react-bootstrap';
+import { 
+    Clock, 
+    MapPin, 
+    RefreshCw, 
+    Zap, 
+    Calendar, 
+    Truck, 
+    AlertCircle, 
+    X, 
+    Package, 
+    ChevronRight, 
+    CheckCircle, 
+    Layers, 
+    User,
+    ClipboardList,
+    TrendingUp,
+    Search,
+    ChevronLeft
+} from 'lucide-react';
 import {
     getOrdersBySlot,
     createDeliveryRun,
@@ -10,15 +28,6 @@ import {
 } from '../../api/adminDeliveryApi';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-
-const BatchAssignBadge = ({ count, total }) => {
-    if (count === 0) return null;
-    return (
-        <Badge bg="primary" className="ms-2 px-2 py-1 rounded-pill">
-            {count} / {total} selected
-        </Badge>
-    );
-};
 
 const AssignDeliveries = () => {
     // Top-Level State
@@ -39,6 +48,7 @@ const AssignDeliveries = () => {
     const [loadingDrivers, setLoadingDrivers] = useState(false);
     const [assigningLoading, setAssigningLoading] = useState(false);
     const [optimizeRoute, setOptimizeRoute] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const fetchData = async () => {
         try {
@@ -75,7 +85,7 @@ const AssignDeliveries = () => {
         setSelectedOrders(prev => {
             if (prev.includes(orderId)) {
                 const newSelection = prev.filter(id => id !== orderId);
-                if (newSelection.length === 0) setCurrentSlotContext(null); // Reset context if empty
+                if (newSelection.length === 0) setCurrentSlotContext(null);
                 return newSelection;
             }
             return [...prev, orderId];
@@ -92,23 +102,17 @@ const AssignDeliveries = () => {
         const allSelected = orderIds.every(id => selectedOrders.includes(id));
 
         if (allSelected) {
-            // Deselect all
             setSelectedOrders(prev => {
                 const newSelection = prev.filter(id => !orderIds.includes(id));
                 if (newSelection.length === 0) setCurrentSlotContext(null);
                 return newSelection;
             });
         } else {
-            // Select all
             setCurrentSlotContext(slotContextId);
-            setSelectedOrders(prev => {
-                const combined = [...new Set([...prev, ...orderIds])];
-                return combined;
-            });
+            setSelectedOrders(prev => [...new Set([...prev, ...orderIds])]);
         }
     };
 
-    // Open Modal
     const handleOpenAssignModal = async () => {
         if (selectedOrders.length === 0) {
             toast.error('Please select at least one order to batch.');
@@ -126,16 +130,13 @@ const AssignDeliveries = () => {
         }
     };
 
-    // Confirm Batch Assignment
     const handleConfirmAssignment = async (driverId) => {
         try {
             setAssigningLoading(true);
-
-            // Build payload
             const payload = {
                 partnerId: driverId,
-                slotId: currentSlotContext === 'immediate' ? null : currentSlotContext,
-                slotDate: new Date().toISOString(), // Defaulting to today for now
+                slotId: (currentSlotContext === 'immediate' || !currentSlotContext) ? null : currentSlotContext,
+                slotDate: new Date().toISOString(),
                 orderIds: selectedOrders,
                 optimizeRoute: optimizeRoute
             };
@@ -143,16 +144,14 @@ const AssignDeliveries = () => {
             await createDeliveryRun(payload);
             toast.success(`Successfully batched ${selectedOrders.length} orders into a Delivery Run!`);
             setShowAssignModal(false);
-            fetchData(); // Refresh slots
+            fetchData();
         } catch (error) {
-            console.error(error);
             toast.error(error.response?.data?.message || 'Failed to create Delivery Run');
         } finally {
             setAssigningLoading(false);
         }
     };
 
-    // Cancel Run
     const handleCancelRun = async (runId) => {
         const result = await Swal.fire({
             title: 'Cancel Delivery Run?',
@@ -160,7 +159,7 @@ const AssignDeliveries = () => {
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            cancelButtonColor: '#64748b',
             confirmButtonText: 'Yes, Cancel Run'
         });
 
@@ -175,323 +174,464 @@ const AssignDeliveries = () => {
         }
     };
 
-    // ----- Render Helpers -----
-
-    const renderOrderRow = (item, slotContextId) => {
-        const isSelected = selectedOrders.includes(item._id);
-        const isDisabled = currentSlotContext && currentSlotContext !== slotContextId && selectedOrders.length > 0;
-
-        return (
-            <tr key={item._id} className={isSelected ? 'bg-primary bg-opacity-10' : ''}>
-                <td className="ps-4" style={{ width: '40px' }}>
-                    <Form.Check
-                        type="checkbox"
-                        checked={isSelected}
-                        disabled={isDisabled}
-                        onChange={() => handleSelectOrder(item._id, slotContextId)}
-                        className="cursor-pointer"
-                    />
-                </td>
-                <td>
-                    <div className="fw-bold text-dark">{item.orderId}</div>
-                    <Badge bg={item.paymentMethod === 'online' ? 'success' : 'info'} className="fw-normal bg-opacity-25 text-dark">
-                        {item.paymentMethod === 'online' ? 'Paid Online' : 'COD'}
-                    </Badge>
-                </td>
-                <td>
-                    <div className="fw-medium">{item.user?.name || 'Guest'}</div>
-                    <div className="small text-muted">{item.user?.phone}</div>
-                </td>
-                <td>
-                    <div className="d-flex align-items-center gap-2 text-dark small">
-                        <MapPin size={14} className="text-secondary flex-shrink-0" />
-                        <span className="text-truncate" style={{ maxWidth: '250px' }}>
-                            {item.shippingAddress?.street}, {item.shippingAddress?.city}
-                        </span>
-                    </div>
-                </td>
-                <td className="text-end pe-4 fw-bold">₹{item.totalAmount}</td>
-            </tr>
-        );
-    };
-
-    const renderSlotGroup = (title, groupData, slotContextId, icon) => {
-        if (!groupData || groupData.orders.length === 0) return null;
-
-        const isSelectedGroup = currentSlotContext === slotContextId;
-        const selectedCountInGroup = isSelectedGroup ? selectedOrders.length : 0;
-
-        return (
-            <Card className="border-0 shadow-sm mb-4 overflow-hidden" key={slotContextId}>
-                <Card.Header className="bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center gap-2">
-                        {icon}
-                        <h6 className="mb-0 fw-bold">{title}</h6>
-                        <Badge bg="light" text="dark" className="ms-2">{groupData.count} Pending</Badge>
-                        <BatchAssignBadge count={selectedCountInGroup} total={groupData.orders.length} />
-                    </div>
-                    <div>
-                        <Button
-                            variant="outline-secondary"
-                            size="sm"
-                            className="me-2"
-                            onClick={() => handleSelectAllInSlot(groupData, slotContextId)}
-                            disabled={currentSlotContext && currentSlotContext !== slotContextId && selectedOrders.length > 0}
-                        >
-                            Select All
-                        </Button>
-                        {isSelectedGroup && selectedOrders.length > 0 && (
-                            <Button variant="primary" size="sm" onClick={handleOpenAssignModal} className="fw-bold px-3">
-                                Batch Assign ({selectedOrders.length})
-                            </Button>
-                        )}
-                    </div>
-                </Card.Header>
-                <Table hover responsive className="mb-0 align-middle">
-                    <thead className="bg-light text-muted small">
-                        <tr>
-                            <th className="ps-4 border-0 py-3"></th>
-                            <th className="border-0 py-3">Order Details</th>
-                            <th className="border-0 py-3">Customer</th>
-                            <th className="border-0 py-3">Delivery Address</th>
-                            <th className="border-0 py-3 text-end pe-4">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {groupData.orders.map(order => renderOrderRow(order, slotContextId))}
-                    </tbody>
-                </Table>
-            </Card>
-        );
-    };
-
     return (
-        <div className="p-3">
-            {/* Header */}
-            <Row className="mb-4 align-items-center">
-                <Col>
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body className="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                                    <Package size={20} className="text-primary" /> Delivery Batches
-                                </h5>
-                                <p className="text-muted small mb-0">Group orders by slots and assign to riders efficiently</p>
-                            </div>
-                            <div className="d-flex gap-2">
-                                <Button
-                                    variant={viewType === 'slots' ? 'primary' : 'light'}
-                                    size="sm"
-                                    className="px-3"
-                                    onClick={() => setViewType('slots')}
-                                >
-                                    Group by Slots
-                                </Button>
-                                <Button
-                                    variant={viewType === 'runs' ? 'primary' : 'light'}
-                                    size="sm"
-                                    className="px-3"
-                                    onClick={() => setViewType('runs')}
-                                >
-                                    Active Runs
-                                </Button>
-                                <Button variant="light" size="sm" onClick={fetchData} disabled={loading}>
-                                    <RefreshCw size={16} className={loading ? 'spin' : ''} />
-                                </Button>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+        <div className="p-4 p-md-6 bg-slate-50/50 min-vh-100">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                        <Layers size={28} className="text-indigo-600" />
+                        Assign Deliveries
+                    </h1>
+                    <p className="text-sm text-slate-500 font-medium">Efficiently batch and dispatch orders to your elite rider fleet</p>
+                </div>
 
-            {/* Main Content Area */}
+                <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+                    <button
+                        onClick={() => setViewType('slots')}
+                        className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                            viewType === 'slots' 
+                            ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' 
+                            : 'text-slate-500 hover:bg-slate-50'
+                        }`}
+                    >
+                        Group by Slots
+                    </button>
+                    <button
+                        onClick={() => setViewType('runs')}
+                        className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                            viewType === 'runs' 
+                            ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' 
+                            : 'text-slate-500 hover:bg-slate-50'
+                        }`}
+                    >
+                        Active Runs
+                    </button>
+                    <div className="w-px h-6 bg-slate-200 mx-1"></div>
+                    <button
+                        onClick={fetchData}
+                        disabled={loading}
+                        className="p-2 text-slate-500 hover:text-indigo-600 transition-colors"
+                    >
+                        <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                </div>
+
+                <div className="relative group flex-1 max-w-md hidden md:block">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                    <input 
+                        type="text" 
+                        placeholder="Search by Order ID, Name, or Phone..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-white border border-slate-200 pl-12 pr-4 py-2.5 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all shadow-sm"
+                    />
+                </div>
+            </div>
+
+            {/* Quick Stats (Only for background context) */}
+            {viewType === 'slots' && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    {[
+                        { label: 'Unassigned', value: slotData.immediate.count + slotData.slots.reduce((acc, s) => acc + s.count, 0), icon: <Package />, color: 'amber' },
+                        { label: 'Immediate', value: slotData.immediate.count, icon: <Zap />, color: 'rose' },
+                        { label: 'Scheduled', value: slotData.slots.reduce((acc, s) => acc + s.count, 0), icon: <Calendar />, color: 'indigo' },
+                        { label: 'Active Runs', value: activeRuns.length || '...', icon: <Truck />, color: 'emerald' }
+                    ].map((stat, i) => (
+                        <div key={i} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center shadow-inner`}>
+                                {stat.icon}
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">{stat.label}</span>
+                                <span className="text-2xl font-black text-slate-800 tracking-tighter">{stat.value}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {loading ? (
-                <div className="text-center py-5">
-                    <Spinner animation="border" variant="primary" />
-                    <p className="text-muted mt-3">Loading delivery data...</p>
+                <div className="flex flex-col items-center justify-center py-32">
+                    <div className="relative">
+                        <div className="w-20 h-20 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <Layers size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-indigo-600" />
+                    </div>
+                    <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-[0.2em] animate-pulse">Syncing logistics data...</p>
                 </div>
             ) : viewType === 'slots' ? (
-                // --- SLOTS VIEW ---
-                <div>
-                    {(!slotData.immediate.orders.length && slotData.slots.every(s => s.orders.length === 0)) ? (
-                        <div className="text-center py-5 text-muted bg-white rounded shadow-sm border border-light">
-                            <CheckCircleIcon size={48} className="text-success opacity-50 mb-3" />
-                            <h5>All Caught Up!</h5>
-                            <p>There are no unassigned orders for today.</p>
-                        </div>
-                    ) : (
-                        <>
-                            {renderSlotGroup('Immediate / ASAP', slotData.immediate, 'immediate', <Zap size={18} className="text-warning" />)}
+                <div className="space-y-8">
+                    {/* Render Groups */}
+                    {[
+                        { title: 'Immediate / ASAP', data: slotData.immediate, id: 'immediate', icon: <Zap size={20} className="text-amber-500" /> },
+                        ...slotData.slots.map(s => ({
+                            title: `${s.slot.label} (${s.slot.startTime} - ${s.slot.endTime})`,
+                            data: s,
+                            id: s.slot._id,
+                            icon: <Clock size={20} className="text-indigo-500" />
+                        }))
+                    ].map((group) => group.data.orders.length > 0 && (
+                        <div key={group.id} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden transition-all hover:shadow-md">
+                            <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
+                                        {group.icon}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-800 tracking-tight">{group.title}</h3>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <Badge bg="indigo" className="bg-indigo-50 text-indigo-600 border border-indigo-100 fw-black uppercase tracking-tighter" style={{ fontSize: '9px' }}>
+                                                {group.data.count} Pending Orders
+                                            </Badge>
+                                            {currentSlotContext === group.id && selectedOrders.length > 0 && (
+                                                <Badge bg="emerald" className="bg-emerald-50 text-emerald-600 border border-emerald-100 fw-black uppercase tracking-tighter" style={{ fontSize: '9px' }}>
+                                                    {selectedOrders.length} Selected for Batch
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
 
-                            {slotData.slots.map(slotGroup => (
-                                renderSlotGroup(
-                                    `${slotGroup.slot.label} (${slotGroup.slot.startTime} - ${slotGroup.slot.endTime})`,
-                                    slotGroup,
-                                    slotGroup.slot._id,
-                                    <Calendar size={18} className="text-info" />
-                                )
-                            ))}
-                        </>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => handleSelectAllInSlot(group.data, group.id)}
+                                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
+                                    >
+                                        {group.data.orders.every(o => selectedOrders.includes(o._id)) ? 'Deselect All' : 'Select All'}
+                                    </button>
+                                    {currentSlotContext === group.id && selectedOrders.length > 0 && (
+                                        <button
+                                            onClick={handleOpenAssignModal}
+                                            className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
+                                        >
+                                            <Truck size={14} />
+                                            Batch Assign
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50/60 text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                                            <th className="px-8 py-4 w-12 text-center">Ref</th>
+                                            <th className="px-6 py-4">Order Details</th>
+                                            <th className="px-6 py-4">Customer Info</th>
+                                            <th className="px-6 py-4">Delivery Node</th>
+                                            <th className="px-8 py-4 text-right">Valuation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50/80">
+                                        {group.data.orders
+                                            .filter(order => {
+                                                const q = searchQuery.toLowerCase();
+                                                return !searchQuery || 
+                                                    order.orderId?.toLowerCase().includes(q) || 
+                                                    order.user?.name?.toLowerCase().includes(q) || 
+                                                    order.user?.phone?.includes(q);
+                                            })
+                                            .map(order => {
+                                                const isSelected = selectedOrders.includes(order._id);
+                                                const isDisabled = currentSlotContext && currentSlotContext !== group.id && selectedOrders.length > 0;
+                                                
+                                                return (
+                                                    <tr 
+                                                        key={order._id} 
+                                                        className={`hover:bg-slate-50 transition-colors group cursor-pointer ${isSelected ? 'bg-indigo-50/40' : ''} ${isDisabled ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
+                                                        onClick={() => !isDisabled && handleSelectOrder(order._id, group.id)}
+                                                    >
+                                                        <td className="px-8 py-5 text-center">
+                                                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                                                                isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'border-slate-200 bg-white'
+                                                            }`}>
+                                                                {isSelected && <CheckCircle size={14} strokeWidth={4} />}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-black text-slate-800 tracking-tight">#{order.orderId}</span>
+                                                                <div className="flex items-center gap-1.5 mt-1">
+                                                                    <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${
+                                                                        order.paymentMethod === 'online' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                                    }`}>
+                                                                        {order.paymentMethod === 'online' ? 'PAID' : 'COD'}
+                                                                    </div>
+                                                                    <span className="text-[10px] font-bold text-slate-400 capitalize">{order.status.replace('_', ' ')}</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-bold text-slate-700">{order.user?.name || 'Saathi User'}</span>
+                                                                <span className="text-xs font-medium text-slate-400">{order.user?.phone}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-start gap-2 max-w-[300px]">
+                                                                <MapPin size={14} className="text-slate-300 mt-0.5 shrink-0" />
+                                                                <span className="text-xs font-semibold text-slate-500 line-clamp-2">
+                                                                    {order.shippingAddress?.street}, {order.shippingAddress?.city}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-8 py-5 text-right">
+                                                            <span className="text-base font-black text-slate-800 tracking-tighter">₹{order.totalAmount}</span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* All Caught Up state */}
+                    {(!slotData.immediate.orders.length && slotData.slots.every(s => s.orders.length === 0)) && (
+                        <div className="bg-white rounded-[3rem] p-16 text-center shadow-sm border border-slate-100">
+                            <div className="w-24 h-24 rounded-[2rem] bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <CheckCircle size={48} />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Operation Excellence Achieved!</h2>
+                            <p className="text-slate-500 font-medium max-w-sm mx-auto">All orders for today have been successfully assigned to your riders.</p>
+                            <button onClick={fetchData} className="mt-8 px-8 py-3 bg-slate-900 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all active:scale-95">
+                                Refresh Dashboard
+                            </button>
+                        </div>
                     )}
                 </div>
             ) : (
-                // --- ACTIVE RUNS VIEW ---
-                <Card className="border-0 shadow-sm">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">Run ID</th>
-                                <th className="border-0 py-3">Partner</th>
-                                <th className="border-0 py-3">Slot Context</th>
-                                <th className="border-0 py-3 text-center">Progress</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {activeRuns.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" className="text-center py-5 text-muted">No active delivery runs found.</td>
+                /* --- ACTIVE RUNS VIEW --- */
+                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50/70 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
+                                    <th className="px-8 py-5">Run Identity</th>
+                                    <th className="px-8 py-5">Elite Rider</th>
+                                    <th className="px-8 py-5">Workflow Mode</th>
+                                    <th className="px-8 py-5">Mission Progress</th>
+                                    <th className="px-8 py-5 text-right">Tactical Action</th>
                                 </tr>
-                            ) : activeRuns.map(run => {
-                                const { total, delivered, failed, pending } = run.summary;
-                                const isComplete = ['completed', 'partial_complete'].includes(run.status);
-
-                                return (
-                                    <tr key={run._id} className={isComplete ? 'bg-light opacity-75' : ''}>
-                                        <td className="ps-4">
-                                            <div className="fw-bold text-primary">{run.runId}</div>
-                                            <Badge bg={run.status === 'assigned' ? 'warning' : isComplete ? 'success' : 'info'} className="text-uppercase" style={{ fontSize: '9px' }}>
-                                                {run.status.replace('_', ' ')}
-                                            </Badge>
-                                        </td>
-                                        <td>
-                                            <div className="fw-bold">{run.deliveryPartner?.name || 'Unknown'}</div>
-                                            <div className="small text-muted">{run.deliveryPartner?.phone}</div>
-                                        </td>
-                                        <td>
-                                            {run.isImmediate ? (
-                                                <Badge bg="warning" text="dark"><Zap size={10} className="me-1" /> Immediate</Badge>
-                                            ) : (
-                                                <Badge bg="info" className="bg-opacity-25 text-primary">
-                                                    <Calendar size={10} className="me-1" />
-                                                    {run.deliverySlot?.label || 'Scheduled'}
-                                                </Badge>
-                                            )}
-                                        </td>
-                                        <td className="text-center">
-                                            <div className="d-flex justify-content-center gap-3 fw-medium small">
-                                                <span className="text-success" title="Delivered">{delivered} <CheckCircleIcon size={14} /></span>
-                                                <span className="text-danger" title="Failed">{failed} <X size={14} /></span>
-                                                <span className="text-warning" title="Pending">{pending} <Clock size={14} /></span>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50/80">
+                                {activeRuns.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="text-center py-24">
+                                            <div className="max-w-xs mx-auto opacity-40 grayscale">
+                                                <ClipboardList size={64} className="mx-auto mb-4 text-slate-300" />
+                                                <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm mb-2">No Active Missions</h4>
+                                                <p className="text-xs font-medium text-slate-500 italic">Assign some batches from the slots view to see active tracking here.</p>
                                             </div>
-                                            <div className="progress mt-1" style={{ height: '4px' }}>
-                                                <div className="progress-bar bg-success" role="progressbar" style={{ width: `${(delivered / total) * 100}%` }}></div>
-                                                <div className="progress-bar bg-danger" role="progressbar" style={{ width: `${(failed / total) * 100}%` }}></div>
-                                            </div>
-                                        </td>
-                                        <td className="text-end pe-4">
-                                            {!isComplete && run.status !== 'cancelled' && (
-                                                <Button size="sm" variant="outline-danger" onClick={() => handleCancelRun(run._id)}>
-                                                    Cancel Run
-                                                </Button>
-                                            )}
                                         </td>
                                     </tr>
-                                );
-                            })}
-                        </tbody>
-                    </Table>
-                </Card>
+                                ) : activeRuns.map(run => {
+                                    const { total, delivered, failed, pending } = run.summary;
+                                    const isComplete = ['completed', 'partial_complete'].includes(run.status);
+                                    const progress = total > 0 ? (delivered / total) * 100 : 0;
+
+                                    return (
+                                        <tr key={run._id} className={`hover:bg-slate-50 transition-all ${isComplete ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                                            <td className="px-8 py-6">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-black text-indigo-700 tracking-tight uppercase">{run.runId}</span>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <div className={`w-2 h-2 rounded-full animate-pulse ${
+                                                            run.status === 'assigned' ? 'bg-amber-500' : 'bg-emerald-500'
+                                                        }`}></div>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                                                            {run.status.replace('_', ' ')}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0">
+                                                        {run.deliveryPartner?.profileImage ? (
+                                                            <img src={run.deliveryPartner.profileImage} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-slate-400 font-black text-xs uppercase">
+                                                                {run.deliveryPartner?.name?.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-black text-slate-800 tracking-tight">{run.deliveryPartner?.name || 'Rider ID Unk'}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                                            <TrendingUp size={10} className="text-emerald-500" />
+                                                            {run.deliveryPartner?.vehicleType || 'Bike'} Specialist
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                {run.isImmediate ? (
+                                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-full border border-amber-100">
+                                                        <Zap size={12} className="text-amber-500" />
+                                                        <span className="text-[10px] font-black text-amber-700 uppercase tracking-tighter">Priority ASAp</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 rounded-full border border-indigo-100">
+                                                        <Calendar size={12} className="text-indigo-500" />
+                                                        <span className="text-[10px] font-black text-indigo-700 uppercase tracking-tighter">
+                                                            {run.deliverySlot?.label || 'Scheduled'}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex gap-2">
+                                                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">{delivered} OK</span>
+                                                        {failed > 0 && <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded uppercase">{failed} ERR</span>}
+                                                        <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">{pending} GO</span>
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-slate-800 tracking-tighter">{Math.round(progress)}%</span>
+                                                </div>
+                                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
+                                                    <div className="bg-emerald-500 h-full transition-all" style={{ width: `${progress}%` }}></div>
+                                                    <div className="bg-rose-500 h-full transition-all" style={{ width: `${(failed / total) * 100}%` }}></div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6 text-right">
+                                                {!isComplete && run.status !== 'cancelled' && (
+                                                    <button 
+                                                        onClick={() => handleCancelRun(run._id)}
+                                                        className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                                        title="Abort Mission"
+                                                    >
+                                                        <X size={20} />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             )}
 
             {/* Create Batch Modal */}
-            <Modal show={showAssignModal} onHide={() => !assigningLoading && setShowAssignModal(false)} centered backdrop="static">
-                <Modal.Header closeButton={!assigningLoading} className="border-bottom-0 pb-0">
-                    <Modal.Title className="fw-bold">Create Delivery Batch</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <div className="mb-4 bg-light p-3 rounded d-flex justify-content-between align-items-center border">
+            <Modal 
+                show={showAssignModal} 
+                onHide={() => !assigningLoading && setShowAssignModal(false)} 
+                centered 
+                backdrop="static"
+                contentClassName="border-0 shadow-2xl rounded-[2.5rem] overflow-hidden"
+            >
+                <div className="bg-white p-8">
+                    <div className="flex justify-between items-center mb-8">
                         <div>
-                            <span className="text-muted small">Orders Selected</span>
-                            <h4 className="mb-0 fw-black text-primary">{selectedOrders.length}</h4>
+                            <h3 className="text-xl font-black text-slate-800 tracking-tight">Dispatch Command</h3>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Mission Prep Center</p>
                         </div>
-                        <div className="text-end">
-                            <span className="text-muted small">Batch Type</span>
-                            <h6 className="mb-0">
-                                {currentSlotContext === 'immediate' ? 'Immediate / ASAP' : 'Scheduled Slot'}
+                        <button 
+                            onClick={() => !assigningLoading && setShowAssignModal(false)}
+                            className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                        <div className="bg-indigo-600 p-6 rounded-[2rem] text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl transition-transform duration-700 group-hover:scale-150"></div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 block mb-1">Payload Size</span>
+                            <div className="flex items-end gap-1">
+                                <h4 className="text-4xl font-black tracking-tighter m-0">{selectedOrders.length}</h4>
+                                <span className="text-xs font-bold mb-1 opacity-80 uppercase tracking-tighter">Orders</span>
+                            </div>
+                        </div>
+                        <div className="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl shadow-slate-900/20">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 block mb-1">Target Slot</span>
+                            <h6 className="text-xs font-black uppercase tracking-widest m-0 flex items-center gap-2 mt-2">
+                                {currentSlotContext === 'immediate' ? <Zap size={14} className="text-amber-400" /> : <Clock size={14} className="text-indigo-400" />}
+                                {currentSlotContext === 'immediate' ? 'Priority' : 'Scheduled'}
                             </h6>
                         </div>
                     </div>
 
-                    <Form.Group className="mb-4">
-                        <Form.Check
-                            type="switch"
-                            id="optimize-route-switch"
-                            label={
-                                <span>
-                                    <strong>AI Route Optimization</strong> <Badge bg="success" className="ms-1" style={{ fontSize: '8px' }}>BETA</Badge>
-                                    <div className="text-muted small" style={{ fontSize: '11px' }}>Automatically sort stops for fastest delivery time.</div>
-                                </span>
-                            }
-                            checked={optimizeRoute}
-                            onChange={(e) => setOptimizeRoute(e.target.checked)}
-                            className="bg-success bg-opacity-10 p-3 rounded border border-success border-opacity-25"
-                        />
-                    </Form.Group>
+                    <div className="mb-8">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Tactical Configuration</label>
+                        <div 
+                            className={`p-4 rounded-3xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                                optimizeRoute ? 'bg-emerald-50 border-emerald-500 shadow-md shadow-emerald-500/10' : 'bg-slate-50 border-slate-100'
+                            }`}
+                            onClick={() => setOptimizeRoute(!optimizeRoute)}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${
+                                    optimizeRoute ? 'bg-emerald-500 text-white' : 'bg-white text-slate-400'
+                                }`}>
+                                    <TrendingUp size={24} />
+                                </div>
+                                <div>
+                                    <span className="text-sm font-black text-slate-800 block">AI Route Optimization</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Beta V2.1 • Faster Delivery</span>
+                                </div>
+                            </div>
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                optimizeRoute ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-200'
+                            }`}>
+                                {optimizeRoute && <CheckCircle size={14} strokeWidth={4} />}
+                            </div>
+                        </div>
+                    </div>
 
-                    <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-                        <Truck size={16} /> Select Free Rider
+                    <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4 flex items-center gap-2">
+                        <Truck size={14} /> Unit Availability
                     </h6>
 
                     {loadingDrivers ? (
-                        <div className="text-center py-4">
-                            <Spinner animation="grow" size="sm" variant="primary" />
-                            <div className="small text-muted mt-2">Finding nearby drivers...</div>
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <Spinner animation="grow" variant="indigo" size="sm" />
+                            <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning nearby riders...</p>
                         </div>
                     ) : availableDrivers.length === 0 ? (
-                        <div className="text-center py-4 bg-light rounded text-muted">
-                            <AlertCircle size={24} className="mb-2" />
-                            <p className="mb-0 small">No free drivers currently online.</p>
+                        <div className="p-8 text-center bg-slate-50 rounded-[2rem] border border-slate-100">
+                            <AlertCircle size={32} className="mx-auto mb-3 text-slate-300" />
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">No elite riders currently online or free for this mission.</p>
                         </div>
                     ) : (
-                        <div className="d-flex flex-column gap-2" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                             {availableDrivers.map(driver => (
                                 <div
                                     key={driver._id}
-                                    className="d-flex justify-content-between align-items-center p-3 border rounded hover-bg-light transition-all cursor-pointer"
+                                    className="group p-4 bg-white border border-slate-100 rounded-[1.5rem] hover:border-indigo-600 hover:shadow-xl hover:shadow-indigo-600/10 transition-all cursor-pointer flex items-center justify-between"
                                     onClick={() => handleConfirmAssignment(driver._id)}
                                 >
-                                    <div className="d-flex align-items-center gap-3">
-                                        <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-primary" style={{ width: '40px', height: '40px' }}>
-                                            {driver.name.charAt(0).toUpperCase()}
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 font-black flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors uppercase shadow-inner">
+                                            {driver.name.charAt(0)}
                                         </div>
                                         <div>
-                                            <div className="fw-bold text-dark">{driver.name}</div>
-                                            <div className="small text-muted d-flex align-items-center gap-1">
-                                                <Badge bg="secondary" className="fw-normal">{driver.vehicleType}</Badge>
-                                                <span>{driver.phone}</span>
+                                            <span className="text-sm font-black text-slate-800 block group-hover:text-indigo-600 transition-colors">{driver.name}</span>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <Badge bg="slate" className="bg-slate-100 text-slate-500 font-black tracking-widest uppercase" style={{ fontSize: '8px' }}>
+                                                    {driver.vehicleType}
+                                                </Badge>
+                                                <span className="text-[10px] font-bold text-slate-400">{driver.phone}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <Button size="sm" variant="primary" className="rounded-pill px-3" disabled={assigningLoading}>
-                                        {assigningLoading ? 'Assigning...' : 'Assign Batch'}
-                                    </Button>
+                                    <button 
+                                        className="h-10 px-5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-slate-900/10 translate-x-4 group-hover:translate-x-0"
+                                        disabled={assigningLoading}
+                                    >
+                                        {assigningLoading ? 'Syncing...' : 'Dispatch'}
+                                    </button>
                                 </div>
                             ))}
                         </div>
                     )}
-                </Modal.Body>
+                </div>
             </Modal>
         </div>
     );
 };
-
-// Helper Icon
-const CheckCircleIcon = ({ size, className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    </svg>
-);
 
 export default AssignDeliveries;

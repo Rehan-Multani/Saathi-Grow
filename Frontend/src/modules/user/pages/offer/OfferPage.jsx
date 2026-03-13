@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     ArrowLeft, Clock, Tag, Sparkles, Filter, ChevronDown,
@@ -13,24 +13,31 @@ import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 
 import { useShop } from '../../context/ShopContext';
 import { useCart } from '../../context/CartContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '../../context/StoreContext';
+import { useTheme } from '../../context/ThemeContext';
+import { fetchProducts } from '../../api/shopApi';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 // Helper for countdown
 const useCountdown = (targetDate) => {
-    const countDownDate = new Date(targetDate).getTime();
-    const [countDown, setCountDown] = useState(countDownDate - new Date().getTime());
+    const [countDown, setCountDown] = useState(0);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCountDown(countDownDate - new Date().getTime());
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [countDownDate]);
+        if (!targetDate) return;
+        
+        const target = new Date(targetDate).getTime();
+        
+        const updateCount = () => {
+            setCountDown(Math.max(0, target - new Date().getTime()));
+        };
 
-    return Math.max(0, countDown);
+        updateCount();
+        const interval = setInterval(updateCount, 1000);
+        return () => clearInterval(interval);
+    }, [targetDate]);
+
+    return countDown;
 };
 
 // Flyer-Style Product Card (Matched to app styling)
@@ -153,10 +160,15 @@ const OfferPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { isDarkMode } = useTheme();
-    const [copied, setCopied] = useState(false);
     const [activeFilter, setActiveFilter] = useState('Hot Deals');
 
     const { offers, loading, refreshShopData } = useShop();
+
+    const [allProducts, setAllProducts] = useState([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
+    const { activeStore } = useStore();
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -166,42 +178,68 @@ const OfferPage = () => {
         return () => window.removeEventListener('saathi_refresh', handleRefresh);
     }, [id]);
 
+    const fetchProductsData = useCallback(async (pageNum = 1) => {
+        if (!id) return;
+        setIsFetching(true);
+        try {
+            const data = await fetchProducts({
+                offerId: id,
+                page: pageNum,
+                limit: 15,
+                storeId: activeStore?.id,
+                storeType: activeStore?.type
+            });
+            
+            const normalized = (data.products || []).map(p => ({
+                ...p,
+                id: p._id,
+                price: p.basePrice,
+                originalPrice: p.mrp || p.basePrice,
+                weight: p.unitValue && p.unitType 
+                    ? `${p.unitValue} ${p.unitType}` 
+                    : (p.unitValue ? String(p.unitValue) : '1 pcs')
+            }));
+
+            if (pageNum === 1) {
+                setAllProducts(normalized);
+            } else {
+                setAllProducts(prev => [...prev, ...normalized]);
+            }
+            
+            setHasMore(pageNum < (data.pages || 1));
+            setPage(pageNum);
+        } catch (error) {
+            console.error("Failed to fetch offer products:", error);
+        } finally {
+            setIsFetching(false);
+        }
+    }, [id, activeStore]);
+
+    useEffect(() => {
+        fetchProductsData(1);
+    }, [id, activeStore]);
+
     const offer = useMemo(() => {
         // Find offer by _id (string) or fallback to id (number) if needed
         return offers.find(o => o._id === id || String(o.id) === id);
     }, [id, offers]);
 
-    const timeLeft = useCountdown(offer?.expiry || new Date().setDate(new Date().getDate() + 1));
-    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const timeLeft = useCountdown(offer?.expiryDate || new Date().setDate(new Date().getDate() + 1));
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeLeft / 1000) % 60);
 
     const dealProducts = useMemo(() => {
-        if (!offer || !offer.products) return [];
+        if (allProducts.length === 0) return [];
 
-        // Normalize products from the offer
-        const normalized = offer.products
-            .filter(cp => cp.productId) // Guard against null populates
-            .map(cp => ({
-                ...cp.productId,
-                id: cp.productId._id, // Ensure id is present for cart 
-                price: cp.productId.basePrice,
-                originalPrice: cp.productId.mrp || cp.productId.basePrice,
-                weight: cp.productId.unitValue && cp.productId.unitType
-                    ? `${cp.productId.unitValue} ${cp.productId.unitType}`
-                    : (cp.productId.unitValue ? String(cp.productId.unitValue) : '1 pcs')
-            }));
-
-        const base = normalized;
-        if (base.length === 0) return [];
-
+        const base = allProducts;
         if (activeFilter === 'Hot Deals') return base;
         if (activeFilter === 'Under ₹99') return base.filter(p => p.price < 99);
         if (activeFilter === 'Buy 1 Get 1') return base.slice(0, 6); // Just visual trick for now
         if (activeFilter === 'Best Price') return [...base].sort((a, b) => a.price - b.price);
 
         return base;
-    }, [offer, activeFilter]);
+    }, [allProducts, activeFilter]);
 
     if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">Loading...</div>;
     if (!offer) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">Offer not found</div>;
@@ -237,6 +275,25 @@ const OfferPage = () => {
                     .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
                     .animate-fadeInRight { animation: fadeInRight 0.8s ease-out forwards; }
                     .animate-pulse-soft { animation: pulse-soft 3s infinite ease-in-out; }
+
+                    @keyframes fall {
+                        0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+                        10% { opacity: 1; }
+                        90% { opacity: 1; }
+                        100% { transform: translateY(400px) rotate(360deg); opacity: 0; }
+                    }
+
+                    @keyframes rise {
+                        0% { transform: translateY(20px); opacity: 0; }
+                        10% { opacity: 0.5; }
+                        100% { transform: translateY(-300px); opacity: 0; }
+                    }
+
+                    .particle {
+                        position: absolute;
+                        pointer-events: none;
+                        z-index: 5;
+                    }
                 `}
             </style>
 
@@ -259,13 +316,22 @@ const OfferPage = () => {
                         <div className="flex items-center gap-12">
                             <div className="flex items-center gap-5">
                                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Ending In</p>
-                                <div className="flex items-center gap-2.5 text-xs font-bold text-gray-900 dark:text-white">
+                                <div className="flex items-center gap-2 text-xs font-bold text-gray-900 dark:text-white">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[35px] text-center">{hours}h</span>
-                                        <span className="opacity-30">:</span>
-                                        <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[35px] text-center">{minutes}m</span>
-                                        <span className="opacity-30">:</span>
-                                        <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[35px] text-center">{seconds}s</span>
+                                        <div className="flex flex-col items-center">
+                                            <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[45px] text-center font-mono text-base">{hours.toString().padStart(2, '0')}</span>
+                                            <span className="text-[8px] uppercase mt-1 opacity-40">Hours</span>
+                                        </div>
+                                        <span className="text-xl font-light opacity-30 mt-[-15px]">:</span>
+                                        <div className="flex flex-col items-center">
+                                            <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[45px] text-center font-mono text-base">{minutes.toString().padStart(2, '0')}</span>
+                                            <span className="text-[8px] uppercase mt-1 opacity-40">Mins</span>
+                                        </div>
+                                        <span className="text-xl font-light opacity-30 mt-[-15px]">:</span>
+                                        <div className="flex flex-col items-center">
+                                            <span className="bg-gray-50 dark:bg-white/5 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm min-w-[45px] text-center font-mono text-base text-red-500">{seconds.toString().padStart(2, '0')}</span>
+                                            <span className="text-[8px] uppercase mt-1 opacity-40">Secs</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -301,35 +367,12 @@ const OfferPage = () => {
                                     </p>
                                 </div>
 
-                                {/* Pixel-Perfect Unlock with Code Box */}
-                                <div className="pt-4">
-                                    <div className="inline-flex items-center bg-white dark:bg-[#111] p-4 pl-6 rounded-3xl border-2 border-dashed border-gray-200 dark:border-white/10 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.05)] relative group overflow-hidden">
-                                        <div className="w-14 h-14 rounded-2xl bg-[#0f172a] flex items-center justify-center text-white mr-6 shadow-xl shrink-0 group-hover:scale-105 transition-transform">
-                                            <Tag size={24} />
-                                        </div>
-                                        <div className="flex flex-col mr-12 min-w-[140px]">
-                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Unlock with code</span>
-                                            <span className="text-2xl font-black text-[#111827] dark:text-white tracking-widest uppercase">
-                                                {offer.couponCode || 'CLEAN10'}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(offer.couponCode || 'CLEAN10');
-                                                setCopied(true);
-                                                setTimeout(() => setCopied(false), 2000);
-                                            }}
-                                            className={`px-8 py-3.5 rounded-2xl text-[13px] font-black transition-all active:scale-95 whitespace-nowrap shadow-sm ${copied
-                                                ? 'bg-green-100 text-[#0c831f]'
-                                                : 'bg-gray-50 dark:bg-white/10 text-[#64748b] dark:text-gray-300 hover:bg-gray-100'
-                                                }`}
-                                        >
-                                            {copied ? 'Copied!' : 'Copy'}
-                                        </button>
-
-                                        {/* Subtle Yellow Ambient Glow */}
-                                        <div className="absolute -inset-2 bg-yellow-400/5 blur-3xl rounded-full opacity-60 pointer-events-none"></div>
-                                    </div>
+                                {/* Action Area */}
+                                <div className="pt-4 flex items-center gap-4">
+                                     <div className="bg-white dark:bg-[#0c831f]/10 px-6 py-3 rounded-2xl border border-green-100 dark:border-[#0c831f]/20 shadow-sm flex items-center gap-3">
+                                          <ShoppingBag size={18} className="text-[#0c831f]" />
+                                          <span className="text-[14px] font-bold text-gray-700 dark:text-gray-300">Browse Live Collection</span>
+                                     </div>
                                 </div>
                             </div>
                         </div>
@@ -383,50 +426,33 @@ const OfferPage = () => {
                         ))}
                     </div>
 
-                    {/* Main Featured Deal Section */}
-                    <div className="space-y-8 pt-10">
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-3">
-                                <div className="h-4 w-1 bg-[#0c831f] rounded-full"></div>
-                                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest font-jakarta">Curated Hot Deals</span>
-                            </div>
-                            <div className="flex items-end justify-between">
-                                <h3 className="text-4xl md:text-5xl font-extrabold text-[#1e293b] dark:text-white tracking-tight font-jakarta">Deals You Can't Miss</h3>
-                                <div className="flex items-center gap-1 p-1.5 bg-[#f8fafc] dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-full shadow-inner">
-                                    {['Hot Deals', 'Under ₹99', 'Buy 1 Get 1', 'Best Price'].map((f) => (
-                                        <button
-                                            key={f}
-                                            onClick={() => setActiveFilter(f)}
-                                            className={`px-8 py-2.5 rounded-full text-[14px] font-bold transition-all whitespace-nowrap ${activeFilter === f
-                                                ? 'bg-[#dcfce7] text-[#15803d] shadow-sm'
-                                                : 'text-gray-500 hover:text-[#1e293b] dark:hover:text-white'
-                                                }`}
-                                        >
-                                            {f}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                    {/* Load More Desktop */}
+                    {hasMore && (
+                        <div className="mt-16 flex justify-center">
+                            <button
+                                onClick={() => fetchProductsData(page + 1)}
+                                disabled={isFetching}
+                                className="group relative flex items-center gap-3 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 px-10 py-4 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                                {isFetching ? (
+                                    <div className="w-5 h-5 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <Zap size={18} className="text-[#0c831f] group-hover:animate-pulse" />
+                                )}
+                                <span className="text-sm font-black tracking-widest text-[#111827] dark:text-white uppercase">
+                                    {isFetching ? 'Fetching Deals...' : 'Unlock More Deals'}
+                                </span>
+                                <div className="absolute inset-0 rounded-3xl bg-[#0c831f]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </button>
                         </div>
-
-                        {/* Enhanced Grid Layout */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10">
-                            {dealProducts.map(product => (
-                                <FlyerProductCard
-                                    key={product.id || product._id}
-                                    product={product}
-                                    badgeText={activeFilter === 'Buy 1 Get 1' ? 'BUY 1 GET 1' : offerBadge}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
-
+            
             {/* Mobile View (Redesigned) */}
-            <div className="md:hidden min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] font-sans pb-20 transition-colors duration-300">
+            <div className="md:hidden min-h-screen bg-white dark:bg-[#060606] font-sans pb-20 transition-colors duration-300">
                 {/* Header / Navbar */}
-                <div className={`sticky top-0 z-50 border-b border-gray-100/50 dark:border-white/10 px-4 pt-4 pb-3 flex items-center justify-between h-auto ${isDarkMode ? 'bg-black' : 'bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90'}`} >
+                <div className={`sticky top-0 z-50 border-b border-gray-100/50 dark:border-white/10 px-4 pt-10 pb-3 flex items-center justify-between h-auto ${isDarkMode ? 'bg-[#060606]' : 'bg-white/95 backdrop-blur-md'}`} >
                     <div className="flex items-center gap-2">
                         <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-all">
                             <ArrowLeft size={20} className="text-gray-900 dark:text-white" />
@@ -443,68 +469,151 @@ const OfferPage = () => {
                     </div>
                 </div >
 
-                <div className="px-3 py-1.5 space-y-3">
+                <div className="px-3 py-2 space-y-3">
 
-                    {/* Mobile Hero Section (Refined exactly to User's Posters) */}
-                    <div className="relative w-full pb-5 pt-4 px-6 overflow-hidden shadow-lg border border-white/10 rounded-[1.25rem] bg-[#566846]">
-                        <div className="relative z-10">
-                            {/* Subtitle Pill */}
-                            <span className="text-white text-[9.5px] font-black px-3.5 py-1 rounded-full uppercase tracking-widest border border-white/60 mb-3 inline-block shadow-sm">
-                                {offer.subtitle || 'Fresh Product with Great Price'}
-                            </span>
+                    {/* Mobile Hero Section (Premium Rebuild) */}
+                    <div 
+                        className="relative w-full pb-6 pt-5 px-6 overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.1)] rounded-[2rem] transition-all duration-500"
+                        style={{ 
+                            backgroundColor: offer.bgColor || '#0c831f',
+                            backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.1) 100%)`
+                        }}
+                    >
+                        {/* Abstract Background Accents */}
+                        <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-white/20 blur-[60px] rounded-full group-hover:scale-125 transition-transform duration-[4s]"></div>
+                        <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 bg-black/10 blur-[50px] rounded-full"></div>
 
-                            {/* Main Title */}
-                            <h1 className="text-4xl font-extrabold text-white leading-[1.1] mb-2 tracking-tight">
-                                {offer.title}<br />
-                                <span>{offerDiscountDisplay || (offer.discountPercentage > 0 ? `${offer.discountPercentage}% OFF` : (offer.discount || 'Special Offer'))}</span>
-                            </h1>
+                        <div className="relative z-20 flex flex-col min-h-[220px] justify-between">
+                            <div>
+                                {/* Subtitle Pill */}
+                                <div className="inline-block mb-3">
+                                    <span className="text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-[0.15em] border backdrop-blur-sm shadow-sm" style={{ color: offer.textColor || '#ffffff', borderColor: (offer.textColor || '#ffffff') + '40' }}>
+                                        {offer.subtitle || 'Fresh Product with Great Price'}
+                                    </span>
+                                </div>
 
-                            {/* Coupon Code Pill */}
-                            <div
-                                onClick={() => {
-                                    navigator.clipboard.writeText(offer.couponCode || 'CLEAN10');
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 2000);
-                                }}
-                                className="inline-block border border-white/70 bg-white/5 active:bg-white/20 text-white text-[11px] font-bold px-4 py-1.5 rounded-full mb-5 mt-1 transition-all cursor-pointer select-none shadow-sm"
-                            >
-                                {copied ? "COPIED ✓" : `Code: ${offer.couponCode || 'CLEAN10'} - Tap to Apply`}
+                                {/* Main Title */}
+                                <h1 className="text-[34px] font-black leading-tight mb-2 tracking-tight drop-shadow-sm" style={{ color: offer.textColor || '#ffffff' }}>
+                                    {offer.title}<br />
+                                    <span className="text-[40px] block mt-1" style={{ color: offer.accentColor || '#ffffff' }}>
+                                        {offerDiscountDisplay || (offer.discountPercentage > 0 ? `${offer.discountPercentage}% OFF` : (offer.discount || 'Special Offer'))}
+                                    </span>
+                                </h1>
                             </div>
 
-                            {/* Bottom Status Pills */}
-                            <div className="flex items-center gap-2.5">
-                                <div className="bg-white text-[#566846] px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
-                                    LIVE <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_5px_#10b981]"></div>
-                                </div>
-                                <div className="bg-[#ffae00] text-black px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
-                                    <Truck size={12} strokeWidth={3} /> FREE DELIVERY
+                            <div className="space-y-4">
+                                {/* Mobile Timer Pill */}
+                                {offer.expiryDate && (
+                                    <div className="flex flex-col gap-1.5">
+                                        <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 shadow-lg self-start">
+                                            <Clock size={12} style={{ color: offer.textColor || '#ffffff' }} className="opacity-80" />
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="flex items-center gap-1 text-[14px] font-black font-mono tracking-wider" style={{ color: offer.textColor || '#ffffff' }}>
+                                                    <span>{hours.toString().padStart(2, '0')}</span>
+                                                    <span className="opacity-50 text-[10px]">:</span>
+                                                    <span>{minutes.toString().padStart(2, '0')}</span>
+                                                    <span className="opacity-50 text-[10px]">:</span>
+                                                    <span className="text-red-400">{seconds.toString().padStart(2, '0')}</span>
+                                                </div>
+                                                <span className="text-[8px] font-bold uppercase tracking-widest opacity-60 ml-1" style={{ color: offer.textColor || '#ffffff' }}>Left</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Bottom Status Pills */}
+                                <div className="flex items-center gap-2.5">
+                                    <div className="bg-white text-[#566846] px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
+                                        LIVE <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_5px_#10b981]"></div>
+                                    </div>
+                                    <div className="bg-[#ffae00] text-black px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
+                                        <Truck size={12} strokeWidth={3} /> FREE DELIVERY
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Floating Particles/Effects Layer (Background) */}
+                        {offer.backgroundEffect && offer.backgroundEffect !== 'None' && (
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+                                {Array.from({ length: 15 }).map((_, i) => {
+                                    const effect = offer.backgroundEffect;
+                                    const particle = effect === 'Confetti' ? ['🎉', '✨', '🟡', '🔴'][i % 4] :
+                                                    effect === 'Sparkles' ? '✨' : 
+                                                    effect === 'Bubbles' ? '🫧' : 
+                                                    effect === 'Snow' ? '❄️' : '🔘';
+                                    
+                                    const delay = i * 0.4;
+                                    const duration = effect === 'Bubbles' ? 4 : 6;
+                                    const left = Math.random() * 100;
+                                    const size = effect === 'Bubbles' ? Math.random() * 15 + 5 : Math.random() * 10 + 10;
+                                    
+                                    return (
+                                        <div 
+                                            key={i} 
+                                            className="particle" 
+                                            style={{
+                                                left: `${left}%`,
+                                                top: effect === 'Bubbles' ? '100%' : '-10%',
+                                                fontSize: `${size}px`,
+                                                animation: `${effect === 'Bubbles' ? 'rise' : 'fall'} ${duration}s infinite linear`,
+                                                animationDelay: `${delay}s`,
+                                                opacity: 0.6
+                                            }}
+                                        >
+                                            {particle}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
 
                         {/* Floating Hero Icons (Dynamic by Content) */}
                         <div className="absolute right-[-10px] top-[10px] w-[140px] h-[150px] z-0 pointer-events-none">
                             {(() => {
                                 let icons = [];
-                                const searchString = `${offer.title} ${offer.subtitle || ''} ${offer.description || ''} ${offer.category || ''}`.toLowerCase();
+                                const type = offer.animationType || 'Default';
+                                
+                                // Mapping based on the new animationType field
+                                const animationMap = {
+                                    'Cleaning': ['🧹', '🧽', '🧼'],
+                                    'Fruits': ['🍎', '🍇', '🍌'],
+                                    'Vegetables': ['🥦', '🥕', '🥔'],
+                                    'Staples': ['🍚', '🥛', '🌾'],
+                                    'Snacks': ['🍿', '🍪', '🍫'],
+                                    'Meat': ['🍗', '🐔', '🥚'],
+                                    'Beverages': ['🧃', '🥤', '☕'],
+                                    'Bakery': ['🥐', '🥨', '🍩'],
+                                    'BabyCare': ['🍼', '🧸', '👶'],
+                                    'PetCare': ['🦴', '🐾', '🐈'],
+                                    'Beauty': ['💄', '💅', '✨'],
+                                    'Festive': ['🥫', '🍫', '🧃'],
+                                    'Default': ['🎁', '₹', '🛍️'],
+                                    'None': []
+                                };
 
-                                if (searchString.includes('clean') || searchString.includes('wash') || searchString.includes('household')) {
-                                    icons = ['🧹', '🧽', '🧼'];
-                                } else if (searchString.includes('fruit') || searchString.includes('apple') || searchString.includes('fiesta')) {
-                                    icons = ['🍎', '🍇', '🍌'];
-                                } else if (searchString.includes('veg') || searchString.includes('super') || searchString.includes('sale')) {
-                                    icons = ['�', '🥦', '🥕'];
-                                } else if (searchString.includes('mega') || searchString.includes('staple') || searchString.includes('dal') || searchString.includes('rice') || searchString.includes('shop') || searchString.includes('daily') || searchString.includes('need') || searchString.includes('one stop')) {
-                                    icons = ['�', '🥛', '🌾'];
-                                } else if (searchString.includes('snack') || searchString.includes('bakery') || searchString.includes('biscuit')) {
-                                    icons = ['🍿', '🍪', '🍫'];
-                                } else if (searchString.includes('meat') || searchString.includes('chicken') || searchString.includes('fish')) {
-                                    icons = ['🍗', '🐔', '🥚'];
-                                } else if (searchString.includes('treat') || searchString.includes('wholesale') || searchString.includes('brand') || searchString.includes('smart') || searchString.includes('test') || searchString.includes('effective')) {
-                                    icons = ['🥫', '🍫', '🧃']; // Packaged FMCG / Groceries
+                                if (type !== 'Default' && animationMap[type]) {
+                                    icons = animationMap[type];
+                                } else if (type === 'None') {
+                                    icons = [];
                                 } else {
-                                    icons = ['🎁', '₹', '🛍️']; // Generic Fallback
+                                    // Fallback to keyword matching for 'Default' or undefined types
+                                    const searchString = `${offer.title} ${offer.subtitle || ''} ${offer.description || ''} ${offer.category || ''}`.toLowerCase();
+                                    if (searchString.includes('clean') || searchString.includes('wash')) icons = animationMap['Cleaning'];
+                                    else if (searchString.includes('fruit')) icons = animationMap['Fruits'];
+                                    else if (searchString.includes('veg')) icons = animationMap['Vegetables'];
+                                    else if (searchString.includes('staple') || searchString.includes('rice')) icons = animationMap['Staples'];
+                                    else if (searchString.includes('snack') || searchString.includes('bakery')) icons = animationMap['Snacks'];
+                                    else if (searchString.includes('meat') || searchString.includes('chicken')) icons = animationMap['Meat'];
+                                    else if (searchString.includes('beverage') || searchString.includes('juice')) icons = animationMap['Beverages'];
+                                    else if (searchString.includes('baby') || searchString.includes('kids')) icons = animationMap['BabyCare'];
+                                    else if (searchString.includes('pet') || searchString.includes('dog')) icons = animationMap['PetCare'];
+                                    else if (searchString.includes('beauty') || searchString.includes('glow')) icons = animationMap['Beauty'];
+                                    else if (searchString.includes('treat') || searchString.includes('packaged')) icons = animationMap['Festive'];
+                                    else icons = animationMap['Default'];
                                 }
+
+                                if (icons.length === 0) return null;
 
                                 return (
                                     <>
@@ -532,8 +641,27 @@ const OfferPage = () => {
                         ))}
                     </div>
 
+                    {/* Load More Mobile */}
+                    {hasMore && (
+                        <div className="pt-6 pb-2">
+                             <button
+                                onClick={() => fetchProductsData(page + 1)}
+                                disabled={isFetching}
+                                className="w-full flex items-center justify-center gap-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 py-4 rounded-2xl active:scale-95 transition-all text-xs font-black uppercase tracking-[0.2em]"
+                            >
+                                {isFetching ? (
+                                     <div className="w-4 h-4 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <Sparkles size={16} className="text-[#0c831f]" />
+                                )}
+                                <span className="text-[#111827] dark:text-gray-300">
+                                    {isFetching ? 'Loading...' : `View ${allProducts.length % 15 === 0 ? 'Next 15' : 'More'} Items`}
+                                </span>
+                            </button>
+                        </div>
+                    )}
                 </div>
-            </div >
+            </div>
 
             {/* End Mobile View */}
         </>

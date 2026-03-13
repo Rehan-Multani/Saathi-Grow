@@ -50,6 +50,11 @@ const campaignSectionSchema = new mongoose.Schema({
   },
   bannerImage: {
     type: String // Optional banner for the section
+  },
+  vendor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Vendor',
+    default: null
   }
 }, {
   timestamps: true

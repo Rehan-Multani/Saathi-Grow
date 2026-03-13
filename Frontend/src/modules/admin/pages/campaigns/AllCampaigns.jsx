@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, Eye, LayoutGrid } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Spinner } from 'react-bootstrap';
@@ -121,13 +121,15 @@ const AllCampaigns = () => {
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(c._id)}
-                      className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
-                      title="Edit"
-                    >
-                      <Edit size={16} />
-                    </button>
+                    {!c.vendor && (
+                      <button
+                        onClick={() => handleEdit(c._id)}
+                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
+                        title="Edit"
+                      >
+                        <Edit size={16} />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(c._id, c.title)}
                       className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"

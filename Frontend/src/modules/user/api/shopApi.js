@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 export const fetchCategories = async () => {
   const response = await fetch(`${API_BASE_URL}/admin/categories?hasProducts=true`);
@@ -51,6 +51,22 @@ export const fetchActiveOfferDeals = async (params = {}) => {
   const response = await fetch(`${API_BASE_URL}/admin/offer-deals/public?${query}`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch active offers');
+  return data;
+};
+
+export const fetchCampaignProducts = async (id, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/campaigns/public/${id}/products?${query}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch campaign products');
+  return data;
+};
+
+export const fetchOfferProducts = async (id, params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/offer-deals/public/${id}/products?${query}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch offer products');
   return data;
 };
 export const searchProducts = async (query = '', page = 1, storeParams = {}) => {

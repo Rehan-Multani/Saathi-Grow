@@ -10,17 +10,23 @@ const StockAdjustments = () => {
     const { adminUser } = useAdminAuth();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, limit: 10 });
     const [page, setPage] = useState(1);
     const limit = 10;
-    const totalPages = Math.ceil(logs.length / limit) || 1;
-    const paginatedLogs = logs.slice((page - 1) * limit, page * limit);
 
     useEffect(() => {
         const fetchLogs = async () => {
+            if (!adminUser?.token) return;
             try {
-                const data = await getAllInventoryLogs(adminUser.token);
-                setLogs(data);
+                setLoading(true);
+                const data = await getAllInventoryLogs(adminUser.token, { page, limit });
+                if (data.logs) {
+                    setLogs(data.logs);
+                    setPagination(data.pagination);
+                } else {
+                    // Logic for old API if needed, but we updated it
+                    setLogs(data);
+                }
             } catch (error) {
                 console.error('Error fetching logs:', error);
                 toast.error('Failed to load stock adjustments');
@@ -29,8 +35,8 @@ const StockAdjustments = () => {
             }
         };
 
-        if (adminUser?.token) fetchLogs();
-    }, [adminUser]);
+        fetchLogs();
+    }, [adminUser, page]);
 
     return (
         <div className="p-3">
@@ -68,7 +74,7 @@ const StockAdjustments = () => {
                                     </td>
                                 </tr>
                             ) : logs.length > 0 ? (
-                                paginatedLogs.map((log, idx) => (
+                                logs.map((log, idx) => (
                                     <tr key={log._id}>
                                         <td className="ps-4">
                                             <span className="text-muted small">#{log._id.slice(-6).toUpperCase()}</span>
@@ -120,10 +126,10 @@ const StockAdjustments = () => {
                 </Card.Body>
 
                 {/* Pagination Controls */}
-                {!loading && logs.length > 0 && (
+                {!loading && pagination.total > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, logs.length)}</span> of <span className="fw-semibold text-dark">{logs.length}</span> adjustments
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> of <span className="fw-semibold text-dark">{pagination.total}</span> adjustments
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button
@@ -136,9 +142,9 @@ const StockAdjustments = () => {
                             </Button>
 
                             <div className="d-flex align-items-center gap-1">
-                                {[...Array(totalPages)].map((_, i) => {
+                                {[...Array(pagination.totalPages)].map((_, i) => {
                                     const p = i + 1;
-                                    if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                    if (p === 1 || p === pagination.totalPages || Math.abs(page - p) <= 1) {
                                         return (
                                             <Button
                                                 key={p}
@@ -159,9 +165,9 @@ const StockAdjustments = () => {
 
                             <Button
                                 variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                                disabled={page === pagination.totalPages}
                             >
                                 <ChevronRight size={16} />
                             </Button>

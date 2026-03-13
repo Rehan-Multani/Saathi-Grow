@@ -61,6 +61,16 @@ const offerDealSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Vendor',
     default: null
+  },
+  animationType: {
+    type: String,
+    enum: ['None', 'Default', 'Cleaning', 'Fruits', 'Vegetables', 'Staples', 'Snacks', 'Meat', 'Festive', 'Beverages', 'Bakery', 'BabyCare', 'PetCare', 'Beauty'],
+    default: 'Default'
+  },
+  backgroundEffect: {
+    type: String,
+    enum: ['None', 'Confetti', 'Sparkles', 'Bubbles', 'Snow'],
+    default: 'None'
   }
 }, {
   timestamps: true

@@ -99,10 +99,6 @@ const deliveryPartnerSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    rating: {
-        type: Number,
-        default: 5.0
-    },
     bankDetails: {
         accountHolderName: String,
         accountNumber: String,
@@ -112,6 +108,9 @@ const deliveryPartnerSchema = new mongoose.Schema({
     cashInHand: {
         type: Number,
         default: 0
+    },
+    lastSettledAt: {
+        type: Date
     },
     fcmToken: {
         app: {

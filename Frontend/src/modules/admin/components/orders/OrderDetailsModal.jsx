@@ -1,26 +1,49 @@
-import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle } from 'lucide-react';
+import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle, RefreshCcw } from 'lucide-react';
 import { getAvailablePartners, assignOrder, autoAssignOrder } from '../../api/adminDeliveryApi';
+import { getOrderDetails } from '../../api/orderApi';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
-    const [availablePartners, setAvailablePartners] = React.useState([]);
-    const [assigning, setAssigning] = React.useState(false);
-    const [selectedPartner, setSelectedPartner] = React.useState('');
+    const [availablePartners, setAvailablePartners] = useState([]);
+    const [assigning, setAssigning] = useState(false);
+    const [selectedPartner, setSelectedPartner] = useState('');
+    const [detailedOrderState, setDetailedOrderState] = useState(null);
+    const [loadingDetails, setLoadingDetails] = useState(false);
+
+    // Prefer detailedOrder if available, otherwise fallback to prop order
+    const displayOrder = detailedOrderState || order;
 
     // Prevent background scrolling when modal is open
     useEffect(() => {
         if (show) {
             document.body.style.overflow = 'hidden';
             fetchAvailablePartners();
+            if (order?._id) {
+                fetchFullOrderDetails();
+            }
         } else {
             document.body.style.overflow = 'unset';
+            setDetailedOrderState(null);
         }
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [show]);
+    }, [show, order?._id]);
+
+    const fetchFullOrderDetails = async () => {
+        try {
+            setLoadingDetails(true);
+            const data = await getOrderDetails(order._id);
+            setDetailedOrderState(data);
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            toast.error('Could not fetch full order details');
+        } finally {
+            setLoadingDetails(false);
+        }
+    };
 
     const fetchAvailablePartners = async () => {
         try {
@@ -64,17 +87,17 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
     if (!show || !order) return null;
 
     // Support both Backend and Mock structures
-    const displayId = order.orderId || order.id;
-    const displayCustomer = order.user?.name || order.posCustomer?.name || order.customer || 'Guest';
-    const displayTotal = order.totalAmount !== undefined ? `₹${order.totalAmount}` : order.total;
-    const displayDate = order.createdAt ? new Date(order.createdAt).toLocaleString() : order.date;
-    const displayStatus = order.status ? order.status.replace(/_/g, ' ') : 'Pending';
-    const displayPayment = order.paymentMethod || order.payment || 'N/A';
+    const displayId = displayOrder.orderId || displayOrder._id;
+    const displayCustomer = displayOrder.user?.name || displayOrder.posCustomer?.name || displayOrder.customer || 'Guest';
+    const displayTotal = displayOrder.totalAmount !== undefined ? `₹${displayOrder.totalAmount}` : displayOrder.total;
+    const displayDate = displayOrder.createdAt ? new Date(displayOrder.createdAt).toLocaleString() : displayOrder.date;
+    const displayStatus = displayOrder.status ? displayOrder.status.replace(/_/g, ' ') : 'Pending';
+    const displayPayment = displayOrder.paymentMethod || displayOrder.payment || 'N/A';
 
     // Items handling
-    const items = order.items && Array.isArray(order.items) && order.items.length > 0 && typeof order.items[0] === 'object'
-        ? order.items
-        : Array(typeof order.items === 'number' ? order.items : 1).fill(null).map((_, i) => ({
+    const items = displayOrder.items && Array.isArray(displayOrder.items) && displayOrder.items.length > 0 && typeof displayOrder.items[0] === 'object'
+        ? displayOrder.items
+        : Array(typeof displayOrder.items === 'number' ? displayOrder.items : 1).fill(null).map((_, i) => ({
             product: { name: `Product Item ${i + 1}`, price: 0 },
             name: `Product Item ${i + 1}`,
             price: 0,
@@ -145,13 +168,13 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     <div>
                         <div class="section-title">Bill To:</div>
                         <strong>${displayCustomer}</strong><br>
-                        ${order.shippingAddress?.street || order.shippingAddress?.address || 'No Address'}<br>
-                        ${order.shippingAddress?.city || ''} ${(order.shippingAddress?.state || '')} ${(order.shippingAddress?.zipCode || '')}
+                        ${displayOrder.shippingAddress?.street || displayOrder.shippingAddress?.address || 'No Address'}<br>
+                        ${displayOrder.shippingAddress?.city || ''} ${(displayOrder.shippingAddress?.state || '')} ${(displayOrder.shippingAddress?.zipCode || '')}
                     </div>
                     <div>
                         <div class="section-title">Payment Info:</div>
-                        Status: ${order.paymentStatus || 'pending'}<br>
-                        Method: ${order.paymentMethod || 'N/A'}
+                        Status: ${displayOrder.paymentStatus || 'pending'}<br>
+                        Method: ${displayOrder.paymentMethod || 'N/A'}
                     </div>
                 </div>
 
@@ -187,19 +210,19 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                 <div class="totals">
                     <div class="total-row">
                         <span>Subtotal:</span>
-                        <span>₹${order.subTotal || 0}</span>
+                        <span>₹${displayOrder.subTotal || 0}</span>
                     </div>
                     <div class="total-row">
                         <span>Tax Amount:</span>
-                        <span>₹${order.taxAmount || 0}</span>
+                        <span>₹${displayOrder.taxAmount || 0}</span>
                     </div>
                     <div class="total-row">
                         <span>Delivery Fee:</span>
-                        <span>₹${order.deliveryFee || 0}</span>
+                        <span>₹${displayOrder.deliveryFee || 0}</span>
                     </div>
                     <div class="total-row">
                         <span>Handling Fee:</span>
-                        <span>₹${order.handlingFee || 0}</span>
+                        <span>₹${displayOrder.handlingFee || 0}</span>
                     </div>
                     <div class="total-row grand-total">
                         <span>Grand Total:</span>
@@ -246,19 +269,29 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                 </div>
 
                 <div className="p-6 overflow-y-auto">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    {loadingDetails ? (
+                        <div className="flex flex-col items-center justify-center py-20">
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin"></div>
+                                <Package size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600" />
+                            </div>
+                            <p className="mt-4 text-sm font-bold text-gray-400 uppercase tracking-widest animate-pulse">Syncing Order Intelligence...</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                         <div className="flex flex-wrap gap-2 items-center">
-                            <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${getStatusColor(order.status || 'Pending')}`}>
+                            <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${getStatusColor(displayOrder.status || 'Pending')}`}>
                                 {displayStatus}
                             </span>
                             <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200 flex items-center">
                                 <Clock size={14} className="mr-1.5" /> {displayDate}
                             </span>
-                            {order.deliverySlot ? (
+                            {displayOrder.deliverySlot ? (
                                 <span className="px-3 py-1.5 rounded-full text-sm font-black bg-violet-600 text-white flex items-center shadow-lg shadow-violet-500/20">
-                                    <Truck size={14} className="mr-1.5" /> Slot: {order.deliverySlot}
+                                    <Truck size={14} className="mr-1.5" /> Slot: {displayOrder.deliverySlot}
                                 </span>
-                            ) : order.isImmediate && (
+                            ) : displayOrder.isImmediate && (
                                 <span className="px-3 py-1.5 rounded-full text-sm font-black bg-violet-600 text-white flex items-center shadow-lg shadow-violet-500/20">
                                     <Truck size={14} className="mr-1.5" /> Slot: IMMEDIATE
                                 </span>
@@ -278,19 +311,19 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 <User size={16} className="mr-2" /> Customer Info
                             </h6>
                             <p className="font-bold text-gray-900 mb-1">{displayCustomer}</p>
-                            <p className="text-gray-500 text-sm mb-1">{order.user?.email || order.posCustomer?.email || 'N/A'}</p>
-                            <p className="text-gray-500 text-sm mb-0">{order.user?.phone || order.posCustomer?.phone || 'N/A'}</p>
+                            <p className="text-gray-500 text-sm mb-1">{displayOrder.user?.email || displayOrder.posCustomer?.email || 'N/A'}</p>
+                            <p className="text-gray-500 text-sm mb-0">{displayOrder.user?.phone || displayOrder.posCustomer?.phone || 'N/A'}</p>
                         </div>
                         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <h6 className="flex items-center mb-3 text-gray-500 text-sm font-medium uppercase tracking-wider">
                                 <MapPin size={16} className="mr-2" /> Shipping Address
                             </h6>
                             <div className="text-sm text-gray-600">
-                                {order.shippingAddress ? (
+                                {displayOrder.shippingAddress ? (
                                     <>
-                                        <p className="mb-1 font-medium">{order.shippingAddress.street || order.shippingAddress.address || 'N/A'}</p>
-                                        <p className="mb-0">{order.shippingAddress.city || ''} {order.shippingAddress.state || ''} {order.shippingAddress.zipCode || ''}</p>
-                                        {order.shippingAddress.phone && <p className="mt-1 font-medium text-gray-700">Phone: {order.shippingAddress.phone}</p>}
+                                        <p className="mb-1 font-medium">{displayOrder.shippingAddress.street || displayOrder.shippingAddress.address || 'N/A'}</p>
+                                        <p className="mb-0">{displayOrder.shippingAddress.city || ''} {displayOrder.shippingAddress.state || ''} {displayOrder.shippingAddress.zipCode || ''}</p>
+                                        {displayOrder.shippingAddress.phone && <p className="mt-1 font-medium text-gray-700">Phone: {displayOrder.shippingAddress.phone}</p>}
                                     </>
                                 ) : (
                                     <p>No address provided</p>
@@ -300,7 +333,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     </div>
 
                     {/* Delivery Management Section */}
-                    {order.orderSource === 'pos' ? (
+                    {displayOrder.orderSource === 'pos' ? (
                         <div className="mb-6 border border-gray-100 rounded-xl p-5 bg-gray-50/50">
                             <h6 className="flex items-center mb-2 font-bold text-gray-800 uppercase tracking-tighter text-sm">
                                 <Package size={18} className="mr-2 text-gray-400" /> POS Transaction
@@ -313,7 +346,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 <Truck size={18} className="mr-2 text-blue-600" /> Delivery Management
                             </h6>
 
-                            {order.deliveryPartnerId ? (
+                            {displayOrder.deliveryPartnerId ? (
                                 <div className="flex items-center justify-between p-3 bg-white border border-green-100 rounded-lg">
                                     <div className="flex items-center gap-3">
                                         <div className="p-2 bg-green-50 text-green-600 rounded-full">
@@ -321,18 +354,18 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                         </div>
                                         <div>
                                             <div className="text-sm font-bold text-gray-800">Partner Assigned</div>
-                                            <div className="text-xs text-gray-500">ID: {order.deliveryPartnerId?._id || order.deliveryPartnerId}</div>
+                                            <div className="text-xs text-gray-500">ID: {displayOrder.deliveryPartnerId?._id || displayOrder.deliveryPartnerId}</div>
                                         </div>
                                     </div>
-                                    {order.deliveryOTP && (
+                                    {displayOrder.deliveryOTP && (
                                         <div className="bg-green-600 text-white px-3 py-1 rounded text-sm font-black">
-                                            OTP: {order.deliveryOTP}
+                                            OTP: {displayOrder.deliveryOTP}
                                         </div>
                                     )}
                                 </div>
                             ) : (
                                 // Assignment logic based on status
-                                ['confirmed', 'preparing', 'ready_for_pickup'].includes(order.status) ? (
+                                ['confirmed', 'preparing', 'ready_for_pickup'].includes(displayOrder.status) ? (
                                     <div className="space-y-4">
                                         <div className="flex flex-col sm:flex-row gap-3">
                                             <button
@@ -369,10 +402,10 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                             </div>
                                         </div>
                                         <p className="text-[11px] text-gray-500 text-center italic">
-                                            * Auto-assignment searches for the nearest online partner within 10km of {order.vendor ? 'Vendor store' : 'Branch location'}.
+                                            * Auto-assignment searches for the nearest online partner within 10km of {displayOrder.vendor ? 'Vendor store' : 'Branch location'}.
                                         </p>
                                     </div>
-                                ) : order.status === 'pending' ? (
+                                ) : displayOrder.status === 'pending' ? (
                                     <div className="text-center py-2 bg-blue-50/50 rounded-lg border border-blue-100">
                                         <p className="text-sm text-blue-600 font-medium">Please confirm the order status before assigning a delivery partner.</p>
                                     </div>
@@ -424,19 +457,19 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                         <div className="w-full max-w-sm space-y-2">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Subtotal</span>
-                                <span className="text-gray-900 font-medium">₹{order.subTotal || 0}</span>
+                                <span className="text-gray-900 font-medium">₹{displayOrder.subTotal || 0}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Tax</span>
-                                <span className="text-gray-900 font-medium">₹{order.taxAmount || 0}</span>
+                                <span className="text-gray-900 font-medium">₹{displayOrder.taxAmount || 0}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Delivery Fee</span>
-                                <span className="text-gray-900 font-medium">₹{order.deliveryFee || 0}</span>
+                                <span className="text-gray-900 font-medium">₹{displayOrder.deliveryFee || 0}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Handling Fee</span>
-                                <span className="text-gray-900 font-medium">₹{order.handlingFee || 0}</span>
+                                <span className="text-gray-900 font-medium">₹{displayOrder.handlingFee || 0}</span>
                             </div>
                             <div className="flex justify-between items-center mb-1 pt-3 border-t border-gray-100">
                                 <span className="text-lg font-bold text-gray-800">Final Total</span>
@@ -446,26 +479,28 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                             <div className="bg-gray-50 rounded-lg p-3 mt-2 border border-gray-100">
                                 <div className="flex justify-between items-center mb-1">
                                     <span className="text-xs uppercase font-bold text-gray-500">Platform Commission</span>
-                                    <span className="text-sm text-blue-600 font-bold">₹{order.platformCommission || 0}</span>
+                                    <span className="text-sm text-blue-600 font-bold">₹{displayOrder.platformCommission || 0}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs uppercase font-bold text-gray-500">Vendor Net Payout</span>
-                                    <span className="text-sm text-green-600 font-black">₹{order.vendorPayoutAmount || 0}</span>
+                                    <span className="text-sm text-green-600 font-black">₹{displayOrder.vendorPayoutAmount || 0}</span>
                                 </div>
                             </div>
 
                             <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-100">
                                 <span className="text-sm text-gray-500 font-medium">Payment Method</span>
-                                <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">{order.paymentMethod || 'N/A'}</span>
+                                <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">{displayOrder.paymentMethod || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between items-center pt-2">
                                 <span className="text-sm text-gray-500 font-medium">Payment Status</span>
-                                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex items-center ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : order.paymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                                    <CreditCard size={12} className="mr-1.5" /> {(order.paymentStatus || 'pending')}
+                                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex items-center ${displayOrder.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : displayOrder.paymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                    <CreditCard size={12} className="mr-1.5" /> {(displayOrder.paymentStatus || 'pending')}
                                 </span>
                             </div>
                         </div>
                     </div>
+                        </>
+                    )}
                 </div>
 
                 <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end">

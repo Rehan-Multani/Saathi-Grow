@@ -5,15 +5,17 @@ import {
   createOfferDeal,
   updateOfferDeal,
   deleteOfferDeal,
-  getActiveOfferDeals
+  getActiveOfferDeals,
+  getOfferProducts
 } from '../controllers/offerController.js';
 import { protectAdmin, restrictTo } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-// Public route for frontend
+// Public routes for frontend
 router.get('/public', getActiveOfferDeals);
+router.get('/public/:id/products', getOfferProducts);
 
 // Admin routes
 router.use(protectAdmin);

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, LayoutGrid, Image as ImageIcon, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Spinner, Badge } from 'react-bootstrap';
@@ -110,13 +110,15 @@ const AllOffers = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(o._id)}
-                      className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
-                      title="Edit"
-                    >
-                      <Edit size={16} />
-                    </button>
+                    {!o.vendor && (
+                      <button
+                        onClick={() => handleEdit(o._id)}
+                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
+                        title="Edit"
+                      >
+                        <Edit size={16} />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(o._id, o.title)}
                       className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"

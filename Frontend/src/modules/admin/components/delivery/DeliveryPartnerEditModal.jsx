@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import { Save, User, Phone, Mail, MapPin } from 'lucide-react';
 
@@ -7,8 +7,7 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
         name: '',
         vehicleType: 'Bike',
         phone: '',
-        authStatus: 'Active',
-        rating: 0
+        authStatus: 'Active'
     });
 
     useEffect(() => {
@@ -17,8 +16,7 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                 name: partner.name || '',
                 vehicleType: partner.vehicleType || 'Bike',
                 phone: partner.phone || '',
-                authStatus: partner.authStatus || 'Active',
-                rating: partner.rating || 5
+                authStatus: partner.authStatus || 'Active'
             });
         }
     }, [partner]);
@@ -86,7 +84,7 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                     </Row>
 
                     <Row className="g-3 mb-3">
-                        <Col md={6}>
+                        <Col md={12}>
                             <Form.Label className="small fw-bold text-muted uppercase">Authorization Status</Form.Label>
                             <Form.Select
                                 name="authStatus"
@@ -98,19 +96,6 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                                 <option value="Suspended">Suspended / Blocked</option>
                                 <option value="Unverified">Unverified (Waiting)</option>
                             </Form.Select>
-                        </Col>
-                        <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Avg Rating</Form.Label>
-                            <Form.Control
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="5"
-                                name="rating"
-                                value={formData.rating}
-                                onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
-                            />
                         </Col>
                     </Row>
 

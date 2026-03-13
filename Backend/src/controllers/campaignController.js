@@ -13,7 +13,7 @@ export const getCampaignSections = async (req, res) => {
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
 
     const listQuery = CampaignSection.find()
-      .select('title subtitle highlightText displayType bgColor textColor accentColor order isActive bannerImage products')
+      .select('title subtitle highlightText displayType bgColor textColor accentColor order isActive bannerImage products vendor')
       .populate('products.productId', 'name image basePrice mrp sku')
       .sort('order')
       .lean();
@@ -153,7 +153,8 @@ export const getActiveCampaignSections = async (req, res) => {
       };
     });
 
-    res.json(sectionsWithCount);
+    const filteredSections = sectionsWithCount.filter(s => s.totalProducts > 0);
+    res.json(filteredSections);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -260,6 +261,11 @@ export const updateCampaignSection = async (req, res) => {
       return res.status(404).json({ message: 'Campaign section not found' });
     }
 
+    // Admin cannot edit vendor campaigns (only vendors can edit their own)
+    if (req.admin && section.vendor) {
+      return res.status(403).json({ message: 'Admin can only delete vendor campaigns, not edit them' });
+    }
+
     const { title, subtitle, highlightText, bgColor, textColor, accentColor, products, order, isActive, displayType } = req.body;
 
     section.title = title || section.title;
@@ -315,6 +321,53 @@ export const deleteCampaignSection = async (req, res) => {
     }
     await section.deleteOne();
     res.json({ message: 'Section removed' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get campaign products with pagination (Public)
+// @route   GET /api/admin/campaigns/public/:id/products
+export const getCampaignProducts = async (req, res) => {
+  try {
+    const { page = 1, limit = 12, storeId, storeType } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const section = await CampaignSection.findById(req.params.id)
+      .slice('products', [(pageNum - 1) * limitNum, limitNum])
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg branchStocks vendor');
+
+    if (!section) return res.status(404).json({ message: 'Campaign not found' });
+
+    // Inject store context
+    let products = section.products || [];
+    if (storeId && storeType) {
+      products = products.map(cp => {
+        if (!cp.productId) return cp;
+        const pObj = cp.productId;
+        let isDeliverable = false;
+        let availableStock = 0;
+        
+        if (storeType === 'branch') {
+          const bs = pObj.branchStocks?.find(s => (s.branchId?._id || s.branchId)?.toString() === storeId.toString());
+          if (bs && bs.stock > 0) isDeliverable = true;
+          availableStock = bs?.stock || 0;
+        } else if (storeType === 'vendor') {
+          if ((pObj.vendor?._id || pObj.vendor)?.toString() === storeId.toString() && pObj.stock > 0) isDeliverable = true;
+          availableStock = pObj.stock || 0;
+        }
+        
+        cp.productId.isDeliverable = isDeliverable;
+        cp.productId.availableStock = availableStock;
+        return cp;
+      });
+    }
+
+    res.json({
+      products: products.filter(p => p.productId),
+      hasMore: (section.products?.length || 0) === limitNum
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

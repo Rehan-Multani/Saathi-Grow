@@ -1,11 +1,13 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Form, Row, Col, Card, Spinner, InputGroup, Breadcrumb } from 'react-bootstrap';
 import { Save, X, Plus, Trash2, Search, ArrowLeft, Image as ImageIcon, Sparkles, LayoutGrid, Upload, Percent } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getProducts } from '../../api/productApi';
+import { getCategories } from '../../api/categoryApi';
 import { createOfferDeal, updateOfferDeal, getOfferDealById } from '../../api/offerDealApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import ProductPickerModal from '../../components/common/ProductPickerModal';
 
 const ManageOffer = () => {
   const { id } = useParams();
@@ -15,9 +17,14 @@ const ManageOffer = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(id ? true : false);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -30,14 +37,18 @@ const ManageOffer = () => {
     order: 0,
     displayLocation: 'Home Slider',
     expiryDate: '',
-    discountPercentage: 0
+    discountPercentage: 0,
+    animationType: 'Default',
+    backgroundEffect: 'None'
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsData = await getProducts(adminUser.token);
-        setProducts(productsData.products || []);
+        const [categoriesData] = await Promise.all([
+          getCategories(adminUser.token)
+        ]);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
         if (id) {
           const offer = await getOfferDealById(adminUser.token, id);
@@ -52,7 +63,9 @@ const ManageOffer = () => {
             order: offer.order || 0,
             displayLocation: offer.displayLocation || 'Home Slider',
             expiryDate: offer.expiryDate ? new Date(offer.expiryDate).toISOString().split('T')[0] : '',
-            discountPercentage: offer.discountPercentage || 0
+            discountPercentage: offer.discountPercentage || 0,
+            animationType: offer.animationType || 'Default',
+            backgroundEffect: offer.backgroundEffect || 'None'
           });
           setImagePreview(offer.bannerImage);
           setSelectedProducts(offer.products.map(p => ({
@@ -104,23 +117,24 @@ const ManageOffer = () => {
     }
   };
 
-  const addProductToOffer = (product) => {
-    if (selectedProducts.find(p => p.productId === product._id)) {
-      return toast.warning('Product already added to this offer');
-    }
+  const handlePickerSelect = (newProducts) => {
+    const formatted = newProducts.map(product => {
+      const mrp = product.mrp || product.basePrice;
+      const initialBasePrice = formData.discountPercentage > 0
+        ? Math.round(mrp * (1 - formData.discountPercentage / 100))
+        : product.basePrice;
 
-    const mrp = product.mrp || product.basePrice;
-    const initialBasePrice = formData.discountPercentage > 0
-      ? Math.round(mrp * (1 - formData.discountPercentage / 100))
-      : product.basePrice;
+      return {
+        productId: product._id,
+        name: product.name,
+        image: product.image,
+        mrp: mrp,
+        basePrice: initialBasePrice
+      };
+    });
 
-    setSelectedProducts([...selectedProducts, {
-      productId: product._id,
-      name: product.name,
-      image: product.image,
-      mrp: mrp,
-      basePrice: initialBasePrice
-    }]);
+    setSelectedProducts([...selectedProducts, ...formatted]);
+    toast.success(`${formatted.length} products added to collection`);
   };
 
   const removeProduct = (productId) => {
@@ -132,6 +146,40 @@ const ManageOffer = () => {
       p.productId === productId ? { ...p, basePrice: Number(price) } : p
     ));
   };
+
+  const paginatedProducts = selectedProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(selectedProducts.length / itemsPerPage);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
+
 
 
 
@@ -172,10 +220,6 @@ const ManageOffer = () => {
     }
   };
 
-  const filteredItems = products.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (fetching) {
     return (
@@ -317,24 +361,82 @@ const ManageOffer = () => {
             <Card className="border-0 shadow-sm rounded-xl mb-4">
               <Card.Body className="p-4">
                 <h6 className="fw-bold mb-3 text-gray-700">Display Settings</h6>
-                <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold text-gray-500">Target Location</Form.Label>
-                  <Form.Select name="displayLocation" value={formData.displayLocation} onChange={handleChange} className="bg-light border-0 py-2">
-                    <option>Home Slider</option>
-                    <option>Category Page</option>
-                    <option>N/A</option>
-                  </Form.Select>
-                </Form.Group>
                 <Row className="g-3">
-                  <Col md={6}>
-                    <Form.Label className="small fw-bold text-gray-500">Display Order</Form.Label>
-                    <Form.Control type="number" name="order" value={formData.order} onChange={handleChange} className="bg-light border-0 py-2" />
-                  </Col>
-                  <Col md={6}>
+                  <Col md={12}>
                     <Form.Label className="small fw-bold text-gray-500">Expiry Date</Form.Label>
                     <Form.Control type="date" name="expiryDate" value={formData.expiryDate} onChange={handleChange} className="bg-light border-0 py-2" />
                   </Col>
                 </Row>
+                
+                <h6 className="fw-bold mt-4 mb-3 text-gray-400 small uppercase tracking-wider">Visual Branding</h6>
+                <div className="space-y-3">
+                  <div className="d-flex align-items-center justify-between gap-3">
+                    <Form.Label className="text-[10px] fw-bold text-gray-500 uppercase mb-0">Background</Form.Label>
+                    <div className="d-flex gap-2 align-items-center">
+                      <Form.Control type="color" name="bgColor" value={formData.bgColor} onChange={handleChange} className="p-1 rounded border-0 shadow-sm" style={{ width: '30px', height: '30px' }} />
+                      <Form.Control type="text" name="bgColor" value={formData.bgColor} onChange={handleChange} className="bg-light border-0 py-1 px-2 small font-mono" style={{ fontSize: '10px', width: '70px' }} />
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center justify-between gap-3">
+                    <Form.Label className="text-[10px] fw-bold text-gray-500 uppercase mb-0">Text Color</Form.Label>
+                    <div className="d-flex gap-2 align-items-center">
+                      <Form.Control type="color" name="textColor" value={formData.textColor} onChange={handleChange} className="p-1 rounded border-0 shadow-sm" style={{ width: '30px', height: '30px' }} />
+                      <Form.Control type="text" name="textColor" value={formData.textColor} onChange={handleChange} className="bg-light border-0 py-1 px-2 small font-mono" style={{ fontSize: '10px', width: '70px' }} />
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center justify-between gap-3">
+                    <Form.Label className="text-[10px] fw-bold text-gray-500 uppercase mb-0">Accent / Btn</Form.Label>
+                    <div className="d-flex gap-2 align-items-center">
+                      <Form.Control type="color" name="accentColor" value={formData.accentColor} onChange={handleChange} className="p-1 rounded border-0 shadow-sm" style={{ width: '30px', height: '30px' }} />
+                      <Form.Control type="text" name="accentColor" value={formData.accentColor} onChange={handleChange} className="bg-light border-0 py-1 px-2 small font-mono" style={{ fontSize: '10px', width: '70px' }} />
+                    </div>
+                  </div>
+                </div>
+                <Form.Group className="mt-3">
+                  <Form.Label className="small fw-bold text-gray-500 d-flex align-items-center gap-2">
+                    <Sparkles size={14} className="text-blue-500" /> Floating Animation Style
+                  </Form.Label>
+                  <Form.Select 
+                    name="animationType" 
+                    value={formData.animationType} 
+                    onChange={handleChange} 
+                    className="bg-light border-0 py-2"
+                  >
+                    <option value="None">No Animation</option>
+                    <option value="Default">Default (Gifts & Shopping)</option>
+                    <option value="Cleaning">Cleaning & Household</option>
+                    <option value="Fruits">Fresh Fruits</option>
+                    <option value="Vegetables">Green Vegetables</option>
+                    <option value="Staples">Daily Staples (Rice/Dal)</option>
+                    <option value="Snacks">Snacks & Bakery</option>
+                    <option value="Meat">Meat & Seafood</option>
+                    <option value="Beverages">Beverages & Drinks</option>
+                    <option value="Bakery">Bakery & Cookies</option>
+                    <option value="BabyCare">Baby & Kids Care</option>
+                    <option value="PetCare">Pet Supplies</option>
+                    <option value="Beauty">Beauty & Personal Care</option>
+                    <option value="Festive">Festive / Packaged FMCG</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mt-3">
+                  <Form.Label className="small fw-bold text-gray-500 d-flex align-items-center gap-2">
+                    <Sparkles size={14} className="text-orange-400" /> Background Visual Effect
+                  </Form.Label>
+                  <Form.Select 
+                    name="backgroundEffect" 
+                    value={formData.backgroundEffect} 
+                    onChange={handleChange} 
+                    className="bg-light border-0 py-2"
+                  >
+                    <option value="None">No Background Effect</option>
+                    <option value="Confetti">🎉 Falling Confetti (Sale/Party)</option>
+                    <option value="Sparkles">✨ Floating Sparkles (Premium/New)</option>
+                    <option value="Bubbles">🫧 Rising Bubbles (Fresh/Clean)</option>
+                    <option value="Snow">❄️ Falling Snow (Winter/Festive)</option>
+                  </Form.Select>
+                  <Form.Text className="text-muted small">Subtle environmental effect behind content.</Form.Text>
+                </Form.Group>
                 <hr className="my-4" />
                 <Form.Check
                   type="switch"
@@ -358,41 +460,14 @@ const ManageOffer = () => {
                   <span className="badge bg-blue-50 text-blue-600 rounded-pill px-3 py-2 border border-blue-100">{selectedProducts.length} Items Selected</span>
                 </div>
 
-                <div className="mb-4 position-relative">
-                  <InputGroup className="bg-gray-50 border rounded-xl overflow-hidden px-2 py-1">
-                    <InputGroup.Text className="bg-transparent border-0"><Search size={18} className="text-gray-400" /></InputGroup.Text>
-                    <Form.Control
-                      placeholder="Search for products to include in this banner's detail view..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="bg-transparent border-0 shadow-none py-2"
-                    />
-                  </InputGroup>
-
-                  {searchTerm && (
-                    <div className="absolute top-full left-0 right-0 bg-white shadow-2xl rounded-xl mt-2 border border-gray-100 z-50 overflow-hidden max-h-[350px] overflow-y-auto animate-in fade-in slide-in-from-top-3 duration-300">
-                      {filteredItems.length > 0 ? filteredItems.map(p => (
-                        <div
-                          key={p._id}
-                          className="p-3 border-bottom d-flex align-items-center justify-content-between hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => { addProductToOffer(p); setSearchTerm(''); }}
-                        >
-                          <div className="d-flex align-items-center gap-3">
-                            <img src={p.image} className="w-10 rounded border" alt="" />
-                            <div>
-                              <div className="small fw-bold text-gray-800">{p.name}</div>
-                              <div className="text-[10px] text-gray-400">Regular Price: ₹{p.basePrice}</div>
-                            </div>
-                          </div>
-                          <div className="bg-blue-600 text-white p-1 rounded-md shadow-sm">
-                            <Plus size={16} />
-                          </div>
-                        </div>
-                      )) : (
-                        <div className="p-4 text-center text-gray-400 small">No matching products found</div>
-                      )}
+                <div className="mb-4">
+                  <div className="flex bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-8 items-center justify-center flex-col hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group" onClick={() => setShowPicker(true)}>
+                    <div className="bg-white p-3 rounded-full shadow-sm text-blue-600 mb-3 group-hover:scale-110 transition-transform">
+                      <Plus size={28} />
                     </div>
-                  )}
+                    <div className="fw-bold text-gray-700">Add Products to Collection</div>
+                    <div className="text-[11px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Pick from local inventory (Non-Vendor)</div>
+                  </div>
                 </div>
 
                 <div className="table-responsive">
@@ -407,7 +482,7 @@ const ManageOffer = () => {
                       </tr>
                     </thead>
                     <tbody className="border-0">
-                      {selectedProducts.length > 0 ? selectedProducts.map((p, idx) => (
+                      {paginatedProducts.length > 0 ? paginatedProducts.map((p, idx) => (
                         <tr key={p.productId} className="border-bottom border-gray-100">
                           <td className="ps-3 py-3">
                             <div className="d-flex align-items-center gap-3 text-gray-800">
@@ -434,6 +509,7 @@ const ManageOffer = () => {
                           </td>
                           <td className="text-end pe-3">
                             <button
+                               type="button"
                               onClick={() => removeProduct(p.productId)}
                               className="p-1.5 text-red-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             >
@@ -452,6 +528,50 @@ const ManageOffer = () => {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {selectedProducts.length > itemsPerPage && (
+                  <div className="d-flex justify-content-between align-items-center mt-3 px-3">
+                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                      Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, selectedProducts.length)} of {selectedProducts.length}
+                    </div>
+                    <div className="d-flex gap-1">
+                      <Button 
+                        variant="light" 
+                        size="sm" 
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => prev - 1)}
+                        className="rounded-lg border-0 bg-gray-50 px-3"
+                      >
+                        Prev
+                      </Button>
+                      {getPageNumbers().map((page, i) => (
+                         page === '...' ? (
+                          <span key={`dots-${i}`} className="d-flex align-items-center px-1 text-gray-400">...</span>
+                        ) : (
+                          <Button 
+                            key={page}
+                            variant={currentPage === page ? "primary" : "light"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="rounded-lg border-0 w-8 h-8 p-0"
+                          >
+                            {page}
+                          </Button>
+                        )
+                      ))}
+                      <Button 
+                        variant="light" 
+                        size="sm" 
+                        disabled={currentPage === Math.ceil(selectedProducts.length / itemsPerPage)}
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        className="rounded-lg border-0 bg-gray-50 px-3"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -473,6 +593,13 @@ const ManageOffer = () => {
           </div>
         </div>
       </Form>
+      <ProductPickerModal
+        show={showPicker}
+        onHide={() => setShowPicker(false)}
+        onSelect={handlePickerSelect}
+        existingProductIds={selectedProducts.map(p => p.productId)}
+        token={adminUser?.token}
+      />
       <div className="py-10"></div>
     </div>
   );

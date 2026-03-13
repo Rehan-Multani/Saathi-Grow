@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/admin/delivery`;
@@ -42,6 +42,26 @@ export const getDeliveryPartners = async (params = {}, options = {}) => {
       }
     };
   }
+  return data;
+};
+
+export const getDeliveryPartnerById = async (id) => {
+  const auth = getAuthDetails();
+  if (!auth) throw new Error('Not Authenticated');
+
+  const { data } = await axios.get(`${API_URL}/${id}`, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
+  return data;
+};
+
+export const updateDeliveryPartner = async (id, partnerData) => {
+  const auth = getAuthDetails();
+  if (!auth) throw new Error('Not Authenticated');
+
+  const { data } = await axios.put(`${API_URL}/${id}`, partnerData, {
+    headers: { Authorization: `Bearer ${auth.token}` }
+  });
   return data;
 };
 
@@ -182,11 +202,11 @@ export const cancelDeliveryRun = async (runId) => {
 };
 
 // Cash Settlement APIs
-export const getCashSettlementList = async () => {
+export const getCashSettlementList = async (params = {}) => {
   const auth = getAuthDetails();
-  if (!auth) return [];
+  if (!auth) return { partners: [], stats: { totalPendingCash: 0, activeCollectors: 0 } };
 
-  const { data } = await axios.get(`${API_URL}/cash-settlement`, {
+  const { data } = await axios.get(`${API_URL}/cash-settlement${buildQuery(params)}`, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;

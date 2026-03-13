@@ -133,8 +133,9 @@ export const getInventoryLogs = async (token, id) => {
   return data;
 };
 
-export const getAllInventoryLogs = async (token) => {
-  const response = await fetch(`${PRODUCTS_API_BASE_URL}/inventory-logs`, {
+export const getAllInventoryLogs = async (token, params = {}) => {
+  const queryParams = new URLSearchParams(params).toString();
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/inventory-logs?${queryParams}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -176,6 +177,38 @@ export const bulkAdjustInventory = async (token, bulkData) => {
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || 'Failed to bulk adjust inventory');
+  }
+  return data;
+};
+
+export const getBranchWiseStock = async (token, params = {}) => {
+  const queryParams = new URLSearchParams(params).toString();
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/inventory/branch-wise?${queryParams}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch branch-wise stock');
+  }
+  return data;
+};
+
+export const getLowStockAlerts = async (token, params = {}) => {
+  const queryParams = new URLSearchParams(params).toString();
+  const response = await fetch(`${PRODUCTS_API_BASE_URL}/inventory/low-stock?${queryParams}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch low stock alerts');
   }
   return data;
 };

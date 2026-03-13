@@ -3,7 +3,9 @@ import {
   addDeliveryPartner,
   getDeliveryPartners,
   updateDeliveryPartnerStatus,
+  updateDeliveryPartner,
   deleteDeliveryPartner,
+  getDeliveryPartnerById,
   getUnassignedOrders,
   getAvailablePartners,
   assignOrderToPartner,
@@ -31,13 +33,7 @@ router.route('/')
   .get(protectAdmin, requirePermission('MANAGE_DELIVERY'), getDeliveryPartners)
   .post(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, upload.single('profileImage'), auditAction('DELIVERY_PARTNER_CREATE'), addDeliveryPartner);
 
-router.route('/:id/status')
-  .put(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_STATUS_UPDATE'), updateDeliveryPartnerStatus);
-
-router.route('/:id')
-  .delete(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_DELETE'), deleteDeliveryPartner);
-
-// Dispatch routes
+// Dispatch & Settlement routes (Specific paths first)
 router.get('/unassigned-orders', protectAdmin, requirePermission('MANAGE_DELIVERY'), getUnassignedOrders);
 router.get('/available', protectAdmin, requirePermission('MANAGE_DELIVERY'), getAvailablePartners);
 router.post('/assign', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_ASSIGN_MANUAL'), assignOrderToPartner);
@@ -53,5 +49,14 @@ router.post('/run/create', protectAdmin, requirePermission('MANAGE_DELIVERY'), i
 router.get('/run', protectAdmin, requirePermission('MANAGE_DELIVERY'), getAllDeliveryRuns);
 router.get('/run/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), getDeliveryRunById);
 router.delete('/run/:id', protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_RUN_CANCEL'), cancelDeliveryRun);
+
+// Parameterized routes (Generic IDs last)
+router.route('/:id/status')
+  .put(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_STATUS_UPDATE'), updateDeliveryPartnerStatus);
+
+router.route('/:id')
+  .get(protectAdmin, requirePermission('MANAGE_DELIVERY'), getDeliveryPartnerById)
+  .put(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_UPDATE'), updateDeliveryPartner)
+  .delete(protectAdmin, requirePermission('MANAGE_DELIVERY'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('DELIVERY_PARTNER_DELETE'), deleteDeliveryPartner);
 
 export default router;

@@ -815,7 +815,7 @@ export const getOrderById = async (req, res) => {
     const order = await Order.findById(req.params.id)
       .populate('user', 'name email phone')
       .populate('items.product', 'name category image unitValue unitType')
-      .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber rating')
+      .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
       .populate('branchId', 'name address location')
       .populate('vendor', 'storeName address location');
 
@@ -987,7 +987,7 @@ export const getAllOrdersAdmin = async (req, res) => {
     // Run paginated results, total count, AND full-dataset aggregate stats in parallel
     const [orders, totalOrders, statsAgg] = await Promise.all([
       Order.find(query)
-        .select('orderId user items totalAmount status createdAt')
+        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot isImmediate orderSource')
         .populate('user', 'name email phone')
         .populate('branchId', 'name')
         .populate('vendor', 'storeName')

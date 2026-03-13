@@ -13,31 +13,20 @@ const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshol
   let totalThreshold = 0;
 
   if (vendorStock !== null) {
-    totalStock = Number(vendorStock);
-    totalThreshold = Number(vendorThreshold || 10);
-  } else {
-    if (!branchStocks || branchStocks.length === 0) return 'Draft';
-    totalStock = branchStocks.reduce((sum, item) => sum + Number(item.stock || 0), 0);
-    totalThreshold = branchStocks.reduce((sum, item) => sum + Number(item.lowStockThreshold || 0), 0);
-  }
-
-    if (totalStock <= 0) return 'Out of Stock';
-    if (totalStock <= totalThreshold) return 'Low Stock';
-    return 'Active';
-  }
-
-  if (vendorStock !== undefined && vendorStock !== null) {
     const normalizedStock = Number(vendorStock);
     const normalizedThreshold = Number(vendorThreshold);
-    const safeStock = Number.isFinite(normalizedStock) ? normalizedStock : 0;
-    const safeThreshold = Number.isFinite(normalizedThreshold) ? normalizedThreshold : 10;
-
-    if (safeStock <= 0) return 'Out of Stock';
-    if (safeStock <= safeThreshold) return 'Low Stock';
-    return 'Active';
+    totalStock = Number.isFinite(normalizedStock) ? normalizedStock : 0;
+    totalThreshold = Number.isFinite(normalizedThreshold) ? normalizedThreshold : 10;
+  } else {
+    if (!branchStocks || branchStocks.length === 0) return 'Draft';
+    totalStock = branchStocks.reduce((sum, item) => sum + (Number(item.stock) || 0), 0);
+    totalThreshold = branchStocks.reduce((sum, item) => sum + (Number(item.lowStockThreshold) || 0), 0);
   }
 
-  return 'Draft';
+  if (totalStock <= 0) return 'Out of Stock';
+  if (totalStock <= totalThreshold) return 'Low Stock';
+  return 'Active';
+};
 
 // Helper to escape regex special characters
 const escapeRegExp = (string) => {
@@ -193,8 +182,6 @@ export const createProduct = async (req, res) => {
       image,
       gallery,
       vendor: vendor || null,
-      stock: vendor ? (Number(stock) || 0) : 0,
-      lowStockThreshold: vendor ? (Number(lowStockThreshold) || 10) : 10,
       mrp: Number(mrp) || Number(basePrice),
       isVeg: isVeg === 'true' || isVeg === true,
       variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
@@ -279,7 +266,19 @@ export const getProducts = async (req, res) => {
     if (campaignId) {
       const campaign = await CampaignSection.findById(campaignId);
       if (campaign) {
-        const productIds = campaign.products.map(p => p.productId);
+        const productIds = (campaign.products || []).map(p => p.productId).filter(id => id);
+        query._id = { $in: productIds };
+      } else {
+        return res.json({ products: [], total: 0, pages: 0 });
+      }
+    }
+
+    // Offer filtering
+    if (req.query.offerId) {
+      const OfferDeal = mongoose.model('OfferDeal');
+      const offer = await OfferDeal.findById(req.query.offerId);
+      if (offer) {
+        const productIds = (offer.products || []).map(p => p.productId).filter(id => id);
         query._id = { $in: productIds };
       } else {
         return res.json({ products: [], total: 0, pages: 0 });
@@ -325,7 +324,7 @@ export const getProducts = async (req, res) => {
       // Build a regex that matches if ANY of the category keywords match 
       // This helps with typos like "Breakast" vs "Breakfast"
       const categoryRegexes = categoryList.map(cat => {
-        const words = cat.trim().split(/[\s&]+/).filter(w => w.length > 2);
+        const words = cat.trim().split(/[\s&\-_]+/).filter(w => w.length > 2);
         if (words.length > 0) {
           return new RegExp(words.map(w => escapeRegExp(w)).join('|'), 'i');
         }
@@ -378,7 +377,7 @@ export const getProducts = async (req, res) => {
     if (source === 'vendor') {
       query.vendor = { $exists: true, $ne: null };
     } else if (source === 'branch') {
-      query.vendor = { $exists: false };
+      query.vendor = { $in: [null, undefined] };
     }
 
     // 2. Branch/Store Scoping Filter (Database Level)
@@ -1165,14 +1164,20 @@ export const bulkAdjustInventory = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getAllInventoryLogs = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     let query = {};
     if (req.admin && req.admin.role !== 'Admin') {
       if (req.admin.branchId) {
         query.branchId = req.admin.branchId;
       } else {
-        return res.json([]);
+        return res.json({ logs: [], total: 0, page, totalPages: 0 });
       }
     }
+
+    const total = await InventoryLog.countDocuments(query);
     const logs = await InventoryLog.find(query)
       .select('product admin branchId vendorId changeAmount previousStock newStock type reason createdAt')
       .populate('product', 'name sku image')
@@ -1180,9 +1185,19 @@ export const getAllInventoryLogs = async (req, res) => {
       .populate('branchId', 'name code')
       .populate('vendorId', 'storeName logo')
       .sort('-createdAt')
-      .limit(100)
+      .skip(skip)
+      .limit(limit)
       .lean();
-    res.json(logs);
+
+    res.json({
+      logs,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit) || 1
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -1278,7 +1293,7 @@ export const getInventoryStats = async (req, res) => {
     const targetBranchId = (role !== 'Admin') ? branchId : req.query.branchId;
 
     let matchQuery = {};
-    if (targetBranchId) {
+    if (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId)) {
       matchQuery['branchStocks.branchId'] = new mongoose.Types.ObjectId(targetBranchId);
     }
 
@@ -1290,7 +1305,7 @@ export const getInventoryStats = async (req, res) => {
           category: 1,
           basePrice: 1,
           status: 1,
-          branchStocks: targetBranchId 
+          branchStocks: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
             ? { $filter: { input: "$branchStocks", as: "bs", cond: { $eq: ["$$bs.branchId", new mongoose.Types.ObjectId(targetBranchId)] } } }
             : "$branchStocks"
         }
@@ -1324,7 +1339,7 @@ export const getInventoryStats = async (req, res) => {
       { $match: matchQuery },
       { $unwind: "$branchStocks" },
       {
-        $match: targetBranchId 
+        $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
           ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) } 
           : {}
       },
@@ -1400,7 +1415,7 @@ export const getInventoryStats = async (req, res) => {
         { $match: matchQuery },
         { $unwind: "$branchStocks" },
         {
-          $match: targetBranchId 
+          $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
             ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) } 
             : {}
         },
@@ -1438,6 +1453,336 @@ export const getInventoryStats = async (req, res) => {
       categoryDistribution: categoryDistribution.map(c => ({ name: c._id, stock: c.stock })),
       branchHealth,
       criticalItems
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get branch-wise stock with filtering and pagination
+// @route   GET /api/admin/products/inventory/branch-wise
+// @access  Private (Admin/Staff)
+export const getBranchWiseStock = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      search = '', 
+      branchId, 
+      status, // 'Low Stock', 'Out of Stock', 'In Stock'
+      category 
+    } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    let initialMatch = { vendor: { $exists: false } }; // Exclude vendor products as they don't have branchStocks
+
+    // Aggregation Pipeline
+    const pipeline = [
+      { $match: initialMatch },
+      { $unwind: "$branchStocks" }
+    ];
+
+    // Branch Scoping
+    if (req.admin.role !== 'Admin' && req.admin.branchId) {
+      pipeline.push({ $match: { "branchStocks.branchId": new mongoose.Types.ObjectId(req.admin.branchId) } });
+    } else if (branchId && branchId !== 'vendor' && mongoose.Types.ObjectId.isValid(branchId)) {
+      pipeline.push({ $match: { "branchStocks.branchId": new mongoose.Types.ObjectId(branchId) } });
+    }
+
+    // Status Filtering
+    if (status) {
+      if (status === 'Out of Stock') {
+        pipeline.push({ $match: { "branchStocks.stock": { $lte: 0 } } });
+      } else if (status === 'Low Stock') {
+        pipeline.push({
+            $match: {
+                $expr: {
+                    $and: [
+                        { $gt: ["$branchStocks.stock", 0] },
+                        { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
+                    ]
+                }
+            }
+        });
+      } else if (status === 'In Stock') {
+        pipeline.push({
+            $match: {
+                $expr: { $gt: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
+            }
+        });
+      }
+    }
+
+    // Category Filtering
+    if (category) {
+      pipeline.push({ $match: { category: new RegExp(escapeRegExp(category), 'i') } });
+    }
+
+    // Search (Needs Branch Name too, so lookup first if searching by the name)
+    pipeline.push({
+      $lookup: {
+        from: 'branches',
+        localField: 'branchStocks.branchId',
+        foreignField: '_id',
+        as: 'branchInfo'
+      }
+    });
+    pipeline.push({ $unwind: "$branchInfo" });
+
+    if (search) {
+      const escapedSearch = escapeRegExp(search);
+      pipeline.push({
+        $match: {
+          $or: [
+            { name: { $regex: escapedSearch, $options: 'i' } },
+            { sku: { $regex: escapedSearch, $options: 'i' } },
+            { "branchInfo.name": { $regex: escapedSearch, $options: 'i' } },
+            { "branchInfo.branchCode": { $regex: escapedSearch, $options: 'i' } }
+          ]
+        }
+      });
+    }
+
+    // Project only necessary fields
+    pipeline.push({
+      $project: {
+        _id: 0,
+        productId: "$_id",
+        productName: "$name",
+        sku: 1,
+        image: 1,
+        branchName: "$branchInfo.name",
+        branchCode: "$branchInfo.code", // In Branch.js it is 'code', but in previous logs it was sometimes 'branchCode'
+        branchId: "$branchStocks.branchId",
+        stock: "$branchStocks.stock",
+        lowStockThreshold: "$branchStocks.lowStockThreshold",
+        status: {
+          $cond: {
+            if: { $lte: ["$branchStocks.stock", 0] },
+            then: "Out of Stock",
+            else: {
+              $cond: {
+                if: { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] },
+                then: "Low Stock",
+                else: "In Stock"
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Sort: Lowest stock first for visibility
+    pipeline.push({ $sort: { stock: 1, productName: 1 } });
+
+    // Pagination via $facet
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: "total" }],
+        data: [{ $skip: skip }, { $limit: limitNum }]
+      }
+    });
+
+    const result = await Product.aggregate(pipeline);
+    const total = result[0].metadata[0]?.total || 0;
+    const data = result[0].data;
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get low stock alerts with filtering and pagination
+// @route   GET /api/admin/products/inventory/low-stock
+// @access  Private (Admin/Staff)
+export const getLowStockAlerts = async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      search = '', 
+      branchId, 
+      category,
+      severity // 'Critical', 'Warning'
+    } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    // Initial Match: exclude Drafts
+    const baseMatch = { status: { $ne: 'Draft' } };
+
+    const pipeline = [
+      {
+        $facet: {
+          internalStock: [
+            { 
+              $match: { 
+                ...baseMatch, 
+                vendor: { $exists: false } 
+              } 
+            },
+            { $unwind: "$branchStocks" },
+            { 
+              $match: { 
+                $expr: { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] } 
+              } 
+            },
+            { 
+              $lookup: {
+                from: 'branches',
+                localField: 'branchStocks.branchId',
+                foreignField: '_id',
+                as: 'branchInfo'
+              }
+            },
+            { $unwind: "$branchInfo" },
+            {
+              $project: {
+                productId: "$_id",
+                productName: "$name",
+                sku: 1,
+                image: 1,
+                category: 1,
+                branchName: "$branchInfo.name",
+                branchId: "$branchStocks.branchId",
+                stock: "$branchStocks.stock",
+                threshold: "$branchStocks.lowStockThreshold",
+                isVendor: { $literal: false },
+                severity: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, "Critical", "Warning"] }
+              }
+            }
+          ],
+          vendorStock: [
+            { 
+              $match: { 
+                ...baseMatch, 
+                vendor: { $exists: true } 
+              } 
+            },
+            { 
+              $match: { 
+                $expr: { $lte: ["$stock", "$lowStockThreshold"] } 
+              } 
+            },
+            { 
+              $lookup: {
+                from: 'vendors',
+                localField: 'vendor',
+                foreignField: '_id',
+                as: 'vendorInfo'
+              }
+            },
+            { $unwind: "$vendorInfo" },
+            {
+              $project: {
+                productId: "$_id",
+                productName: "$name",
+                sku: 1,
+                image: 1,
+                category: 1,
+                branchName: "Vendor Managed",
+                storeName: "$vendorInfo.storeName",
+                stock: "$stock",
+                threshold: "$lowStockThreshold",
+                isVendor: { $literal: true },
+                severity: { $cond: [{ $lte: ["$stock", 0] }, "Critical", "Warning"] }
+              }
+            }
+          ]
+        }
+      },
+      {
+        $project: {
+          combined: { $concatArrays: ["$internalStock", "$vendorStock"] }
+        }
+      },
+      { $unwind: "$combined" },
+      { $replaceRoot: { newRoot: "$combined" } }
+    ];
+
+    // Branch Scoping (Staff only see their own branch, omit vendor products for staff)
+    if (req.admin.role !== 'Admin' && req.admin.branchId) {
+      pipeline.push({ 
+        $match: { 
+            isVendor: false,
+            branchId: new mongoose.Types.ObjectId(req.admin.branchId) 
+        } 
+      });
+    } else if (branchId) {
+        if (branchId === 'vendor') {
+            pipeline.push({ $match: { isVendor: true } });
+        } else if (mongoose.Types.ObjectId.isValid(branchId)) {
+            pipeline.push({ 
+                $match: { 
+                    branchId: new mongoose.Types.ObjectId(branchId) 
+                } 
+            });
+        }
+    }
+
+    // Category Filter
+    if (category) {
+      pipeline.push({ $match: { category: new RegExp(escapeRegExp(category), 'i') } });
+    }
+
+    // Severity Filter
+    if (severity) {
+      pipeline.push({ $match: { severity: severity } });
+    }
+
+    // Search
+    if (search) {
+      const escapedSearch = escapeRegExp(search);
+      pipeline.push({
+        $match: {
+          $or: [
+            { productName: { $regex: escapedSearch, $options: 'i' } },
+            { sku: { $regex: escapedSearch, $options: 'i' } },
+            { branchName: { $regex: escapedSearch, $options: 'i' } }
+          ]
+        }
+      });
+    }
+
+    // Sort: Critical first, then stock ascending
+    pipeline.push({ $sort: { stock: 1, productName: 1 } });
+
+    // Pagination
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: "total" }],
+        data: [{ $skip: skip }, { $limit: limitNum }]
+      }
+    });
+
+    const result = await Product.aggregate(pipeline);
+    const total = result[0]?.metadata[0]?.total || 0;
+    const data = result[0]?.data || [];
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum)
+      }
     });
 
   } catch (error) {

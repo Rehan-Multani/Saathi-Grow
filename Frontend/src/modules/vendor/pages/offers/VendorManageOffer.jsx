@@ -19,6 +19,8 @@ const VendorManageOffer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -126,6 +128,39 @@ const VendorManageOffer = () => {
     setSelectedProducts(prev =>
       prev.map(p => p.productId === productId ? { ...p, basePrice: Number(price) } : p)
     );
+  };
+
+  const paginatedProducts = (selectedProducts || []).slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil((selectedProducts?.length || 0) / itemsPerPage);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
   };
 
   const handleSubmit = async (e) => {
@@ -313,31 +348,7 @@ const VendorManageOffer = () => {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
               <h6 className="font-bold text-gray-700 text-sm">Display Settings</h6>
 
-              <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">Target Location</label>
-                <select
-                  name="displayLocation"
-                  value={formData.displayLocation}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#0c831f]"
-                >
-                  <option>Home Slider</option>
-                  <option>Category Page</option>
-                  <option>N/A</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-gray-500 mb-1 block">Display Order</label>
-                  <input
-                    type="number"
-                    name="order"
-                    value={formData.order}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#0c831f]"
-                  />
-                </div>
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="text-xs font-bold text-gray-500 mb-1 block">Expiry Date</label>
                   <input
@@ -347,6 +358,33 @@ const VendorManageOffer = () => {
                     onChange={handleChange}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#0c831f]"
                   />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Visual Branding</p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-500">Background</label>
+                    <div className="flex gap-2">
+                      <input type="color" name="bgColor" value={formData.bgColor} onChange={handleChange} className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0.5 bg-gray-100" />
+                      <input type="text" name="bgColor" value={formData.bgColor} onChange={handleChange} className="w-20 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] font-mono outline-none" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-500">Text Content</label>
+                    <div className="flex gap-2">
+                      <input type="color" name="textColor" value={formData.textColor} onChange={handleChange} className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0.5 bg-gray-100" />
+                      <input type="text" name="textColor" value={formData.textColor} onChange={handleChange} className="w-20 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] font-mono outline-none" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-500">Accent / Button</label>
+                    <div className="flex gap-2">
+                      <input type="color" name="accentColor" value={formData.accentColor} onChange={handleChange} className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0.5 bg-gray-100" />
+                      <input type="text" name="accentColor" value={formData.accentColor} onChange={handleChange} className="w-20 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] font-mono outline-none" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -432,7 +470,7 @@ const VendorManageOffer = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {selectedProducts.length > 0 ? selectedProducts.map(p => (
+                      {paginatedProducts.length > 0 ? paginatedProducts.map(p => (
                         <tr key={p.productId} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-3 py-3">
                             <div className="flex items-center gap-3">
@@ -458,7 +496,7 @@ const VendorManageOffer = () => {
                           </td>
                           <td className="px-3 py-3 text-right">
                             <button
-                              type="button"
+                               type="button"
                               onClick={() => removeProduct(p.productId)}
                               className="p-1.5 text-red-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             >
@@ -479,6 +517,49 @@ const VendorManageOffer = () => {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {selectedProducts.length > itemsPerPage && (
+                  <div className="flex justify-between items-center mt-4 px-1">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                      {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, selectedProducts.length)} of {selectedProducts.length}
+                    </p>
+                    <div className="flex gap-1">
+                      <button 
+                        type="button"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => prev - 1)}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${currentPage === 1 ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                      >
+                        Prev
+                      </button>
+                      <div className="flex gap-1">
+                        {getPageNumbers().map((page, i) => (
+                          page === '...' ? (
+                            <span key={`dots-${i}`} className="flex items-center px-1 text-gray-400">...</span>
+                          ) : (
+                            <button 
+                              key={page}
+                               type="button"
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${currentPage === page ? 'bg-[#0c831f] text-white shadow-lg' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                            >
+                              {page}
+                            </button>
+                          )
+                        ))}
+                      </div>
+                      <button 
+                        type="button"
+                        disabled={currentPage === Math.ceil(selectedProducts.length / itemsPerPage)}
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${currentPage === Math.ceil(selectedProducts.length / itemsPerPage) ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

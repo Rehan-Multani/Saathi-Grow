@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
-import { Search, Plus, Phone, Star, Truck, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Phone, Truck, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
 import Swal from 'sweetalert2';
@@ -126,7 +126,6 @@ const DeliveryPartners = () => {
                                 <th className="border-0 py-3">Type</th>
                                 <th className="border-0 py-3">Contact</th>
                                 <th className="border-0 py-3">Capacity</th>
-                                <th className="border-0 py-3">Rating</th>
                                 <th className="border-0 py-3">Status</th>
                                 <th className="border-0 py-3 text-end pe-4">Actions</th>
                             </tr>
@@ -134,7 +133,7 @@ const DeliveryPartners = () => {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted">
+                                    <td colSpan="6" className="text-center py-5 text-muted">
                                         <Spinner animation="border" variant="primary" />
                                         <div className="mt-2">Loading partners...</div>
                                     </td>
@@ -165,11 +164,6 @@ const DeliveryPartners = () => {
                                     </td>
                                     <td className="fw-medium text-capitalize">{p.dutyStatus}</td>
                                     <td>
-                                        <div className="d-flex align-items-center justify-content-center gap-1 text-warning fw-bold">
-                                            <Star size={14} fill="currentColor" /> {p.rating || '5.0'}
-                                        </div>
-                                    </td>
-                                    <td>
                                         <Badge bg={p.authStatus === 'Active' ? 'success' : p.authStatus === 'Suspended' ? 'danger' : 'secondary'} className="rounded-pill fw-normal px-3 py-1 shadow-sm">
                                             {p.authStatus}
                                         </Badge>
@@ -193,7 +187,7 @@ const DeliveryPartners = () => {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted small">
+                                    <td colSpan="6" className="text-center py-5 text-muted small">
                                         No partners found matching your search.
                                     </td>
                                 </tr>

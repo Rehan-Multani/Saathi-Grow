@@ -34,7 +34,7 @@ export const getOfferDealById = async (req, res) => {
 // @desc    Create a new offer deal
 export const createOfferDeal = async (req, res) => {
   try {
-    const { title, subtitle, description, bgColor, textColor, accentColor, products, order, expiryDate, displayLocation, discountPercentage } = req.body;
+    const { title, subtitle, description, bgColor, textColor, accentColor, products, order, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
 
     let parsedProducts = products;
     if (typeof products === 'string') {
@@ -65,6 +65,8 @@ export const createOfferDeal = async (req, res) => {
       expiryDate,
       displayLocation,
       discountPercentage: discountPercentage || 0,
+      animationType: animationType || 'Default',
+      backgroundEffect: backgroundEffect || 'None',
       bannerImage: req.file ? req.file.path : '',
       vendor: req.vendor ? req.vendor._id : null
     });
@@ -89,7 +91,12 @@ export const updateOfferDeal = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this offer' });
     }
 
-    const { title, subtitle, description, bgColor, textColor, accentColor, products, order, isActive, expiryDate, displayLocation, discountPercentage } = req.body;
+    // Admin cannot edit vendor deals (only vendors can edit their own)
+    if (req.admin && offer.vendor) {
+      return res.status(403).json({ message: 'Admin can only delete vendor deals, not edit them' });
+    }
+
+    const { title, subtitle, description, bgColor, textColor, accentColor, products, order, isActive, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
 
     offer.title = title || offer.title;
     offer.subtitle = subtitle !== undefined ? subtitle : offer.subtitle;
@@ -102,6 +109,8 @@ export const updateOfferDeal = async (req, res) => {
     offer.expiryDate = expiryDate || offer.expiryDate;
     offer.displayLocation = displayLocation || offer.displayLocation;
     offer.discountPercentage = discountPercentage !== undefined ? discountPercentage : offer.discountPercentage;
+    offer.animationType = animationType !== undefined ? animationType : offer.animationType;
+    offer.backgroundEffect = backgroundEffect !== undefined ? backgroundEffect : offer.backgroundEffect;
 
     if (products) {
       const parsedProducts = typeof products === 'string' ? JSON.parse(products) : products;
@@ -152,15 +161,31 @@ export const getActiveOfferDeals = async (req, res) => {
 
     // Fetch ALL active offers (admin + all vendors) to show on home screen
     // This allows users to see all available deals as requested.
-    const offers = await OfferDeal.find({ isActive: true })
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor')
-      .sort('order');
+    const result = await OfferDeal.aggregate([
+      { $match: { isActive: true } },
+      { $addFields: { totalProducts: { $size: "$products" } } },
+      { $sort: { order: 1 } },
+      {
+        $project: {
+          title: 1, subtitle: 1, description: 1, bgColor: 1, textColor: 1, accentColor: 1,
+          bannerImage: 1, isActive: 1, order: 1, expiryDate: 1, displayLocation: 1,
+          discountPercentage: 1, animationType: 1, backgroundEffect: 1, totalProducts: 1,
+          products: { $slice: ["$products", 10] }
+        }
+      }
+    ]);
+
+    // Manually populate the sliced products since populate() doesn't work directly on aggregate result objects easily without more stages
+    const offers = await OfferDeal.populate(result, {
+      path: 'products.productId',
+      select: 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor'
+    });
 
     // Decorate each product with isDeliverable flag when store context is provided
     if (storeId && storeType) {
       const formattedOffers = offers.map(offer => {
-        const offerObj = offer.toObject();
-        offerObj.products = offerObj.products.map(cp => {
+        const offerObj = offer;
+        offerObj.products = (offerObj.products || []).map(cp => {
           if (!cp.productId) return cp;
 
           let isDeliverable = false;
@@ -201,13 +226,61 @@ export const getActiveOfferDeals = async (req, res) => {
           return cp;
         });
         return offerObj;
-      });
+      }).filter(offer => offer.products && offer.products.length > 0);
       return res.json(formattedOffers);
     }
 
-    res.json(offers);
+    const filteredOffers = offers.filter(offer => offer.products && offer.products.length > 0);
+    res.json(filteredOffers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 
+};
+
+// @desc    Get offer products with pagination (Public)
+// @route   GET /api/admin/offers/public/:id/products
+export const getOfferProducts = async (req, res) => {
+  try {
+    const { page = 1, limit = 12, storeId, storeType } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const offer = await OfferDeal.findById(req.params.id)
+      .slice('products', [(pageNum - 1) * limitNum, limitNum])
+      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor category');
+
+    if (!offer) return res.status(404).json({ message: 'Offer not found' });
+
+    // Inject store context if available
+    let products = offer.products || [];
+    if (storeId && storeType) {
+      products = products.map(cp => {
+        if (!cp.productId) return cp;
+        const pObj = cp.productId;
+        let isDeliverable = false;
+        let availableStock = 0;
+        
+        if (storeType === 'branch') {
+          const bs = pObj.branchStocks?.find(s => (s.branchId?._id || s.branchId)?.toString() === storeId.toString());
+          if (bs && bs.stock > 0) isDeliverable = true;
+          availableStock = bs?.stock || 0;
+        } else if (storeType === 'vendor') {
+          if ((pObj.vendor?._id || pObj.vendor)?.toString() === storeId.toString() && pObj.stock > 0) isDeliverable = true;
+          availableStock = pObj.stock || 0;
+        }
+        
+        cp.productId.isDeliverable = isDeliverable;
+        cp.productId.availableStock = availableStock;
+        return cp;
+      });
+    }
+
+    res.json({
+      products: products.filter(p => p.productId),
+      hasMore: (offer.products?.length || 0) === limitNum
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
