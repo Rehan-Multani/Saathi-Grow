@@ -83,84 +83,100 @@ export const createPOSOrder = async (req, res) => {
 
     const createdOrder = await order.save();
 
-    // ─── Vendor POS Wallet Logic ───────────────────────────────────────────────
-    // Business Rule (In-Store Cash Sale):
-    //   • Customer pays vendor DIRECTLY in cash — platform doesn't hold the money
-    //   • Vendor KEEPS the full cash payment physically
-    //   • Platform ONLY deducts TAX AMOUNT from vendor wallet (platform's cut)
-    //   • SubTotal is recorded as an informational earnings entry (for display/stats)
-    //     but is NOT added to wallet balance (vendor already has the cash)
-    //   • Admin wallet is credited with the Tax Amount
-    if (storeType === 'vendor') {
-      const saleRevenue = bill.subTotal;    // Vendor already received as physical cash
-      const taxCollection = bill.taxAmount; // Platform deducts this from vendor wallet
+    // ─── POS Wallet Logic ───────────────────────────────────────────────
+    const adminUser = await Admin.findOne({ role: 'Admin' });
+    if (adminUser) {
+      if (storeType === 'vendor') {
+        // Business Rule (Vendor In-Store Cash Sale):
+        //   • Customer pays vendor DIRECTLY in cash
+        //   • Vendor KEEPS the full cash payment physically
+        //   • Platform DEDUCTS its share (Commission + Taxes + Fees) from vendor wallet balance
+        //   • This creates a "debt" or reduces vendor's digital balance
+        const platformCut = (bill.totalAmount || 0) - (bill.vendorPayoutAmount || 0);
 
-      const adminUser = await Admin.findOne({ role: 'Admin' });
-      if (adminUser) {
-        // Atomically upsert Vendor Wallet
         const vendorWallet = await Wallet.findOneAndUpdate(
           { owner: storeId, ownerModel: 'Vendor' },
           { $setOnInsert: { balance: 0, totalEarnings: 0, pendingPayouts: 0 } },
           { upsert: true, new: true, setDefaultsOnInsert: true }
         );
 
-        // Atomically upsert Admin Wallet
         const adminWallet = await Wallet.findOneAndUpdate(
           { owner: adminUser._id, ownerModel: 'Admin' },
           { $setOnInsert: { balance: 0, totalEarnings: 0, pendingPayouts: 0 } },
           { upsert: true, new: true, setDefaultsOnInsert: true }
         );
 
-        // 1. Record POS Sale Revenue as informational entry (for earnings display & stats)
-        //    NOTE: Only totalEarnings is updated — balance is NOT incremented
-        //    because vendor received this cash in-person directly from the customer.
-        if (saleRevenue > 0) {
+        // 1. Record Sale as Informational Earnings (Vendor stats)
+        await Wallet.findByIdAndUpdate(vendorWallet._id, {
+          $inc: { totalEarnings: bill.subTotal }
+        });
+
+        await Transaction.create({
+          wallet: vendorWallet._id,
+          amount: bill.subTotal,
+          type: 'credit',
+          category: 'order_revenue',
+          description: `POS Cash Sale Earned (Received In-Store): ${createdOrder.orderId}`,
+          referenceId: createdOrder._id,
+          referenceModel: 'Order'
+        });
+
+        // 2. Deduct Platform share from vendor
+        if (platformCut > 0) {
           await Wallet.findByIdAndUpdate(vendorWallet._id, {
-            $inc: { totalEarnings: saleRevenue } // Track for performance stats only
+            $inc: { balance: -platformCut }
           });
 
           await Transaction.create({
             wallet: vendorWallet._id,
-            amount: saleRevenue,
-            type: 'credit',
-            category: 'order_revenue',
-            description: `POS Cash Sale Earned (Received In-Store): ${createdOrder.orderId}`,
-            referenceId: createdOrder._id,
-            referenceModel: 'Order'
-          });
-        }
-
-        // 2. Deduct Tax Amount from vendor wallet balance → goes to admin
-        if (taxCollection > 0) {
-          await Wallet.findByIdAndUpdate(vendorWallet._id, {
-            $inc: { balance: -taxCollection }
-          });
-
-          await Transaction.create({
-            wallet: vendorWallet._id,
-            amount: taxCollection,
+            amount: platformCut,
             type: 'debit',
             category: 'platform_commission',
-            description: `POS Tax Deducted by Platform: ${createdOrder.orderId}`,
+            description: `POS Platform Share Deducted: ${createdOrder.orderId}`,
             referenceId: createdOrder._id,
             referenceModel: 'Order'
           });
 
-          // Credit Tax Amount to Admin Wallet
+          // 3. Credit Platform share to Admin treasury
           await Wallet.findByIdAndUpdate(adminWallet._id, {
-            $inc: { balance: taxCollection, totalEarnings: taxCollection }
+            $inc: { balance: platformCut, totalEarnings: platformCut }
           });
 
           await Transaction.create({
             wallet: adminWallet._id,
-            amount: taxCollection,
+            amount: platformCut,
             type: 'credit',
             category: 'platform_commission',
-            description: `POS Tax Collected from Vendor: ${createdOrder.orderId}`,
+            description: `POS Share Collected from Vendor: ${createdOrder.orderId}`,
             referenceId: createdOrder._id,
             referenceModel: 'Order'
           });
         }
+      } else if (storeType === 'branch') {
+        // Business Rule (Branch In-Store Cash Sale):
+        //   • Admin's own branch collects cash
+        //   • Total revenue belongs to Admin Treasury
+        const revenue = bill.totalAmount;
+
+        const adminWallet = await Wallet.findOneAndUpdate(
+          { owner: adminUser._id, ownerModel: 'Admin' },
+          { $setOnInsert: { balance: 0, totalEarnings: 0, pendingPayouts: 0 } },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        await Wallet.findByIdAndUpdate(adminWallet._id, {
+          $inc: { balance: revenue, totalEarnings: revenue }
+        });
+
+        await Transaction.create({
+          wallet: adminWallet._id,
+          amount: revenue,
+          type: 'credit',
+          category: 'order_revenue',
+          description: `Internal POS Branch Sales Revenue: ${createdOrder.orderId}`,
+          referenceId: createdOrder._id,
+          referenceModel: 'Order'
+        });
       }
     }
 

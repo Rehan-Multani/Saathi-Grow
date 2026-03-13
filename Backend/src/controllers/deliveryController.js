@@ -8,7 +8,7 @@ import Transaction from '../models/Transaction.js';
 import DeliveryLocation from '../models/DeliveryLocation.js';
 import CashCollection from '../models/CashCollection.js';
 import { findOptimalSource } from '../services/locationService.js';
-import { creditVendorWallet, debitVendorWallet } from './orderController.js';
+import { creditVendorWallet, debitVendorWallet, creditAdminWallet, debitAdminWallet } from './orderController.js';
 
 // @desc    Get delivery partner profile
 // @route   GET /api/delivery/profile
@@ -184,7 +184,12 @@ export const updateDeliveryStatus = async (req, res) => {
                         order.paymentStatus = 'paid';
                     }
                     await order.save();
-                    if (order.vendor) await creditVendorWallet(order);
+                    if (order.vendor) {
+                        await creditVendorWallet(order);
+                        await creditAdminWallet(order);
+                    } else if (order.branchId) {
+                        await creditAdminWallet(order);
+                    }
 
                     if (order.paymentMethod?.toLowerCase() === 'cod') {
                         partner.cashInHand = (partner.cashInHand || 0) + order.totalAmount;
@@ -272,7 +277,12 @@ export const updateDeliveryStatus = async (req, res) => {
                                 }
                                 order.paymentStatus = 'refunded';
                             }
-                            if (order.vendor) await debitVendorWallet(order);
+                            if (order.vendor) {
+                                await debitVendorWallet(order);
+                                await debitAdminWallet(order);
+                            } else if (order.branchId) {
+                                await debitAdminWallet(order);
+                            }
                             await order.save();
                         }
                     }

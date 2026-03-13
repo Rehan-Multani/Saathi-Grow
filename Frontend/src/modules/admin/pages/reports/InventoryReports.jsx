@@ -1,48 +1,146 @@
-﻿import React, { useState } from 'react';
-import { Card, Table, Button, Form, ProgressBar, Badge, InputGroup } from 'react-bootstrap';
-import { Download, AlertTriangle, CheckCircle, Search, Filter, X, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
-
-const INVENTORY_DATA = [
-    { id: 'PROD-001', name: 'Fresh Apples (Kashmir)', category: 'Fruits', vendor: 'Fresh Farms Ltd', stock: 150, reorderLevel: 50, status: 'In Stock' },
-    { id: 'PROD-002', name: 'Almond Milk 1L', category: 'Dairy', vendor: 'Heritage Dairy', stock: 12, reorderLevel: 20, status: 'Low Stock' },
-    { id: 'PROD-003', name: 'Whole Wheat Bread', category: 'Bakery', vendor: 'Urban Styles', stock: 0, reorderLevel: 10, status: 'Out of Stock' },
-    { id: 'PROD-004', name: 'Organic Honey 500g', category: 'Groceries', vendor: 'Fresh Farms Ltd', stock: 85, reorderLevel: 15, status: 'In Stock' },
-];
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Card, Table, Button, Form, ProgressBar, Badge, InputGroup, Spinner } from 'react-bootstrap';
+import { Download, AlertTriangle, Search, Filter, X, ShoppingBag, ChevronLeft, ChevronRight, Store, Truck } from 'lucide-react';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { getInventoryReports, exportInventoryCSV } from '../../api/reportApi';
+import { getBranches } from '../../api/branchApi';
+import { getVendors } from '../../api/vendorApi';
+import { getCategories } from '../../api/categoryApi';
+import { toast } from 'react-toastify';
 
 const InventoryReports = () => {
+    const { adminUser } = useAdminAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
-    const [selectedVendor, setSelectedVendor] = useState('');
+    const [selectedSource, setSelectedSource] = useState({ id: '', type: '' });
+    const [stockStatus, setStockStatus] = useState('');
     const [showFilterMenu, setShowFilterMenu] = useState(false);
+    
+    // Data States
+    const [inventory, setInventory] = useState([]);
+    const [summary, setSummary] = useState({ totalProducts: 0, lowStockCount: 0, outOfStockCount: 0 });
+    const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
+    
+    // Filter Options
+    const [branches, setBranches] = useState([]);
+    const [vendors, setVendors] = useState([]);
+    const [categories, setCategories] = useState([]);
 
     // Pagination State
     const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
     const limit = 10;
 
-    const uniqueCategories = [...new Set(INVENTORY_DATA.map(i => i.category))];
-    const uniqueVendors = [...new Set(INVENTORY_DATA.map(i => i.vendor))];
+    // Unified Source Options
+    const sourceOptions = useMemo(() => {
+        const branchOptions = branches.map(b => ({ id: b._id, name: b.name, type: 'branch', icon: <Store size={14} className="me-2" /> }));
+        const vendorOptions = vendors.map(v => ({ id: v._id, name: v.storeName, type: 'vendor', icon: <Truck size={14} className="me-2" /> }));
+        return [...branchOptions, ...vendorOptions];
+    }, [branches, vendors]);
 
-    const filteredInventory = INVENTORY_DATA.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.id.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
-        const matchesVendor = selectedVendor ? item.vendor === selectedVendor : true;
-        return matchesSearch && matchesCategory && matchesVendor;
-    });
+    const fetchDropdownData = useCallback(async () => {
+        if (!adminUser?.token) return;
+        try {
+            const [branchData, vendorData, categoryData] = await Promise.all([
+                getBranches(adminUser.token),
+                getVendors(adminUser.token),
+                getCategories(adminUser.token, { hasProducts: true })
+            ]);
+            setBranches(branchData || []);
+            setVendors(vendorData || []);
+            // Map categories to handle possible different data structures
+            const cats = Array.isArray(categoryData) ? categoryData : (categoryData.categories || []);
+            setCategories(cats.map(c => typeof c === 'string' ? c : c.name) || []);
+        } catch (error) {
+            console.error('Failed to fetch dropdown options:', error);
+        }
+    }, [adminUser]);
 
-    const totalFiltered = filteredInventory.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedInventory = filteredInventory.slice((page - 1) * limit, page * limit);
+    const fetchInventory = useCallback(async (isSilent = false) => {
+        if (!adminUser?.token) return;
+        if (!isSilent) setLoading(true);
+        try {
+            const params = {
+                page,
+                limit,
+                search: searchTerm,
+                category: selectedCategory,
+                status: stockStatus,
+                branchId: selectedSource.type === 'branch' ? selectedSource.id : '',
+                vendorId: selectedSource.type === 'vendor' ? selectedSource.id : ''
+            };
+            const res = await getInventoryReports(adminUser.token, params);
+            if (res.success) {
+                setInventory(res.inventory || []);
+                setSummary(res.summary || { totalProducts: 0, lowStockCount: 0, outOfStockCount: 0 });
+                setTotalPages(res.pagination?.totalPages || 1);
+                setTotalItems(res.pagination?.total || 0);
+            }
+        } catch (error) {
+            console.error('Fetch Inventory Error:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [adminUser, page, searchTerm, selectedCategory, selectedSource, stockStatus]);
+
+    useEffect(() => {
+        fetchDropdownData();
+    }, [fetchDropdownData]);
+
+    useEffect(() => {
+        fetchInventory();
+    }, [fetchInventory]);
 
     // Reset pagination when filters change
-    React.useEffect(() => {
+    useEffect(() => {
         setPage(1);
-    }, [searchTerm, selectedCategory, selectedVendor]);
+    }, [searchTerm, selectedCategory, selectedSource, stockStatus]);
+
+    const handleExport = async () => {
+        if (!adminUser?.token) return;
+        setExporting(true);
+        try {
+            const params = {
+                search: searchTerm,
+                category: selectedCategory,
+                status: stockStatus,
+                branchId: selectedSource.type === 'branch' ? selectedSource.id : '',
+                vendorId: selectedSource.type === 'vendor' ? selectedSource.id : ''
+            };
+            const blob = await exportInventoryCSV(adminUser.token, params);
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Inventory_Report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success('Inventory report exported');
+        } catch (error) {
+            console.error('Export failed:', error);
+            toast.error('Failed to export report');
+        } finally {
+            setExporting(false);
+        }
+    };
 
     const clearFilters = () => {
         setSelectedCategory('');
-        setSelectedVendor('');
+        setSelectedSource({ id: '', type: '' });
+        setStockStatus('');
         setShowFilterMenu(false);
+    };
+
+    const getStatusVariant = (status) => {
+        switch(status) {
+            case 'In Stock': return 'success';
+            case 'Low Stock': return 'warning';
+            case 'Out of Stock': return 'danger';
+            default: return 'secondary';
+        }
     };
 
     return (
@@ -54,16 +152,36 @@ const InventoryReports = () => {
                     </div>
                     <div>
                         <h4 className="fw-bold mb-1 text-dark">Inventory Reports</h4>
-                        <p className="text-muted small mb-0 d-none d-sm-block">Monitor stock levels, reorder points, and vendor performance.</p>
+                        <p className="text-muted small mb-0 d-none d-sm-block">Unified cross-store stock monitoring and replenishment analytics.</p>
                     </div>
                 </div>
 
-                <div className="d-flex flex-column flex-sm-row gap-2 w-100 w-lg-auto">
-                    <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-3">
-                        <AlertTriangle size={16} /> <span>Low Stock (14)</span>
+                <div className="d-flex flex-column flex-sm-row gap-2 w-100 w-lg-auto text-nowrap">
+                    <Button 
+                        variant="outline-danger" 
+                        size="sm" 
+                        className={`d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-3 ${stockStatus === 'Out of Stock' ? 'active shadow-none bg-danger text-white' : ''}`}
+                        onClick={() => setStockStatus(stockStatus === 'Out of Stock' ? '' : 'Out of Stock')}
+                    >
+                        <X size={16} /> <span>Out of Stock ({summary.outOfStockCount})</span>
                     </Button>
-                    <Button variant="primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-4">
-                        <Download size={16} /> <span>Export Report</span>
+                    <Button 
+                        variant="outline-warning" 
+                        size="sm" 
+                        className={`d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-3 ${stockStatus === 'Low Stock' ? 'active shadow-none bg-warning text-dark' : ''}`}
+                        onClick={() => setStockStatus(stockStatus === 'Low Stock' ? '' : 'Low Stock')}
+                    >
+                        <AlertTriangle size={16} /> <span>Low Stock ({summary.lowStockCount})</span>
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-4"
+                        onClick={handleExport}
+                        disabled={exporting}
+                    >
+                        {exporting ? <Spinner animation="border" size="sm" /> : <Download size={16} />}
+                        <span>{exporting ? 'Exporting...' : 'Export Report'}</span>
                     </Button>
                 </div>
             </div>
@@ -80,7 +198,7 @@ const InventoryReports = () => {
                                         <Search size={18} />
                                     </InputGroup.Text>
                                     <Form.Control
-                                        placeholder="Search by product name or ID..."
+                                        placeholder="Search by product name or SKU..."
                                         className="bg-light border-0 ps-1 py-2 shadow-none font-small"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -91,13 +209,13 @@ const InventoryReports = () => {
                             <div className="position-relative">
                                 <Button
                                     size="sm"
-                                    variant={selectedCategory || selectedVendor ? "primary" : "outline-secondary"}
+                                    variant={selectedCategory || selectedSource.id || stockStatus ? "primary" : "outline-secondary"}
                                     className="d-flex align-items-center justify-content-center gap-2 h-100 px-3 shadow-none border no-hover-effect"
                                     onClick={() => setShowFilterMenu(!showFilterMenu)}
                                 >
                                     <Filter size={18} />
                                     <span>Filter</span>
-                                    {(selectedCategory || selectedVendor) && (
+                                    {(selectedCategory || selectedSource.id || stockStatus) && (
                                         <Badge bg="white" text="primary" pill className="ms-1 small">!</Badge>
                                     )}
                                 </Button>
@@ -125,24 +243,51 @@ const InventoryReports = () => {
                                                 onChange={(e) => setSelectedCategory(e.target.value)}
                                             >
                                                 <option value="">All Categories</option>
-                                                {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                             </Form.Select>
                                         </div>
 
                                         <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">By Vendor</Form.Label>
+                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Source (Branch/Vendor)</Form.Label>
                                             <Form.Select
                                                 size="sm"
                                                 className="bg-light border-0 py-2 shadow-none"
-                                                value={selectedVendor}
-                                                onChange={(e) => setSelectedVendor(e.target.value)}
+                                                value={`${selectedSource.id}|${selectedSource.type}`}
+                                                onChange={(e) => {
+                                                    const [id, type] = e.target.value.split('|');
+                                                    setSelectedSource({ id: id || '', type: type || '' });
+                                                }}
                                             >
-                                                <option value="">All Vendors</option>
-                                                {uniqueVendors.map(v => <option key={v} value={v}>{v}</option>)}
+                                                <option value="|">All Sources (Global)</option>
+                                                <optgroup label="Branches">
+                                                    {sourceOptions.filter(s => s.type === 'branch').map(s => (
+                                                        <option key={s.id} value={`${s.id}|${s.type}`}>🏪 {s.name}</option>
+                                                    ))}
+                                                </optgroup>
+                                                <optgroup label="Vendors">
+                                                    {sourceOptions.filter(s => s.type === 'vendor').map(s => (
+                                                        <option key={s.id} value={`${s.id}|${s.type}`}>🚚 {s.name}</option>
+                                                    ))}
+                                                </optgroup>
                                             </Form.Select>
                                         </div>
 
-                                        {(selectedCategory || selectedVendor) && (
+                                        <div className="mb-3">
+                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Stock Status</Form.Label>
+                                            <Form.Select
+                                                size="sm"
+                                                className="bg-light border-0 py-2 shadow-none"
+                                                value={stockStatus}
+                                                onChange={(e) => setStockStatus(e.target.value)}
+                                            >
+                                                <option value="">All Items</option>
+                                                <option value="In Stock">In Stock</option>
+                                                <option value="Low Stock">Low Stock Only</option>
+                                                <option value="Out of Stock">Out of Stock</option>
+                                            </Form.Select>
+                                        </div>
+
+                                        {(selectedCategory || selectedSource.id || stockStatus) && (
                                             <Button
                                                 variant="link"
                                                 className="w-100 p-0 text-danger small text-decoration-none border-top pt-2 mt-2"
@@ -157,12 +302,17 @@ const InventoryReports = () => {
                         </div>
                     </div>
                 </Card.Header>
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
+                <Card.Body className="p-0 position-relative" style={{ minHeight: '200px' }}>
+                    {loading && (
+                        <div className="position-absolute top-50 start-50 translate-middle" style={{ zIndex: 10 }}>
+                            <Spinner animation="border" variant="primary" />
+                        </div>
+                    )}
+                    <Table hover responsive className={`mb-0 align-middle ${loading ? 'opacity-50' : ''}`}>
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
                                 <th className="ps-4 border-0 py-3">Product</th>
-                                <th className="border-0 py-3">Vendor</th>
+                                <th className="border-0 py-3">Vendor/Source</th>
                                 <th className="border-0 py-3">Category</th>
                                 <th className="border-0 py-3" style={{ width: '200px' }}>Stock Level</th>
                                 <th className="border-0 py-3 text-center">Reorder Point</th>
@@ -170,11 +320,11 @@ const InventoryReports = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedInventory.map((item, idx) => (
-                                <tr key={idx}>
+                            {inventory.length > 0 ? inventory.map((item, idx) => (
+                                <tr key={item.id || idx}>
                                     <td className="ps-4">
                                         <div className="fw-bold text-dark">{item.name}</div>
-                                        <div className="small text-muted">{item.id}</div>
+                                        <div className="small text-muted">{item.sku}</div>
                                     </td>
                                     <td>
                                         <Badge bg="info" className="bg-opacity-10 text-info fw-medium border border-info border-opacity-25 px-2 py-1">
@@ -185,35 +335,41 @@ const InventoryReports = () => {
                                     <td>
                                         <div className="d-flex align-items-center gap-2">
                                             <ProgressBar
-                                                now={item.stock}
-                                                max={200}
-                                                variant={item.stock < item.reorderLevel ? 'danger' : item.stock < item.reorderLevel * 2 ? 'warning' : 'success'}
+                                                now={Math.min(parseInt(item.stock), 100)}
+                                                max={100}
+                                                variant={item.status === 'Low Stock' ? 'warning' : item.status === 'Out of Stock' ? 'danger' : 'success'}
                                                 style={{ height: '6px', width: '100px' }}
                                                 className="rounded-pill shadow-none"
                                             />
-                                            <span className="small fw-bold">{item.stock}</span>
+                                            <span className="small fw-bold">{item.stock} {item.unitType}</span>
                                         </div>
                                     </td>
                                     <td className="text-center text-muted small">{item.reorderLevel} units</td>
                                     <td className="text-end pe-4">
                                         <Badge
-                                            bg={item.status === 'In Stock' ? 'success' : item.status === 'Low Stock' ? 'warning' : 'danger'}
+                                            bg={getStatusVariant(item.status)}
                                             className="rounded-pill fw-normal px-3 py-1 shadow-sm"
                                         >
                                             {item.status}
                                         </Badge>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : !loading && (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-5 text-muted">
+                                        No inventory data found matching your criteria.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>
 
                 {/* Pagination Controls */}
-                {totalFiltered > 0 && (
+                {totalItems > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> products
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalItems)}</span> of <span className="fw-semibold text-dark">{totalItems}</span> products
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button
@@ -227,25 +383,26 @@ const InventoryReports = () => {
 
                             <div className="d-flex align-items-center gap-1">
                                 {(() => {
-                                    return [...Array(totalPages)].map((_, i) => {
-                                        const p = i + 1;
-                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
-                                            return (
-                                                <Button
-                                                    key={p}
-                                                    variant={page === p ? 'primary' : 'light'}
-                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                    style={{ width: '36px', height: '36px', padding: 0 }}
-                                                    onClick={() => setPage(p)}
-                                                >
-                                                    {p}
-                                                </Button>
-                                            );
-                                        } else if (p === page - 2 || p === page + 2) {
-                                            return <span key={p} className="text-muted px-1">...</span>;
-                                        }
-                                        return null;
-                                    });
+                                    const pages = [];
+                                    const maxVisible = 5;
+                                    let start = Math.max(1, page - 2);
+                                    let end = Math.min(totalPages, start + maxVisible - 1);
+                                    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+
+                                    for (let p = start; p <= end; p++) {
+                                        pages.push(
+                                            <Button
+                                                key={p}
+                                                variant={page === p ? 'primary' : 'light'}
+                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
+                                                style={{ width: '36px', height: '36px', padding: 0 }}
+                                                onClick={() => setPage(p)}
+                                            >
+                                                {p}
+                                            </Button>
+                                        );
+                                    }
+                                    return pages;
                                 })()}
                             </div>
 

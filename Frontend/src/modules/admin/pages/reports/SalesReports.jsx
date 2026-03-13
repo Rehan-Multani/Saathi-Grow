@@ -1,35 +1,122 @@
-﻿import React, { useState } from 'react';
-import { Card, Table, Row, Col, Form, Button } from 'react-bootstrap';
-import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
-
-const SALES_DATA = [
-    { id: 'ORD-5001', date: '2023-11-01', customer: 'John Doe', items: 3, total: '₹120.00', status: 'Completed', payment: 'Credit Card' },
-    { id: 'ORD-5002', date: '2023-11-01', customer: 'Jane Smith', items: 1, total: '₹45.50', status: 'Completed', payment: 'PayPal' },
-    { id: 'ORD-5003', date: '2023-10-31', customer: 'Michael Brown', items: 5, total: '₹210.00', status: 'Refunded', payment: 'Credit Card' },
-    { id: 'ORD-5004', date: '2023-10-31', customer: 'Sarah Wilson', items: 2, total: '₹85.00', status: 'Completed', payment: 'COD' },
-];
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Table, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
+import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { getSalesReports, exportSalesCSV } from '../../api/reportApi';
+import { toast } from 'react-toastify';
 
 const SalesReports = () => {
+    const { adminUser } = useAdminAuth();
     const [page, setPage] = useState(1);
+    const [period, setPeriod] = useState('last_30_days');
+    const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
+    const [data, setData] = useState({
+        stats: {
+            totalRevenue: 0,
+            revenueGrowth: 0,
+            totalOrders: 0,
+            ordersGrowth: 0,
+            avgOrderValue: 0,
+            periodSales: 0
+        },
+        orders: [],
+        pagination: {
+            total: 0,
+            totalPages: 1
+        }
+    });
+
     const limit = 10;
 
-    const totalFiltered = SALES_DATA.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedSales = SALES_DATA.slice((page - 1) * limit, page * limit);
+    const fetchReports = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await getSalesReports(adminUser.token, {
+                page,
+                limit,
+                period
+            });
+            if (res.success) {
+                setData(res);
+            }
+        } catch (error) {
+            console.error('Failed to fetch reports:', error);
+            toast.error(error.message || 'Failed to load sales reports');
+        } finally {
+            setLoading(false);
+        }
+    }, [adminUser.token, page, period]);
+
+    useEffect(() => {
+        fetchReports();
+    }, [fetchReports]);
+
+    const handlePeriodChange = (e) => {
+        setPeriod(e.target.value);
+        setPage(1);
+    };
+
+    const handleExport = async () => {
+        if (!adminUser?.token) return;
+        setExporting(true);
+        try {
+            const blob = await exportSalesCSV(adminUser.token, { period });
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Sales_Report_${period}_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success('Sales report exported successfully');
+        } catch (error) {
+            console.error('Export failed:', error);
+            toast.error('Failed to export sales report');
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const formatCurrency = (val) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(val || 0);
+    };
 
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <h4 className="fw-bold mb-0 text-nowrap">Sales Reports</h4>
                 <div className="d-flex gap-2 flex-grow-1 w-100 w-sm-auto justify-content-between justify-content-sm-end">
-                    <Form.Select size="sm" style={{ width: '140px' }} className="shadow-none">
-                        <option>Last 30 Days</option>
-                        <option>This Month</option>
-                        <option>Last Month</option>
-                        <option>This Year</option>
+                    <Form.Select 
+                        size="sm" 
+                        style={{ width: '140px' }} 
+                        className="shadow-none"
+                        value={period}
+                        onChange={handlePeriodChange}
+                    >
+                        <option value="last_30_days">Last 30 Days</option>
+                        <option value="this_month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="this_year">This Year</option>
                     </Form.Select>
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
-                        <Download size={16} /> <span className="d-none d-sm-inline">Export CSV</span>
+                    <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        className="d-flex align-items-center gap-2 shadow-sm"
+                        onClick={handleExport}
+                        disabled={exporting}
+                    >
+                        {exporting ? (
+                            <Spinner animation="border" size="sm" />
+                        ) : (
+                            <Download size={16} />
+                        )}
+                        <span className="d-none d-sm-inline">{exporting ? 'Exporting...' : 'Export CSV'}</span>
                         <span className="d-inline d-sm-none">Export</span>
                     </Button>
                 </div>
@@ -46,8 +133,10 @@ const SalesReports = () => {
                                 </div>
                                 <span className="text-muted small text-uppercase fw-bold">Total Revenue</span>
                             </div>
-                            <h4 className="fw-bold mb-0">₹12,450.00</h4>
-                            <small className="text-success fw-bold">+15% from last month</small>
+                            <h4 className="fw-bold mb-0">{formatCurrency(data.stats.totalRevenue)}</h4>
+                            <small className={data.stats.revenueGrowth >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}>
+                                {data.stats.revenueGrowth >= 0 ? '+' : ''}{data.stats.revenueGrowth}% from last period
+                            </small>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -60,8 +149,10 @@ const SalesReports = () => {
                                 </div>
                                 <span className="text-muted small text-uppercase fw-bold">Total Orders</span>
                             </div>
-                            <h4 className="fw-bold mb-0">1,240</h4>
-                            <small className="text-success fw-bold">+8% from last month</small>
+                            <h4 className="fw-bold mb-0">{data.stats.totalOrders}</h4>
+                            <small className={data.stats.ordersGrowth >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}>
+                                {data.stats.ordersGrowth >= 0 ? '+' : ''}{data.stats.ordersGrowth}% from last period
+                            </small>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -74,8 +165,8 @@ const SalesReports = () => {
                                 </div>
                                 <span className="text-muted small text-uppercase fw-bold">Avg Order Value</span>
                             </div>
-                            <h4 className="fw-bold mb-0">₹48.50</h4>
-                            <small className="text-danger fw-bold">-2% from last month</small>
+                            <h4 className="fw-bold mb-0">{formatCurrency(data.stats.avgOrderValue)}</h4>
+                            <small className="text-muted">Standard period avg</small>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -88,19 +179,24 @@ const SalesReports = () => {
                                 </div>
                                 <span className="text-muted small text-uppercase fw-bold">Period Sales</span>
                             </div>
-                            <h4 className="fw-bold mb-0">₹3,200.00</h4>
-                            <small className="text-muted">Currently viewing Nov</small>
+                            <h4 className="fw-bold mb-0">{formatCurrency(data.stats.periodSales)}</h4>
+                            <small className="text-muted">Currently viewing {period.replace(/_/g, ' ')}</small>
                         </Card.Body>
                     </Card>
                 </Col>
             </Row>
 
             {/* Sales Table */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-sm min-vh-50">
                 <Card.Header className="bg-white py-3 border-0">
                     <h6 className="mb-0 fw-bold">Recent Transactions</h6>
                 </Card.Header>
-                <Card.Body className="p-0">
+                <Card.Body className="p-0 position-relative">
+                    {loading && (
+                        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 z-index-10">
+                            <Spinner animation="border" variant="primary" />
+                        </div>
+                    )}
                     <Table hover responsive className="mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
@@ -114,30 +210,47 @@ const SalesReports = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedSales.map((order, idx) => (
-                                <tr key={idx}>
-                                    <td className="ps-4 fw-bold text-primary">{order.id}</td>
-                                    <td className="text-muted small">{order.date}</td>
-                                    <td>{order.customer}</td>
-                                    <td>{order.items} Items</td>
-                                    <td>{order.payment}</td>
-                                    <td>
-                                        <span className={`badge bg-${order.status === 'Completed' ? 'success' : order.status === 'Refunded' ? 'danger' : 'warning'} rounded-pill fw-normal px-3`}>
-                                            {order.status}
-                                        </span>
+                            {!loading && data.orders.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-5">
+                                        <AlertCircle size={40} className="text-muted opacity-25 mb-2" />
+                                        <p className="text-muted small mb-0">No transactions found for the selected period.</p>
                                     </td>
-                                    <td className="text-end pe-4 fw-bold">{order.total}</td>
                                 </tr>
-                            ))}
+                            ) : (
+                                data.orders.map((order, idx) => (
+                                    <tr key={idx}>
+                                        <td className="ps-4 fw-bold text-primary">{order.id}</td>
+                                        <td className="text-muted small">{order.date}</td>
+                                        <td>{order.customer}</td>
+                                        <td>{order.items} Items</td>
+                                        <td>
+                                            <span className="text-xs fw-medium px-2 py-1 bg-gray-100 rounded text-gray-600">
+                                                {order.payment}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`badge bg-${
+                                                order.status === 'Delivered' || order.status === 'Completed' ? 'success' : 
+                                                order.status === 'Refunded' || order.status === 'Cancelled' || order.status === 'Returned' ? 'danger' : 
+                                                'warning'
+                                            } rounded-pill fw-normal px-3`}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td className="text-end pe-4 fw-bold">{formatCurrency(order.total)}</td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>
 
                 {/* Pagination Controls */}
-                {totalFiltered > 0 && (
+                {data.pagination.total > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> orders
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, data.pagination.total)}</span> of <span className="fw-semibold text-dark">{data.pagination.total}</span> orders
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button
@@ -151,6 +264,7 @@ const SalesReports = () => {
 
                             <div className="d-flex align-items-center gap-1">
                                 {(() => {
+                                    const totalPages = data.pagination.totalPages;
                                     return [...Array(totalPages)].map((_, i) => {
                                         const p = i + 1;
                                         if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
@@ -175,9 +289,9 @@ const SalesReports = () => {
 
                             <Button
                                 variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === data.pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(data.pagination.totalPages, p + 1))}
+                                disabled={page === data.pagination.totalPages}
                             >
                                 <ChevronRight size={16} />
                             </Button>

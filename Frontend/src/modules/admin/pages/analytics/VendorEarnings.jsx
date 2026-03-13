@@ -1,36 +1,68 @@
-﻿import React, { useState } from 'react';
-import { Card, Table, Button, Form, Row, Col, Badge } from 'react-bootstrap';
-import { Download, IndianRupee, Wallet, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Table, Button, Form, Row, Col, Badge, Spinner } from 'react-bootstrap';
+import { Download, IndianRupee, Wallet, TrendingUp, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-
-const EARNINGS_DATA = [
-    { id: 'PAY-1001', vendor: 'Fresh Farms & Co.', period: 'Oct 2023', sales: '₹15,000', comm: '₹1,500', payout: '₹13,500', status: 'Paid' },
-    { id: 'PAY-1002', vendor: 'Organic Spices Ltd.', period: 'Oct 2023', sales: '₹5,000', comm: '₹500', payout: '₹4,500', status: 'Pending' },
-    { id: 'PAY-1003', vendor: 'City Snacks Wholesale', period: 'Oct 2023', sales: '₹2,000', comm: '₹200', payout: '₹1,800', status: 'Paid' },
-];
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { getAdminVendorEarnings } from '../../api/reportApi';
+import { toast } from 'react-toastify';
 
 const VendorEarnings = () => {
     const navigate = useNavigate();
+    const { adminUser } = useAdminAuth();
 
-    // Pagination State
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(null);
+    const [statusFilter, setStatusFilter] = useState('All Vendors');
     const [page, setPage] = useState(1);
     const limit = 10;
 
-    const totalFiltered = EARNINGS_DATA.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedEarnings = EARNINGS_DATA.slice((page - 1) * limit, page * limit);
+    const fetchEarnings = useCallback(async () => {
+        if (!adminUser?.token) return;
+        setLoading(true);
+        try {
+            const res = await getAdminVendorEarnings(adminUser.token, {
+                page,
+                limit,
+                status: statusFilter
+            });
+            if (res.success) {
+                setData(res);
+            }
+        } catch (error) {
+            console.error('Fetch Vendor Earnings Error:', error);
+            toast.error('Failed to load vendor earnings');
+        } finally {
+            setLoading(false);
+        }
+    }, [adminUser, page, statusFilter]);
+
+    useEffect(() => {
+        fetchEarnings();
+    }, [fetchEarnings]);
+
+    const formatCurrency = (val) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(val || 0);
+    };
 
     const handleExport = () => {
-        // CSV Generation Logic
-        const headers = ['Payout ID', 'Vendor', 'Period', 'Gross Sales', 'Commission', 'Net Payout', 'Status'];
-        const csvRows = EARNINGS_DATA.map(row => [
-            row.id,
+        if (!data?.payouts || data.payouts.length === 0) {
+            toast.info('No data to export');
+            return;
+        }
+
+        const headers = ['Payout ID', 'Vendor', 'Date', 'Amount', 'Method', 'Reference', 'Status'];
+        const csvRows = data.payouts.map(row => [
+            row.payoutId,
             `"${row.vendor}"`,
-            row.period,
-            `"${row.sales}"`,
-            `"${row.comm}"`,
-            `"${row.payout}"`,
+            row.date,
+            row.amount,
+            row.method,
+            `"${row.reference || '-'}"`,
             row.status
         ].join(','));
 
@@ -49,7 +81,7 @@ const VendorEarnings = () => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.setAttribute('href', url);
-            link.setAttribute('download', `vendor_statement_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `vendor_payouts_${new Date().toISOString().split('T')[0]}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -62,6 +94,20 @@ const VendorEarnings = () => {
                 confirmButtonColor: '#0c831f'
             });
         });
+    };
+
+    if (loading && !data) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+                <Spinner animation="border" variant="primary" />
+            </div>
+        );
+    }
+
+    const { stats, payouts, pagination } = data || { 
+        stats: { totalPaidOut: 0, pendingDue: 0, commissionEarned: 0 },
+        payouts: [],
+        pagination: { total: 0, totalPages: 1 }
     };
 
     return (
@@ -78,15 +124,20 @@ const VendorEarnings = () => {
                 </div>
 
                 <div className="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto align-items-stretch align-items-sm-center justify-content-md-end">
-                    <div className="flex-grow-1 flex-sm-grow-0" style={{ minWidth: '180px' }}>
+                    <div className="flex-grow-1 flex-sm-grow-0" style={{ minWidth: '200px' }}>
                         <Form.Select
                             size="sm"
                             className="shadow-sm border bg-white px-3 py-2 w-100 fw-medium text-dark"
                             style={{ height: '40px', cursor: 'pointer' }}
+                            value={statusFilter}
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value);
+                                setPage(1);
+                            }}
                         >
-                            <option>All Vendors</option>
-                            <option>Pending Payouts</option>
-                            <option>Completed Payouts</option>
+                            <option value="All Vendors">All Vendors</option>
+                            <option value="Pending Payouts">Pending Payouts</option>
+                            <option value="Completed Payouts">Completed Payouts</option>
                         </Form.Select>
                     </div>
                     <Button
@@ -111,7 +162,7 @@ const VendorEarnings = () => {
                             </div>
                             <div>
                                 <div className="text-uppercase small fw-bold text-muted mb-1">Total Paid Out</div>
-                                <h3 className="fw-bold mb-0">₹2,45,600</h3>
+                                <h3 className="fw-bold mb-0">{formatCurrency(stats.totalPaidOut)}</h3>
                             </div>
                         </Card.Body>
                     </Card>
@@ -124,7 +175,7 @@ const VendorEarnings = () => {
                             </div>
                             <div>
                                 <div className="text-uppercase small fw-bold text-muted mb-1">Pending Due</div>
-                                <h3 className="fw-bold mb-0 text-dark">₹12,450</h3>
+                                <h3 className="fw-bold mb-0 text-dark">{formatCurrency(stats.pendingDue)}</h3>
                             </div>
                         </Card.Body>
                     </Card>
@@ -137,7 +188,7 @@ const VendorEarnings = () => {
                             </div>
                             <div>
                                 <div className="text-uppercase small fw-bold text-muted mb-1">Commission Earned</div>
-                                <h3 className="fw-bold mb-0">₹35,800</h3>
+                                <h3 className="fw-bold mb-0">{formatCurrency(stats.commissionEarned)}</h3>
                             </div>
                         </Card.Body>
                     </Card>
@@ -146,8 +197,9 @@ const VendorEarnings = () => {
 
             {/* Payout Table */}
             <Card className="border-0 shadow-sm overflow-hidden">
-                <Card.Header className="bg-white py-3 border-0">
+                <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
                     <h6 className="mb-0 fw-bold">Recent Payout Settlements</h6>
+                    {loading && <Spinner animation="border" size="sm" variant="primary" />}
                 </Card.Header>
                 <Card.Body className="p-0">
                     <Table hover responsive className="mb-0 align-middle">
@@ -155,26 +207,33 @@ const VendorEarnings = () => {
                             <tr>
                                 <th className="ps-4 border-0 py-3">Payout ID</th>
                                 <th className="border-0 py-3">Vendor</th>
-                                <th className="border-0 py-3">Period</th>
-                                <th className="border-0 py-3">Gross Sales</th>
-                                <th className="border-0 py-3 text-danger">Comm. (10%)</th>
-                                <th className="border-0 py-3 fw-bold text-success">Net Payout</th>
+                                <th className="border-0 py-3">Requested Date</th>
+                                <th className="border-0 py-3">Method</th>
+                                <th className="border-0 py-3">Net Payout</th>
                                 <th className="border-0 py-3">Status</th>
                                 <th className="border-0 py-3 text-end pe-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedEarnings.map((p, idx) => (
+                            {payouts.length > 0 ? payouts.map((p, idx) => (
                                 <tr key={idx} className="cursor-pointer">
-                                    <td className="ps-4 fw-bold font-monospace text-secondary" onClick={() => navigate(`${p.id}`)}>{p.id}</td>
-                                    <td className="fw-medium text-dark" onClick={() => navigate(`${p.id}`)}>{p.vendor}</td>
-                                    <td><div className="bg-light border rounded px-2 py-1 small d-inline-block text-secondary">{p.period}</div></td>
-                                    <td>{p.sales}</td>
-                                    <td className="text-danger">-{p.comm}</td>
-                                    <td className="fw-bold text-success">{p.payout}</td>
+                                    <td className="ps-4 fw-bold font-monospace text-secondary">
+                                        <div className="d-flex align-items-center gap-1">
+                                            <Hash size={14} className="text-muted" />
+                                            {p.payoutId}
+                                        </div>
+                                    </td>
+                                    <td className="fw-medium text-dark">{p.vendor}</td>
+                                    <td>
+                                        <div className="bg-light border rounded px-2 py-1 small d-inline-block text-secondary">
+                                            {p.date}
+                                        </div>
+                                    </td>
+                                    <td className="small">{p.method}</td>
+                                    <td className="fw-bold text-success">{formatCurrency(p.amount)}</td>
                                     <td>
                                         <Badge
-                                            bg={p.status === 'Paid' ? 'success' : 'warning'}
+                                            bg={p.status === 'Paid' ? 'success' : p.status === 'Pending' ? 'warning' : 'danger'}
                                             className="rounded-pill fw-normal px-3 py-1 shadow-sm"
                                         >
                                             {p.status}
@@ -185,22 +244,28 @@ const VendorEarnings = () => {
                                             variant="light"
                                             size="sm"
                                             className="btn-icon-soft text-primary px-3 shadow-none overflow-hidden"
-                                            onClick={() => navigate(`${p.id}`)}
+                                            onClick={() => navigate(`/admin/analytics/earnings/${p.id}`)}
                                         >
                                             Details
                                         </Button>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-5 text-muted">
+                                        No payout records found.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </Table>
                 </Card.Body>
 
                 {/* Pagination Controls */}
-                {totalFiltered > 0 && (
+                {pagination.total > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> payouts
+                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> of <span className="fw-semibold text-dark">{pagination.total}</span> payouts
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button
@@ -214,9 +279,9 @@ const VendorEarnings = () => {
 
                             <div className="d-flex align-items-center gap-1">
                                 {(() => {
-                                    return [...Array(totalPages)].map((_, i) => {
+                                    return [...Array(pagination.totalPages)].map((_, i) => {
                                         const p = i + 1;
-                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                        if (p === 1 || p === pagination.totalPages || Math.abs(page - p) <= 1) {
                                             return (
                                                 <Button
                                                     key={p}
@@ -238,9 +303,9 @@ const VendorEarnings = () => {
 
                             <Button
                                 variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
+                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                                disabled={page === pagination.totalPages}
                             >
                                 <ChevronRight size={16} />
                             </Button>

@@ -277,11 +277,30 @@ export const decrementStock = async (order) => {
 
       if (branchId) {
         // Logic for Branch Stock
-        const updatedProduct = await Product.findOneAndUpdate(
+        // Try to update existing entry
+        let updatedProduct = await Product.findOneAndUpdate(
           { _id: productId, 'branchStocks.branchId': branchId },
           { $inc: { 'branchStocks.$.stock': -quantity } },
           { new: true }
         );
+
+        // If no branch entry found, but it's a valid product, we need to initialize this branch entry
+        // This handles "isAllBranches" or newly assigned products
+        if (!updatedProduct) {
+          updatedProduct = await Product.findOneAndUpdate(
+            { _id: productId },
+            { 
+              $push: { 
+                branchStocks: { 
+                  branchId: branchId, 
+                  stock: -quantity,
+                  lowStockThreshold: 10 
+                } 
+              } 
+            },
+            { new: true }
+          );
+        }
 
         if (updatedProduct) {
           console.log(`[STOCK-SUCCESS] Deducted ${quantity} from Branch ${branchId} for Product ${productId}`);
@@ -297,7 +316,7 @@ export const decrementStock = async (order) => {
             orderId: order._id
           });
         } else {
-          console.warn(`[STOCK-WARN] No match found for Product: ${productId} at Branch: ${branchId}`);
+          console.warn(`[STOCK-WARN] No match found for Product: ${productId} even after attempt to initialize Branch: ${branchId}`);
         }
       } else if (vendor) {
         // Logic for Vendor Stock (Deduct from top-level stock atomically)
@@ -467,6 +486,106 @@ export const debitVendorWallet = async (order) => {
     });
   } catch (error) {
     console.error('Error debiting vendor wallet:', error);
+  }
+};
+
+/**
+ * HELPER: Credit Admin Wallet on Delivery
+ */
+export const creditAdminWallet = async (order) => {
+  if (order.status !== 'delivered') return;
+
+  try {
+    let creditAmount = 0;
+    if (order.branchId) {
+      creditAmount = order.totalAmount;
+    } else if (order.vendor) {
+      // Admin gets platform commission + delivery fees + handling fees
+      creditAmount = (order.platformCommission || 0) + (order.deliveryFee || 0) + (order.handlingFee || 0);
+    }
+
+    if (creditAmount <= 0) return;
+
+    // Find a Super Admin for the wallet owner
+    const superAdmin = await mongoose.model('Admin').findOne({ role: 'Admin' });
+    if (!superAdmin) return;
+
+    const wallet = await Wallet.findOneAndUpdate(
+      { owner: superAdmin._id, ownerModel: 'Admin' },
+      { $setOnInsert: { balance: 0, totalEarnings: 0, pendingPayouts: 0 } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    const existingTx = await Transaction.findOne({
+      wallet: wallet._id,
+      referenceId: order._id,
+      category: 'order_revenue'
+    });
+    if (existingTx) return;
+
+    await Wallet.findByIdAndUpdate(wallet._id, {
+      $inc: { balance: creditAmount, totalEarnings: creditAmount }
+    });
+
+    await Transaction.create({
+      wallet: wallet._id,
+      amount: creditAmount,
+      type: 'credit',
+      category: 'order_revenue',
+      referenceId: order._id,
+      referenceModel: 'Order',
+      description: `Revenue and Fees share for Order #${order.orderId}`
+    });
+  } catch (error) {
+    console.error('Error crediting admin wallet:', error);
+  }
+};
+
+/**
+ * HELPER: Debit Admin Wallet on Return
+ */
+export const debitAdminWallet = async (order) => {
+  if (order.status !== 'returned') return;
+
+  try {
+    let debitAmount = 0;
+    if (order.branchId) {
+      debitAmount = order.totalAmount;
+    } else if (order.vendor) {
+      debitAmount = (order.platformCommission || 0) + (order.deliveryFee || 0) + (order.handlingFee || 0);
+    }
+
+    if (debitAmount <= 0) return;
+
+    const superAdmin = await mongoose.model('Admin').findOne({ role: 'Admin' });
+    if (!superAdmin) return;
+
+    const wallet = await Wallet.findOne({ owner: superAdmin._id, ownerModel: 'Admin' });
+    if (!wallet) return;
+
+    const existingTx = await Transaction.findOne({
+      wallet: wallet._id,
+      referenceId: order._id,
+      type: 'debit',
+      category: 'adjustment'
+    });
+    if (existingTx) return;
+
+    await Wallet.findByIdAndUpdate(wallet._id, {
+      $inc: { balance: -debitAmount }
+    });
+
+    await Transaction.create({
+      wallet: wallet._id,
+      amount: debitAmount,
+      type: 'debit',
+      category: 'adjustment',
+      referenceId: order._id,
+      referenceModel: 'Order',
+      description: `Revenue Reversal for Return #${order.orderId}`
+    });
+  } catch (error) {
+    console.error('Error debiting admin wallet:', error);
   }
 };
 
@@ -1108,6 +1227,12 @@ export const updateOrderStatus = async (req, res) => {
     // Trigger Wallet Credit if status is delivered
     if (status === 'delivered') {
       await creditVendorWallet(updatedOrder);
+      await creditAdminWallet(updatedOrder);
+    }
+
+    if (status === 'returned') {
+      await debitVendorWallet(updatedOrder);
+      await debitAdminWallet(updatedOrder);
     }
 
     res.json(updatedOrder);
