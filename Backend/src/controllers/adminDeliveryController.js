@@ -385,6 +385,9 @@ const performAssignment = async (orderId, partnerId, session) => {
 // @route   POST /api/admin/delivery-partners/assign
 // @access  Private (Admin)
 export const assignOrderToPartner = async (req, res) => {
+  if (req.admin.role !== 'Admin') {
+    return res.status(403).json({ message: 'Only Super Admins can manually assign delivery partners.' });
+  }
   const session = await mongoose.startSession();
   let result;
   try {
@@ -405,6 +408,9 @@ export const assignOrderToPartner = async (req, res) => {
 // @route   POST /api/admin/delivery-partners/auto-assign/:orderId
 // @access  Private (Admin)
 export const autoAssignOrder = async (req, res) => {
+  if (req.admin.role !== 'Admin') {
+    return res.status(403).json({ message: 'Only Super Admins can use auto-assignment features.' });
+  }
   const session = await mongoose.startSession();
   let result;
   try {
@@ -474,6 +480,9 @@ export const autoAssignOrder = async (req, res) => {
 // @route   POST /api/admin/delivery-partners/unassign
 // @access  Private (Admin)
 export const unassignOrderFromPartner = async (req, res) => {
+  if (req.admin.role !== 'Admin') {
+    return res.status(403).json({ message: 'Only Super Admins can unassign delivery partners.' });
+  }
   const session = await mongoose.startSession();
   let unassignedOrderId = null;
   try {

@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StoreManagerSidebar from './components/StoreManagerSidebar';
-import { Menu, Bell, Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 
 const StoreManagerLayout = () => {
@@ -49,15 +49,6 @@ const StoreManagerLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        {/* Search */}
-                        <div className="hidden md:block relative group">
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="w-[280px] pl-10 pr-4 py-2 bg-slate-100 border border-transparent rounded-lg text-sm text-slate-700 focus:bg-white focus:border-blue-500 transition-all outline-none"
-                            />
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        </div>
 
                         {/* Notifications */}
                         <button className="relative p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-all">

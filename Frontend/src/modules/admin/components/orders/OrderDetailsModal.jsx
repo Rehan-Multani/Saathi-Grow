@@ -1,6 +1,9 @@
 import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle, RefreshCcw } from 'lucide-react';
 import { getAvailablePartners, assignOrder, autoAssignOrder } from '../../api/adminDeliveryApi';
 import { getOrderDetails } from '../../api/orderApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
+import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import React, { useEffect, useState } from 'react';
@@ -11,6 +14,13 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
     const [selectedPartner, setSelectedPartner] = useState('');
     const [detailedOrderState, setDetailedOrderState] = useState(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
+    
+    // Multi-context auth detection
+    const adminAuth = useAdminAuth && useAdminAuth();
+    const managerAuth = useStoreManagerAuth && useStoreManagerAuth();
+    const staffAuth = useStaffAuth && useStaffAuth();
+    const currentUser = adminAuth?.adminUser || managerAuth?.managerUser || staffAuth?.staffUser;
+    const userRole = currentUser?.role;
 
     // Prefer detailedOrder if available, otherwise fallback to prop order
     const displayOrder = detailedOrderState || order;
@@ -224,6 +234,12 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                         <span>Handling Fee:</span>
                         <span>₹${displayOrder.handlingFee || 0}</span>
                     </div>
+                    ${displayOrder.discountAmount > 0 ? `
+                    <div class="total-row" style="color: #059669; font-weight: bold;">
+                        <span>Discount (${displayOrder.promoCode || 'PROMO'}):</span>
+                        <span>-₹${displayOrder.discountAmount}</span>
+                    </div>
+                    ` : ''}
                     <div class="total-row grand-total">
                         <span>Grand Total:</span>
                         <span>₹${displayTotal}</span>
@@ -365,53 +381,62 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 </div>
                             ) : (
                                 // Assignment logic based on status
-                                ['confirmed', 'preparing', 'ready_for_pickup'].includes(displayOrder.status) ? (
-                                    <div className="space-y-4">
-                                        <div className="flex flex-col sm:flex-row gap-3">
-                                            <button
-                                                disabled={assigning}
-                                                onClick={handleAutoAssign}
-                                                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
-                                            >
-                                                {assigning ? <span className="animate-spin text-lg">⏳</span> : <Zap size={16} fill="currentColor" />}
-                                                Auto Assign Nearest
-                                            </button>
-
-                                            <div className="flex-1 flex gap-2">
-                                                <select
-                                                    className="flex-grow bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    value={selectedPartner}
-                                                    onChange={(e) => setSelectedPartner(e.target.value)}
-                                                >
-                                                    <option value="">Select Rider</option>
-                                                    {availablePartners.length > 0 ? (
-                                                        availablePartners.map(p => (
-                                                            <option key={p._id} value={p._id}>{p.name} ({p.vehicleType})</option>
-                                                        ))
-                                                    ) : (
-                                                        <option disabled value="">No Available Riders</option>
-                                                    )}
-                                                </select>
+                                userRole === 'Admin' ? (
+                                    ['confirmed', 'preparing', 'ready_for_pickup'].includes(displayOrder.status) ? (
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col sm:flex-row gap-3">
                                                 <button
-                                                    disabled={assigning || !selectedPartner}
-                                                    onClick={handleManualAssign}
-                                                    className="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-bold transition-all disabled:opacity-50"
+                                                    disabled={assigning}
+                                                    onClick={handleAutoAssign}
+                                                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
                                                 >
-                                                    Assign
+                                                    {assigning ? <span className="animate-spin text-lg">⏳</span> : <Zap size={16} fill="currentColor" />}
+                                                    Auto Assign Nearest
                                                 </button>
+
+                                                <div className="flex-1 flex gap-2">
+                                                    <select
+                                                        className="flex-grow bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        value={selectedPartner}
+                                                        onChange={(e) => setSelectedPartner(e.target.value)}
+                                                    >
+                                                        <option value="">Select Rider</option>
+                                                        {availablePartners.length > 0 ? (
+                                                            availablePartners.map(p => (
+                                                                <option key={p._id} value={p._id}>{p.name} ({p.vehicleType})</option>
+                                                            ))
+                                                        ) : (
+                                                            <option disabled value="">No Available Riders</option>
+                                                        )}
+                                                    </select>
+                                                    <button
+                                                        disabled={assigning || !selectedPartner}
+                                                        onClick={handleManualAssign}
+                                                        className="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-bold transition-all disabled:opacity-50"
+                                                    >
+                                                        Assign
+                                                    </button>
+                                                </div>
                                             </div>
+                                            <p className="text-[11px] text-gray-500 text-center italic">
+                                                * Auto-assignment searches for the nearest online partner within 10km of {displayOrder.vendor ? 'Vendor store' : 'Branch location'}.
+                                            </p>
                                         </div>
-                                        <p className="text-[11px] text-gray-500 text-center italic">
-                                            * Auto-assignment searches for the nearest online partner within 10km of {displayOrder.vendor ? 'Vendor store' : 'Branch location'}.
-                                        </p>
-                                    </div>
-                                ) : displayOrder.status === 'pending' ? (
-                                    <div className="text-center py-2 bg-blue-50/50 rounded-lg border border-blue-100">
-                                        <p className="text-sm text-blue-600 font-medium">Please confirm the order status before assigning a delivery partner.</p>
-                                    </div>
+                                    ) : displayOrder.status === 'pending' ? (
+                                        <div className="text-center py-2 bg-blue-50/50 rounded-lg border border-blue-100">
+                                            <p className="text-sm text-blue-600 font-medium">Please confirm the order status before assigning a delivery partner.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-2 bg-gray-50 rounded-lg border border-gray-100">
+                                            <p className="text-sm text-gray-500 italic">Delivery assignment is not available for orders with status: <span className="font-bold uppercase">{displayStatus}</span></p>
+                                        </div>
+                                    )
                                 ) : (
-                                    <div className="text-center py-2 bg-gray-50 rounded-lg border border-gray-100">
-                                        <p className="text-sm text-gray-500 italic">Delivery assignment is not available for orders with status: <span className="font-bold uppercase">{displayStatus}</span></p>
+                                    <div className="text-center py-3 bg-amber-50 rounded-lg border border-amber-100">
+                                        <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                                            Delivery partner assignment is restricted to <span className="font-bold">Super Admin</span> level.<br />
+                                            Please process the order and mark it as <span className="font-bold">Ready for Pickup</span> for automatic cluster dispatch.
+                                        </p>
                                     </div>
                                 )
                             )}
@@ -471,6 +496,15 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 <span className="text-gray-500">Handling Fee</span>
                                 <span className="text-gray-900 font-medium">₹{displayOrder.handlingFee || 0}</span>
                             </div>
+                            {displayOrder.discountAmount > 0 && (
+                                <div className="flex justify-between text-sm text-green-600 font-bold bg-green-50 p-2 rounded-lg border border-green-100">
+                                    <div className="flex flex-col text-left">
+                                        <span>Promo Discount</span>
+                                        <span className="text-[10px] uppercase tracking-wider text-green-500">Code: {displayOrder.promoCode}</span>
+                                    </div>
+                                    <span>-₹{displayOrder.discountAmount}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between items-center mb-1 pt-3 border-t border-gray-100">
                                 <span className="text-lg font-bold text-gray-800">Final Total</span>
                                 <span className="text-lg font-black text-blue-600">{displayTotal}</span>

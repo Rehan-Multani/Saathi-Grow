@@ -3,25 +3,28 @@ import axios from 'axios';
 
 const API_URL = `${API_BASE_URL}/orders`;
 
-export const createRazorpayOrder = async (token, items) => {
+export const createRazorpayOrder = async (token, items, promoId = null) => {
   const response = await fetch(`${API_URL}/razorpay`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ items })
+    body: JSON.stringify({ items, promoId })
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to create Razorpay secure window');
   return data;
 };
 
-export const calculateBill = async (token, items, storeInfo = null) => {
+export const calculateBill = async (token, items, storeInfo = null, promoId = null) => {
   const body = { items };
   if (storeInfo) {
     body.storeId = storeInfo.storeId;
     body.storeType = storeInfo.storeType;
+  }
+  if (promoId) {
+    body.promoId = promoId;
   }
 
   const response = await fetch(`${API_URL}/calculate-bill`, {
@@ -34,6 +37,34 @@ export const calculateBill = async (token, items, storeInfo = null) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to calculate secure bill summary');
+  return data;
+};
+
+export const validatePromoCode = async (token, code, totalAmount) => {
+  const response = await fetch(`${API_BASE_URL}/promocodes/validate`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ code, totalAmount })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Invalid promo code');
+  return data;
+};
+
+export const getApplicablePromos = async (token, totalAmount) => {
+  const response = await fetch(`${API_BASE_URL}/promocodes/applicable`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ totalAmount })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch offers');
   return data;
 };
 

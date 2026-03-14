@@ -1,18 +1,17 @@
-﻿import React, { useState } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Search, Plus, Ticket, Copy, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import PromoCodeEditModal from '../../components/promocodes/PromoCodeEditModal';
-
-const INITIAL_PROMOS = [
-    { id: '1', code: 'SAVE10', type: 'Percentage', value: '10%', usage: '125/500', minOrder: '₹50', status: 'Active' },
-    { id: '2', code: 'FREESHIP', type: 'Free Shipping', value: 'N/A', usage: '45/100', minOrder: '₹20', status: 'Active' },
-    { id: '3', code: 'NEWUSER', type: 'Fixed Amount', value: '₹5.00', usage: '890/1000', minOrder: '₹0', status: 'Expired' },
-];
+import { getPromoCodes, deletePromoCode, updatePromoCode } from '../../api/promoCodeApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const AllPromoCodes = () => {
-    const [promos, setPromos] = useState(INITIAL_PROMOS);
+    const { adminUser } = useAdminAuth();
+    const [promos, setPromos] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedPromo, setSelectedPromo] = useState(null);
@@ -20,6 +19,23 @@ const AllPromoCodes = () => {
     // Pagination State
     const [page, setPage] = useState(1);
     const limit = 10;
+
+    const fetchPromos = async () => {
+        if (!adminUser?.token) return;
+        try {
+            setLoading(true);
+            const result = await getPromoCodes(adminUser.token);
+            setPromos(result.data || []);
+        } catch (error) {
+            toast.error(error.message || 'Failed to fetch promo codes');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPromos();
+    }, [adminUser?.token]);
 
     const filtered = promos.filter(p =>
         p.code.toLowerCase().includes(searchTerm.toLowerCase())
@@ -30,7 +46,7 @@ const AllPromoCodes = () => {
     const paginatedPromos = filtered.slice((page - 1) * limit, page * limit);
 
     // Reset pagination when search changes
-    React.useEffect(() => {
+    useEffect(() => {
         setPage(1);
     }, [searchTerm]);
 
@@ -52,15 +68,21 @@ const AllPromoCodes = () => {
         setShowEditModal(true);
     };
 
-    const handleSave = (updatedPromo) => {
-        setPromos(promos.map(p => p.id === updatedPromo.id ? updatedPromo : p));
-        Swal.fire({
-            title: 'Updated!',
-            text: 'Promo code details have been updated.',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        });
+    const handleSave = async (updatedPromo) => {
+        try {
+            await updatePromoCode(adminUser.token, updatedPromo._id, updatedPromo);
+            fetchPromos();
+            setShowEditModal(false);
+            Swal.fire({
+                title: 'Updated!',
+                text: 'Promo code details have been updated.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            toast.error(error.message || 'Update failed');
+        }
     };
 
     const handleDelete = (id, code) => {
@@ -72,10 +94,15 @@ const AllPromoCodes = () => {
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Delete'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                setPromos(promos.filter(p => p.id !== id));
-                Swal.fire('Deleted!', 'Promo code has been removed.', 'success');
+                try {
+                    await deletePromoCode(adminUser.token, id);
+                    fetchPromos();
+                    Swal.fire('Deleted!', 'Promo code has been removed.', 'success');
+                } catch (error) {
+                    toast.error(error.message || 'Delete failed');
+                }
             }
         });
     };
@@ -109,84 +136,98 @@ const AllPromoCodes = () => {
 
             <Card className="border-0 shadow-sm overflow-hidden mt-2">
                 <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase font-weight-bold">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">Code</th>
-                                <th className="border-0 py-3">Discount Type</th>
-                                <th className="border-0 py-3 text-center">Value</th>
-                                <th className="border-0 py-3 text-center">Usage</th>
-                                <th className="border-0 py-3 text-center">Min Order</th>
-                                <th className="border-0 py-3 text-center">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedPromos.length > 0 ? paginatedPromos.map((p) => (
-                                <tr key={p.id}>
-                                    <td className="ps-4">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div className="bg-light p-2 rounded text-primary border shadow-sm">
-                                                <Ticket size={20} />
-                                            </div>
-                                            <div>
-                                                <div className="fw-bold text-dark font-monospace h6 mb-0">{p.code}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="text-secondary small fw-medium">{p.type}</td>
-                                    <td className="text-center">
-                                        <Badge bg="success" className="bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 fw-bold">
-                                            {p.value}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-center font-monospace small">
-                                        <Badge bg="light" text="dark" className="border px-3 py-1.5 shadow-none">
-                                            {p.usage}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-center text-secondary small fw-bold">{p.minOrder}</td>
-                                    <td className="text-center">
-                                        <Badge bg={p.status === 'Active' ? 'success' : p.status === 'Expired' ? 'danger' : 'secondary'} className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">
-                                            {p.status}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-end pe-4">
-                                        <div className="d-flex justify-content-end gap-2">
-                                            <Button
-                                                variant="light" size="sm"
-                                                className="btn-icon-soft text-secondary border shadow-none mt-1"
-                                                title="Copy Code"
-                                                onClick={() => handleCopy(p.code)}
-                                            >
-                                                <Copy size={16} />
-                                            </Button>
-                                            <Button
-                                                variant="light" size="sm"
-                                                className="btn-icon-soft text-primary border shadow-none mt-1"
-                                                onClick={() => handleEdit(p)}
-                                            >
-                                                <Edit size={16} />
-                                            </Button>
-                                            <Button
-                                                variant="light" size="sm"
-                                                className="btn-icon-soft text-danger border shadow-none mt-1"
-                                                onClick={() => handleDelete(p.id, p.code)}
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )) : (
+                    {loading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" />
+                            <p className="mt-2 text-muted">Loading Promo Codes...</p>
+                        </div>
+                    ) : (
+                        <Table hover responsive className="mb-0 align-middle">
+                            <thead className="bg-light text-muted small text-uppercase font-weight-bold">
                                 <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted small">
-                                        No promo codes found matching your search.
-                                    </td>
+                                    <th className="ps-4 border-0 py-3">Code</th>
+                                    <th className="border-0 py-3">Discount Type</th>
+                                    <th className="border-0 py-3 text-center">Value</th>
+                                    <th className="border-0 py-3 text-center">Usage</th>
+                                    <th className="border-0 py-3 text-center">Min Order</th>
+                                    <th className="border-0 py-3 text-center">Status</th>
+                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </Table>
+                            </thead>
+                            <tbody>
+                                {paginatedPromos.length > 0 ? paginatedPromos.map((p) => (
+                                    <tr key={p._id}>
+                                        <td className="ps-4">
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div className="bg-light p-2 rounded text-primary border shadow-sm">
+                                                    <Ticket size={20} />
+                                                </div>
+                                                <div>
+                                                    <div className="fw-bold text-dark font-monospace h6 mb-0">{p.code}</div>
+                                                    <div className="text-muted small" style={{ fontSize: '10px' }}>ID: {p._id}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="text-secondary small fw-medium">{p.discountType}</td>
+                                        <td className="text-center">
+                                            <Badge bg="success" className="bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 fw-bold">
+                                                {p.discountType === 'Percentage' ? `${p.discountValue}%` : 
+                                                 p.discountType === 'FreeShipping' ? 'FREE' : `₹${p.discountValue}`}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-center font-monospace small">
+                                            <Badge bg="light" text="dark" className="border px-3 py-1.5 shadow-none">
+                                                {p.usedCount} / {p.usageLimitTotal === 0 ? '∞' : p.usageLimitTotal}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-center text-secondary small fw-bold">₹{p.minOrderValue}</td>
+                                        <td className="text-center">
+                                            <Badge bg={p.isActive ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">
+                                                {p.isActive ? 'Active' : 'Inactive'}
+                                            </Badge>
+                                            {p.validUntil && new Date(p.validUntil) < new Date() && (
+                                                <Badge bg="danger" className="ms-1 rounded-pill fw-normal px-2 py-1 shadow-sm" style={{fontSize: '10px'}}>
+                                                    Expired
+                                                </Badge>
+                                            )}
+                                        </td>
+                                        <td className="text-end pe-4">
+                                            <div className="d-flex justify-content-end gap-2">
+                                                <Button
+                                                    variant="light" size="sm"
+                                                    className="btn-icon-soft text-secondary border shadow-none mt-1"
+                                                    title="Copy Code"
+                                                    onClick={() => handleCopy(p.code)}
+                                                >
+                                                    <Copy size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="light" size="sm"
+                                                    className="btn-icon-soft text-primary border shadow-none mt-1"
+                                                    onClick={() => handleEdit(p)}
+                                                >
+                                                    <Edit size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="light" size="sm"
+                                                    className="btn-icon-soft text-danger border shadow-none mt-1"
+                                                    onClick={() => handleDelete(p._id, p.code)}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="7" className="text-center py-5 text-muted small">
+                                            No promo codes found matching your search.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </Table>
+                    )}
                 </Card.Body>
 
                 {/* Pagination Controls */}

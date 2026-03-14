@@ -17,6 +17,8 @@ import mongoose from 'mongoose';
 import DeliveryPartner from '../models/DeliveryPartner.js';
 import DeliveryRun from '../models/DeliveryRun.js';
 import { findOptimalSource, geocodeAddress, calculateDistance } from '../services/locationService.js';
+import PromoCode from '../models/PromoCode.js';
+import PromoUsage from '../models/PromoUsage.js';
 
 const validateStoreDistance = async (storeId, storeType, userLocation) => {
   if (!storeId || !userLocation || !userLocation.coordinates || userLocation.coordinates.length < 2) return true;
@@ -75,16 +77,16 @@ const validateSlotAvailability = async (deliverySlotId, isImmediate) => {
   return true;
 };
 
-export const computeBillDetails = async (items, storeInfo = null) => {
+export const computeBillDetails = async (items, options = {}) => {
+  const { promoId = null, userId = null } = options;
   let subTotal = 0;
 
   // Validate each item against the actual database to prevent frontend price manipulation
   for (const item of items) {
-    const product = await Product.findById(item.product);
-    if (!product) throw new Error(`Product mapping failed for: ${item.name}`);
+    const productId = item.product._id || item.product;
+    const product = await Product.findById(productId);
+    if (!product) throw new Error(`Product mapping failed for identifier: ${productId}`);
 
-    // In a mature store-first app, we'd check store-specific pricing here if it exists.
-    // For now, we take the base price.
     const verifiedPrice = product.basePrice || product.price || 0;
     subTotal += verifiedPrice * item.quantity;
   }
@@ -96,16 +98,54 @@ export const computeBillDetails = async (items, storeInfo = null) => {
 
   let deliveryFee = settings.baseDeliveryFee * settings.surgeMultiplier;
 
-  // Custom logic: Distance based fee could be calculated if we have storeInfo
-  // and user location. For now, we stick to global settings threshold.
   if (subTotal >= settings.freeDeliveryThreshold) {
     deliveryFee = 0;
   }
 
   const handlingFee = settings.handlingFee;
-  const totalAmount = subTotal + taxAmount + deliveryFee + handlingFee;
+  
+  // Base total without discount
+  let totalAmount = subTotal + taxAmount + deliveryFee + handlingFee;
+  let discountAmount = 0;
+  let appliedPromo = null;
 
-  // Vendor Commission logic (Note: If storeType is 'vendor', this applies)
+  // Promo Calculation
+  if (promoId) {
+    const promo = await PromoCode.findById(promoId);
+    if (promo && promo.isActive) {
+      const now = new Date();
+      if (now >= promo.validFrom && now <= promo.validUntil) {
+        // Double check per-user limit if userId is provided
+        let canApply = true;
+        if (userId) {
+          const usage = await PromoUsage.findOne({ user: userId, promoCode: promo._id });
+          if (usage && usage.usageCount >= promo.usageLimitPerUser) {
+            canApply = false;
+          }
+        }
+
+        if (canApply && subTotal >= promo.minOrderValue) {
+          if (promo.discountType === 'Percentage') {
+            discountAmount = (subTotal * promo.discountValue) / 100;
+            if (promo.maxDiscountAmount > 0 && discountAmount > promo.maxDiscountAmount) {
+              discountAmount = promo.maxDiscountAmount;
+            }
+          } else if (promo.discountType === 'Fixed') {
+            discountAmount = promo.discountValue;
+          } else if (promo.discountType === 'FreeShipping') {
+            discountAmount = deliveryFee; // Discount equals the delivery fee
+          }
+
+          // Ensure discount doesn't exceed total
+          discountAmount = Math.min(discountAmount, totalAmount);
+          totalAmount -= discountAmount;
+          appliedPromo = promo;
+        }
+      }
+    }
+  }
+
+  // Vendor Commission logic (Note: Vendor payout is unaffected by promo)
   const platformCommission = (subTotal * settings.platformCommissionRate) / 100;
   const vendorPayoutAmount = (subTotal + taxAmount) - platformCommission;
 
@@ -114,9 +154,12 @@ export const computeBillDetails = async (items, storeInfo = null) => {
     taxAmount: parseFloat(taxAmount.toFixed(2)),
     deliveryFee: parseFloat(deliveryFee.toFixed(2)),
     handlingFee: parseFloat(handlingFee.toFixed(2)),
+    discountAmount: parseFloat(discountAmount.toFixed(2)),
     totalAmount: parseFloat(totalAmount.toFixed(2)),
     platformCommission: parseFloat(platformCommission.toFixed(2)),
-    vendorPayoutAmount: parseFloat(vendorPayoutAmount.toFixed(2))
+    vendorPayoutAmount: parseFloat(vendorPayoutAmount.toFixed(2)),
+    promoId: appliedPromo?._id || null,
+    promoCode: appliedPromo?.code || null
   };
 };
 
@@ -130,14 +173,14 @@ const razorpayInstance = new Razorpay({
 // @access  Private
 export const createRazorpayOrder = async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, promoId } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'Cart items are required to calculate bill' });
     }
 
     // Always recompute on backend. NEVER trust frontend amount.
-    const computedBill = await computeBillDetails(items);
+    const computedBill = await computeBillDetails(items, { promoId, userId: req.user._id });
 
     const options = {
       amount: parseInt(computedBill.totalAmount * 100), // Razorpay strictly takes format in paise
@@ -199,7 +242,7 @@ export const verifyRazorpayPayment = async (req, res) => {
     await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
 
     // Recompute bill to guarantee no manipulation during payment verify leap
-    const computedBill = await computeBillDetails(orderData.items);
+    const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
 
     // Setup Document safely
     const order = new Order({
@@ -218,6 +261,9 @@ export const verifyRazorpayPayment = async (req, res) => {
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
+      appliedPromo: computedBill.promoId,
+      promoCode: computedBill.promoCode,
+      discountAmount: computedBill.discountAmount,
       vendor: orderData.vendorId,
       deliverySlot: orderData.deliverySlot,        // legacy label
       deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
@@ -256,6 +302,11 @@ export const verifyRazorpayPayment = async (req, res) => {
 
     // Deduct Stock immediately after successful order placement
     await decrementStock(createdOrder);
+
+    // Update Promo Usage
+    if (computedBill.promoId) {
+      await updatePromoUsage(createdOrder._id, computedBill.promoId, req.user._id);
+    }
 
     res.status(201).json({ success: true, order: createdOrder });
   } catch (error) {
@@ -345,6 +396,30 @@ export const decrementStock = async (order) => {
     } catch (err) {
       console.error(`[STOCK-DECREMENT-FAIL] Order: ${order.orderId}, Product: ${item.product}`, err);
     }
+  }
+};
+
+/**
+ * HELPER: Update Promo Usage after successful order
+ */
+export const updatePromoUsage = async (orderId, promoId, userId) => {
+  if (!promoId) return;
+
+  try {
+    // 1. Increment global count
+    await PromoCode.findByIdAndUpdate(promoId, { $inc: { usedCount: 1 } });
+
+    // 2. Increment user specific count
+    await PromoUsage.findOneAndUpdate(
+      { user: userId, promoCode: promoId },
+      { 
+        $inc: { usageCount: 1 },
+        $push: { orders: orderId }
+      },
+      { upsert: true, new: true }
+    );
+  } catch (error) {
+    console.error('Error updating promo usage:', error);
   }
 };
 
@@ -610,7 +685,7 @@ export const createCODOrder = async (req, res) => {
     await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
 
     // Always recompute on backend. NEVER trust frontend amount
-    const computedBill = await computeBillDetails(orderData.items);
+    const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
 
     const order = new Order({
       orderId: 'SG-' + Date.now().toString(),
@@ -628,6 +703,9 @@ export const createCODOrder = async (req, res) => {
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
+      appliedPromo: computedBill.promoId,
+      promoCode: computedBill.promoCode,
+      discountAmount: computedBill.discountAmount,
       vendor: orderData.vendorId,
       deliverySlot: orderData.deliverySlot,        // legacy label
       deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
@@ -664,6 +742,11 @@ export const createCODOrder = async (req, res) => {
     // Deduct Stock immediately after successful order placement
     await decrementStock(createdOrder);
 
+    // Update Promo Usage
+    if (computedBill.promoId) {
+      await updatePromoUsage(createdOrder._id, computedBill.promoId, req.user._id);
+    }
+
     res.status(201).json({ success: true, order: createdOrder });
   } catch (error) {
     console.error('COD Order Error:', error);
@@ -680,7 +763,7 @@ export const createWalletOrder = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     // Recompute bill to guarantee security
-    const computedBill = await computeBillDetails(orderData.items);
+    const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
 
     // SLOT VALIDATION
     await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
@@ -715,6 +798,9 @@ export const createWalletOrder = async (req, res) => {
       handlingFee: computedBill.handlingFee,
       platformCommission: computedBill.platformCommission,
       vendorPayoutAmount: computedBill.vendorPayoutAmount,
+      appliedPromo: computedBill.promoId,
+      promoCode: computedBill.promoCode,
+      discountAmount: computedBill.discountAmount,
       vendor: orderData.vendorId,
       deliverySlot: orderData.deliverySlot,        // legacy label
       deliverySlotId: orderData.deliverySlotId || null, // Sprint 2: ObjectId ref
@@ -766,6 +852,11 @@ export const createWalletOrder = async (req, res) => {
     // Deduct Stock
     await decrementStock(createdOrder);
 
+    // Update Promo Usage
+    if (computedBill.promoId) {
+      await updatePromoUsage(createdOrder._id, computedBill.promoId, req.user._id);
+    }
+
     res.status(201).json({ success: true, order: createdOrder });
   } catch (error) {
     console.error('Wallet Order Error:', error);
@@ -782,7 +873,9 @@ export const cancelOrderUser = async (req, res) => {
     const orderId = req.params.id;
     console.log(`[CANCELLATION_DEBUG] HIT! Order: ${orderId}, User: ${req.user?._id}, Reason: ${reason}`);
 
-    const order = await Order.findById(orderId);
+    const id = req.params.id;
+    const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { orderId: id };
+    const order = await Order.findOne(query);
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order strictly not found' });
     }
@@ -856,7 +949,9 @@ export const requestReturn = async (req, res) => {
       return res.status(400).json({ message: 'Return reason is required' });
     }
 
-    const order = await Order.findById(req.params.id);
+    const id = req.params.id;
+    const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { orderId: id };
+    const order = await Order.findOne(query);
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
@@ -901,10 +996,10 @@ export const requestReturn = async (req, res) => {
 // @access  Private
 export const calculateBill = async (req, res) => {
   try {
-    const { items, storeId, storeType } = req.body;
+    const { items, storeId, storeType, promoId } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ message: 'Cart is empty' });
 
-    const bill = await computeBillDetails(items, { storeId, storeType });
+    const bill = await computeBillDetails(items, { storeId, storeType, promoId, userId: req.user._id });
     res.json(bill);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -931,12 +1026,25 @@ export const getMyOrders = async (req, res) => {
 // Allows getting standard order info fully populated
 export const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id)
-      .populate('user', 'name email phone')
-      .populate('items.product', 'name category image unitValue unitType')
-      .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
-      .populate('branchId', 'name address location')
-      .populate('vendor', 'storeName address location');
+    const { id } = req.params;
+    let order;
+
+    // Logic: Try Mongo _id first if valid, else fallback to custom SG-... orderId
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      order = await Order.findById(id)
+        .populate('user', 'name email phone')
+        .populate('items.product', 'name category image unitValue unitType')
+        .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
+        .populate('branchId', 'name address location')
+        .populate('vendor', 'storeName address location');
+    } else {
+      order = await Order.findOne({ orderId: id })
+        .populate('user', 'name email phone')
+        .populate('items.product', 'name category image unitValue unitType')
+        .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
+        .populate('branchId', 'name address location')
+        .populate('vendor', 'storeName address location');
+    }
 
     if (order) {
       res.json(order);
@@ -954,7 +1062,9 @@ export const getOrderById = async (req, res) => {
 export const getOrderRoute = async (req, res) => {
   try {
     const { origin: clientOrigin } = req.query;
-    const order = await Order.findById(req.params.id)
+    const id = req.params.id;
+    const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { orderId: id };
+    const order = await Order.findOne(query)
       .populate('deliveryPartnerId', 'currentLocation')
       .populate('branchId', 'address.location')
       .populate('vendor', 'address.location');
@@ -1106,7 +1216,7 @@ export const getAllOrdersAdmin = async (req, res) => {
     // Run paginated results, total count, AND full-dataset aggregate stats in parallel
     const [orders, totalOrders, statsAgg] = await Promise.all([
       Order.find(query)
-        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot isImmediate orderSource')
+        .select('orderId user posCustomer totalAmount status createdAt paymentMethod paymentStatus branchId vendor deliverySlot isImmediate orderSource promoCode discountAmount')
         .populate('user', 'name email phone')
         .populate('branchId', 'name')
         .populate('vendor', 'storeName')
@@ -1183,7 +1293,9 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(400).json({ message: 'Invalid order status' });
     }
 
-    const order = await Order.findById(req.params.id);
+    const id = req.params.id;
+    const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { orderId: id };
+    const order = await Order.findOne(query);
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
@@ -1246,18 +1358,14 @@ export const updateOrderStatus = async (req, res) => {
 // @access  Private (Admin only)
 export const deleteOrder = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+    const id = req.params.id;
+    const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { orderId: id };
+    
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      await Order.findByIdAndDelete(id);
+    } else {
+      await Order.findOneAndDelete({ orderId: id });
     }
-
-    // Branch Security - Only Root Admin or same branch staff allowed
-    if (req.admin.role !== 'Admin' && order.branchId?.toString() !== req.admin.branchId?.toString()) {
-      return res.status(403).json({ message: 'Not authorized to delete orders from other branches' });
-    }
-
-    await Order.findByIdAndDelete(req.params.id);
 
     res.json({ message: 'Order deleted successfully' });
   } catch (error) {

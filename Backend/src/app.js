@@ -142,6 +142,7 @@ import demandRoutes from './routes/demandRoutes.js';
 import faqRoutes from './routes/faqRoutes.js';
 import posRoutes from './routes/posRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
+import promoCodeRoutes from './routes/promoCodeRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
 
 
@@ -161,6 +162,7 @@ app.use('/api/admin/delivery', adminDeliveryRoutes);
 app.use('/api/admin/inventory-requests', inventoryRequestRoutes);
 app.use('/api/delivery/auth', deliveryAuthRoutes);
 app.use('/api/delivery', deliveryRoutes);
+app.use('/api/promocodes', promoCodeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/reports', reportRoutes);
 

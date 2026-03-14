@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -17,7 +17,8 @@ import {
     Lock,
     Wallet,
     Loader2,
-    Calendar
+    Calendar,
+    Ticket
 } from 'lucide-react';
 
 import { useLocation as useGlobalLocation } from '../../context/LocationContext';
@@ -54,6 +55,14 @@ const CheckoutPage = () => {
     const [selectedSlotLabel, setSelectedSlotLabel] = useState(null); // Display label
     const [isImmediate, setIsImmediate] = useState(true);          // Default = Immediate
     const [loadingSlots, setLoadingSlots] = useState(true);
+    
+    // Promo Code States
+    const [promoInput, setPromoInput] = useState('');
+    const [appliedPromo, setAppliedPromo] = useState(null);
+    const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+    const [availablePromos, setAvailablePromos] = useState([]);
+    const [loadingPromos, setLoadingPromos] = useState(false);
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -114,7 +123,7 @@ const CheckoutPage = () => {
                 const computed = await orderApi.calculateBill(token, items, {
                     storeId: activeStore?.id,
                     storeType: activeStore?.type
-                });
+                }, appliedPromo?._id);
                 setBillDetails(computed);
             } catch (error) {
                 console.error(error);
@@ -124,7 +133,44 @@ const CheckoutPage = () => {
             }
         };
         fetchBill();
-    }, [cart, token]);
+    }, [cart, token, appliedPromo]);
+
+    useEffect(() => {
+        const fetchApplicablePromos = async () => {
+            if (!token || cartTotal <= 0) return;
+            setLoadingPromos(true);
+            try {
+                const result = await orderApi.getApplicablePromos(token, cartTotal);
+                setAvailablePromos(result.data || []);
+            } catch (err) {
+                console.error("Failed to fetch promos", err);
+            } finally {
+                setLoadingPromos(false);
+            }
+        };
+        fetchApplicablePromos();
+    }, [cartTotal, token]);
+
+    const handleApplyPromo = async () => {
+        if (!promoInput.trim()) return;
+        setIsValidatingPromo(true);
+        try {
+            const result = await orderApi.validatePromoCode(token, promoInput, cartTotal);
+            setAppliedPromo(result.promoCode);
+            toast.success(`Coupon Applied! Discount: ₹${result.discountAmount}`);
+        } catch (error) {
+            toast.error(error.message || "Invalid Promo Code");
+            setAppliedPromo(null);
+        } finally {
+            setIsValidatingPromo(false);
+        }
+    };
+
+    const handleRemovePromo = () => {
+        setAppliedPromo(null);
+        setPromoInput('');
+        toast.info("Promo code removed");
+    };
 
     const handlePlaceOrder = async () => {
         if (cart.length === 0) return;
@@ -171,7 +217,8 @@ const CheckoutPage = () => {
             deliverySlotId: isImmediate ? null : selectedSlotId,            // NEW: ObjectId ref
             isImmediate,                                                     // NEW: flag
             storeId: activeStore?.id,
-            storeType: activeStore?.type
+            storeType: activeStore?.type,
+            promoId: appliedPromo?._id
         };
 
         try {
@@ -200,7 +247,7 @@ const CheckoutPage = () => {
                     name: item.name,
                     image: item.image
                 }));
-                const rpPayload = await orderApi.createRazorpayOrder(token, itemsToCheckout);
+                const rpPayload = await orderApi.createRazorpayOrder(token, itemsToCheckout, appliedPromo?._id);
 
                 const options = {
                     key: import.meta.env.VITE_RAZORPAY_KEY_ID,
@@ -482,6 +529,118 @@ const CheckoutPage = () => {
                     </div>
                 </div>
 
+                {/* Promo Code Section */}
+                <div className="mb-10">
+                    <div className="flex items-center gap-2 mb-4 px-1">
+                        <Ticket size={14} className="text-[#0c831f]" />
+                        <h3 className="!text-[10px] font-black text-gray-400 tracking-widest uppercase">Promo Code</h3>
+                    </div>
+                    
+                    {!appliedPromo ? (
+                        <>
+                            <div className="flex gap-2 px-1">
+                                <div className="relative flex-1">
+                                    <input 
+                                        type="text"
+                                        placeholder="Enter Coupon Code"
+                                        value={promoInput}
+                                        onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl px-4 py-3 text-[11px] font-bold focus:outline-none focus:border-[#0c831f] transition-all"
+                                    />
+                                    {isValidatingPromo && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <Loader2 size={14} className="animate-spin text-[#0c831f]" />
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={handleApplyPromo}
+                                    disabled={isValidatingPromo || !promoInput}
+                                    className="bg-[#0c831f] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+
+                            {/* Available Promos List */}
+                            {loadingPromos ? (
+                                <div className="mt-4 px-1 animate-pulse">
+                                    <div className="h-2 w-20 bg-gray-100 dark:bg-white/5 rounded-full mb-3"></div>
+                                    <div className="flex flex-col gap-2">
+                                        {[1, 2].map(i => (
+                                            <div key={i} className="bg-gray-50 dark:bg-white/5 h-14 rounded-2xl border border-gray-100 dark:border-white/10"></div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : availablePromos.length > 0 && (
+                                <div className="mt-4 px-1">
+                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Available Offers</p>
+                                    <div className="flex flex-col gap-2">
+                                        {availablePromos.map((promo) => (
+                                            <div 
+                                                key={promo._id}
+                                                onClick={() => {
+                                                    setPromoInput(promo.code);
+                                                    // Auto apply if clicked? Let's just set the input for now or auto-apply
+                                                    // Better to auto-apply for UX
+                                                    const autoApply = async () => {
+                                                        setIsValidatingPromo(true);
+                                                        try {
+                                                            const result = await orderApi.validatePromoCode(token, promo.code, cartTotal);
+                                                            setAppliedPromo(result.promoCode);
+                                                            setPromoInput(promo.code);
+                                                            toast.success(`Coupon Applied!`);
+                                                        } catch (error) {
+                                                            toast.error(error.message);
+                                                        } finally {
+                                                            setIsValidatingPromo(false);
+                                                        }
+                                                    };
+                                                    autoApply();
+                                                }}
+                                                className="group cursor-pointer bg-white dark:bg-white/5 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between hover:border-[#0c831f] transition-all active:scale-[0.98]"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center text-[#0c831f] group-hover:bg-[#0c831f] group-hover:text-white transition-colors">
+                                                        <Ticket size={14} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-tight">{promo.code}</h4>
+                                                        <p className="text-[9px] text-gray-400 font-bold">{promo.description || `Save ${promo.discountType === 'Percentage' ? promo.discountValue + '%' : '₹' + promo.discountValue}`}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-[#0c831f] text-[9px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    Apply Code
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="px-1">
+                            <div className="bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 rounded-2xl p-4 flex items-center justify-between animate-in zoom-in-95 duration-300">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-[#0c831f] rounded-full flex items-center justify-center text-white">
+                                        <Sparkles size={16} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-tight">'{appliedPromo.code}' Applied!</h4>
+                                        <p className="text-[9px] font-bold text-[#0c831f] uppercase tracking-wider">Extra savings unlocked</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={handleRemovePromo}
+                                    className="text-red-500 text-[9px] font-black uppercase tracking-widest"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Bill Details */}
                 <div className="mb-8 relative min-h-[160px]">
                     {isCalculating && (
@@ -514,6 +673,13 @@ const CheckoutPage = () => {
                             <div className="flex justify-between items-center pb-2">
                                 <span className="text-[11px] text-gray-500 font-medium capitalize">Taxes (GST)</span>
                                 <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{billDetails?.taxAmount}</span>
+                            </div>
+                        )}
+
+                        {billDetails?.discountAmount > 0 && (
+                            <div className="flex justify-between items-center text-[#0c831f] animate-in slide-in-from-left duration-300">
+                                <span className="text-[11px] font-bold capitalize">Promo Discount</span>
+                                <span className="text-[11px] font-black">−₹{billDetails?.discountAmount}</span>
                             </div>
                         )}
 

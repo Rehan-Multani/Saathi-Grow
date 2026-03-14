@@ -63,7 +63,12 @@ export const getPublicSettings = async (req, res) => {
       maxDeliveryRadius: settings.maxDeliveryRadius,
       supportPhone: settings.supportPhone,
       whatsappNumber: settings.whatsappNumber,
-      supportEmail: settings.supportEmail
+      supportEmail: settings.supportEmail,
+      facebookUrl: settings.facebookUrl,
+      instagramUrl: settings.instagramUrl,
+      twitterUrl: settings.twitterUrl,
+      linkedinUrl: settings.linkedinUrl,
+      officialWebsite: settings.officialWebsite
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching public settings', error: error.message });

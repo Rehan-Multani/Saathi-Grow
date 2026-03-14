@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCategories, fetchProducts, fetchActiveCampaigns, fetchActiveOfferDeals } from '../api/shopApi';
 import { useStore } from './StoreContext';
 import { useCart } from './CartContext';
@@ -25,19 +25,23 @@ export const ShopProvider = ({ children }) => {
   const { clearCart } = useCart();
   const [lastStoreId, setLastStoreId] = useState(activeStore?.id);
 
+  const [settings, setSettings] = useState(null);
+
   const refreshShopData = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
       const fetchParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
-      const [categoriesData, campaignsData, offersData] = await Promise.all([
+      const [categoriesData, campaignsData, offersData, settingsData] = await Promise.all([
         fetchCategories(),
         fetchActiveCampaigns(fetchParams).catch(() => []),
-        fetchActiveOfferDeals(fetchParams).catch(() => [])
+        fetchActiveOfferDeals(fetchParams).catch(() => []),
+        import('../api/shopApi').then(m => m.fetchPublicSettings()).catch(() => null)
       ]);
       setCategories(categoriesData);
       setProducts([]); // No longer needed for home page mapping
       setCampaigns(campaignsData);
       setOffers(offersData);
+      setSettings(settingsData);
       setError(null);
     } catch (err) {
       console.error('Error fetching shop data:', err);
@@ -81,6 +85,7 @@ export const ShopProvider = ({ children }) => {
         offers,
         loading,
         error,
+        settings,
         refreshShopData,
         getProductsByCategory
       }}

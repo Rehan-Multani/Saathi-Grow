@@ -4,6 +4,7 @@ import { Search, Eye, Filter, Download, Store, Upload, Clock, ChevronLeft, Chevr
 import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, deleteOrder, updateOrderStatus } from '../../api/orderApi';
 import { getDeliverySlots } from '../../api/deliverySlotApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import { Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
@@ -32,6 +33,7 @@ const AllOrders = () => {
     const [showModal, setShowModal] = useState(false);
     const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const { adminUser } = useAdminAuth();
 
     // Pagination & Filters State
     const [page, setPage] = useState(1);
@@ -165,17 +167,28 @@ const AllOrders = () => {
     };
 
     const handleUpdateStatus = async (orderId, currentStatus) => {
+        const isAdmin = adminUser?.role === 'Admin';
+        
+        const adminOptions = {
+            pending: 'Pending',
+            confirmed: 'Confirmed',
+            preparing: 'Preparing',
+            ready_for_pickup: 'Ready for Pickup',
+            out_for_delivery: 'Out for Delivery',
+            delivered: 'Delivered',
+            cancelled: 'Cancelled'
+        };
+
+        const staffOptions = {
+            preparing: 'Preparing (Packing)',
+            ready_for_pickup: 'Ready for Pickup',
+            cancelled: 'Cancelled'
+        };
+
         const { value: status } = await Swal.fire({
             title: 'Update Order Status',
             input: 'select',
-            inputOptions: {
-                pending: 'Pending',
-                preparing: 'Preparing',
-                confirmed: 'Confirmed',
-                out_for_delivery: 'Out for Delivery',
-                delivered: 'Delivered',
-                cancelled: 'Cancelled'
-            },
+            inputOptions: isAdmin ? adminOptions : staffOptions,
             inputPlaceholder: 'Select a status',
             showCancelButton: true,
             inputValue: currentStatus
@@ -382,7 +395,14 @@ const AllOrders = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4"><OrderStatusBadge status={order.status} /></td>
-                                    <td className="px-6 py-4 text-right font-bold text-gray-800">₹{order.totalAmount}</td>
+                                    <td className="px-6 py-4 text-right font-bold text-gray-800">
+                                        <div>₹{order.totalAmount}</div>
+                                        {order.discountAmount > 0 && (
+                                            <div className="text-[10px] text-green-600 font-bold uppercase tracking-tighter">
+                                                -{order.discountAmount} ({order.promoCode})
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-center">
                                         <div className="flex justify-center items-center gap-3">
                                             <button

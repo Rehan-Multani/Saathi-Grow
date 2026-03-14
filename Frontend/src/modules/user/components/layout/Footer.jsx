@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react';
 import { getPoliciesList } from '../../../../common/utils/legalUtils';
 import logo from '../../../../assets/logo.png';
 import { useShop } from '../../context/ShopContext';
@@ -73,7 +73,7 @@ const Footer = ({ customTheme }) => {
             <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Resources</h3>
             <ul className="space-y-2 sm:space-y-3 p-0 list-none">
               <li><Link to="/help" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Help Center</Link></li>
-              <li><Link to="/contact" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Contact</Link></li>
+              <li><Link to="/help" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Contact</Link></li>
               {policies.map(p => (
                 <li key={p._id}>
                   <Link to={`/legal/${p.slug}`} className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors uppercase tracking-tight">
@@ -88,11 +88,40 @@ const Footer = ({ customTheme }) => {
           <div className="flex flex-col items-start text-left">
             <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Connect</h3>
             <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-8">
-              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all"><Facebook size={12} className="sm:w-4 sm:h-4" /></a>
-              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all"><Twitter size={12} className="sm:w-4 sm:h-4" /></a>
-              <a href="#" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all"><Instagram size={12} className="sm:w-4 sm:h-4" /></a>
+              {settings?.facebookUrl && (
+                <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all">
+                  <Facebook size={12} className="sm:w-4 sm:h-4" />
+                </a>
+              )}
+              {settings?.twitterUrl && (
+                <a href={settings.twitterUrl} target="_blank" rel="noopener noreferrer" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all">
+                  <Twitter size={12} className="sm:w-4 sm:h-4" />
+                </a>
+              )}
+              {settings?.instagramUrl && (
+                <a href={settings.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all">
+                  <Instagram size={12} className="sm:w-4 sm:h-4" />
+                </a>
+              )}
+              {settings?.linkedinUrl && (
+                <a href={settings.linkedinUrl} target="_blank" rel="noopener noreferrer" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all">
+                  <Linkedin size={12} className="sm:w-4 sm:h-4" />
+                </a>
+              )}
             </div>
-            <div className="hidden sm:flex flex-col gap-3 w-full max-w-[140px]">
+            <div className="mt-4 flex flex-col gap-1">
+              {settings?.supportPhone && (
+                <a href={`tel:${settings.supportPhone}`} className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-xs transition-colors flex items-center gap-1">
+                  <span className="font-bold opacity-60">P:</span> {settings.supportPhone}
+                </a>
+              )}
+              {settings?.supportEmail && (
+                <a href={`mailto:${settings.supportEmail}`} className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-xs transition-colors flex items-center gap-1">
+                  <span className="font-bold opacity-60">E:</span> {settings.supportEmail}
+                </a>
+              )}
+            </div>
+            <div className="hidden sm:flex flex-col gap-3 w-full max-w-[140px] mt-6">
               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/1024px-Google_Play_Store_badge_EN.svg.png" alt="Google Play" className="h-8 cursor-pointer hover:opacity-80 transition-opacity object-contain" />
               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/1024px-Download_on_the_App_Store_Badge.svg.png" alt="App Store" className="h-8 cursor-pointer hover:opacity-80 transition-opacity object-contain" />
             </div>

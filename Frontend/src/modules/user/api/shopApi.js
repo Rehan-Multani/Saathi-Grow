@@ -98,3 +98,10 @@ export const logDemandRequest = async (payload, token = null) => {
   if (!response.ok) throw new Error(data.message || 'Failed to log demand');
   return data;
 };
+
+export const fetchPublicSettings = async () => {
+  const response = await fetch(`${API_BASE_URL}/settings/public`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch settings');
+  return data;
+};

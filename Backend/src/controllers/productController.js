@@ -1299,35 +1299,71 @@ export const getInventoryStats = async (req, res) => {
 
     // 1. Basic KPI Stats
     const statsResult = await Product.aggregate([
-      { $match: matchQuery },
+      { $match: { status: { $ne: 'Draft' } } },
       {
-        $project: {
-          category: 1,
-          basePrice: 1,
-          status: 1,
-          branchStocks: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
-            ? { $filter: { input: "$branchStocks", as: "bs", cond: { $eq: ["$$bs.branchId", new mongoose.Types.ObjectId(targetBranchId)] } } }
-            : "$branchStocks"
+        $facet: {
+          branchMetrics: [
+            { $match: matchQuery },
+            { $unwind: "$branchStocks" },
+            {
+              $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
+                ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
+                : {}
+            },
+            {
+              $group: {
+                _id: null,
+                totalStock: { $sum: "$branchStocks.stock" },
+                inventoryValue: { $sum: { $multiply: ["$branchStocks.stock", "$basePrice"] } },
+                lowStockCount: {
+                  $sum: {
+                    $cond: [
+                      { $and: [
+                        { $gt: ["$branchStocks.stock", 0] },
+                        { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }
+                      ]}, 1, 0]
+                  }
+                },
+                outOfStockCount: {
+                  $sum: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, 1, 0] }
+                }
+              }
+            }
+          ],
+          vendorMetrics: [
+            { 
+              $match: (targetBranchId && targetBranchId !== 'all') 
+                ? { _id: null } // Skip if filtering by a specific branch
+                : { vendor: { $exists: true, $ne: null } } 
+            },
+            {
+              $group: {
+                _id: null,
+                totalStock: { $sum: "$stock" },
+                inventoryValue: { $sum: { $multiply: ["$stock", "$basePrice"] } },
+                lowStockCount: {
+                  $sum: {
+                    $cond: [
+                      { $and: [
+                        { $gt: ["$stock", 0] },
+                        { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] }
+                      ]}, 1, 0]
+                  }
+                },
+                outOfStockCount: {
+                  $sum: { $cond: [{ $lte: ["$stock", 0] }, 1, 0] }
+                }
+              }
+            }
+          ]
         }
       },
-      { $unwind: "$branchStocks" },
       {
-        $group: {
-          _id: null,
-          totalStock: { $sum: "$branchStocks.stock" },
-          inventoryValue: { $sum: { $multiply: ["$branchStocks.stock", "$basePrice"] } },
-          lowStockCount: {
-            $sum: { 
-              $cond: [
-                { $and: [
-                  { $gt: ["$branchStocks.stock", 0] },
-                  { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
-                ]}, 1, 0] 
-            }
-          },
-          outOfStockCount: {
-            $sum: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, 1, 0] }
-          }
+        $project: {
+          totalStock: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.totalStock", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.totalStock", 0] }, 0] }] },
+          inventoryValue: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.inventoryValue", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.inventoryValue", 0] }, 0] }] },
+          lowStockCount: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.lowStockCount", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.lowStockCount", 0] }, 0] }] },
+          outOfStockCount: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.outOfStockCount", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.outOfStockCount", 0] }, 0] }] }
         }
       }
     ]);

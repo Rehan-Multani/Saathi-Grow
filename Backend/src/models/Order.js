@@ -175,6 +175,19 @@ const orderSchema = new mongoose.Schema({
         enum: ['online', 'pos'],
         default: 'online'
     },
+    appliedPromo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PromoCode',
+        default: null
+    },
+    promoCode: {
+        type: String, // String copy of the code used
+        default: null
+    },
+    discountAmount: {
+        type: Number,
+        default: 0
+    },
     posCustomer: {
         name: String,
         email: String,

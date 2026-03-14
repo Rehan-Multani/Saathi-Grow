@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { loginAdmin, getProfile, updateProfile as updateAdminApi } from '../api/adminApi';
 
 const AdminAuthContext = createContext();
@@ -46,8 +46,9 @@ export const AdminAuthProvider = ({ children }) => {
         setLoading(true);
         try {
             const data = await loginAdmin(email, password);
-            if (data.role !== 'Admin') {
-                throw new Error('Access denied. This portal is only for Super Admins.');
+            const allowedRoles = ['Admin', 'Branch Manager', 'Staff'];
+            if (!allowedRoles.includes(data.role)) {
+                throw new Error('Access denied. You do not have an administrative role.');
             }
             setAdminUser(data);
             localStorage.setItem('sathiGro_admin', JSON.stringify(data));

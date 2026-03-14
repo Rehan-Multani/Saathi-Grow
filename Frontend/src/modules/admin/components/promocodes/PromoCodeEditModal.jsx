@@ -1,57 +1,70 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, InputGroup } from 'react-bootstrap';
 import { Save, Ticket } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
     const [formData, setFormData] = useState({
         code: '',
-        type: 'Percentage',
-        value: '',
-        minOrder: '',
-        usageLimit: '',
-        status: 'Active'
+        discountType: 'Percentage',
+        discountValue: '',
+        minOrderValue: '',
+        maxDiscountAmount: '',
+        usageLimitTotal: '',
+        usageLimitPerUser: '',
+        isActive: true,
+        validFrom: '',
+        validUntil: '',
+        description: ''
     });
 
     useEffect(() => {
         if (promoCode) {
             setFormData({
+                _id: promoCode._id,
                 code: promoCode.code || '',
-                type: promoCode.type || 'Percentage',
-                value: promoCode.value?.replace(/[^0-9.]/g, '') || '',
-                minOrder: promoCode.minOrder?.replace(/[^0-9.]/g, '') || '',
-                usageLimit: promoCode.usage?.split('/')[1] || '',
-                status: promoCode.status || 'Active'
+                discountType: promoCode.discountType || 'Percentage',
+                discountValue: promoCode.discountValue || '',
+                minOrderValue: promoCode.minOrderValue || '0',
+                maxDiscountAmount: promoCode.maxDiscountAmount || '0',
+                usageLimitTotal: promoCode.usageLimitTotal || '0',
+                usageLimitPerUser: promoCode.usageLimitPerUser || '1',
+                isActive: promoCode.isActive ?? true,
+                validFrom: promoCode.validFrom ? new Date(promoCode.validFrom).toISOString().split('T')[0] : '',
+                validUntil: promoCode.validUntil ? new Date(promoCode.validUntil).toISOString().split('T')[0] : '',
+                description: promoCode.description || ''
             });
         }
     }, [promoCode]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value, type, checked } = e.target;
+        setFormData({ 
+            ...formData, 
+            [name]: type === 'checkbox' ? (name === 'isActive' ? checked : value) : value 
+        });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Format the values back for the list display
-        const displayValue = formData.type === 'Percentage' ? `${formData.value}%` :
-            formData.type === 'Fixed' ? `₹${formData.value}` : 'N/A';
-
-        const displayMinOrder = `₹${formData.minOrder || '0'}`;
-        const currentUsage = promoCode?.usage?.split('/')[0] || '0';
-        const displayUsage = `${currentUsage}/${formData.usageLimit || '₹'}`;
+        if (parseFloat(formData.discountValue) < 0 || parseFloat(formData.minOrderValue) < 0) {
+            toast.error('Discount and order values cannot be negative');
+            return;
+        }
 
         onSave({
-            ...promoCode,
             ...formData,
-            value: displayValue,
-            minOrder: displayMinOrder,
-            usage: displayUsage
+            discountValue: formData.discountType === 'FreeShipping' ? 0 : parseFloat(formData.discountValue),
+            minOrderValue: parseFloat(formData.minOrderValue),
+            maxDiscountAmount: parseFloat(formData.maxDiscountAmount),
+            usageLimitTotal: parseInt(formData.usageLimitTotal),
+            usageLimitPerUser: parseInt(formData.usageLimitPerUser)
         });
-        onHide();
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered>
+        <Modal show={show} onHide={onHide} centered size="lg">
             <Modal.Header closeButton className="border-0 pb-0">
                 <Modal.Title className="fw-bold text-dark">Edit Promo Code</Modal.Title>
             </Modal.Header>
@@ -77,14 +90,14 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                             <Form.Group className="mb-3">
                                 <Form.Label className="small fw-bold text-muted text-uppercase">Discount Type</Form.Label>
                                 <Form.Select
-                                    name="type"
-                                    value={formData.type}
+                                    name="discountType"
+                                    value={formData.discountType}
                                     onChange={handleChange}
                                     className="py-2 border-gray-200 shadow-none"
                                 >
                                     <option value="Percentage">Percentage (%)</option>
                                     <option value="Fixed">Fixed Amount (₹)</option>
-                                    <option value="Free Shipping">Free Shipping</option>
+                                    <option value="FreeShipping">Free Shipping</option>
                                 </Form.Select>
                             </Form.Group>
                         </Col>
@@ -93,12 +106,12 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                                 <Form.Label className="small fw-bold text-muted text-uppercase">Discount Value</Form.Label>
                                 <Form.Control
                                     type="number"
-                                    name="value"
-                                    value={formData.value}
+                                    name="discountValue"
+                                    value={formData.discountValue}
                                     onChange={handleChange}
-                                    disabled={formData.type === 'Free Shipping'}
+                                    disabled={formData.discountType === 'FreeShipping'}
                                     className="py-2 border-gray-200 shadow-none"
-                                    required={formData.type !== 'Free Shipping'}
+                                    required={formData.discountType !== 'FreeShipping'}
                                 />
                             </Form.Group>
                         </Col>
@@ -110,8 +123,8 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                                 <Form.Label className="small fw-bold text-muted text-uppercase">Min Order (₹)</Form.Label>
                                 <Form.Control
                                     type="number"
-                                    name="minOrder"
-                                    value={formData.minOrder}
+                                    name="minOrderValue"
+                                    value={formData.minOrderValue}
                                     onChange={handleChange}
                                     className="py-2 border-gray-200 shadow-none"
                                 />
@@ -119,11 +132,40 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                         </Col>
                         <Col md={6}>
                             <Form.Group className="mb-3">
-                                <Form.Label className="small fw-bold text-muted text-uppercase">Usage Limit</Form.Label>
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Max Discount (₹)</Form.Label>
                                 <Form.Control
                                     type="number"
-                                    name="usageLimit"
-                                    value={formData.usageLimit}
+                                    name="maxDiscountAmount"
+                                    value={formData.maxDiscountAmount}
+                                    onChange={handleChange}
+                                    disabled={formData.discountType !== 'Percentage'}
+                                    className="py-2 border-gray-200 shadow-none"
+                                />
+                                <Form.Text className="text-muted small">Only for % discounts</Form.Text>
+                            </Form.Group>
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Total Usage Limit</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    name="usageLimitTotal"
+                                    value={formData.usageLimitTotal}
+                                    onChange={handleChange}
+                                    className="py-2 border-gray-200 shadow-none"
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Limit Per User</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    name="usageLimitPerUser"
+                                    value={formData.usageLimitPerUser}
                                     onChange={handleChange}
                                     className="py-2 border-gray-200 shadow-none"
                                 />
@@ -131,18 +173,60 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                         </Col>
                     </Row>
 
-                    <Form.Group className="mb-4">
-                        <Form.Label className="small fw-bold text-muted text-uppercase">Status</Form.Label>
-                        <Form.Select
-                            name="status"
-                            value={formData.status}
+                    <Row>
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Valid From</Form.Label>
+                                <Form.Control
+                                    type="date"
+                                    name="validFrom"
+                                    value={formData.validFrom}
+                                    onChange={handleChange}
+                                    className="py-2 border-gray-200 shadow-none"
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="small fw-bold text-muted text-uppercase">Valid Until</Form.Label>
+                                <Form.Control
+                                    type="date"
+                                    name="validUntil"
+                                    value={formData.validUntil}
+                                    onChange={handleChange}
+                                    className="py-2 border-gray-200 shadow-none"
+                                />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                    
+                    <Row>
+                        <Col md={12}>
+                            <Form.Group className="mb-3 d-flex align-items-center gap-3 bg-light p-3 rounded-3 border">
+                                <Form.Label className="small fw-bold text-muted text-uppercase mb-0">Code Status</Form.Label>
+                                <Form.Check 
+                                    type="switch"
+                                    id="promo-active-switch"
+                                    label={formData.isActive ? "Active" : "Inactive"}
+                                    name="isActive"
+                                    checked={formData.isActive}
+                                    onChange={handleChange}
+                                    className="fw-bold text-primary"
+                                />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small fw-bold text-muted text-uppercase">Description</Form.Label>
+                        <Form.Control 
+                            as="textarea"
+                            rows={2}
+                            name="description"
+                            value={formData.description}
                             onChange={handleChange}
                             className="py-2 border-gray-200 shadow-none"
-                        >
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Expired">Expired</option>
-                        </Form.Select>
+                        />
                     </Form.Group>
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">

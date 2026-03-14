@@ -1,70 +1,60 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Package, Users, IndianRupee, TrendingUp, TrendingDown, Activity, CreditCard, Eye } from 'lucide-react';
+import { 
+    ShoppingCart, Package, Users, IndianRupee, TrendingUp, TrendingDown, 
+    Activity, Eye, Truck, AlertTriangle, MessageSquare, ArrowUpRight, 
+    ChevronRight, Zap, Target, PieChart as PieChartIcon
+} from 'lucide-react';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, Cell
+    BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts';
+import { useAdminAuth } from '../context/AdminAuthContext';
+import { getDashboardStats } from '../api/adminApi';
 import OrderDetailsModal from '../components/orders/OrderDetailsModal';
 
-// Mock Data for Charts
-const revenueData = [
-    { name: 'Jan', revenue: 4000, orders: 240 },
-    { name: 'Feb', revenue: 3000, orders: 139 },
-    { name: 'Mar', revenue: 2000, orders: 980 },
-    { name: 'Apr', revenue: 2780, orders: 390 },
-    { name: 'May', revenue: 1890, orders: 480 },
-    { name: 'Jun', revenue: 2390, orders: 380 },
-    { name: 'Jul', revenue: 3490, orders: 430 },
-];
-
-const categoryData = [
-    { name: 'Electronics', value: 400 },
-    { name: 'Groceries', value: 300 },
-    { name: 'Clothing', value: 300 },
-    { name: 'Home', value: 200 },
-];
-
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
-
-const StatCard = ({ title, value, icon: Icon, color, trend, trendValue, gradient }) => (
-    <div className="border-0 shadow-sm h-full overflow-hidden text-white rounded-xl p-6 relative" style={{ background: gradient || color }}>
-        <div className="flex justify-between items-start mb-4">
-            <div className="bg-white/25 rounded-full p-2 flex items-center justify-center">
-                <Icon size={24} className="text-white" />
+const StatCard = ({ title, value, icon: Icon, color, trend, trendValue, gradient, subtitle }) => (
+    <div className="relative group overflow-hidden bg-white rounded-3xl p-6 border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+        <div className={`absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 rounded-full opacity-10 blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:opacity-20`} style={{ background: color }}></div>
+        
+        <div className="flex justify-between items-start mb-6">
+            <div className="p-3 rounded-2xl transition-colors duration-300" style={{ background: `${color}15`, color: color }}>
+                <Icon size={24} strokeWidth={2.5} />
             </div>
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center ${trend === 'up' ? 'bg-green-500/25 text-white' : 'bg-red-500/25 text-white'}`}>
-                {trend === 'up' ? <TrendingUp size={12} className="mr-1" /> : <TrendingDown size={12} className="mr-1" />}
-                {trendValue}
-            </span>
+            {trendValue !== undefined && (
+                <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                    {trend === 'up' ? <ArrowUpRight size={12} /> : <TrendingDown size={12} />}
+                    {trendValue}%
+                </div>
+            )}
         </div>
-        <div>
-            <h2 className="font-bold text-3xl mb-1">{value}</h2>
-            <p className="mb-0 opacity-75 text-xs uppercase font-semibold tracking-wider">{title}</p>
+        
+        <div className="relative z-10">
+            <h3 className="text-3xl font-black text-gray-900 tracking-tight mb-1">{value}</h3>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{title}</p>
+            {subtitle && <p className="text-[10px] text-gray-400 mt-2 flex items-center gap-1"><Zap size={10} className="text-amber-400" /> {subtitle}</p>}
         </div>
     </div>
 );
 
-const recentOrders = [
-    { id: '#ORD-001', customer: 'Alex Johnson', product: 'Wireless Headset', amount: '₹120.00', status: 'Delivered' },
-    { id: '#ORD-002', customer: 'Sam Smith', product: 'Smart Watch', amount: '₹250.00', status: 'Pending' },
-    { id: '#ORD-003', customer: 'Maria Garcia', product: 'Organic Bananas', amount: '₹15.50', status: 'Processing' },
-    { id: '#ORD-004', customer: 'John Doe', product: 'Gaming Mouse', amount: '₹45.00', status: 'Cancelled' },
-];
-
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { getDashboardStats } from '../api/adminApi';
+const SectionHeader = ({ title, subtitle, icon: Icon }) => (
+    <div className="flex items-center gap-4 mb-6">
+        <div className="w-10 h-10 rounded-2xl bg-gray-900 text-white flex items-center justify-center shadow-lg shadow-gray-200">
+            <Icon size={20} />
+        </div>
+        <div>
+            <h4 className="text-lg font-black text-gray-900 tracking-tight">{title}</h4>
+            <p className="text-xs text-gray-400 font-medium">{subtitle}</p>
+        </div>
+    </div>
+);
 
 const Dashboard = () => {
     const { adminUser } = useAdminAuth();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
-
-    const [dateFilterType, setDateFilterType] = useState('daily');
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -80,215 +70,299 @@ const Dashboard = () => {
             }
         };
 
-        if (adminUser?.token) {
-            fetchStats();
-        }
-
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        if (adminUser?.token) fetchStats();
     }, [adminUser.token]);
-
-    const handleViewOrder = (order) => {
-        // Adapt dashboard data to modal expected format
-        const modalOrder = {
-            id: order.id,
-            customer: order.customer,
-            status: order.status,
-            total: order.amount,
-            date: order.date,
-            items: 1,
-            payment: 'Paid',
-            ...order
-        };
-        setSelectedOrder(modalOrder);
-        setShowModal(true);
-    };
-
-    const handleGenerateReport = () => {
-        alert(`Generating ${dateFilterType} report for ${selectedDate}... (This is a demo feature)`);
-    };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <div className="relative">
+                    <div className="w-20 h-20 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin"></div>
+                    <Activity size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 animate-pulse" />
+                </div>
+                <p className="mt-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Booting Intelligence...</p>
             </div>
         );
     }
 
-    const { stats: apiStats, recentOrders: apiOrders, revenueData: apiRevenueData } = stats || {};
+    const { stats: apiStats, recentOrders: apiOrders, revenueData: apiRevenueData, channels } = stats || {};
+
+    const pieData = [
+        { name: 'POS', value: channels?.pos || 0, color: '#3B82F6' },
+        { name: 'Online', value: channels?.online || 0, color: '#8B5CF6' }
+    ];
+
+    const handleViewOrder = (order) => {
+        setSelectedOrder({
+            _id: order.id, // Modal expects _id for API fetch
+            ...order
+        });
+        setShowModal(true);
+    };
 
     return (
-        <div className="p-4 md:p-6 space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                <div>
-                    <h3 className="font-bold text-dark text-2xl mb-1 text-gray-800">Branch Insights</h3>
-                    <p className="text-gray-500 text-sm mb-0">Performance metrics for your assigned branch.</p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto text-xs">
-                    <div className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg border border-blue-100 flex items-center gap-2">
-                        <Activity size={14} />
-                        <span className="font-semibold">{adminUser?.role} Panel</span>
-                        {adminUser?.branchId && <span className="opacity-50 text-[10px]">| Online</span>}
+        <div className="p-6 md:p-8 space-y-8 bg-[#FDFDFF] min-h-screen">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="relative">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-3 animate-fade-in">
+                        <Activity size={12} className="animate-pulse" /> 
+                        Operational Command Center
                     </div>
+                    <h1 className="text-4xl font-black text-gray-900 tracking-tighter leading-none">
+                        Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{adminUser?.name?.split(' ')[0]}</span>
+                    </h1>
+                    <p className="text-gray-400 text-sm mt-2 font-medium">Monitoring {adminUser?.role === 'Admin' ? 'Global Operations' : `Branch: ${adminUser?.branchId || 'Assigned Branch'}`}</p>
                 </div>
             </div>
 
-            {/* Stats Grid */}
+            {/* Main KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                <StatCard
-                    title="Total Revenue"
-                    value={`₹${apiStats?.totalRevenue || 0}`}
-                    icon={IndianRupee}
-                    color="#3B82F6"
-                    gradient="linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"
-                    trend="up"
-                    trendValue="+0%"
+                <StatCard 
+                    title="Revenue (30d)" 
+                    value={`₹${apiStats?.totalRevenue?.toLocaleString() || 0}`} 
+                    icon={IndianRupee} 
+                    color="#3B82F6" 
+                    trend={apiStats?.revenueGrowth >= 0 ? 'up' : 'down'}
+                    trendValue={Math.abs(apiStats?.revenueGrowth)}
+                    subtitle="Gross volume after discounts"
                 />
-                <StatCard
-                    title="Total Orders"
-                    value={apiStats?.totalOrders || 0}
-                    icon={ShoppingCart}
-                    color="#10B981"
-                    gradient="linear-gradient(135deg, #10B981 0%, #059669 100%)"
-                    trend="up"
-                    trendValue="+0%"
+                <StatCard 
+                    title="Order Flow" 
+                    value={apiStats?.totalOrders || 0} 
+                    icon={ShoppingCart} 
+                    color="#10B981" 
+                    trend={apiStats?.orderGrowth >= 0 ? 'up' : 'down'}
+                    trendValue={Math.abs(apiStats?.orderGrowth)}
+                    subtitle="Live transaction throughput"
                 />
-                <StatCard
-                    title="Pending Orders"
-                    value={apiStats?.pendingOrders || 0}
-                    icon={Package}
+                <StatCard 
+                    title="Processing" 
+                    value={apiStats?.pendingOrders || 0} 
+                    icon={Package} 
                     color="#F59E0B"
-                    gradient="linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"
-                    trend="down"
-                    trendValue="0"
+                    subtitle={`${apiStats?.pendingOrders > 5 ? 'High workload' : 'Normal volume'}`}
                 />
-                {adminUser?.role === 'Admin' ? (
-                    <StatCard
-                        title="Total Users"
-                        value={apiStats?.totalUsers || 0}
-                        icon={Users}
-                        color="#8B5CF6"
-                        gradient="linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)"
-                        trend="up"
-                        trendValue="+0%"
-                    />
-                ) : (
-                    <StatCard
-                        title="Branch Products"
-                        value={apiStats?.totalProducts || 0}
-                        icon={Package}
-                        color="#8B5CF6"
-                        gradient="linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)"
-                        trend="up"
-                        trendValue="Active"
-                    />
-                )}
+                <StatCard 
+                    title="Active Market" 
+                    value={adminUser?.role === 'Admin' ? apiStats?.totalUsers : apiStats?.totalProducts} 
+                    icon={adminUser?.role === 'Admin' ? Users : Target} 
+                    color="#8B5CF6"
+                    subtitle={`${adminUser?.role === 'Admin' ? 'Registered customers' : 'Available inventory'}`}
+                />
             </div>
 
-            {/* Main Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h5 className="font-bold text-gray-800 text-lg">Revenue Trends (Last 7 Days)</h5>
+            {/* Critical Operations Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                {/* Visual Intelligence Section */}
+                <div className="lg:col-span-2 space-y-8">
+                    <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden">
+                        <SectionHeader title="Performance Trajectory" subtitle="Revenue and transaction volume (7D Trend)" icon={TrendingUp} />
+                        
+                        <div className="h-[400px] w-full mt-8">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={apiRevenueData || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15}/>
+                                            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                    <XAxis 
+                                        dataKey="name" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fontSize: 11, fontWeight: 700, fill: '#94A3B8' }} 
+                                        dy={15}
+                                    />
+                                    <YAxis 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tickFormatter={(val) => `₹${val/1000}k`}
+                                        tick={{ fontSize: 11, fontWeight: 700, fill: '#94A3B8' }} 
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.1)', padding: '15px' }}
+                                        itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                    />
+                                    <Area 
+                                        type="monotone" 
+                                        dataKey="revenue" 
+                                        stroke="#3B82F6" 
+                                        strokeWidth={4} 
+                                        fillOpacity={1} 
+                                        fill="url(#colorRevenue)" 
+                                        animationDuration={2000}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                    <div className="h-[350px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={apiRevenueData || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val}`} tick={{ fontSize: 12, fill: '#9CA3AF' }} dx={-10} />
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f1f5f9" />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                                />
-                                <Area type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
+
+                    {/* Channel Split & Market Share */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
+                            <SectionHeader title="Channel Split" subtitle="Source of last 30 days orders" icon={PieChartIcon} />
+                            <div className="h-[200px] flex items-center justify-center">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={pieData}
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={8}
+                                            dataKey="value"
+                                        >
+                                            {pieData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="space-y-3 ml-4">
+                                    {pieData.map((item, i) => (
+                                        <div key={i} className="flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full" style={{ background: item.color }}></div>
+                                            <span className="text-xs font-black text-gray-700">{item.name}</span>
+                                            <span className="text-[10px] text-gray-400 font-bold">{item.value} items</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4">
+                                <AlertTriangle className="text-rose-100" size={80} strokeWidth={1} />
+                            </div>
+                            <SectionHeader title="Inventory Health" subtitle="Actionable stock intelligence" icon={Zap} />
+                            <div className="mt-4">
+                                <div className="text-4xl font-black text-gray-900 mb-2">{apiStats?.lowStockCount || 0}</div>
+                                <p className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-6">SKUs Below Threshold</p>
+                                <Link to="/admin/stock" className="inline-flex items-center gap-2 text-xs font-black text-blue-600 hover:gap-3 transition-all">
+                                    Manage Procurement <ChevronRight size={14} />
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div className="mb-6 flex justify-between items-center">
-                        <h5 className="font-bold text-gray-800 text-lg">Daily Orders</h5>
-                        <Activity size={18} className="text-blue-500" />
+                {/* Right Column - Active Monitoring */}
+                <div className="space-y-8">
+                    {/* Live Support/Escalations */}
+                    <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
+                        <div className="absolute -bottom-10 -right-10 opacity-20 transform rotate-12">
+                            <MessageSquare size={160} strokeWidth={1} />
+                        </div>
+                        <h4 className="text-lg font-black tracking-tight mb-2">Support Pulse</h4>
+                        <p className="text-slate-400 text-xs mb-8">Pending store escalations</p>
+                        
+                        <div className="flex items-end gap-3 mb-8">
+                            <span className="text-5xl font-black">{apiStats?.pendingTickets || 0}</span>
+                            <span className="bg-rose-500/20 text-rose-400 text-[10px] font-black px-2 py-1 rounded-full uppercase mb-2">Urgent</span>
+                        </div>
+                        
+                        <Link to="/admin/support" className="flex items-center justify-between w-full p-4 bg-white/10 rounded-2xl hover:bg-white/15 transition-all text-xs font-bold group">
+                            Resolve Tickets <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                        </Link>
                     </div>
-                    <div className="h-[350px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={apiRevenueData || []}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
-                                />
-                                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                                <Bar dataKey="orders" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={30} />
-                            </BarChart>
-                        </ResponsiveContainer>
+
+                    {/* Delivery Partner Widget */}
+                    <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                                    <Truck size={20} />
+                                </div>
+                                <span className="font-bold text-gray-900">Rider Hub</span>
+                            </div>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-black animate-pulse uppercase">Live</span>
+                        </div>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="text-3xl font-black text-gray-900">{apiStats?.activeRiders || 0}</div>
+                            <div className="text-xs text-gray-400 font-medium">Partners ready for <br/> assignment in 10km radius</div>
+                        </div>
+                        <Link to="/admin/delivery" className="block text-center py-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-xs font-bold text-gray-600 transition-all">
+                            Manage Fleet
+                        </Link>
+                    </div>
+
+                    {/* Quick Access Menu */}
+                    <div className="bg-indigo-50/50 rounded-[2rem] p-8 border border-indigo-100/50">
+                        <h5 className="text-sm font-black text-indigo-900 tracking-tight mb-4 uppercase tracking-[0.1em]">Instant Actions</h5>
+                        <div className="grid grid-cols-2 gap-4">
+                            {[
+                                { label: 'Campaigns', icon: Target },
+                                { label: 'Customers', icon: Users },
+                                { label: 'Vendors', icon: Truck },
+                                { label: 'Settings', icon: Activity },
+                            ].map((item, i) => (
+                                <div key={i} className="p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm hover:shadow-md cursor-pointer group transition-all">
+                                    <item.icon size={20} className="text-indigo-600 mb-2 group-hover:scale-110 transition-transform" />
+                                    <div className="text-[10px] font-black text-gray-800 uppercase tracking-widest">{item.label}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Recent Orders Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-                    <h5 className="font-bold text-gray-800 text-lg">Recent Transactions</h5>
-                    <Link to="/admin/orders" className="text-blue-600 hover:text-blue-700 font-semibold text-sm hover:underline">View All</Link>
+            {/* Recent Orders Table */}
+            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden mb-10">
+                <div className="p-8 border-b border-gray-50 flex justify-between items-center">
+                    <div>
+                        <h5 className="text-xl font-black text-gray-900 tracking-tight">Recent Transactions</h5>
+                        <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Live Order Stream</p>
+                    </div>
+                    <Link to="/admin/orders" className="flex items-center gap-2 text-xs font-black text-blue-600 hover:gap-3 transition-all">
+                        View All History <ArrowUpRight size={14} />
+                    </Link>
                 </div>
+                
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50/50 text-[10px] uppercase font-black tracking-widest text-gray-400">
                             <tr>
-                                <th className="px-6 py-4">Order ID</th>
-                                <th className="px-6 py-4">Customer</th>
-                                <th className="px-6 py-4">Amount</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-center">Action</th>
+                                <th className="px-8 py-4">Transaction ID</th>
+                                <th className="px-8 py-4">Customer Entity</th>
+                                <th className="px-8 py-4">Invoice Value</th>
+                                <th className="px-8 py-4">Status</th>
+                                <th className="px-8 py-4 text-center">Protocol</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-50">
                             {apiOrders?.map((order, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-gray-900">{order.id}</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center">
-                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center mr-3 text-xs">
-                                                {order.customer.charAt(0)}
+                                <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+                                    <td className="px-8 py-5 font-black text-gray-900 text-sm tracking-tighter">#{order.id}</td>
+                                    <td className="px-8 py-5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 font-black flex items-center justify-center text-sm shadow-inner uppercase">
+                                                {order.customer?.charAt(0)}
                                             </div>
-                                            <span className="text-gray-700 font-medium">{order.customer}</span>
+                                            <div>
+                                                <div className="text-sm font-bold text-gray-900 whitespace-nowrap">{order.customer}</div>
+                                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(order.date).toLocaleDateString()}</div>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-gray-800">₹{order.amount}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium 
-                                            ${order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                                    order.status === 'confirmed' || order.status === 'preparing' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                    <td className="px-8 py-5">
+                                        <div className="text-sm font-black text-gray-900">₹{order.amount?.toLocaleString()}</div>
+                                    </td>
+                                    <td className="px-8 py-5">
+                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border
+                                            ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                              order.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                              order.status === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                                              'bg-blue-50 text-blue-700 border-blue-100'}`}>
                                             {order.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <button
+                                    <td className="px-8 py-5 text-center">
+                                        <button 
                                             onClick={() => handleViewOrder(order)}
-                                            className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-                                            title="View Details"
+                                            className="w-10 h-10 rounded-2xl bg-gray-50 text-gray-400 hover:bg-gray-900 hover:text-white transition-all duration-300 flex items-center justify-center group-hover:scale-110"
                                         >
                                             <Eye size={18} />
                                         </button>
@@ -297,7 +371,14 @@ const Dashboard = () => {
                             ))}
                             {(!apiOrders || apiOrders.length === 0) && (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-10 text-gray-500">No recent orders found.</td>
+                                    <td colSpan="5" className="text-center py-20">
+                                        <div className="flex flex-col items-center">
+                                            <div className="p-4 bg-gray-50 rounded-full mb-4">
+                                                <Activity className="text-gray-300" size={40} />
+                                            </div>
+                                            <p className="text-sm font-black text-gray-400 uppercase tracking-widest">No Active Transactions</p>
+                                        </div>
+                                    </td>
                                 </tr>
                             )}
                         </tbody>

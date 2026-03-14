@@ -19,10 +19,15 @@ const globalSettingSchema = new mongoose.Schema({
   maxDeliveryRadius: { type: Number, default: 20 }, // in KM
   autoInvoicingEnabled: { type: Boolean, default: true },
 
-  // Support Settings
+  // Support & Social Settings
   supportPhone: { type: String, default: '+91 911 110 5005' },
   whatsappNumber: { type: String, default: '919111105005' },
-  supportEmail: { type: String, default: 'support@sathigro.com' }
+  supportEmail: { type: String, default: 'support@sathigro.com' },
+  facebookUrl: { type: String, default: '' },
+  instagramUrl: { type: String, default: '' },
+  twitterUrl: { type: String, default: '' },
+  linkedinUrl: { type: String, default: '' },
+  officialWebsite: { type: String, default: '' }
 }, {
   timestamps: true
 });

@@ -39,8 +39,8 @@ router.post('/calculate-bill', protect, calculateBill);
 
 // --- Admin/Staff Order Routes ---
 router.get('/admin/list', protectAdmin, requirePermission('VIEW_ORDERS'), getAllOrdersAdmin);
-router.get('/admin/:id', protectAdmin, requirePermission('VIEW_ORDERS'), getOrderById);
 router.get('/admin/returns', protectAdmin, requirePermission('MANAGE_REFUNDS_RETURNS'), getReturnRequests);
+router.get('/admin/:id', protectAdmin, requirePermission('VIEW_ORDERS'), getOrderById);
 router.put('/admin/:id/status', protectAdmin, requirePermission('MANAGE_ORDERS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('ORDER_STATUS_UPDATE'), updateOrderStatus);
 router.put('/admin/:id/return/accept', protectAdmin, requirePermission('MANAGE_REFUNDS_RETURNS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('RETURN_REQUEST_HANDLE'), handleStoreReturnAction);
 router.post('/admin/returns/batch-schedule', protectAdmin, requirePermission('MANAGE_REFUNDS_RETURNS'), idempotencyGuard(), sensitiveAdminActionLimiter, auditAction('RETURN_BATCH_SCHEDULE'), createReturnBatch);

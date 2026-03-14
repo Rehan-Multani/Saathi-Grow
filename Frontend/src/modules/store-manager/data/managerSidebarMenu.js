@@ -1,4 +1,4 @@
-﻿export const managerSidebarMenu = [
+export const managerSidebarMenu = [
   {
     title: 'Dashboard',
     path: '/store-manager/dashboard',
@@ -37,16 +37,6 @@
     path: '/store-manager/staff',
     icon: 'Users',
     permission: 'MANAGE_STAFF'
-  },
-  {
-    title: 'Delivery Management',
-    icon: 'Truck',
-    permission: 'MANAGE_DELIVERY',
-    submenu: [
-      { title: 'Delivery Partners', path: '/store-manager/delivery/partners', permission: 'MANAGE_DELIVERY' },
-      { title: 'Assign Deliveries', path: '/store-manager/delivery/assign', permission: 'MANAGE_DELIVERY' },
-      { title: 'Live Tracking', path: '/store-manager/delivery/tracking', permission: 'MANAGE_DELIVERY' },
-    ],
   },
   {
     title: 'Customers',

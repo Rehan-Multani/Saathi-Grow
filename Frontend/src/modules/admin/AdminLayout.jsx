@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import AdminSidebar from './components/AdminSidebar';
-import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react';
+import { Bell, Menu, User, Settings, LogOut } from 'lucide-react';
 import { adminSidebarMenu } from './data/sidebarMenu';
 import { useAdminAuth } from './context/AdminAuthContext';
 
@@ -49,14 +49,6 @@ const AdminLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="hidden md:block relative">
-                            <input
-                                type="text"
-                                className="w-[280px] pl-10 pr-4 py-2 bg-gray-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
-                                placeholder="Search anything..."
-                            />
-                            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                        </div>
 
                         <button className="relative p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors">
                             <Bell size={20} className="text-gray-600" />
