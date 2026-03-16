@@ -117,7 +117,6 @@ const AdminRoutes = () => {
 
                         {/* Orders */}
                         <Route path="orders" element={<AllOrders />} />
-                        <Route path="orders/pos-billing" element={<POSBillingPage />} />
                         <Route path="orders/online" element={<OnlineOrders />} />
                         <Route path="orders/returns" element={<ReturnRequests />} />
 

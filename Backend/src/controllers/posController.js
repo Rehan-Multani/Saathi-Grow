@@ -23,20 +23,18 @@ export const createPOSOrder = async (req, res) => {
     }
 
     // Role check: Only branch managers/staff or vendors can create POS orders.
-    // Super Admins should not create orders directly in the Admin Panel Terminal.
-    if (req.admin) {
-      if (req.admin.role === 'Admin' && (!storeId || storeId === 'null')) {
-        return res.status(403).json({
-          message: 'Super Admin terminal is disabled. Please perform POS billing from a specific Store/Branch panel.'
-        });
-      }
+    // Super Admins/Admin role is restricted to history only.
+    if (req.admin && req.admin.role === 'Admin') {
+      return res.status(403).json({
+        message: 'Admin role is restricted to viewing status/history only. POS billing is disabled for this role.'
+      });
+    }
 
-      // POS Permission Check for Staff/Branch Managers
-      if (req.admin.role !== 'Admin' && (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING'))) {
-        return res.status(403).json({
-          message: 'Access Denied: You do not have permission to handle POS billing.'
-        });
-      }
+    // POS Permission Check for Staff/Branch Managers
+    if (req.admin && req.admin.role !== 'Admin' && (!req.admin.permissions || !req.admin.permissions.includes('MANAGE_POS_BILLING'))) {
+      return res.status(403).json({
+        message: 'Access Denied: You do not have permission to handle POS billing.'
+      });
     }
 
     // Recompute bill on backend for security and accuracy (applying latest tax configs)

@@ -1,10 +1,11 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Badge, Spinner, Button } from 'react-bootstrap';
 import { Truck, MapPin, Navigation, RefreshCw, Bike, Info } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { getActiveTracking } from '../../api/adminDeliveryApi';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useTranslation } from 'react-i18next';
 
 // Fix for default marker icon missing in React Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -41,6 +42,7 @@ const RecenterMap = ({ position }) => {
 };
 
 const DeliveryTracking = () => {
+    const { t } = useTranslation();
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedDelivery, setSelectedDelivery] = useState(null);
@@ -71,8 +73,8 @@ const DeliveryTracking = () => {
         <div className="p-3">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 className="fw-bold mb-0">Live Logistics Monitor</h4>
-                    <p className="text-muted small mb-0">Real-time tracking of active delivery partners</p>
+                    <h4 className="fw-bold mb-0">{t('delivery.tracking.title')}</h4>
+                    <p className="text-muted small mb-0">{t('delivery.tracking.subtitle')}</p>
                 </div>
                 <div className="d-flex gap-2">
                     <Button variant="light" size="sm" onClick={fetchTracking} disabled={loading}>
@@ -87,7 +89,7 @@ const DeliveryTracking = () => {
                         {loading && !deliveries.length ? (
                             <div className="d-flex flex-column align-items-center justify-content-center h-100">
                                 <Spinner animation="border" variant="primary" />
-                                <p className="mt-3 text-muted">Initializing Map...</p>
+                                <p className="mt-3 text-muted">{t('delivery.tracking.initializing_map')}</p>
                             </div>
                         ) : (
                             <MapContainer
@@ -122,13 +124,13 @@ const DeliveryTracking = () => {
                                             <Popup className="custom-popup">
                                                 <div className="p-1">
                                                     <div className="fw-bold mb-1">{item.deliveryPartnerId.name}</div>
-                                                    <div className="small text-muted mb-2">Order: {item.orderId}</div>
+                                                    <div className="small text-muted mb-2">{t('delivery.tracking.order')}: {item.orderId}</div>
                                                     <Badge bg={item.status === 'out_for_delivery' ? 'primary' : 'warning'} className="fw-normal mb-2">
-                                                        {item.status === 'out_for_delivery' ? 'Out for Delivery' : 'Preparing'}
+                                                        {item.status === 'out_for_delivery' ? t('delivery.tracking.in_transit') : t('delivery.tracking.prep')}
                                                     </Badge>
                                                     <div className="d-grid mt-2">
                                                         <Button variant="soft-primary" size="sm" onClick={() => setSelectedDelivery(item)}>
-                                                            Track Detailed
+                                                            {t('delivery.tracking.detailed')}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -143,14 +145,14 @@ const DeliveryTracking = () => {
                 <Col lg={4}>
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Header className="bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                            <h6 className="mb-0 fw-bold">Active Fleet ({deliveries.length})</h6>
-                            <Badge bg="success" className="bg-opacity-10 text-success fw-normal px-2 py-1">Online</Badge>
+                            <h6 className="mb-0 fw-bold">{t('delivery.tracking.active_fleet', { count: deliveries.length })}</h6>
+                            <Badge bg="success" className="bg-opacity-10 text-success fw-normal px-2 py-1">{t('delivery.tracking.online')}</Badge>
                         </Card.Header>
                         <Card.Body className="p-0 overflow-auto" style={{ maxHeight: 'calc(600px - 60px)' }}>
                             {deliveries.length === 0 ? (
                                 <div className="p-5 text-center text-muted">
                                     <Truck size={32} className="opacity-25 mb-3" />
-                                    <p className="small mb-0">No active deliveries currently in progress.</p>
+                                    <p className="small mb-0">{t('delivery.tracking.no_active')}</p>
                                 </div>
                             ) : (
                                 <div className="list-group list-group-flush">
@@ -166,7 +168,7 @@ const DeliveryTracking = () => {
                                                     <div className="small text-muted">{item.user?.name}</div>
                                                 </div>
                                                 <Badge bg={item.status === 'out_for_delivery' ? 'primary' : 'warning'} className="rounded-pill fw-normal">
-                                                    {item.status === 'out_for_delivery' ? 'In Transit' : 'Pickup'}
+                                                    {item.status === 'out_for_delivery' ? t('delivery.tracking.in_transit') : t('delivery.tracking.pickup')}
                                                 </Badge>
                                             </div>
 
@@ -194,7 +196,7 @@ const DeliveryTracking = () => {
                         </Card.Body>
                         <Card.Footer className="bg-white border-0 py-3 text-center">
                             <div className="small text-muted">
-                                <RefreshCw size={12} className="me-1" /> Auto-syncing every 30s
+                                <RefreshCw size={12} className="me-1" /> {t('delivery.tracking.auto_sync')}
                             </div>
                         </Card.Footer>
                     </Card>

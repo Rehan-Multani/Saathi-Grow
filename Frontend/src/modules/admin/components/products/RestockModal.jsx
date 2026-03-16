@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { Package, RefreshCw, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { adjustInventory } from '../../api/productApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
@@ -8,6 +9,7 @@ import { useStoreManagerAuth } from '../../../store-manager/context/StoreManager
 import { toast } from 'react-toastify';
 
 const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
+    const { t } = useTranslation();
     const adminContext = useAdminAuth();
     const staffContext = useStaffAuth();
     const managerContext = useStoreManagerAuth();
@@ -45,9 +47,9 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!isVendorProduct && !branchId) return toast.warning('Please select a branch');
-        if (!amount || amount <= 0) return toast.warning('Please enter a valid amount');
-        if (!reason) return toast.warning('Please provide a reason for adjustment');
+        if (!isVendorProduct && !branchId) return toast.warning(t('products.restock_modal.alerts.select_branch'));
+        if (!amount || amount <= 0) return toast.warning(t('products.restock_modal.alerts.valid_amount'));
+        if (!reason) return toast.warning(t('products.restock_modal.alerts.provide_reason'));
 
         setLoading(true);
         try {
@@ -57,11 +59,11 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                 reason,
                 branchId: branchId === 'vendor' ? null : branchId
             });
-            toast.success(`Inventory updated: ${product.name}`);
+            toast.success(t('products.restock_modal.alerts.update_success', { name: product.name }));
             if (onRestockSuccess) onRestockSuccess(result.product);
             onHide();
         } catch (error) {
-            toast.error(error.message || 'Failed to adjust inventory');
+            toast.error(error.message || t('products.restock_modal.alerts.update_failed'));
         } finally {
             setLoading(false);
         }
@@ -72,38 +74,38 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
             <Modal.Header closeButton className="border-0">
                 <Modal.Title className="fw-bold d-flex align-items-center gap-2">
                     <Package className="text-primary" size={24} />
-                    Inventory Adjustment
+                    {t('products.restock_modal.title')}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="px-4 pb-4">
                 {product && (
                     <div className="mb-4 p-3 bg-light rounded-3 border">
-                        <div className="text-xs text-uppercase fw-bold text-muted mb-1">Target Product</div>
+                        <div className="text-xs text-uppercase fw-bold text-muted mb-1">{t('products.restock_modal.target_product')}</div>
                         <div className="fw-bold text-dark">{product.name}</div>
                         <div className="text-sm text-secondary font-monospace mb-2">{product.sku}</div>
 
                         <Form.Group className="mb-2">
-                            <Form.Label className="fw-bold small mb-1">Target Storage</Form.Label>
+                            <Form.Label className="fw-bold small mb-1">{t('products.restock_modal.target_storage')}</Form.Label>
                             <Form.Select
                                 size="sm"
                                 value={branchId}
                                 onChange={(e) => setBranchId(e.target.value)}
                                 className="border-secondary"
                             >
-                                <option value="">Select...</option>
+                                <option value="">{t('products.restock_modal.select_placeholder')}</option>
                                 {product.vendor && (
-                                    <option value="vendor">📦 Vendor Direct Stock ({product.vendor.storeName})</option>
+                                    <option value="vendor">{t('products.restock_modal.vendor_stock', { name: product.vendor.storeName })}</option>
                                 )}
                                 {product.branchStocks?.map(bs => (
                                     <option key={bs.branchId._id || bs.branchId} value={bs.branchId._id || bs.branchId}>
-                                        🏢 Branch: {bs.branchId.name || 'Unknown'} (Current: {bs.stock})
+                                        {t('products.restock_modal.branch_info', { name: bs.branchId.name || 'Unknown', stock: bs.stock })}
                                     </option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
 
                         <div className="pt-2 border-top d-flex justify-content-between align-items-center mt-2">
-                            <span className="text-sm">Current Stock:</span>
+                            <span className="text-sm">{t('products.restock_modal.current_stock')}</span>
                             <span className={`fw-bold ${getSelectedBranchStock() <= 10 ? 'text-danger' : 'text-success'}`}>
                                 {getSelectedBranchStock()} {product.unitType || 'pcs'}
                             </span>
@@ -113,19 +115,19 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
 
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3">
-                        <Form.Label className="fw-bold small">Adjustment Type</Form.Label>
+                        <Form.Label className="fw-bold small">{t('products.restock_modal.adjustment_type')}</Form.Label>
                         <Form.Select value={type} onChange={(e) => setType(e.target.value)} required>
-                            <option value="Addition">📦 Stock Addition (Purchase/Restock)</option>
-                            <option value="Return">🔄 Customer Return</option>
-                            <option value="Deduction">📤 Manual Deduction</option>
-                            <option value="Damage">️ Damaged / Expired</option>
-                            <option value="Audit">️ Inventory Audit (Set Exact)</option>
+                            <option value="Addition">{t('products.restock_modal.type_options.addition')}</option>
+                            <option value="Return">{t('products.restock_modal.type_options.return')}</option>
+                            <option value="Deduction">{t('products.restock_modal.type_options.deduction')}</option>
+                            <option value="Damage">{t('products.restock_modal.type_options.damage')}</option>
+                            <option value="Audit">{t('products.restock_modal.type_options.audit')}</option>
                         </Form.Select>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
                         <Form.Label className="fw-bold small">
-                            {type === 'Audit' ? 'Exact Current Count' : 'Quantity Change'}
+                            {type === 'Audit' ? t('products.restock_modal.exact_count') : t('products.restock_modal.qty_change')}
                         </Form.Label>
                         <Form.Control
                             type="number"
@@ -138,11 +140,11 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                     </Form.Group>
 
                     <Form.Group className="mb-4">
-                        <Form.Label className="fw-bold small">Reason / Note</Form.Label>
+                        <Form.Label className="fw-bold small">{t('products.restock_modal.reason_label')}</Form.Label>
                         <Form.Control
                             as="textarea"
                             rows={2}
-                            placeholder="e.g. New stock from supplier XYZ"
+                            placeholder={t('products.restock_modal.reason_placeholder')}
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                             required
@@ -156,7 +158,7 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                         disabled={loading || (!isVendorProduct && !branchId)}
                     >
                         {loading ? <Spinner animation="border" size="sm" /> : <RefreshCw size={18} />}
-                        Confirm Adjustment
+                        {t('products.restock_modal.confirm_btn')}
                     </Button>
                 </Form>
             </Modal.Body>

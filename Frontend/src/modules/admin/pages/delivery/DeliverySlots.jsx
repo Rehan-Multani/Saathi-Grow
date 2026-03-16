@@ -3,8 +3,10 @@ import { Card, Table, Button, Form, Badge, Spinner, Modal } from 'react-bootstra
 import { Plus, Edit, Trash2, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import Swal from 'sweetalert2';
 import * as api from '../../api/deliverySlotApi';
+import { useTranslation } from 'react-i18next';
 
 const DeliverySlots = () => {
+    const { t } = useTranslation();
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -27,7 +29,7 @@ const DeliverySlots = () => {
       const data = await api.getAdminDeliverySlots();
       setSlots(data);
     } catch (error) {
-      Swal.fire('Error', error.response?.data?.message || 'Failed to load delivery slots', 'error');
+      Swal.fire(t('common.error'), error.response?.data?.message || t('delivery.slots.alerts.load_error'), 'error');
     } finally {
       setLoading(false);
     }
@@ -64,15 +66,15 @@ const DeliverySlots = () => {
     try {
       if (selectedSlot) {
         await api.updateDeliverySlot(selectedSlot._id, formData);
-        Swal.fire({ icon: 'success', title: 'Updated!', text: 'Slot updated successfully', timer: 1500, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: t('common.updated'), text: t('delivery.slots.alerts.update_success'), timer: 1500, showConfirmButton: false });
       } else {
         await api.createDeliverySlot(formData);
-        Swal.fire({ icon: 'success', title: 'Created!', text: 'New slot added successfully', timer: 1500, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: t('common.created'), text: t('delivery.slots.alerts.create_success'), timer: 1500, showConfirmButton: false });
       }
       setShowModal(false);
       fetchSlots();
     } catch (error) {
-      Swal.fire('Error', error.response?.data?.message || 'Action failed', 'error');
+      Swal.fire(t('common.error'), error.response?.data?.message || t('delivery.slots.alerts.action_failed'), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -80,20 +82,20 @@ const DeliverySlots = () => {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: 'Are you sure?',
-      text: 'This slot will be permanently removed.',
+      title: t('delivery.slots.alerts.delete_confirm_title'),
+      text: t('delivery.slots.alerts.delete_confirm_text'),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonText: t('delivery.slots.alerts.delete_btn')
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.deleteDeliverySlot(id);
           fetchSlots();
-          Swal.fire('Deleted!', 'Slot has been removed.', 'success');
+          Swal.fire(t('common.deleted'), t('delivery.slots.alerts.delete_success'), 'success');
         } catch (error) {
-          Swal.fire('Error', 'Failed to delete slot', 'error');
+          Swal.fire(t('common.error'), t('delivery.slots.alerts.delete_error'), 'error');
         }
       }
     });
@@ -108,8 +110,8 @@ const DeliverySlots = () => {
               <Clock size={20} />
             </div>
             <div>
-              <h5 className="mb-0 fw-bold">Delivery Slots</h5>
-              <p className="text-muted small mb-0">Manage time windows for order deliveries</p>
+              <h5 className="mb-0 fw-bold">{t('delivery.slots.title')}</h5>
+              <p className="text-muted small mb-0">{t('delivery.slots.subtitle')}</p>
             </div>
           </div>
           <Button
@@ -117,7 +119,7 @@ const DeliverySlots = () => {
             className="d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2 rounded-3"
             onClick={() => handleOpenModal()}
           >
-            <Plus size={18} /> <span>Add New Slot</span>
+            <Plus size={18} /> <span>{t('delivery.slots.add_btn')}</span>
           </Button>
         </Card.Body>
       </Card>
@@ -127,10 +129,10 @@ const DeliverySlots = () => {
           <Table hover responsive className="mb-0 align-middle text-center">
             <thead className="bg-light text-muted small text-uppercase">
               <tr>
-                <th className="ps-4 border-0 py-3 text-start">Slot Label</th>
-                <th className="border-0 py-3">Time Window</th>
-                <th className="border-0 py-3">Status</th>
-                <th className="border-0 py-3 text-end pe-4">Actions</th>
+                <th className="ps-4 border-0 py-3 text-start">{t('delivery.slots.table.label')}</th>
+                <th className="border-0 py-3">{t('delivery.slots.table.window')}</th>
+                <th className="border-0 py-3">{t('delivery.slots.table.status')}</th>
+                <th className="border-0 py-3 text-end pe-4">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -138,7 +140,7 @@ const DeliverySlots = () => {
                 <tr>
                   <td colSpan="4" className="text-center py-5">
                     <Spinner animation="border" variant="primary" />
-                    <div className="mt-2 text-muted small">Fetching slots...</div>
+                    <div className="mt-2 text-muted small">{t('delivery.slots.fetching')}</div>
                   </td>
                 </tr>
               ) : slots.length > 0 ? slots.slice((page - 1) * limit, page * limit).map((slot) => (
@@ -154,7 +156,7 @@ const DeliverySlots = () => {
                   </td>
                   <td>
                     <Badge bg={slot.isActive ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3 py-1">
-                      {slot.isActive ? 'Active' : 'Disabled'}
+                      {slot.isActive ? t('delivery.slots.active') : t('delivery.slots.disabled')}
                     </Badge>
                   </td>
                   <td className="text-end pe-4">
@@ -177,7 +179,7 @@ const DeliverySlots = () => {
               )) : (
                 <tr>
                   <td colSpan="4" className="text-center py-5 text-muted small">
-                    No delivery slots configured yet. Click "Add New Slot" to create one.
+                    {t('delivery.slots.empty')}
                   </td>
                 </tr>
               )}
@@ -189,7 +191,7 @@ const DeliverySlots = () => {
         {!loading && slots.length > 0 && (
           <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
             <div className="text-secondary small">
-              Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, slots.length)}</span> of <span className="fw-semibold text-dark">{slots.length}</span> slots
+              {t('delivery.slots.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('delivery.slots.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, slots.length)}</span> {t('delivery.slots.pagination.of')} <span className="fw-semibold text-dark">{slots.length}</span> {t('delivery.slots.pagination.items')}
             </div>
             <div className="d-flex align-items-center gap-2">
               <Button
@@ -242,15 +244,15 @@ const DeliverySlots = () => {
       {/* Add/Edit Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="fw-bold">{selectedSlot ? 'Edit Delivery Slot' : 'Add New Delivery Slot'}</Modal.Title>
+          <Modal.Title className="fw-bold">{selectedSlot ? t('delivery.slots.modal.edit_title') : t('delivery.slots.modal.add_title')}</Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body className="py-4">
             <Form.Group className="mb-3">
-              <Form.Label className="small fw-bold">Slot Name / Label</Form.Label>
+              <Form.Label className="small fw-bold">{t('delivery.slots.modal.name_label')}</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="e.g., Morning Slot, Afternoon, Evening"
+                placeholder={t('delivery.slots.modal.name_placeholder')}
                 required
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
@@ -260,7 +262,7 @@ const DeliverySlots = () => {
             <div className="row g-3 mb-3">
               <div className="col-6">
                 <Form.Group>
-                  <Form.Label className="small fw-bold">Start Time</Form.Label>
+                  <Form.Label className="small fw-bold">{t('delivery.slots.modal.start_time')}</Form.Label>
                   <Form.Control
                     type="time"
                     required
@@ -272,7 +274,7 @@ const DeliverySlots = () => {
               </div>
               <div className="col-6">
                 <Form.Group>
-                  <Form.Label className="small fw-bold">End Time</Form.Label>
+                  <Form.Label className="small fw-bold">{t('delivery.slots.modal.end_time')}</Form.Label>
                   <Form.Control
                     type="time"
                     required
@@ -286,7 +288,7 @@ const DeliverySlots = () => {
             <Form.Check
               type="switch"
               id="slot-active-switch"
-              label="Active and visible to customers"
+              label={t('delivery.slots.modal.active_label')}
               checked={formData.isActive}
               onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
               className="mt-2"
@@ -294,11 +296,11 @@ const DeliverySlots = () => {
           </Modal.Body>
           <Modal.Footer className="border-0 pt-0">
             <Button variant="light" onClick={() => setShowModal(false)} className="px-4 border" disabled={submitting}>
-              Cancel
+              {t('delivery.slots.modal.cancel')}
             </Button>
             <Button variant="primary" type="submit" className="px-4" disabled={submitting}>
               {submitting ? <Spinner animation="border" size="sm" className="me-2" /> : null}
-              {selectedSlot ? 'Save Changes' : 'Create Slot'}
+              {selectedSlot ? t('delivery.slots.modal.save') : t('delivery.slots.modal.create')}
             </Button>
           </Modal.Footer>
         </Form>

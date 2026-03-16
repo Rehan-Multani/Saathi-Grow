@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Form, InputGroup, Badge, Spinner, Button, ProgressBar, Row, Col } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Package, ChevronLeft, ChevronRight, AlertTriangle, RefreshCcw, Filter, ExternalLink } from 'lucide-react';
 import { getLowStockAlerts, getProductById } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
@@ -8,6 +9,7 @@ import { toast } from 'react-toastify';
 import RestockModal from '../../components/products/RestockModal';
 
 const LowStockAlerts = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [alerts, setAlerts] = useState([]);
     const [branches, setBranches] = useState([]);
@@ -63,11 +65,11 @@ const LowStockAlerts = () => {
             }
         } catch (error) {
             console.error('Error fetching low stock:', error);
-            toast.error('Failed to load inventory alerts');
+            toast.error(t('stock.low_stock.loading_failed', { defaultValue: 'Failed to load inventory alerts' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, debouncedSearch, severityFilter, branchFilter]);
+    }, [adminUser.token, page, debouncedSearch, severityFilter, branchFilter, t]);
 
     useEffect(() => {
         fetchAlerts();
@@ -81,7 +83,7 @@ const LowStockAlerts = () => {
 
     const handleRestockClick = async (alertItem) => {
         if (alertItem.isVendor) {
-            toast.info('Vendor products must be managed by the vendor.');
+            toast.info(t('stock.low_stock.vendor_restriction'));
             return;
         }
 
@@ -92,7 +94,7 @@ const LowStockAlerts = () => {
             setRestockingProduct(data);
             setShowRestockModal(true);
         } catch (error) {
-            toast.error('Failed to load product details for restock');
+            toast.error(t('products.loading_failed', { defaultValue: 'Failed to load product details for restock' }));
         } finally {
             setFullProductLoading(false);
         }
@@ -109,9 +111,9 @@ const LowStockAlerts = () => {
                         </div>
                         <div>
                             <h4 className="fw-bold text-rose-900 mb-0">
-                                {loading ? 'Scanning Vault...' : `${pagination.total} Critical Shortages`}
+                                {loading ? t('stock.low_stock.scanning') : t('stock.low_stock.critical_shortages', { count: pagination.total })}
                             </h4>
-                            <p className="text-rose-600/70 text-xs fw-bold uppercase tracking-wider mb-0 mt-1">High-Priority Restock Required</p>
+                            <p className="text-rose-600/70 text-xs fw-bold uppercase tracking-wider mb-0 mt-1">{t('stock.low_stock.high_priority')}</p>
                         </div>
                     </div>
                     <Button 
@@ -122,7 +124,7 @@ const LowStockAlerts = () => {
                         disabled={loading}
                     >
                         <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
-                        Sync Data
+                        {t('stock.low_stock.sync_data')}
                     </Button>
                 </div>
             </Card>
@@ -135,7 +137,7 @@ const LowStockAlerts = () => {
                             <InputGroup className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-1 focus-within:bg-white focus-within:ring-2 focus-within:ring-rose-100 transition-all shadow-sm">
                                 <Search className="text-gray-400 mt-2" size={16} />
                                 <Form.Control
-                                    placeholder="Search product or SKU..."
+                                    placeholder={t('stock.low_stock.search_placeholder')}
                                     className="bg-transparent border-none shadow-none text-xs font-bold py-2 ms-2"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -151,9 +153,9 @@ const LowStockAlerts = () => {
                                     value={severityFilter}
                                     onChange={(e) => { setSeverityFilter(e.target.value); setPage(1); }}
                                 >
-                                    <option value="">Severity: All</option>
-                                    <option value="Critical" className="text-rose-600">Critical (OoS)</option>
-                                    <option value="Warning" className="text-amber-600">Warning (Low)</option>
+                                    <option value="">{t('stock.low_stock.severity_all')}</option>
+                                    <option value="Critical" className="text-rose-600">{t('stock.low_stock.severity_critical')}</option>
+                                    <option value="Warning" className="text-amber-600">{t('stock.low_stock.severity_warning')}</option>
                                 </Form.Select>
                             </div>
                         </Col>
@@ -167,11 +169,11 @@ const LowStockAlerts = () => {
                                         value={branchFilter}
                                         onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
                                     >
-                                        <option value="">Infrastructure: Global</option>
+                                        <option value="">{t('stock.low_stock.infrastructure_global')}</option>
                                         {branches.map(b => (
                                             <option key={b._id} value={b._id}>{b.name}</option>
                                         ))}
-                                        <option value="vendor">Vendor Managed Only</option>
+                                        <option value="vendor">{t('stock.low_stock.vendor_managed_only')}</option>
                                     </Form.Select>
                                 </div>
                             </Col>
@@ -188,19 +190,19 @@ const LowStockAlerts = () => {
                             <thead className="bg-gray-50/80 border-b border-gray-100">
                                 <tr>
                                     <th className="ps-4 py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Inventory Item</span>
+                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.item')}</span>
                                     </th>
                                     <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Deployment Point</span>
+                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.deployment')}</span>
                                     </th>
                                     <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Health Level</span>
+                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.health')}</span>
                                     </th>
                                     <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Severity</span>
+                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.severity')}</span>
                                     </th>
                                     <th className="pe-4 py-3 text-right">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Command</span>
+                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.command')}</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -233,7 +235,7 @@ const LowStockAlerts = () => {
                                         <td className="py-3">
                                             <div className="flex items-center gap-2">
                                                 <Badge className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isVendor ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                                                    {item.isVendor ? 'External Partner' : 'Branch Store'}
+                                                    {item.isVendor ? t('stock.low_stock.external_partner') : t('stock.low_stock.branch_store')}
                                                 </Badge>
                                                 <div className="text-[11px] font-bold text-gray-700 truncate">{item.isVendor ? item.storeName : item.branchName}</div>
                                             </div>
@@ -241,9 +243,9 @@ const LowStockAlerts = () => {
                                         <td className="py-3" style={{ minWidth: '180px' }}>
                                             <div className="flex justify-between mb-1.5 px-0.5">
                                                 <span className={`text-[10px] font-black uppercase ${item.stock <= 0 ? 'text-rose-700' : 'text-amber-700'}`}>
-                                                    {item.stock} Units Left
+                                                    {t('stock.low_stock.units_left', { count: item.stock })}
                                                 </span>
-                                                <span className="text-[9px] text-gray-600 font-black">Threshold: {item.threshold}</span>
+                                                <span className="text-[9px] text-gray-600 font-black">{t('stock.low_stock.threshold')}: {item.threshold}</span>
                                             </div>
                                             <ProgressBar
                                                 now={item.threshold > 0 ? Math.min(100, (item.stock / (item.threshold * 2)) * 100) : 100}
@@ -257,13 +259,13 @@ const LowStockAlerts = () => {
                                                     ? 'bg-rose-600 text-white' 
                                                     : 'bg-amber-400 text-white'
                                             }`}>
-                                                {item.severity}
+                                                {item.severity === 'Critical' ? t('stock.low_stock.severity_critical') : t('stock.low_stock.severity_warning')}
                                             </Badge>
                                         </td>
                                         <td className="pe-4 py-3 text-right">
                                             {item.isVendor ? (
                                                 <Badge bg="light" className="text-gray-600 border border-gray-300 py-1.5 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm">
-                                                    Vendor Managed
+                                                    {t('stock.low_stock.vendor_managed')}
                                                 </Badge>
                                             ) : (
                                                 <Button 
@@ -274,7 +276,7 @@ const LowStockAlerts = () => {
                                                     disabled={fullProductLoading}
                                                 >
                                                     {fullProductLoading ? <Spinner animation="border" size="sm" /> : <RefreshCcw size={12} />}
-                                                    Restock
+                                                    {t('stock.low_stock.restock')}
                                                 </Button>
                                             )}
                                         </td>
@@ -285,8 +287,8 @@ const LowStockAlerts = () => {
                                             <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-xl shadow-emerald-50">
                                                 <Package className="text-emerald-500" size={32} />
                                             </div>
-                                            <h4 className="font-black text-gray-800 text-lg uppercase tracking-tight">System Healthy</h4>
-                                            <p className="text-[12px] text-gray-400 font-medium px-10">No critical stock alerts found. All deployment points are within operational thresholds.</p>
+                                            <h4 className="font-black text-gray-800 text-lg uppercase tracking-tight">{t('stock.low_stock.system_healthy')}</h4>
+                                            <p className="text-[12px] text-gray-400 font-medium px-10">{t('stock.low_stock.no_alerts')}</p>
                                         </td>
                                     </tr>
                                 )}
@@ -299,7 +301,7 @@ const LowStockAlerts = () => {
                 {!loading && pagination.total > 0 && (
                     <div className="bg-white border-t border-gray-50 px-6 py-4 flex items-center justify-between">
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                            Analyzed <span className="text-gray-900">{((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)}</span> / {pagination.total} Records
+                            {t('stock.low_stock.analyzed_records', { range: `${((page - 1) * limit) + 1}-${Math.min(page * limit, pagination.total)}`, total: pagination.total })}
                         </span>
                         <div className="flex items-center gap-2">
                             <button
@@ -310,7 +312,7 @@ const LowStockAlerts = () => {
                                 <ChevronLeft size={18} />
                             </button>
                             <div className="px-4">
-                                <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase">Page <span className="text-gray-900">{page}</span> of {pagination.totalPages}</span>
+                                <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase">{t('stock.low_stock.page_of', { current: page, total: pagination.totalPages })}</span>
                             </div>
                             <button
                                 onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
@@ -337,7 +339,7 @@ const LowStockAlerts = () => {
                         setShowRestockModal(false);
                         setRestockingProduct(null);
                         fetchAlerts(); // Refresh list
-                        toast.success('Inventory health restored');
+                        toast.success(t('stock.low_stock.restock_success'));
                     }}
                 />
             )}

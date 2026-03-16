@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Row, Col, Spinner } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, MapPin, Store, Edit, Trash2, Info, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BranchDetailsModal from '../../components/locations/BranchDetailsModal';
@@ -10,6 +11,7 @@ import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../
 import { toast } from 'react-toastify';
 
 const Branches = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -36,11 +38,11 @@ const Branches = () => {
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             console.error('Error fetching branches:', error);
-            toast.error('Failed to load branches');
+            toast.error(t('locations.branches.loading_failed', { defaultValue: 'Failed to load branches' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, searchTerm]);
+    }, [adminUser.token, page, searchTerm, t]);
 
     useEffect(() => {
         fetchBranchesData();
@@ -68,23 +70,23 @@ const Branches = () => {
     const handleSaveBranch = async (updatedData) => {
         try {
             await updateBranch(adminUser.token, selectedBranch._id, updatedData);
-            toast.success('Branch updated successfully');
+            toast.success(t('dashboard.update_success', { defaultValue: 'Branch updated successfully' }));
             fetchBranchesData();
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || 'Failed to update branch');
+            toast.error(error.message || t('dashboard.update_failed', { defaultValue: 'Failed to update branch' }));
         }
     };
 
     const handleDelete = async (id, name) => {
-        const result = await showDeleteConfirmation('Delete Branch?', `Are you sure you want to remove "${name}"?`);
+        const result = await showDeleteConfirmation(t('locations.branches.delete_confirm_title'), t('locations.branches.delete_confirm_text', { name }));
         if (result.isConfirmed) {
             try {
                 await deleteBranch(adminUser.token, id);
                 fetchBranchesData();
-                showSuccessAlert('Deleted!', 'Branch has been removed.');
+                showSuccessAlert(t('dashboard.deleted_title'), t('dashboard.deleted_text'));
             } catch (error) {
-                showErrorAlert('Error', error.message || 'Failed to delete branch');
+                showErrorAlert(t('dashboard.error_title'), error.message || t('dashboard.failed_to_delete'));
             }
         }
     };
@@ -105,8 +107,8 @@ const Branches = () => {
                         <Store size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark">Store Branches</h4>
-                        <p className="text-muted small mb-0 d-none d-sm-block">Manage your retail locations, managers, and operational status.</p>
+                        <h4 className="fw-bold mb-1 text-dark">{t('locations.branches.title')}</h4>
+                        <p className="text-muted small mb-0 d-none d-sm-block">{t('locations.branches.subtitle')}</p>
                     </div>
                 </div>
 
@@ -114,7 +116,7 @@ const Branches = () => {
                     <InputGroup className="shadow-sm flex-grow-1" style={{ minWidth: 'min(100%, 250px)' }}>
                         <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
                         <Form.Control
-                            placeholder="Search location or manager..."
+                            placeholder={t('locations.branches.search_placeholder')}
                             className="border-start-0 ps-0 shadow-none py-2"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -122,7 +124,7 @@ const Branches = () => {
                     </InputGroup>
                     <div className="d-flex flex-row gap-2 w-100 w-md-auto">
                         <Link to="/admin/locations/branches/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 px-2 px-lg-4 shadow-sm py-2 text-nowrap">
-                            <Plus size={18} /> <span className="small fw-bold">Add Branch</span>
+                            <Plus size={18} /> <span className="small fw-bold">{t('locations.branches.add_new')}</span>
                         </Link>
                     </div>
                 </div>
@@ -133,17 +135,17 @@ const Branches = () => {
                     {loading ? (
                         <div className="text-center py-5">
                             <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">Loading branches...</p>
+                            <p className="mt-2 text-muted">{t('locations.branches.loading')}</p>
                         </div>
                     ) : (
                         <Table hover responsive className="mb-0 align-middle">
                             <thead className="bg-light text-muted small text-uppercase font-weight-bold">
                                 <tr>
-                                    <th className="ps-4 border-0 py-3">Branch Details</th>
-                                    <th className="border-0 py-3">Code</th>
-                                    <th className="border-0 py-3">Phone</th>
-                                    <th className="border-0 py-3">Status</th>
-                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                    <th className="ps-4 border-0 py-3">{t('locations.branches.table.details')}</th>
+                                    <th className="border-0 py-3">{t('locations.branches.table.code')}</th>
+                                    <th className="border-0 py-3">{t('locations.branches.table.phone')}</th>
+                                    <th className="border-0 py-3">{t('locations.branches.table.status')}</th>
+                                    <th className="border-0 py-3 text-end pe-4">{t('locations.branches.table.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -173,7 +175,7 @@ const Branches = () => {
                                                 bg={b.isActive ? 'success' : 'secondary'}
                                                 className="rounded-pill fw-normal px-3 py-1 shadow-sm"
                                             >
-                                                {b.isActive ? 'Active' : 'Inactive'}
+                                                {b.isActive ? t('locations.branches.status.active') : t('locations.branches.status.inactive')}
                                             </Badge>
                                         </td>
                                         <td className="text-end pe-4">
@@ -183,7 +185,7 @@ const Branches = () => {
                                                     size="sm"
                                                     className="btn-icon-soft text-primary border shadow-none"
                                                     onClick={() => handleShowDetails(b)}
-                                                    title="View Details"
+                                                    title={t('locations.branches.view_details')}
                                                 >
                                                     <Info size={16} />
                                                 </Button>
@@ -192,7 +194,7 @@ const Branches = () => {
                                                     size="sm"
                                                     className="btn-icon-soft text-warning border shadow-none"
                                                     onClick={() => handleEdit(b)}
-                                                    title="Edit"
+                                                    title={t('locations.branches.edit')}
                                                 >
                                                     <Edit size={16} />
                                                 </Button>
@@ -201,7 +203,7 @@ const Branches = () => {
                                                     size="sm"
                                                     className="btn-icon-soft text-danger border shadow-none"
                                                     onClick={() => handleDelete(b._id, b.name)}
-                                                    title="Delete"
+                                                    title={t('locations.branches.delete')}
                                                 >
                                                     <Trash2 size={16} />
                                                 </Button>
@@ -211,7 +213,7 @@ const Branches = () => {
                                 )) : (
                                     <tr>
                                         <td colSpan="6" className="text-center py-5">
-                                            <div className="text-muted">No branches found matching your search.</div>
+                                            <div className="text-muted">{t('locations.branches.no_branches')}</div>
                                         </td>
                                     </tr>
                                 )}
@@ -224,7 +226,7 @@ const Branches = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> branches
+                            {t('locations.branches.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('locations.branches.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('locations.branches.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('locations.branches.title')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

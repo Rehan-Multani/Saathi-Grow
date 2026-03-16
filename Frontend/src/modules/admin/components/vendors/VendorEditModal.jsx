@@ -1,12 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col, Spinner, Image } from 'react-bootstrap';
 import { Save, Store, User, Phone, Mail, MapPin, Camera, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { updateVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import GoogleMapsInput from '../common/GoogleMapsInput';
 
 const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -105,11 +105,11 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
             }
 
             await updateVendor(adminUser.token, vendor._id, data);
-            toast.success('Vendor updated successfully');
+            toast.success(t('dashboard.status_updated_success'));
             onSave();
             onHide();
         } catch (error) {
-            toast.error(error.message || 'Failed to update vendor');
+            toast.error(error.message || t('dashboard.status_update_failed'));
         } finally {
             setLoading(false);
         }
@@ -119,7 +119,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         <Modal show={show} onHide={onHide} centered size="lg" className="vendor-edit-modal">
             <Modal.Header closeButton className="border-0 pb-0 px-4">
                 <Modal.Title className="fw-bold d-flex align-items-center gap-2">
-                    <Store className="text-primary" size={24} /> Edit Vendor Profile
+                    <Store className="text-primary" size={24} /> {t('vendors.edit_modal.title')}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="pt-4 px-4 pb-4">
@@ -128,7 +128,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                         <Col md={8}>
                             <Row className="g-3 mb-3">
                                 <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">Store Name</Form.Label>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.store_name')}</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="storeName"
@@ -139,7 +139,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                     />
                                 </Col>
                                 <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">Owner Name</Form.Label>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.owner_name')}</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="ownerName"
@@ -153,7 +153,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
 
                             <Row className="g-3 mb-3">
                                 <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">Email Address</Form.Label>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.email_address')}</Form.Label>
                                     <Form.Control
                                         type="email"
                                         name="email"
@@ -164,7 +164,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                     />
                                 </Col>
                                 <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">Phone Number</Form.Label>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.phone_number')}</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="phone"
@@ -178,7 +178,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                         </Col>
 
                         <Col md={4} className="border-start">
-                            <Form.Label className="small fw-bold text-muted uppercase">Store Logo</Form.Label>
+                            <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.store_logo')}</Form.Label>
                             <div className="text-center p-3 border border-dashed rounded bg-light position-relative">
                                 {logoPreview ? (
                                     <div className="position-relative">
@@ -191,7 +191,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                 ) : (
                                     <label className="cursor-pointer py-4 d-block">
                                         <Camera size={30} className="text-muted mb-2" />
-                                        <div className="small text-muted">Update Logo</div>
+                                        <div className="small text-muted">{t('vendors.edit_modal.update_logo')}</div>
                                         <input type="file" className="d-none" onChange={handleLogoChange} accept="image/*" />
                                     </label>
                                 )}
@@ -201,17 +201,17 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
 
                     <Row className="g-3 mb-3">
                         <Col md={12}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Store Address (Search on Map)</Form.Label>
+                            <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.store_address')}</Form.Label>
                             <GoogleMapsInput
                                 onLocationSelect={handleLocationSelect}
                                 defaultValue={typeof formData.address === 'object' ? formData.address.street : formData.address}
-                                placeholder="Search for new location..."
+                                placeholder={t('vendors.edit_modal.address_placeholder')}
                             />
 
                             <div className="mt-3 p-3 bg-light rounded border">
                                 <Row className="g-2">
                                     <Col md={12}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">Street</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.street')}</Form.Label>
                                         <Form.Control
                                             type="text"
                                             value={formData.address.street}
@@ -224,7 +224,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                         />
                                     </Col>
                                     <Col md={4}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">City</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.city')}</Form.Label>
                                         <Form.Control
                                             type="text"
                                             value={formData.address.city}
@@ -237,7 +237,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                         />
                                     </Col>
                                     <Col md={4}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">State</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.state')}</Form.Label>
                                         <Form.Control
                                             type="text"
                                             value={formData.address.state}
@@ -250,7 +250,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                         />
                                     </Col>
                                     <Col md={4}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">Zip Code</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.zip_code')}</Form.Label>
                                         <Form.Control
                                             type="text"
                                             value={formData.address.zipCode}
@@ -269,27 +269,27 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
 
                     <Row className="g-3">
                         <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Status</Form.Label>
+                            <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.status')}</Form.Label>
                             <Form.Select
                                 name="status"
                                 value={formData.status}
                                 onChange={handleChange}
                                 className="bg-light border-0 py-2 shadow-none"
                             >
-                                <option value="Active">Active</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="Active">{t('vendors.status.active')}</option>
+                                <option value="Pending">{t('vendors.status.pending')}</option>
+                                <option value="Inactive">{t('vendors.status.inactive')}</option>
                             </Form.Select>
                         </Col>
                     </Row>
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium border shadow-none" disabled={loading}>
-                            Discard
+                            {t('vendors.edit_modal.discard')}
                         </Button>
                         <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm" disabled={loading}>
                             {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                            {loading ? 'Updating...' : 'Update Vendor'}
+                            {loading ? t('vendors.edit_modal.updating') : t('vendors.edit_modal.update_btn')}
                         </Button>
                     </div>
                 </Form>

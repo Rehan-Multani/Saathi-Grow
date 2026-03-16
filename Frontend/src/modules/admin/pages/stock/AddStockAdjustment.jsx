@@ -6,9 +6,11 @@ import { getProducts, bulkAdjustInventory } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { Autocomplete, TextField, IconButton } from '@mui/material';
 
 const AddStockAdjustment = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
@@ -52,7 +54,7 @@ const AddStockAdjustment = () => {
                 setBranches(branchesData.filter(b => b.isActive));
             } catch (error) {
                 console.error('Error fetching data:', error);
-                toast.error('Failed to load products and branches');
+                toast.error(t('stock.add_adjustment.alerts.load_error'));
             } finally {
                 setInitialLoading(false);
             }
@@ -84,7 +86,7 @@ const AddStockAdjustment = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (selectedProducts.length === 0 || !formData.branchId || !formData.reason) {
-            toast.warning('Please select products, branch, and reason');
+            toast.warning(t('stock.add_adjustment.alerts.validation'));
             return;
         }
 
@@ -98,7 +100,7 @@ const AddStockAdjustment = () => {
 
             // Validate amounts
             if (adjustments.some(a => a.amount === 0 && formData.type !== 'Audit')) {
-                toast.warning('Please provide quantities for all products');
+                toast.warning(t('stock.add_adjustment.alerts.qty_required'));
                 setLoading(false);
                 return;
             }
@@ -112,10 +114,10 @@ const AddStockAdjustment = () => {
                 }
             });
 
-            toast.success('Inventory adjusted successfully');
+            toast.success(t('stock.add_adjustment.alerts.success'));
             navigate('/admin/stock/adjustments');
         } catch (error) {
-            toast.error(error.message || 'Failed to adjust stock');
+            toast.error(error.message || t('stock.add_adjustment.alerts.error'));
         } finally {
             setLoading(false);
         }
@@ -125,7 +127,7 @@ const AddStockAdjustment = () => {
         return (
             <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
                 <Spinner animation="border" variant="primary" />
-                <p className="mt-3 text-muted">Preparing Adjustment Form...</p>
+                <p className="mt-3 text-muted">{t('stock.add_adjustment.preparing')}</p>
             </div>
         );
     }
@@ -143,8 +145,8 @@ const AddStockAdjustment = () => {
                         <ArrowLeft size={18} />
                     </Button>
                     <div>
-                        <h4 className="fw-bold mb-0">New Stock Adjustment</h4>
-                        <p className="text-muted small mb-0">Manage stock levels across branches</p>
+                        <h4 className="fw-bold mb-0">{t('stock.add_adjustment.title')}</h4>
+                        <p className="text-muted small mb-0">{t('stock.add_adjustment.subtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -155,7 +157,7 @@ const AddStockAdjustment = () => {
                         <Card className="border-0 shadow-sm mb-4">
                             <Card.Body className="p-4">
                                 <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-primary">
-                                    <Package size={18} /> 1. Select Products
+                                    <Package size={18} /> {t('stock.add_adjustment.step1')}
                                 </h6>
                                 
                                 <Autocomplete
@@ -169,8 +171,8 @@ const AddStockAdjustment = () => {
                                         <TextField
                                             {...params}
                                             variant="outlined"
-                                            label="Search Products by Name or SKU..."
-                                            placeholder="Products"
+                                            label={t('stock.add_adjustment.search_placeholder')}
+                                            placeholder={t('stock.add_adjustment.table.product')}
                                             fullWidth
                                         />
                                     )}
@@ -180,16 +182,16 @@ const AddStockAdjustment = () => {
                                 {selectedProducts.length > 0 && (
                                     <div className="mt-4">
                                         <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <span className="small fw-bold text-muted">SELECTED ITEMS ({selectedProducts.length})</span>
+                                            <span className="small fw-bold text-muted">{t('stock.add_adjustment.selected_items', { count: selectedProducts.length })}</span>
                                             {selectedProducts.length > 1 && (
                                                 <Form.Group className="d-flex align-items-center gap-2">
-                                                    <Form.Label className="mb-0 small text-nowrap">Set Common Qty:</Form.Label>
+                                                    <Form.Label className="mb-0 small text-nowrap">{t('stock.add_adjustment.set_common_qty')}</Form.Label>
                                                     <Form.Control 
                                                         type="number" 
                                                         size="sm" 
                                                         style={{ width: '80px' }} 
                                                         value={formData.commonAmount}
-                                                        placeholder="Qty"
+                                                        placeholder={t('stock.add_adjustment.qty_placeholder')}
                                                         onChange={(e) => setFormData({...formData, commonAmount: e.target.value})}
                                                     />
                                                 </Form.Group>
@@ -199,9 +201,9 @@ const AddStockAdjustment = () => {
                                             <Table hover className="align-middle mb-0">
                                                 <thead className="bg-light">
                                                     <tr className="small text-muted">
-                                                        <th className="ps-3">Product</th>
-                                                        <th className="text-center">Quantity</th>
-                                                        <th className="text-end pe-3">Remove</th>
+                                                        <th className="ps-3">{t('stock.add_adjustment.table.product')}</th>
+                                                        <th className="text-center">{t('stock.add_adjustment.table.quantity')}</th>
+                                                        <th className="text-end pe-3">{t('stock.add_adjustment.table.remove')}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -248,11 +250,11 @@ const AddStockAdjustment = () => {
                         <Card className="border-0 shadow-sm sticky-top" style={{ top: '20px' }}>
                             <Card.Body className="p-4">
                                 <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-primary">
-                                    <Layers size={18} /> 2. Adjustment Details
+                                    <Layers size={18} /> {t('stock.add_adjustment.step2')}
                                 </h6>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Target Branch <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.target_branch')} <span className="text-danger">*</span></Form.Label>
                                     <Form.Select 
                                         name="branchId" 
                                         value={formData.branchId} 
@@ -260,7 +262,7 @@ const AddStockAdjustment = () => {
                                         required 
                                         className="shadow-none border-secondary-subtle"
                                     >
-                                        <option value="">Select Branch...</option>
+                                        <option value="">{t('stock.add_adjustment.select_branch')}</option>
                                         {branches.map(b => (
                                             <option key={b._id} value={b._id}>{b.name} ({b.code})</option>
                                         ))}
@@ -268,23 +270,23 @@ const AddStockAdjustment = () => {
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Adjustment Type <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.adjustment_type')} <span className="text-danger">*</span></Form.Label>
                                     <Form.Select 
                                         name="type" 
                                         value={formData.type} 
                                         onChange={handleChange}
                                         className="shadow-none border-secondary-subtle"
                                     >
-                                        <option value="Addition">Addition (+)</option>
-                                        <option value="Deduction">Deduction (-)</option>
-                                        <option value="Damage">Damage (-)</option>
-                                        <option value="Return">Return (+)</option>
-                                        <option value="Audit">Audit (Direct Set)</option>
+                                        <option value="Addition">{t('stock.add_adjustment.types.addition')}</option>
+                                        <option value="Deduction">{t('stock.add_adjustment.types.deduction')}</option>
+                                        <option value="Damage">{t('stock.add_adjustment.types.damage')}</option>
+                                        <option value="Return">{t('stock.add_adjustment.types.return')}</option>
+                                        <option value="Audit">{t('stock.add_adjustment.types.audit')}</option>
                                     </Form.Select>
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Reason <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.reason')} <span className="text-danger">*</span></Form.Label>
                                     <Form.Select 
                                         name="reason" 
                                         value={formData.reason} 
@@ -292,19 +294,33 @@ const AddStockAdjustment = () => {
                                         required
                                         className="shadow-none border-secondary-subtle"
                                     >
-                                        <option value="">Select Reason...</option>
-                                        {REASONS.map((r, idx) => (
-                                            <option key={idx} value={r}>{r}</option>
-                                        ))}
+                                        <option value="">{t('stock.add_adjustment.select_reason')}</option>
+                                        {REASONS.map((r, idx) => {
+                                            const reasonKey = r.toLowerCase().replace(/[\s\/]/g, '_');
+                                            // Mapping hardcoded reasons to keys if I want, or just translation call with generic map
+                                            // Let's use a mapping object for safety
+                                            const map = {
+                                                'new stock arrival': 'arrival',
+                                                'damaged goods': 'damaged',
+                                                'inventory correction': 'correction',
+                                                'return': 'return',
+                                                'theft/loss': 'loss',
+                                                'audit': 'audit',
+                                                'other': 'other'
+                                            };
+                                            return (
+                                                <option key={idx} value={r}>{t(`stock.add_adjustment.reasons.${map[r.toLowerCase()] || 'other'}`)}</option>
+                                            );
+                                        })}
                                     </Form.Select>
                                 </Form.Group>
 
                                 <Form.Group className="mb-4">
-                                    <Form.Label className="small fw-bold">Notes (Optional)</Form.Label>
+                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.notes')}</Form.Label>
                                     <Form.Control
                                         as="textarea"
                                         rows={2}
-                                        placeholder="Internal reference..."
+                                        placeholder={t('stock.add_adjustment.notes_placeholder')}
                                         name="notes"
                                         value={formData.notes}
                                         onChange={handleChange}
@@ -321,10 +337,10 @@ const AddStockAdjustment = () => {
                                         disabled={loading || selectedProducts.length === 0}
                                     >
                                         {loading ? <Spinner animation="border" size="sm" /> : <Save size={20} />}
-                                        {loading ? 'Processing...' : `Adjustment Products (${selectedProducts.length})`}
+                                        {loading ? t('stock.add_adjustment.processing') : t('stock.add_adjustment.submit_btn', { count: selectedProducts.length })}
                                     </Button>
                                     <Button variant="light" onClick={() => navigate('/admin/stock/adjustments')} disabled={loading}>
-                                        Cancel
+                                        {t('stock.add_adjustment.cancel')}
                                     </Button>
                                 </div>
                             </Card.Body>

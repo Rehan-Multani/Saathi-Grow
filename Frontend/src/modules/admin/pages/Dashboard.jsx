@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { 
     ShoppingCart, Package, Users, IndianRupee, TrendingUp, TrendingDown, 
@@ -50,6 +51,7 @@ const SectionHeader = ({ title, subtitle, icon: Icon }) => (
 );
 
 const Dashboard = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -80,7 +82,7 @@ const Dashboard = () => {
                     <div className="w-20 h-20 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin"></div>
                     <Activity size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 animate-pulse" />
                 </div>
-                <p className="mt-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Booting Intelligence...</p>
+                <p className="mt-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('dashboard.booting_intelligence')}</p>
             </div>
         );
     }
@@ -88,8 +90,8 @@ const Dashboard = () => {
     const { stats: apiStats, recentOrders: apiOrders, revenueData: apiRevenueData, channels } = stats || {};
 
     const pieData = [
-        { name: 'POS', value: channels?.pos || 0, color: '#3B82F6' },
-        { name: 'Online', value: channels?.online || 0, color: '#8B5CF6' }
+        { name: t('dashboard.channels.pos'), value: channels?.pos || 0, color: '#3B82F6' },
+        { name: t('dashboard.channels.online'), value: channels?.online || 0, color: '#8B5CF6' }
     ];
 
     const handleViewOrder = (order) => {
@@ -107,48 +109,52 @@ const Dashboard = () => {
                 <div className="relative">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-3 animate-fade-in">
                         <Activity size={12} className="animate-pulse" /> 
-                        Operational Command Center
+                        {t('dashboard.operational_command_center')}
                     </div>
                     <h1 className="text-4xl font-black text-gray-900 tracking-tighter leading-none">
-                        Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{adminUser?.name?.split(' ')[0]}</span>
+                        {t('common.welcome_back')}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{adminUser?.name?.split(' ')[0]}</span>
                     </h1>
-                    <p className="text-gray-400 text-sm mt-2 font-medium">Monitoring {adminUser?.role === 'Admin' ? 'Global Operations' : `Branch: ${adminUser?.branchId || 'Assigned Branch'}`}</p>
+                    <p className="text-gray-400 text-sm mt-2 font-medium">
+                        {adminUser?.role === 'Admin' 
+                            ? t('dashboard.monitoring_global_operations') 
+                            : `${t('dashboard.assigned_branch')}: ${adminUser?.branchId || t('dashboard.assigned_branch')}`}
+                    </p>
                 </div>
             </div>
 
             {/* Main KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 <StatCard 
-                    title="Revenue (30d)" 
+                    title={t('dashboard.revenue_30d')} 
                     value={`₹${apiStats?.totalRevenue?.toLocaleString() || 0}`} 
                     icon={IndianRupee} 
                     color="#3B82F6" 
                     trend={apiStats?.revenueGrowth >= 0 ? 'up' : 'down'}
                     trendValue={Math.abs(apiStats?.revenueGrowth)}
-                    subtitle="Gross volume after discounts"
+                    subtitle={t('dashboard.gross_volume_after_discounts')}
                 />
                 <StatCard 
-                    title="Order Flow" 
+                    title={t('dashboard.order_flow')} 
                     value={apiStats?.totalOrders || 0} 
                     icon={ShoppingCart} 
                     color="#10B981" 
                     trend={apiStats?.orderGrowth >= 0 ? 'up' : 'down'}
                     trendValue={Math.abs(apiStats?.orderGrowth)}
-                    subtitle="Live transaction throughput"
+                    subtitle={t('dashboard.live_transaction_throughput')}
                 />
                 <StatCard 
-                    title="Processing" 
+                    title={t('dashboard.processing')} 
                     value={apiStats?.pendingOrders || 0} 
                     icon={Package} 
                     color="#F59E0B"
-                    subtitle={`${apiStats?.pendingOrders > 5 ? 'High workload' : 'Normal volume'}`}
+                    subtitle={apiStats?.pendingOrders > 5 ? t('dashboard.high_workload') : t('dashboard.normal_volume')}
                 />
                 <StatCard 
-                    title="Active Market" 
+                    title={t('dashboard.active_market')} 
                     value={adminUser?.role === 'Admin' ? apiStats?.totalUsers : apiStats?.totalProducts} 
                     icon={adminUser?.role === 'Admin' ? Users : Target} 
                     color="#8B5CF6"
-                    subtitle={`${adminUser?.role === 'Admin' ? 'Registered customers' : 'Available inventory'}`}
+                    subtitle={adminUser?.role === 'Admin' ? t('dashboard.registered_customers') : t('dashboard.available_inventory')}
                 />
             </div>
 
@@ -157,7 +163,7 @@ const Dashboard = () => {
                 {/* Visual Intelligence Section */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden">
-                        <SectionHeader title="Performance Trajectory" subtitle="Revenue and transaction volume (7D Trend)" icon={TrendingUp} />
+                        <SectionHeader title={t('dashboard.performance_trajectory')} subtitle={t('dashboard.revenue_and_transaction_volume')} icon={TrendingUp} />
                         
                         <div className="h-[400px] w-full mt-8">
                             <ResponsiveContainer width="100%" height="100%">
@@ -203,7 +209,7 @@ const Dashboard = () => {
                     {/* Channel Split & Market Share */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
-                            <SectionHeader title="Channel Split" subtitle="Source of last 30 days orders" icon={PieChartIcon} />
+                            <SectionHeader title={t('dashboard.channel_split')} subtitle={t('dashboard.source_of_orders')} icon={PieChartIcon} />
                             <div className="h-[200px] flex items-center justify-center">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
@@ -237,12 +243,12 @@ const Dashboard = () => {
                             <div className="absolute top-0 right-0 p-4">
                                 <AlertTriangle className="text-rose-100" size={80} strokeWidth={1} />
                             </div>
-                            <SectionHeader title="Inventory Health" subtitle="Actionable stock intelligence" icon={Zap} />
+                            <SectionHeader title={t('dashboard.inventory_health')} subtitle={t('dashboard.actionable_stock_intelligence')} icon={Zap} />
                             <div className="mt-4">
                                 <div className="text-4xl font-black text-gray-900 mb-2">{apiStats?.lowStockCount || 0}</div>
-                                <p className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-6">SKUs Below Threshold</p>
+                                <p className="text-xs font-bold text-rose-500 uppercase tracking-widest mb-6">{t('dashboard.skus_below_threshold')}</p>
                                 <Link to="/admin/stock" className="inline-flex items-center gap-2 text-xs font-black text-blue-600 hover:gap-3 transition-all">
-                                    Manage Procurement <ChevronRight size={14} />
+                                    {t('dashboard.manage_procurement')} <ChevronRight size={14} />
                                 </Link>
                             </div>
                         </div>
@@ -256,16 +262,16 @@ const Dashboard = () => {
                         <div className="absolute -bottom-10 -right-10 opacity-20 transform rotate-12">
                             <MessageSquare size={160} strokeWidth={1} />
                         </div>
-                        <h4 className="text-lg font-black tracking-tight mb-2">Support Pulse</h4>
-                        <p className="text-slate-400 text-xs mb-8">Pending store escalations</p>
+                        <h4 className="text-lg font-black tracking-tight mb-2">{t('dashboard.support_pulse')}</h4>
+                        <p className="text-slate-400 text-xs mb-8">{t('dashboard.pending_store_escalations')}</p>
                         
                         <div className="flex items-end gap-3 mb-8">
                             <span className="text-5xl font-black">{apiStats?.pendingTickets || 0}</span>
-                            <span className="bg-rose-500/20 text-rose-400 text-[10px] font-black px-2 py-1 rounded-full uppercase mb-2">Urgent</span>
+                            <span className="bg-rose-500/20 text-rose-400 text-[10px] font-black px-2 py-1 rounded-full uppercase mb-2">{t('dashboard.urgent')}</span>
                         </div>
                         
                         <Link to="/admin/support" className="flex items-center justify-between w-full p-4 bg-white/10 rounded-2xl hover:bg-white/15 transition-all text-xs font-bold group">
-                            Resolve Tickets <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            {t('dashboard.resolve_tickets')} <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
@@ -276,33 +282,33 @@ const Dashboard = () => {
                                 <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
                                     <Truck size={20} />
                                 </div>
-                                <span className="font-bold text-gray-900">Rider Hub</span>
+                                <span className="font-bold text-gray-900">{t('dashboard.rider_hub')}</span>
                             </div>
-                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-black animate-pulse uppercase">Live</span>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-black animate-pulse uppercase">{t('dashboard.live')}</span>
                         </div>
                         <div className="flex items-center gap-4 mb-6">
                             <div className="text-3xl font-black text-gray-900">{apiStats?.activeRiders || 0}</div>
-                            <div className="text-xs text-gray-400 font-medium">Partners ready for <br/> assignment in 10km radius</div>
+                            <div className="text-xs text-gray-400 font-medium">{t('dashboard.partners_ready')} <br/> {t('dashboard.radius_msg')}</div>
                         </div>
                         <Link to="/admin/delivery" className="block text-center py-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-xs font-bold text-gray-600 transition-all">
-                            Manage Fleet
+                            {t('dashboard.manage_fleet')}
                         </Link>
                     </div>
 
                     {/* Quick Access Menu */}
                     <div className="bg-indigo-50/50 rounded-[2rem] p-8 border border-indigo-100/50">
-                        <h5 className="text-sm font-black text-indigo-900 tracking-tight mb-4 uppercase tracking-[0.1em]">Instant Actions</h5>
+                        <h5 className="text-sm font-black text-indigo-900 tracking-tight mb-4 uppercase tracking-[0.1em]">{t('dashboard.instant_actions')}</h5>
                         <div className="grid grid-cols-2 gap-4">
                             {[
-                                { label: 'Campaigns', icon: Target },
-                                { label: 'Customers', icon: Users },
-                                { label: 'Vendors', icon: Truck },
-                                { label: 'Settings', icon: Activity },
+                                { label: t('dashboard.campaigns'), icon: Target, path: '/admin/campaigns' },
+                                { label: t('common.customers'), icon: Users, path: '/admin/customers' },
+                                { label: t('common.vendors'), icon: Truck, path: '/admin/vendors' },
+                                { label: t('common.settings'), icon: Activity, path: '/admin/settings/app' },
                             ].map((item, i) => (
-                                <div key={i} className="p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm hover:shadow-md cursor-pointer group transition-all">
+                                <Link to={item.path} key={i} className="p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm hover:shadow-md cursor-pointer group transition-all">
                                     <item.icon size={20} className="text-indigo-600 mb-2 group-hover:scale-110 transition-transform" />
                                     <div className="text-[10px] font-black text-gray-800 uppercase tracking-widest">{item.label}</div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -313,11 +319,11 @@ const Dashboard = () => {
             <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden mb-10">
                 <div className="p-8 border-b border-gray-50 flex justify-between items-center">
                     <div>
-                        <h5 className="text-xl font-black text-gray-900 tracking-tight">Recent Transactions</h5>
-                        <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Live Order Stream</p>
+                        <h5 className="text-xl font-black text-gray-900 tracking-tight">{t('dashboard.recent_transactions')}</h5>
+                        <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">{t('dashboard.live_order_stream')}</p>
                     </div>
                     <Link to="/admin/orders" className="flex items-center gap-2 text-xs font-black text-blue-600 hover:gap-3 transition-all">
-                        View All History <ArrowUpRight size={14} />
+                        {t('dashboard.view_all_history')} <ArrowUpRight size={14} />
                     </Link>
                 </div>
                 
@@ -325,11 +331,11 @@ const Dashboard = () => {
                     <table className="w-full text-left">
                         <thead className="bg-gray-50/50 text-[10px] uppercase font-black tracking-widest text-gray-400">
                             <tr>
-                                <th className="px-8 py-4">Transaction ID</th>
-                                <th className="px-8 py-4">Customer Entity</th>
-                                <th className="px-8 py-4">Invoice Value</th>
-                                <th className="px-8 py-4">Status</th>
-                                <th className="px-8 py-4 text-center">Protocol</th>
+                                <th className="px-8 py-4">{t('dashboard.transaction_id')}</th>
+                                <th className="px-8 py-4">{t('dashboard.customer_entity')}</th>
+                                <th className="px-8 py-4">{t('dashboard.invoice_value')}</th>
+                                <th className="px-8 py-4">{t('dashboard.status')}</th>
+                                <th className="px-8 py-4 text-center">{t('dashboard.protocol')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">

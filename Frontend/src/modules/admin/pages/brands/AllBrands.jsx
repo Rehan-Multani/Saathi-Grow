@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, Edit, Trash2, Tag, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
@@ -9,6 +10,7 @@ import { getBrands, deleteBrand, updateBrand } from '../../api/brandApi';
 import { toast } from 'react-toastify';
 
 const AllBrands = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,11 +25,11 @@ const AllBrands = () => {
             setBrands(data);
         } catch (error) {
             console.error('Error fetching brands:', error);
-            toast.error('Failed to load brands');
+            toast.error(t('brands.loading_failed', { defaultValue: 'Failed to load brands' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token]);
+    }, [adminUser.token, t]);
 
     useEffect(() => {
         fetchBrands();
@@ -51,14 +53,14 @@ const AllBrands = () => {
     }, [searchTerm]);
 
     const handleDelete = async (id) => {
-        const result = await showDeleteConfirmation('Delete Brand', 'Are you sure you want to delete this brand? This action cannot be undone.');
+        const result = await showDeleteConfirmation(t('dashboard.delete_confirm_title'), t('dashboard.delete_confirm_text', { name: 'this brand' }));
         if (result.isConfirmed) {
             try {
                 await deleteBrand(adminUser.token, id);
                 setBrands(brands.filter(b => b._id !== id));
-                await showSuccessAlert('Deleted!', 'Brand has been deleted.');
+                await showSuccessAlert(t('dashboard.deleted_title'), t('dashboard.deleted_text'));
             } catch (error) {
-                showErrorAlert('Error', error.message || 'Failed to delete brand');
+                showErrorAlert(t('dashboard.error_title'), error.message || t('dashboard.failed_to_delete'));
             }
         }
     };
@@ -86,12 +88,12 @@ const AllBrands = () => {
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <h5 className="mb-0 fw-bold">Marketplace Brands</h5>
+                    <h5 className="mb-0 fw-bold">{t('brands.title')}</h5>
                     <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-sm-end">
                         <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Search by name or category..."
+                                placeholder={t('brands.search_placeholder')}
                                 className="border-start-0 ps-0 shadow-none"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -100,8 +102,8 @@ const AllBrands = () => {
                         <div className="d-flex gap-2">
                             <Link to="/admin/brands/add" className={`btn btn-primary d-flex align-items-center justify-content-center gap-2 shadow-sm ${adminUser.role !== 'Admin' ? 'disabled opacity-50' : ''}`}>
                                 <Plus size={18} />
-                                <span className="d-none d-sm-inline">Add Brand</span>
-                                <span className="d-inline d-sm-none">Add</span>
+                                <span className="d-none d-sm-inline">{t('brands.add_brand')}</span>
+                                <span className="d-inline d-sm-none">{t('brands.add_short')}</span>
                             </Link>
                         </div>
                     </div>
@@ -113,17 +115,17 @@ const AllBrands = () => {
                     {loading ? (
                         <div className="text-center py-5">
                             <Spinner animation="grow" variant="primary" />
-                            <p className="mt-2 text-muted">Loading brands...</p>
+                            <p className="mt-2 text-muted">{t('brands.loading')}</p>
                         </div>
                     ) : paginatedBrands.length > 0 ? (
                         <Table hover responsive className="mb-0 align-middle">
                             <thead className="bg-light text-muted small text-uppercase">
                                 <tr>
-                                    <th className="ps-4 border-0 py-3">Brand</th>
-                                    <th className="border-0 py-3">Category</th>
-                                    <th className="border-0 py-3">Details</th>
-                                    <th className="border-0 py-3">Status</th>
-                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                    <th className="ps-4 border-0 py-3">{t('brands.table.brand')}</th>
+                                    <th className="border-0 py-3">{t('brands.table.category')}</th>
+                                    <th className="border-0 py-3">{t('brands.table.details')}</th>
+                                    <th className="border-0 py-3">{t('brands.table.status')}</th>
+                                    <th className="border-0 py-3 text-end pe-4">{t('brands.table.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -149,12 +151,12 @@ const AllBrands = () => {
                                             </Badge>
                                         </td>
                                         <td className="small text-muted">
-                                            {b.website ? <a href={b.website} target="_blank" rel="noreferrer" className="text-decoration-none d-block">Website</a> : null}
-                                            <span className="text-truncate d-inline-block" style={{ maxWidth: '200px' }}>{b.description || 'No description'}</span>
+                                            {b.website ? <a href={b.website} target="_blank" rel="noreferrer" className="text-decoration-none d-block">{t('brands.website')}</a> : null}
+                                            <span className="text-truncate d-inline-block" style={{ maxWidth: '200px' }}>{b.description || t('brands.no_description')}</span>
                                         </td>
                                         <td>
                                             <Badge bg={b.status === 'Active' ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3">
-                                                {b.status}
+                                                {b.status === 'Active' ? t('products.status.active') : t('products.status.draft')}
                                             </Badge>
                                         </td>
                                         <td className="text-end pe-4">
@@ -182,9 +184,9 @@ const AllBrands = () => {
                     ) : (
                         <div className="text-center py-5">
                             <Tag size={48} className="text-muted mb-3 opacity-20" />
-                            <h5>No Brands Found</h5>
-                            <p className="text-muted">Start by adding your first brand!</p>
-                            <Link to="/admin/brands/add" className="btn btn-primary mt-2">Add New Brand</Link>
+                            <h5>{t('brands.no_brands')}</h5>
+                            <p className="text-muted">{t('brands.start_adding')}</p>
+                            <Link to="/admin/brands/add" className="btn btn-primary mt-2">{t('brands.add_new_btn')}</Link>
                         </div>
                     )}
                 </Card.Body>
@@ -193,7 +195,7 @@ const AllBrands = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> brands
+                            {t('brands.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('brands.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('brands.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('brands.title')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

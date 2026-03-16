@@ -3,8 +3,10 @@ import { RefreshCcw, Check, X, Search, Database, ChevronLeft, ChevronRight } fro
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getInventoryRequests, approveInventoryRequest, rejectInventoryRequest } from '../../../store-manager/api/inventoryRequestApi';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const InventoryRequests = () => {
+  const { t } = useTranslation();
   const { adminUser } = useAdminAuth();
   const token = adminUser?.token;
   const [requests, setRequests] = useState([]);
@@ -19,7 +21,7 @@ const InventoryRequests = () => {
       const data = await getInventoryRequests(token);
       setRequests(data);
     } catch (error) {
-      toast.error(error.message || 'Failed to fetch inventory requests');
+      toast.error(error.message || t('stock.requests.alerts.fetch_error'));
     } finally {
       setLoading(false);
     }
@@ -32,21 +34,21 @@ const InventoryRequests = () => {
   const handleApprove = async (id) => {
     try {
       await approveInventoryRequest(token, id);
-      toast.success('Request approved successfully');
+      toast.success(t('stock.requests.alerts.approve_success'));
       fetchRequests();
     } catch (error) {
-      toast.error(error.message || 'Error parsing the request handling');
+      toast.error(error.message || t('stock.requests.alerts.approve_error'));
     }
   };
 
   const handleReject = async (id) => {
-    if (window.confirm("Are you sure you want to reject this update request?")) {
+    if (window.confirm(t('stock.requests.alerts.reject_confirm'))) {
       try {
         await rejectInventoryRequest(token, id);
-        toast.success('Request rejected');
+        toast.success(t('stock.requests.alerts.reject_success'));
         fetchRequests();
       } catch (error) {
-        toast.error(error.message || 'Failed to reject the stock update');
+        toast.error(error.message || t('stock.requests.alerts.reject_error'));
       }
     }
   };
@@ -69,8 +71,8 @@ const InventoryRequests = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Branch Inventory Requests</h2>
-          <p className="text-sm text-gray-500 mt-1">Review and approve stock adjustments from store managers</p>
+          <h2 className="text-2xl font-bold text-gray-800">{t('stock.requests.title')}</h2>
+          <p className="text-sm text-gray-500 mt-1">{t('stock.requests.subtitle')}</p>
         </div>
       </div>
 
@@ -80,14 +82,14 @@ const InventoryRequests = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search by product or branch..."
+              placeholder={t('stock.requests.search_placeholder')}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c831f]/20 focus:border-[#0c831f]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <button onClick={fetchRequests} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-            <RefreshCcw size={16} /> Refresh
+            <RefreshCcw size={16} /> {t('stock.requests.refresh')}
           </button>
         </div>
 
@@ -95,18 +97,18 @@ const InventoryRequests = () => {
           <table className="w-full text-left">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Product Details</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Branch & Requester</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Adjustment</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{t('stock.requests.table.product')}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{t('stock.requests.table.branch')}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{t('stock.requests.table.adjustment')}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">{t('stock.requests.table.status')}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase text-right">{t('stock.requests.table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
-                    Loading mapping requests...
+                    {t('stock.requests.loading')}
                   </td>
                 </tr>
               ) : paginatedRequests.length > 0 ? (
@@ -122,15 +124,15 @@ const InventoryRequests = () => {
                           )}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{req.product?.name || 'Deleted Product'}</div>
-                          <div className="text-xs text-gray-500">SKU: {req.product?.sku || 'N/A'}</div>
+                          <div className="font-medium text-gray-900">{req.product?.name || t('stock.adjustments.unknown_product')}</div>
+                          <div className="text-xs text-gray-500">{t('stock.requests.table.sku')}: {req.product?.sku || 'N/A'}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">{req.branchId?.name}</div>
                       <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                        By: {req.managerId?.name}
+                        {t('stock.requests.table.by')}: {req.managerId?.name}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -160,21 +162,21 @@ const InventoryRequests = () => {
                             <Check size={18} />
                           </button>
                           <button onClick={() => handleReject(req._id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Reject">
-                            <X size={18} />
+                             <X size={18} />
                           </button>
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400 border border-gray-100 bg-gray-50 px-2 py-1 rounded">
-                          Reviewed By {req.reviewedBy?.name || 'Admin'}
+                          {t('stock.requests.table.reviewed_by')} {req.reviewedBy?.name || 'Admin'}
                         </span>
                       )}
                     </td>
                   </tr>
-                ))
+                 ))
               ) : (
                 <tr>
                   <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
-                    No pending stock requests found.
+                    {t('stock.requests.no_requests')}
                   </td>
                 </tr>
               )}
@@ -186,7 +188,7 @@ const InventoryRequests = () => {
         {!loading && totalFiltered > 0 && (
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-500">
-              Showing <span className="font-semibold text-gray-900">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-gray-900">{Math.min(page * limit, totalFiltered)}</span> of <span className="font-semibold text-gray-900">{totalFiltered}</span> requests
+              {t('stock.branch_stock.pagination.showing')} <span className="font-semibold text-gray-900">{((page - 1) * limit) + 1}</span> {t('stock.branch_stock.pagination.to') || 'to'} <span className="font-semibold text-gray-900">{Math.min(page * limit, totalFiltered)}</span> {t('stock.branch_stock.pagination.of')} <span className="font-semibold text-gray-900">{totalFiltered}</span> {t('stock.requests.title')}
             </div>
 
             <div className="flex items-center gap-2">

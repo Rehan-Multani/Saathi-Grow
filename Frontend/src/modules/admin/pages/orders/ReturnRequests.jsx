@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Search, Eye, CheckCircle, XCircle, RotateCcw, Package,
     User, Loader2, Truck, ChevronLeft, ChevronRight, Filter,
@@ -21,6 +22,7 @@ const statusColors = {
 };
 
 const ReturnRequests = () => {
+    const { t } = useTranslation();
     const [returnRequests, setReturnRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -58,7 +60,7 @@ const ReturnRequests = () => {
             setReturnRequests(Array.isArray(returns) ? returns : []);
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
-            toast.error('Failed to load returns');
+            toast.error(t('orders.returns.alerts.load_failed'));
         } finally {
             setLoading(false);
         }
@@ -97,18 +99,18 @@ const ReturnRequests = () => {
         let reason = null;
         if (action === 'Rejected') {
             const { value } = await Swal.fire({
-                title: 'Reject Return Request',
+                title: t('orders.returns.swal.reject_title'),
                 input: 'textarea',
-                inputLabel: 'Reason',
+                inputLabel: t('orders.returns.swal.reason_label'),
                 showCancelButton: true,
-                inputValidator: (v) => !v && 'Reason required'
+                inputValidator: (v) => !v && t('orders.returns.swal.reason_required')
             });
             if (!value) return;
             reason = value;
         } else {
             const confirm = await Swal.fire({
-                title: 'Approve Return?',
-                text: 'Moving to dispatch queue.',
+                title: t('orders.returns.swal.approve_title'),
+                text: t('orders.returns.swal.approve_text'),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#7c3aed'
@@ -119,11 +121,11 @@ const ReturnRequests = () => {
         try {
             setProcessing(true);
             await handleReturnRequest(id, action, reason);
-            toast.success(`Return ${action} recorded`);
+            toast.success(t('orders.returns.alerts.record_success', { action: t(`orders.returns.tabs.${action.toLowerCase()}`, { defaultValue: action }) }));
             fetchReturns();
             setSelectedRequest(null);
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Update failed');
+            toast.error(err.response?.data?.message || t('orders.returns.alerts.update_failed'));
         } finally {
             setProcessing(false);
         }
@@ -134,14 +136,15 @@ const ReturnRequests = () => {
     };
 
     const handleBatchSchedule = async () => {
-        if (!selectedPartner) return toast.error('Select a rider');
-        if (selectedForBatch.length === 0) return toast.error('No selections');
+        if (!selectedPartner) return toast.error(t('orders.returns.batch.select_rider', { defaultValue: 'Select a rider' }));
+        if (selectedForBatch.length === 0) return toast.error(t('orders.returns.batch.no_selections', { defaultValue: 'No selections' }));
 
         const firstOrder = returnRequests.find(r => r._id === selectedForBatch[0]);
-        if (!firstOrder) return toast.error('Session mismatch. Refresh.');
+        if (!firstOrder) return toast.error(t('orders.returns.batch.session_mismatch', { defaultValue: 'Session mismatch. Refresh.' }));
 
         const destType = firstOrder.vendor ? 'vendor' : 'branch';
-        const destId = firstOrder.vendor || firstOrder.branchId;
+        const destId = firstOrder.vendor?._id || firstOrder.vendor || firstOrder.branchId?._id || firstOrder.branchId;
+        const destIdStr = String(destId);
 
         const allSame = selectedForBatch.every(id => {
             const o = returnRequests.find(r => r._id === id);
@@ -154,8 +157,8 @@ const ReturnRequests = () => {
 
         if (!allSame) {
             const confirmed = await Swal.fire({
-                title: 'Mixed Destinations',
-                text: 'Different stores/branches selected. Continue?',
+                title: t('orders.returns.swal.mixed_dest_title'),
+                text: t('orders.returns.swal.mixed_dest_text'),
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#7c3aed'
@@ -171,13 +174,13 @@ const ReturnRequests = () => {
                 destinationType: destType,
                 destinationId: destId
             });
-            toast.success('Return delivery run initialized!');
+            toast.success(t('orders.returns.alerts.batch_success'));
             setShowBatchModal(false);
             setSelectedForBatch([]);
             fetchReturns();
             fetchPartners();
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Batch creation failed');
+            toast.error(err.response?.data?.message || t('orders.returns.alerts.update_failed'));
         } finally {
             setProcessing(false);
         }
@@ -192,11 +195,11 @@ const ReturnRequests = () => {
                         <RotateCcw size={18} />
                     </div>
                     <div>
-                        <h2 className="font-bold text-gray-800 text-lg leading-tight">Return Management</h2>
+                        <h2 className="font-bold text-gray-800 text-lg leading-tight">{t('orders.returns.title')}</h2>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Logistics Control</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('orders.returns.logistics_control')}</span>
                             <span className="w-1 h-1 rounded-full bg-gray-200"></span>
-                            <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">{pagination.total} Active Requests</span>
+                            <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">{t('orders.returns.active_requests', { count: pagination.total })}</span>
                         </div>
                     </div>
                 </div>
@@ -206,7 +209,7 @@ const ReturnRequests = () => {
                         <Search className="text-gray-400 mr-2" size={14} />
                         <input 
                             type="text" 
-                            placeholder="Find by ID or Customer..." 
+                            placeholder={t('orders.returns.search_placeholder')}
                             className="bg-transparent border-none outline-none text-xs w-full font-medium placeholder:text-gray-300"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
@@ -231,7 +234,7 @@ const ReturnRequests = () => {
                                 onClick={() => { setActiveTab(tab); setPage(1); }}
                                 className={`px-5 py-1.5 rounded-md text-[11px] font-bold transition-all uppercase tracking-wider flex items-center gap-2 ${activeTab === tab ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
                             >
-                                {tab}
+                                {t(`orders.returns.tabs.${tab.toLowerCase()}`)}
                                 {count > 0 && (
                                     <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === tab ? 'bg-white text-purple-600' : 'bg-gray-100 text-gray-500'}`}>
                                         {count}
@@ -249,7 +252,7 @@ const ReturnRequests = () => {
                             className="flex items-center gap-2 px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider shadow-md shadow-purple-100 transition-all active:scale-95"
                         >
                             <Layers size={14} />
-                            Dispatch {selectedForBatch.length} Picks
+                            {t('orders.returns.dispatch_picks', { count: selectedForBatch.length })}
                         </button>
                     </div>
                 )}
@@ -260,15 +263,15 @@ const ReturnRequests = () => {
                 {loading ? (
                     <div className="py-16 text-center">
                         <Loader2 className="animate-spin text-purple-600 mx-auto mb-3" size={24} />
-                        <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">Sycing Logistics...</p>
+                        <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">{t('orders.returns.syncing')}</p>
                     </div>
                 ) : returnRequests.length === 0 ? (
                     <div className="py-20 text-center">
                         <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 border border-gray-100">
                             <RotateCcw className="text-gray-200" size={20} />
                         </div>
-                        <h4 className="font-bold text-gray-800 text-sm">Quiet Moment</h4>
-                        <p className="text-[11px] text-gray-400 italic">No returns found in this filter.</p>
+                        <h4 className="font-bold text-gray-800 text-sm">{t('orders.returns.quiet_moment')}</h4>
+                        <p className="text-[11px] text-gray-400 italic">{t('orders.returns.no_returns')}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -290,23 +293,23 @@ const ReturnRequests = () => {
                                     )}
                                     <th className="px-4 py-3 text-left">
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Return ID</span>
+                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.return_id')}</span>
                                         </div>
                                     </th>
                                     <th className="px-4 py-3 text-left">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Source & Client</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.source_client')}</span>
                                     </th>
                                     <th className="px-4 py-3 text-left">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Context</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.context')}</span>
                                     </th>
                                     <th className="px-4 py-3 text-left">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Value</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.value')}</span>
                                     </th>
                                     <th className="px-4 py-3 text-center">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Condition</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.condition')}</span>
                                     </th>
                                     <th className="px-4 py-3 text-right">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Action</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.action')}</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -336,7 +339,7 @@ const ReturnRequests = () => {
                                                     <div className="flex items-center gap-1">
                                                         {r.vendor ? <Store size={8} className="text-purple-400" /> : <MapPin size={8} className="text-blue-400" />}
                                                         <span className="text-[9px] font-bold text-gray-400 uppercase truncate">
-                                                            {r.vendor ? `Store: ${r.vendor.storeName}` : `Branch: ${r.branchId?.name || 'Main'}`}
+                                                            {r.vendor ? `${t('common.vendors')}: ${r.vendor.storeName}` : `${t('sidebar.branches')}: ${r.branchId?.name || 'Main'}`}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -352,10 +355,10 @@ const ReturnRequests = () => {
                                         <td className="px-4 py-2.5">
                                             <div className="flex flex-col items-center gap-0.5">
                                                 <span className={`px-2 py-0.5 rounded text-[9px] font-black border uppercase tracking-tighter ${statusColors[r.returnRequest.status]}`}>
-                                                    {r.returnRequest.status}
+                                                    {t(`orders.returns.tabs.${r.returnRequest.status.toLowerCase()}`, { defaultValue: r.returnRequest.status })}
                                                 </span>
                                                 {r.returnRequest.status === 'Rejected' && (
-                                                    <span className="text-[8px] text-red-500 font-bold uppercase">Store Denied</span>
+                                                    <span className="text-[8px] text-red-500 font-bold uppercase">{t('orders.returns.store_denied')}</span>
                                                 )}
                                             </div>
                                         </td>
@@ -379,7 +382,7 @@ const ReturnRequests = () => {
             {!loading && pagination.total > 0 && (
                 <div className="bg-white border border-gray-100 rounded-xl px-4 py-2 flex items-center justify-between shadow-sm">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <span className="text-gray-700">{((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)}</span> of {pagination.total}
+                        <span className="text-gray-700">{((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)}</span> {t('orders.returns.pagination.of')} {pagination.total}
                     </span>
                     <div className="flex items-center gap-1.5">
                         <button
@@ -389,7 +392,7 @@ const ReturnRequests = () => {
                         >
                             <ChevronLeft size={14} />
                         </button>
-                        <span className="text-[10px] font-bold text-gray-600 px-2 uppercase">Page {page} / {pagination.totalPages}</span>
+                        <span className="text-[10px] font-bold text-gray-600 px-2 uppercase">{t('orders.returns.pagination.page_of', { current: page, total: pagination.totalPages, defaultValue: `Page ${page} / ${pagination.totalPages}` })}</span>
                         <button
                             onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
                             disabled={page >= pagination.totalPages}
@@ -412,7 +415,7 @@ const ReturnRequests = () => {
                                         <RotateCcw size={18} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-800 text-base leading-none">Return Details</h3>
+                                        <h3 className="font-bold text-gray-800 text-base leading-none">{t('orders.returns.details.title')}</h3>
                                         <p className="text-[10px] font-mono font-bold text-gray-400 mt-1 uppercase tracking-wider">#{selectedRequest.orderId}</p>
                                     </div>
                                 </div>
@@ -421,20 +424,20 @@ const ReturnRequests = () => {
 
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Customer</p>
+                                    <p className="text-[9px] font-black text-gray-400 uppercase mb-1">{t('dashboard.customer')}</p>
                                     <p className="font-bold text-gray-800 text-[11px] truncate">{selectedRequest.user?.name}</p>
                                     <p className="text-[10px] text-gray-500 mt-0.5">{selectedRequest.user?.phone}</p>
                                 </div>
                                 <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
-                                    <p className="text-[9px] font-black text-purple-400 uppercase mb-1">Value</p>
+                                    <p className="text-[9px] font-black text-purple-400 uppercase mb-1">{t('orders.returns.table.value')}</p>
                                     <p className="font-bold text-purple-600 text-sm">₹{selectedRequest.totalAmount?.toLocaleString()}</p>
-                                    <p className="text-[10px] text-purple-400 mt-0.5 font-bold uppercase">Pre-tax</p>
+                                    <p className="text-[10px] text-purple-400 mt-0.5 font-bold uppercase">{t('dashboard.order_details_modal.price_label', { defaultValue: 'Price' })}</p>
                                 </div>
                             </div>
 
                             {selectedRequest.returnRequest.images?.length > 0 && (
                                 <div className="space-y-2">
-                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Visual Evidence</p>
+                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{t('orders.returns.details.visual_evidence')}</p>
                                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                         {selectedRequest.returnRequest.images.map((img, i) => (
                                             <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:scale-105 transition-transform active:scale-95">
@@ -446,7 +449,7 @@ const ReturnRequests = () => {
                             )}
 
                             <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1">
-                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Line Items</p>
+                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{t('orders.returns.details.line_items')}</p>
                                 {selectedRequest.items?.map((item, i) => (
                                     <div key={i} className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-100">
                                         <div className="w-8 h-8 bg-white rounded border border-gray-100 overflow-hidden shrink-0">
@@ -454,14 +457,14 @@ const ReturnRequests = () => {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="font-bold text-gray-800 text-[10px] truncate leading-tight">{item.name}</p>
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase">Qty: {item.quantity} · ₹{item.price}</p>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase">{t('dashboard.order_details_modal.qty_label')}: {item.quantity} · ₹{item.price}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
                             <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl shadow-inner-sm">
-                                <p className="text-[9px] font-black text-amber-600 uppercase mb-1">Issue Claimed</p>
+                                <p className="text-[9px] font-black text-amber-600 uppercase mb-1">{t('orders.returns.details.issue_claimed')}</p>
                                 <p className="text-[11px] font-bold text-gray-700 italic leading-snug">"{selectedRequest.returnRequest.reason}"</p>
                             </div>
 
@@ -469,7 +472,7 @@ const ReturnRequests = () => {
                                 <div className="space-y-3 pt-2">
                                     {selectedRequest.returnRequest.status === 'Rejected' && (
                                         <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
-                                            <p className="text-[9px] font-black text-red-600 uppercase mb-0.5 tracking-tight">System Notice: Store Rejection</p>
+                                            <p className="text-[9px] font-black text-red-600 uppercase mb-0.5 tracking-tight">{t('orders.returns.details.system_notice')}</p>
                                             <p className="text-[10px] font-bold text-gray-700 italic truncate">"{selectedRequest.returnRequest.rejectionReason || 'No context'}"</p>
                                         </div>
                                     )}
@@ -479,14 +482,14 @@ const ReturnRequests = () => {
                                             disabled={processing}
                                             className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-sm transition-all active:scale-95 disabled:opacity-50"
                                         >
-                                            {selectedRequest.returnRequest.status === 'Rejected' ? 'Overrule & Yes' : 'Approve'}
+                                            {selectedRequest.returnRequest.status === 'Rejected' ? t('orders.returns.details.overrule_yes') : t('orders.returns.details.approve')}
                                         </button>
                                         <button 
                                             onClick={() => handleApproval(selectedRequest._id, 'Rejected')}
                                             disabled={processing}
                                             className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-sm transition-all active:scale-95 disabled:opacity-50"
                                         >
-                                            {selectedRequest.returnRequest.status === 'Rejected' ? 'Final Deny' : 'Reject'}
+                                            {selectedRequest.returnRequest.status === 'Rejected' ? t('orders.returns.details.final_deny') : t('orders.returns.details.reject')}
                                         </button>
                                     </div>
                                 </div>
@@ -494,14 +497,14 @@ const ReturnRequests = () => {
 
                             {selectedRequest.returnRequest.status === 'Accepted' && (
                                 <div className="p-3 bg-blue-50 text-blue-700 rounded-xl text-center text-[9px] font-black uppercase tracking-widest border border-blue-100 flex items-center justify-center gap-2">
-                                    <Clock size={12} /> Pending Logistics Batching
+                                    <Clock size={12} /> {t('orders.returns.details.pending_logistics')}
                                 </div>
                             )}
 
                             {['Scheduled', 'PickedUp', 'Returned'].includes(selectedRequest.returnRequest.status) && selectedRequest.returnRequest.returnOTP && (
                                 <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex justify-between items-center">
                                     <div>
-                                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-wider mb-0.5">Verification Key</p>
+                                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-wider mb-0.5">{t('orders.returns.details.verification_key')}</p>
                                         <p className="font-bold text-emerald-700 text-base tracking-[0.3em]">{selectedRequest.returnRequest.returnOTP}</p>
                                     </div>
                                     <ShieldCheck className="text-emerald-200" size={24} />
@@ -519,18 +522,18 @@ const ReturnRequests = () => {
                         <div className="space-y-6">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="font-bold text-gray-800 text-lg">Assign Logistics</h3>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase">{selectedForBatch.length} Items for Pickup</p>
+                                    <h3 className="font-bold text-gray-800 text-lg">{t('orders.returns.batch.title')}</h3>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase">{t('orders.returns.batch.items_for_pickup', { count: selectedForBatch.length })}</p>
                                 </div>
                                 <button onClick={() => setShowBatchModal(false)} className="text-gray-300 hover:text-gray-800 transition-colors"><XCircle size={20} /></button>
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Available Fleet</label>
+                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.batch.available_fleet')}</label>
                                 <div className="grid grid-cols-1 gap-2 max-h-[240px] overflow-y-auto pr-1">
                                     {partners.length === 0 ? (
                                         <div className="p-4 bg-amber-50 rounded-xl text-amber-600 text-[11px] font-bold text-center border border-amber-100 italic">
-                                            No active riders in vicinity.
+                                            {t('orders.returns.batch.no_riders')}
                                         </div>
                                     ) : partners.map(p => (
                                         <button
@@ -558,7 +561,7 @@ const ReturnRequests = () => {
                                 disabled={processing || !selectedPartner}
                                 className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-purple-100 transition-all active:scale-95 disabled:opacity-40"
                             >
-                                {processing ? 'Initializing...' : 'Confirm Delivery Assignment'}
+                                {processing ? t('orders.returns.batch.initializing') : t('orders.returns.batch.confirm_btn')}
                             </button>
                         </div>
                     </div>

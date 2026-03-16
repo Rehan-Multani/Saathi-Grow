@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, MoreHorizontal, Store, Mail, Phone, CheckCircle, Ban, Upload, Download, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VendorDetailsModal from '../../components/vendors/VendorDetailsModal';
@@ -10,6 +11,7 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
 const AllVendors = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ const AllVendors = () => {
             setVendors(Array.isArray(vendorList) ? vendorList : []);
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
-            toast.error(error.message || 'Failed to fetch vendors');
+            toast.error(error.message || t('vendors.loading_failed', { defaultValue: 'Failed to fetch vendors' }));
         } finally {
             setLoading(false);
         }
@@ -70,21 +72,21 @@ const AllVendors = () => {
 
     const handleDelete = (id, name) => {
         Swal.fire({
-            title: 'Delete Vendor?',
-            text: `Are you sure you want to remove ${name}? This cannot be undone.`,
+            title: t('vendors.delete_confirm_title'),
+            text: t('vendors.delete_confirm_text', { name }),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, Delete'
+            confirmButtonText: t('dashboard.yes_delete', { defaultValue: 'Yes, Delete' })
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     await deleteVendor(adminUser.token, id);
-                    toast.success('Vendor deleted successfully');
+                    toast.success(t('dashboard.deleted_title'));
                     fetchVendors();
                 } catch (error) {
-                    toast.error(error.message || 'Failed to delete vendor');
+                    toast.error(error.message || t('dashboard.failed_to_delete'));
                 }
             }
         });
@@ -99,7 +101,7 @@ const AllVendors = () => {
                             <Store size={20} />
                         </div>
                         <div className="d-flex align-items-center gap-3 text-nowrap">
-                            <h5 className="mb-0 fw-bold">All Vendors</h5>
+                            <h5 className="mb-0 fw-bold">{t('vendors.title')}</h5>
                             <Badge bg="primary" pill>{totalFiltered}</Badge>
                         </div>
                     </div>
@@ -107,7 +109,7 @@ const AllVendors = () => {
                         <InputGroup className="w-100" style={{ maxWidth: '400px' }}>
                             <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Search by name, ID or owner..."
+                                placeholder={t('vendors.search_placeholder')}
                                 className="border-start-0 ps-0 shadow-none"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -115,7 +117,7 @@ const AllVendors = () => {
                         </InputGroup>
                         <div className="d-flex gap-2 w-100 w-md-auto">
                             <Link to="/admin/vendors/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm">
-                                <Plus size={18} /> <span>Add New</span>
+                                <Plus size={18} /> <span>{t('vendors.add_new')}</span>
                             </Link>
                         </div>
                     </div>
@@ -127,18 +129,18 @@ const AllVendors = () => {
                     {loading ? (
                         <div className="text-center py-5">
                             <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">Loading Vendors...</p>
+                            <p className="mt-2 text-muted">{t('vendors.loading')}</p>
                         </div>
                     ) : (
                         <Table hover responsive className="mb-0 align-middle">
                             <thead className="bg-light text-muted small text-uppercase font-weight-bold">
                                 <tr>
-                                    <th className="ps-4 border-0 py-3">Vendor Name</th>
-                                    <th className="border-0 py-3">Contact Person</th>
-                                    <th className="border-0 py-3 text-center">Products</th>
-                                    <th className="border-0 py-3 text-center">Rating</th>
-                                    <th className="border-0 py-3 text-center">Status</th>
-                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                    <th className="ps-4 border-0 py-3">{t('vendors.table.name')}</th>
+                                    <th className="border-0 py-3">{t('vendors.table.contact')}</th>
+                                    <th className="border-0 py-3 text-center">{t('vendors.table.products')}</th>
+                                    <th className="border-0 py-3 text-center">{t('vendors.table.rating')}</th>
+                                    <th className="border-0 py-3 text-center">{t('vendors.table.status')}</th>
+                                    <th className="border-0 py-3 text-end pe-4">{t('vendors.table.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,7 +180,7 @@ const AllVendors = () => {
                                         <td className="fw-bold text-center">{v.products || 0}</td>
                                         <td className="text-center">
                                             <Badge bg="light" text="dark" className="border shadow-none">
-                                                ₹ {v.rating > 0 ? v.rating : 'New'}
+                                                ₹ {v.rating > 0 ? v.rating : t('vendors.new_rating')}
                                             </Badge>
                                         </td>
                                         <td className="text-center">
@@ -186,7 +188,7 @@ const AllVendors = () => {
                                                 v.status === 'Active' ? 'success' :
                                                     v.status === 'Pending' ? 'warning' : 'danger'
                                             } className="rounded-pill fw-normal px-3 py-1 shadow-sm">
-                                                {v.status}
+                                                {v.status === 'Active' ? t('vendors.status.active') : v.status === 'Pending' ? t('vendors.status.pending') : t('vendors.status.inactive')}
                                             </Badge>
                                         </td>
                                         <td className="text-end pe-4">
@@ -222,17 +224,17 @@ const AllVendors = () => {
                                                         }}
                                                     >
                                                         <Dropdown.Item onClick={() => handleViewDetails(v)} className="rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
-                                                            View Info
+                                                            {t('vendors.view_info')}
                                                         </Dropdown.Item>
                                                         <Dropdown.Divider className="my-1 opacity-50" />
                                                         {v.status !== 'Active' && (
                                                             <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Approval')} className="text-success rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
-                                                                <CheckCircle size={16} /> Approve
+                                                                <CheckCircle size={16} /> {t('vendors.approve')}
                                                             </Dropdown.Item>
                                                         )}
                                                         {v.status !== 'Inactive' && (
                                                             <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Block')} className="text-danger rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
-                                                                <Ban size={16} /> Block
+                                                                <Ban size={16} /> {t('vendors.block')}
                                                             </Dropdown.Item>
                                                         )}
                                                     </Dropdown.Menu>
@@ -243,7 +245,7 @@ const AllVendors = () => {
                                 )) : (
                                     <tr>
                                         <td colSpan="6" className="text-center py-5 text-muted small">
-                                            No vendors found matching your search.
+                                            {t('vendors.no_vendors')}
                                         </td>
                                     </tr>
                                 )}
@@ -256,7 +258,7 @@ const AllVendors = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> vendors
+                            {t('vendors.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('vendors.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('vendors.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('vendors.title')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

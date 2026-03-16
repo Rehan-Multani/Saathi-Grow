@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col, Spinner, Image } from 'react-bootstrap';
 import { Save, X, Camera, Plus, Sparkles, Store } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { useTranslation } from 'react-i18next';
 import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
@@ -14,6 +15,7 @@ import { toast } from 'react-toastify';
 
 const ProductEditModal = ({ show, onHide, product, onSave }) => {
     // Component for editing product details and inventory
+    const { t } = useTranslation();
     const adminContext = useAdminAuth();
     const staffContext = useStaffAuth();
     const managerContext = useStoreManagerAuth();
@@ -103,7 +105,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                     const bid = bs.branchId?._id || bs.branchId;
                     activeStocks.push({
                         branchId: bid,
-                        name: bs.branchId?.name || branches.find(b => b._id === bid)?.name || 'Unknown',
+                        name: bs.branchId?.name || branches.find(b => b._id === bid)?.name || t('common.unknown'),
                         stock: bs.stock,
                         lowStockThreshold: bs.lowStockThreshold
                     });
@@ -186,7 +188,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
     const handleAISuggestion = async (type) => {
         if (!formData.name) {
-            return toast.warning('Please enter a product name first');
+            return toast.warning(t('products.edit_modal.alerts.name_required'));
         }
 
         setAiLoading(prev => ({ ...prev, [type]: true }));
@@ -194,17 +196,17 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             const data = await getAISuggestions(adminUser.token, formData.name, type);
             if (type === 'description') {
                 setFormData(prev => ({ ...prev, description: data.suggestion }));
-                toast.success('Description generated!');
+                toast.success(t('products.edit_modal.alerts.description_gen'));
             } else if (type === 'tags') {
                 const newTags = data.suggestion.split(',').map(t => t.trim()).filter(t => t);
                 setFormData(prev => ({
                     ...prev,
                     tags: [...new Set([...prev.tags, ...newTags])]
                 }));
-                toast.success('Tags generated!');
+                toast.success(t('products.edit_modal.alerts.tags_gen'));
             }
         } catch (error) {
-            toast.error(error.message || `Failed to generate ${type}`);
+            toast.error(error.message || t('common.error_occurred'));
         } finally {
             setAiLoading(prev => ({ ...prev, [type]: false }));
         }
@@ -254,7 +256,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!product.vendor && branchStocks.length === 0) {
-            return toast.error('Product must be available in at least one branch');
+            return toast.error(t('products.edit_modal.alerts.branch_required'));
         }
 
         setLoading(true);
@@ -309,7 +311,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     return (
         <Modal show={show} onHide={onHide} size="lg" centered className="product-edit-modal">
             <Modal.Header closeButton className="border-0 pb-0">
-                <Modal.Title className="fw-bold">Edit Product</Modal.Title>
+                <Modal.Title className="fw-bold">{t('products.edit_modal.title')}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="pt-4">
                 <Form onSubmit={handleSubmit}>
@@ -318,7 +320,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                             <Row className="g-3">
                                 <Col md={12}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Product Name</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.name_label')}</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="name"
@@ -332,7 +334,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={6}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Category</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.category_label')}</Form.Label>
                                         <Form.Select
                                             name="category"
                                             value={formData.category}
@@ -340,7 +342,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             className="bg-light border-0 py-2"
                                             required
                                         >
-                                            <option value="">Select Category</option>
+                                            <option value="">{t('products.edit_modal.select_category')}</option>
                                             {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                         </Form.Select>
                                     </Form.Group>
@@ -348,7 +350,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={6}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Brand</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.brand_label')}</Form.Label>
                                         <Form.Select
                                             name="brandName"
                                             value={formData.brandName}
@@ -357,7 +359,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             required
                                             disabled={!formData.category}
                                         >
-                                            <option value="">Select Brand</option>
+                                            <option value="">{t('products.edit_modal.select_brand')}</option>
                                             {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                         </Form.Select>
                                     </Form.Group>
@@ -365,14 +367,14 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={6}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Assign Vendor (Optional)</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.vendor_label')}</Form.Label>
                                         <Form.Select
                                             name="vendor"
                                             value={formData.vendor}
                                             onChange={handleChange}
                                             className="bg-light border-0 py-2"
                                         >
-                                            <option value="">Admin / In-house</option>
+                                            <option value="">{t('products.edit_modal.admin_inhouse')}</option>
                                             {vendors.map(v => (
                                                 <option key={v._id} value={v._id}>{v.storeName}</option>
                                             ))}
@@ -382,7 +384,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={3}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Price (₹)</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.price_label')}</Form.Label>
                                         <Form.Control
                                             type="number"
                                             name="basePrice"
@@ -396,7 +398,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={3}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">MRP (₹)</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.mrp_label')}</Form.Label>
                                         <Form.Control
                                             type="number"
                                             name="mrp"
@@ -409,7 +411,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={6}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Food Type</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.food_type')}</Form.Label>
                                         <div className="d-flex gap-2">
                                             <Button
                                                 variant={formData.isVeg ? "success" : "outline-success"}
@@ -417,7 +419,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                 className="flex-fill py-2 fw-bold text-[10px]"
                                                 onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
                                             >
-                                                VEG
+                                                {t('products.edit_modal.veg')}
                                             </Button>
                                             <Button
                                                 variant={!formData.isVeg ? "danger" : "outline-danger"}
@@ -425,7 +427,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                 className="flex-fill py-2 fw-bold text-[10px]"
                                                 onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
                                             >
-                                                NON-VEG
+                                                {t('products.edit_modal.non_veg')}
                                             </Button>
                                         </div>
                                     </Form.Group>
@@ -433,7 +435,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={3}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Amount</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.amount_label')}</Form.Label>
                                         <Form.Control
                                             type="number"
                                             name="unitValue"
@@ -447,7 +449,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={4}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Unit Type</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.unit_type_label')}</Form.Label>
                                         <Form.Select
                                             name="unitType"
                                             value={formData.unitType}
@@ -470,18 +472,18 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={6}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Status</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.status_label')}</Form.Label>
                                         <Form.Select
                                             name="status"
                                             value={formData.status}
                                             onChange={handleChange}
                                             className="bg-light border-0 py-2 shadow-none"
                                         >
-                                            <option value="Active">Active</option>
-                                            <option value="Draft">Draft</option>
-                                            <option value="Out of Stock">Out of Stock</option>
-                                            <option value="Low Stock">Low Stock</option>
-                                            <option value="Pending Approval">Pending Approval</option>
+                                            <option value="Active">{t('products.status.active')}</option>
+                                            <option value="Draft">{t('products.status.draft')}</option>
+                                            <option value="Out of Stock">{t('products.status.out_of_stock')}</option>
+                                            <option value="Low Stock">{t('products.status.low_stock')}</option>
+                                            <option value="Pending Approval">{t('products.status.pending_approval')}</option>
                                         </Form.Select>
                                     </Form.Group>
                                 </Col>
@@ -496,9 +498,9 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                 <div className="ms-3">
                                                     <div className="text-xs font-black text-blue-800 uppercase tracking-wider d-flex align-items-center gap-2">
                                                         <Sparkles size={12} className="text-blue-600" />
-                                                        Saathi Grow Priority Product
+                                                        {t('products.edit_modal.priority_label')}
                                                     </div>
-                                                    <div className="text-[10px] text-blue-600/70 font-medium">Prioritize this product in user listings</div>
+                                                    <div className="text-[10px] text-blue-600/70 font-medium">{t('products.edit_modal.priority_help')}</div>
                                                 </div>
                                             }
                                             checked={formData.isSaathiGrow}
@@ -510,31 +512,31 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <Col md={6}>
                                     <Form.Group>
-                                        <Form.Label className="small fw-medium text-muted">Physical Location</Form.Label>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.location_label')}</Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="physicalLocation"
                                             value={formData.physicalLocation}
                                             onChange={handleChange}
                                             className="bg-light border-0 py-2 shadow-none"
-                                            placeholder="e.g. Aisle 4, Shelf B"
+                                            placeholder={t('products.edit_modal.location_placeholder')}
                                         />
                                     </Form.Group>
                                 </Col>
 
-                                 <Col md={12}>
-                                    <h6 className="mt-3 mb-3 fw-bold border-bottom pb-2 text-primary">Inventory Management</h6>
+                                <Col md={12}>
+                                    <h6 className="mt-3 mb-3 fw-bold border-bottom pb-2 text-primary">{t('products.edit_modal.inventory_mgmt')}</h6>
 
                                     {product?.vendor ? (
                                         <div className="p-3 bg-purple-50/30 border border-purple-100 rounded-xl mb-3">
                                             <div className="text-xs font-black text-purple-800 uppercase tracking-wider mb-3 d-flex align-items-center gap-2">
                                                 <Store size={14} className="text-purple-600" />
-                                                Vendor Direct Stock
+                                                {t('products.edit_modal.vendor_stock_title')}
                                             </div>
                                             <Row className="g-3">
                                                 <Col md={6}>
                                                     <Form.Group>
-                                                        <Form.Label className="small fw-medium text-muted">Total Stock</Form.Label>
+                                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.total_stock')}</Form.Label>
                                                         <Form.Control
                                                             type="number"
                                                             name="stock"
@@ -547,7 +549,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                 </Col>
                                                 <Col md={6}>
                                                     <Form.Group>
-                                                        <Form.Label className="small fw-medium text-muted">Low Stock Threshold</Form.Label>
+                                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.low_stock_threshold')}</Form.Label>
                                                         <Form.Control
                                                             type="number"
                                                             name="lowStockThreshold"
@@ -562,7 +564,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     ) : (
                                         <>
                                             <div className="p-2 bg-light rounded border mb-3">
-                                                <Form.Label className="small fw-bold mb-2">Available In:</Form.Label>
+                                                <Form.Label className="small fw-bold mb-2">{t('products.edit_modal.available_in')}</Form.Label>
                                                 <div className="d-flex flex-wrap gap-2">
                                                     {branches.map(branch => {
                                                         const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
@@ -591,7 +593,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                                 </Col>
                                                                 <Col xs={4}>
                                                                     <Form.Group>
-                                                                        <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Current Stock</Form.Label>
+                                                                        <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">{t('products.table.branch_stock')}</Form.Label>
                                                                         <Form.Control
                                                                             size="sm"
                                                                             type="number"
@@ -603,7 +605,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                                 </Col>
                                                                 <Col xs={4}>
                                                                     <Form.Group>
-                                                                        <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">Low Threshold</Form.Label>
+                                                                        <Form.Label className="text-[10px] text-muted mb-0 uppercase fw-bold">{t('products.edit_modal.low_stock_threshold')}</Form.Label>
                                                                         <Form.Control
                                                                             size="sm"
                                                                             type="number"
@@ -618,7 +620,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                     ))
                                                 ) : (
                                                     <div className="text-center py-3 border border-dashed rounded bg-light">
-                                                        <p className="text-muted mb-0 small">No branches selected.</p>
+                                                        <p className="text-muted mb-0 small">{t('products.edit_modal.no_branches')}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -629,7 +631,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                         </Col>
 
                         <Col md={4} className="border-start">
-                            <Form.Label className="small fw-medium text-muted">Product Image</Form.Label>
+                            <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.image_label')}</Form.Label>
                             <div className="text-center p-3 border border-dashed rounded bg-light position-relative">
                                 {imagePreview ? (
                                     <div className="position-relative">
@@ -642,7 +644,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                 ) : (
                                     <label className="cursor-pointer py-4 d-block">
                                         <Camera size={30} className="text-muted mb-2" />
-                                        <div className="small text-muted">Update Image</div>
+                                        <div className="small text-muted">{t('products.edit_modal.update_image')}</div>
                                         <input type="file" className="d-none" onChange={handleImageChange} accept="image/*" />
                                     </label>
                                 )}
@@ -650,7 +652,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                             <div className="mt-4">
                                 <Form.Group>
-                                    <Form.Label className="small fw-medium text-muted">SKU Code</Form.Label>
+                                    <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.sku_label')}</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="sku"
@@ -661,7 +663,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                 </Form.Group>
 
                                 <div className="text-center mt-3 p-3 bg-white border rounded shadow-sm">
-                                    <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Product QR</div>
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">{t('products.edit_modal.qr_title')}</div>
                                     <div className="d-inline-block p-2 border rounded bg-white">
                                         {product?.qrCode ? (
                                             <img src={product.qrCode} alt="Product QR" style={{ width: '120px', height: '120px' }} />
@@ -672,7 +674,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                 </div>
 
                                 <div className="mt-4">
-                                    <Form.Label className="small fw-medium text-muted">Gallery Images</Form.Label>
+                                    <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.gallery_label')}</Form.Label>
                                     <div className="d-flex flex-wrap gap-2 mb-2">
                                         {galleryPreviews.map((preview, index) => (
                                             <div key={index} className="position-relative" style={{ width: '60px', height: '60px' }}>
@@ -705,7 +707,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                         <Col md={12}>
                             <Form.Group>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
-                                    <Form.Label className="small fw-medium text-muted mb-0">Description</Form.Label>
+                                    <Form.Label className="small fw-medium text-muted mb-0">{t('products.edit_modal.description_label')}</Form.Label>
                                     <Button
                                         variant="link"
                                         className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
@@ -713,7 +715,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         disabled={aiLoading.description}
                                     >
                                         {aiLoading.description ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
-                                        <span style={{ fontSize: '11px' }}>AI Write</span>
+                                        <span style={{ fontSize: '11px' }}>{t('products.edit_modal.ai_write')}</span>
                                     </Button>
                                 </div>
                                 <Form.Control
@@ -729,7 +731,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                         <Col md={12}>
                             <Form.Group>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
-                                    <Form.Label className="small fw-medium text-muted mb-0">Tags</Form.Label>
+                                    <Form.Label className="small fw-medium text-muted mb-0">{t('products.edit_modal.tags_label')}</Form.Label>
                                     <Button
                                         variant="link"
                                         className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
@@ -737,7 +739,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         disabled={aiLoading.tags}
                                     >
                                         {aiLoading.tags ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
-                                        <span style={{ fontSize: '11px' }}>AI Tags</span>
+                                        <span style={{ fontSize: '11px' }}>{t('products.edit_modal.ai_tags')}</span>
                                     </Button>
                                 </div>
                                 <div className="d-flex flex-wrap gap-1 mb-2">
@@ -752,12 +754,12 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     <input
                                         type="text"
                                         className="form-control bg-light border-0 shadow-none"
-                                        placeholder="Add tag..."
+                                        placeholder={t('products.edit_modal.add_tag_placeholder')}
                                         value={tagInput}
                                         onChange={(e) => setTagInput(e.target.value)}
                                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
                                     />
-                                    <button className="btn btn-outline-secondary border-0" type="button" onClick={() => addTag()}>Add</button>
+                                    <button className="btn btn-outline-secondary border-0" type="button" onClick={() => addTag()}>{t('products.edit_modal.add_btn')}</button>
                                 </div>
                             </Form.Group>
                         </Col>
@@ -765,11 +767,11 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium" disabled={loading}>
-                            Cancel
+                            {t('products.edit_modal.cancel')}
                         </Button>
                         <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2" disabled={loading}>
                             {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                            Update Product
+                            {t('products.edit_modal.update_btn')}
                         </Button>
                     </div>
                 </Form>

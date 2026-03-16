@@ -5,8 +5,10 @@ import { Link } from 'react-router-dom';
 import { getAllInventoryLogs } from '../../api/productApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const StockAdjustments = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ const StockAdjustments = () => {
                 }
             } catch (error) {
                 console.error('Error fetching logs:', error);
-                toast.error('Failed to load stock adjustments');
+                toast.error(t('stock.adjustments.error_load'));
             } finally {
                 setLoading(false);
             }
@@ -42,9 +44,9 @@ const StockAdjustments = () => {
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <h5 className="mb-0 fw-bold">Stock Adjustments History</h5>
+                    <h5 className="mb-0 fw-bold">{t('stock.adjustments.title')}</h5>
                     <Link to="/admin/stock/adjustments/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn">
-                        <Plus size={18} /> New Adjustment
+                        <Plus size={18} /> {t('stock.adjustments.new_adjustment')}
                     </Link>
                 </Card.Body>
             </Card>
@@ -54,15 +56,15 @@ const StockAdjustments = () => {
                     <Table hover responsive className="mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Adjustment ID</th>
-                                <th className="border-0 py-3">Date</th>
-                                <th className="border-0 py-3">Product</th>
-                                <th className="border-0 py-3">Branch</th>
-                                <th className="border-0 py-3">Type</th>
-                                <th className="border-0 py-3">Changed</th>
-                                <th className="border-0 py-3">Quantity</th>
-                                <th className="border-0 py-3">Reason</th>
-                                <th className="border-0 py-3 text-end pe-4">User</th>
+                                <th className="ps-4 border-0 py-3">{t('stock.adjustments.table.id')}</th>
+                                <th className="border-0 py-3">{t('stock.adjustments.table.date')}</th>
+                                <th className="border-0 py-3">{t('stock.adjustments.table.product')}</th>
+                                <th className="border-0 py-3">{t('stock.adjustments.table.branch')}</th>
+                                <th className="border-0 py-3">{t('stock.adjustments.table.type')}</th>
+                                <th className="border-0 py-3">{t('stock.adjustments.table.changed')}</th>
+                                <th className="border-0 py-3">{t('stock.adjustments.table.quantity')}</th>
+                                <th className="border-0 py-3">{t('stock.adjustments.table.reason')}</th>
+                                <th className="border-0 py-3 text-end pe-4">{t('stock.adjustments.table.user')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -70,7 +72,7 @@ const StockAdjustments = () => {
                                 <tr>
                                     <td colSpan="9" className="text-center py-5">
                                         <Spinner animation="border" variant="primary" size="sm" />
-                                        <span className="ms-2">Loading logs...</span>
+                                        <span className="ms-2">{t('stock.adjustments.loading')}</span>
                                     </td>
                                 </tr>
                             ) : logs.length > 0 ? (
@@ -87,7 +89,7 @@ const StockAdjustments = () => {
                                                 <div className="w-8 h-8 rounded bg-light overflow-hidden border">
                                                     {log.product?.image ? <img src={log.product.image} className="w-full h-full object-contain p-0.5" alt="" /> : <span className="flex items-center justify-center h-full text-[10px]">{log.product?.name?.charAt(0)}</span>}
                                                 </div>
-                                                <div className="fw-bold text-dark">{log.product?.name || 'Unknown Product'}</div>
+                                                <div className="fw-bold text-dark">{log.product?.name || t('stock.adjustments.unknown_product')}</div>
                                             </div>
                                         </td>
                                         <td>
@@ -95,14 +97,14 @@ const StockAdjustments = () => {
                                                 {log.vendorId ? (
                                                     <span className="text-purple-600">📦 {log.vendorId.storeName}</span>
                                                 ) : (
-                                                    log.branchId?.name || 'Main'
+                                                    log.branchId?.name || t('common.global')
                                                 )}
                                             </Badge>
                                         </td>
                                         <td>
                                             <Badge bg={(log.type === 'Addition' || log.type === 'Return') ? 'success' : 'danger'} className="rounded-pill px-3 fw-normal bg-opacity-10 text-reset border">
                                                 {(log.type === 'Addition' || log.type === 'Return') ? <ArrowUpRight size={14} className="text-success me-1" /> : <ArrowDownRight size={14} className="text-danger me-1" />}
-                                                {log.type}
+                                                {t(`stock.adjustments.types.${log.type?.toLowerCase() || 'adjustment'}`)}
                                             </Badge>
                                         </td>
                                         <td className={`fw-bold ${(log.type === 'Addition' || log.type === 'Return') ? 'text-success' : 'text-danger'}`}>
@@ -111,14 +113,14 @@ const StockAdjustments = () => {
                                         <td className="fw-bold">{log.newStock}</td>
                                         <td className="small text-muted">{log.reason}</td>
                                         <td className="text-end pe-4">
-                                            <div className="small fw-medium text-dark">{log.admin?.name || 'System'}</div>
+                                            <div className="small fw-medium text-dark">{log.admin?.name || t('stock.adjustments.system_user')}</div>
                                             <div className="small text-muted" style={{ fontSize: '10px' }}>{log.admin?.email}</div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="9" className="text-center py-5 text-muted">No stock adjustments found.</td>
+                                    <td colSpan="9" className="text-center py-5 text-muted">{t('stock.adjustments.no_logs')}</td>
                                 </tr>
                             )}
                         </tbody>
@@ -129,7 +131,7 @@ const StockAdjustments = () => {
                 {!loading && pagination.total > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> of <span className="fw-semibold text-dark">{pagination.total}</span> adjustments
+                            {t('stock.adjustments.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('stock.adjustments.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> {t('stock.adjustments.pagination.of')} <span className="fw-semibold text-dark">{pagination.total}</span> {t('stock.adjustments.pagination.adjustments')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

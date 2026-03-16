@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Search, Eye, Filter, Clock, CreditCard, Store, Zap,
     ChevronLeft, ChevronRight, RefreshCw, IndianRupee, TrendingUp
@@ -10,25 +11,27 @@ import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 
 const OrderStatusBadge = ({ status }) => {
+    const { t, i18n } = useTranslation();
     const map = {
-        delivered: { cls: 'bg-green-100 text-green-700 border-green-200', label: 'Delivered' },
-        pending: { cls: 'bg-amber-100 text-amber-700 border-amber-200', label: 'Pending' },
-        preparing: { cls: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Preparing' },
-        confirmed: { cls: 'bg-cyan-100 text-cyan-700 border-cyan-200', label: 'Confirmed' },
-        out_for_delivery: { cls: 'bg-indigo-100 text-indigo-700 border-indigo-200', label: 'Out for Delivery' },
-        cancelled: { cls: 'bg-red-100 text-red-700 border-red-200', label: 'Cancelled' },
-        return_requested: { cls: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Return Requested' },
-        returned: { cls: 'bg-gray-100 text-gray-600 border-gray-200', label: 'Returned' },
+        delivered: { cls: 'bg-green-100 text-green-700 border-green-200' },
+        pending: { cls: 'bg-amber-100 text-amber-700 border-amber-200' },
+        preparing: { cls: 'bg-blue-100 text-blue-700 border-blue-200' },
+        confirmed: { cls: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
+        out_for_delivery: { cls: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+        cancelled: { cls: 'bg-red-100 text-red-700 border-red-200' },
+        return_requested: { cls: 'bg-orange-100 text-orange-700 border-orange-200' },
+        returned: { cls: 'bg-gray-100 text-gray-600 border-gray-200' },
     };
-    const s = map[status] || { cls: 'bg-gray-100 text-gray-600 border-gray-200', label: status };
+    const s = map[status] || { cls: 'bg-gray-100 text-gray-600 border-gray-200' };
     return (
         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${s.cls} whitespace-nowrap`}>
-            {s.label}
+            {t(`dashboard.order_status.${status}`, { defaultValue: status })}
         </span>
     );
 };
 
 const PaymentStatusBadge = ({ status }) => {
+    const { t } = useTranslation();
     const cls = status === 'paid'
         ? 'bg-green-100 text-green-700'
         : status === 'failed'
@@ -36,12 +39,13 @@ const PaymentStatusBadge = ({ status }) => {
             : 'bg-amber-100 text-amber-700';
     return (
         <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded ${cls}`}>
-            {status || 'pending'}
+            {t(`dashboard.payment_status.${status}`, { defaultValue: status || 'pending' })}
         </span>
     );
 };
 
 const OnlineOrders = () => {
+    const { t, i18n } = useTranslation();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -99,7 +103,7 @@ const OnlineOrders = () => {
             }
         } catch (err) {
             console.error('OnlineOrders fetch error:', err);
-            toast.error('Could not load online orders');
+            toast.error(t('orders.online.alerts.load_failed'));
         } finally {
             setLoading(false);
         }
@@ -124,13 +128,17 @@ const OnlineOrders = () => {
 
     const handleUpdateStatus = async (orderId, currentStatus) => {
         const { value: status } = await Swal.fire({
-            title: 'Update Order Status',
+            title: t('dashboard.update_order_status'),
             input: 'select',
             inputOptions: {
-                pending: 'Pending', preparing: 'Preparing', confirmed: 'Confirmed',
-                out_for_delivery: 'Out for Delivery', delivered: 'Delivered', cancelled: 'Cancelled'
+                pending: t('dashboard.order_status.pending'), 
+                preparing: t('dashboard.order_status.preparing'), 
+                confirmed: t('dashboard.order_status.confirmed'),
+                out_for_delivery: t('dashboard.order_status.out_for_delivery'), 
+                delivered: t('dashboard.order_status.delivered'), 
+                cancelled: t('dashboard.order_status.cancelled')
             },
-            inputPlaceholder: 'Select a status',
+            inputPlaceholder: t('dashboard.select_status_placeholder'),
             showCancelButton: true,
             inputValue: currentStatus,
             confirmButtonColor: '#7c3aed'
@@ -138,10 +146,10 @@ const OnlineOrders = () => {
         if (status) {
             try {
                 await updateOrderStatus(orderId, status);
-                toast.success('Status updated!');
+                toast.success(t('orders.online.alerts.status_updated'));
                 fetchOrders();
             } catch (e) {
-                toast.error(e.response?.data?.message || 'Failed to update status');
+                toast.error(e.response?.data?.message || t('dashboard.failed_to_update_status'));
             }
         }
     };
@@ -152,10 +160,10 @@ const OnlineOrders = () => {
             {/* Stats Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[
-                    { label: 'Total Online Orders', value: stats.total, icon: <Zap size={18} />, color: 'blue' },
-                    { label: 'Paid Orders', value: stats.paid, icon: <CreditCard size={18} />, color: 'green' },
-                    { label: 'Pending Payment', value: stats.pending, icon: <Clock size={18} />, color: 'amber' },
-                    { label: 'Total Revenue', value: `₹${Number(stats.revenue).toFixed(2)}`, icon: <IndianRupee size={18} />, color: 'violet' },
+                    { label: t('orders.online.stats.total_online'), value: stats.total, icon: <Zap size={18} />, color: 'blue' },
+                    { label: t('orders.online.stats.paid_orders'), value: stats.paid, icon: <CreditCard size={18} />, color: 'green' },
+                    { label: t('orders.online.stats.pending_payment'), value: stats.pending, icon: <Clock size={18} />, color: 'amber' },
+                    { label: t('orders.online.stats.total_revenue'), value: `₹${Number(stats.revenue).toFixed(2)}`, icon: <IndianRupee size={18} />, color: 'violet' },
                 ].map((s, i) => (
                     <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
                         <div className={`p-2.5 rounded-xl bg-${s.color}-50 text-${s.color}-600 shrink-0`}>
@@ -178,12 +186,12 @@ const OnlineOrders = () => {
                                 <CreditCard size={18} />
                             </div>
                             <div>
-                                <h5 className="mb-0 font-bold text-gray-800 text-base leading-none">Online Orders</h5>
-                                <span className="text-[11px] text-blue-600 font-semibold">Razorpay Payments Only</span>
+                                <h5 className="mb-0 font-bold text-gray-800 text-base leading-none">{t('orders.online.title')}</h5>
+                                <span className="text-[11px] text-blue-600 font-semibold">{t('orders.online.subtitle')}</span>
                             </div>
                         </div>
                         <span className="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                            {pagination.total || 0} orders
+                            {t('orders.online.order_count', { count: pagination.total || 0 })}
                         </span>
                     </div>
 
@@ -195,7 +203,7 @@ const OnlineOrders = () => {
                                 <input
                                     type="text"
                                     className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400"
-                                    placeholder="Search Order ID, Customer, Phone..."
+                                    placeholder={t('orders.online.search_placeholder')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -209,55 +217,55 @@ const OnlineOrders = () => {
                                 className={`flex items-center justify-center gap-2 px-4 py-2 bg-white border ${activeFiltersCount > 0 ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-700'} rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap`}
                             >
                                 <Filter size={18} />
-                                <span>Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
+                                <span>{t('orders.online.filters.btn')} {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
                             </button>
 
                             {showFilterMenu && (
                                 <div className="absolute top-12 right-0 z-20 w-80 bg-white rounded-xl shadow-xl border border-gray-100 p-5">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h6 className="font-bold text-gray-800 text-sm">Advanced Filters</h6>
+                                        <h6 className="font-bold text-gray-800 text-sm">{t('orders.online.filters.title')}</h6>
                                         {activeFiltersCount > 0 && (
-                                            <button onClick={clearFilters} className="text-xs text-red-500 hover:text-red-700">Clear All</button>
+                                            <button onClick={clearFilters} className="text-xs text-red-500 hover:text-red-700">{t('dashboard.clear_all')}</button>
                                         )}
                                     </div>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Order Status</label>
+                                            <label className="block text-xs text-gray-500 mb-1">{t('dashboard.order_status_label', { defaultValue: 'Order Status' })}</label>
                                             <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg block w-full p-2 outline-none" value={statusFilter} onChange={handleFilterChange(setStatusFilter)}>
-                                                <option value="">All Status</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="confirmed">Confirmed</option>
-                                                <option value="preparing">Preparing</option>
-                                                <option value="out_for_delivery">Out for Delivery</option>
-                                                <option value="delivered">Delivered</option>
-                                                <option value="cancelled">Cancelled</option>
-                                                <option value="return_requested">Return Requested</option>
-                                                <option value="returned">Returned</option>
+                                                <option value="">{t('orders.online.filters.all_status')}</option>
+                                                <option value="pending">{t('dashboard.order_status.pending')}</option>
+                                                <option value="confirmed">{t('dashboard.order_status.confirmed')}</option>
+                                                <option value="preparing">{t('dashboard.order_status.preparing')}</option>
+                                                <option value="out_for_delivery">{t('dashboard.order_status.out_for_delivery')}</option>
+                                                <option value="delivered">{t('dashboard.order_status.delivered')}</option>
+                                                <option value="cancelled">{t('dashboard.order_status.cancelled')}</option>
+                                                <option value="return_requested">{t('dashboard.order_status.return_requested')}</option>
+                                                <option value="returned">{t('dashboard.order_status.returned')}</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Payment Status</label>
+                                            <label className="block text-xs text-gray-500 mb-1">{t('dashboard.payment_status')}</label>
                                             <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg block w-full p-2 outline-none" value={paymentStatusFilter} onChange={handleFilterChange(setPaymentStatusFilter)}>
-                                                <option value="">All Payment Status</option>
-                                                <option value="paid">Paid</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="failed">Failed</option>
-                                                <option value="refunded">Refunded</option>
+                                                <option value="">{t('orders.online.filters.all_payment_status')}</option>
+                                                <option value="paid">{t('dashboard.payment_status.paid')}</option>
+                                                <option value="pending">{t('dashboard.payment_status.pending')}</option>
+                                                <option value="failed">{t('dashboard.payment_status.failed')}</option>
+                                                <option value="refunded">{t('dashboard.payment_status.refunded', { defaultValue: 'Refunded' })}</option>
                                             </select>
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-xs text-gray-500 mb-1">From Date</label>
+                                                <label className="block text-xs text-gray-500 mb-1">{t('orders.online.filters.from_date')}</label>
                                                 <input type="date" className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg block w-full p-2 outline-none" value={startDate} onChange={handleFilterChange(setStartDate)} />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-gray-500 mb-1">To Date</label>
+                                                <label className="block text-xs text-gray-500 mb-1">{t('orders.online.filters.to_date')}</label>
                                                 <input type="date" className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg block w-full p-2 outline-none" value={endDate} onChange={handleFilterChange(setEndDate)} min={startDate} />
                                             </div>
                                         </div>
                                     </div>
                                     <button onClick={() => setShowFilterMenu(false)} className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg text-sm transition-colors">
-                                        Apply Filters
+                                        {t('orders.online.filters.apply')}
                                     </button>
                                 </div>
                             )}
@@ -272,14 +280,14 @@ const OnlineOrders = () => {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold sticky top-0 z-10">
                             <tr>
-                                <th className="px-6 py-4">Order ID</th>
-                                <th className="px-6 py-4">Customer</th>
-                                <th className="px-6 py-4">Branch / Store</th>
-                                <th className="px-6 py-4">Date</th>
-                                <th className="px-6 py-4 text-center">Razorpay</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                                <th className="px-6 py-4 text-right">Amount</th>
-                                <th className="px-6 py-4 text-center">Actions</th>
+                                <th className="px-6 py-4">{t('dashboard.order_id')}</th>
+                                <th className="px-6 py-4">{t('dashboard.customer')}</th>
+                                <th className="px-6 py-4">{t('dashboard.branch_store_label', { defaultValue: 'Branch / Store' })}</th>
+                                <th className="px-6 py-4">{t('dashboard.date')}</th>
+                                <th className="px-6 py-4 text-center">{t('orders.online.table.razorpay')}</th>
+                                <th className="px-6 py-4 text-center">{t('dashboard.status')}</th>
+                                <th className="px-6 py-4 text-right">{t('dashboard.amount')}</th>
+                                <th className="px-6 py-4 text-center">{t('dashboard.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -287,16 +295,16 @@ const OnlineOrders = () => {
                                 <tr>
                                     <td colSpan="8" className="text-center py-20">
                                         <Spinner animation="border" variant="primary" size="sm" />
-                                        <span className="ms-2 text-muted">Loading online orders...</span>
+                                        <span className="ms-2 text-muted uppercase font-bold text-xs tracking-widest">{t('dashboard.loading_orders', { defaultValue: 'Loading online orders...' })}</span>
                                     </td>
                                 </tr>
                             ) : orders.length === 0 ? (
                                 <tr>
                                     <td colSpan="8" className="text-center py-16">
                                         <CreditCard size={40} className="mx-auto text-gray-300 mb-3" />
-                                        <p className="text-gray-500 font-medium">No online orders found</p>
+                                        <p className="text-gray-500 font-medium">{t('orders.online.empty.no_orders')}</p>
                                         <p className="text-gray-400 text-xs mt-1">
-                                            {activeFiltersCount > 0 ? 'Try adjusting your filters.' : 'Razorpay orders will appear here once customers pay online.'}
+                                            {activeFiltersCount > 0 ? t('orders.online.empty.adjust_filters') : t('orders.online.empty.razorpay_msg')}
                                         </p>
                                     </td>
                                 </tr>
@@ -318,7 +326,7 @@ const OnlineOrders = () => {
 
                                     {/* Customer */}
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-gray-800">{order.user?.name || 'Guest'}</div>
+                                        <div className="font-medium text-gray-800">{order.user?.name || t('dashboard.guest')}</div>
                                         <div className="text-xs text-gray-400">{order.user?.phone || order.user?.email || '—'}</div>
                                     </td>
 
@@ -327,7 +335,7 @@ const OnlineOrders = () => {
                                         <div className="flex items-center gap-1.5 text-gray-600 text-sm">
                                             <Store size={13} className="text-gray-400 shrink-0" />
                                             <span className="truncate max-w-[130px]">
-                                                {order.branchId?.name || order.vendor?.storeName || 'Global'}
+                                                {order.branchId?.name || order.vendor?.storeName || t('dashboard.global')}
                                             </span>
                                         </div>
                                     </td>
@@ -335,10 +343,10 @@ const OnlineOrders = () => {
                                     {/* Date */}
                                     <td className="px-6 py-4">
                                         <div className="text-sm text-gray-600">
-                                            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            {new Date(order.createdAt).toLocaleDateString(i18n.language === 'hi' ? 'hi-IN' : 'en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </div>
                                         <div className="text-[10px] text-gray-400">
-                                            {new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(order.createdAt).toLocaleTimeString(i18n.language === 'hi' ? 'hi-IN' : 'en-IN', { hour: '2-digit', minute: '2-digit' })}
                                         </div>
                                         {order.deliverySlot && (
                                             <div className="text-[10px] font-bold text-blue-600 mt-0.5">
@@ -351,7 +359,7 @@ const OnlineOrders = () => {
                                     <td className="px-6 py-4 text-center">
                                         <div className="flex flex-col items-center gap-1">
                                             <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10px] font-bold uppercase flex items-center gap-1">
-                                                <Zap size={9} /> Razorpay
+                                                <Zap size={9} /> {t('orders.online.table.razorpay')}
                                             </span>
                                             <PaymentStatusBadge status={order.paymentStatus} />
                                         </div>
@@ -373,14 +381,14 @@ const OnlineOrders = () => {
                                             <button
                                                 className="p-1.5 rounded-lg bg-violet-50 text-violet-500 hover:bg-violet-100 transition-colors"
                                                 onClick={() => handleUpdateStatus(order._id, order.status)}
-                                                title="Update Status"
+                                                title={t('dashboard.update_status_label', { defaultValue: 'Update Status' })}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
                                             </button>
                                             <button
                                                 className="p-1.5 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors"
                                                 onClick={() => handleShowDetails(order)}
-                                                title="View Details"
+                                                title={t('dashboard.view_details_label', { defaultValue: 'View Details' })}
                                             >
                                                 <Eye size={16} />
                                             </button>
@@ -396,7 +404,7 @@ const OnlineOrders = () => {
                 {!loading && pagination.total > 0 && (
                     <div className="bg-white border-t border-gray-100 px-6 py-3 flex items-center justify-between gap-4">
                         <div className="text-sm text-gray-500">
-                            Showing <span className="font-semibold text-gray-700">{((page - 1) * limit) + 1}</span>–<span className="font-semibold text-gray-700">{Math.min(page * limit, pagination.total)}</span> of <span className="font-semibold text-gray-700">{pagination.total}</span> online orders
+                            {t('orders.returns.pagination.showing', { defaultValue: 'Showing' })} <span className="font-semibold text-gray-700">{((page - 1) * limit) + 1}</span>–<span className="font-semibold text-gray-700">{Math.min(page * limit, pagination.total)}</span> {t('orders.returns.pagination.of')} <span className="font-semibold text-gray-700">{pagination.total}</span> {t('orders.online.title').toLowerCase()}
                         </div>
                         <div className="flex items-center gap-2">
                             <button

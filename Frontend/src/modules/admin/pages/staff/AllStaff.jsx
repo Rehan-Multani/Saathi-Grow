@@ -1,33 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Modal, Spinner } from 'react-bootstrap';
-import { Search, Plus, User, Shield, Briefcase, Mail, Phone, Edit, Trash2, Key, X, Store, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Briefcase, Edit, Trash2, Key, X, Store, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StaffEditModal from '../../components/staff/StaffEditModal';
 import { getAllStaff, updateStaff, deleteStaff } from '../../api/adminApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
-
-const AVAILABLE_PERMISSIONS = [
-    { id: 'VIEW_DASHBOARD', label: 'View Dashboard Analytics' },
-    { id: 'VIEW_ORDERS', label: 'View Orders List' },
-    { id: 'MANAGE_ORDERS', label: 'Manage/Change Order Status' },
-    { id: 'MANAGE_REFUNDS_RETURNS', label: 'Approve Refunds & Returns' },
-    { id: 'VIEW_PRODUCTS', label: 'View Products Catalog' },
-    { id: 'MANAGE_PRODUCTS', label: 'Add/Edit/Delete Products' },
-    { id: 'MANAGE_CATEGORIES_BRANDS', label: 'Add/Edit Categories & Brands' },
-    { id: 'MANAGE_INVENTORY', label: 'Update Stock/Inventory' },
-    { id: 'MANAGE_DELIVERY', label: 'Manage Delivery Partners' },
-    { id: 'VIEW_CUSTOMERS', label: 'View Customer Info' },
-    { id: 'MANAGE_CUSTOMERS', label: 'Block/Unblock/Wallet Edit' },
-    { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' },
-    { id: 'MANAGE_BRANCHES', label: 'Manage Branch Locations' },
-    { id: 'MANAGE_VENDORS', label: 'Manage Vendors & Payouts' },
-    { id: 'MANAGE_POS_BILLING', label: 'Handle POS Billing & Terminal' },
-    { id: 'MANAGE_SETTINGS', label: 'App Global Settings (Taxes, Delivery)' }
-];
+import { useTranslation } from 'react-i18next';
 
 const AllStaff = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [staffList, setStaffList] = useState([]);
@@ -55,11 +38,11 @@ const AllStaff = () => {
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             console.error('Error fetching staff:', error);
-            toast.error('Failed to load staff members');
+            toast.error(t('staff.errors.fetch_failed', { defaultValue: 'Failed to fetch staff list' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, searchTerm]);
+    }, [adminUser.token, page, searchTerm, t]);
 
     useEffect(() => {
         fetchStaffData();
@@ -72,14 +55,20 @@ const AllStaff = () => {
     };
 
     const handleDelete = async (id, name) => {
-        const result = await showDeleteConfirmation('Remove Staff?', `Are you sure you want to remove "${name}"?`);
+        const result = await showDeleteConfirmation(
+            t('staff.alerts.remove_title', { defaultValue: 'Delete Staff Member?' }),
+            t('staff.alerts.remove_text', { name, defaultValue: `Are you sure you want to remove ${name}?` })
+        );
         if (result.isConfirmed) {
             try {
                 await deleteStaff(adminUser.token, id);
                 fetchStaffData();
-                showSuccessAlert('Removed!', 'Staff member has been removed.');
+                showSuccessAlert(
+                    t('staff.alerts.removed_title', { defaultValue: 'Removed!' }),
+                    t('staff.alerts.removed_text', { defaultValue: 'Staff member has been removed successfully.' })
+                );
             } catch (error) {
-                showErrorAlert('Error', error.message || 'Failed to remove staff');
+                showErrorAlert(t('common.error'), error.message || t('staff.errors.remove_failed'));
             }
         }
     };
@@ -92,11 +81,11 @@ const AllStaff = () => {
     const handleSaveStaff = async (updatedData) => {
         try {
             await updateStaff(adminUser.token, selectedStaff._id, updatedData);
-            toast.success('Staff details updated');
+            toast.success(t('staff.alerts.update_success', { defaultValue: 'Staff updated successfully' }));
             fetchStaffData();
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || 'Failed to update staff');
+            toast.error(error.message || t('staff.errors.update_failed'));
         }
     };
 
@@ -112,11 +101,11 @@ const AllStaff = () => {
         if (!selectedStaff) return;
         try {
             await updateStaff(adminUser.token, selectedStaff._id, { permissions: tempPermissions });
-            toast.success('Permissions updated');
+            toast.success(t('staff.alerts.permissions_updated', { defaultValue: 'Permissions updated successfully' }));
             fetchStaffData();
             setShowPermissionModal(false);
         } catch (error) {
-            toast.error(error.message || 'Failed to update permissions');
+            toast.error(error.message || t('staff.errors.permissions_failed'));
         }
     };
 
@@ -124,7 +113,6 @@ const AllStaff = () => {
     const totalPages = pagination.totalPages || 1;
     const paginatedStaff = staffList;
 
-    // Reset pagination when search changes
     useEffect(() => {
         setPage(1);
     }, [searchTerm]);
@@ -133,12 +121,12 @@ const AllStaff = () => {
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <h5 className="mb-0 fw-bold text-nowrap">Staff Management</h5>
+                    <h5 className="mb-0 fw-bold text-nowrap">{t('staff.title')}</h5>
                     <div className="d-flex flex-column flex-sm-row gap-2 flex-grow-1 justify-content-sm-end">
                         <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Search Staff..."
+                                placeholder={t('staff.search_placeholder')}
                                 className="border-start-0 ps-0 shadow-none font-small"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -146,8 +134,8 @@ const AllStaff = () => {
                         </InputGroup>
                         <Link to="/admin/staff/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
                             <Plus size={18} />
-                            <span className="d-none d-sm-inline">Add Staff</span>
-                            <span className="d-inline d-sm-none">Add</span>
+                            <span className="d-none d-sm-inline">{t('staff.add_staff')}</span>
+                            <span className="d-inline d-sm-none">{t('staff.add_short')}</span>
                         </Link>
                     </div>
                 </Card.Body>
@@ -158,17 +146,17 @@ const AllStaff = () => {
                     {loading ? (
                         <div className="text-center py-5">
                             <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">Loading staff...</p>
+                            <p className="mt-2 text-muted">{t('common.loading')}</p>
                         </div>
                     ) : (
                         <Table hover responsive className="mb-0 align-middle">
                             <thead className="bg-light text-muted small text-uppercase font-weight-bold">
                                 <tr>
-                                    <th className="ps-4 border-0 py-3">Staff Profile</th>
-                                    <th className="border-0 py-3">Role</th>
-                                    <th className="border-0 py-3">Branch</th>
-                                    <th className="border-0 py-3">Status</th>
-                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                    <th className="ps-4 border-0 py-3">{t('staff.table.profile')}</th>
+                                    <th className="border-0 py-3">{t('staff.table.role')}</th>
+                                    <th className="border-0 py-3">{t('staff.table.branch')}</th>
+                                    <th className="border-0 py-3">{t('staff.table.status')}</th>
+                                    <th className="border-0 py-3 text-end pe-4">{t('staff.table.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -196,32 +184,32 @@ const AllStaff = () => {
                                                     <Store size={14} /> {s.branchId.name}
                                                 </div>
                                             ) : (
-                                                <span className="text-muted small italic">Global</span>
+                                                <span className="text-muted small italic">{t('staff.global')}</span>
                                             )}
                                         </td>
                                         <td>
                                             <Badge bg={s.isActive ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3">
-                                                {s.isActive ? 'Active' : 'Inactive'}
+                                                {s.isActive ? t('staff.status.active') : t('staff.status.inactive')}
                                             </Badge>
                                         </td>
                                         <td className="text-end pe-4">
                                             <div className="d-flex justify-content-end gap-2">
                                                 <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-warning" title="Manage Permissions"
+                                                    variant="light" size="sm" className="btn-icon-soft text-warning" title={t('staff.actions.manage_permissions')}
                                                     onClick={() => handleOpenPermissionModal(s)}
                                                 >
                                                     <Key size={16} />
                                                 </Button>
                                                 <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-primary" title="Edit Staff"
+                                                    variant="light" size="sm" className="btn-icon-soft text-primary" title={t('staff.actions.edit_staff')}
                                                     onClick={() => handleEdit(s)}
                                                 >
                                                     <Edit size={16} />
                                                 </Button>
                                                 <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-danger" title="Remove Staff"
+                                                    variant="light" size="sm" className="btn-icon-soft text-danger" title={t('staff.actions.remove_staff')}
                                                     onClick={() => handleDelete(s._id, s.name)}
-                                                    disabled={s.role === 'Admin'} // Protect Super Admin
+                                                    disabled={s.role === 'Admin'}
                                                 >
                                                     <Trash2 size={16} />
                                                 </Button>
@@ -231,7 +219,7 @@ const AllStaff = () => {
                                 )) : (
                                     <tr>
                                         <td colSpan="5" className="text-center py-5 text-muted small">
-                                            No staff members found.
+                                            {t('staff.no_staff')}
                                         </td>
                                     </tr>
                                 )}
@@ -244,7 +232,7 @@ const AllStaff = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> staff members
+                            {t('staff.pagination.showing')} <span className="fw-semibold text-dark text-xs">{((page - 1) * limit) + 1}</span> {t('staff.pagination.to')} <span className="fw-semibold text-dark text-xs">{Math.min(page * limit, totalFiltered)}</span> {t('staff.pagination.of')} <span className="fw-semibold text-dark text-xs">{totalFiltered}</span> {t('staff.pagination.staff_members')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button
@@ -259,17 +247,13 @@ const AllStaff = () => {
                             <div className="d-flex align-items-center gap-1">
                                 {[...Array(totalPages)].map((_, i) => {
                                     const p = i + 1;
-                                    const isFirstPage = p === 1;
-                                    const isLastPage = p === totalPages;
-                                    const isNearCurrent = Math.abs(page - p) <= 1;
-
-                                    if (isFirstPage || isLastPage || isNearCurrent) {
+                                    if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
                                         return (
                                             <Button
                                                 key={p}
                                                 variant={page === p ? 'primary' : 'light'}
-                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                style={{ width: '36px', height: '36px', padding: 0 }}
+                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border text-xs'}`}
+                                                style={{ width: '32px', height: '32px', padding: 0 }}
                                                 onClick={() => setPage(p)}
                                             >
                                                 {p}
@@ -298,7 +282,7 @@ const AllStaff = () => {
             {/* Permission Modal */}
             <Modal show={showPermissionModal} onHide={() => setShowPermissionModal(false)} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title className="h5 fw-bold">Manage Permissions</Modal.Title>
+                    <Modal.Title className="h5 fw-bold">{t('staff.permissions_modal.title')}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {selectedStaff && (
@@ -313,36 +297,36 @@ const AllStaff = () => {
                                 </div>
                             </div>
 
-                            <h6 className="fw-bold mb-3 text-muted small text-uppercase">Access Control</h6>
-                            <div className="d-flex flex-column gap-2">
-                                {AVAILABLE_PERMISSIONS.filter(perm => {
-                                    const RESTRICTED_IDS = [
-                                        'VIEW_DASHBOARD',
-                                        'MANAGE_PRODUCTS',
-                                        'MANAGE_CATEGORIES_BRANDS',
-                                        'MANAGE_DELIVERY',
-                                        'MANAGE_DELIVERY_BOYS',
-                                        'MANAGE_CUSTOMERS',
-                                        'MANAGE_STAFF',
-                                        'MANAGE_BRANCHES',
-                                        'MANAGE_VENDORS',
-                                        'MANAGE_SETTINGS'
-                                    ];
-                                    if (selectedStaff.role === 'Admin') return true;
-                                    // Remove MANAGE_POS_BILLING from restricted list if it's there
-                                    const ACTUAL_RESTRICTED = RESTRICTED_IDS.filter(id => id !== 'MANAGE_POS_BILLING');
-                                    return !ACTUAL_RESTRICTED.includes(perm.id);
-                                }).map((perm) => (
-                                    <div key={perm.id} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light">
+                            <h6 className="fw-bold mb-3 text-muted small text-uppercase">{t('staff.permissions_modal.access_control')}</h6>
+                            <div className="d-flex flex-column gap-2 overflow-auto" style={{ maxHeight: '350px' }}>
+                                {[
+                                    'VIEW_DASHBOARD',
+                                    'VIEW_ORDERS',
+                                    'MANAGE_ORDERS',
+                                    'MANAGE_REFUNDS_RETURNS',
+                                    'VIEW_PRODUCTS',
+                                    'MANAGE_PRODUCTS',
+                                    'MANAGE_CATEGORIES_BRANDS',
+                                    'MANAGE_INVENTORY',
+                                    'MANAGE_DELIVERY',
+                                    'VIEW_CUSTOMERS',
+                                    'MANAGE_CUSTOMERS',
+                                    'MANAGE_STAFF',
+                                    'MANAGE_BRANCHES',
+                                    'MANAGE_VENDORS',
+                                    'MANAGE_POS_BILLING',
+                                    'MANAGE_SETTINGS'
+                                ].map((permId) => (
+                                    <div key={permId} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light transition-all">
                                         <div className="d-flex align-items-center gap-2">
-                                            {perm.id.includes('MANAGE') ? <Shield size={16} className="text-primary" /> : <div style={{ width: 16 }} />}
-                                            <span className={perm.id.includes('MANAGE') ? 'fw-medium text-primary' : 'text-dark'}>{perm.label}</span>
+                                            {permId.includes('MANAGE') ? <Shield size={16} className="text-primary" /> : <div style={{ width: 16 }} />}
+                                            <span className={permId.includes('MANAGE') ? 'fw-medium text-primary small' : 'text-dark small'}>{t(`staff.permission_labels.${permId}`)}</span>
                                         </div>
                                         <Form.Check
                                             type="switch"
-                                            id={`perm-switch-${perm.id}`}
-                                            checked={tempPermissions.includes(perm.id)}
-                                            onChange={() => handlePermissionToggle(perm.id)}
+                                            id={`perm-switch-${permId}`}
+                                            checked={tempPermissions.includes(permId)}
+                                            onChange={() => handlePermissionToggle(permId)}
                                         />
                                     </div>
                                 ))}
@@ -352,10 +336,10 @@ const AllStaff = () => {
                 </Modal.Body>
                 <Modal.Footer className="border-0 pt-0 gap-2">
                     <Button variant="light" onClick={() => setShowPermissionModal(false)} className="d-flex align-items-center gap-2">
-                        <X size={18} /> Cancel
+                        <X size={18} /> {t('common.cancel')}
                     </Button>
-                    <Button variant="primary" onClick={handleSavePermissions} className="d-flex align-items-center gap-2 shadow-sm">
-                        <Shield size={18} /> Save Changes
+                    <Button variant="primary" onClick={handleSavePermissions} className="d-flex align-items-center gap-2 shadow-sm px-4">
+                        <Shield size={18} /> {t('common.save')}
                     </Button>
                 </Modal.Footer>
             </Modal>

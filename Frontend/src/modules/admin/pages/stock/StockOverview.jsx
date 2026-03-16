@@ -29,8 +29,9 @@ import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
-const StockOverview = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
@@ -61,7 +62,7 @@ const StockOverview = () => {
             if (isAdmin) setBranches(branchData);
         } catch (error) {
             console.error('Inventory Stats Error:', error);
-            toast.error('Failed to sync inventory data');
+            toast.error(t('stock.overview.error_sync'));
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -80,24 +81,22 @@ const StockOverview = () => {
         }).format(val);
     };
 
-    if (loading) {
         return (
             <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
                 <Spinner animation="border" variant="primary" />
-                <p className="mt-3 text-muted fw-medium animate-pulse">Synchronizing Inventory Stream...</p>
+                <p className="mt-3 text-muted fw-medium animate-pulse">{t('stock.overview.syncing')}</p>
             </div>
         );
-    }
 
     return (
         <div className="p-3">
             {/* Command Header */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                 <div>
-                    <h4 className="fw-bold text-dark mb-1">Inventory Command Center</h4>
+                    <h4 className="fw-bold text-dark mb-1">{t('stock.overview.title')}</h4>
                     <p className="text-muted small mb-0 d-flex align-items-center gap-2">
                         <Activity size={14} className="text-success" />
-                        Live status across {isAdmin ? 'all locations' : 'your branch'}
+                        {isAdmin ? t('stock.overview.live_status_all') : t('stock.overview.live_status_branch')}
                     </p>
                 </div>
                 
@@ -109,7 +108,7 @@ const StockOverview = () => {
                             value={selectedBranch}
                             onChange={(e) => setSelectedBranch(e.target.value)}
                         >
-                            <option value="all">🌐 Global (All Branches)</option>
+                            <option value="all">🌐 {t('stock.overview.global_all_branches')}</option>
                             {branches.map(b => (
                                 <option key={b._id} value={b._id}>📍 {b.name}</option>
                             ))}
@@ -139,12 +138,12 @@ const StockOverview = () => {
                                 <Package size={24} />
                             </div>
                             <div>
-                                <div className="text-muted small fw-bold text-uppercase">Total Stock Units</div>
+                                <div className="text-muted small fw-bold text-uppercase">{t('stock.overview.total_stock_units')}</div>
                                 <h3 className="fw-bold mb-0">{data.stats.totalStock?.toLocaleString()}</h3>
                             </div>
                         </div>
                         <div className="bg-primary bg-opacity-10 px-3 py-1 small text-primary fw-medium">
-                            Global Assets
+                            {t('stock.overview.global_assets')}
                         </div>
                     </Card>
                 </Col>
@@ -155,12 +154,12 @@ const StockOverview = () => {
                                 <RefreshCw size={24} />
                             </div>
                             <div>
-                                <div className="small fw-bold text-uppercase opacity-75">Inventory Worth</div>
+                                <div className="small fw-bold text-uppercase opacity-75">{t('stock.overview.inventory_worth')}</div>
                                 <h3 className="fw-bold mb-0">{formatCurrency(data.stats.inventoryValue || 0)}</h3>
                             </div>
                         </div>
                         <div className="bg-black bg-opacity-10 px-3 py-1 small fw-medium">
-                            Market Value (MRP)
+                            {t('stock.overview.market_value')}
                         </div>
                     </Card>
                 </Col>
@@ -174,12 +173,12 @@ const StockOverview = () => {
                                 <AlertTriangle size={24} />
                             </div>
                             <div>
-                                <div className="text-muted small fw-bold text-uppercase">Under Threshold</div>
+                                <div className="text-muted small fw-bold text-uppercase">{t('stock.overview.under_threshold')}</div>
                                 <h3 className="fw-bold mb-0 text-warning">{data.stats.lowStockCount}</h3>
                             </div>
                         </div>
                         <div className="bg-warning bg-opacity-10 px-3 py-1 small text-warning fw-medium">
-                            Needs Fast Restock
+                            {t('stock.overview.needs_fast_restock')}
                         </div>
                     </Card>
                 </Col>
@@ -193,12 +192,12 @@ const StockOverview = () => {
                                 <AlertCircle size={24} />
                             </div>
                             <div>
-                                <div className="text-muted small fw-bold text-uppercase">Zero Stock</div>
+                                <div className="text-muted small fw-bold text-uppercase">{t('stock.overview.zero_stock')}</div>
                                 <h3 className="fw-bold mb-0 text-danger">{data.stats.outOfStockCount}</h3>
                             </div>
                         </div>
                         <div className="bg-danger bg-opacity-10 px-3 py-1 small text-danger fw-medium">
-                            Unavailable Items
+                            {t('stock.overview.unavailable_items')}
                         </div>
                     </Card>
                 </Col>
@@ -209,7 +208,7 @@ const StockOverview = () => {
                 <div className="mb-4">
                     <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                         <LayoutGrid size={18} className="text-primary" />
-                        Regional Inventory Health Heatmap
+                        {t('stock.overview.regional_health_heatmap')}
                     </h6>
                     <Row className="g-3">
                         {data.branchHealth.map((branch, idx) => (
@@ -226,11 +225,11 @@ const StockOverview = () => {
                                         
                                         <div className="d-flex flex-column gap-2">
                                             <div className="d-flex justify-content-between small">
-                                                <span>Total Items</span>
+                                                <span>{t('stock.overview.total_items')}</span>
                                                 <span className="fw-bold">{branch.totalProducts}</span>
                                             </div>
                                             <div className="d-flex justify-content-between small">
-                                                <span>Low/Out of Stock</span>
+                                                <span>{t('stock.overview.low_out_of_stock')}</span>
                                                 <span className={`fw-bold ${branch.lowStock > 0 ? 'text-danger' : 'text-success'}`}>
                                                     {branch.lowStock + branch.outOfStock}
                                                 </span>
@@ -239,7 +238,7 @@ const StockOverview = () => {
                                     </Card.Body>
                                     <Card.Footer className="bg-light border-0 py-2 text-center clickable shadow-none cursor-pointer" onClick={() => navigate('/admin/stock/branches')}>
                                         <span className="small fw-bold text-primary d-flex align-items-center justify-content-center gap-1">
-                                            Manage Branch <ArrowRight size={14} />
+                                            {t('stock.overview.manage_branch')} <ArrowRight size={14} />
                                         </span>
                                     </Card.Footer>
                                 </Card>
@@ -254,20 +253,20 @@ const StockOverview = () => {
                 <Col lg={7}>
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Header className="bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                            <h6 className="fw-bold mb-0">Urgent Restock Action List</h6>
+                            <h6 className="fw-bold mb-0">{t('stock.overview.urgent_restock_list')}</h6>
                             <Button variant="link" size="sm" className="p-0 text-decoration-none small" onClick={() => navigate('/admin/stock/alerts')}>
-                                View All Alerts
+                                {t('stock.overview.view_all_alerts')}
                             </Button>
                         </Card.Header>
                         <Card.Body className="p-0">
                             <Table responsive borderless hover className="align-middle mb-0">
                                 <thead className="bg-light text-muted small text-uppercase">
                                     <tr>
-                                        <th className="ps-4">Product</th>
-                                        {selectedBranch === 'all' && <th>Branch</th>}
-                                        <th className="text-center">Current</th>
-                                        <th>Status</th>
-                                        <th className="pe-4 text-end">Action</th>
+                                        <th className="ps-4">{t('stock.overview.table.product')}</th>
+                                        {selectedBranch === 'all' && <th>{t('stock.overview.table.branch')}</th>}
+                                        <th className="text-center">{t('stock.overview.table.current')}</th>
+                                        <th>{t('stock.overview.table.status')}</th>
+                                        <th className="pe-4 text-end">{t('stock.overview.table.action')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -294,7 +293,7 @@ const StockOverview = () => {
                                             </td>
                                             <td>
                                                 <Badge bg={item.stock <= 0 ? 'danger-soft' : 'warning-soft'} className={item.stock <= 0 ? 'text-danger px-2' : 'text-warning px-2'}>
-                                                    {item.stock <= 0 ? 'Empty' : 'Low'}
+                                                    {item.stock <= 0 ? t('stock.overview.status.empty') : t('stock.overview.status.low')}
                                                 </Badge>
                                             </td>
                                             <td className="pe-4 text-end">
@@ -311,7 +310,7 @@ const StockOverview = () => {
                                     )) : (
                                         <tr>
                                             <td colSpan="5" className="text-center py-5 text-muted small">
-                                                🎉 All systems clear. No critical stock alerts!
+                                                🎉 {t('stock.overview.all_systems_clear')}
                                             </td>
                                         </tr>
                                     )}
@@ -325,7 +324,7 @@ const StockOverview = () => {
                 <Col lg={5}>
                     <Card className="border-0 shadow-sm h-100">
                         <Card.Header className="bg-white border-0 py-3">
-                            <h6 className="fw-bold mb-0">Stock Density by Category</h6>
+                            <h6 className="fw-bold mb-0">{t('stock.overview.stock_density_category')}</h6>
                         </Card.Header>
                         <Card.Body>
                             <div style={{ height: '350px' }}>

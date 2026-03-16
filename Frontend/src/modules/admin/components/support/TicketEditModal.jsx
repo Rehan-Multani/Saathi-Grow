@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Row, Col, Badge } from 'react-bootstrap';
-import { Save, X, ArrowUpRight, CheckCircle, Package, User, MessageCircle } from 'lucide-react';
+import { Save, X, ArrowUpRight, CheckCircle, Package, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as complaintApi from '../../api/complaintApi';
 import { toast } from 'react-toastify';
 
 const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const token = adminUser?.token;
 
@@ -25,13 +27,13 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
             } else if (action === 'CLOSE') {
                 const res = await complaintApi.closeTicket(token, ticket.ticketId, processRefund, refundAmount);
                 if (res.success) {
-                    toast.success(processRefund ? 'Ticket closed & Refund processed' : 'Ticket closed successfully');
+                    toast.success(processRefund ? t('support.tickets.modal.alerts.refund_success') : t('support.tickets.modal.alerts.close_success'));
                     onRefresh();
                 }
             }
             onHide();
         } catch (error) {
-            toast.error('Action failed');
+            toast.error(t('support.tickets.modal.alerts.action_failed'));
         } finally {
             setIsProcessing(false);
             setAdminNotes('');
@@ -42,7 +44,7 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
         <Modal show={show} onHide={onHide} centered size="lg" className="premium-modal">
             <Modal.Header closeButton className="border-0 bg-light/50">
                 <Modal.Title className="fw-black text-[#0c831f] uppercase tracking-tight">
-                    Ticket Details: {ticket.ticketId}
+                    {t('support.tickets.modal.title', { id: ticket.ticketId })}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="py-4">
@@ -50,7 +52,7 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                     {/* Left Column: Info */}
                     <Col md={7}>
                         <div className="mb-4">
-                            <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">Complaint Context</label>
+                            <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">{t('support.tickets.modal.context_label')}</label>
                             <div className="bg-light p-3 rounded-3 border border-gray-100 mb-2">
                                 <h6 className="fw-black mb-1">{ticket.category}</h6>
                                 <p className="small text-muted mb-0">{ticket.description}</p>
@@ -72,16 +74,15 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                             )}
                         </div>
 
-
                         <div className="mb-4">
-                            <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">Order & User</label>
+                            <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">{t('support.tickets.modal.order_user_info')}</label>
                             <div className="d-flex gap-3">
                                 <div className="flex-grow-1 bg-light/50 p-2 rounded border">
                                     <div className="d-flex align-items-center gap-2 mb-1">
                                         <Package size={14} className="text-[#0c831f]" />
-                                        <span className="xs font-black uppercase">Order #{ticket.order?.orderId?.slice(-6)}</span>
+                                        <span className="xs font-black uppercase">{t('support.tickets.modal.order_id', { id: ticket.order?.orderId?.slice(-6) })}</span>
                                     </div>
-                                    <div className="xs text-muted">Amount: ₹{ticket.order?.totalAmount}</div>
+                                    <div className="xs text-muted">{t('support.tickets.modal.amount')}: ₹{ticket.order?.totalAmount}</div>
                                 </div>
                                 <div className="flex-grow-1 bg-light/50 p-2 rounded border">
                                     <div className="d-flex align-items-center gap-2 mb-1">
@@ -95,7 +96,7 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
 
                         {ticket.resolutionThread?.length > 0 && (
                             <div>
-                                <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">Resolution Progress</label>
+                                <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">{t('support.tickets.modal.resolution_progress')}</label>
                                 <div className="border-start border-2 border-success ms-2 ps-3 space-y-3">
                                     {ticket.resolutionThread.map((msg, idx) => (
                                         <div key={idx} className="mb-2">
@@ -106,7 +107,7 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                                     ))}
                                     {ticket.storeRecommendedRefund && !ticket.refundProcessed && (
                                         <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 xs fw-black uppercase">
-                                            ⚠️ Store has recommended a refund for this ticket
+                                            ⚠️ {t('support.tickets.modal.store_recommendation_msg')}
                                         </div>
                                     )}
                                 </div>
@@ -117,12 +118,12 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                     {/* Right Column: Actions */}
                     <Col md={5} className="border-start ps-4">
                         <div className="mb-4">
-                            <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">Internal Admin Notes</label>
+                            <label className="xs font-black text-muted uppercase tracking-widest mb-2 d-block">{t('support.tickets.modal.admin_notes_label')}</label>
                             <Form.Control
                                 as="textarea"
                                 rows={4}
                                 className="bg-light border-0 small font-bold"
-                                placeholder="Add notes for the store or internal records..."
+                                placeholder={t('support.tickets.modal.admin_notes_placeholder')}
                                 value={adminNotes}
                                 onChange={(e) => setAdminNotes(e.target.value)}
                             />
@@ -136,20 +137,20 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                                     onClick={() => handleAction('ESCALATE')}
                                     disabled={isProcessing}
                                 >
-                                    <ArrowUpRight size={18} /> Escalate to Store
+                                    <ArrowUpRight size={18} /> {t('support.tickets.modal.escalate_btn')}
                                 </Button>
                             )}
 
                             {['STORE_RESPONDED', 'RESOLVED', 'OVERDUE'].includes(ticket.status) && (
                                 <div className="bg-light p-3 rounded-3 border mb-3">
-                                    <label className="xs font-black text-muted uppercase tracking-widest mb-3 d-block">Resolution Action</label>
+                                    <label className="xs font-black text-muted uppercase tracking-widest mb-3 d-block">{t('support.tickets.modal.resolution_action')}</label>
                                     
                                     {ticket.order && !ticket.refundProcessed && (
                                         <div className="mb-3">
                                             <Form.Check 
                                                 type="checkbox"
                                                 id="refund-check"
-                                                label={<span className="small fw-black text-success uppercase">Process Wallet Refund</span>}
+                                                label={<span className="small fw-black text-success uppercase">{t('support.tickets.modal.process_refund')}</span>}
                                                 checked={processRefund}
                                                 onChange={(e) => setProcessRefund(e.target.checked)}
                                                 className="mb-2"
@@ -174,13 +175,13 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                                         onClick={() => handleAction('CLOSE')}
                                         disabled={isProcessing}
                                     >
-                                        <CheckCircle size={18} /> {processRefund ? 'Refund & Close' : 'Close Ticket'}
+                                        <CheckCircle size={18} /> {processRefund ? t('support.tickets.modal.refund_close_btn') : t('support.tickets.modal.close_btn')}
                                     </Button>
                                 </div>
                             )}
 
                             <Button variant="light" onClick={onHide} className="fw-black uppercase xs tracking-tighter text-muted mt-2">
-                                Keep Pending
+                                {t('support.tickets.modal.keep_pending')}
                             </Button>
                         </div>
                     </Col>

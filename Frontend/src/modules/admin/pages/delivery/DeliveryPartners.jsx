@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Search, Plus, Phone, Truck, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
 import Swal from 'sweetalert2';
 import * as api from '../../api/adminDeliveryApi';
 
 const DeliveryPartners = () => {
+    const { t } = useTranslation();
     const [partners, setPartners] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +30,7 @@ const DeliveryPartners = () => {
             setPartners(Array.isArray(partnerList) ? partnerList : []);
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
-            Swal.fire('Error', 'Failed to load delivery partners', 'error');
+            Swal.fire(t('common.error'), t('delivery.partners.loading_failed', { defaultValue: 'Failed to load delivery partners' }), 'error');
         } finally {
             setLoading(false);
         }
@@ -49,21 +51,21 @@ const DeliveryPartners = () => {
 
     const handleDelete = (id, name) => {
         Swal.fire({
-            title: 'Delete Partner?',
-            text: `Are you sure you want to remove ${name}?`,
+            title: t('delivery.partners.delete_confirm_title'),
+            text: t('delivery.partners.delete_confirm_text', { name }),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Delete'
+            confirmButtonText: t('common.delete', { defaultValue: 'Delete' })
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     await api.deleteDeliveryPartner(id);
                     fetchPartners();
-                    Swal.fire('Deleted!', 'Partner has been removed.', 'success');
+                    Swal.fire(t('common.deleted'), t('delivery.partners.delete_success'), 'success');
                 } catch (err) {
-                    Swal.fire('Error', err?.response?.data?.message || 'Failed to delete partner', 'error');
+                    Swal.fire(t('common.error'), err?.response?.data?.message || t('common.failed_to_delete'), 'error');
                 }
             }
         });
@@ -79,14 +81,14 @@ const DeliveryPartners = () => {
             await api.updateDeliveryPartnerStatus(updatedPartner._id, updatedPartner.authStatus);
             fetchPartners();
             Swal.fire({
-                title: 'Updated!',
-                text: 'Partner permission status updated successfully.',
+                title: t('common.updated'),
+                text: t('delivery.partners.update_success'),
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
             });
         } catch (e) {
-            Swal.fire('Error', 'Failed to save changes against server', 'error');
+            Swal.fire(t('common.error'), t('common.update_failed'), 'error');
         }
     };
 
@@ -98,20 +100,20 @@ const DeliveryPartners = () => {
                         <div className="bg-primary bg-opacity-10 p-2 rounded text-primary d-none d-md-flex">
                             <Truck size={20} />
                         </div>
-                        <h5 className="mb-0 fw-bold text-nowrap">Delivery Partners</h5>
+                        <h5 className="mb-0 fw-bold text-nowrap">{t('delivery.partners.title')}</h5>
                     </div>
                     <div className="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-md-end">
                         <InputGroup className="w-100" style={{ maxWidth: '400px' }}>
                             <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Search by name or ID..."
+                                placeholder={t('delivery.partners.search_placeholder')}
                                 className="border-start-0 ps-0 shadow-none py-2"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </InputGroup>
                         <Link to="/admin/delivery/partners/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2">
-                            <Plus size={18} /> <span>Add New Partner</span>
+                            <Plus size={18} /> <span>{t('delivery.partners.add_new')}</span>
                         </Link>
                     </div>
                 </Card.Body>
@@ -122,12 +124,12 @@ const DeliveryPartners = () => {
                     <Table hover responsive className="mb-0 align-middle text-center">
                         <thead className="bg-light text-muted small text-uppercase font-weight-bold">
                             <tr>
-                                <th className="ps-4 border-0 py-3 text-start">Partner Name</th>
-                                <th className="border-0 py-3">Type</th>
-                                <th className="border-0 py-3">Contact</th>
-                                <th className="border-0 py-3">Capacity</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                <th className="ps-4 border-0 py-3 text-start">{t('delivery.partners.table.name')}</th>
+                                <th className="border-0 py-3">{t('delivery.partners.table.type')}</th>
+                                <th className="border-0 py-3">{t('delivery.partners.table.contact')}</th>
+                                <th className="border-0 py-3">{t('delivery.partners.table.capacity')}</th>
+                                <th className="border-0 py-3">{t('delivery.partners.table.status')}</th>
+                                <th className="border-0 py-3 text-end pe-4">{t('delivery.partners.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -135,7 +137,7 @@ const DeliveryPartners = () => {
                                 <tr>
                                     <td colSpan="6" className="text-center py-5 text-muted">
                                         <Spinner animation="border" variant="primary" />
-                                        <div className="mt-2">Loading partners...</div>
+                                        <div className="mt-2">{t('delivery.partners.loading')}</div>
                                     </td>
                                 </tr>
                             ) : paginatedPartners.length > 0 ? paginatedPartners.map((p) => (
@@ -188,7 +190,7 @@ const DeliveryPartners = () => {
                             )) : (
                                 <tr>
                                     <td colSpan="6" className="text-center py-5 text-muted small">
-                                        No partners found matching your search.
+                                        {t('delivery.partners.no_partners')}
                                     </td>
                                 </tr>
                             )}
@@ -200,7 +202,7 @@ const DeliveryPartners = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> partners
+                            {t('delivery.partners.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('delivery.partners.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('delivery.partners.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('delivery.partners.pagination.partners')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

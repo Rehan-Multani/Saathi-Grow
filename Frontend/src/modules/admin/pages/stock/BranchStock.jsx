@@ -5,8 +5,10 @@ import { getBranchWiseStock } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const BranchStock = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [stockData, setStockData] = useState([]);
     const [branches, setBranches] = useState([]);
@@ -56,7 +58,7 @@ const BranchStock = () => {
             }
         } catch (error) {
             console.error('Error fetching stock:', error);
-            toast.error('Failed to load stock data');
+            toast.error(t('stock.branch_stock.error_load'));
         } finally {
             setLoading(false);
         }
@@ -79,12 +81,12 @@ const BranchStock = () => {
                 <div>
                     <h4 className="font-bold text-gray-800 mb-1 flex items-center gap-2">
                         <Package className="text-purple-600" size={24} />
-                        Branch-wise Stock Monitoring
+                        {t('stock.branch_stock.title')}
                     </h4>
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Logistics Control</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('stock.branch_stock.logistics_control')}</span>
                         <span className="w-1 h-1 rounded-full bg-gray-200"></span>
-                        <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">{pagination.total} Active Records</span>
+                        <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">{t('stock.branch_stock.active_records', { count: pagination.total })}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -96,7 +98,7 @@ const BranchStock = () => {
                         disabled={loading}
                     >
                         <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider">Refresh</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider">{t('stock.branch_stock.refresh')}</span>
                     </Button>
                 </div>
             </div>
@@ -109,7 +111,7 @@ const BranchStock = () => {
                             <InputGroup className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-0.5 focus-within:bg-white focus-within:ring-2 focus-within:ring-purple-100 transition-all">
                                 <Search className="text-gray-400 mt-2" size={16} />
                                 <Form.Control
-                                    placeholder="Search by SKU, Product or Branch..."
+                                    placeholder={t('stock.branch_stock.search_placeholder')}
                                     className="bg-transparent border-none shadow-none text-xs font-medium placeholder:text-gray-300 py-2 ms-1"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -125,10 +127,10 @@ const BranchStock = () => {
                                     value={statusFilter}
                                     onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
                                 >
-                                    <option value="">Status: All</option>
-                                    <option value="In Stock">In Stock</option>
-                                    <option value="Low Stock">Critically Low</option>
-                                    <option value="Out of Stock">Out of Stock</option>
+                                    <option value="">{t('stock.branch_stock.filters.status_all')}</option>
+                                    <option value="In Stock">{t('stock.branch_stock.filters.in_stock')}</option>
+                                    <option value="Low Stock">{t('stock.branch_stock.filters.critically_low')}</option>
+                                    <option value="Out of Stock">{t('stock.branch_stock.filters.out_of_stock')}</option>
                                 </Form.Select>
                             </div>
                         </Col>
@@ -142,7 +144,7 @@ const BranchStock = () => {
                                         value={branchFilter}
                                         onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
                                     >
-                                        <option value="">Branch: Global View</option>
+                                        <option value="">{t('stock.branch_stock.filters.branch_global')}</option>
                                         {branches.map(b => (
                                             <option key={b._id} value={b._id}>{b.name}</option>
                                         ))}
@@ -162,19 +164,19 @@ const BranchStock = () => {
                             <thead>
                                 <tr className="bg-gray-50 border-b border-gray-100">
                                     <th className="ps-4 py-3">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">Inventory Item</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.item')}</span>
                                     </th>
                                     <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">Deployment point</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.deployment')}</span>
                                     </th>
                                     <th className="py-3 text-center">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">Current Level</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.level')}</span>
                                     </th>
                                     <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">Operational status</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.status')}</span>
                                     </th>
                                     <th className="pe-4 py-3 text-right">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">Command</span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.command')}</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -185,7 +187,7 @@ const BranchStock = () => {
                                             <td colSpan="5" className="py-4 px-4 text-center">
                                                 <div className="flex items-center justify-center gap-2 text-gray-200">
                                                     <Spinner animation="border" size="sm" className="opacity-20" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-30">Decrypting Stock Data...</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-30">{t('stock.branch_stock.table.decrypting')}</span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -219,9 +221,9 @@ const BranchStock = () => {
                                         <td className="py-2.5 text-center">
                                             <div className={`text-xs font-black ${item.stock <= item.lowStockThreshold ? 'text-red-600' : 'text-gray-800'}`}>
                                                 {item.stock}
-                                                <span className="text-[8px] text-gray-400 font-normal ml-0.5 uppercase tracking-tighter">Units</span>
+                                                <span className="text-[8px] text-gray-400 font-normal ml-0.5 uppercase tracking-tighter">{t('stock.branch_stock.table.units')}</span>
                                             </div>
-                                            <div className="text-[8px] text-gray-300 font-bold uppercase mt-0.5">Alert @ {item.lowStockThreshold}</div>
+                                            <div className="text-[8px] text-gray-300 font-bold uppercase mt-0.5">{t('stock.branch_stock.table.alert_at')} {item.lowStockThreshold}</div>
                                         </td>
                                         <td className="py-2.5">
                                             <Badge className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-transparent shadow-sm ${
@@ -231,7 +233,7 @@ const BranchStock = () => {
                                                         ? 'bg-amber-100 text-amber-700 border-amber-200' 
                                                         : 'bg-rose-100 text-rose-700 border-rose-200'
                                             }`}>
-                                                {item.status}
+                                                {t(`stock.branch_stock.filters.${item.status?.toLowerCase().replace(/\s/g, '_') || 'in_stock'}`)}
                                             </Badge>
                                         </td>
                                         <td className="pe-4 py-2.5 text-right">
@@ -252,8 +254,8 @@ const BranchStock = () => {
                                             <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 border border-gray-100">
                                                 <Package className="text-gray-200" size={20} />
                                             </div>
-                                            <h4 className="font-bold text-gray-800 text-sm">Quiet Moment</h4>
-                                            <p className="text-[11px] text-gray-400 italic">No stock data found in this filter.</p>
+                                            <h4 className="font-bold text-gray-800 text-sm">{t('stock.branch_stock.quiet_moment')}</h4>
+                                            <p className="text-[11px] text-gray-400 italic">{t('stock.branch_stock.no_data')}</p>
                                         </td>
                                     </tr>
                                 )}
@@ -266,7 +268,7 @@ const BranchStock = () => {
                 {!loading && pagination.total > 0 && (
                     <div className="bg-white border-t border-gray-50 px-4 py-2.5 flex items-center justify-between shadow-sm">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            Showing <span className="text-gray-700">{((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)}</span> of {pagination.total}
+                            {t('stock.branch_stock.pagination.showing')} <span className="text-gray-700">{((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)}</span> {t('stock.branch_stock.pagination.of')} {pagination.total}
                         </span>
                         <div className="flex items-center gap-1.5">
                             <button
@@ -277,7 +279,7 @@ const BranchStock = () => {
                                 <ChevronLeft size={14} />
                             </button>
                             <div className="px-3">
-                                <span className="text-[10px] font-black text-gray-600 uppercase tracking-tighter">Page {page} / {pagination.totalPages}</span>
+                                <span className="text-[10px] font-black text-gray-600 uppercase tracking-tighter">{t('stock.branch_stock.pagination.page')} {page} / {pagination.totalPages}</span>
                             </div>
                             <button
                                 onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}

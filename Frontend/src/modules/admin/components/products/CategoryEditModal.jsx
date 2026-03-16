@@ -1,6 +1,5 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { Modal, Button, Form, Row, Col, Image as BSImage, Spinner } from 'react-bootstrap';
 import { Save, X, Upload, Palette, Image as ImageIcon, Camera } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 
 const PRESET_COLORS = [
@@ -11,6 +10,7 @@ const PRESET_COLORS = [
 ];
 
 const CategoryEditModal = ({ show, onHide, category, onSave }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
     const [formData, setFormData] = useState({
@@ -47,7 +47,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) {
-                return toast.error('Image size should be less than 2MB');
+                return toast.error(t('categories.edit_modal.image_size_error'));
             }
             setImageFile(file);
             const reader = new FileReader();
@@ -89,42 +89,42 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
     return (
         <Modal show={show} onHide={onHide} centered size="lg" className="category-edit-modal">
             <Modal.Header closeButton className="border-0 pb-0">
-                <Modal.Title className="fw-bold px-2 text-dark">Update Category</Modal.Title>
+                <Modal.Title className="fw-bold px-2 text-dark">{t('categories.edit_modal.title')}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="pt-4 px-4 pb-4">
                 <Form onSubmit={handleSubmit}>
                     <Row>
                         <Col md={7}>
                             <div className="mb-3">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Category Name</Form.Label>
+                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.name_label')}</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
                                     className="bg-light border-0 py-2 shadow-none"
-                                    placeholder="e.g. Electronics"
+                                    placeholder={t('categories.edit_modal.name_placeholder')}
                                     required
                                     disabled={loading}
                                 />
                             </div>
 
                             <div className="mb-3">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Slug</Form.Label>
+                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.slug_label')}</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="slug"
                                     value={formData.slug}
                                     onChange={handleChange}
                                     className="bg-light border-0 py-2 font-monospace shadow-none"
-                                    placeholder="electronics-item"
+                                    placeholder={t('categories.edit_modal.slug_placeholder')}
                                     disabled={loading}
                                 />
-                                <Form.Text className="text-muted small">Unique identifier for SEO.</Form.Text>
+                                <Form.Text className="text-muted small">{t('categories.edit_modal.slug_help')}</Form.Text>
                             </div>
 
                             <div className="mb-3">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Status</Form.Label>
+                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.status_label')}</Form.Label>
                                 <Form.Select
                                     name="status"
                                     value={formData.status}
@@ -132,13 +132,13 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                     className="bg-light border-0 py-2 shadow-none"
                                     disabled={loading}
                                 >
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
+                                    <option value="Active">{t('products.status.active')}</option>
+                                    <option value="Inactive">{t('vendors.status.inactive')}</option>
                                 </Form.Select>
                             </div>
 
                             <div className="mb-0">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">Description</Form.Label>
+                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.description_label')}</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={3}
@@ -146,14 +146,14 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                     value={formData.description}
                                     onChange={handleChange}
                                     className="bg-light border-0 py-2 shadow-none"
-                                    placeholder="Category description..."
+                                    placeholder={t('categories.edit_modal.description_placeholder')}
                                     disabled={loading}
                                 />
                             </div>
                         </Col>
 
                         <Col md={5} className="border-start">
-                            <h6 className="small fw-bold text-muted uppercase tracking-wider mb-3">Appearance</h6>
+                            <h6 className="small fw-bold text-muted uppercase tracking-wider mb-3">{t('categories.edit_modal.appearance_title')}</h6>
 
                             <div
                                 className="text-center mb-3 p-3 border border-dashed rounded-xl bg-light position-relative overflow-hidden shadow-inner"
@@ -191,7 +191,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                 ) : (
                                     <div className="text-muted py-2 cursor-pointer" onClick={() => fileInputRef.current.click()}>
                                         <Upload className="text-primary opacity-50 mb-2 mx-auto" size={28} />
-                                        <p className="small mb-0 fw-bold">Add Category Image</p>
+                                        <p className="small mb-0 fw-bold">{t('categories.edit_modal.add_image')}</p>
                                     </div>
                                 )}
                                 <input
@@ -203,7 +203,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                 />
                             </div>
 
-                            <Form.Label className="small fw-bold text-muted d-block mb-2">Background Color</Form.Label>
+                            <Form.Label className="small fw-bold text-muted d-block mb-2">{t('categories.edit_modal.bg_color_label')}</Form.Label>
                             <div className="d-flex flex-wrap gap-2 mb-3">
                                 {PRESET_COLORS.map((color) => (
                                     <div
@@ -232,7 +232,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                             </div>
 
                             <div className="p-3 rounded-xl border bg-light shadow-inner">
-                                <p className="text-[10px] text-muted fw-bold uppercase mb-2 tracking-widest text-center">Live Preview Card</p>
+                                <p className="text-[10px] text-muted fw-bold uppercase mb-2 tracking-widest text-center">{t('categories.edit_modal.live_preview')}</p>
                                 <div className="d-flex align-items-center gap-3 justify-content-center">
                                     <div
                                         className="rounded-xl shadow-sm border-white border-2"
@@ -253,7 +253,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
                                         )}
                                     </div>
                                     <div className="text-truncate fw-bold small" style={{ maxWidth: '100px' }}>
-                                        {formData.name || 'Category'}
+                                        {formData.name || t('categories.title').slice(0, -1)}
                                     </div>
                                 </div>
                             </div>
@@ -262,11 +262,11 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium shadow-none border" disabled={loading}>
-                            Cancel
+                            {t('categories.edit_modal.cancel')}
                         </Button>
                         <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm" disabled={loading}>
                             {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                            {loading ? 'Saving...' : 'Update Category'}
+                            {loading ? t('categories.edit_modal.saving') : t('categories.edit_modal.update_btn')}
                         </Button>
                     </div>
                 </Form>

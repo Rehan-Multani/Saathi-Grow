@@ -1,8 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import { Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const FAQModal = ({ show, onHide, faq, onSave }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         question: '',
         answer: '',
@@ -35,19 +37,21 @@ const FAQModal = ({ show, onHide, faq, onSave }) => {
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered>
+        <Modal show={show} onHide={onHide} centered className="premium-modal">
             <Modal.Header closeButton className="border-0 pb-0">
-                <Modal.Title className="fw-bold fs-5">{faq ? 'Edit FAQ' : 'Add New FAQ'}</Modal.Title>
+                <Modal.Title className="fw-black text-[#0c831f] uppercase tracking-tight">
+                    {faq ? t('support.faqs.modal.title_edit') : t('support.faqs.modal.title_add')}
+                </Modal.Title>
             </Modal.Header>
             <Form onSubmit={handleSubmit}>
                 <Modal.Body className="py-3">
                     <div className="d-flex flex-column gap-3">
                         <Form.Group>
-                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Question</Form.Label>
+                            <Form.Label className="xs font-black text-muted uppercase tracking-widest mb-1">{t('support.faqs.modal.question_label')}</Form.Label>
                             <Form.Control
                                 type="text"
-                                className="bg-light border-0 py-2"
-                                placeholder="Enter the question"
+                                className="bg-light border-0 py-2 font-bold"
+                                placeholder={t('support.faqs.modal.question_placeholder')}
                                 value={formData.question}
                                 onChange={(e) => setFormData({ ...formData, question: e.target.value })}
                                 required
@@ -55,12 +59,12 @@ const FAQModal = ({ show, onHide, faq, onSave }) => {
                         </Form.Group>
 
                         <Form.Group>
-                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Answer</Form.Label>
+                            <Form.Label className="xs font-black text-muted uppercase tracking-widest mb-1">{t('support.faqs.modal.answer_label')}</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={4}
-                                className="bg-light border-0 py-2"
-                                placeholder="Enter the answer"
+                                className="bg-light border-0 py-2 font-bold"
+                                placeholder={t('support.faqs.modal.answer_placeholder')}
                                 value={formData.answer}
                                 onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
                                 required
@@ -70,31 +74,31 @@ const FAQModal = ({ show, onHide, faq, onSave }) => {
                         <Row className="g-2">
                             <Col xs={6}>
                                 <Form.Group>
-                                    <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Category</Form.Label>
+                                    <Form.Label className="xs font-black text-muted uppercase tracking-widest mb-1">{t('support.faqs.modal.category_label')}</Form.Label>
                                     <Form.Select
-                                        className="bg-light border-0 py-2 shadow-none"
+                                        className="bg-light border-0 py-2 shadow-none font-bold"
                                         value={formData.category}
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                     >
-                                        <option value="General">General</option>
-                                        <option value="Orders">Orders</option>
-                                        <option value="Shipping">Shipping</option>
-                                        <option value="Account">Account</option>
-                                        <option value="Payment">Payment</option>
+                                        <option value="General">{t('support.faqs.modal.categories.general')}</option>
+                                        <option value="Orders">{t('support.faqs.modal.categories.orders')}</option>
+                                        <option value="Shipping">{t('support.faqs.modal.categories.shipping')}</option>
+                                        <option value="Account">{t('support.faqs.modal.categories.account')}</option>
+                                        <option value="Payment">{t('support.faqs.modal.categories.payment')}</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
 
                             <Col xs={6}>
                                 <Form.Group>
-                                    <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Status</Form.Label>
+                                    <Form.Label className="xs font-black text-muted uppercase tracking-widest mb-1">{t('support.faqs.modal.status_label')}</Form.Label>
                                     <Form.Select
-                                        className="bg-light border-0 py-2 shadow-none"
+                                        className="bg-light border-0 py-2 shadow-none font-bold"
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                     >
-                                        <option value="Published">Published</option>
-                                        <option value="Draft">Draft</option>
+                                        <option value="Published">{t('support.faqs.modal.statuses.published')}</option>
+                                        <option value="Draft">{t('support.faqs.modal.statuses.draft')}</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
@@ -102,11 +106,11 @@ const FAQModal = ({ show, onHide, faq, onSave }) => {
                     </div>
                 </Modal.Body>
                 <Modal.Footer className="border-0 pt-0 pb-4 justify-content-end gap-2">
-                    <Button variant="light" onClick={onHide} className="px-4 border">
-                        Cancel
+                    <Button variant="light" onClick={onHide} className="px-4 border fw-black uppercase xs tracking-tighter text-muted">
+                        {t('support.faqs.modal.cancel')}
                     </Button>
-                    <Button variant="primary" type="submit" className="px-4 d-flex align-items-center gap-2 shadow-sm">
-                        <Save size={18} /> {faq ? 'Update FAQ' : 'Save FAQ'}
+                    <Button variant="primary" type="submit" className="px-4 d-flex align-items-center gap-2 shadow-sm fw-black uppercase tracking-widest border-0">
+                        <Save size={18} /> {faq ? t('support.faqs.modal.update_btn') : t('support.faqs.modal.save_btn')}
                     </Button>
                 </Modal.Footer>
             </Form>

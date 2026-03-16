@@ -1,16 +1,31 @@
 import mongoose from 'mongoose';
+import dns from 'node:dns';
+
+// Set DNS servers to Google DNS as requested to bypass ISP restrictions
+try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+    dns.setDefaultResultOrder('ipv4first');
+} catch (e) {
+    console.warn('DNS server setting failed, using system defaults.');
+}
 
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000, // Fail fast if Atlas is unreachable
-        });
+        const uri = process.env.MONGO_URI || '';
+        const maskedUri = uri.replace(/\/\/.*:.*@/, '//****:****@');
+        console.log(`📡 Attempting to connect to: ${maskedUri}`);
+        
+        const conn = await mongoose.connect(uri);
+        
         console.log(`🚀 MongoDB Connected: ${conn.connection.host}`);
         return conn;
     } catch (error) {
         console.error(`❌ MongoDB Connection Error: ${error.message}`);
-        console.error(`🔍 Please check if your IP matches the whitelist in MongoDB Atlas: https://www.mongodb.com/docs/atlas/security-whitelist/`);
-        process.exit(1); // Exit process if DB connection fails
+        if (error.reason) {
+            console.error('Server Selection Reason:', JSON.stringify(error.reason, null, 2));
+        }
+        console.log(`🔍 TIP: If using Atlas, ensure your IP is whitelisted. We are currently using the Standard Connection String to bypass SRV DNS issues.`);
+        process.exit(1); 
     }
 };
 

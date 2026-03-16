@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Spinner } from 'react-bootstrap';
@@ -15,6 +16,7 @@ import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../
 import { toast } from 'react-toastify';
 
 const ProductStatusBadge = ({ status }) => {
+    const { t } = useTranslation();
     const variants = {
         Active: 'bg-green-100 text-green-700',
         'Low Stock': 'bg-red-100 text-red-700 border border-red-200 animate-pulse',
@@ -22,19 +24,24 @@ const ProductStatusBadge = ({ status }) => {
         Draft: 'bg-blue-50 text-blue-600',
         'Pending Approval': 'bg-amber-100 text-amber-700 border border-amber-200'
     };
+    
+    const statusKey = status?.toLowerCase().replace(/\s+/g, '_');
+    const translatedStatus = t(`products.status.${statusKey}`, { defaultValue: status });
+
     return (
         <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${variants[status] || 'bg-gray-100 text-gray-600'}`}>
-            {status}
+            {translatedStatus}
         </span>
     );
 };
 
 const SourceBadge = ({ vendor }) => {
+    const { t } = useTranslation();
     if (vendor) {
         return (
             <div className="flex flex-col items-center gap-0.5">
                 <span className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-bold uppercase flex items-center gap-1">
-                    <Store size={9} /> Vendor
+                    <Store size={9} /> {t('products.source.vendor')}
                 </span>
                 <span className="text-[10px] text-gray-500 truncate max-w-[90px]">{vendor.storeName}</span>
             </div>
@@ -42,12 +49,13 @@ const SourceBadge = ({ vendor }) => {
     }
     return (
         <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10px] font-bold uppercase flex items-center gap-1">
-            <Package size={9} /> Branch
+            <Package size={9} /> {t('products.source.branch')}
         </span>
     );
 };
 
 const AllProducts = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const adminContext = useAdminAuth();
     const staffContext = useStaffAuth();
@@ -110,11 +118,11 @@ const AllProducts = () => {
             setBrands(brandsData);
         } catch (error) {
             console.error('Error fetching data:', error);
-            toast.error('Failed to load products');
+            toast.error(t('products.loading_failed', { defaultValue: 'Failed to load products' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, limit, searchTerm, selectedCategory, selectedBrand, sourceFilter]);
+    }, [adminUser.token, page, limit, searchTerm, selectedCategory, selectedBrand, sourceFilter, t]);
 
     useEffect(() => {
         fetchData();
@@ -147,32 +155,15 @@ const AllProducts = () => {
     const branchCount = products.filter(p => !p.vendor).length;
     const vendorCount = products.filter(p => !!p.vendor).length;
 
-    const filteredProducts = products.filter(p => {
-        const matchesSearch =
-            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (p.brandName && p.brandName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (p.vendor?.storeName && p.vendor.storeName.toLowerCase().includes(searchTerm.toLowerCase()));
-
-        const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
-        const matchesBrand = selectedBrand ? p.brandName === selectedBrand : true;
-        const matchesSource =
-            sourceFilter === 'all' ? true :
-                sourceFilter === 'vendor' ? !!p.vendor :
-                    !p.vendor;
-
-        return matchesSearch && matchesCategory && matchesBrand && matchesSource;
-    });
-
     const handleDelete = async (id, name) => {
-        const result = await showDeleteConfirmation('Delete Product?', `Are you sure you want to remove "${name}"?`);
+        const result = await showDeleteConfirmation(t('dashboard.delete_confirm_title'), t('dashboard.delete_confirm_text', { name }));
         if (result.isConfirmed) {
             try {
                 await deleteProduct(adminUser.token, id);
                 setProducts(products.filter(p => p._id !== id));
-                showSuccessAlert('Deleted!', 'Product has been removed.');
+                showSuccessAlert(t('dashboard.deleted_title'), t('dashboard.deleted_text'));
             } catch (error) {
-                showErrorAlert('Error', error.message || 'Failed to delete product');
+                showErrorAlert(t('dashboard.error_title'), error.message || t('dashboard.failed_to_delete'));
             }
         }
     };
@@ -183,7 +174,7 @@ const AllProducts = () => {
 
     const handleRestockOpen = (p) => {
         if (p.vendor && adminUser?.role === 'Admin') {
-            toast.info("Vendor products must be managed by the vendor.");
+            toast.info(t('products.managed_by_vendor'));
             return;
         }
         setSelectedProduct(p);
@@ -192,7 +183,7 @@ const AllProducts = () => {
 
     const handleEdit = (p) => {
         if (p.vendor && adminUser?.role === 'Admin') {
-            toast.info("Admin cannot edit vendor products.");
+            toast.info(t('products.managed_by_vendor'));
             return;
         }
         setSelectedProduct(p);
@@ -203,15 +194,11 @@ const AllProducts = () => {
         try {
             const updated = await updateProduct(adminUser.token, selectedProduct._id, updatedProductData);
             setProducts(products.map(p => p._id === updated._id ? updated : p));
-            toast.success('Product updated successfully');
+            toast.success(t('dashboard.status_updated_success'));
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || 'Failed to update product');
+            toast.error(error.message || t('dashboard.status_update_failed', { defaultValue: 'Failed to update product' }));
         }
-    };
-
-    const handleRestockSuccess = (updatedProduct) => {
-        setProducts(products.map(p => p._id === updatedProduct._id ? updatedProduct : p));
     };
 
     const activeFiltersCount = [selectedCategory, selectedBrand].filter(Boolean).length;
@@ -222,9 +209,9 @@ const AllProducts = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 p-4">
                 <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
                     <div className="flex items-center gap-3">
-                        <h5 className="mb-0 font-bold text-gray-800 text-lg text-nowrap">Product Inventory</h5>
+                        <h5 className="mb-0 font-bold text-gray-800 text-lg text-nowrap">{t('products.title')}</h5>
                         <span className="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold px-2 py-0.5 rounded-full">
-                            {totalProducts} products
+                            {t('products.count', { count: totalProducts })}
                         </span>
                     </div>
 
@@ -236,7 +223,7 @@ const AllProducts = () => {
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Search name, SKU, vendor..."
+                                    placeholder={t('products.search_placeholder')}
                                     className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700"
                                     value={localSearch}
                                     onChange={(e) => setLocalSearch(e.target.value)}
@@ -250,7 +237,7 @@ const AllProducts = () => {
                                 className={`flex items-center justify-center gap-2 px-3 py-2 bg-white border ${showFilterMenu || activeFiltersCount > 0 ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-700'} rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap`}
                             >
                                 <Filter size={18} />
-                                <span>Filter</span>
+                                <span>{t('products.filter_btn')}</span>
                                 {activeFiltersCount > 0 && (
                                     <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-bold">{activeFiltersCount}</span>
                                 )}
@@ -258,27 +245,27 @@ const AllProducts = () => {
 
                             {showFilterMenu && (
                                 <div className="absolute top-12 left-0 z-20 w-64 bg-white rounded-xl shadow-xl border border-gray-100 p-4 animate-in fade-in zoom-in-95 duration-200">
-                                    <h6 className="font-bold text-gray-800 mb-3 text-sm">Filter Options</h6>
+                                    <h6 className="font-bold text-gray-800 mb-3 text-sm">{t('products.filter_options')}</h6>
                                     <div className="space-y-3">
                                         <div>
-                                            <label className="text-xs font-medium text-gray-500 mb-1 block">Category</label>
+                                            <label className="text-xs font-medium text-gray-500 mb-1 block">{t('products.table.category')}</label>
                                             <select
                                                 className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
                                                 value={selectedCategory}
                                                 onChange={(e) => updateParams({ category: e.target.value, page: 1 })}
                                             >
-                                                <option value="">All Categories</option>
+                                                <option value="">{t('products.all_categories')}</option>
                                                 {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-xs font-medium text-gray-500 mb-1 block">Brand</label>
+                                            <label className="text-xs font-medium text-gray-500 mb-1 block">{t('products.table.brand')}</label>
                                             <select
                                                 className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
                                                 value={selectedBrand}
                                                 onChange={(e) => updateParams({ brand: e.target.value, page: 1 })}
                                             >
-                                                <option value="">All Brands</option>
+                                                <option value="">{t('products.all_brands')}</option>
                                                 {brands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                             </select>
                                         </div>
@@ -287,7 +274,7 @@ const AllProducts = () => {
                                                 onClick={() => { updateParams({ category: '', brand: '', page: 1 }); setShowFilterMenu(false); }}
                                                 className="text-xs text-red-600 font-medium hover:text-red-700 mt-2 w-full text-center"
                                             >
-                                                Clear Filters
+                                                {t('products.clear_filters')}
                                             </button>
                                         )}
                                     </div>
@@ -303,7 +290,7 @@ const AllProducts = () => {
                                 className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap shadow-sm"
                             >
                                 <Plus size={20} />
-                                <span className="hidden sm:inline">Add Product</span>
+                                <span className="hidden sm:inline">{t('products.add_product')}</span>
                             </Link>
                         )}
                     </div>
@@ -314,9 +301,9 @@ const AllProducts = () => {
             {adminUser?.role === 'Admin' && (
                 <div className="flex gap-2 mb-4">
                     {[
-                        { key: 'all', label: 'All Products', count: products.length },
-                        { key: 'branch', label: 'Branch Products', count: branchCount, color: 'blue' },
-                        { key: 'vendor', label: 'Vendor Products', count: vendorCount, color: 'purple' },
+                        { key: 'all', label: t('products.all_products'), count: products.length },
+                        { key: 'branch', label: t('products.branch_products'), count: branchCount, color: 'blue' },
+                        { key: 'vendor', label: t('products.vendor_products'), count: vendorCount, color: 'purple' },
                     ].map(tab => (
                         <button
                             key={tab.key}
@@ -348,17 +335,17 @@ const AllProducts = () => {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
                             <tr>
-                                <th className="px-6 py-4">Product</th>
-                                <th className="px-6 py-4 text-center">Brand</th>
-                                <th className="px-6 py-4 text-center">Category</th>
+                                <th className="px-6 py-4">{t('products.table.product')}</th>
+                                <th className="px-6 py-4 text-center">{t('products.table.brand')}</th>
+                                <th className="px-6 py-4 text-center">{t('products.table.category')}</th>
                                 {adminUser?.role === 'Admin' && (
-                                    <th className="px-6 py-4 text-center">Source</th>
+                                    <th className="px-6 py-4 text-center">{t('products.table.source')}</th>
                                 )}
-                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? 'Branches / Store' : 'Assigned Branch'}</th>
-                                <th className="px-6 py-4 text-center">Price</th>
-                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? 'Total Stock' : 'Branch Stock'}</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? t('products.table.branches_store') : t('products.table.assigned_branch')}</th>
+                                <th className="px-6 py-4 text-center">{t('products.table.price')}</th>
+                                <th className="px-6 py-4 text-center">{adminUser?.role === 'Admin' ? t('products.table.total_stock') : t('products.table.branch_stock')}</th>
+                                <th className="px-6 py-4 text-center">{t('products.table.status')}</th>
+                                <th className="px-6 py-4 text-right">{t('products.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -366,7 +353,7 @@ const AllProducts = () => {
                                 <tr>
                                     <td colSpan="9" className="text-center py-10">
                                         <Spinner animation="border" variant="primary" />
-                                        <p className="mt-2 text-muted text-sm">Loading products...</p>
+                                        <p className="mt-2 text-muted text-sm">{t('products.loading')}</p>
                                     </td>
                                 </tr>
                             ) : products.length > 0 ? (
@@ -382,7 +369,7 @@ const AllProducts = () => {
                                                     <div
                                                         className="position-absolute bottom-0 right-0 p-1 border rounded-sm bg-white"
                                                         style={{ width: '12px', height: '12px', margin: '2px', border: p.isVeg ? '1.5px solid #198754' : '1.5px solid #dc3545', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                        title={p.isVeg ? "Vegetarian" : "Non-Vegetarian"}
+                                                        title={p.isVeg ? t('products.dietary.veg') : t('products.dietary.non_veg')}
                                                     >
                                                         <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: p.isVeg ? '#198754' : '#dc3545' }}></div>
                                                     </div>
@@ -393,7 +380,7 @@ const AllProducts = () => {
                                                         <span className="text-xs text-gray-400 font-mono">{p.sku}</span>
                                                         {p.isSaathiGrow && (
                                                             <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase d-flex align-items-center gap-0.5 border border-blue-100">
-                                                                <Sparkles size={8} /> Saathi Grow
+                                                                <Sparkles size={8} /> {t('products.edit_modal.priority_label').split(' ').slice(0, 2).join(' ')}
                                                             </span>
                                                         )}
                                                     </div>
@@ -403,7 +390,7 @@ const AllProducts = () => {
                                         <td className="px-6 py-4 text-gray-500 text-center text-sm">{p.brandName}</td>
                                         <td className="px-6 py-4 text-gray-500 text-center text-sm">{p.category}</td>
 
-                                        {/* Source Column â€” Admin only */}
+                                        {/* Source Column — Admin only */}
                                         {adminUser?.role === 'Admin' && (
                                             <td className="px-6 py-4 text-center">
                                                 <SourceBadge vendor={p.vendor} />
@@ -415,24 +402,24 @@ const AllProducts = () => {
                                             <div className="flex flex-wrap justify-center gap-1">
                                                 {adminUser?.role === 'Admin' ? (
                                                     p.vendor ? (
-                                                        // Vendor product â€” show vendor store name
+                                                        // Vendor product — show vendor store name
                                                         <span className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-bold flex items-center gap-1">
                                                             <Store size={9} /> {p.vendor.storeName}
                                                         </span>
                                                     ) : p.branchStocks && p.branchStocks.length > 0 ? (
                                                         p.branchStocks.slice(0, 3).map((bs, idx) => (
                                                             <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] whitespace-nowrap">
-                                                                {bs.branchId?.name || 'Main'}
+                                                                {bs.branchId?.name || t('common.main')}
                                                             </span>
                                                         ))
                                                     ).concat(p.branchStocks.length > 3 ? [
                                                         <span key="more" className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px]">+{p.branchStocks.length - 3} more</span>
                                                     ] : []) : (
-                                                        <span className="text-gray-400 text-xs">No Branch</span>
+                                                        <span className="text-gray-400 text-xs">{t('dashboard.no_address', { defaultValue: 'No Branch' })}</span>
                                                     )
                                                 ) : (
                                                     <span className="px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[10px] font-bold">
-                                                        {p.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId) === adminUser.branchId)?.branchId?.name || 'Current Branch'}
+                                                        {p.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId) === adminUser.branchId)?.branchId?.name || t('common.current_branch')}
                                                     </span>
                                                 )}
                                             </div>
@@ -489,7 +476,7 @@ const AllProducts = () => {
                                                 {adminUser?.role === 'Admin' && (
                                                     <button
                                                         className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"
-                                                        title="Delete"
+                                                        title={t('common.delete')}
                                                         onClick={() => handleDelete(p._id, p.name)}
                                                     >
                                                         <Trash2 size={16} />
@@ -497,7 +484,7 @@ const AllProducts = () => {
                                                 )}
                                                 {p.vendor && (
                                                     <span className="text-[10px] text-purple-600 font-bold bg-purple-50 px-2 py-1 rounded border border-purple-100">
-                                                        Managed by Vendor
+                                                        {t('products.managed_by_vendor')}
                                                     </span>
                                                 )}
                                             </div>
@@ -505,7 +492,7 @@ const AllProducts = () => {
                                                 <>
                                                     <div className="fixed inset-0 z-[5] bg-transparent" onClick={() => setShowQR(null)}></div>
                                                     <div className="absolute right-10 top-12 bg-white shadow-xl p-4 rounded-xl border border-gray-100 z-[10] text-center animate-in fade-in zoom-in-95 duration-200" style={{ width: '180px' }}>
-                                                        <h6 className="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Product QR Code</h6>
+                                                        <h6 className="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">{t('products.qr.title')}</h6>
                                                         <div className="bg-gray-50 p-2 rounded-lg mb-3">
                                                             {p.qrCode ? (
                                                                 <img src={p.qrCode} alt="Product QR" className="w-full h-auto" />
@@ -527,7 +514,7 @@ const AllProducts = () => {
                                                             className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
                                                         >
                                                             <Download size={12} />
-                                                            DOWNLOAD QR
+                                                            {t('products.qr.download')}
                                                         </button>
                                                     </div>
                                                 </>
@@ -539,11 +526,11 @@ const AllProducts = () => {
                                 <tr>
                                     <td colSpan="9" className="text-center py-12">
                                         <Package size={40} className="mx-auto text-gray-300 mb-3" />
-                                        <p className="text-gray-400 font-medium">No products found</p>
+                                        <p className="text-gray-400 font-medium">{t('products.no_products')}</p>
                                         <p className="text-gray-400 text-xs mt-1">
                                             {sourceFilter !== 'all'
-                                                ? `No ${sourceFilter} products match your search.`
-                                                : 'Try adjusting your search or filters.'}
+                                                ? t('products.no_products_msg')
+                                                : t('products.no_products_msg')}
                                         </p>
                                     </td>
                                 </tr>
@@ -556,7 +543,7 @@ const AllProducts = () => {
                 {!loading && totalPages > 0 && (
                     <div className="border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-gray-50/50 gap-4">
                         <span className="text-sm text-gray-500">
-                            Showing <strong className="text-gray-900">{products.length}</strong> of <strong className="text-gray-900">{totalProducts}</strong> products
+                            {t('products.pagination.showing')} <strong className="text-gray-900">{products.length}</strong> {t('products.pagination.of')} <strong className="text-gray-900">{totalProducts}</strong> {t('products.title').toLowerCase()}
                         </span>
 
                         <div className="flex items-center gap-1.5">
@@ -565,7 +552,7 @@ const AllProducts = () => {
                                 disabled={page === 1}
                                 className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm text-sm"
                             >
-                                <ChevronLeft size={16} /> Previous
+                                <ChevronLeft size={16} /> {t('products.pagination.previous')}
                             </button>
 
                             <div className="flex items-center px-2">
@@ -594,7 +581,7 @@ const AllProducts = () => {
                                 disabled={page === totalPages}
                                 className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm text-sm"
                             >
-                                Next <ChevronRight size={16} />
+                                {t('products.pagination.next')} <ChevronRight size={16} />
                             </button>
                         </div>
                     </div>

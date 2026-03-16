@@ -1,11 +1,13 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Spinner } from 'react-bootstrap';
 import { Save, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import * as api from '../../api/adminDeliveryApi';
 
 const AddDeliveryPartner = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
@@ -37,7 +39,7 @@ const AddDeliveryPartner = () => {
         e.preventDefault();
 
         if (!formData.name || !formData.phone) {
-            Swal.fire('Error', 'Please fill all required fields', 'error');
+            Swal.fire(t('common.error'), t('common.fill_required'), 'error');
             return;
         }
 
@@ -50,23 +52,23 @@ const AddDeliveryPartner = () => {
             const res = await api.addDeliveryPartner(data);
 
             Swal.fire({
-                title: 'Driver Created!',
+                title: t('delivery.add_partner.title_success', { defaultValue: 'Driver Created!' }),
                 html: `
                     <div class="text-start">
-                        <p><strong>Name:</strong> ${formData.name}</p>
-                        <p><strong>Phone:</strong> ${formData.phone}</p>
-                        <p class="text-success fw-bold">Login enabled via OTP</p>
-                        <p class="text-muted small mt-3">* The driver can now log into the Delivery App using their phone number and OTP.</p>
+                        <p><strong>${t('delivery.add_partner.full_name')}:</strong> ${formData.name}</p>
+                        <p><strong>${t('delivery.add_partner.mobile')}:</strong> ${formData.phone}</p>
+                        <p class="text-success fw-bold">${t('delivery.add_partner.login_otp', { defaultValue: 'Login enabled via OTP' })}</p>
+                        <p class="text-muted small mt-3">* ${t('delivery.add_partner.login_help', { defaultValue: 'The driver can now log into the Delivery App using their phone number and OTP.' })}</p>
                     </div>
                 `,
                 icon: 'success',
-                confirmButtonText: 'View Partners'
+                confirmButtonText: t('delivery.partners.title')
             }).then(() => {
                 navigate('/admin/delivery/partners');
             });
 
         } catch (err) {
-            Swal.fire('Error', err?.response?.data?.message || 'Failed to create partner', 'error');
+            Swal.fire(t('common.error'), err?.response?.data?.message || t('common.failed_to_create'), 'error');
         } finally {
             setLoading(false);
         }
@@ -75,10 +77,10 @@ const AddDeliveryPartner = () => {
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0 text-nowrap">Register Delivery Driver</h4>
+                <h4 className="fw-bold mb-0 text-nowrap">{t('delivery.add_partner.title')}</h4>
                 <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto">
                     <Button variant="light" onClick={() => navigate('/admin/delivery/partners')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center">
-                        <X size={18} /> Cancel
+                        <X size={18} /> {t('delivery.add_partner.cancel')}
                     </Button>
                 </div>
             </div>
@@ -87,15 +89,15 @@ const AddDeliveryPartner = () => {
                 <Col lg={8}>
                     <Card className="border-0 shadow-sm mb-4">
                         <Card.Body>
-                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">Driver Credentials & Info</h6>
+                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">{t('delivery.add_partner.credentials_info')}</h6>
                             <Form onSubmit={handleSubmit}>
                                 <Row>
                                     <Col md={12}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Full Legal Name <span className="text-danger">*</span></Form.Label>
+                                            <Form.Label>{t('delivery.add_partner.full_name')} <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder="e.g. Rahul Kumar"
+                                                placeholder={t('delivery.add_partner.full_name_placeholder')}
                                                 name="name"
                                                 value={formData.name}
                                                 onChange={handleChange}
@@ -105,10 +107,10 @@ const AddDeliveryPartner = () => {
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Mobile Number (Login ID) <span className="text-danger">*</span></Form.Label>
+                                            <Form.Label>{t('delivery.add_partner.mobile')} <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="tel"
-                                                placeholder="9876543210"
+                                                placeholder={t('delivery.add_partner.mobile_placeholder')}
                                                 name="phone"
                                                 value={formData.phone}
                                                 onChange={handleChange}
@@ -118,10 +120,10 @@ const AddDeliveryPartner = () => {
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Email Address</Form.Label>
+                                            <Form.Label>{t('delivery.add_partner.email')}</Form.Label>
                                             <Form.Control
                                                 type="email"
-                                                placeholder="rahul@example.com"
+                                                placeholder={t('delivery.add_partner.email_placeholder')}
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleChange}
@@ -130,36 +132,36 @@ const AddDeliveryPartner = () => {
                                     </Col>
                                     <Col md={12}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Profile Photo</Form.Label>
+                                            <Form.Label>{t('delivery.add_partner.profile_photo')}</Form.Label>
                                             <Form.Control
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleImageChange}
                                             />
-                                            <Form.Text className="text-muted">Optional: Upload a clear face photo for identification.</Form.Text>
+                                            <Form.Text className="text-muted">{t('delivery.add_partner.profile_photo_help')}</Form.Text>
                                         </Form.Group>
                                     </Col>
                                 </Row>
 
-                                <h6 className="fw-bold mt-4 mb-3 text-primary border-bottom pb-2">Logistics Profile</h6>
+                                <h6 className="fw-bold mt-4 mb-3 text-primary border-bottom pb-2">{t('delivery.add_partner.logistics_profile')}</h6>
                                 <Row>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Vehicle Type</Form.Label>
+                                            <Form.Label>{t('delivery.add_partner.vehicle_type')}</Form.Label>
                                             <Form.Select name="vehicleType" value={formData.vehicleType} onChange={handleChange}>
-                                                <option value="Bike">Motorcycle (Bike)</option>
-                                                <option value="EV">Electric Vehicle (EV)</option>
-                                                <option value="Cycle">Bicycle</option>
-                                                <option value="Other">Other</option>
+                                                <option value="Bike">{t('delivery.add_partner.vehicle_types.bike')}</option>
+                                                <option value="EV">{t('delivery.add_partner.vehicle_types.ev')}</option>
+                                                <option value="Cycle">{t('delivery.add_partner.vehicle_types.cycle')}</option>
+                                                <option value="Other">{t('delivery.add_partner.vehicle_types.other')}</option>
                                             </Form.Select>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Vehicle License Plate</Form.Label>
+                                            <Form.Label>{t('delivery.add_partner.license_plate')}</Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder="e.g. MP09-AB-1234"
+                                                placeholder={t('delivery.add_partner.license_plate_placeholder')}
                                                 name="vehicleNumber"
                                                 value={formData.vehicleNumber}
                                                 onChange={handleChange}
@@ -175,7 +177,7 @@ const AddDeliveryPartner = () => {
                                     className="w-100 d-flex align-items-center justify-content-center gap-2 py-3 mt-4 fw-bold shadow-sm"
                                 >
                                     {loading ? <Spinner size="sm" /> : <Save size={18} />}
-                                    Create Driver Profile
+                                    {t('delivery.add_partner.create_btn')}
                                 </Button>
                             </Form>
                         </Card.Body>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Search,
   ShoppingCart,
@@ -54,7 +55,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
       const data = await searchProductsPOS(query);
       setProducts(data.products || []);
     } catch (error) {
-      toast.error('Failed to load products');
+      toast.error(t('orders.pos.alerts.load_products_failed'));
     } finally {
       setLoading(false);
     }
@@ -96,9 +97,11 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
   const taxAmount = (subTotal * taxRate) / 100;
   const totalAmount = subTotal + taxAmount;
 
+  const { t } = useTranslation();
+
   const handleCompleteOrder = async () => {
-    if (cart.length === 0) return toast.warning('Cart is empty');
-    if (!customerDetails.email && !confirm('No customer email provided. Send invoice later?')) return;
+    if (cart.length === 0) return toast.warning(t('orders.pos.alerts.cart_empty'));
+    if (!customerDetails.email && !confirm(t('orders.pos.alerts.no_email_confirm'))) return;
 
     setIsProcessing(true);
     try {
@@ -113,8 +116,8 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
       const res = await createPOSOrder(payload);
 
       Swal.fire({
-        title: 'Success!',
-        text: 'Order completed and inventory updated. Invoice sent to email.',
+        title: t('orders.pos.alerts.success_title'),
+        text: t('orders.pos.alerts.success_msg'),
         icon: 'success',
         confirmButtonColor: '#6366f1'
       });
@@ -122,7 +125,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
       setCart([]);
       setCustomerDetails({ name: '', email: '', phone: '' });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to complete POS order');
+      toast.error(error.response?.data?.message || t('orders.pos.alerts.order_failed'));
     } finally {
       setIsProcessing(false);
     }
@@ -138,7 +141,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
           </button>
           <h1 className="text-xl font-black text-gray-800 flex items-center gap-2">
             <Zap className="text-violet-600 fill-violet-600" size={24} />
-            POS BILLING <span className="text-[10px] bg-violet-100 text-violet-600 px-2 py-0.5 rounded ml-2">v2.0</span>
+            {t('orders.pos.title')} <span className="text-[10px] bg-violet-100 text-violet-600 px-2 py-0.5 rounded ml-2">v2.0</span>
           </h1>
         </div>
 
@@ -146,7 +149,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Scan Barcode or Search Product..."
+            placeholder={t('orders.pos.search_placeholder')}
             className="w-full bg-gray-100 border-none rounded-2xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-violet-500 transition-all font-medium"
             value={searchTerm}
             onChange={(e) => {
@@ -158,7 +161,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
 
         <div className="flex items-center gap-3">
           <div className="text-right hidden md:block">
-            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Store ID</div>
+            <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('orders.pos.store_id')}</div>
             <div className="text-sm font-black text-gray-700">{storeId || 'BRANCH-01'}</div>
           </div>
         </div>
@@ -190,7 +193,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-black text-violet-600">₹{product.price || product.basePrice}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${product.stock > 10 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                      Stock: {product.stock}
+                      {t('orders.pos.stock')}: {product.stock}
                     </span>
                   </div>
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-violet-600 text-white p-1.5 rounded-full">
@@ -207,9 +210,9 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
           <div className="p-6 flex flex-col flex-1 overflow-hidden">
             <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
               <ShoppingCart className="text-violet-600" size={20} />
-              <h2 className="text-lg font-black text-gray-800 uppercase tracking-tighter">Current Bill</h2>
+              <h2 className="text-lg font-black text-gray-800 uppercase tracking-tighter">{t('orders.pos.billing.title')}</h2>
               <span className="ml-auto bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
-                ITEM COUNT: {cart.length}
+                {t('orders.pos.billing.item_count')}: {cart.length}
               </span>
             </div>
 
@@ -218,7 +221,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
               {cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-gray-400 opacity-50 space-y-4">
                   <ShoppingCart size={48} />
-                  <p className="font-bold text-sm uppercase tracking-widest">Cart is empty</p>
+                  <p className="font-bold text-sm uppercase tracking-widest">{t('orders.pos.billing.empty_cart')}</p>
                 </div>
               ) : (
                 cart.map(item => (
@@ -251,13 +254,13 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
             {/* Customer Form */}
             <div className="bg-violet-50/50 p-4 rounded-2xl mb-6 space-y-3 border border-violet-100">
               <h3 className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-1 flex items-center gap-2">
-                <User size={12} /> Walk-in Customer
+                <User size={12} /> {t('orders.pos.customer.walk_in')}
               </h3>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-violet-400" size={14} />
                 <input
                   type="email"
-                  placeholder="Customer Email (for Invoice)"
+                  placeholder={t('orders.pos.customer.email_placeholder')}
                   className="w-full bg-white border-none rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-1 focus:ring-violet-400"
                   value={customerDetails.email}
                   onChange={(e) => setCustomerDetails({ ...customerDetails, email: e.target.value })}
@@ -267,7 +270,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-violet-400" size={14} />
                 <input
                   type="tel"
-                  placeholder="Customer Phone (optional)"
+                  placeholder={t('orders.pos.customer.phone_placeholder')}
                   className="w-full bg-white border-none rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-1 focus:ring-violet-400"
                   value={customerDetails.phone}
                   onChange={(e) => setCustomerDetails({ ...customerDetails, phone: e.target.value })}
@@ -278,15 +281,15 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
             {/* Totals */}
             <div className="space-y-3 mb-6 pt-4 border-t border-gray-100">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Subtotal</span>
+                <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">{t('orders.pos.totals.subtotal')}</span>
                 <span className="text-gray-800 font-bold">₹{subTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Tax ({taxRate}%)</span>
+                <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">{t('orders.pos.totals.tax')} ({taxRate}%)</span>
                 <span className="text-gray-800 font-bold">₹{taxAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center pt-2 mt-2 border-t-2 border-dashed border-gray-200">
-                <span className="text-lg font-black text-gray-900 leading-none uppercase">Total</span>
+                <span className="text-lg font-black text-gray-900 leading-none uppercase">{t('orders.pos.totals.total')}</span>
                 <span className="text-2xl font-black text-violet-700">₹{totalAmount.toFixed(2)}</span>
               </div>
             </div>
@@ -296,7 +299,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
                 className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-violet-600 bg-violet-50 text-violet-700`}
               >
                 <Banknote size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">CASH ONLY</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">{t('orders.pos.totals.cash_only')}</span>
               </div>
             </div>
 
@@ -310,7 +313,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
               ) : (
                 <>
                   <CheckCircle size={20} />
-                  Complete Order
+                  {t('orders.pos.buttons.complete')}
                 </>
               )}
             </button>

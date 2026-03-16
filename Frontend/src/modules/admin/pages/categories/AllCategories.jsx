@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, OverlayTrigger, Tooltip, Image as BSImage, Spinner } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, Edit, Trash2, ImageIcon, Info, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CategoryEditModal from '../../components/products/CategoryEditModal';
@@ -9,6 +10,7 @@ import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../
 import { toast } from 'react-toastify';
 
 const AllCategories = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,11 +25,11 @@ const AllCategories = () => {
             setCategories(data);
         } catch (error) {
             console.error('Error fetching categories:', error);
-            toast.error('Failed to load categories');
+            toast.error(t('categories.loading_failed', { defaultValue: 'Failed to load categories' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token]);
+    }, [adminUser.token, t]);
 
     useEffect(() => {
         fetchCategories();
@@ -58,22 +60,22 @@ const AllCategories = () => {
         try {
             const updated = await updateCategory(adminUser.token, selectedCategory._id, updatedCategoryData);
             setCategories(categories.map(c => c._id === updated._id ? updated : c));
-            toast.success('Category updated successfully');
+            toast.success(t('dashboard.status_updated_success'));
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || 'Failed to update category');
+            toast.error(error.message || t('dashboard.status_update_failed', { defaultValue: 'Failed to update category' }));
         }
     };
 
     const handleDelete = async (id, name) => {
-        const result = await showDeleteConfirmation('Delete Category?', `Are you sure you want to remove "${name}"? This action cannot be undone.`);
+        const result = await showDeleteConfirmation(t('dashboard.delete_confirm_title'), t('dashboard.delete_confirm_text', { name }));
         if (result.isConfirmed) {
             try {
                 await deleteCategory(adminUser.token, id);
                 setCategories(categories.filter(c => c._id !== id));
-                await showSuccessAlert('Deleted!', 'Category has been removed.');
+                await showSuccessAlert(t('dashboard.deleted_title'), t('dashboard.deleted_text'));
             } catch (error) {
-                showErrorAlert('Error', error.message || 'Failed to delete category');
+                showErrorAlert(t('dashboard.error_title'), error.message || t('dashboard.failed_to_delete'));
             }
         }
     };
@@ -86,8 +88,8 @@ const AllCategories = () => {
                         <ImageIcon size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark">Categories</h4>
-                        <p className="text-muted small mb-0 d-none d-sm-block">Manage your product organization and background styling.</p>
+                        <h4 className="fw-bold mb-1 text-dark">{t('categories.title')}</h4>
+                        <p className="text-muted small mb-0 d-none d-sm-block">{t('categories.subtitle')}</p>
                     </div>
                 </div>
 
@@ -95,7 +97,7 @@ const AllCategories = () => {
                     <InputGroup className="shadow-sm flex-grow-1" style={{ minWidth: 'min(100%, 250px)' }}>
                         <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
                         <Form.Control
-                            placeholder="Search categories..."
+                            placeholder={t('categories.search_placeholder')}
                             className="border-start-0 ps-0 shadow-none py-2"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -103,7 +105,7 @@ const AllCategories = () => {
                     </InputGroup>
                     <div className="d-flex flex-row gap-2 w-100 w-md-auto">
                         <Link to="/admin/categories/add" className={`btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2 text-nowrap ${adminUser.role !== 'Admin' ? 'disabled opacity-50' : ''}`}>
-                            <Plus size={18} /> <span className="small fw-bold">Add New</span>
+                            <Plus size={18} /> <span className="small fw-bold">{t('categories.add_new')}</span>
                         </Link>
                     </div>
                 </div>
@@ -114,17 +116,17 @@ const AllCategories = () => {
                     {loading ? (
                         <div className="text-center py-5">
                             <Spinner animation="grow" variant="primary" />
-                            <p className="mt-2 text-muted">Loading categories...</p>
+                            <p className="mt-2 text-muted">{t('categories.loading')}</p>
                         </div>
                     ) : (
                         <Table hover responsive className="mb-0 align-middle">
                             <thead className="bg-light text-muted small text-uppercase font-weight-bold">
                                 <tr>
-                                    <th className="ps-4 border-0 py-3">Category info</th>
-                                    <th className="border-0 py-3 text-center">Slug</th>
-                                    <th className="border-0 py-3 text-center">Background</th>
-                                    <th className="border-0 py-3 text-center">Status</th>
-                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                    <th className="ps-4 border-0 py-3">{t('categories.table.info')}</th>
+                                    <th className="border-0 py-3 text-center">{t('categories.table.slug')}</th>
+                                    <th className="border-0 py-3 text-center">{t('categories.table.background')}</th>
+                                    <th className="border-0 py-3 text-center">{t('categories.table.status')}</th>
+                                    <th className="border-0 py-3 text-end pe-4">{t('categories.table.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -172,7 +174,7 @@ const AllCategories = () => {
                                         </td>
                                         <td className="text-center">
                                             <Badge bg={c.status === 'Active' ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3 py-1 shadow-sm">
-                                                {c.status}
+                                                {c.status === 'Active' ? t('products.status.active') : t('products.status.draft')}
                                             </Badge>
                                         </td>
                                         <td className="text-end pe-4">
@@ -197,7 +199,7 @@ const AllCategories = () => {
                                 )) : (
                                     <tr>
                                         <td colSpan="5" className="text-center py-5 text-muted small">
-                                            {searchTerm ? 'No categories found matching your search.' : 'No categories found. Start by adding one!'}
+                                            {searchTerm ? t('categories.no_matches') : t('categories.no_categories')}
                                         </td>
                                     </tr>
                                 )}
@@ -210,7 +212,7 @@ const AllCategories = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> categories
+                            {t('categories.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('categories.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('categories.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('categories.title')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Search,
     ShoppingCart,
@@ -53,6 +54,8 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
         }
     };
 
+    const { t } = useTranslation();
+
     const fetchProducts = async (query = '') => {
         setLoading(true);
         try {
@@ -67,18 +70,18 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
             setProducts(normalized);
         } catch (error) {
             console.error('POS fetch error:', error);
-            toast.error('Failed to load products');
+            toast.error(t('orders.pos.alerts.load_products_failed'));
         } finally {
             setLoading(false);
         }
     };
 
     const addToCart = (product) => {
-        if (product.stock <= 0) return toast.error('Product out of stock');
+        if (product.stock <= 0) return toast.error(t('orders.pos.alerts.out_of_stock'));
 
         const existing = cart.find(item => item.product === product._id);
         if (existing) {
-            if (existing.quantity >= product.stock) return toast.warning('Cannot add more than available stock');
+            if (existing.quantity >= product.stock) return toast.warning(t('orders.pos.alerts.exceeds_stock'));
             setCart(cart.map(item =>
                 item.product === product._id ? { ...item, quantity: item.quantity + 1 } : item
             ));
@@ -103,7 +106,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
             if (item.product === productId) {
                 const newQty = Math.max(1, item.quantity + delta);
                 if (newQty > item.stock) {
-                    toast.warning('Exceeds available stock');
+                    toast.warning(t('orders.pos.alerts.exceeds_stock_toast'));
                     return item;
                 }
                 return { ...item, quantity: newQty };
@@ -118,16 +121,16 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
     const totalAmount = subTotal + taxAmount;
 
     const handleCompleteOrder = async () => {
-        if (cart.length === 0) return toast.warning('Cart is empty');
+        if (cart.length === 0) return toast.warning(t('orders.pos.alerts.cart_empty'));
 
         const { value: confirmResult } = await Swal.fire({
-            title: 'Complete Order?',
-            text: `Confirming ₹${totalAmount.toFixed(2)} payment via ${paymentMethod.toUpperCase()}`,
+            title: t('orders.pos.alerts.complete_order_confirm'),
+            text: t('orders.pos.alerts.complete_order_text', { amount: totalAmount.toFixed(2), method: paymentMethod.toUpperCase() }),
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#6366f1',
             cancelButtonColor: '#f43f5e',
-            confirmButtonText: 'Yes, Complete Billing'
+            confirmButtonText: t('orders.pos.alerts.complete_order_btn')
         });
 
         if (!confirmResult) return;
@@ -144,8 +147,8 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
             await createPOSOrder(payload);
 
             await Swal.fire({
-                title: 'Order Completed!',
-                text: 'Stock deducted and invoice sent to customer.',
+                title: t('orders.pos.alerts.success_title'),
+                text: t('orders.pos.alerts.success_msg'),
                 icon: 'success',
                 timer: 3000,
                 showConfirmButton: true
@@ -156,7 +159,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
             setCustomerDetails({ name: '', email: '', phone: '' });
             fetchProducts(); // Refresh stock in UI
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to complete POS order');
+            toast.error(error.response?.data?.message || t('orders.pos.alerts.order_failed'));
         } finally {
             setIsProcessing(false);
         }
@@ -170,8 +173,8 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                         <Zap size={16} fill="currentColor" />
                     </div>
                     <div>
-                        <h1 className="text-sm font-black text-gray-800 leading-none">POS TERMINAL</h1>
-                        <p className="text-[8px] font-bold text-gray-400 mt-1 uppercase tracking-widest">Store ID: {storeId || 'Self'}</p>
+                        <h1 className="text-sm font-black text-gray-800 leading-none">{t('orders.pos.terminal.title')}</h1>
+                        <p className="text-[8px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{t('orders.pos.store_id')}: {storeId || 'Self'}</p>
                     </div>
                 </div>
 
@@ -179,7 +182,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder={t('orders.pos.search_placeholder')}
                         className="w-full bg-gray-50 border border-gray-200 rounded-lg py-1.5 pl-9 pr-4 focus:ring-1 focus:ring-violet-500 transition-all font-bold text-[10px]"
                         value={searchTerm}
                         onChange={(e) => {
@@ -191,7 +194,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
 
                 <div className="flex items-center gap-2">
                     <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[10px] font-black text-gray-500 hover:bg-gray-50 transition-colors uppercase">
-                        <Printer size={12} /> Print
+                        <Printer size={12} /> {t('orders.pos.terminal.print')}
                     </button>
                     <div className="h-7 w-7 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 font-black text-xs">
                         {cart.length}
@@ -220,7 +223,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                                             className="max-w-full max-h-full object-contain"
                                         />
                                         {product.stock <= 5 && product.stock > 0 && (
-                                            <span className="absolute top-1 right-1 bg-amber-500 text-white text-[7px] font-black px-1 py-0.5 rounded uppercase">Low Stock</span>
+                                            <span className="absolute top-1 right-1 bg-amber-500 text-white text-[7px] font-black px-1 py-0.5 rounded uppercase">{t('orders.pos.terminal.low_stock')}</span>
                                         )}
                                     </div>
                                     <div className="text-[10px] font-black text-gray-800 line-clamp-1 leading-tight mb-1">
@@ -248,10 +251,10 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                                 <ShoppingCart className="text-violet-600" size={18} />
-                                <h2 className="text-sm font-black text-gray-900 uppercase tracking-tight">Cart Preview</h2>
+                                <h2 className="text-sm font-black text-gray-900 uppercase tracking-tight">{t('orders.pos.terminal.cart_preview')}</h2>
                             </div>
                             <button onClick={() => setCart([])} className="text-[8px] font-black text-red-500 bg-red-50 px-2 py-1 rounded group hover:bg-red-100">
-                                Reset
+                                {t('orders.pos.terminal.reset')}
                             </button>
                         </div>
 
@@ -259,7 +262,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                             {cart.length === 0 ? (
                                 <div className="h-40 flex flex-col items-center justify-center text-gray-300">
                                     <ShoppingCart size={32} strokeWidth={1} />
-                                    <p className="text-[10px] font-bold mt-2 uppercase">Empty</p>
+                                    <p className="text-[10px] font-bold mt-2 uppercase">{t('orders.pos.terminal.empty')}</p>
                                 </div>
                             ) : (
                                 cart.map(item => (
@@ -291,13 +294,13 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
 
                         <div className="bg-gray-50 p-3 rounded-2xl mb-4 space-y-2 border border-blue-50">
                             <h3 className="text-[9px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 mb-2">
-                                <User size={10} fill="currentColor" /> Customer Details
+                                <User size={10} fill="currentColor" /> {t('dashboard.details_label', { defaultValue: 'Details' })}
                             </h3>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={10} />
                                 <input
                                     type="email"
-                                    placeholder="Customer Email (Optional)"
+                                    placeholder={t('orders.pos.customer.email_placeholder')}
                                     className="w-full bg-white border border-gray-100 rounded-lg py-1.5 pl-8 pr-3 text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-100"
                                     value={customerDetails.email}
                                     onChange={(e) => setCustomerDetails({ ...customerDetails, email: e.target.value })}
@@ -307,7 +310,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={10} />
                                 <input
                                     type="tel"
-                                    placeholder="Phone"
+                                    placeholder={t('dashboard.customer_details_modal.phone_label', { defaultValue: 'Phone' })}
                                     className="w-full bg-white border border-gray-100 rounded-lg py-1.5 pl-8 pr-3 text-[10px] font-bold outline-none focus:ring-1 focus:ring-blue-100"
                                     value={customerDetails.phone}
                                     onChange={(e) => setCustomerDetails({ ...customerDetails, phone: e.target.value })}
@@ -317,15 +320,15 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
 
                         <div className="space-y-1.5 mb-4 border-t pt-3">
                             <div className="flex justify-between items-center text-[10px]">
-                                <span className="text-gray-400 font-bold uppercase">Subtotal</span>
+                                <span className="text-gray-400 font-bold uppercase">{t('orders.pos.totals.subtotal')}</span>
                                 <span className="text-gray-900 font-black">₹{subTotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center text-[10px]">
-                                <span className="text-gray-400 font-bold uppercase">Tax ({taxRate}%)</span>
+                                <span className="text-gray-400 font-bold uppercase">{t('orders.pos.totals.tax')} ({taxRate}%)</span>
                                 <span className="text-gray-900 font-black">₹{taxAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center py-2.5">
-                                <span className="text-xs font-black text-gray-800 uppercase">Payable</span>
+                                <span className="text-xs font-black text-gray-800 uppercase">{t('orders.pos.terminal.payable')}</span>
                                 <span className="text-xl font-black text-violet-600">₹{totalAmount.toFixed(0)}</span>
                             </div>
                         </div>
@@ -334,7 +337,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                             <div
                                 className={`flex items-center justify-center gap-2 p-2 rounded-xl border text-[10px] font-black transition-all bg-violet-600 text-white border-violet-600`}
                             >
-                                <Banknote size={14} /> CASH ONLY
+                                <Banknote size={14} /> {t('orders.pos.totals.cash_only')}
                             </div>
                         </div>
 
@@ -343,7 +346,7 @@ const PosOrders = ({ storeId, storeType = 'branch', onExit }) => {
                             onClick={handleCompleteOrder}
                             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-100 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
-                            {isProcessing ? 'Processing...' : 'Complete Sale'}
+                            {isProcessing ? t('dashboard.processing_btn') : t('orders.pos.buttons.complete_sale')}
                         </button>
                     </div>
                 </div>

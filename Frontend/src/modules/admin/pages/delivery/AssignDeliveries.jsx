@@ -29,7 +29,10 @@ import {
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
+import { useTranslation } from 'react-i18next';
+
 const AssignDeliveries = () => {
+    const { t } = useTranslation();
     // Top-Level State
     const [viewType, setViewType] = useState('slots'); // 'slots' or 'runs'
     const [loading, setLoading] = useState(true);
@@ -63,7 +66,7 @@ const AssignDeliveries = () => {
                 setActiveRuns(data || []);
             }
         } catch (error) {
-            toast.error('Failed to sync delivery data');
+            toast.error(t('delivery.assign_deliveries.alerts.sync_error'));
         } finally {
             setLoading(false);
         }
@@ -77,7 +80,7 @@ const AssignDeliveries = () => {
     // Handle Checkbox Selection
     const handleSelectOrder = (orderId, slotContextId) => {
         if (currentSlotContext && currentSlotContext !== slotContextId && selectedOrders.length > 0) {
-            toast.warning('You can only batch orders from the same time slot.');
+            toast.warning(t('delivery.assign_deliveries.alerts.batch_limit'));
             return;
         }
 
@@ -94,7 +97,7 @@ const AssignDeliveries = () => {
 
     const handleSelectAllInSlot = (slotGroup, slotContextId) => {
         if (currentSlotContext && currentSlotContext !== slotContextId && selectedOrders.length > 0) {
-            toast.warning('You can only batch orders from the same time slot.');
+            toast.warning(t('delivery.assign_deliveries.alerts.batch_limit'));
             return;
         }
 
@@ -115,7 +118,7 @@ const AssignDeliveries = () => {
 
     const handleOpenAssignModal = async () => {
         if (selectedOrders.length === 0) {
-            toast.error('Please select at least one order to batch.');
+            toast.error(t('delivery.assign_deliveries.alerts.no_select'));
             return;
         }
         setShowAssignModal(true);
@@ -124,7 +127,7 @@ const AssignDeliveries = () => {
             const drivers = await getAvailablePartners();
             setAvailableDrivers(drivers);
         } catch (error) {
-            toast.error('Failed to load available drivers');
+            toast.error(t('delivery.assign_deliveries.alerts.load_drivers_error'));
         } finally {
             setLoadingDrivers(false);
         }
@@ -142,11 +145,11 @@ const AssignDeliveries = () => {
             };
 
             await createDeliveryRun(payload);
-            toast.success(`Successfully batched ${selectedOrders.length} orders into a Delivery Run!`);
+            toast.success(t('delivery.assign_deliveries.alerts.batch_success', { count: selectedOrders.length }));
             setShowAssignModal(false);
             fetchData();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to create Delivery Run');
+            toast.error(error.response?.data?.message || t('delivery.assign_deliveries.alerts.batch_error'));
         } finally {
             setAssigningLoading(false);
         }
@@ -154,22 +157,22 @@ const AssignDeliveries = () => {
 
     const handleCancelRun = async (runId) => {
         const result = await Swal.fire({
-            title: 'Cancel Delivery Run?',
-            text: "This will unassign all pending orders in this batch and free the driver.",
+            title: t('delivery.assign_deliveries.alerts.cancel_confirm_title'),
+            text: t('delivery.assign_deliveries.alerts.cancel_confirm_text'),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#64748b',
-            confirmButtonText: 'Yes, Cancel Run'
+            confirmButtonText: t('delivery.assign_deliveries.alerts.cancel_btn')
         });
 
         if (result.isConfirmed) {
             try {
                 await cancelDeliveryRun(runId);
-                toast.success('Run cancelled successfully');
+                toast.success(t('delivery.assign_deliveries.alerts.cancel_success'));
                 fetchData();
             } catch (error) {
-                toast.error(error.response?.data?.message || 'Failed to cancel run');
+                toast.error(error.response?.data?.message || t('delivery.assign_deliveries.alerts.cancel_error'));
             }
         }
     };
@@ -181,9 +184,9 @@ const AssignDeliveries = () => {
                 <div>
                     <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
                         <Layers size={28} className="text-indigo-600" />
-                        Assign Deliveries
+                        {t('delivery.assign_deliveries.title')}
                     </h1>
-                    <p className="text-sm text-slate-500 font-medium">Efficiently batch and dispatch orders to your elite rider fleet</p>
+                    <p className="text-sm text-slate-500 font-medium">{t('delivery.assign_deliveries.subtitle')}</p>
                 </div>
 
                 <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
@@ -195,7 +198,7 @@ const AssignDeliveries = () => {
                             : 'text-slate-500 hover:bg-slate-50'
                         }`}
                     >
-                        Group by Slots
+                        {t('delivery.assign_deliveries.view_slots')}
                     </button>
                     <button
                         onClick={() => setViewType('runs')}
@@ -205,7 +208,7 @@ const AssignDeliveries = () => {
                             : 'text-slate-500 hover:bg-slate-50'
                         }`}
                     >
-                        Active Runs
+                        {t('delivery.assign_deliveries.view_runs')}
                     </button>
                     <div className="w-px h-6 bg-slate-200 mx-1"></div>
                     <button
@@ -221,7 +224,7 @@ const AssignDeliveries = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
                     <input 
                         type="text" 
-                        placeholder="Search by Order ID, Name, or Phone..." 
+                        placeholder={t('delivery.assign_deliveries.search_placeholder')} 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-white border border-slate-200 pl-12 pr-4 py-2.5 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all shadow-sm"
@@ -233,10 +236,10 @@ const AssignDeliveries = () => {
             {viewType === 'slots' && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     {[
-                        { label: 'Unassigned', value: slotData.immediate.count + slotData.slots.reduce((acc, s) => acc + s.count, 0), icon: <Package />, color: 'amber' },
-                        { label: 'Immediate', value: slotData.immediate.count, icon: <Zap />, color: 'rose' },
-                        { label: 'Scheduled', value: slotData.slots.reduce((acc, s) => acc + s.count, 0), icon: <Calendar />, color: 'indigo' },
-                        { label: 'Active Runs', value: activeRuns.length || '...', icon: <Truck />, color: 'emerald' }
+                        { label: t('delivery.assign_deliveries.stats.unassigned'), value: slotData.immediate.count + slotData.slots.reduce((acc, s) => acc + s.count, 0), icon: <Package />, color: 'amber' },
+                        { label: t('delivery.assign_deliveries.stats.immediate'), value: slotData.immediate.count, icon: <Zap />, color: 'rose' },
+                        { label: t('delivery.assign_deliveries.stats.scheduled'), value: slotData.slots.reduce((acc, s) => acc + s.count, 0), icon: <Calendar />, color: 'indigo' },
+                        { label: t('delivery.assign_deliveries.stats.active_runs'), value: activeRuns.length || '...', icon: <Truck />, color: 'emerald' }
                     ].map((stat, i) => (
                         <div key={i} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center shadow-inner`}>
@@ -257,13 +260,13 @@ const AssignDeliveries = () => {
                         <div className="w-20 h-20 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
                         <Layers size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-indigo-600" />
                     </div>
-                    <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-[0.2em] animate-pulse">Syncing logistics data...</p>
+                    <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-[0.2em] animate-pulse">{t('delivery.assign_deliveries.syncing')}</p>
                 </div>
             ) : viewType === 'slots' ? (
                 <div className="space-y-8">
                     {/* Render Groups */}
                     {[
-                        { title: 'Immediate / ASAP', data: slotData.immediate, id: 'immediate', icon: <Zap size={20} className="text-amber-500" /> },
+                        { title: t('delivery.assign_deliveries.slot_groups.immediate'), data: slotData.immediate, id: 'immediate', icon: <Zap size={20} className="text-amber-500" /> },
                         ...slotData.slots.map(s => ({
                             title: `${s.slot.label} (${s.slot.startTime} - ${s.slot.endTime})`,
                             data: s,
@@ -281,11 +284,11 @@ const AssignDeliveries = () => {
                                         <h3 className="text-lg font-black text-slate-800 tracking-tight">{group.title}</h3>
                                         <div className="flex items-center gap-2 mt-0.5">
                                             <Badge bg="indigo" className="bg-indigo-50 text-indigo-600 border border-indigo-100 fw-black uppercase tracking-tighter" style={{ fontSize: '9px' }}>
-                                                {group.data.count} Pending Orders
+                                                {t('delivery.assign_deliveries.slot_groups.pending_orders', { count: group.data.count })}
                                             </Badge>
                                             {currentSlotContext === group.id && selectedOrders.length > 0 && (
                                                 <Badge bg="emerald" className="bg-emerald-50 text-emerald-600 border border-emerald-100 fw-black uppercase tracking-tighter" style={{ fontSize: '9px' }}>
-                                                    {selectedOrders.length} Selected for Batch
+                                                    {t('delivery.assign_deliveries.slot_groups.selected_count', { count: selectedOrders.length })}
                                                 </Badge>
                                             )}
                                         </div>
@@ -297,7 +300,9 @@ const AssignDeliveries = () => {
                                         onClick={() => handleSelectAllInSlot(group.data, group.id)}
                                         className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
                                     >
-                                        {group.data.orders.every(o => selectedOrders.includes(o._id)) ? 'Deselect All' : 'Select All'}
+                                        {group.data.orders.every(o => selectedOrders.includes(o._id)) 
+                                            ? t('delivery.assign_deliveries.slot_groups.deselect_all') 
+                                            : t('delivery.assign_deliveries.slot_groups.select_all')}
                                     </button>
                                     {currentSlotContext === group.id && selectedOrders.length > 0 && (
                                         <button
@@ -305,7 +310,7 @@ const AssignDeliveries = () => {
                                             className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95 flex items-center gap-2"
                                         >
                                             <Truck size={14} />
-                                            Batch Assign
+                                            {t('delivery.assign_deliveries.slot_groups.batch_assign')}
                                         </button>
                                     )}
                                 </div>
@@ -315,11 +320,11 @@ const AssignDeliveries = () => {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50/60 text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
-                                            <th className="px-8 py-4 w-12 text-center">Ref</th>
-                                            <th className="px-6 py-4">Order Details</th>
-                                            <th className="px-6 py-4">Customer Info</th>
-                                            <th className="px-6 py-4">Delivery Node</th>
-                                            <th className="px-8 py-4 text-right">Valuation</th>
+                                            <th className="px-8 py-4 w-12 text-center">{t('delivery.assign_deliveries.table.ref')}</th>
+                                            <th className="px-6 py-4">{t('delivery.assign_deliveries.table.order_details')}</th>
+                                            <th className="px-6 py-4">{t('delivery.assign_deliveries.table.customer_info')}</th>
+                                            <th className="px-6 py-4">{t('delivery.assign_deliveries.table.delivery_node')}</th>
+                                            <th className="px-8 py-4 text-right">{t('delivery.assign_deliveries.table.valuation')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50/80">
@@ -355,7 +360,7 @@ const AssignDeliveries = () => {
                                                                     <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${
                                                                         order.paymentMethod === 'online' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                                                                     }`}>
-                                                                        {order.paymentMethod === 'online' ? 'PAID' : 'COD'}
+                                                                        {order.paymentMethod === 'online' ? t('delivery.assign_deliveries.table.paid') : t('delivery.assign_deliveries.table.cod')}
                                                                     </div>
                                                                     <span className="text-[10px] font-bold text-slate-400 capitalize">{order.status.replace('_', ' ')}</span>
                                                                 </div>
@@ -393,10 +398,10 @@ const AssignDeliveries = () => {
                             <div className="w-24 h-24 rounded-[2rem] bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-inner">
                                 <CheckCircle size={48} />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Operation Excellence Achieved!</h2>
-                            <p className="text-slate-500 font-medium max-w-sm mx-auto">All orders for today have been successfully assigned to your riders.</p>
+                            <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">{t('delivery.assign_deliveries.empty_state.title')}</h2>
+                            <p className="text-slate-500 font-medium max-w-sm mx-auto">{t('delivery.assign_deliveries.empty_state.text')}</p>
                             <button onClick={fetchData} className="mt-8 px-8 py-3 bg-slate-900 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all active:scale-95">
-                                Refresh Dashboard
+                                {t('delivery.assign_deliveries.empty_state.refresh_btn')}
                             </button>
                         </div>
                     )}
@@ -408,11 +413,11 @@ const AssignDeliveries = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50/70 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
-                                    <th className="px-8 py-5">Run Identity</th>
-                                    <th className="px-8 py-5">Elite Rider</th>
-                                    <th className="px-8 py-5">Workflow Mode</th>
-                                    <th className="px-8 py-5">Mission Progress</th>
-                                    <th className="px-8 py-5 text-right">Tactical Action</th>
+                                    <th className="px-8 py-5">{t('delivery.assign_deliveries.active_runs_table.run_identity')}</th>
+                                    <th className="px-8 py-5">{t('delivery.assign_deliveries.active_runs_table.rider')}</th>
+                                    <th className="px-8 py-5">{t('delivery.assign_deliveries.active_runs_table.workflow')}</th>
+                                    <th className="px-8 py-5">{t('delivery.assign_deliveries.active_runs_table.progress')}</th>
+                                    <th className="px-8 py-5 text-right">{t('delivery.assign_deliveries.active_runs_table.action')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50/80">
@@ -421,8 +426,8 @@ const AssignDeliveries = () => {
                                         <td colSpan="5" className="text-center py-24">
                                             <div className="max-w-xs mx-auto opacity-40 grayscale">
                                                 <ClipboardList size={64} className="mx-auto mb-4 text-slate-300" />
-                                                <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm mb-2">No Active Missions</h4>
-                                                <p className="text-xs font-medium text-slate-500 italic">Assign some batches from the slots view to see active tracking here.</p>
+                                                <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm mb-2">{t('delivery.assign_deliveries.active_runs_table.no_missions')}</h4>
+                                                <p className="text-xs font-medium text-slate-500 italic">{t('delivery.assign_deliveries.active_runs_table.no_missions_text')}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -461,7 +466,7 @@ const AssignDeliveries = () => {
                                                         <span className="text-sm font-black text-slate-800 tracking-tight">{run.deliveryPartner?.name || 'Rider ID Unk'}</span>
                                                         <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                                                             <TrendingUp size={10} className="text-emerald-500" />
-                                                            {run.deliveryPartner?.vehicleType || 'Bike'} Specialist
+                                                            {t('delivery.assign_deliveries.active_runs_table.rider_specialist', { type: run.deliveryPartner?.vehicleType || 'Bike' })}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -470,7 +475,7 @@ const AssignDeliveries = () => {
                                                 {run.isImmediate ? (
                                                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-full border border-amber-100">
                                                         <Zap size={12} className="text-amber-500" />
-                                                        <span className="text-[10px] font-black text-amber-700 uppercase tracking-tighter">Priority ASAp</span>
+                                                        <span className="text-[10px] font-black text-amber-700 uppercase tracking-tighter">{t('delivery.assign_deliveries.active_runs_table.priority_asap')}</span>
                                                     </div>
                                                 ) : (
                                                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 rounded-full border border-indigo-100">
@@ -526,8 +531,8 @@ const AssignDeliveries = () => {
                 <div className="bg-white p-8">
                     <div className="flex justify-between items-center mb-8">
                         <div>
-                            <h3 className="text-xl font-black text-slate-800 tracking-tight">Dispatch Command</h3>
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Mission Prep Center</p>
+                            <h3 className="text-xl font-black text-slate-800 tracking-tight">{t('delivery.assign_deliveries.modal.title')}</h3>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{t('delivery.assign_deliveries.modal.subtitle')}</p>
                         </div>
                         <button 
                             onClick={() => !assigningLoading && setShowAssignModal(false)}
@@ -540,23 +545,23 @@ const AssignDeliveries = () => {
                     <div className="grid grid-cols-2 gap-4 mb-8">
                         <div className="bg-indigo-600 p-6 rounded-[2rem] text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
                             <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl transition-transform duration-700 group-hover:scale-150"></div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 block mb-1">Payload Size</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 block mb-1">{t('delivery.assign_deliveries.modal.payload_size')}</span>
                             <div className="flex items-end gap-1">
                                 <h4 className="text-4xl font-black tracking-tighter m-0">{selectedOrders.length}</h4>
-                                <span className="text-xs font-bold mb-1 opacity-80 uppercase tracking-tighter">Orders</span>
+                                <span className="text-xs font-bold mb-1 opacity-80 uppercase tracking-tighter">{t('delivery.assign_deliveries.modal.orders_count')}</span>
                             </div>
                         </div>
                         <div className="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl shadow-slate-900/20">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 block mb-1">Target Slot</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 block mb-1">{t('delivery.assign_deliveries.modal.target_slot')}</span>
                             <h6 className="text-xs font-black uppercase tracking-widest m-0 flex items-center gap-2 mt-2">
                                 {currentSlotContext === 'immediate' ? <Zap size={14} className="text-amber-400" /> : <Clock size={14} className="text-indigo-400" />}
-                                {currentSlotContext === 'immediate' ? 'Priority' : 'Scheduled'}
+                                {currentSlotContext === 'immediate' ? t('delivery.assign_deliveries.modal.priority') : t('delivery.assign_deliveries.modal.scheduled')}
                             </h6>
                         </div>
                     </div>
 
                     <div className="mb-8">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Tactical Configuration</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">{t('delivery.assign_deliveries.modal.configuration')}</label>
                         <div 
                             className={`p-4 rounded-3xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                                 optimizeRoute ? 'bg-emerald-50 border-emerald-500 shadow-md shadow-emerald-500/10' : 'bg-slate-50 border-slate-100'
@@ -570,8 +575,8 @@ const AssignDeliveries = () => {
                                     <TrendingUp size={24} />
                                 </div>
                                 <div>
-                                    <span className="text-sm font-black text-slate-800 block">AI Route Optimization</span>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Beta V2.1 • Faster Delivery</span>
+                                    <span className="text-sm font-black text-slate-800 block">{t('delivery.assign_deliveries.modal.route_optimization')}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">{t('delivery.assign_deliveries.modal.beta_version')}</span>
                                 </div>
                             </div>
                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
@@ -583,18 +588,18 @@ const AssignDeliveries = () => {
                     </div>
 
                     <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4 flex items-center gap-2">
-                        <Truck size={14} /> Unit Availability
+                        <Truck size={14} /> {t('delivery.assign_deliveries.modal.availability_title')}
                     </h6>
 
                     {loadingDrivers ? (
                         <div className="flex flex-col items-center justify-center py-12">
                             <Spinner animation="grow" variant="indigo" size="sm" />
-                            <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning nearby riders...</p>
+                            <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('delivery.assign_deliveries.modal.scanning_riders')}</p>
                         </div>
                     ) : availableDrivers.length === 0 ? (
                         <div className="p-8 text-center bg-slate-50 rounded-[2rem] border border-slate-100">
                             <AlertCircle size={32} className="mx-auto mb-3 text-slate-300" />
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">No elite riders currently online or free for this mission.</p>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">{t('delivery.assign_deliveries.modal.no_riders')}</p>
                         </div>
                     ) : (
                         <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -622,7 +627,7 @@ const AssignDeliveries = () => {
                                         className="h-10 px-5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-slate-900/10 translate-x-4 group-hover:translate-x-0"
                                         disabled={assigningLoading}
                                     >
-                                        {assigningLoading ? 'Syncing...' : 'Dispatch'}
+                                        {assigningLoading ? t('delivery.assign_deliveries.modal.syncing') : t('delivery.assign_deliveries.modal.dispatch')}
                                     </button>
                                 </div>
                             ))}

@@ -1,0 +1,1400 @@
+{
+  "common": {
+    "dashboard": "डैशबोर्ड",
+    "orders": "ऑर्डर",
+    "products": "उत्पाद",
+    "categories_brands": "श्रेणियां और ब्रांड",
+    "customers": "ग्राहक",
+    "staff_management": "कर्मचारी प्रबंधन",
+    "stock_management": "स्टॉक प्रबंधन",
+    "delivery_management": "डिलीवरी प्रबंधन",
+    "vendors": "विक्रेता",
+    "locations": "स्थान",
+    "offers_sliders": "ऑफर और स्लाइडर",
+    "promo_codes": "प्रोमो कोड",
+    "notifications": "सूचनाएं",
+    "support_desk": "सहायता डेस्क",
+    "reports": "रिपोर्ट",
+    "analytics_finance": "एनालिटिक्स और फाइनेंस",
+    "legal_policies": "कानूनी और नीतियां",
+    "settings": "सेटिंग्स",
+    "logout": "लॉगआउट",
+    "profile": "प्रोफ़ाइल",
+    "account": "खाता",
+    "search": "खोजें",
+    "notifications_empty": "कोई नई सूचना नहीं",
+    "welcome_back": "वापसी पर स्वागत है",
+    "admin_user": "एडमिन यूजर",
+    "staff": "कर्मचारी",
+    "language": "भाषा",
+    "english": "अंग्रेज़ी",
+    "hindi": "हिन्दी",
+    "admin_portal": "एडमिन पोर्टल",
+    "sign_in_to_manage": "साथीग्रो (SathiGro) को प्रबंधित करने के लिए साइन इन करें",
+    "email_address": "ईमेल पता",
+    "password": "पासवर्ड",
+    "remember_me": "मुझे याद रखें",
+    "forgot_password": "पासवर्ड भूल गए?",
+    "sign_in": "साइन इन करें",
+    "signing_in": "साइन इन हो रहा है...",
+    "password_min_length": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
+    "invalid_credentials": "अमान्य क्रेडेंशियल। कृपया पुनः प्रयास करें।",
+    "all_rights_reserved": "सर्वाधिकार सुरक्षित।",
+    "main": "मुख्य",
+    "current_branch": "वर्तमान शाखा",
+    "delete": "हटाएं"
+  },
+  "sidebar": {
+    "all_orders": "सभी ऑर्डर",
+    "pos_history": "पीओएस इतिहास",
+    "online_orders": "ऑनलाइन ऑर्डर",
+    "return_requests": "वापसी अनुरोध",
+    "all_products": "सभी उत्पाद",
+    "add_product": "उत्पाद जोड़ें",
+    "all_categories": "सभी श्रेणियां",
+    "add_category": "श्रेणी जोड़ें",
+    "all_brands": "सभी ब्रांड",
+    "add_brand": "ब्रांड जोड़ें",
+    "all_customers": "सभी ग्राहक",
+    "customer_orders": "ग्राहक के ऑर्डर",
+    "all_staff": "सभी कर्मचारी",
+    "add_staff": "कर्मचारी जोड़ें",
+    "stock_overview": "स्टॉक अवलोकन",
+    "branch_wise_stock": "शाखा-वार स्टॉक",
+    "stock_adjustments": "स्टॉक समायोजन",
+    "low_stock_alerts": "कम स्टॉक अलर्ट",
+    "inventory_requests": "इन्वेंट्री अनुरोध",
+    "delivery_partners": "डिलीवरी पार्टनर",
+    "assign_deliveries": "डिलीवरी सौंपें",
+    "delivery_tracking": "डिलीवरी ट्रैकिंग",
+    "delivery_slots": "डिलीवरी स्लॉट",
+    "cash_settlement": "नकद निपटान",
+    "all_vendors": "सभी विक्रेता",
+    "add_vendor": "विक्रेता जोड़ें",
+    "vendor_products": "विक्रेता उत्पाद",
+    "vendor_payouts": "विक्रेता भुगतान",
+    "branches": "शाखाएं",
+    "add_branch": "शाखा जोड़ें",
+    "banner_deals": "बैनर सौदे",
+    "festive_campaigns": "उत्सव अभियान",
+    "all_promo_codes": "सभी प्रोमो कोड",
+    "create_promo_code": "प्रोमो कोड बनाएं",
+    "push_notification": "पुश नोटिफिकेशन",
+    "tickets": "टिकट",
+    "faqs": "अक्सर पूछे जाने वाले प्रश्न",
+    "sales_reports": "बिक्री रिपोर्ट",
+    "inventory_reports": "इन्वेंट्री रिपोर्ट",
+    "vendor_reports": "विक्रेता रिपोर्ट",
+    "revenue_analytics": "राजस्व एनालिटिक्स",
+    "demand_analytics": "मांग एनालिटिक्स",
+    "vendor_earnings": "विक्रेता की कमाई",
+    "admin_profile": "एडमिन प्रोफ़ाइल",
+    "tax_billing_settings": "टैक्स और बिलिंग सेटिंग्स",
+    "app_settings": "ऐप सेटिंग्स",
+    "social_profile": "सोशल प्रोफ़ाइल"
+  },
+  "dashboard": {
+    "monitoring_global_operations": "ग्लोबल ऑपरेशंस की निगरानी",
+    "revenue": "राजस्व",
+    "order_flow": "ऑर्डर फ्लो",
+    "processing": "प्रोसेसिंग",
+    "active_market": "सक्रिय बाजार",
+    "performance_trajectory": "प्रदर्शन प्रक्षेपवक्र",
+    "support_pulse": "सपोर्ट पल्स",
+    "resolve_tickets": "टिकट हल करें",
+    "revenue_30d": "राजस्व (30 दिन)",
+    "gross_volume_after_discounts": "छूट के बाद कुल मात्रा",
+    "live_transaction_throughput": "लाइव ट्रांजैक्शन थ्रूपुट",
+    "normal_volume": "सामान्य मात्रा",
+    "registered_customers": "पंजीकृत ग्राहक",
+    "revenue_and_transaction_volume": "राजस्व और लेनदेन की मात्रा (7 दिन का ट्रेंड)",
+    "pending_store_escalations": "लंबित स्टोर शिकायतें",
+    "urgent": "अति आवश्यक",
+    "operational_command_center": "ऑपरेशनल कमांड सेंटर",
+    "active_riders": "सक्रिय राइडर्स",
+    "rider_hub": "राइडर हब",
+    "live": "लाइव",
+    "partners_ready": "असाइनमेंट के लिए तैयार पार्टनर",
+    "manage_fleet": "फ्लीट प्रबंधित करें",
+    "instant_actions": "त्वरित कार्रवाई",
+    "campaigns": "अभियान",
+    "recent_transactions": "हाल के लेनदेन",
+    "live_order_stream": "लाइव ऑर्डर स्ट्रीम",
+    "view_all_history": "पूरा इतिहास देखें",
+    "transaction_id": "लेनदेन आईडी",
+    "customer_entity": "ग्राहक इकाई",
+    "invoice_value": "बीजक मूल्य",
+    "status": "स्थिति",
+    "protocol": "प्रोटोकॉल",
+    "no_active_transactions": "कोई सक्रिय लेनदेन नहीं",
+    "high_workload": "अधिक कार्यभार",
+    "available_inventory": "उपलब्ध इन्वेंट्री",
+    "channel_split": "चैनल विभाजन",
+    "source_of_orders": "पिछले 30 दिनों के ऑर्डर का स्रोत",
+    "inventory_health": "इन्वेंट्री स्वास्थ्य",
+    "actionable_stock_intelligence": "कार्रवाई योग्य स्टॉक इंटेलिजेंस",
+    "skus_below_threshold": "थ्रेशोल्ड से नीचे एसकेयू (SKU)",
+    "manage_procurement": "खरीद प्रबंधन",
+    "booting_intelligence": "बुद्धिमत्ता लोड हो रही है (Booting Intelligence)...",
+    "assigned_branch": "असाइन किया गया ब्रांच",
+    "radius_msg": "10 किमी के दायरे में",
+    "channels": {
+      "pos": "पीओएस (POS)",
+      "pos_desc": "वॉक-इन",
+      "online": "ऑनलाइन",
+      "online_desc": "ऐप/वेब"
+    },
+    "delete_confirm_title": "क्या आप निश्चित हैं?",
+    "delete_confirm_text": "आप इसे वापस नहीं ले पाएंगे! ({{name}})",
+    "deleted_title": "हटा दिया गया!",
+    "deleted_text": "आइटम हटा दिया गया है।",
+    "error_title": "ओह...",
+    "failed_to_delete": "आइटम हटाने में विफल",
+    "order_id": "ऑर्डर आईडी",
+    "order_status_label": "ऑर्डर की स्थिति",
+    "are_you_sure": "क्या आप निश्चित हैं?",
+    "status_update_failed": "स्थिति अपडेट करने में विफल",
+    "no_address": "कोई शाखा नहीं",
+    "orders_management": "ऑर्डर प्रबंधन",
+    "order_count": "{{count}} ऑर्डर",
+    "search_orders_placeholder": "ऑर्डर आईडी, ग्राहक का नाम, ईमेल, फोन खोजें...",
+    "filters": "फिल्टर",
+    "advanced_filters": "उन्नत फिल्टर",
+    "clear_all": "सभी हटाएं",
+    "apply_filters": "फिल्टर लागू करें",
+    "all_status": "सभी स्थिति",
+    "payment_method": "भुगतान विधि",
+    "all_methods": "सभी विधियां",
+    "payment_status": "भुगतान की स्थिति",
+    "all_payment_status": "सभी भुगतान स्थिति",
+    "start_date": "आरंभ तिथि",
+    "end_date": "अंतिम तिथि",
+    "order_source": "ऑर्डर का स्रोत",
+    "all_sources": "सभी स्रोत",
+    "all_slots": "सभी स्लॉट",
+    "immediate_delivery": "तत्काल डिलीवरी (ASAP)",
+    "customer": "ग्राहक",
+    "branch_vendor": "शाखा/विक्रेता",
+    "date": "तारीख",
+    "payment": "भुगतान",
+    "total_amount": "कुल राशि",
+    "actions": "कार्रवाई",
+    "loading_orders": "ऑर्डर लोड हो रहे हैं...",
+    "no_matching_orders": "कोई मिलान करने वाले ऑर्डर नहीं मिले।",
+    "showing": "दिखा रहा है",
+    "to": "से",
+    "of": "का",
+    "yes_delete_it": "हाँ, इसे हटा दें!",
+    "order_deleted_success": "ऑर्डर सफलतापूर्वक हटा दिया गया",
+    "update_order_status": "ऑर्डर की स्थिति अपडेट करें",
+    "select_status_placeholder": "एक स्थिति चुनें",
+    "status_updated_success": "स्थिति सफलतापूर्वक अपडेट की गई",
+    "order_status": {
+      "pending": "लंबित",
+      "confirmed": "पुष्ट",
+      "preparing": "तैयार हो रहा है",
+      "out_for_delivery": "डिलीवरी के लिए बाहर",
+      "delivered": "डिलीवर किया गया",
+      "cancelled": "रद्द",
+      "return_requested": "वापसी का अनुरोध",
+      "returned": "लौटाया गया",
+      "ready_for_pickup": "पिकअप के लिए तैयार",
+      "paid": "भुगतान किया गया",
+      "failed": "विफल",
+      "refunded": "वापस किया गया (Refunded)",
+      "packing": "पैकिंग (Packing)"
+    },
+    "payment_methods": {
+      "cod": "कैश ऑन डिलीवरी (COD)",
+      "wallet": "वॉलेट (Wallet)",
+      "online": "ऑनलाइन"
+    },
+    "slot_labels": {
+      "immediate": "तत्काल (IMMEDIATE)",
+      "slot_prefix": "स्लॉट (Slot)"
+    },
+    "guest": "अतिथि (Guest)",
+    "global": "ग्लोबल (Global)",
+    "view_details_label": "विवरण देखें",
+    "update_status_label": "स्थिति अपडेट करें",
+    "delete_order_label": "ऑर्डर हटाएं",
+    "order_details_modal": {
+      "title": "ऑर्डर का विवरण",
+      "download_invoice": "इनवॉइस डाउनलोड करें",
+      "customer_info": "ग्राहक की जानकारी",
+      "shipping_address": "शिपिंग पता",
+      "order_items": "ऑर्डर की वस्तुएं",
+      "pos_transaction": "पीओएस (POS) लेनदेन",
+      "pos_msg": "यह एक इन-स्टोर पीओएस ऑर्डर है। किसी डिलीवरी पार्टनर की आवश्यकता नहीं है।",
+      "delivery_management": "डिलीवरी प्रबंधन",
+      "partner_assigned": "पार्टनर नियुक्त किया गया",
+      "otp": "ओटीपी (OTP)",
+      "auto_assign": "निकटतम को स्वतः नियुक्त करें",
+      "select_rider": "राइडर चुनें",
+      "no_available_riders": "कोई राइडर उपलब्ध नहीं है",
+      "assign_btn": "नियुक्त करें",
+      "assignment_warning": "* स्वतः-नियुक्ति 10 किमी के भीतर निकटतम ऑनलाइन पार्टनर की खोज करती है।",
+      "confirm_before_assign": "डिलीवरी पार्टनर नियुक्त करने से पहले कृपया ऑर्डर की स्थिति की पुष्टि करें।",
+      "assignment_not_available": "इस स्थिति के लिए डिलीवरी नियुक्ति उपलब्ध नहीं है।",
+      "restricted_access": "डिलीवरी पार्टनर की नियुक्ति केवल सुपर एडमिन स्तर तक ही सीमित है।",
+      "product_label": "उत्पाद",
+      "qty_label": "मात्रा",
+      "price_label": "कीमत",
+      "total_label": "कुल",
+      "subtotal": "उप-कुल",
+      "tax": "टैक्स",
+      "delivery_fee": "डिलीवरी शुल्क",
+      "handling_fee": "हैंडलिंग शुल्क",
+      "promo_discount": "प्रोमो छूट",
+      "platform_commission": "प्लेटफॉर्म कमीशन",
+      "vendor_net_payout": "विक्रेता का शुद्ध भुगतान",
+      "final_total": "अंतिम कुल",
+      "close": "बंद करें",
+      "no_address": "कोई पता नहीं",
+      "no_address_provided": "कोई पता नहीं दिया गया",
+      "bill_to": "बिल प्राप्तकर्ता",
+      "payment_info": "भुगतान की जानकारी",
+      "variation_standard": "विविधता: मानक",
+      "item_description": "वस्तु का विवरण",
+      "grand_total": "कुल योग",
+      "thank_you": "हमारे साथ व्यापार करने के लिए धन्यवाद!"
+    },
+    "products": {
+      "title": "उत्पाद सूची (इन्वेंट्री)",
+      "count": "{{count}} उत्पाद",
+      "loading_failed": "उत्पाद लोड करने में विफल",
+      "search_placeholder": "नाम, SKU, विक्रेता द्वारा खोजें...",
+      "filter_btn": "फ़िल्टर",
+      "filter_options": "फ़िल्टर विकल्प",
+      "all_categories": "सभी श्रेणियां",
+      "all_brands": "सभी ब्रांड",
+      "clear_filters": "फ़िल्टर हटाएं",
+      "add_product": "उत्पाद जोड़ें",
+      "all_products": "सभी उत्पाद",
+      "branch_products": "शाखा उत्पाद",
+      "vendor_products": "विक्रेता उत्पाद",
+      "table": {
+        "product": "उत्पाद",
+        "brand": "ब्रांड",
+        "category": "श्रेणी",
+        "source": "स्रोत",
+        "branches_store": "शाखाएं / स्टोर",
+        "assigned_branch": "नियुक्त शाखा",
+        "price": "कीमत",
+        "total_stock": "कुल स्टॉक",
+        "branch_stock": "शाखा स्टॉक",
+        "status": "स्थिति",
+        "actions": "कार्रवाई"
+      },
+      "status": {
+        "active": "सक्रिय",
+        "low_stock": "कम स्टॉक",
+        "out_of_stock": "स्टॉक में नहीं",
+        "draft": "ड्राफ्ट",
+        "pending_approval": "अनुमोदन लंबित"
+      },
+      "source": {
+        "vendor": "विक्रेता",
+        "branch": "शाखा"
+      },
+      "loading": "उत्पाद लोड हो रहे हैं...",
+      "no_products": "कोई उत्पाद नहीं मिला",
+      "no_products_msg": "अपनी खोज या फ़िल्टर को बदलने का प्रयास करें।",
+      "managed_by_vendor": "विक्रेता द्वारा प्रबंधित",
+      "qr": {
+        "title": "उत्पाद QR कोड",
+        "download": "QR डाउनलोड करें"
+      },
+      "dietary": {
+        "veg": "शाकाहारी",
+    "non_veg": "मांसाहारी"
+      },
+      "pagination": {
+        "showing": "दिखाया जा रहा है",
+        "of": "का",
+        "previous": "पिछला",
+        "next": "अगला"
+      },
+      "restock_modal": {
+        "title": "इन्वेंट्री समायोजन",
+        "target_product": "लक्ष्य उत्पाद",
+        "target_storage": "लक्ष्य भंडारण",
+        "select_placeholder": "चुनें...",
+        "vendor_stock": "📦 विक्रेता प्रत्यक्ष स्टॉक ({{name}})",
+        "branch_info": "🏢 शाखा: {{name}} (वर्तमान: {{stock}})",
+        "current_stock": "वर्तमान स्टॉक:",
+        "adjustment_type": "समायोजन प्रकार",
+        "type_options": {
+          "addition": "📦 स्टॉक जोड़ना (खरीद/रीस्टॉक)",
+          "return": "🔄 ग्राहक वापसी",
+          "deduction": "📤 मैन्युअल कटौती",
+          "damage": "⚠️ क्षतिग्रस्त / समाप्त",
+          "audit": "📋 इन्वेंट्री ऑडिट (सटीक सेट करें)"
+        },
+        "exact_count": "सटीक वर्तमान गणना",
+        "qty_change": "मात्रा में परिवर्तन",
+        "reason_label": "कारण / नोट",
+        "reason_placeholder": "जैसे: आपूर्तिकर्ता XYZ से नया स्टॉक",
+        "confirm_btn": "समायोजन की पुष्टि करें",
+        "alerts": {
+          "select_branch": "कृपया एक शाखा चुनें",
+          "valid_amount": "कृपया एक मान्य राशि दर्ज करें",
+          "provide_reason": "कृपया समायोजन के लिए एक कारण प्रदान करें",
+          "update_success": "इन्वेंट्री अपडेट की गई: {{name}}",
+          "update_failed": "इन्वेंट्री समायोजित करने में विफल"
+        }
+      },
+      "edit_modal": {
+        "title": "उत्पाद संपादित करें",
+        "name_label": "उत्पाद का नाम",
+        "category_label": "श्रेणी",
+        "select_category": "श्रेणी चुनें",
+        "brand_label": "ब्रांड",
+        "select_brand": "ब्रांड चुनें",
+        "vendor_label": "विक्रेता नियुक्त करें (वैकल्पिक)",
+        "admin_inhouse": "एडमिन / इन-हाउस",
+        "price_label": "कीमत (₹)",
+        "mrp_label": "MRP (₹)",
+        "food_type": "भोजन का प्रकार",
+        "veg": "शाकाहारी",
+        "non_veg": "मांसाहारी",
+        "amount_label": "मात्रा",
+        "unit_type_label": "इकाई का प्रकार",
+        "status_label": "स्थिति",
+        "priority_label": "Sathi Grow प्राथमिकता उत्पाद",
+        "priority_help": "उपयोगकर्ता सूचियों में इस उत्पाद को प्राथमिकता दें",
+        "location_label": "भौतिक स्थान",
+        "location_placeholder": "जैसे: आइल 4, शेल्फ B",
+        "inventory_mgmt": "इन्वेंट्री प्रबंधन",
+        "vendor_stock_title": "विक्रेता प्रत्यक्ष स्टॉक",
+        "total_stock": "कुल स्टॉक",
+        "low_stock_threshold": "कम स्टॉक सीमा",
+        "available_in": "इसमें उपलब्ध:",
+        "no_branches": "कोई शाखा नहीं चुनी गई।",
+        "image_label": "उत्पाद छवि",
+        "update_image": "छवि अपडेट करें",
+        "sku_label": "SKU कोड",
+        "qr_title": "उत्पाद QR",
+        "gallery_label": "गैलरी छवियां",
+        "description_label": "विवरण",
+        "ai_write": "AI लिखें",
+        "tags_label": "टैग",
+        "ai_tags": "AI टैग",
+        "add_tag_placeholder": "टैग जोड़ें...",
+        "add_btn": "जोड़ें",
+        "cancel": "रद्द करें",
+        "update_btn": "उत्पाद अपडेट करें",
+        "alerts": {
+          "branch_required": "उत्पाद कम से कम एक शाखा में उपलब्ध होना चाहिए",
+          "name_required": "कृपया पहले उत्पाद का नाम दर्ज करें",
+          "description_gen": "विवरण तैयार किया गया!",
+          "tags_gen": "टैग तैयार किए गए!",
+          "status_updated": "उत्पाद सफलतापूर्वक अपडेट किया गया",
+          "status_failed": "उत्पाद अपडेट करने में विफल"
+        }
+      }
+    },
+    "categories": {
+      "title": "श्रेणियां (कैटेगरी)",
+      "subtitle": "अपने उत्पाद संगठन और पृष्ठभूमि स्टाइल को प्रबंधित करें।",
+      "search_placeholder": "श्रेणियां खोजें...",
+      "add_new": "नया जोड़ें",
+      "loading": "श्रेणियां लोड हो रही हैं...",
+      "no_categories": "कोई श्रेणी नहीं मिली। एक जोड़कर शुरू करें!",
+      "no_matches": "आपकी खोज से मेल खाने वाली कोई श्रेणी नहीं मिली।",
+      "loading_failed": "श्रेणियां लोड करने में विफल",
+      "edit_modal": {
+        "title": "श्रेणी अपडेट करें",
+        "name_label": "श्रेणी का नाम",
+        "name_placeholder": "जैसे: इलेक्ट्रॉनिक्स",
+        "slug_label": "स्लग (Slug)",
+        "slug_placeholder": "electronics-item",
+        "slug_help": "एसईओ (SEO) के लिए विशिष्ट पहचानकर्ता।",
+        "status_label": "स्थिति",
+        "description_label": "विवरण",
+        "description_placeholder": "श्रेणी का विवरण...",
+        "appearance_title": "उपस्थिति/दिखावट",
+        "add_image": "श्रेणी की छवि जोड़ें",
+        "image_size_error": "छवि का आकार 2MB से कम होना चाहिए",
+        "bg_color_label": "पृष्ठभूमि का रंग (Background Color)",
+        "live_preview": "लाइव प्रीव्यू कार्ड",
+        "saving": "सहेज रहा है...",
+        "update_btn": "श्रेणी अपडेट करें",
+        "cancel": "रद्द करें"
+      },
+      "table": {
+        "info": "श्रेणी जानकारी",
+        "slug": "स्लग",
+        "background": "पृष्ठभूमि (बैकग्राउंड)",
+        "status": "स्थिति",
+        "actions": "कार्रवाई"
+      },
+      "pagination": {
+        "showing": "दिखाया जा रहा है",
+        "to": "से",
+        "of": "का"
+      }
+    },
+    "brands": {
+      "title": "मार्केटप्लेस ब्रांड",
+      "loading_failed": "ब्रांड लोड करने में विफल",
+      "search_placeholder": "नाम या श्रेणी के आधार पर खोजें...",
+      "add_brand": "ब्रांड जोड़ें",
+      "add_short": "जोड़ें",
+      "loading": "ब्रांड लोड हो रहे हैं...",
+      "no_brands": "कोई ब्रांड नहीं मिला",
+      "start_adding": "अपना पहला ब्रांड जोड़कर शुरू करें!",
+      "add_new_btn": "नया ब्रांड जोड़ें",
+      "website": "वेबसाइट",
+      "no_description": "कोई विवरण नहीं",
+      "table": {
+        "brand": "ब्रांड",
+        "category": "श्रेणी",
+        "details": "विवरण",
+        "status": "स्थिति",
+        "actions": "कार्रवाई"
+      },
+      "pagination": {
+        "showing": "दिखाया जा रहा है",
+        "to": "से",
+        "of": "का"
+      },
+      "edit_modal": {
+        "title": "ब्रांड विवरण संपादित करें",
+        "no_logo": "लोगो नहीं",
+        "update_logo": "ब्रांड लोगो अपडेट करें",
+        "name_label": "ब्रांड का नाम",
+        "category_label": "श्रेणी",
+        "select_category": "श्रेणी चुनें",
+        "website_label": "वेबसाइट",
+        "description_label": "विवरण",
+        "status_label": "स्थिति",
+        "cancel": "रद्द करें",
+        "save_changes": "परिवर्तन सहेजें"
+      }
+    },
+    "vendors": {
+      "title": "सभी विक्रेता",
+      "loading_failed": "विक्रेता लोड करने में विफल",
+      "search_placeholder": "नाम, आईडी या मालिक द्वारा खोजें...",
+      "add_new": "नया जोड़ें",
+      "loading": "विक्रेता लोड हो रहे हैं...",
+      "no_vendors": "आपकी खोज से मेल खाने वाला कोई विक्रेता नहीं मिला।",
+      "new_rating": "नया",
+      "view_info": "जानकारी देखें",
+      "approve": "स्वीकार करें",
+      "block": "ब्लॉक करें",
+      "delete_confirm_title": "क्या आप वाकई में हटाना चाहते हैं?",
+      "delete_confirm_text": "क्या आप विक्रेता {{name}} को हटाना चाहते हैं? इसे वापस नहीं लिया जा सकता।",
+      "status": {
+        "active": "सक्रिय",
+        "pending": "पेंडिंग",
+        "inactive": "निष्क्रिय"
+      },
+      "table": {
+        "name": "विक्रेता का नाम",
+        "contact": "संपर्क",
+        "products": "उत्पाद",
+        "rating": "रेटिंग",
+        "status": "स्थिति",
+        "actions": "कार्रवाई"
+      },
+      "pagination": {
+        "showing": "दिखाया जा रहा है",
+        "to": "से",
+        "of": "का"
+      },
+      "edit_modal": {
+        "title": "विक्रेता प्रोफ़ाइल संपादित करें",
+        "store_name": "स्टोर का नाम",
+        "owner_name": "मालिक का नाम",
+        "email_address": "ईमेल एड्रेस",
+        "phone_number": "फ़ोन नंबर",
+        "store_logo": "स्टोर का लोगो",
+        "update_logo": "लोगो अपडेट करें",
+        "store_address": "स्टोर का पता (मैप पर खोजें)",
+        "address_placeholder": "नए स्थान के लिए खोजें...",
+        "street": "सड़क/गली",
+        "city": "शहर",
+        "state": "राज्य",
+        "zip_code": "पिन कोड",
+        "status": "स्थिति",
+        "discard": "रद्द करें",
+        "updating": "अपडेट हो रहा है...",
+        "update_btn": "विक्रेता अपडेट करें"
+      }
+    },
+    "locations": {
+      "branches": {
+        "title": "स्टोर शाखाएँ",
+        "subtitle": "अपने रिटेल लोकेशन, मैनेजर और ऑपरेशनल स्थिति को मैनेज करें।",
+        "search_placeholder": "स्थान या मैनेजर खोजें...",
+        "add_new": "शाखा जोड़ें",
+        "loading": "शाखाएं लोड हो रही हैं...",
+        "no_branches": "आपकी खोज से मेल खाने वाली कोई शाखा नहीं मिली।",
+        "view_details": "विवरण देखें",
+        "edit": "बदलें",
+        "delete": "हटाएं",
+        "delete_confirm_title": "शाखा हटाएं?",
+        "delete_confirm_text": "क्या आप वाकई \"{{name}}\" को हटाना चाहते हैं?",
+        "table": {
+          "details": "शाखा का विवरण",
+          "code": "कोड",
+          "phone": "फ़ोन",
+          "status": "स्थिति",
+          "actions": "कार्रवाई"
+        },
+        "status": {
+          "active": "सक्रिय",
+          "inactive": "निष्क्रिय"
+        },
+        "pagination": {
+          "showing": "दिखाया जा रहा है",
+          "to": "से",
+          "of": "का"
+        }
+      }
+    },
+    "customers": {
+      "all": {
+        "title": "सभी ग्राहक",
+        "search_placeholder": "नाम, ईमेल, फ़ोन खोजें...",
+        "anonymous": "अनाम",
+        "no_customers": "कोई ग्राहक नहीं मिला",
+        "table": {
+          "customer": "ग्राहक",
+          "contact": "संपर्क जानकारी",
+          "location": "स्थान",
+          "wallet": "वॉलेट",
+          "status": "स्थिति",
+          "actions": "कार्रवाई"
+        },
+        "status": {
+          "active": "सक्रिय",
+          "blocked": "ब्लॉक किया गया"
+        },
+        "actions": {
+          "view_profile": "प्रोफ़ाइल देखें",
+          "send_email": "ईमेल भेजें",
+          "send_message": "संदेश भेजें",
+          "block_user": "उपयोगकर्ता को ब्लॉक करें",
+          "unblock_user": "उपयोगकर्ता को अनब्लॉक करें"
+        },
+        "alerts": {
+          "sent_success": "{{type}} भेज दिया गया!",
+      "delivered_success": "आपका {{type}} {{name}} को सफलतापूर्वक वितरित कर दिया गया है।",
+          "block_success": "उपयोगकर्ता को सफलतापूर्वक ब्लॉक कर दिया गया",
+          "unblock_success": "उपयोगकर्ता को सफलतापूर्वक अनब्लॉक कर दिया गया"
+        },
+        "errors": {
+          "fetch_failed": "ग्राहकों को लोड करने में विफल",
+          "fetch_profile": "उपयोगकर्ता प्रोफ़ाइल लाने में विफल",
+          "update_failed": "उपयोगकर्ता की स्थिति अपडेट करने में विफल"
+        },
+        "details_modal": {
+          "title": "ग्राहक प्रोफ़ाइल",
+          "member_since": "सदस्यता की तिथि: {{date}}",
+          "stats": {
+            "orders": "ऑर्डर",
+            "spent": "कुल खर्च",
+            "wallet": "वॉलेट"
+          },
+          "info_label": "खाता विवरण",
+          "email_label": "ईमेल पता",
+          "phone_label": "फ़ोन नंबर",
+          "address_label": "डिफ़ॉल्ट डिलीवरी पता",
+          "no_address": "कोई पता सहेजा नहीं गया",
+          "activity_label": "हाल की गतिविधि",
+          "no_orders": "कोई सक्रिय ऑर्डर नहीं",
+          "done_btn": "हो गया"
+        },
+        "message_modal": {
+          "title": "{{name}} को {{type}} भेजें",
+          "subject_label": "विषय (Subject)",
+          "subject_placeholder": "विषय पंक्ति दर्ज करें...",
+          "message_label": "संदेश",
+          "message_placeholder": "अपना {{type}} संदेश यहाँ टाइप करें...",
+          "cancel": "रद्द करें",
+          "send_btn": "{{type}} भेजें"
+        },
+        "pagination": {
+          "showing": "दिखाया जा रहा है",
+          "to": "से",
+          "of": "कुल"
+        }
+      }
+    },
+    "staff": {
+      "title": "स्टाफ प्रबंधन",
+      "search_placeholder": "स्टाफ खोजें...",
+      "add_staff": "स्टाफ जोड़ें",
+      "add_short": "जोड़ें",
+      "loading": "स्टाफ लोड हो रहा है...",
+      "no_staff": "कोई स्टाफ सदस्य नहीं मिला।",
+      "global": "ग्लोबल (Global)",
+      "edit_modal": {
+        "title": "कर्मचारी विवरण संपादित करें",
+        "name_label": "पूरा नाम",
+        "name_placeholder": "पूरा नाम दर्ज करें",
+        "role_label": "नौकरी की भूमिका",
+        "branch_label": "शाखा सौंपें",
+        "global_branch": "ग्लोबल / कोई शाखा नहीं",
+        "email_label": "ईमेल पता",
+        "email_placeholder": "name@sathigro.com",
+        "phone_label": "फ़ोन नंबर",
+        "phone_placeholder": "+91 00000 00000",
+        "active_switch": "खाता सक्रिय",
+        "cancel": "रद्द करें",
+        "update_btn": "कर्मचारी अपडेट करें"
+      },
+      "table": {
+        "profile": "स्टाफ प्रोफाइल",
+        "role": "भूमिका (Role)",
+        "branch": "शाखा",
+        "status": "स्थिति",
+        "actions": "कार्रवाई"
+      },
+      "status": {
+        "active": "सक्रिय",
+        "inactive": "निष्क्रिय"
+      },
+      "actions": {
+        "manage_permissions": "अनुमतियां प्रबंधित करें",
+        "edit_staff": "स्टाफ संपादित करें",
+        "remove_staff": "स्टाफ हटाएं"
+      },
+      "permissions_modal": {
+        "title": "अनुमतियां प्रबंधित करें",
+        "access_control": "एक्सेस कंट्रोल",
+        "cancel": "रद्द करें",
+        "save_changes": "परिवर्तन सहेजें"
+      },
+      "add_new": {
+        "title": "नया स्टाफ सदस्य जोड़ें",
+        "subtitle": "अपने टीम के सदस्य के लिए एक नया खाता बनाएं।",
+        "back_to_list": "सूची में वापस जाएं",
+        "personal_info": "व्यक्तिगत जानकारी",
+        "first_name": "पहला नाम",
+        "first_name_placeholder": "पहला नाम दर्ज करें",
+        "last_name": "अंतिम नाम",
+        "last_name_placeholder": "अंतिम नाम दर्ज करें",
+        "email": "ईमेल पता",
+        "email_placeholder": "name@company.com",
+        "phone": "फ़ोन नंबर",
+        "phone_placeholder": "10-अंकीय मोबाइल नंबर",
+        "account_security": "खाता सुरक्षा",
+        "password": "पासवर्ड",
+        "password_placeholder": "********",
+        "password_min_length": "न्यूनतम 8 वर्ण",
+        "confirm_password": "पासवर्ड की पुष्टि करें",
+        "role_access": "भूमिका और पहुंच (Role & Access)",
+        "assign_role": "भूमिका सौंपें",
+        "assign_branch": "शाखा सौंपें",
+        "global_no_branch": "ग्लोबल / कोई शाखा नहीं",
+        "assign_branch_help": "उस शाखा का चयन करें जिससे यह स्टाफ संबंधित है।",
+        "specific_permissions": "विशिष्ट अनुमतियां",
+        "create_account": "खाता बनाएं",
+        "validation": {
+          "first_name_req": "पहला नाम आवश्यक है।",
+          "last_name_req": "अंतिम नाम आवश्यक है।",
+          "email_invalid": "कृपया एक मान्य ईमेल पता प्रदान करें (जैसे, name@gmail.com)।",
+          "phone_invalid": "कृपया एक मान्य 10-अंकीय भारतीय फ़ोन नंबर दर्ज करें।",
+          "password_req": "पासवर्ड कम से कम 8 वर्णों का होना चाहिए।",
+          "password_mismatch": "पासवर्ड मेल नहीं खाते!"
+        }
+      },
+      "pagination": {
+        "showing": "दिखाया जा रहा है",
+        "to": "से",
+        "of": "का",
+        "staff_members": "स्टाफ सदस्य"
+      },
+      "alerts": {
+        "remove_title": "स्टाफ हटाएं?",
+        "remove_text": "क्या आप वाकई \"{{name}}\" को हटाना चाहते हैं?",
+        "removed_title": "हटा दिया गया!",
+        "removed_text": "स्टाफ सदस्य को हटा दिया गया है।",
+        "update_success": "स्टाफ का विवरण अपडेट किया गया",
+        "permissions_updated": "अनुमतियां अपडेट की गईं",
+        "create_success": "स्टाफ सदस्य सफलतापूर्वक बनाया गया!"
+      },
+      "errors": {
+        "fetch_failed": "स्टाफ सदस्यों को लोड करने में विफल",
+        "remove_failed": "स्टाफ को हटाने में विफल",
+        "update_failed": "स्टाफ को अपडेट करने में विफल",
+        "permissions_failed": "अनुमतियों को अपडेट करने में विफल",
+        "create_failed": "स्टाफ सदस्य बनाने में विफल"
+      },
+      "permission_labels": {
+        "VIEW_DASHBOARD": "डैशबोर्ड एनालिटिक्स देखें",
+        "VIEW_ORDERS": "ऑर्डर सूची देखें",
+        "MANAGE_ORDERS": "ऑर्डर स्थिति प्रबंधित/बदलें",
+        "MANAGE_REFUNDS_RETURNS": "रिफंड और रिटर्न स्वीकृत करें",
+        "VIEW_PRODUCTS": "उत्पाद कैटलॉग देखें",
+        "MANAGE_PRODUCTS": "उत्पाद जोड़ें/संपादित करें/हटाएं",
+        "MANAGE_CATEGORIES_BRANDS": "श्रेणियां और ब्रांड जोड़ें/संपादित करें",
+        "MANAGE_INVENTORY": "स्टॉक/इन्वेंट्री अपडेट करें",
+        "MANAGE_DELIVERY": "डिलीवरी पार्टनर प्रबंधित करें",
+        "VIEW_CUSTOMERS": "ग्राहक जानकारी देखें",
+        "MANAGE_CUSTOMERS": "ब्लॉक/अनब्लॉक/वॉलेट संपादित करें",
+        "MANAGE_STAFF": "स्टाफ बनाएं/संपादित करें",
+        "MANAGE_BRANCHES": "शाखा स्थान प्रबंधित करें",
+        "MANAGE_VENDORS": "विक्रेता और भुगतान प्रबंधित करें",
+        "MANAGE_POS_BILLING": "POS बिलिंग और टर्मिनल संभालें",
+        "MANAGE_SETTINGS": "ऐप ग्लोबल सेटिंग्स (टैक्स, डिलीवरी)"
+      }
+    },
+    "orders": {
+      "returns": {
+        "title": "वापसी प्रबंधन (Return Management)",
+        "logistics_control": "लॉजिस्टिक्स नियंत्रण",
+        "active_requests": "{{count}} सक्रिय अनुरोध",
+        "search_placeholder": "आईडी या ग्राहक द्वारा खोजें...",
+        "syncing": "लॉजिस्टिक्स सिंक हो रहा है...",
+        "no_returns": "इस फ़िल्टर में कोई वापसी नहीं मिली।",
+        "quiet_moment": "शांत समय",
+        "store_denied": "स्टोर ने मना किया",
+        "dispatch_picks": "{{count}} पिक को डिस्पैच करें",
+        "tabs": {
+          "pending": "पेंडिंग",
+          "accepted": "स्वीकार किया गया",
+          "scheduled": "निर्धारित",
+          "history": "इतिहास"
+        },
+        "table": {
+          "return_id": "वापसी आईडी",
+          "source_client": "स्रोत और ग्राहक",
+          "context": "संदर्भ",
+          "value": "मूल्य",
+          "condition": "स्थिति",
+          "action": "कार्रवाई"
+        },
+        "details": {
+          "title": "वापसी का विवरण",
+          "visual_evidence": "दृश्य प्रमाण",
+          "line_items": "आइटम की जानकारी",
+          "issue_claimed": "दावा की गई समस्या",
+          "system_notice": "सिस्टम सूचना: स्टोर ने अस्वीकार किया",
+          "approve": "स्वीकार करें",
+          "reject": "अस्वीकार करें",
+          "overrule_yes": "ओवररूल करें और हाँ",
+          "final_deny": "अंतिम अस्वीकृति",
+          "pending_logistics": "लॉजिस्टिक्स बैचिंग लंबित है",
+          "verification_key": "सत्यापन कुंजी (Verification Key)"
+        },
+        "batch": {
+          "title": "लॉजिस्टिक्स सौंपें",
+          "items_for_pickup": "पिकअप के लिए {{count}} आइटम",
+          "available_fleet": "उपलब्ध राइडर्स",
+          "no_riders": "आस-पास कोई सक्रिय राइडर नहीं है।",
+          "confirm_btn": "डिलीवरी असाइनमेंट की पुष्टि करें",
+          "initializing": "प्रारंभ किया जा रहा है..."
+        },
+        "alerts": {
+          "load_failed": "वापसी लोड करने में विफल",
+          "update_failed": "अपडेट विफल",
+          "record_success": "वापसी {{action}} दर्ज की गई",
+          "batch_success": "रिटर्न डिलीवरी रन शुरू किया गया!"
+        },
+        "swal": {
+          "reject_title": "वापसी अनुरोध अस्वीकार करें",
+          "reason_label": "कारण",
+          "reason_required": "कारण आवश्यक है",
+          "approve_title": "वापसी स्वीकार करें?",
+          "approve_text": "डिस्पैच कतार में ले जाया जा रहा है।",
+          "mixed_dest_title": "मिश्रित गंतव्य",
+          "mixed_dest_text": "विभिन्न स्टोर/शाखाएं चुनी गई हैं। जारी रखें?"
+        }
+      },
+      "online": {
+        "title": "ऑनलाइन ऑर्डर",
+        "subtitle": "केवल रेजरपे (Razorpay) भुगतान",
+        "order_count": "{{count}} ऑर्डर",
+        "stats": {
+          "total_online": "कुल ऑनलाइन ऑर्डर",
+          "paid_orders": "भुगतान किए गए ऑर्डर",
+          "pending_payment": "लंबित भुगतान",
+          "total_revenue": "कुल राजस्व"
+        },
+        "search_placeholder": "ऑर्डर आईडी, ग्राहक, फोन खोजें...",
+        "filters": {
+          "title": "उन्नत फिल्टर",
+          "btn": "फिल्टर",
+          "all_status": "सभी स्थिति",
+          "all_payment_status": "सभी भुगतान स्थिति",
+          "from_date": "आरंभ तिथि",
+          "to_date": "अंतिम तिथि",
+          "apply": "फिल्टर लागू करें"
+        },
+        "table": {
+          "razorpay": "रेजरपे"
+        },
+        "empty": {
+          "no_orders": "कोई ऑनलाइन ऑर्डर नहीं मिला",
+          "adjust_filters": "अपने फिल्टर को बदलने का प्रयास करें।",
+          "razorpay_msg": "ग्राहकों द्वारा ऑनलाइन भुगतान करने के बाद रेजरपे ऑर्डर यहां दिखाई देंगे।"
+        },
+        "alerts": {
+          "load_failed": "ऑनलाइन ऑर्डर लोड नहीं किए जा सके",
+          "status_updated": "स्थिति अपडेट की गई!"
+        }
+      },
+      "pos": {
+        "title": "पीओएस बिलिंग",
+        "store_id": "स्टोर आईडी",
+        "search_placeholder": "बारकोड स्कैन करें या उत्पाद खोजें...",
+        "stock": "स्टॉक",
+        "billing": {
+          "title": "वर्तमान बिल",
+          "item_count": "आइटम संख्या",
+          "empty_cart": "कार्ट खाली है"
+        },
+        "customer": {
+          "walk_in": "वॉक-इन ग्राहक",
+          "email_placeholder": "ग्राहक ईमेल (चालान के लिए)",
+          "phone_placeholder": "ग्राहक फोन (वैकल्पिक)"
+        },
+        "totals": {
+          "subtotal": "उप-योग",
+          "tax": "कर (Tax)",
+          "total": "कुल",
+          "cash_only": "केवल नकद (CASH ONLY)"
+        },
+        "buttons": {
+          "complete": "ऑर्डर पूरा करें",
+          "complete_sale": "बिक्री पूरी करें"
+        },
+        "terminal": {
+           "title": "पीओएस टर्मिनल",
+           "print": "प्रिंट",
+           "low_stock": "कम स्टॉक",
+           "cart_preview": "कार्ट पूर्वावलोकन",
+           "reset": "रीसेट",
+           "empty": "खाली",
+           "payable": "देय राशि"
+        },
+        "alerts": {
+          "cart_empty": "कार्ट खाली है",
+          "no_email_confirm": "कोई ग्राहक ईमेल नहीं दिया गया। क्या चालान बाद में भेजें?",
+          "success_title": "ऑर्डर पूरा हुआ!",
+          "success_msg": "स्टॉक घटा दिया गया है और ग्राहक को चालान भेज दिया गया है।",
+          "load_products_failed": "उत्पाद लोड करने में विफल",
+          "order_failed": "पीओएस ऑर्डर पूरा करने में विफल",
+          "out_of_stock": "उत्पाद स्टॉक में नहीं है",
+          "exceeds_stock": "उपलब्ध स्टॉक से अधिक नहीं जोड़ा जा सकता",
+          "exceeds_stock_toast": "उपलब्ध स्टॉक से अधिक है",
+          "complete_order_confirm": "ऑर्डर पूरा करें?",
+          "complete_order_text": "{{method}} के माध्यम से ₹{{amount}} भुगतान की पुष्टि करें",
+          "complete_order_btn": "हाँ, बिलिंग पूरी करें"
+        }
+      }
+    },
+    "stock": {
+      "overview": {
+        "title": "इन्वेंट्री कमांड सेंटर",
+        "live_status_all": "सभी स्थानों पर लाइव स्थिति",
+        "live_status_branch": "आपकी शाखा की लाइव स्थिति",
+        "global_all_branches": "ग्लोबल (सभी शाखाएं)",
+        "syncing": "इन्वेंट्री स्ट्रीम को सिंक्रोनाइज़ किया जा रहा है...",
+        "total_stock_units": "कुल स्टॉक यूनिट्स",
+        "inventory_worth": "इन्वेंट्री मूल्य",
+        "under_threshold": "थ्रेसहोल्ड के नीचे",
+        "zero_stock": "शून्य स्टॉक",
+        "global_assets": "वैश्विक संपत्ति",
+        "market_value": "बाजार मूल्य (MRP)",
+        "needs_fast_restock": "तेजी से रीस्टॉक की आवश्यकता",
+        "unavailable_items": "अनुपलब्ध आइटम",
+        "regional_health_heatmap": "क्षेत्रीय इन्वेंट्री स्वास्थ्य हीटमैप",
+        "total_items": "कुल आइटम",
+        "low_out_of_stock": "कम/स्टॉक खत्म",
+        "manage_branch": "शाखा प्रबंधित करें",
+        "urgent_restock_list": "तत्काल रीस्टॉक कार्रवाई सूची",
+        "view_all_alerts": "सभी अलर्ट देखें",
+        "table": {
+          "product": "उत्पाद",
+          "branch": "शाखा",
+          "current": "वर्तमान",
+          "status": "स्थिति",
+          "action": "कार्रवाई"
+        },
+        "status": {
+          "empty": "खाली",
+          "low": "कम"
+        },
+        "all_systems_clear": "सभी सिस्टम स्पष्ट हैं। कोई गंभीर स्टॉक अलर्ट नहीं!",
+        "stock_density_category": "श्रेणी के अनुसार स्टॉक घनत्व",
+        "error_sync": "इन्वेंट्री डेटा सिंक करने में विफल"
+      },
+      "adjustments": {
+        "title": "स्टॉक समायोजन इतिहास",
+        "new_adjustment": "नया समायोजन",
+        "loading": "लॉग लोड हो रहे हैं...",
+        "no_logs": "कोई स्टॉक समायोजन नहीं मिला।",
+        "pagination": {
+          "showing": "दिखाया जा रहा है",
+          "to": "से",
+          "of": "कुल",
+          "adjustments": "समायोजन"
+        },
+        "table": {
+          "id": "समायोजन आईडी",
+          "date": "तिथि",
+          "product": "उत्पाद",
+          "branch": "शाखा",
+          "type": "प्रकार",
+          "changed": "बदलाव",
+          "quantity": "मात्रा",
+          "reason": "कारण",
+          "user": "उपयोगकर्ता"
+        },
+        "types": {
+          "addition": "जोड़ना",
+          "removal": "हटाना",
+          "return": "वापसी",
+          "damage": "नुकसान",
+          "adjustment": "समायोजन"
+        },
+        "unknown_product": "अज्ञात उत्पाद",
+        "system_user": "सिस्टम"
+      },
+      "branch_stock": {
+        "title": "शाखा-वार स्टॉक निगरानी",
+        "logistics_control": "लॉजिस्टिक्स कंट्रोल",
+        "active_records": "{{count}} सक्रिय रिकॉर्ड",
+        "refresh": "ताज़ा करें",
+        "search_placeholder": "SKU, उत्पाद या शाखा द्वारा खोजें...",
+        "filters": {
+          "status_all": "स्थिति: सभी",
+          "in_stock": "स्टॉक में",
+          "critically_low": "गंभीर रूप से कम",
+          "out_of_stock": "स्टॉक खत्म",
+          "branch_global": "शाखा: ग्लोबल व्यू"
+        },
+        "table": {
+          "item": "इन्वेंट्री आइटम",
+          "deployment": "तैनाती बिंदु (Deployment point)",
+          "level": "वर्तमान स्तर",
+          "status": "परिचालन स्थिति",
+          "command": "कमांड",
+          "units": "इकाइयां",
+          "alert_at": "अलर्ट @",
+          "decrypting": "स्टॉक डेटा डिक्रिप्ट किया जा रहा है..."
+        },
+        "quiet_moment": "शांत पल",
+        "no_data": "इस फिल्टर में कोई स्टॉक डेटा नहीं मिला।",
+        "pagination": {
+          "showing": "दिखाया जा रहा है",
+          "of": "कुल",
+          "page": "पृष्ठ"
+        }
+      },
+      "requests": {
+        "title": "शाखा इन्वेंट्री अनुरोध",
+        "subtitle": "स्टोर प्रबंधकों से स्टॉक समायोजन की समीक्षा और अनुमोदन करें",
+        "search_placeholder": "उत्पाद या शाखा द्वारा खोजें...",
+        "refresh": "ताज़ा करें",
+        "loading": "अनुरोध लोड हो रहे हैं...",
+        "no_requests": "कोई लंबित स्टॉक अनुरोध नहीं मिला।",
+        "table": {
+          "product": "उत्पाद विवरण",
+          "branch": "शाखा और अनुरोधकर्ता",
+          "adjustment": "समायोजन",
+          "status": "स्थिति",
+          "actions": "कार्रवाई",
+          "sku": "SKU",
+          "by": "द्वारा",
+          "reviewed_by": "समीक्षा की गई"
+        },
+        "alerts": {
+          "approve_success": "अनुरोध सफलतापूर्वक स्वीकृत",
+          "reject_success": "अनुरोध अस्वीकार कर दिया गया",
+          "fetch_error": "इन्वेंट्री अनुरोध प्राप्त करने में विफल",
+          "approve_error": "अनुरोध प्रबंधन में त्रुटि",
+          "reject_error": "स्टॉक अपडेट अस्वीकार करने में विफल",
+          "reject_confirm": "क्या आप वाकई इस अपडेट अनुरोध को अस्वीकार करना चाहते हैं?"
+        }
+      },
+      "add_adjustment": {
+        "title": "नया स्टॉक समायोजन",
+        "subtitle": "शाखाओं में स्टॉक स्तर प्रबंधित करें",
+        "preparing": "समायोजन फॉर्म तैयार किया जा रहा है...",
+        "step1": "1. उत्पाद चुनें",
+        "search_placeholder": "नाम या SKU द्वारा उत्पाद खोजें...",
+        "selected_items": "चयनित आइटम ({{count}})",
+        "set_common_qty": "सामान्य मात्रा सेट करें:",
+        "qty_placeholder": "मात्रा",
+        "table": {
+          "product": "उत्पाद",
+          "quantity": "मात्रा",
+          "remove": "हटाएं"
+        },
+        "step2": "2. समायोजन विवरण",
+        "target_branch": "लक्ष्य शाखा",
+        "select_branch": "शाखा चुनें...",
+        "adjustment_type": "समायोजन प्रकार",
+        "types": {
+          "addition": "जोड़ना (+)",
+          "deduction": "कमी (-)",
+          "damage": "नुकसान (-)",
+          "return": "वापसी (+)",
+          "audit": "ऑडिट (सीधा सेट)"
+        },
+        "reason": "कारण",
+        "select_reason": "कारण चुनें...",
+        "reasons": {
+          "arrival": "नया स्टॉक आगमन",
+          "damaged": "क्षतिग्रस्त सामान",
+          "correction": "इन्वेंट्री सुधार",
+          "return": "वापसी",
+          "loss": "चोरी/हानि",
+          "audit": "ऑडिट",
+          "other": "अन्य"
+        },
+        "notes": "नोट्स (वैकल्पिक)",
+        "notes_placeholder": "आंतरिक संदर्भ...",
+        "submit_btn": "समायोजन उत्पाद ({{count}})",
+        "processing": "प्रक्रिया जारी है...",
+        "cancel": "रद्द करें",
+        "alerts": {
+          "validation": "कृपया उत्पाद, शाखा और कारण चुनें",
+          "qty_required": "कृपया सभी उत्पादों के लिए मात्रा प्रदान करें",
+          "success": "इन्वेंट्री सफलतापूर्वक समायोजित की गई",
+          "error": "स्टॉक समायोजित करने में विफल",
+          "load_error": "उत्पाद और शाखाएं लोड करने में विफल"
+        }
+      },
+      "low_stock": {
+        "title": "लो स्टॉक अलर्ट (Low Stock Alerts)",
+        "scanning": "इन्वेंट्री स्कैन हो रही है...",
+        "critical_shortages": "{{count}} गंभीर कमी",
+        "high_priority": "गहन प्राथमिकता वाली पुनः आपूर्ति आवश्यक",
+        "sync_data": "डेटा सिंक करें",
+        "search_placeholder": "SKU, नाम या शाखा खोजें...",
+        "severity_all": "सभी गंभीरता स्तर",
+        "severity_critical": "गंभीर (Critical)",
+        "severity_warning": "चेतावनी (Warning)",
+        "infrastructure_global": "इन्फ्रास्ट्रक्चर: ग्लोबल",
+        "vendor_managed_only": "केवल विक्रेता द्वारा प्रबंधित",
+        "external_partner": "बाहरी भागीदार",
+        "branch_store": "शाखा स्टोर",
+        "units_left": "{{count}} इकाइयाँ शेष",
+        "threshold": "सीमा (Threshold)",
+        "vendor_managed": "विक्रेता द्वारा प्रबंधित",
+        "restock": "स्टॉक भरें (Restock)",
+        "system_healthy": "सिस्टम स्वस्थ है",
+        "no_alerts": "इन्वेंट्री के सभी स्तर वर्तमान में गंभीर सीमा से ऊपर हैं।",
+        "analyzed_records": "{{range}} विश्लेषण किया गया, कुल {{total}} रिकॉर्ड",
+        "page_of": "पृष्ठ {{current}} का {{total}}",
+        "restock_success": "स्टॉक रिफिल सफलतापूर्वक दर्ज किया गया",
+        "loading_failed": "इन्वेंट्री अलर्ट लोड करने में विफल",
+        "vendor_restriction": "विक्रेता द्वारा प्रबंधित उत्पादों को यहाँ से पुनः स्टॉक नहीं किया जा सकता।",
+        "table": {
+          "item": "आइटम/SKU",
+          "deployment": "तैनाती (Deployment)",
+          "health": "स्टॉक स्वास्थ्य",
+          "severity": "गंभीरता",
+          "command": "कमांड (Command)"
+        }
+      }
+    },
+    "delivery": {
+      "partners": {
+        "title": "डिलीवरी पार्टनर्स",
+        "search_placeholder": "नाम या आईडी द्वारा खोजें...",
+        "add_new": "नया पार्टनर जोड़ें",
+        "loading": "पार्टनर्स लोड हो रहे हैं...",
+        "no_partners": "आपकी खोज से मेल खाने वाला कोई पार्टनर नहीं मिला।",
+        "delete_confirm_title": "पार्टनर हटाएं?",
+        "delete_confirm_text": "क्या आप वाकई {{name}} को हटाना चाहते हैं?",
+        "delete_success": "पार्टनर को हटा दिया गया है।",
+        "update_success": "पार्टनर की अनुमति स्थिति सफलतापूर्वक अपडेट की गई।",
+        "table": {
+          "name": "पार्टनर का नाम",
+          "type": "प्रकार",
+          "contact": "संपर्क",
+          "capacity": "क्षमता",
+          "status": "स्थिति",
+          "actions": "कार्रवाई"
+        },
+        "pagination": {
+          "showing": "दिखाया जा रहा है",
+          "to": "से",
+          "of": "का",
+          "partners": "पार्टनर्स"
+        }
+      },
+      "add_partner": {
+        "title": "डिलीवरी ड्राइवर रजिस्टर करें",
+        "cancel": "रद्द करें",
+        "credentials_info": "ड्राइवर क्रेडेंशियल और जानकारी",
+        "full_name": "पूरा कानूनी नाम",
+        "full_name_placeholder": "जैसे: राहुल कुमार",
+        "mobile": "मोबाइल नंबर (लॉगिन आईडी)",
+        "mobile_placeholder": "9876543210",
+        "email": "ईमेल पता",
+        "email_placeholder": "rahul@example.com",
+        "profile_photo": "प्रोफ़ाइल फोटो",
+        "profile_photo_help": "वैकल्पिक: पहचान के लिए एक स्पष्ट चेहरे का फोटो अपलोड करें।",
+        "logistics_profile": "लॉजिस्टिक्स प्रोफ़ाइल",
+        "vehicle_type": "वाहन का प्रकार",
+        "vehicle_types": {
+          "bike": "मोटरसाइकिल (बाइक)",
+          "ev": "इलेक्ट्रिक वाहन (EV)",
+          "cycle": "साइकिल",
+          "other": "अन्य"
+        },
+        "license_plate": "वाहन लाइसेंस प्लेट",
+        "license_plate_placeholder": "जैसे: MP09-AB-1234",
+        "create_btn": "ड्राइवर प्रोफ़ाइल बनाएं"
+      },
+      "assign_deliveries": {
+        "title": "डिलीवरी असाइन करें",
+        "subtitle": "अपने राइडर बेड़े को कुशलतापूर्वक ऑर्डर बैच और डिस्पैच करें",
+        "view_slots": "स्लॉट द्वारा समूह",
+        "view_runs": "सक्रिय रन",
+        "search_placeholder": "ऑर्डर आईडी, नाम या फोन द्वारा खोजें...",
+        "syncing": "लॉजिस्टिक्स डेटा सिंक हो रहा है...",
+        "stats": {
+          "unassigned": "अप्रकाशित (Unassigned)",
+          "immediate": "तत्काल",
+          "scheduled": "निर्धारित",
+          "active_runs": "सक्रिय रन"
+        },
+        "slot_groups": {
+          "immediate": "तत्काल / ASAP",
+          "pending_orders": "{{count}} लंबित ऑर्डर",
+          "selected_count": "बैच के लिए {{count}} चयनित",
+          "select_all": "सभी चुनें",
+          "deselect_all": "सभी को अचयनित करें",
+          "batch_assign": "बैच असाइन करें"
+        },
+        "table": {
+          "ref": "संदर्भ (Ref)",
+          "order_details": "ऑर्डर विवरण",
+          "customer_info": "ग्राहक जानकारी",
+          "delivery_node": "डिलीवरी स्थान",
+          "valuation": "मूल्यांकन",
+          "paid": "भुगतान किया",
+          "cod": "COD"
+        },
+        "empty_state": {
+          "title": "संचालन उत्कृष्टता प्राप्त हुई!",
+          "text": "आज के सभी ऑर्डर सफलतापूर्वक आपके राइडर्स को सौंप दिए गए हैं।",
+          "refresh_btn": "डैशबोर्ड ताज़ा करें"
+        },
+        "active_runs_table": {
+          "run_identity": "रन पहचान",
+          "rider": "राइडर",
+          "workflow": "कार्यप्रवाह मोड",
+          "progress": "मिशन प्रगति",
+          "action": "कार्रवाई",
+          "no_missions": "कोई सक्रिय मिशन नहीं",
+          "no_missions_text": "सक्रिय ट्रैकिंग देखने के लिए स्लॉट दृश्य से कुछ बैच असाइन करें।",
+          "rider_specialist": "{{type}} विशेषज्ञ",
+          "priority_asap": "प्राथमिकता ASAP"
+        },
+        "modal": {
+          "title": "डिस्पैच कमांड",
+          "subtitle": "मिशन तैयारी केंद्र",
+          "payload_size": "पेलोड आकार",
+          "orders_count": "ऑर्डर",
+          "target_slot": "लक्ष्य स्लॉट",
+          "priority": "प्राथमिकता",
+          "scheduled": "निर्धारित",
+          "configuration": "सामरिक विन्यास",
+          "route_optimization": "AI मार्ग अनुकूलन",
+          "beta_version": "बीटा V2.1 • तेज़ डिलीवरी",
+          "availability_title": "इकाई उपलब्धता",
+          "scanning_riders": "आस-पास के राइडर्स को स्कैन किया जा रहा है...",
+          "no_riders": "इस मिशन के लिए वर्तमान में कोई भी राइडर ऑनलाइन या खाली नहीं है।",
+          "dispatch": "डिस्पैच",
+          "syncing": "सिंक हो रहा है..."
+        },
+        "alerts": {
+          "sync_error": "लॉजिस्टिक्स डेटा सिंक करने में विफल",
+          "batch_limit": "आप केवल एक ही समय स्लॉट के ऑर्डर को बैच कर सकते हैं।",
+          "no_select": "कृपया बैच करने के लिए कम से कम एक ऑर्डर चुनें।",
+          "load_drivers_error": "उपलब्ध ड्राइवरों को लोड करने में विफल",
+          "batch_success": "सफलतापूर्वक {{count}} ऑर्डर को डिलीवरी रन में बैच किया गया!",
+          "batch_error": "डिलीवरी रन बनाने में विफल",
+          "cancel_confirm_title": "डिलीवरी रन रद्द करें?",
+          "cancel_confirm_text": "यह इस बैच के सभी लंबित ऑर्डर को अनअसाइन कर देगा और ड्राइवर को फ्री कर देगा।",
+          "cancel_btn": "हाँ, रन रद्द करें",
+          "cancel_success": "रन सफलतापूर्वक रद्द कर दिया गया",
+          "cancel_error": "रन रद्द करने में विफल"
+        }
+      },
+      "tracking": {
+        "title": "लाइव लॉजिस्टिक्स मॉनिटर",
+        "subtitle": "सक्रिय डिलीवरी पार्टनर्स की रीयल-टाइम ट्रैकिंग",
+        "initializing_map": "नक्शा प्रारंभ हो रहा है...",
+        "order": "ऑर्डर",
+        "prep": "तैयारी",
+        "detailed": "विस्तृत ट्रैक",
+        "active_fleet": "सक्रिय बेड़ा ({{count}})",
+        "online": "ऑनलाइन",
+        "no_active": "वर्तमान में कोई सक्रिय डिलीवरी प्रगति पर नहीं है।",
+        "in_transit": "रास्ते में (Transit)",
+        "pickup": "पिकअप",
+        "auto_sync": "प्रत्येक 30 सेकंड में ऑटो-सिंक"
+      },
+      "slots": {
+        "title": "डिलीवरी स्लॉट",
+        "subtitle": "ऑर्डर डिलीवरी के लिए समय विंडो प्रबंधित करें",
+        "add_btn": "नया स्लॉट जोड़ें",
+        "table": {
+          "label": "स्लॉट लेबल",
+          "window": "समय विंडो",
+          "status": "स्थिति"
+        },
+        "fetching": "स्लॉट प्राप्त किए जा रहे हैं...",
+        "active": "सक्रिय",
+        "disabled": "अक्षम",
+        "empty": "अभी तक कोई डिलीवरी स्लॉट कॉन्फ़िगर नहीं किया गया है। इसे बनाने के लिए \"नया स्लॉट जोड़ें\" पर क्लिक करें।",
+        "pagination": {
+          "showing": "दिखाया जा रहा है",
+          "to": "से",
+          "of": "का",
+          "items": "स्लॉट"
+        },
+        "modal": {
+          "edit_title": "डिलीवरी स्लॉट संपादित करें",
+          "add_title": "नया डिलीवरी स्लॉट जोड़ें",
+          "name_label": "स्लॉट का नाम / लेबल",
+          "name_placeholder": "जैसे: सुबह का स्लॉट, दोपहर, शाम",
+          "start_time": "शुरू होने का समय",
+          "end_time": "समाप्ति का समय",
+          "active_label": "सक्रिय और ग्राहकों को दिखाई देने वाला",
+          "cancel": "रद्द करें",
+          "save": "परिवर्तन सहेजें",
+          "create": "स्लॉट बनाएं"
+        },
+        "alerts": {
+          "load_error": "डिलीवरी स्लॉट लोड करने में विफल",
+          "update_success": "स्लॉट सफलतापूर्वक अपडेट किया गया",
+          "create_success": "नया स्लॉट सफलतापूर्वक जोड़ा गया",
+          "action_failed": "कार्रवाई विफल रही",
+          "delete_confirm_title": "क्या आप वाकई में चाहते हैं?",
+          "delete_confirm_text": "इस स्लॉट को स्थायी रूप से हटा दिया जाएगा।",
+          "delete_btn": "हाँ, इसे हटा दें!",
+          "delete_success": "स्लॉट हटा दिया गया है।",
+          "delete_error": "स्लॉट हटाने में विफल"
+        }
+      }
+    },
+    "notifications": {
+      "push": {
+        "title": "पुश नोटिफिकेशन्स",
+        "send_new": "नई सूचना भेजें",
+        "target_audience": "लक्षित दर्शक",
+        "audiences": {
+          "all": "सभी उपयोगकर्ता",
+          "specific": "विशिष्ट उपयोगकर्ता (आईडी द्वारा)",
+          "active_30": "पिछले 30 दिनों में सक्रिय",
+          "abandoners": "कार्ट छोड़ने वाले"
+        },
+        "notification_title": "शीर्षक",
+        "title_placeholder": "जैसे: फ्लैश सेल अब लाइव!",
+        "message_body": "संदेश सामग्री",
+        "message_placeholder": "अपना संदेश यहाँ दर्ज करें...",
+        "send_btn": "नोटिफिकेशन भेजें",
+        "quick_stats": "त्वरित आँकड़े",
+        "total_sent": "कुल भेजे गए (इस महीने)",
+        "open_rate": "ओपन रेट",
+        "failed_delivery": "विफल डिलीवरी",
+        "history": "नोटिफिकेशन इतिहास",
+        "table": {
+          "content": "सामग्री",
+          "audience": "दर्शक",
+          "sent_at": "भेजा गया समय",
+          "status": "स्थिति",
+          "actions": "कार्रवाई"
+        },
+        "resend": "पुनः भेजें"
+      }
+    },
+    "support": {
+      "tickets": {
+        "title": "टिकट इनटेक सेंटर",
+        "search_placeholder": "आईडी या उपयोगकर्ता द्वारा खोजें...",
+        "refresh": "रिफ्रेश",
+        "loading": "टिकट लोड हो रहे हैं...",
+        "table": {
+          "ticket_id": "टिकट आईडी",
+          "order_id": "ऑर्डर आईडी",
+          "user": "उपयोगकर्ता",
+          "category": "समस्या श्रेणी",
+          "priority": "प्राथमिकता",
+          "status": "स्थिति",
+          "actions": "कार्रवाई"
+        },
+        "status": {
+          "open": "खुला (OPEN)",
+          "escalated": "बढ़ाया गया (ESCALATED)",
+          "responded": "जवाब दिया गया (RESPONDED)",
+          "resolved": "सुलझाया गया (RESOLVED)",
+          "closed": "बंद (CLOSED)",
+          "sla_breach": "SLA उल्लंघन"
+        },
+        "modal": {
+          "title": "टिकट विवरण: {{id}}",
+          "context_label": "शिकायत का संदर्भ",
+          "order_user_info": "ऑर्डर और उपयोगकर्ता",
+          "order_id": "ऑर्डर #{{id}}",
+          "amount": "कुल राशि",
+          "resolution_progress": "समाधान की प्रगति",
+          "store_recommendation_msg": "स्टोर ने इस टिकट के लिए रिफंड की सिफारिश की है",
+          "admin_notes_label": "आंतरिक एडमिन नोट्स",
+          "admin_notes_placeholder": "स्टोर या आंतरिक रिकॉर्ड के लिए नोट्स जोड़ें...",
+          "escalate_btn": "स्टोर को भेजें (Escalate)",
+          "resolution_action": "समाधान कार्रवाई",
+          "process_refund": "वॉलेट रिफंड प्रोसेस करें",
+          "refund_close_btn": "रिफंड दें और बंद करें",
+          "close_btn": "टिकट बंद करें",
+          "keep_pending": "लंबित रखें",
+          "alerts": {
+            "close_success": "टिकट सफलतापूर्वक बंद कर दिया गया",
+            "refund_success": "टिकट बंद और रिफंड प्रोसेस किया गया",
+            "action_failed": "कार्रवाई विफल रही"
+          }
+        }
+      },
+      "faqs": {
+        "title": "सहायता केंद्र / अक्सर पूछे जाने वाले प्रश्न",
+        "subtitle": "सामान्य प्रश्न और प्लेटफ़ॉर्म कार्यप्रणाली।",
+        "search_placeholder": "प्रश्न खोजें...",
+        "add_new": "नया प्रश्न जोड़ें",
+        "delete_confirm_title": "प्रश्न हटाएं",
+        "delete_confirm_text": "क्या आप वाकई इस प्रश्न को हटाना चाहते हैं? इसे सहायता केंद्र से हटा दिया जाएगा।",
+        "no_matching": "कोई मिलान नहीं मिला।",
+        "try_different": "एक अलग खोज शब्द या श्रेणी आज़माएं।",
+        "edit": "संपादित करें",
+        "delete": "हटाएं",
+        "modal": {
+          "title_add": "नया प्रश्न जोड़ें",
+          "title_edit": "प्रश्न संपादित करें",
+          "question_label": "प्रश्न",
+          "question_placeholder": "प्रश्न दर्ज करें",
+          "answer_label": "उत्तर",
+          "answer_placeholder": "उत्तर दर्ज करें",
+          "category_label": "श्रेणी",
+          "status_label": "स्थिति",
+          "save_btn": "प्रश्न सहेजें",
+          "update_btn": "प्रश्न अपडेट करें",
+          "cancel": "रद्द करें",
+          "categories": {
+            "general": "सामान्य (General)",
+            "orders": "ऑर्डर (Orders)",
+            "shipping": "शिपिंग (Shipping)",
+            "account": "खाता (Account)",
+            "payment": "भुगतान (Payment)"
+          },
+          "statuses": {
+            "published": "प्रकाशित (Published)",
+            "draft": "ड्राफ्ट (Draft)"
+          }
+        }
+      }
+    }
+  }
+}

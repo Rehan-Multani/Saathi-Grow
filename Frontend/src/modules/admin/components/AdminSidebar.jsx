@@ -1,10 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { adminSidebarMenu } from '../data/sidebarMenu';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const AdminSidebar = ({ showMobile, onClose }) => {
+    const { t } = useTranslation();
     const { adminUser, adminLogout } = useAdminAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -31,15 +33,15 @@ const AdminSidebar = ({ showMobile, onClose }) => {
         // Auto-expand menu if active link is inside
         adminSidebarMenu.forEach(item => {
             if (item.submenu?.some(sub => location.pathname === sub.path)) {
-                setOpenSubmenus(prev => ({ ...prev, [item.title]: true }));
+                setOpenSubmenus(prev => ({ ...prev, [item.key || item.title]: true }));
             }
         });
     }, [location.pathname]);
 
-    const toggleSubmenu = (title) => {
+    const toggleSubmenu = (key) => {
         setOpenSubmenus((prev) => ({
             ...prev,
-            [title]: !prev[title],
+            [key]: !prev[key],
         }));
     };
 
@@ -71,8 +73,9 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                             // Enact role-based filtration check securely against this sidebar option mapping
                             if (!hasAccess(item.permission)) return null;
 
+                            const itemKey = item.key || item.title;
                             const hasChildActive = item.submenu?.some(sub => location.pathname === sub.path);
-                            const isMenuOpen = openSubmenus[item.title];
+                            const isMenuOpen = openSubmenus[itemKey];
 
                             return (
                                 <div key={index}>
@@ -81,10 +84,10 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                                             <div
                                                 className={`flex items-center px-4 py-3 mx-3 rounded-lg cursor-pointer transition-colors duration-200 
                                                 ${hasChildActive ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
-                                                onClick={() => toggleSubmenu(item.title)}
+                                                onClick={() => toggleSubmenu(itemKey)}
                                             >
                                                 {renderIcon(item.icon)}
-                                                <span className="flex-grow text-left">{item.title}</span>
+                                                <span className="flex-grow text-left">{t(`common.${item.key}`) || item.title}</span>
                                                 <Icons.ChevronDown
                                                     size={14}
                                                     className={`transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`}
@@ -104,7 +107,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                                                             }
                                                             onClick={() => showMobile && onClose()}
                                                         >
-                                                            {subItem.title}
+                                                            {t(`sidebar.${subItem.key}`) || subItem.title}
                                                         </NavLink>
                                                     ))}
                                                 </div>
@@ -120,7 +123,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                                             onClick={() => showMobile && onClose()}
                                         >
                                             {renderIcon(item.icon)}
-                                            <span className="flex-grow text-left">{item.title}</span>
+                                            <span className="flex-grow text-left">{t(`common.${item.key}`) || item.title}</span>
                                         </NavLink>
                                     )}
                                 </div>
@@ -135,7 +138,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                         className="flex items-center w-full px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                     >
                         <Icons.LogOut size={18} className="mr-3" />
-                        <span>Logout</span>
+                        <span>{t('common.logout')}</span>
                     </button>
                 </div>
             </aside>

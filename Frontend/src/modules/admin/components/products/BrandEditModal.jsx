@@ -1,11 +1,11 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { Modal, Button, Form, Row, Col, Image } from 'react-bootstrap';
 import { Save, Camera, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { getCategories } from '../../api/categoryApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
 const BrandEditModal = ({ show, onHide, brand, onSave }) => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [categories, setCategories] = useState([]);
     const [formData, setFormData] = useState({
@@ -105,7 +105,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
     return (
         <Modal show={show} onHide={onHide} centered size="lg" className="brand-edit-modal">
             <Modal.Header closeButton className="border-0 pb-0">
-                <Modal.Title className="fw-bold">Edit Brand Details</Modal.Title>
+                <Modal.Title className="fw-bold">{t('brands.edit_modal.title')}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="pt-4 px-4 pb-4">
                 <Form onSubmit={handleSubmit}>
@@ -119,7 +119,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                     {logoPreview ? (
                                         <Image src={logoPreview} className="w-100 h-100 object-fit-contain" />
                                     ) : (
-                                        <div className="text-muted small">No Logo</div>
+                                        <div className="text-muted small">{t('brands.edit_modal.no_logo')}</div>
                                     )}
                                 </div>
                                 <Button
@@ -138,13 +138,13 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                     onChange={handleLogoChange}
                                 />
                             </div>
-                            <p className="text-muted small mt-2">Update Brand Logo</p>
+                            <p className="text-muted small mt-2">{t('brands.edit_modal.update_logo')}</p>
                         </Col>
 
                         <Col md={8}>
                             <Row>
                                 <Col md={6} className="mb-3">
-                                    <Form.Label className="small fw-medium text-muted">Brand Name</Form.Label>
+                                    <Form.Label className="small fw-medium text-muted">{t('brands.edit_modal.name_label')}</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="name"
@@ -155,7 +155,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                     />
                                 </Col>
                                 <Col md={6} className="mb-3">
-                                    <Form.Label className="small fw-medium text-muted">Category</Form.Label>
+                                    <Form.Label className="small fw-medium text-muted">{t('brands.edit_modal.category_label')}</Form.Label>
                                     <Form.Select
                                         name="category"
                                         value={formData.category}
@@ -163,7 +163,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                         className="bg-light border-0 py-2"
                                         required
                                     >
-                                        <option value="">Select Category</option>
+                                        <option value="">{t('brands.edit_modal.select_category')}</option>
                                         {categories.map((cat) => (
                                             <option key={cat._id} value={cat.name}>
                                                 {cat.name}
@@ -174,7 +174,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                             </Row>
 
                             <div className="mb-3">
-                                <Form.Label className="small fw-medium text-muted">Website</Form.Label>
+                                <Form.Label className="small fw-medium text-muted">{t('brands.edit_modal.website_label')}</Form.Label>
                                 <Form.Control
                                     type="url"
                                     name="website"
@@ -185,7 +185,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                             </div>
 
                             <div className="mb-3">
-                                <Form.Label className="small fw-medium text-muted">Description</Form.Label>
+                                <Form.Label className="small fw-medium text-muted">{t('brands.edit_modal.description_label')}</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={3}
@@ -197,15 +197,15 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                             </div>
 
                             <div className="mb-3">
-                                <Form.Label className="small fw-medium text-muted">Status</Form.Label>
+                                <Form.Label className="small fw-medium text-muted">{t('brands.edit_modal.status_label')}</Form.Label>
                                 <Form.Select
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
                                     className="bg-light border-0 py-2 shadow-none"
                                 >
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
+                                    <option value="Active">{t('products.status.active')}</option>
+                                    <option value="Inactive">{t('vendors.status.inactive')}</option>
                                 </Form.Select>
                             </div>
                         </Col>
@@ -213,10 +213,10 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium">
-                            Cancel
+                            {t('brands.edit_modal.cancel')}
                         </Button>
                         <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm">
-                            <Save size={18} /> Save Changes
+                            <Save size={18} /> {t('brands.edit_modal.save_changes')}
                         </Button>
                     </div>
                 </Form>

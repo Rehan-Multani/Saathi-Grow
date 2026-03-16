@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import CustomerDetailsModal from '../../components/customers/CustomerDetailsModal';
 import SendMessageModal from '../../components/customers/SendMessageModal';
@@ -9,6 +10,7 @@ import * as customerApi from '../../api/customerManagementApi';
 import { toast } from 'react-toastify';
 
 const AllCustomers = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ const AllCustomers = () => {
                 setCustomers(Array.isArray(customerList) ? customerList : []);
                 setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
             } catch (error) {
-                toast.error(error.message);
+                toast.error(error.message || t('customers.all.errors.fetch_failed', { defaultValue: 'Failed to load customers' }));
             } finally {
                 setLoading(false);
             }
@@ -42,7 +44,7 @@ const AllCustomers = () => {
         if (adminUser?.token) {
             fetchCustomers();
         }
-    }, [adminUser.token, page, searchTerm]);
+    }, [adminUser.token, page, searchTerm, t]);
 
     const totalFiltered = pagination.total || 0;
     const totalPages = pagination.totalPages || 1;
@@ -60,7 +62,7 @@ const AllCustomers = () => {
             setSelectedCustomer(fullProfile);
             setShowDetailsModal(true);
         } catch (error) {
-            toast.error('Failed to fetch user profile');
+            toast.error(t('customers.all.errors.fetch_profile'));
         }
     };
 
@@ -76,15 +78,15 @@ const AllCustomers = () => {
             formData.append('isActive', !customer.isActive);
             await customerApi.updateCustomer(adminUser.token, customer._id, formData);
             setCustomers(prev => prev.map(c => c._id === customer._id ? { ...c, isActive: !c.isActive } : c));
-            toast.success(`User ${customer.isActive ? 'blocked' : 'unblocked'} successfully`);
+            toast.success(customer.isActive ? t('customers.all.alerts.block_success') : t('customers.all.alerts.unblock_success'));
         } catch (error) {
-            toast.error(error.message);
+            toast.error(error.message || t('customers.all.errors.update_failed', { defaultValue: 'Failed to update user status' }));
         }
     };
 
     const onMessageSent = async () => {
         setShowMessageModal(false);
-        await showSuccessAlert(`${messageType} Sent!`, `Your ${messageType.toLowerCase()} has been delivered successfully to ${selectedCustomer?.name}.`);
+        await showSuccessAlert(t('customers.all.alerts.sent_success', { type: messageType }), t('customers.all.alerts.delivered_success', { type: messageType.toLowerCase(), name: selectedCustomer?.name }));
     };
 
     if (loading) {
@@ -100,14 +102,14 @@ const AllCustomers = () => {
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                     <div className="d-flex align-items-center gap-3 text-nowrap">
-                        <h5 className="mb-0 fw-bold">All Customers</h5>
+                        <h5 className="mb-0 fw-bold">{t('customers.all.title')}</h5>
                         <Badge bg="primary" pill>{totalFiltered}</Badge>
                     </div>
                     <div className="d-flex gap-2 flex-grow-1 justify-content-md-end">
                         <InputGroup style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
                             <Form.Control
-                                placeholder="Search Name, Email, Phone..."
+                                placeholder={t('customers.all.search_placeholder')}
                                 className="border-start-0 ps-0 shadow-none"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -122,12 +124,12 @@ const AllCustomers = () => {
                     <Table hover responsive className="mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Customer</th>
-                                <th className="border-0 py-3">Contact Info</th>
-                                <th className="border-0 py-3">Location</th>
-                                <th className="border-0 py-3 text-center">Wallet</th>
-                                <th className="border-0 py-3 text-center">Status</th>
-                                <th className="border-0 py-3 text-center">Actions</th>
+                                <th className="ps-4 border-0 py-3">{t('customers.all.table.customer')}</th>
+                                <th className="border-0 py-3">{t('customers.all.table.contact')}</th>
+                                <th className="border-0 py-3">{t('customers.all.table.location')}</th>
+                                <th className="border-0 py-3 text-center">{t('customers.all.table.wallet')}</th>
+                                <th className="border-0 py-3 text-center">{t('customers.all.table.status')}</th>
+                                <th className="border-0 py-3 text-center">{t('customers.all.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -143,7 +145,7 @@ const AllCustomers = () => {
                                                 </div>
                                             )}
                                             <div>
-                                                <div className="fw-bold text-dark">{c.name || 'Anonymous'}</div>
+                                                <div className="fw-bold text-dark">{c.name || t('customers.all.anonymous')}</div>
                                                 <div className="small text-muted text-[10px]">{c._id}</div>
                                             </div>
                                         </div>
@@ -170,7 +172,7 @@ const AllCustomers = () => {
                                     </td>
                                     <td className="text-center">
                                         <Badge bg={c.isActive ? 'success' : 'danger'} className="rounded-pill fw-normal px-3">
-                                            {c.isActive ? 'Active' : 'Blocked'}
+                                            {c.isActive ? t('customers.all.status.active') : t('customers.all.status.blocked')}
                                         </Badge>
                                     </td>
                                     <td className="text-center">
@@ -199,22 +201,22 @@ const AllCustomers = () => {
                                             >
                                                 <Dropdown.Item onClick={() => handleViewProfile(c)} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
                                                     <Eye size={16} className="text-primary" />
-                                                    <span className="fw-medium">View Profile</span>
+                                                    <span className="fw-medium">{t('customers.all.actions.view_profile')}</span>
                                                 </Dropdown.Item>
                                                 <Dropdown.Item onClick={() => handleSendMessage(c, 'Email')} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
                                                     <Mail size={16} className="text-info" />
-                                                    <span className="fw-medium">Send Email</span>
+                                                    <span className="fw-medium">{t('customers.all.actions.send_email')}</span>
                                                 </Dropdown.Item>
                                                 <Dropdown.Item onClick={() => handleSendMessage(c, 'Message')} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
                                                     <Send size={16} className="text-primary" />
-                                                    <span className="fw-medium">Send Message</span>
+                                                    <span className="fw-medium">{t('customers.all.actions.send_message')}</span>
                                                 </Dropdown.Item>
                                                 <Dropdown.Divider className="my-1 opacity-50" />
                                                 <Dropdown.Item onClick={() => handleStatusToggle(c)} className={`rounded-lg py-2 d-flex align-items-center gap-2 small ${c.isActive ? 'text-danger' : 'text-success'}`}>
                                                     {c.isActive ? (
-                                                        <><Ban size={16} /> <span className="fw-medium">Block User</span></>
+                                                        <><Ban size={16} /> <span className="fw-medium">{t('customers.all.actions.block_user')}</span></>
                                                     ) : (
-                                                        <><CheckCircle size={16} /> <span className="fw-medium">Unblock User</span></>
+                                                        <><CheckCircle size={16} /> <span className="fw-medium">{t('customers.all.actions.unblock_user')}</span></>
                                                     )}
                                                 </Dropdown.Item>
                                             </Dropdown.Menu>
@@ -223,7 +225,7 @@ const AllCustomers = () => {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-4 text-muted">No customers found</td>
+                                    <td colSpan="6" className="text-center py-4 text-muted">{t('customers.all.no_customers')}</td>
                                 </tr>
                             )}
                         </tbody>
@@ -234,7 +236,7 @@ const AllCustomers = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> customers
+                            {t('customers.all.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('customers.all.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('customers.all.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('customers.all.title')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button
