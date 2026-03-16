@@ -42,7 +42,15 @@
     "all_rights_reserved": "All rights reserved.",
     "main": "Main",
     "current_branch": "Current Branch",
-    "delete": "Delete"
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": "Add",
+    "error": "Error",
+    "success": "Success",
+    "update": "Update",
+    "loading": "Loading...",
+    "actions": "Actions"
   },
   "sidebar": {
     "all_orders": "All Orders",
@@ -264,6 +272,7 @@
     },
     "products": {
       "title": "Product Inventory",
+      "add_title": "Add New Product",
       "count": "{{count}} products",
       "loading_failed": "Failed to load products",
       "search_placeholder": "Search name, SKU, vendor...",
@@ -300,10 +309,56 @@
         "vendor": "Vendor",
         "branch": "Branch"
       },
+      "sections": {
+        "general": "General Information",
+        "pricing": "Pricing & Units",
+        "inventory": "Inventory",
+        "branch_availability": "Branch Availability & Stock",
+        "vendor_inventory": "Vendor Inventory",
+        "organization": "Organization",
+        "image": "Product Image",
+        "gallery": "Gallery Images (Up to 10)"
+      },
+      "form": {
+        "name": "Product Name",
+        "description": "Description",
+        "tags": "Tags",
+        "base_price": "Base Price (₹)",
+        "mrp": "MRP (₹)",
+        "unit_type": "Unit Type",
+        "food_type": "Food Type",
+        "physical_location": "Physical Location (Storage)",
+        "unit_amount": "Unit Amount",
+        "available_in": "Available In:",
+        "initial_stock": "Initial Stock",
+        "initial_stock_node": "Initial Stock Concentration",
+        "low_stock_warning": "Low Stock Warning",
+        "category": "Category",
+        "brand": "Brand Name",
+        "assign_vendor": "Assign Vendor (Optional)",
+        "vendor_help": "Assigning a vendor links this product to their inventory.",
+        "saathi_priority": "Saathi Grow Priority Product",
+        "saathi_priority_desc": "Prioritize this product in user listings",
+        "sku": "SKU (Auto-Generated)",
+        "qr_preview": "SKU QR Preview",
+        "gallery_help": "Upload multiple images to showcase different angles of your product.",
+        "placeholder": {
+          "name": "e.g. Wireless Headphones",
+          "description": "Enter product description...",
+          "tag_input": "Type tag and press Enter...",
+          "price": "0.00",
+          "location": "e.g. Aisle 4, Shelf B",
+          "unit": "1",
+          "category": "Select Category...",
+          "brand": "Select Brand...",
+          "brand_no_cat": "Select a category first",
+          "stock": "0",
+          "low_stock": "10"
+        }
+      },
       "loading": "Loading products...",
       "no_products": "No products found",
       "no_products_msg": "Try adjusting your search or filters.",
-      "managed_by_vendor": "Managed by Vendor",
       "qr": {
         "title": "Product QR Code",
         "download": "DOWNLOAD QR"
@@ -393,7 +448,11 @@
           "description_gen": "Description generated!",
           "tags_gen": "Tags generated!",
           "status_updated": "Product updated successfully",
-          "status_failed": "Failed to update product"
+          "status_failed": "Failed to update product",
+          "fill_required": "Please fill all required fields",
+          "select_branch": "Please select at least one branch",
+          "create_success": "Product created successfully!",
+          "create_failed": "Failed to create product"
         }
       }
     },
@@ -1286,66 +1345,6 @@
         }
       }
     },
-    "products": {
-      "title": "Universal Product Hub",
-      "count": "{{count}} SKU Total",
-      "search_placeholder": "Search SKU, Name, or Bark...",
-      "filter_btn": "Advanced Filters",
-      "filter_options": "Inventory Architecture",
-      "all_categories": "View All Categories",
-      "all_brands": "Explore All Brands",
-      "clear_filters": "Wipe Filter Settings",
-      "add_product": "Forge New SKU",
-      "all_products": "Full Catalog",
-      "branch_products": "In-House Matrix",
-      "vendor_products": "Partner Node Stocks",
-      "managed_by_vendor": "Sync'd with Vendor Store",
-      "loading": "Retrieving inventory matrices...",
-      "loading_failed": "Cloud sync failed for product data",
-      "no_products": "Product Matrix Empty",
-      "no_products_msg": "Try recalibrating your search parameters or source filters.",
-      "table": {
-        "product": "Unit Identity",
-        "brand": "Label",
-        "category": "Classification",
-        "source": "Origin",
-        "branches_store": "Active Nodes / Store",
-        "assigned_branch": "Operational Node",
-        "price": "Asset Value",
-        "total_stock": "Full Payload",
-        "branch_stock": "Node Payload",
-        "status": "State",
-        "actions": "Ops"
-      },
-      "status": {
-        "active": "Operational",
-        "low_stock": "Critical Stock",
-        "out_of_stock": "Depleted",
-        "draft": "Blueprint",
-        "pending_approval": "Review Queue"
-      },
-      "source": {
-        "vendor": "Partner",
-        "branch": "Core"
-      },
-      "dietary": {
-        "veg": "VEG Unit",
-        "non_veg": "Animal Protein"
-      },
-      "pagination": {
-        "showing": "Projecting",
-        "of": "from universe of",
-        "previous": "Rewind",
-        "next": "Forward"
-      },
-      "qr": {
-        "title": "Quantum Identifier",
-        "download": "Export Identity"
-      },
-      "edit_modal": {
-        "priority_label": "High Volume Unit"
-      }
-    },
     "notifications": {
       "push": {
         "title": "Push Notifications",
@@ -1451,11 +1450,111 @@
             "orders": "Orders",
             "shipping": "Shipping",
             "account": "Account",
-            "payment": "Payment"
+            "statuses": {
+              "published": "Published",
+              "draft": "Draft"
+            }
+          }
+        },
+        "stock": {
+          "overview": {
+            "title": "Inventory Control Center",
+            "live_status_all": "Unified Global Inventory Status",
+            "live_status_branch": "Real-time Branch Health",
+            "global_all_branches": "All Global Nodes",
+            "total_stock_units": "Total Stock Units",
+            "global_assets": "Global Physical Assets",
+            "inventory_worth": "Current Inventory Value",
+            "market_value": "Total Market Valuation",
+            "under_threshold": "Below Warning Threshold",
+            "needs_fast_restock": "High priority restock required",
+            "zero_stock": "Zero Availability Items",
+            "unavailable_items": "Stock currently depleted",
+            "regional_health_heatmap": "Regional Node Health Matrix",
+            "total_items": "Total Items",
+            "low_out_of_stock": "Low / Depleted",
+            "manage_branch": "Manage Node",
+            "urgent_restock_list": "Priority Replenishment Queue",
+            "view_all_alerts": "Expand Alerts",
+            "table": {
+              "product": "Product ID",
+              "branch": "Source Branch",
+              "current": "Level",
+              "status": "Health",
+              "action": "Cmd"
+            },
+            "status": {
+              "empty": "DEPLETED",
+              "low": "CRITICAL"
+            },
+            "all_systems_clear": "All inventory levels optimized",
+            "stock_density_category": "Inventory Density by Classification",
+            "syncing": "Synchronizing Global Logic...",
+            "error_sync": "Failed to sync inventory state"
           },
-          "statuses": {
-            "published": "Published",
-            "draft": "Draft"
+          "low_stock": {
+            "scanning": "Scanning Grid...",
+            "critical_shortages": "{{count}} Critical Shortages Detected",
+            "high_priority": "High Priority Intervention Required",
+            "sync_data": "Re-sync Grid",
+            "search_placeholder": "Filter by item or SKU...",
+            "severity_all": "Any Level",
+            "severity_critical": "Level: Critical",
+            "severity_warning": "Level: Warning",
+            "infrastructure_global": "Unified Infrastructure",
+            "vendor_managed_only": "Third Party Assets Only",
+            "table": {
+              "item": "Product / SKU",
+              "deployment": "Asset Location",
+              "health": "Inventory Health",
+              "severity": "Threat Level",
+              "command": "Action"
+            },
+            "external_partner": "Partner Managed",
+            "branch_store": "Core Node",
+            "units_left": "{{count}} Units Remained",
+            "threshold": "Limit",
+            "vendor_managed": "Partner Control Only",
+            "restock": "Initialize Restock",
+            "system_healthy": "Infrastructure Optimal",
+            "no_alerts": "No inventory threats detected at this time",
+            "analyzed_records": "Analyzed records {{range}} of {{total}}",
+            "page_of": "Logic Page {{current}} / {{total}}",
+            "restock_success": "Restock sequence initialized successfully",
+            "loading_failed": "Failed to load inventory alerts",
+            "vendor_restriction": "Cannot reorder third-party managed assets directly"
+          },
+          "branch_stock": {
+            "title": "Branch Inventory Matrix",
+            "logistics_control": "Strategic Logistics Control",
+            "active_records": "{{count}} active inventory records",
+            "refresh": "Sync Matrix",
+            "search_placeholder": "Query SKU or label...",
+            "filters": {
+              "status_all": "All Statuses",
+              "in_stock": "Stable",
+              "critically_low": "Low",
+              "out_of_stock": "Depleted",
+              "branch_global": "Global View"
+            },
+            "table": {
+              "item": "Class / SKU",
+              "deployment": "Operational Node",
+              "level": "Inventory Level",
+              "status": "State",
+              "command": "Cmd",
+              "decrypting": "Decrypting...",
+              "units": "u",
+              "alert_at": "Warning @ "
+            },
+            "quiet_moment": "Operational Silence",
+            "no_data": "No inventory data found for current filters",
+            "pagination": {
+              "showing": "Displaying",
+              "of": "from",
+              "page": "Sector"
+            },
+            "error_load": "Failed to fetch node inventory"
           }
         }
       }

@@ -42,7 +42,15 @@
     "all_rights_reserved": "सर्वाधिकार सुरक्षित।",
     "main": "मुख्य",
     "current_branch": "वर्तमान शाखा",
-    "delete": "हटाएं"
+    "delete": "हटाएं",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "add": "जोड़ें",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "update": "अपडेट करें",
+    "loading": "लोड हो रहा है...",
+    "actions": "कार्रवाई"
   },
   "sidebar": {
     "all_orders": "सभी ऑर्डर",
@@ -260,7 +268,8 @@
       "thank_you": "हमारे साथ व्यापार करने के लिए धन्यवाद!"
     },
     "products": {
-      "title": "उत्पाद सूची (इन्वेंट्री)",
+      "title": "उत्पाद सूची",
+      "add_title": "नया उत्पाद जोड़ें",
       "count": "{{count}} उत्पाद",
       "loading_failed": "उत्पाद लोड करने में विफल",
       "search_placeholder": "नाम, SKU, विक्रेता द्वारा खोजें...",
@@ -297,6 +306,53 @@
         "vendor": "विक्रेता",
         "branch": "शाखा"
       },
+      "sections": {
+        "general": "सामान्य जानकारी",
+        "pricing": "मूल्य निर्धारण और इकाइयाँ",
+        "inventory": "इन्वेंट्री",
+        "branch_availability": "शाखा उपलब्धता और स्टॉक",
+        "vendor_inventory": "विक्रेता इन्वेंट्री",
+        "organization": "संगठन",
+        "image": "उत्पाद छवि",
+        "gallery": "गैलरी छवियां (अधिकतम 10)"
+      },
+      "form": {
+        "name": "उत्पाद का नाम",
+        "description": "विवरण",
+        "tags": "टैग",
+        "base_price": "आधार मूल्य (₹)",
+        "mrp": "MRP (₹)",
+        "unit_type": "इकाई प्रकार",
+        "food_type": "भोजन का प्रकार",
+        "physical_location": "भौतिक स्थान (भंडारण)",
+        "unit_amount": "इकाई राशि",
+        "available_in": "उपलब्ध है:",
+        "initial_stock": "प्रारंभिक स्टॉक",
+        "initial_stock_node": "प्रारंभिक स्टॉक एकाग्रता",
+        "low_stock_warning": "कम स्टॉक की चेतावनी",
+        "category": "श्रेणी",
+        "brand": "ब्रांड का नाम",
+        "assign_vendor": "विक्रेता नियुक्त करें (वैकल्पिक)",
+        "vendor_help": "विक्रेता नियुक्त करने से यह उत्पाद उनकी इन्वेंट्री से जुड़ जाता है।",
+        "saathi_priority": "साथी ग्रो प्राथमिकता उत्पाद",
+        "saathi_priority_desc": "उपयोगकर्ता सूचियों में इस उत्पाद को प्राथमिकता दें",
+        "sku": "SKU (ऑटो-जेनरेटेड)",
+        "qr_preview": "SKU QR पूर्वावलोकन",
+        "gallery_help": "अपने उत्पाद के विभिन्न कोण दिखाने के लिए एकाधिक चित्र अपलोड करें।",
+        "placeholder": {
+          "name": "जैसे: वायरलेस हेडफ़ोन",
+          "description": "उत्पाद विवरण दर्ज करें...",
+          "tag_input": "टैग टाइप करें और एंटर दबाएं...",
+          "price": "0.00",
+          "location": "जैसे: आइल 4, शेल्फ बी",
+          "unit": "1",
+          "category": "श्रेणी चुनें...",
+          "brand": "ब्रांड चुनें...",
+          "brand_no_cat": "पहले एक श्रेणी चुनें",
+          "stock": "0",
+          "low_stock": "10"
+        }
+      },
       "loading": "उत्पाद लोड हो रहे हैं...",
       "no_products": "कोई उत्पाद नहीं मिला",
       "no_products_msg": "अपनी खोज या फ़िल्टर को बदलने का प्रयास करें।",
@@ -307,7 +363,7 @@
       },
       "dietary": {
         "veg": "शाकाहारी",
-    "non_veg": "मांसाहारी"
+        "non_veg": "मांसाहारी"
       },
       "pagination": {
         "showing": "दिखाया जा रहा है",
@@ -390,7 +446,11 @@
           "description_gen": "विवरण तैयार किया गया!",
           "tags_gen": "टैग तैयार किए गए!",
           "status_updated": "उत्पाद सफलतापूर्वक अपडेट किया गया",
-          "status_failed": "उत्पाद अपडेट करने में विफल"
+          "status_failed": "उत्पाद अपडेट करने में विफल",
+          "fill_required": "कृपया सभी आवश्यक फ़ील्ड भरें",
+          "select_branch": "कृपया कम से कम एक शाखा चुनें",
+          "create_success": "उत्पाद सफलतापूर्वक बनाया गया!",
+          "create_failed": "उत्पाद बनाने में विफल"
         }
       }
     },
@@ -582,7 +642,7 @@
         },
         "alerts": {
           "sent_success": "{{type}} भेज दिया गया!",
-      "delivered_success": "आपका {{type}} {{name}} को सफलतापूर्वक वितरित कर दिया गया है।",
+          "delivered_success": "आपका {{type}} {{name}} को सफलतापूर्वक वितरित कर दिया गया है।",
           "block_success": "उपयोगकर्ता को सफलतापूर्वक ब्लॉक कर दिया गया",
           "unblock_success": "उपयोगकर्ता को सफलतापूर्वक अनब्लॉक कर दिया गया"
         },
@@ -865,13 +925,13 @@
           "complete_sale": "बिक्री पूरी करें"
         },
         "terminal": {
-           "title": "पीओएस टर्मिनल",
-           "print": "प्रिंट",
-           "low_stock": "कम स्टॉक",
-           "cart_preview": "कार्ट पूर्वावलोकन",
-           "reset": "रीसेट",
-           "empty": "खाली",
-           "payable": "देय राशि"
+          "title": "पीओएस टर्मिनल",
+          "print": "प्रिंट",
+          "low_stock": "कम स्टॉक",
+          "cart_preview": "कार्ट पूर्वावलोकन",
+          "reset": "रीसेट",
+          "empty": "खाली",
+          "payable": "देय राशि"
         },
         "alerts": {
           "cart_empty": "कार्ट खाली है",
@@ -1393,6 +1453,107 @@
             "published": "प्रकाशित (Published)",
             "draft": "ड्राफ्ट (Draft)"
           }
+        }
+      },
+      "stock": {
+        "overview": {
+          "title": "इन्वेंटरी नियंत्रण केंद्र",
+          "live_status_all": "एकीकृत वैश्विक इन्वेंटरी स्थिति",
+          "live_status_branch": "रीयल-टाइम शाखा स्वास्थ्य",
+          "global_all_branches": "सभी वैश्विक नोड्स",
+          "total_stock_units": "कुल स्टॉक इकाइयाँ",
+          "global_assets": "वैश्विक भौतिक संपत्ति",
+          "inventory_worth": "वर्तमान इन्वेंटरी मूल्य",
+          "market_value": "कुल बाजार मूल्यांकन",
+          "under_threshold": "चेतावनी सीमा से नीचे",
+          "needs_fast_restock": "उच्च प्राथमिकता स्टॉक की आवश्यकता",
+          "zero_stock": "शून्य उपलब्धता वाली वस्तुएं",
+          "unavailable_items": "वर्तमान में स्टॉक समाप्त",
+          "regional_health_heatmap": "क्षेत्रीय नोड स्वास्थ्य मैट्रिक्स",
+          "total_items": "कुल वस्तुएं",
+          "low_out_of_stock": "कम / समाप्त",
+          "manage_branch": "नोड प्रबंधित करें",
+          "urgent_restock_list": "प्राथमिकता पुनर्भरण कतार",
+          "view_all_alerts": "अलर्ट विस्तार करें",
+          "table": {
+            "product": "उत्पाद आईडी",
+            "branch": "स्रोत शाखा",
+            "current": "स्तर",
+            "status": "स्वास्थ्य",
+            "action": "Cmd"
+          },
+          "status": {
+            "empty": "समाप्त (DEPLETED)",
+            "low": "गंभीर (CRITICAL)"
+          },
+          "all_systems_clear": "सभी इन्वेंटरी स्तर अनुकूलित हैं",
+          "stock_density_category": "वर्गीकरण द्वारा इन्वेंटरी घनत्व",
+          "syncing": "वैश्विक लॉजिक सिंक्रोनाइज़ हो रहा है...",
+          "error_sync": "इन्वेंटरी स्थिति सिंक करने में विफल"
+        },
+        "low_stock": {
+          "scanning": "ग्रिड स्कैनिंग...",
+          "critical_shortages": "{{count}} गंभीर कमी का पता चला",
+          "high_priority": "उच्च प्राथमिकता हस्तक्षेप आवश्यक",
+          "sync_data": "ग्रिड पुन: सिंक करें",
+          "search_placeholder": "वस्तु या SKU द्वारा फ़िल्टर करें...",
+          "severity_all": "कोई भी स्तर",
+          "severity_critical": "स्तर: गंभीर",
+          "severity_warning": "स्तर: चेतावनी",
+          "infrastructure_global": "एकीकृत बुनियादी ढांचा",
+          "vendor_managed_only": "केवल तृतीय पक्ष संपत्ति",
+          "table": {
+            "item": "उत्पाद / SKU",
+            "deployment": "संपत्ति का स्थान",
+            "health": "इन्वेंटरी स्वास्थ्य",
+            "severity": "खतरे का स्तर",
+            "command": "कार्रवाई"
+          },
+          "external_partner": "पार्टनर प्रबंधित",
+          "branch_store": "कोर नोड",
+          "units_left": "{{count}} इकाइयाँ शेष",
+          "threshold": "सीमा",
+          "vendor_managed": "केवल पार्टनर नियंत्रण",
+          "restock": "स्टॉक शुरू करें",
+          "system_healthy": "बुनियादी ढांचा अनुकूल",
+          "no_alerts": "अभी कोई इन्वेंटरी खतरा नहीं मिला",
+          "analyzed_records": "विश्लेषण किए गए रिकॉर्ड {{range}} / {{total}}",
+          "page_of": "लॉजिक पेज {{current}} / {{total}}",
+          "restock_success": "स्टॉक पुनर्भरण अनुक्रम सफलतापूर्वक शुरू हुआ",
+          "loading_failed": "इन्वेंटरी अलर्ट लोड करने में विफल",
+          "vendor_restriction": "तृतीय-पक्ष प्रबंधित संपत्ति का सीधे ऑर्डर नहीं दिया जा सकता"
+        },
+        "branch_stock": {
+          "title": "शाखा इन्वेंटरी मैट्रिक्स",
+          "logistics_control": "रणनीतिक रसद नियंत्रण",
+          "active_records": "{{count}} सक्रिय इन्वेंटरी रिकॉर्ड",
+          "refresh": "मैट्रिक्स सिंक करें",
+          "search_placeholder": "SKU या लेबल खोजें...",
+          "filters": {
+            "status_all": "सभी स्थितियाँ",
+            "in_stock": "स्थिर",
+            "critically_low": "कम",
+            "out_of_stock": "समाप्त",
+            "branch_global": "वैश्विक दृश्य"
+          },
+          "table": {
+            "item": "वर्ग / SKU",
+            "deployment": "परिचालन नोड",
+            "level": "इन्वेंटरी स्तर",
+            "status": "स्थिति",
+            "command": "Cmd",
+            "decrypting": "डिक्रिप्ट हो रहा है...",
+            "units": "इकाइयाँ",
+            "alert_at": "चेतावनी @ "
+          },
+          "quiet_moment": "परिचालन शांति",
+          "no_data": "वर्तमान फ़िल्टर के लिए कोई इन्वेंटरी डेटा नहीं मिला",
+          "pagination": {
+            "showing": "प्रदर्शित",
+            "of": "में से",
+            "page": "सेक्टर"
+          },
+          "error_load": "नोड इन्वेंटरी लाने में विफल"
         }
       }
     }

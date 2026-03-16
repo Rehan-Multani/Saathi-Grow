@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
 import { RefreshCw, Save, Upload, X, Sparkles, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,8 +11,10 @@ import { getBranches } from '../../api/branchApi';
 import { getVendors } from '../../api/vendorApi';
 import { createProduct, getAISuggestions } from '../../api/productApi';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const AddProduct = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
@@ -21,7 +23,6 @@ const AddProduct = () => {
 
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
-    const [filteredBrands, setFilteredBrands] = useState([]);
 
     const [branches, setBranches] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -77,7 +78,7 @@ const AddProduct = () => {
                 // We don't initialize branchStocks here anymore, let user select
             } catch (error) {
                 console.error('Error fetching data:', error);
-                toast.error('Failed to load initial data');
+                toast.error(t('common.error'));
             } finally {
                 setInitialLoading(false);
             }
@@ -86,7 +87,7 @@ const AddProduct = () => {
         if (adminUser?.token) {
             fetchData();
         }
-    }, [adminUser.token]);
+    }, [adminUser.token, t]);
 
     useEffect(() => {
         if (formData.vendor) {
@@ -140,7 +141,7 @@ const AddProduct = () => {
             setFilteredBrands([]);
             setFormData(prev => ({ ...prev, brandName: '' }));
         }
-    }, [formData.category, brands]);
+    }, [formData.category, brands, formData.brandName]);
 
     // SKU Generation Logic
     const generateSKU = () => {
@@ -159,7 +160,7 @@ const AddProduct = () => {
         if (formData.name && formData.category && !formData.sku) {
             setFormData(prev => ({ ...prev, sku: generateSKU() }));
         }
-    }, [formData.name, formData.category]);
+    }, [formData.name, formData.category, formData.sku]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -187,7 +188,7 @@ const AddProduct = () => {
     const handleGalleryChange = (e) => {
         const files = Array.from(e.target.files);
         if (files.length + galleryFiles.length > 10) {
-            return toast.warning('Maximum 10 gallery images allowed');
+            return toast.warning(t('products.gallery_limit_warning', { defaultValue: 'Maximum 10 gallery images allowed' }));
         }
 
         const newPreviews = files.map(file => URL.createObjectURL(file));
@@ -229,7 +230,7 @@ const AddProduct = () => {
 
     const handleAISuggestion = async (type) => {
         if (!formData.name) {
-            return toast.warning('Please enter a product name first');
+            return toast.warning(t('products.alerts.name_required'));
         }
 
         setAiLoading(prev => ({ ...prev, [type]: true }));
@@ -237,14 +238,14 @@ const AddProduct = () => {
             const data = await getAISuggestions(adminUser.token, formData.name, type);
             if (type === 'description') {
                 setFormData(prev => ({ ...prev, description: data.suggestion }));
-                toast.success('Description generated!');
+                toast.success(t('products.alerts.description_gen'));
             } else if (type === 'tags') {
                 const newTags = data.suggestion.split(',').map(t => t.trim()).filter(t => t);
                 setFormData(prev => ({
                     ...prev,
                     tags: [...new Set([...prev.tags, ...newTags])]
                 }));
-                toast.success('Tags generated!');
+                toast.success(t('products.alerts.tags_gen'));
             }
         } catch (error) {
             toast.error(error.message || `Failed to generate ${type}`);
@@ -256,11 +257,11 @@ const AddProduct = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name || !formData.category || !formData.brandName || !formData.basePrice || !formData.sku) {
-            return toast.error('Please fill all required fields');
+            return toast.error(t('products.alerts.fill_required'));
         }
 
         if (!isVendorProduct && branchStocks.length === 0) {
-            return toast.error('Please select at least one branch');
+            return toast.error(t('products.alerts.select_branch'));
         }
 
         setLoading(true);
@@ -302,10 +303,10 @@ const AddProduct = () => {
             }
 
             await createProduct(adminUser.token, data);
-            toast.success('Product created successfully!');
+            toast.success(t('products.alerts.create_success'));
             navigate('/admin/products');
         } catch (error) {
-            toast.error(error.message || 'Failed to create product');
+            toast.error(error.message || t('products.alerts.create_failed'));
         } finally {
             setLoading(false);
         }
@@ -321,19 +322,19 @@ const AddProduct = () => {
 
     return (
         <div className="p-3">
-            <h4 className="mb-4 fw-bold">Add New Product</h4>
+            <h4 className="mb-4 fw-bold">{t('products.add_title')}</h4>
 
             <Form onSubmit={handleSubmit}>
                 <Row className="g-4">
                     <Col lg={8}>
                         <Card className="border-0 shadow-sm mb-4">
                             <Card.Body>
-                                <h6 className="mb-3 fw-bold">General Information</h6>
+                                <h6 className="mb-3 fw-bold">{t('products.sections.general')}</h6>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Product Name <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label>{t('products.form.name')} <span className="text-danger">*</span></Form.Label>
                                     <Form.Control
                                         type="text"
-                                        placeholder="e.g. Wireless Headphones"
+                                        placeholder={t('products.form.placeholder.name')}
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
@@ -342,8 +343,8 @@ const AddProduct = () => {
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <Form.Label className="mb-0">Description <span className="text-danger">*</span></Form.Label>
-                                        <OverlayTrigger overlay={<Tooltip>Generate with AI</Tooltip>}>
+                                        <Form.Label className="mb-0">{t('products.form.description')} <span className="text-danger">*</span></Form.Label>
+                                        <OverlayTrigger overlay={<Tooltip>{t('products.alerts.ai_suggest_title', { defaultValue: 'Generate with AI' })}</Tooltip>}>
                                             <Button
                                                 variant="link"
                                                 className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
@@ -351,13 +352,13 @@ const AddProduct = () => {
                                                 disabled={aiLoading.description}
                                             >
                                                 {aiLoading.description ? <Spinner animation="border" size="sm" /> : <Sparkles size={16} />}
-                                                <small>AI Write</small>
+                                                <small>{t('products.edit_modal.ai_write')}</small>
                                             </Button>
                                         </OverlayTrigger>
                                     </div>
                                     <Form.Control
                                         as="textarea" rows={4}
-                                        placeholder="Enter product description..."
+                                        placeholder={t('products.form.placeholder.description')}
                                         name="description"
                                         value={formData.description}
                                         onChange={handleChange}
@@ -366,8 +367,8 @@ const AddProduct = () => {
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <Form.Label className="mb-0">Tags</Form.Label>
-                                        <OverlayTrigger overlay={<Tooltip>Suggest tags with AI</Tooltip>}>
+                                        <Form.Label className="mb-0">{t('products.form.tags')}</Form.Label>
+                                        <OverlayTrigger overlay={<Tooltip>{t('products.alerts.ai_suggest_tags', { defaultValue: 'Suggest tags with AI' })}</Tooltip>}>
                                             <Button
                                                 variant="link"
                                                 className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
@@ -375,7 +376,7 @@ const AddProduct = () => {
                                                 disabled={aiLoading.tags}
                                             >
                                                 {aiLoading.tags ? <Spinner animation="border" size="sm" /> : <Sparkles size={16} />}
-                                                <small>AI Tags</small>
+                                                <small>{t('products.edit_modal.ai_tags')}</small>
                                             </Button>
                                         </OverlayTrigger>
                                     </div>
@@ -390,23 +391,23 @@ const AddProduct = () => {
                                     <InputGroup>
                                         <Form.Control
                                             type="text"
-                                            placeholder="Type tag and press Enter..."
+                                            placeholder={t('products.form.placeholder.tag_input')}
                                             value={tagInput}
                                             onChange={(e) => setTagInput(e.target.value)}
                                             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
                                         />
-                                        <Button variant="outline-secondary" onClick={(e) => { e.preventDefault(); addTag(); }}>Add</Button>
+                                        <Button variant="outline-secondary" onClick={(e) => { e.preventDefault(); addTag(); }}>{t('common.add')}</Button>
                                     </InputGroup>
                                 </Form.Group>
 
-                                <h6 className="mb-3 fw-bold mt-4">Pricing & Units</h6>
+                                <h6 className="mb-3 fw-bold mt-4">{t('products.sections.pricing')}</h6>
                                 <Row className="align-items-end">
                                     <Col md={3}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Base Price (₹) <span className="text-danger">*</span></Form.Label>
+                                            <Form.Label>{t('products.form.base_price')} <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="number"
-                                                placeholder="0.00"
+                                                placeholder={t('products.form.placeholder.price')}
                                                 name="basePrice"
                                                 value={formData.basePrice}
                                                 onChange={handleChange}
@@ -416,10 +417,10 @@ const AddProduct = () => {
                                     </Col>
                                     <Col md={3}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>MRP (₹)</Form.Label>
+                                            <Form.Label>{t('products.form.mrp')}</Form.Label>
                                             <Form.Control
                                                 type="number"
-                                                placeholder="0.00"
+                                                placeholder={t('products.form.placeholder.price')}
                                                 name="mrp"
                                                 value={formData.mrp}
                                                 onChange={handleChange}
@@ -428,7 +429,7 @@ const AddProduct = () => {
                                     </Col>
                                     <Col md={3}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Unit Type</Form.Label>
+                                            <Form.Label>{t('products.form.unit_type')}</Form.Label>
                                             <Form.Select name="unitType" value={formData.unitType} onChange={handleChange}>
                                                 <option value="pcs">Pcs</option>
                                                 <option value="kg">Kg</option>
@@ -446,7 +447,7 @@ const AddProduct = () => {
                                     <Col md={3}>
                                         <Form.Group className="mb-3">
                                             <div className="d-flex justify-content-between align-items-center mb-1">
-                                                <Form.Label className="mb-0">Food Type</Form.Label>
+                                                <Form.Label className="mb-0">{t('products.form.food_type')}</Form.Label>
                                             </div>
                                             <div className="d-flex gap-2">
                                                 <Button
@@ -455,7 +456,7 @@ const AddProduct = () => {
                                                     className="flex-fill py-2 fw-bold text-[10px]"
                                                     onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
                                                 >
-                                                    VEG
+                                                    {t('products.dietary.veg')}
                                                 </Button>
                                                 <Button
                                                     variant={!formData.isVeg ? "danger" : "outline-danger"}
@@ -463,7 +464,7 @@ const AddProduct = () => {
                                                     className="flex-fill py-2 fw-bold text-[10px]"
                                                     onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
                                                 >
-                                                    NON-VEG
+                                                    {t('products.dietary.non_veg')}
                                                 </Button>
                                             </div>
                                         </Form.Group>
@@ -473,10 +474,10 @@ const AddProduct = () => {
                                 <Row>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Physical Location (Storage)</Form.Label>
+                                            <Form.Label>{t('products.form.physical_location')}</Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder="e.g. Aisle 4, Shelf B"
+                                                placeholder={t('products.form.placeholder.location')}
                                                 name="physicalLocation"
                                                 value={formData.physicalLocation}
                                                 onChange={handleChange}
@@ -485,10 +486,10 @@ const AddProduct = () => {
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Unit Amount</Form.Label>
+                                            <Form.Label>{t('products.form.unit_amount')}</Form.Label>
                                             <Form.Control
                                                 type="number"
-                                                placeholder="1"
+                                                placeholder={t('products.form.placeholder.unit')}
                                                 name="unitValue"
                                                 value={formData.unitValue}
                                                 onChange={handleChange}
@@ -499,11 +500,11 @@ const AddProduct = () => {
 
                                 {!isVendorProduct ? (
                                     <>
-                                        <h6 className="mb-3 fw-bold mt-4 text-primary">Branch Availability & Stock</h6>
-                                        <p className="text-muted small mb-3">Select branches where this product will be available and set initial stock.</p>
+                                        <h6 className="mb-3 fw-bold mt-4 text-primary">{t('products.sections.branch_availability')}</h6>
+                                        <p className="text-muted small mb-3">{t('products.sections.branch_availability_help', { defaultValue: 'Select branches where this product will be available and set initial stock.' })}</p>
 
                                         <div className="p-3 bg-light rounded border mb-4">
-                                            <Form.Label className="fw-bold mb-3">Available In:</Form.Label>
+                                            <Form.Label className="fw-bold mb-3">{t('products.form.available_in')}</Form.Label>
                                             <div className="d-flex flex-wrap gap-3">
                                                 {branches.map(branch => {
                                                     const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
@@ -527,12 +528,12 @@ const AddProduct = () => {
                                                 <div key={branch.branchId} className="p-3 rounded mb-3 bg-white border shadow-sm border-start border-4 border-primary">
                                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                                         <span className="fw-bold text-dark">{branch.name}</span>
-                                                        <Badge bg="primary" className="fw-normal">Stock Setting</Badge>
+                                                        <Badge bg="primary" className="fw-normal">{t('products.status.active')}</Badge>
                                                     </div>
                                                     <Row>
                                                         <Col md={6}>
                                                             <Form.Group className="mb-2">
-                                                                <Form.Label className="small fw-bold">Initial Stock Concentration</Form.Label>
+                                                                <Form.Label className="small fw-bold">{t('products.form.initial_stock_concentration')}</Form.Label>
                                                                 <Form.Control
                                                                     type="number"
                                                                     placeholder="0"
@@ -544,10 +545,10 @@ const AddProduct = () => {
                                                         </Col>
                                                         <Col md={6}>
                                                             <Form.Group className="mb-2">
-                                                                <Form.Label className="small fw-bold">Low Stock Warning</Form.Label>
+                                                                <Form.Label className="small fw-bold">{t('products.form.low_stock_warning')}</Form.Label>
                                                                 <Form.Control
                                                                     type="number"
-                                                                    placeholder="10"
+                                                                    placeholder={t('products.form.placeholder.low_stock')}
                                                                     value={branch.lowStockThreshold}
                                                                     min="0"
                                                                     onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
@@ -559,19 +560,19 @@ const AddProduct = () => {
                                             ))
                                         ) : (
                                             <div className="text-center py-4 border border-dashed rounded bg-light">
-                                                <p className="text-muted mb-0 small">No branches selected. Please select at least one branch to set stock.</p>
+                                                <p className="text-muted mb-0 small">{t('products.alerts.no_branches_selected', { defaultValue: 'No branches selected. Please select at least one branch to set stock.' })}</p>
                                             </div>
                                         )}
                                     </>
                                 ) : (
                                     <>
-                                        <h6 className="mb-3 fw-bold mt-4 text-primary">Vendor Inventory</h6>
-                                        <p className="text-muted small mb-3">Set initial stock for the vendor-managed product.</p>
+                                        <h6 className="mb-3 fw-bold mt-4 text-primary">{t('products.sections.vendor_inventory')}</h6>
+                                        <p className="text-muted small mb-3">{t('products.sections.vendor_inventory_help', { defaultValue: 'Set initial stock for the vendor-managed product.' })}</p>
                                         <div className="p-3 rounded mb-3 bg-white border shadow-sm border-start border-4 border-purple-500">
                                             <Row>
                                                 <Col md={6}>
                                                     <Form.Group className="mb-2">
-                                                        <Form.Label className="small fw-bold">Initial Stock</Form.Label>
+                                                        <Form.Label className="small fw-bold">{t('products.form.initial_stock')}</Form.Label>
                                                         <Form.Control
                                                             type="number"
                                                             placeholder="0"
@@ -584,10 +585,10 @@ const AddProduct = () => {
                                                 </Col>
                                                 <Col md={6}>
                                                     <Form.Group className="mb-2">
-                                                        <Form.Label className="small fw-bold">Low Stock Warning</Form.Label>
+                                                        <Form.Label className="small fw-bold">{t('products.form.low_stock_warning')}</Form.Label>
                                                         <Form.Control
                                                             type="number"
-                                                            placeholder="10"
+                                                            placeholder={t('products.form.placeholder.low_stock')}
                                                             name="lowStockThreshold"
                                                             value={formData.lowStockThreshold}
                                                             min="0"
@@ -606,31 +607,31 @@ const AddProduct = () => {
                     <Col lg={4}>
                         <Card className="border-0 shadow-sm mb-4">
                             <Card.Body>
-                                <h6 className="mb-3 fw-bold">Organization</h6>
+                                <h6 className="mb-3 fw-bold">{t('products.sections.organization')}</h6>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Category <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label>{t('products.form.category')} <span className="text-danger">*</span></Form.Label>
                                     <Form.Select name="category" value={formData.category} onChange={handleChange} required>
-                                        <option value="">Select Category...</option>
+                                        <option value="">{t('products.form.placeholder.category')}</option>
                                         {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                     </Form.Select>
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Brand Name <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label>{t('products.form.brand')} <span className="text-danger">*</span></Form.Label>
                                     <Form.Select name="brandName" value={formData.brandName} onChange={handleChange} required disabled={!formData.category}>
-                                        <option value="">Select Brand...</option>
+                                        <option value="">{t('products.form.placeholder.brand')}</option>
                                         {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                     </Form.Select>
-                                    {!formData.category && <Form.Text className="text-muted">Select a category first</Form.Text>}
+                                    {!formData.category && <Form.Text className="text-muted">{t('products.form.placeholder.brand_no_cat')}</Form.Text>}
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Assign Vendor (Optional)</Form.Label>
+                                    <Form.Label>{t('products.form.assign_vendor')}</Form.Label>
                                     <Form.Select name="vendor" value={formData.vendor} onChange={handleChange}>
-                                        <option value="">Admin / In-house</option>
+                                        <option value="">{t('products.edit_modal.admin_inhouse')}</option>
                                         {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName}</option>)}
                                     </Form.Select>
-                                    <Form.Text className="text-muted small italic">Assigning a vendor links this product to their inventory.</Form.Text>
+                                    <Form.Text className="text-muted small italic">{t('products.form.vendor_help')}</Form.Text>
                                 </Form.Group>
 
                                 <Form.Group className="mb-4 p-3 bg-blue-50/30 border border-blue-100 rounded-xl">
@@ -642,9 +643,9 @@ const AddProduct = () => {
                                             <div className="ms-3">
                                                 <div className="text-xs font-black text-blue-800 uppercase tracking-wider d-flex align-items-center gap-2">
                                                     <Sparkles size={12} className="text-blue-600" />
-                                                    Saathi Grow Priority Product
+                                                    {t('products.form.saathi_priority')}
                                                 </div>
-                                                <div className="text-[10px] text-blue-600/70 font-medium">Prioritize this product in user listings</div>
+                                                <div className="text-[10px] text-blue-600/70 font-medium">{t('products.form.saathi_priority_desc')}</div>
                                             </div>
                                         }
                                         checked={formData.isSaathiGrow}
@@ -654,7 +655,7 @@ const AddProduct = () => {
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>SKU (Auto-Generated) <span className="text-danger">*</span></Form.Label>
+                                    <Form.Label>{t('products.form.sku')} <span className="text-danger">*</span></Form.Label>
                                     <InputGroup>
                                         <Form.Control
                                             readOnly
@@ -662,7 +663,7 @@ const AddProduct = () => {
                                             className="bg-light"
                                             required
                                         />
-                                        <Button variant="outline-secondary" onClick={handleRefreshSKU} title="Regenerate SKU">
+                                        <Button variant="outline-secondary" onClick={handleRefreshSKU} title={t('products.alerts.regenerate_sku', { defaultValue: 'Regenerate SKU' })}>
                                             <RefreshCw size={18} />
                                         </Button>
                                     </InputGroup>
@@ -670,7 +671,7 @@ const AddProduct = () => {
 
                                 {formData.sku && (
                                     <div className="text-center mt-3 p-3 bg-white border rounded shadow-sm">
-                                        <div className="small fw-bold text-muted mb-2 uppercase">SKU QR Preview</div>
+                                        <div className="small fw-bold text-muted mb-2 uppercase">{t('products.form.qr_preview')}</div>
                                         <div className="d-inline-block p-2 border rounded bg-white">
                                             <QRCodeSVG
                                                 value={formData.sku}
@@ -695,7 +696,7 @@ const AddProduct = () => {
 
                         <Card className="border-0 shadow-sm mb-4">
                             <Card.Body>
-                                <h6 className="mb-3 fw-bold">Product Image</h6>
+                                <h6 className="mb-3 fw-bold">{t('products.sections.image')}</h6>
                                 <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative">
                                     {imagePreview ? (
                                         <div className="position-relative">
@@ -707,7 +708,7 @@ const AddProduct = () => {
                                     ) : (
                                         <div className="text-muted">
                                             <Upload className="mb-2" size={32} />
-                                            <p className="small mb-0">Click to upload image</p>
+                                            <p className="small mb-0">{t('products.edit_modal.update_image')}</p>
                                         </div>
                                     )}
                                     <Form.Control
@@ -730,7 +731,7 @@ const AddProduct = () => {
 
                         <Card className="border-0 shadow-sm mb-4">
                             <Card.Body>
-                                <h6 className="mb-3 fw-bold">Gallery Images (Up to 10)</h6>
+                                <h6 className="mb-3 fw-bold">{t('products.sections.gallery')}</h6>
                                 <div className="d-flex flex-wrap gap-2 mb-3">
                                     {galleryPreviews.map((preview, index) => (
                                         <div key={index} className="position-relative" style={{ width: '80px', height: '80px' }}>
@@ -753,7 +754,7 @@ const AddProduct = () => {
                                             onClick={() => document.getElementById('gallery-input').click()}
                                         >
                                             <Plus size={24} />
-                                            <span style={{ fontSize: '10px' }}>Add</span>
+                                            <span style={{ fontSize: '10px' }}>{t('common.add')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -765,17 +766,17 @@ const AddProduct = () => {
                                     className="d-none"
                                     onChange={handleGalleryChange}
                                 />
-                                <p className="text-muted small mb-0 mt-2">Upload multiple images to showcase different angles of your product.</p>
+                                <p className="text-muted small mb-0 mt-2">{t('products.form.gallery_help')}</p>
                             </Card.Body>
                         </Card>
                     </Col>
                 </Row>
 
                 <div className="d-flex justify-content-end gap-3 mb-5">
-                    <Button variant="light" className="px-4 fw-bold" onClick={() => navigate('/admin/products')}>Cancel</Button>
+                    <Button variant="light" className="px-4 fw-bold" onClick={() => navigate('/admin/products')}>{t('common.cancel')}</Button>
                     <Button variant="primary" type="submit" className="px-4 fw-bold d-flex align-items-center justify-content-center gap-2" disabled={loading}>
                         {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                        <span>Save Product</span>
+                        <span>{t('common.save')}</span>
                     </Button>
                 </div>
             </Form>
