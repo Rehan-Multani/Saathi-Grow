@@ -10,11 +10,13 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getRevenueAnalytics } from '../../api/reportApi';
 import { toast } from 'react-toastify';
 
 const RevenueAnalytics = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [period, setPeriod] = useState('this_week');
     const [loading, setLoading] = useState(true);
@@ -30,11 +32,11 @@ const RevenueAnalytics = () => {
             }
         } catch (error) {
             console.error('Fetch Analytics Error:', error);
-            toast.error('Failed to load revenue analytics');
+            toast.error(t('analytics.revenue.load_error', { defaultValue: 'Failed to load revenue analytics' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser, period]);
+    }, [adminUser, period, t]);
 
     useEffect(() => {
         fetchAnalytics();
@@ -70,8 +72,8 @@ const RevenueAnalytics = () => {
                         <TrendingUp size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark text-nowrap">Revenue Analytics</h4>
-                        <p className="text-muted small mb-0 d-none d-sm-block">Track your financial performance and growth metrics.</p>
+                        <h4 className="fw-bold mb-1 text-dark text-nowrap">{t('analytics.revenue.title')}</h4>
+                        <p className="text-muted small mb-0 d-none d-sm-block">{t('analytics.revenue.subtitle')}</p>
                     </div>
                 </div>
 
@@ -83,14 +85,14 @@ const RevenueAnalytics = () => {
                         value={period}
                         onChange={(e) => setPeriod(e.target.value)}
                     >
-                        <option value="this_week">Current Week</option>
-                        <option value="this_month">Current Month</option>
-                        <option value="last_month">Last Month</option>
-                        <option value="year_to_date">Year to Date</option>
+                        <option value="this_week">{t('analytics.revenue.period.week')}</option>
+                        <option value="this_month">{t('analytics.revenue.period.month')}</option>
+                        <option value="last_month">{t('analytics.revenue.period.last_month')}</option>
+                        <option value="year_to_date">{t('analytics.revenue.period.ytd')}</option>
                     </Form.Select>
                     <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm px-3">
-                        <Download size={16} /> <span className="d-none d-sm-inline text-nowrap">Export Data</span>
-                        <span className="d-inline d-sm-none">Export</span>
+                        <Download size={16} /> <span className="d-none d-sm-inline text-nowrap">{t('analytics.revenue.export')}</span>
+                        <span className="d-inline d-sm-none">{t('common.export', { defaultValue: 'Export' })}</span>
                     </Button>
                 </div>
             </div>
@@ -100,11 +102,11 @@ const RevenueAnalytics = () => {
                 <Col xs={12} sm={6} lg={3}>
                     <Card className="border-0 shadow-sm bg-primary text-white overflow-hidden position-relative" style={{ minHeight: '120px' }}>
                         <Card.Body className="z-1">
-                            <div className="text-white-50 small text-uppercase fw-bold mb-2">Total Net Sales</div>
+                            <div className="text-white-50 small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.net_sales')}</div>
                             <h3 className="fw-bold mb-0">{formatCurrency(summary.totalNetSales)}</h3>
                             <div className={`small mt-2 d-flex align-items-center gap-1 ${summary.salesGrowth >= 0 ? 'text-white' : 'text-white-50'}`}>
                                 {summary.salesGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                <span>{Math.abs(summary.salesGrowth)}%</span> vs prev period
+                                <span>{Math.abs(summary.salesGrowth)}%</span> {t('common.vs_prev', { defaultValue: 'vs prev period' })}
                             </div>
                         </Card.Body>
                         <BarChart3 size={80} className="position-absolute end-0 bottom-0 opacity-10 mb-n3 me-n2" />
@@ -113,19 +115,19 @@ const RevenueAnalytics = () => {
                 <Col xs={12} sm={6} lg={3}>
                     <Card className="border-0 shadow-sm h-100 border-start border-danger border-4">
                         <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">Total Refunds</div>
+                            <div className="text-muted small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.refunds')}</div>
                             <h3 className="fw-bold mb-0 text-danger">{formatCurrency(summary.totalRefunds)}</h3>
-                            <div className="small mt-2 text-muted">Value of returned orders</div>
+                            <div className="small mt-2 text-muted">{t('analytics.revenue.cards.refunds_desc', { defaultValue: 'Value of returned orders' })}</div>
                         </Card.Body>
                     </Card>
                 </Col>
                 <Col xs={12} sm={6} lg={3}>
                     <Card className="border-0 shadow-sm h-100 border-start border-warning border-4">
                         <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">Vendor Payouts</div>
+                            <div className="text-muted small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.vendor_payouts')}</div>
                             <h3 className="fw-bold mb-0 text-dark">{formatCurrency(summary.vendorPayouts)}</h3>
                             <div className="small mt-2 text-muted d-flex align-items-center gap-1">
-                                <Wallet size={14} className="text-warning" /> Settlements processed
+                                <Wallet size={14} className="text-warning" /> {t('analytics.revenue.cards.payouts_desc', { defaultValue: 'Settlements processed' })}
                             </div>
                         </Card.Body>
                     </Card>
@@ -133,11 +135,11 @@ const RevenueAnalytics = () => {
                 <Col xs={12} sm={6} lg={3}>
                     <Card className="border-0 shadow-sm h-100 border-start border-success border-4">
                         <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">Net Profit</div>
+                            <div className="text-muted small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.net_profit')}</div>
                             <h3 className="fw-bold mb-0 text-success">{formatCurrency(summary.netProfit)}</h3>
                             <div className={`small mt-2 d-flex align-items-center gap-1 ${summary.profitGrowth >= 0 ? 'text-success' : 'text-danger'}`}>
                                 {summary.profitGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                <span>{Math.abs(summary.profitGrowth)}%</span> growth
+                                <span>{Math.abs(summary.profitGrowth)}%</span> {t('common.growth', { defaultValue: 'growth' })}
                             </div>
                         </Card.Body>
                     </Card>
@@ -148,12 +150,12 @@ const RevenueAnalytics = () => {
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 className="mb-0 fw-bold">Revenue Growth Overview</h6>
-                        <small className="text-muted">Net sales performance based on delivered orders</small>
+                        <h6 className="mb-0 fw-bold">{t('analytics.revenue.chart_title', { defaultValue: 'Revenue Growth Overview' })}</h6>
+                        <small className="text-muted">{t('analytics.revenue.chart_subtitle', { defaultValue: 'Net sales performance based on delivered orders' })}</small>
                     </div>
                     <div className="d-flex align-items-center gap-2">
                         {loading && <Spinner animation="border" size="sm" variant="primary" className="me-2" />}
-                        <Badge bg="success" className="bg-opacity-10 text-success fw-normal px-2">Live Update</Badge>
+                        <Badge bg="success" className="bg-opacity-10 text-success fw-normal px-2">{t('common.live_update', { defaultValue: 'Live Update' })}</Badge>
                     </div>
                 </Card.Header>
                 <Card.Body className="pt-0">
@@ -191,7 +193,7 @@ const RevenueAnalytics = () => {
                                             boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
                                             fontSize: '14px'
                                         }}
-                                        formatter={(value) => [formatCurrency(value), 'Revenue']}
+                                        formatter={(value) => [formatCurrency(value), t('common.revenue', { defaultValue: 'Revenue' })]}
                                     />
                                     <Area
                                         type="monotone"
@@ -206,7 +208,7 @@ const RevenueAnalytics = () => {
                         ) : (
                             <div className="h-100 d-flex flex-column justify-content-center align-items-center text-muted">
                                 <TrendingUp size={48} className="mb-3 opacity-20" />
-                                <p>No data available for the selected period</p>
+                                <p>{t('analytics.revenue.no_data', { defaultValue: 'No data available for the selected period' })}</p>
                             </div>
                         )}
                     </div>
@@ -217,9 +219,9 @@ const RevenueAnalytics = () => {
             <Card className="border-0 shadow-sm overflow-hidden mb-4">
                 <Card.Header className="bg-white py-3 border-0">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h6 className="mb-0 fw-bold">Daily Breakdown</h6>
+                        <h6 className="mb-0 fw-bold">{t('analytics.revenue.table_title', { defaultValue: 'Daily Breakdown' })}</h6>
                         <Badge bg="light" text="dark" className="fw-normal border">
-                           Last {dailyBreakdown.length} Active Days
+                           {t('analytics.revenue.last_days', { count: dailyBreakdown.length, defaultValue: `Last ${dailyBreakdown.length} Active Days` })}
                         </Badge>
                     </div>
                 </Card.Header>
@@ -227,11 +229,11 @@ const RevenueAnalytics = () => {
                     <Table hover responsive className="mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Date</th>
-                                <th className="border-0 py-3 text-center">Delivered Orders</th>
-                                <th className="border-0 py-3">Gross Sales</th>
-                                <th className="border-0 py-3 text-danger">Refunds</th>
-                                <th className="border-0 py-3 text-end pe-4 fw-bold">Net Sales</th>
+                                <th className="ps-4 border-0 py-3">{t('analytics.revenue.table.date')}</th>
+                                <th className="border-0 py-3 text-center">{t('analytics.revenue.table.orders')}</th>
+                                <th className="border-0 py-3">{t('analytics.revenue.table.gross_sales')}</th>
+                                <th className="border-0 py-3 text-danger">{t('analytics.revenue.cards.refunds')}</th>
+                                <th className="border-0 py-3 text-end pe-4 fw-bold">{t('analytics.revenue.table.net_sales')}</th>
                             </tr>
                         </thead>
                         <tbody>

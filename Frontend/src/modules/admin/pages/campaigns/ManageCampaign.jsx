@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Row, Col, Card, Spinner, InputGroup, Breadcrumb } from 'react-bootstrap';
+import { Button, Form, Row, Col, Card, Spinner, InputGroup, Breadcrumb, Badge } from 'react-bootstrap';
 import { Save, X, Plus, Trash2, Search, ArrowLeft, Eye, Sparkles, LayoutGrid, TrendingDown, PartyPopper } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getProducts } from '../../api/productApi';
 import { getCategories } from '../../api/categoryApi';
 import { createCampaign, updateCampaign, getCampaignById } from '../../api/campaignApi';
@@ -10,14 +11,13 @@ import { toast } from 'react-toastify';
 import ProductPickerModal from '../../components/common/ProductPickerModal';
 
 const ManageCampaign = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { adminUser } = useAdminAuth();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(id ? true : false);
-  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [showPicker, setShowPicker] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,13 +66,13 @@ const ManageCampaign = () => {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        toast.error('Failed to load data');
+        toast.error(t('common.error_loading', { defaultValue: 'Failed to load data' }));
       } finally {
         setFetching(false);
       }
     };
     if (adminUser?.token) fetchData();
-  }, [id, adminUser]);
+  }, [id, adminUser, t]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -92,16 +92,16 @@ const ManageCampaign = () => {
     }));
 
     setSelectedProducts([...selectedProducts, ...formatted]);
-    toast.success(`${formatted.length} products added to campaign`);
+    toast.success(t('campaigns.alerts.products_added', { count: formatted.length, defaultValue: `${formatted.length} products added to campaign` }));
   };
 
-  const removeProduct = (id) => {
-    setSelectedProducts(selectedProducts.filter(p => p.productId !== id));
+  const removeProduct = (productId) => {
+    setSelectedProducts(selectedProducts.filter(p => p.productId !== productId));
   };
 
-  const handlePriceChange = (id, price) => {
+  const handlePriceChange = (productId, price) => {
     setSelectedProducts(selectedProducts.map(p =>
-      p.productId === id ? { ...p, basePrice: Number(price) } : p
+      p.productId === productId ? { ...p, basePrice: Number(price) } : p
     ));
   };
 
@@ -138,32 +138,28 @@ const ManageCampaign = () => {
     return pages;
   };
 
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (selectedProducts.length === 0) {
-      return toast.error('Please add at least one product');
+      return toast.error(t('campaigns.alerts.no_products', { defaultValue: 'Please add at least one product' }));
     }
 
     setLoading(true);
     try {
-      const data = new FormData();
-      Object.keys(formData).forEach(key => data.append(key, formData[key]));
-
-      const productsPayload = selectedProducts.map(p => ({
-        productId: p.productId,
-        basePrice: p.basePrice
-      }));
-      data.append('products', JSON.stringify(productsPayload));
+      const payload = {
+          ...formData,
+          products: selectedProducts.map(p => ({
+            productId: p.productId,
+            basePrice: p.basePrice
+          }))
+      };
 
       if (id) {
-        await updateCampaign(adminUser.token, id, data);
-        toast.success('Campaign section updated');
+        await updateCampaign(adminUser.token, id, payload);
+        toast.success(t('campaigns.alerts.update_success'));
       } else {
-        await createCampaign(adminUser.token, data);
-        toast.success('Campaign section created');
+        await createCampaign(adminUser.token, payload);
+        toast.success(t('campaigns.alerts.create_success'));
       }
       navigate('/admin/campaigns');
     } catch (error) {
@@ -172,7 +168,6 @@ const ManageCampaign = () => {
       setLoading(false);
     }
   };
-
 
   if (fetching) {
     return (
@@ -186,14 +181,14 @@ const ManageCampaign = () => {
     <div className="p-4 p-md-6">
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <div>
-          <h4 className="fw-bold mb-1 text-gray-800">{id ? 'Edit Festive Section' : 'Create Special Festive Section'}</h4>
+          <h4 className="fw-bold mb-1 text-gray-800">{id ? t('campaigns.edit') : t('campaigns.add_new')}</h4>
           <Breadcrumb className="small mb-0">
-            <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/admin/campaigns" }}>Festive Campaigns</Breadcrumb.Item>
-            <Breadcrumb.Item active>{id ? 'Edit' : 'Create'}</Breadcrumb.Item>
+            <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/admin/campaigns" }}>{t('campaigns.title')}</Breadcrumb.Item>
+            <Breadcrumb.Item active>{id ? t('common.edit') : t('common.create')}</Breadcrumb.Item>
           </Breadcrumb>
         </div>
         <Button variant="light" as={Link} to="/admin/campaigns" className="d-flex align-items-center gap-2 border shadow-sm px-4">
-          <ArrowLeft size={18} /> Back
+          <ArrowLeft size={18} /> {t('common.back', { defaultValue: 'Back' })}
         </Button>
       </div>
 
@@ -203,12 +198,12 @@ const ManageCampaign = () => {
             <Card className="border-0 shadow-sm mb-4">
               <Card.Body className="p-4">
                 <h6 className="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
-                  <Sparkles size={20} /> UI Customization
+                  <Sparkles size={20} /> {t('campaigns.form.ui_customization')}
                 </h6>
 
                 {/* Display Type Selector */}
                 <Form.Group className="mb-4">
-                  <Form.Label className="small fw-bold text-muted">Section Display Type</Form.Label>
+                  <Form.Label className="small fw-bold text-muted">{t('campaigns.form.display_type')}</Form.Label>
                   <div className="d-flex gap-3 mt-1">
                     <div
                       onClick={() => setFormData(p => ({ ...p, displayType: 'festive' }))}
@@ -216,8 +211,7 @@ const ManageCampaign = () => {
                       style={{ cursor: 'pointer' }}
                     >
                       <PartyPopper size={24} className={`mx-auto mb-1 ${formData.displayType === 'festive' ? 'text-primary' : 'text-gray-400'}`} />
-                      <div className={`small fw-bold ${formData.displayType === 'festive' ? 'text-primary' : 'text-gray-500'}`}>Festive Section</div>
-                      <div className="text-[10px] text-muted">Colored card section</div>
+                      <div className={`small fw-bold ${formData.displayType === 'festive' ? 'text-primary' : 'text-gray-500'}`}>{t('campaigns.form.festive_type')}</div>
                     </div>
                     <div
                       onClick={() => setFormData(p => ({ ...p, displayType: 'lowest_prices' }))}
@@ -225,37 +219,36 @@ const ManageCampaign = () => {
                       style={{ cursor: 'pointer' }}
                     >
                       <TrendingDown size={24} className={`mx-auto mb-1 ${formData.displayType === 'lowest_prices' ? 'text-success' : 'text-gray-400'}`} />
-                      <div className={`small fw-bold ${formData.displayType === 'lowest_prices' ? 'text-success' : 'text-gray-500'}`}>Lowest Prices</div>
-                      <div className="text-[10px] text-muted">Discount strip section</div>
+                      <div className={`small fw-bold ${formData.displayType === 'lowest_prices' ? 'text-success' : 'text-gray-500'}`}>{t('campaigns.form.lowest_price_type')}</div>
                     </div>
                   </div>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold text-muted">Section Title</Form.Label>
+                  <Form.Label className="small fw-bold text-muted">{t('products.form.name')}</Form.Label>
                   <Form.Control
                     type="text"
                     name="title"
                     value={formData.title}
                     onChange={handleChange}
-                    placeholder="e.g. Valentine's Week Special"
+                    placeholder={t('campaigns.form.placeholder.title')}
                     required
                     className="py-2"
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold text-muted">Subtitle</Form.Label>
+                  <Form.Label className="small fw-bold text-muted">{t('products.form.description')}</Form.Label>
                   <Form.Control
                     type="text"
                     name="subtitle"
                     value={formData.subtitle}
                     onChange={handleChange}
-                    placeholder="e.g. Gifts for your loved ones"
+                    placeholder={t('campaigns.form.placeholder.subtitle')}
                     className="py-2"
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold text-muted">Highlight Pill Text</Form.Label>
+                  <Form.Label className="small fw-bold text-muted">{t('campaigns.form.pill_text')}</Form.Label>
                   <Form.Control
                     type="text"
                     name="highlightText"
@@ -271,21 +264,21 @@ const ManageCampaign = () => {
                 {formData.displayType === 'festive' && (
                   <Row className="mb-3">
                     <Col md={12} className="mb-3">
-                      <Form.Label className="small fw-bold text-muted">Background Color</Form.Label>
+                      <Form.Label className="small fw-bold text-muted">{t('campaigns.form.bg_color')}</Form.Label>
                       <div className="d-flex gap-2 align-items-center">
                         <Form.Control type="color" name="bgColor" value={formData.bgColor} onChange={handleChange} className="form-control-color border-0 p-0 overflow-hidden rounded-circle" style={{ height: '32px', width: '32px', minWidth: '32px' }} />
                         <Form.Control type="text" value={formData.bgColor} onChange={handleChange} name="bgColor" className="bg-light border-0 font-monospace small" />
                       </div>
                     </Col>
                     <Col md={12} className="mb-3">
-                      <Form.Label className="small fw-bold text-muted">Text Color</Form.Label>
+                      <Form.Label className="small fw-bold text-muted">{t('campaigns.form.text_color')}</Form.Label>
                       <div className="d-flex gap-2 align-items-center">
                         <Form.Control type="color" name="textColor" value={formData.textColor} onChange={handleChange} className="form-control-color border-0 p-0 overflow-hidden rounded-circle" style={{ height: '32px', width: '32px', minWidth: '32px' }} />
                         <Form.Control type="text" value={formData.textColor} onChange={handleChange} name="textColor" className="bg-light border-0 font-monospace small" />
                       </div>
                     </Col>
                     <Col md={12}>
-                      <Form.Label className="small fw-bold text-muted">Accent Color (Buttons)</Form.Label>
+                      <Form.Label className="small fw-bold text-muted">{t('campaigns.form.accent_color')}</Form.Label>
                       <div className="d-flex gap-2 align-items-center">
                         <Form.Control type="color" name="accentColor" value={formData.accentColor} onChange={handleChange} className="form-control-color border-0 p-0 overflow-hidden rounded-circle" style={{ height: '32px', width: '32px', minWidth: '32px' }} />
                         <Form.Control type="text" value={formData.accentColor} onChange={handleChange} name="accentColor" className="bg-light border-0 font-monospace small" />
@@ -295,43 +288,39 @@ const ManageCampaign = () => {
                 )}
 
                 {/* Live Preview */}
-                {formData.displayType === 'festive' ? (
-                  <div className="mt-3 p-4 rounded shadow-sm border" style={{ backgroundColor: formData.bgColor }}>
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <div className="badge rounded-pill px-3 py-2 shadow-sm" style={{ backgroundColor: formData.accentColor, color: '#fff', fontSize: '10px' }}>
-                        {formData.highlightText}
-                      </div>
-                      <div className="text-[10px] font-bold uppercase tracking-widest opacity-50" style={{ color: formData.textColor }}>Preview</div>
+                <div className="mt-3">
+                    <h6 className="small fw-bold text-muted mb-2">{t('common.preview', { defaultValue: 'Live Preview' })}</h6>
+                    {formData.displayType === 'festive' ? (
+                    <div className="p-4 rounded shadow-sm border" style={{ backgroundColor: formData.bgColor }}>
+                        <div className="d-flex justify-content-between align-items-start mb-3">
+                        <div className="badge rounded-pill px-3 py-2 shadow-sm" style={{ backgroundColor: formData.accentColor, color: '#fff', fontSize: '10px' }}>
+                            {formData.highlightText}
+                        </div>
+                        </div>
+                        <h4 className="fw-bold mb-1" style={{ color: formData.textColor }}>{formData.title || 'Section Title'}</h4>
+                        <p className="small mb-0" style={{ color: formData.textColor, opacity: 0.8 }}>{formData.subtitle || 'Subtitle goes here'}</p>
                     </div>
-                    <h4 className="fw-bold mb-1" style={{ color: formData.textColor }}>{formData.title || 'Section Title'}</h4>
-                    <p className="small mb-0" style={{ color: formData.textColor, opacity: 0.8 }}>{formData.subtitle || 'Subtitle goes here'}</p>
-                    <div className="mt-4 text-center">
-                      <Button size="sm" className="px-5 py-2 fw-bold" style={{ backgroundColor: formData.accentColor, border: 'none', borderRadius: '8px' }}>ADD</Button>
+                    ) : (
+                    <div className="p-4 rounded shadow-sm border" style={{ background: 'linear-gradient(to right, #e8f5e9, #ffffff)' }}>
+                        <div className="d-flex align-items-center gap-2 mb-2">
+                        <div className="bg-success p-1 rounded">
+                            <TrendingDown size={14} className="text-white" />
+                        </div>
+                        <span className="fw-bold text-success small">{formData.title || 'Lowest Prices Ever'}</span>
+                        </div>
+                        <div className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill border border-danger-subtle bg-danger-subtle">
+                        <div className="rounded-circle bg-danger" style={{ width: 8, height: 8 }}></div>
+                        <span className="text-danger fw-bold" style={{ fontSize: 10 }}>🔥 {formData.highlightText}</span>
+                        </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="mt-3 p-4 rounded shadow-sm border" style={{ background: 'linear-gradient(to right, #e8f5e9, #ffffff)' }}>
-                    <div className="d-flex align-items-center gap-2 mb-2">
-                      <div className="bg-success p-1 rounded">
-                        <TrendingDown size={14} className="text-white" />
-                      </div>
-                      <span className="fw-bold text-success small">{formData.title || 'Lowest Prices Ever'}</span>
-                    </div>
-                    <div className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill border border-danger-subtle bg-danger-subtle">
-                      <div className="rounded-circle bg-danger" style={{ width: 8, height: 8 }}></div>
-                      <span className="text-danger fw-bold" style={{ fontSize: 10 }}>🔥 {formData.highlightText}</span>
-                    </div>
-                    <div className="mt-3 d-flex gap-2">
-                      {[1, 2, 3].map(i => <div key={i} className="bg-white rounded-2 border" style={{ width: 70, height: 90 }}></div>)}
-                    </div>
-                  </div>
-                )}
+                    )}
+                </div>
 
                 <Form.Group className="mt-4">
                   <Form.Check
                     type="switch"
                     id="isActive"
-                    label={<span className="fw-bold small text-muted">Visible on App Front</span>}
+                    label={<span className="fw-bold small text-muted">{t('campaigns.form.visible_front')}</span>}
                     name="isActive"
                     checked={formData.isActive}
                     onChange={handleChange}
@@ -345,67 +334,67 @@ const ManageCampaign = () => {
             <Card className="border-0 shadow-sm min-vh-75">
               <Card.Body className="p-4">
                 <h6 className="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
-                  <Plus size={20} /> Manage Selection & Deal Pricing
+                  <Plus size={20} /> {t('campaigns.table.manage_selection')}
                 </h6>
 
                 <div className="mb-4">
-                  <div className="flex bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-8 items-center justify-center flex-col hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group" onClick={() => setShowPicker(true)}>
-                    <div className="bg-white p-3 rounded-full shadow-sm text-blue-600 mb-3 group-hover:scale-110 transition-transform">
+                  <div className="d-flex flex-column align-items-center justify-content-center p-5 border-2 border-dashed rounded-4 bg-light cursor-pointer" onClick={() => setShowPicker(true)}>
+                    <div className="bg-white p-3 rounded-circle shadow-sm text-primary mb-3">
                       <Plus size={28} />
                     </div>
-                    <div className="fw-bold text-gray-700">Browse & Add Products</div>
-                    <div className="text-[11px] text-gray-400 mt-1 uppercase tracking-widest font-bold text-center px-4">Search, filter by category and pick multiple products at once</div>
+                    <div className="fw-bold text-dark">{t('campaigns.table.browse_add')}</div>
+                    <div className="text-muted small text-center mt-1 px-4">{t('campaigns.table.browse_help')}</div>
                   </div>
                 </div>
 
                 <div className="table-responsive">
                   <table className="table table-hover align-middle">
-                    <thead className="bg-blue-50 border-0">
+                    <thead className="bg-light border-0">
                       <tr>
-                        <th className="small fw-bold text-blue-800 border-0 px-3 py-3 rounded-start">Product Details</th>
-                        <th className="small fw-bold text-blue-800 border-0 text-center py-3">MRP (₹)</th>
-                        <th className="small fw-bold text-blue-800 border-0 text-center py-3">Current Price (₹)</th>
-                        <th className="small fw-bold text-blue-800 border-0 text-center py-3">Savings</th>
-                        <th className="small fw-bold text-blue-800 border-0 text-center py-3 rounded-end">Action</th>
+                        <th className="small fw-bold text-muted border-0 px-3 py-3">{t('campaigns.table.product_details')}</th>
+                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('products.form.mrp')}</th>
+                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('products.form.base_price')}</th>
+                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('campaigns.table.savings')}</th>
+                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('locations.branches.table.actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="border-0">
                       {paginatedProducts.length > 0 ? paginatedProducts.map(p => (
-                        <tr key={p.productId} className="border-bottom border-gray-50">
+                        <tr key={p.productId}>
                           <td className="px-3 py-3 border-0">
                             <div className="d-flex align-items-center gap-3">
-                              <div className="bg-white border border-gray-100 p-1 rounded">
+                              <div className="bg-white border border-light p-1 rounded">
                                 <img src={p.image} className="rounded" style={{ width: '45px', height: '45px', objectFit: 'contain' }} />
                               </div>
-                              <div className="small fw-bold text-gray-800">{p.name}</div>
+                              <div className="small fw-bold text-dark">{p.name}</div>
                             </div>
                           </td>
-                          <td className="text-center text-gray-400 border-0 py-3">₹{p.mrp}</td>
+                          <td className="text-center text-muted border-0 py-3">₹{p.mrp}</td>
                           <td className="text-center border-0 py-3" style={{ width: '130px' }}>
                             <Form.Control
                               size="sm"
                               type="number"
                               value={p.basePrice}
                               onChange={(e) => handlePriceChange(p.productId, e.target.value)}
-                              className="text-center border shadow-sm fw-bold text-primary bg-white rounded-lg py-1.5"
+                              className="text-center fw-bold text-primary"
                             />
                           </td>
                           <td className="text-center border-0 py-3">
-                            <div className="px-2 py-1 rounded bg-green-50 text-green-600 text-[10px] font-bold d-inline-block border border-green-100">
-                              SAVE ₹{p.mrp - p.basePrice}
-                            </div>
+                            <Badge bg="success-soft" className="text-success fw-bold">
+                              {t('campaigns.table.save_amount', { amount: p.mrp - p.basePrice, defaultValue: `SAVE ₹${p.mrp - p.basePrice}` })}
+                            </Badge>
                           </td>
                           <td className="text-center border-0 py-3">
-                            <Button variant="link" className="text-red-400 hover:text-red-600 p-0 transition-colors" onClick={() => removeProduct(p.productId)}>
+                            <Button variant="link" className="text-danger p-0" onClick={() => removeProduct(p.productId)}>
                               <Trash2 size={18} />
                             </Button>
                           </td>
                         </tr>
                       )) : (
                         <tr>
-                          <td colSpan="5" className="text-center py-10">
-                            <div className="opacity-20 mb-3"><LayoutGrid size={40} className="mx-auto" /></div>
-                            <p className="text-muted small">No products have been added to this campaign yet.<br />Use the search bar above to start building your festive collection.</p>
+                          <td colSpan="5" className="text-center py-5">
+                            <div className="opacity-25 mb-3"><LayoutGrid size={40} className="mx-auto" /></div>
+                            <p className="text-muted small">{t('common.no_data', { defaultValue: 'No products selected.' })}</p>
                           </td>
                         </tr>
                       )}
@@ -416,8 +405,8 @@ const ManageCampaign = () => {
                 {/* Pagination Controls */}
                 {selectedProducts.length > itemsPerPage && (
                   <div className="d-flex justify-content-between align-items-center mt-3 px-2">
-                    <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
-                      Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, selectedProducts.length)} of {selectedProducts.length}
+                    <div className="text-muted small">
+                      {t('categories.pagination.showing')} {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, selectedProducts.length)} {t('categories.pagination.of')} {selectedProducts.length}
                     </div>
                     <div className="d-flex gap-2">
                       <Button 
@@ -425,35 +414,16 @@ const ManageCampaign = () => {
                         size="sm" 
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(prev => prev - 1)}
-                        className="rounded-lg px-3"
                       >
-                        Prev
+                        {t('common.prev', { defaultValue: 'Prev' })}
                       </Button>
-                      <div className="d-flex gap-1">
-                        {getPageNumbers().map((page, i) => (
-                           page === '...' ? (
-                            <span key={`dots-${i}`} className="d-flex align-items-center px-2 text-gray-400">...</span>
-                          ) : (
-                            <Button 
-                              key={page}
-                              variant={currentPage === page ? "primary" : "light"}
-                              size="sm"
-                              onClick={() => setCurrentPage(page)}
-                              className="rounded-lg w-8 h-8 p-0"
-                            >
-                              {page}
-                            </Button>
-                          )
-                        ))}
-                      </div>
                       <Button 
                         variant="light" 
                         size="sm" 
-                        disabled={currentPage === Math.ceil(selectedProducts.length / itemsPerPage)}
+                        disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage(prev => prev + 1)}
-                        className="rounded-lg px-3"
                       >
-                        Next
+                        {t('common.next', { defaultValue: 'Next' })}
                       </Button>
                     </div>
                   </div>
@@ -463,12 +433,12 @@ const ManageCampaign = () => {
           </Col>
         </Row>
 
-        <div className="bg-white border-top fixed-bottom p-3 text-end shadow-lg z-1" style={{ width: 'calc(100% - 260px)', marginLeft: '260px' }}>
-          <div className="container-fluid d-flex justify-content-end gap-3">
-            <Button variant="light" size="lg" as={Link} to="/admin/campaigns" className="px-5 py-2 fw-medium border shadow-sm">Cancel</Button>
-            <Button variant="primary" size="lg" type="submit" disabled={loading} className="px-5 py-2 fw-bold shadow-lg d-flex align-items-center gap-2">
+        <div className="bg-white border-top fixed-bottom p-3 text-end shadow-lg" style={{ left: '260px', right: 0, zIndex: 1000 }}>
+          <div className="d-flex justify-content-end gap-3 px-4">
+            <Button variant="light" as={Link} to="/admin/campaigns" className="px-5">{t('common.cancel')}</Button>
+            <Button variant="primary" type="submit" disabled={loading} className="px-5 d-flex align-items-center gap-2">
               {loading ? <Spinner animation="border" size="sm" /> : <Save size={20} />}
-              {id ? 'Update Campaign Section' : 'Publish Section'}
+              {id ? t('campaigns.form.update') : t('campaigns.form.publish')}
             </Button>
           </div>
         </div>

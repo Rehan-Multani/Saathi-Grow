@@ -16,13 +16,17 @@ const PushNotifications = () => {
     const [target, setTarget] = useState('All Users');
 
     const handleSend = () => {
-        alert(t('notifications.push.sending_msg', { target, title, defaultValue: `Sending notification to ${target}: ${title}` }));
+        toast.info(t('notifications.push.sending_msg', { target, title, defaultValue: `Sending notification to ${target}: ${title}` }));
         setTitle('');
         setMessage('');
     };
 
     return (
         <div className="p-3">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h4 className="fw-bold mb-0">{t('notifications.push.title')}</h4>
+            </div>
+
             <Row className="g-4 mb-4">
                 {/* Create Notification Panel */}
                 <Col lg={4}>
@@ -34,17 +38,17 @@ const PushNotifications = () => {
                         </Card.Header>
                         <Card.Body>
                             <Form.Group className="mb-3">
-                                <Form.Label>{t('notifications.push.target_audience')}</Form.Label>
+                                <Form.Label className="small fw-bold text-muted">{t('notifications.push.target_audience')}</Form.Label>
                                 <Form.Select value={target} onChange={(e) => setTarget(e.target.value)}>
-                                    <option value="All Users">{t('notifications.push.audiences.all')}</option>
-                                    <option value="Specific User (By ID)">{t('notifications.push.audiences.specific')}</option>
-                                    <option value="Active in Last 30 Days">{t('notifications.push.audiences.active_30')}</option>
-                                    <option value="Cart Abandoners">{t('notifications.push.audiences.abandoners')}</option>
+                                    <option value="all">{t('notifications.push.audiences.all')}</option>
+                                    <option value="specific">{t('notifications.push.audiences.specific')}</option>
+                                    <option value="active_30">{t('notifications.push.audiences.active_30')}</option>
+                                    <option value="abandoners">{t('notifications.push.audiences.abandoners')}</option>
                                 </Form.Select>
                             </Form.Group>
 
                             <Form.Group className="mb-3">
-                                <Form.Label>{t('notifications.push.notification_title')}</Form.Label>
+                                <Form.Label className="small fw-bold text-muted">{t('notifications.push.notification_title')}</Form.Label>
                                 <Form.Control
                                     type="text"
                                     placeholder={t('notifications.push.title_placeholder')}
@@ -54,7 +58,7 @@ const PushNotifications = () => {
                             </Form.Group>
 
                             <Form.Group className="mb-4">
-                                <Form.Label>{t('notifications.push.message_body')}</Form.Label>
+                                <Form.Label className="small fw-bold text-muted">{t('notifications.push.message_body')}</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={4}
@@ -64,7 +68,7 @@ const PushNotifications = () => {
                                 />
                             </Form.Group>
 
-                            <Button variant="primary" className="w-100 d-flex align-items-center justify-content-center gap-2" onClick={handleSend}>
+                            <Button variant="primary" className="w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold" onClick={handleSend}>
                                 <Bell size={18} /> {t('notifications.push.send_btn')}
                             </Button>
                         </Card.Body>

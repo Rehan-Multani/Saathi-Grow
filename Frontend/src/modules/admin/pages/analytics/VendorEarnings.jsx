@@ -3,11 +3,13 @@ import { Card, Table, Button, Form, Row, Col, Badge, Spinner } from 'react-boots
 import { Download, IndianRupee, Wallet, TrendingUp, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { useTranslation } from 'react-i18next';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getAdminVendorEarnings } from '../../api/reportApi';
 import { toast } from 'react-toastify';
 
 const VendorEarnings = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
 
@@ -31,11 +33,11 @@ const VendorEarnings = () => {
             }
         } catch (error) {
             console.error('Fetch Vendor Earnings Error:', error);
-            toast.error('Failed to load vendor earnings');
+            toast.error(t('analytics.vendors.load_error', { defaultValue: 'Failed to load vendor earnings' }));
         } finally {
             setLoading(false);
         }
-    }, [adminUser, page, statusFilter]);
+    }, [adminUser, page, statusFilter, t]);
 
     useEffect(() => {
         fetchEarnings();
@@ -51,11 +53,19 @@ const VendorEarnings = () => {
 
     const handleExport = () => {
         if (!data?.payouts || data.payouts.length === 0) {
-            toast.info('No data to export');
+            toast.info(t('common.no_data_export', { defaultValue: 'No data to export' }));
             return;
         }
 
-        const headers = ['Payout ID', 'Vendor', 'Date', 'Amount', 'Method', 'Reference', 'Status'];
+        const headers = [
+            t('analytics.vendors.table.payout_id'), 
+            t('analytics.vendors.table.vendor'), 
+            t('analytics.vendors.table.requested_date'), 
+            t('analytics.vendors.table.net_payout'), 
+            t('analytics.vendors.table.method'), 
+            'Reference', 
+            t('dashboard.status')
+        ];
         const csvRows = data.payouts.map(row => [
             row.payoutId,
             `"${row.vendor}"`,
@@ -69,8 +79,8 @@ const VendorEarnings = () => {
         const csvContent = [headers.join(','), ...csvRows].join('\n');
 
         Swal.fire({
-            title: 'Generating CSV',
-            text: 'Preparing your vendor statement...',
+            title: t('common.generating_csv', { defaultValue: 'Generating CSV' }),
+            text: t('analytics.vendors.preparing_statement', { defaultValue: 'Preparing your vendor statement...' }),
             icon: 'info',
             timer: 1200,
             showConfirmButton: false,
@@ -88,8 +98,8 @@ const VendorEarnings = () => {
             document.body.removeChild(link);
 
             Swal.fire({
-                title: 'Success!',
-                text: 'Vendor CSV statement has been downloaded.',
+                title: t('common.success', { defaultValue: 'Success!' }),
+                text: t('analytics.vendors.download_complete', { defaultValue: 'Vendor CSV statement has been downloaded.' }),
                 icon: 'success',
                 confirmButtonColor: '#0c831f'
             });
@@ -118,8 +128,8 @@ const VendorEarnings = () => {
                         <Wallet size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark text-nowrap">Vendor Earnings</h4>
-                        <p className="text-muted small mb-0 d-none d-sm-block">Manage vendor payouts, commissions, and settlement history.</p>
+                        <h4 className="fw-bold mb-1 text-dark text-nowrap">{t('analytics.vendors.title')}</h4>
+                        <p className="text-muted small mb-0 d-none d-sm-block">{t('analytics.vendors.subtitle')}</p>
                     </div>
                 </div>
 
@@ -135,9 +145,9 @@ const VendorEarnings = () => {
                                 setPage(1);
                             }}
                         >
-                            <option value="All Vendors">All Vendors</option>
-                            <option value="Pending Payouts">Pending Payouts</option>
-                            <option value="Completed Payouts">Completed Payouts</option>
+                            <option value="All Vendors">{t('analytics.vendors.filters.all')}</option>
+                            <option value="Pending Payouts">{t('analytics.vendors.filters.pending')}</option>
+                            <option value="Completed Payouts">{t('analytics.vendors.filters.completed')}</option>
                         </Form.Select>
                     </div>
                     <Button
@@ -147,7 +157,7 @@ const VendorEarnings = () => {
                         style={{ height: '40px' }}
                         onClick={handleExport}
                     >
-                        <Download size={16} /> Export Statement
+                        <Download size={16} /> {t('analytics.vendors.export_statement')}
                     </Button>
                 </div>
             </div>
@@ -161,7 +171,7 @@ const VendorEarnings = () => {
                                 <IndianRupee size={24} />
                             </div>
                             <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">Total Paid Out</div>
+                                <div className="text-uppercase small fw-bold text-muted mb-1">{t('analytics.vendors.stats.paid_out')}</div>
                                 <h3 className="fw-bold mb-0">{formatCurrency(stats.totalPaidOut)}</h3>
                             </div>
                         </Card.Body>
@@ -174,7 +184,7 @@ const VendorEarnings = () => {
                                 <Wallet size={24} />
                             </div>
                             <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">Pending Due</div>
+                                <div className="text-uppercase small fw-bold text-muted mb-1">{t('analytics.vendors.stats.pending')}</div>
                                 <h3 className="fw-bold mb-0 text-dark">{formatCurrency(stats.pendingDue)}</h3>
                             </div>
                         </Card.Body>
@@ -187,7 +197,7 @@ const VendorEarnings = () => {
                                 <TrendingUp size={24} />
                             </div>
                             <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">Commission Earned</div>
+                                <div className="text-uppercase small fw-bold text-muted mb-1">{t('analytics.vendors.stats.commission')}</div>
                                 <h3 className="fw-bold mb-0">{formatCurrency(stats.commissionEarned)}</h3>
                             </div>
                         </Card.Body>
@@ -198,20 +208,20 @@ const VendorEarnings = () => {
             {/* Payout Table */}
             <Card className="border-0 shadow-sm overflow-hidden">
                 <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                    <h6 className="mb-0 fw-bold">Recent Payout Settlements</h6>
+                    <h6 className="mb-0 fw-bold">{t('analytics.vendors.table.recent_payouts')}</h6>
                     {loading && <Spinner animation="border" size="sm" variant="primary" />}
                 </Card.Header>
                 <Card.Body className="p-0">
                     <Table hover responsive className="mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase font-weight-bold">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Payout ID</th>
-                                <th className="border-0 py-3">Vendor</th>
-                                <th className="border-0 py-3">Requested Date</th>
-                                <th className="border-0 py-3">Method</th>
-                                <th className="border-0 py-3">Net Payout</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                <th className="ps-4 border-0 py-3">{t('analytics.vendors.table.payout_id')}</th>
+                                <th className="border-0 py-3">{t('analytics.vendors.table.vendor')}</th>
+                                <th className="border-0 py-3">{t('analytics.vendors.table.requested_date')}</th>
+                                <th className="border-0 py-3">{t('analytics.vendors.table.method')}</th>
+                                <th className="border-0 py-3">{t('analytics.vendors.table.net_payout')}</th>
+                                <th className="border-0 py-3">{t('dashboard.status')}</th>
+                                <th className="border-0 py-3 text-end pe-4">{t('locations.branches.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -246,14 +256,14 @@ const VendorEarnings = () => {
                                             className="btn-icon-soft text-primary px-3 shadow-none overflow-hidden"
                                             onClick={() => navigate(`/admin/analytics/earnings/${p.id}`)}
                                         >
-                                            Details
+                                            {t('common.details', { defaultValue: 'Details' })}
                                         </Button>
                                     </td>
                                 </tr>
                             )) : (
                                 <tr>
                                     <td colSpan="7" className="text-center py-5 text-muted">
-                                        No payout records found.
+                                        {t('analytics.vendors.no_records', { defaultValue: 'No payout records found.' })}
                                     </td>
                                 </tr>
                             )}
@@ -265,7 +275,7 @@ const VendorEarnings = () => {
                 {pagination.total > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> of <span className="fw-semibold text-dark">{pagination.total}</span> payouts
+                            {t('categories.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('categories.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> {t('categories.pagination.of')} <span className="fw-semibold text-dark">{pagination.total}</span> {t('analytics.vendors.stats.payouts', { defaultValue: 'payouts' })}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button
