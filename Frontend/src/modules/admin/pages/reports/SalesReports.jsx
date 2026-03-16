@@ -48,7 +48,7 @@ const SalesReports = () => {
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, period]);
+    }, [adminUser.token, page, period, t]);
 
     useEffect(() => {
         fetchReports();
@@ -228,7 +228,7 @@ const SalesReports = () => {
                                         <td>{t('stock.reports.sales.table.items_count', { count: order.items })}</td>
                                         <td>
                                             <span className="text-xs fw-medium px-2 py-1 bg-gray-100 rounded text-gray-600">
-                                                {order.payment}
+                                                {t(`dashboard.payment_methods.${order.payment?.toLowerCase()}`)}
                                             </span>
                                         </td>
                                         <td>
@@ -237,7 +237,7 @@ const SalesReports = () => {
                                                 order.status === 'Refunded' || order.status === 'Cancelled' || order.status === 'Returned' ? 'danger' : 
                                                 'warning'
                                             } rounded-pill fw-normal px-3`}>
-                                                {order.status}
+                                                {t(`dashboard.order_status.${order.status?.toLowerCase().replace(/\s+/g, '_')}`)}
                                             </span>
                                         </td>
                                         <td className="text-end pe-4 fw-bold">{formatCurrency(order.total)}</td>

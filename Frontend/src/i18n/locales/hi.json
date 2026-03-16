@@ -1683,6 +1683,11 @@
                 "out_of_stock": "स्टॉक में नहीं",
                 "clear_filters": "सभी फ़िल्टर हटाएँ"
               },
+              "statuses": {
+                "in_stock": "स्टॉक में",
+                "low_stock": "कम स्टॉक",
+                "out_of_stock": "स्टॉक में नहीं"
+              },
               "table": {
                 "product": "उत्पाद",
                 "vendor_source": "विक्रेता/स्रोत",
@@ -1746,6 +1751,57 @@
                 "export_success": "बिक्री रिपोर्ट सफलतापूर्वक निर्यात की गई",
                 "export_error": "बिक्री रिपोर्ट निर्यात करने में विफल",
                 "load_error": "बिक्री रिपोर्ट लोड करने में विफल"
+              }
+            },
+            "vendors": {
+              "title": "विक्रेता प्रदर्शन रिपोर्ट्स",
+              "subtitle": "इन्वेंट्री और बिक्री मेट्रिक्स के आधार पर अपने विक्रेता भागीदारों का मूल्यांकन करें।",
+              "export_report": "रिपोर्ट निर्यात करें",
+              "exporting": "निर्यात हो रहा है...",
+              "table": {
+                "title": "विक्रेता प्रदर्शन निर्देशिका",
+                "search_placeholder": "विक्रेता स्टोर के नाम से खोजें...",
+                "vendor_store": "विक्रेता स्टोर",
+                "contact_details": "संपर्क विवरण",
+                "products": "उत्पाद",
+                "total_sales": "कुल बिक्री",
+                "member_since": "सदस्यता की तारीख",
+                "status": "स्थिति",
+                "actions": "कार्रवाई",
+                "items_count": "{{count}} आइटम",
+                "orders_count": "{{count}} ऑर्डर",
+                "view_stats": "आँकड़े देखें",
+                "no_data": "कोई विक्रेता प्रदर्शन डेटा नहीं मिला।"
+              },
+              "statuses": {
+                "active": "सक्रिय",
+                "pending": "लंबित",
+                "inactive": "निष्क्रिय"
+              },
+              "performance_modal": {
+                "id": "आईडी",
+                "lifetime_sales": "जीवनकाल की बिक्री",
+                "catalog_size": "कैटलॉग आकार",
+                "items": "आइटम",
+                "admin_details": "प्रशासनिक विवरण",
+                "store_owner": "स्टोर के मालिक",
+                "onboarded_on": "ऑनबोर्ड किया गया",
+                "phone_number": "फोन नंबर",
+                "total_orders": "कुल ऑर्डर",
+                "status_msg": "यह विक्रेता खाता वर्तमान में SaathiGrow नेटवर्क में {{status}} है।",
+                "close": "बंद करें",
+                "refresh_stats": "आँकड़े ताज़ा करें"
+              },
+              "pagination": {
+                "showing": "दिखा रहा है",
+                "to": "से",
+                "of": "का",
+                "vendors": "विक्रेता"
+              },
+              "alerts": {
+                "fetch_error": "विक्रेता रिपोर्ट प्राप्त करने में विफल",
+                "export_success": "विक्रेता रिपोर्ट सफलतापूर्वक निर्यात की गई",
+                "export_error": "रिपोर्ट निर्यात करने में विफल"
               }
             }
           }

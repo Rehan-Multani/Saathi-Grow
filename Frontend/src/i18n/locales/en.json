@@ -1684,6 +1684,11 @@
                 "out_of_stock": "Out of Stock",
                 "clear_filters": "Clear All Filters"
               },
+              "statuses": {
+                "in_stock": "In Stock",
+                "low_stock": "Low Stock",
+                "out_of_stock": "Out of Stock"
+              },
               "table": {
                 "product": "Product",
                 "vendor_source": "Vendor/Source",
@@ -1768,6 +1773,11 @@
                 "orders_count": "{{count}} Orders",
                 "view_stats": "View Stats",
                 "no_data": "No vendor performance data found."
+              },
+              "statuses": {
+                "active": "Active",
+                "pending": "Pending",
+                "inactive": "Inactive"
               },
               "performance_modal": {
                 "id": "ID",

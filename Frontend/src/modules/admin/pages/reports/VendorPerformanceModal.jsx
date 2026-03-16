@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { X, Store, Award, Package, DollarSign, TrendingUp, Calendar, User, Phone, Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const VendorPerformanceModal = ({ show, onHide, vendor }) => {
+    const { t } = useTranslation();
     useEffect(() => {
         if (show) {
             document.body.style.overflow = 'hidden';
@@ -28,7 +30,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                         </div>
                         <div>
                             <h5 className="text-xl font-bold text-gray-800 m-0">{vendor.vendorName}</h5>
-                            <div className="text-sm text-gray-500">ID: {vendor.id}</div>
+                            <div className="text-sm text-gray-500">{t('stock.reports.vendors.performance_modal.id')}: {vendor.id}</div>
                         </div>
                     </div>
                     <button onClick={onHide} className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-500 border-0 bg-transparent">
@@ -45,7 +47,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                                 <DollarSign size={24} />
                             </div>
                             <div>
-                                <div className="text-sm text-blue-800 font-medium">Lifetime Sales</div>
+                                <div className="text-sm text-blue-800 font-medium">{t('stock.reports.vendors.performance_modal.lifetime_sales')}</div>
                                 <div className="text-2xl font-bold text-gray-800">₹{vendor.totalSales?.toLocaleString()}</div>
                             </div>
                         </div>
@@ -54,8 +56,8 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                                 <Package size={24} />
                             </div>
                             <div>
-                                <div className="text-sm text-purple-800 font-medium">Catalog Size</div>
-                                <div className="text-2xl font-bold text-gray-800">{vendor.productsListed} <span className="text-sm font-normal text-gray-500">Items</span></div>
+                                <div className="text-sm text-purple-800 font-medium">{t('stock.reports.vendors.performance_modal.catalog_size')}</div>
+                                <div className="text-2xl font-bold text-gray-800">{vendor.productsListed} <span className="text-sm font-normal text-gray-500">{t('stock.reports.vendors.performance_modal.items')}</span></div>
                             </div>
                         </div>
                     </div>
@@ -64,7 +66,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                         {/* Vendor Info Section */}
                         <section>
                             <h6 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
-                                <User size={18} className="text-gray-400" /> Administrative Details
+                                <User size={18} className="text-gray-400" /> {t('stock.reports.vendors.performance_modal.admin_details')}
                             </h6>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="flex items-center gap-3">
@@ -72,7 +74,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                                         <User size={16} />
                                     </div>
                                     <div>
-                                        <div className="text-[10px] uppercase text-gray-400 font-bold">Store Owner</div>
+                                        <div className="text-[10px] uppercase text-gray-400 font-bold">{t('stock.reports.vendors.performance_modal.store_owner')}</div>
                                         <div className="text-sm font-medium">{vendor.owner}</div>
                                     </div>
                                 </div>
@@ -81,7 +83,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                                         <Calendar size={16} />
                                     </div>
                                     <div>
-                                        <div className="text-[10px] uppercase text-gray-400 font-bold">Onboarded On</div>
+                                        <div className="text-[10px] uppercase text-gray-400 font-bold">{t('stock.reports.vendors.performance_modal.onboarded_on')}</div>
                                         <div className="text-sm font-medium">{vendor.memberSince}</div>
                                     </div>
                                 </div>
@@ -90,7 +92,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                                         <Phone size={16} />
                                     </div>
                                     <div>
-                                        <div className="text-[10px] uppercase text-gray-400 font-bold">Phone Number</div>
+                                        <div className="text-[10px] uppercase text-gray-400 font-bold">{t('stock.reports.vendors.performance_modal.phone_number')}</div>
                                         <div className="text-sm font-medium">{vendor.contact}</div>
                                     </div>
                                 </div>
@@ -99,7 +101,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                                         <TrendingUp size={16} />
                                     </div>
                                     <div>
-                                        <div className="text-[10px] uppercase text-gray-400 font-bold">Total Orders</div>
+                                        <div className="text-[10px] uppercase text-gray-400 font-bold">{t('stock.reports.vendors.performance_modal.total_orders')}</div>
                                         <div className="text-sm font-medium">{vendor.orderCount}</div>
                                     </div>
                                 </div>
@@ -109,7 +111,7 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                         {/* Status Alert */}
                         <div className={`p-4 rounded-lg flex items-center gap-3 ${vendor.status === 'Active' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
                            <Award size={20} />
-                           <div className="text-sm font-medium">This vendor account is currently <b>{vendor.status}</b> in the SaathiGrow network.</div>
+                           <div className="text-sm font-medium">{t('stock.reports.vendors.performance_modal.status_msg', { status: t(`stock.reports.vendors.statuses.${vendor.status?.toLowerCase()}`) })}</div>
                         </div>
                     </div>
                 </div>
@@ -117,10 +119,10 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
                     <button onClick={onHide} className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors border-0">
-                        Close
+                        {t('stock.reports.vendors.performance_modal.close')}
                     </button>
                     <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors border-0 shadow-sm">
-                        Refresh Stats
+                        {t('stock.reports.vendors.performance_modal.refresh_stats')}
                     </button>
                 </div>
             </div>

@@ -4,9 +4,11 @@ import { Star, Download, Users, ChevronLeft, ChevronRight, Search, Phone, User }
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getVendorReports, exportVendorCSV } from '../../api/reportApi';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import VendorPerformanceModal from './VendorPerformanceModal';
 
 const VendorReports = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -38,11 +40,11 @@ const VendorReports = () => {
             }
         } catch (error) {
             console.error('Fetch Vendor Reports Error:', error);
-            toast.error('Failed to fetch vendor reports');
+            toast.error(t('stock.reports.vendors.alerts.fetch_error'));
         } finally {
             setLoading(false);
         }
-    }, [adminUser, page, searchTerm]);
+    }, [adminUser, page, searchTerm, t]);
 
     useEffect(() => {
         fetchVendors();
@@ -70,10 +72,10 @@ const VendorReports = () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Vendor report exported successfully');
+            toast.success(t('stock.reports.vendors.alerts.export_success'));
         } catch (error) {
             console.error('Export failed:', error);
-            toast.error('Failed to export report');
+            toast.error(t('stock.reports.vendors.alerts.export_error'));
         } finally {
             setExporting(false);
         }
@@ -88,8 +90,8 @@ const VendorReports = () => {
         <div className="p-2 p-md-4">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <div>
-                    <h4 className="fw-bold mb-1">Vendor Performance Reports</h4>
-                    <p className="text-muted small mb-0">Evaluate your vendor partners based on inventory and sales metrics.</p>
+                    <h4 className="fw-bold mb-1">{t('stock.reports.vendors.title')}</h4>
+                    <p className="text-muted small mb-0">{t('stock.reports.vendors.subtitle')}</p>
                 </div>
                 <div className="d-flex gap-2">
                     <Button 
@@ -100,7 +102,7 @@ const VendorReports = () => {
                         disabled={exporting}
                     >
                         {exporting ? <Spinner animation="border" size="sm" /> : <Download size={16} />}
-                        <span>{exporting ? 'Exporting...' : 'Export Report'}</span>
+                        <span>{exporting ? t('stock.reports.vendors.exporting') : t('stock.reports.vendors.export_report')}</span>
                     </Button>
                 </div>
             </div>
@@ -113,14 +115,14 @@ const VendorReports = () => {
                             <div className="bg-primary bg-opacity-10 p-2 rounded text-primary">
                                 <Users size={20} />
                             </div>
-                            <h6 className="mb-0 fw-bold">Vendor Performance Directory</h6>
+                            <h6 className="mb-0 fw-bold">{t('stock.reports.vendors.table.title')}</h6>
                         </div>
                         <div className="d-flex align-items-center gap-2 border rounded-pill px-3 bg-light" style={{ width: '100%', maxWidth: '350px' }}>
                             <Search size={16} className="text-muted" />
                             <Form.Control
                                 size="sm"
                                 type="text"
-                                placeholder="Search by vendor store name..."
+                                placeholder={t('stock.reports.vendors.table.search_placeholder')}
                                 className="border-0 bg-transparent shadow-none py-2"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -137,13 +139,13 @@ const VendorReports = () => {
                     <Table hover responsive className={`mb-0 align-middle ${loading ? 'opacity-50' : ''}`}>
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Vendor Store</th>
-                                <th className="border-0 py-3">Contact Details</th>
-                                <th className="border-0 py-3 text-center">Products</th>
-                                <th className="border-0 py-3">Total Sales</th>
-                                <th className="border-0 py-3">Member Since</th>
-                                <th className="border-0 py-3 text-center">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
+                                <th className="ps-4 border-0 py-3">{t('stock.reports.vendors.table.vendor_store')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.vendors.table.contact_details')}</th>
+                                <th className="border-0 py-3 text-center">{t('stock.reports.vendors.table.products')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.vendors.table.total_sales')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.vendors.table.member_since')}</th>
+                                <th className="border-0 py-3 text-center">{t('stock.reports.vendors.table.status')}</th>
+                                <th className="border-0 py-3 text-end pe-4">{t('stock.reports.vendors.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -168,12 +170,12 @@ const VendorReports = () => {
                                     </td>
                                     <td className="text-center">
                                         <Badge bg="info" className="bg-opacity-10 text-info fw-normal border border-info border-opacity-25 px-3">
-                                            {vendor.productsListed} Items
+                                            {t('stock.reports.vendors.table.items_count', { count: vendor.productsListed })}
                                         </Badge>
                                     </td>
                                     <td>
                                         <div className="fw-bold text-success text-lg">₹{vendor.totalSales?.toLocaleString()}</div>
-                                        <div className="text-muted" style={{ fontSize: '11px' }}>{vendor.orderCount} Orders</div>
+                                        <div className="text-muted" style={{ fontSize: '11px' }}>{t('stock.reports.vendors.table.orders_count', { count: vendor.orderCount })}</div>
                                     </td>
                                     <td>
                                         <div className="small text-dark">{vendor.memberSince}</div>
@@ -184,7 +186,7 @@ const VendorReports = () => {
                                             className="rounded-pill fw-normal px-3 py-1 bg-opacity-75"
                                             style={{ minWidth: '80px' }}
                                         >
-                                            {vendor.status}
+                                            {t(`stock.reports.vendors.statuses.${vendor.status?.toLowerCase()}`)}
                                         </Badge>
                                     </td>
                                     <td className="text-end pe-4">
@@ -194,14 +196,14 @@ const VendorReports = () => {
                                             className="rounded-pill px-3"
                                             onClick={() => handleShowDetails(vendor)}
                                         >
-                                            View Stats
+                                            {t('stock.reports.vendors.table.view_stats')}
                                         </Button>
                                     </td>
                                 </tr>
                             )) : !loading && (
                                 <tr>
                                     <td colSpan="7" className="text-center py-5 text-muted">
-                                        No vendor performance data found.
+                                        {t('stock.reports.vendors.table.no_data')}
                                     </td>
                                 </tr>
                             )}
@@ -213,7 +215,7 @@ const VendorReports = () => {
                 {totalVendors > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalVendors)}</span> of <span className="fw-semibold text-dark">{totalVendors}</span> vendors
+                            {t('stock.reports.vendors.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('stock.reports.vendors.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalVendors)}</span> {t('stock.reports.vendors.pagination.of')} <span className="fw-semibold text-dark">{totalVendors}</span> {t('stock.reports.vendors.pagination.vendors')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

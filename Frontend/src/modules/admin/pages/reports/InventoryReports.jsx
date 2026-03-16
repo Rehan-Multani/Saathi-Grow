@@ -352,7 +352,7 @@ const InventoryReports = () => {
                                             bg={getStatusVariant(item.status)}
                                             className="rounded-pill fw-normal px-3 py-1 shadow-sm"
                                         >
-                                            {item.status}
+                                            {t(`stock.reports.inventory.statuses.${item.status?.toLowerCase().replace(/\s+/g, '_')}`)}
                                         </Badge>
                                     </td>
                                 </tr>
