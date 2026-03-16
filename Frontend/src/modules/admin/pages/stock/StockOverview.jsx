@@ -363,8 +363,7 @@ return (
             </Col>
         </Row>
     </div>
-);
+    );
 };
 
 export default StockOverview;
-
