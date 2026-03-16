@@ -4,8 +4,10 @@ import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag, ChevronLeft, 
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getSalesReports, exportSalesCSV } from '../../api/reportApi';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const SalesReports = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [page, setPage] = useState(1);
     const [period, setPeriod] = useState('last_30_days');
@@ -42,7 +44,7 @@ const SalesReports = () => {
             }
         } catch (error) {
             console.error('Failed to fetch reports:', error);
-            toast.error(error.message || 'Failed to load sales reports');
+            toast.error(error.message || t('stock.reports.sales.alerts.load_error'));
         } finally {
             setLoading(false);
         }
@@ -70,10 +72,10 @@ const SalesReports = () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Sales report exported successfully');
+            toast.success(t('stock.reports.sales.alerts.export_success'));
         } catch (error) {
             console.error('Export failed:', error);
-            toast.error('Failed to export sales report');
+            toast.error(t('stock.reports.sales.alerts.export_error'));
         } finally {
             setExporting(false);
         }
@@ -90,7 +92,7 @@ const SalesReports = () => {
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0 text-nowrap">Sales Reports</h4>
+                <h4 className="fw-bold mb-0 text-nowrap">{t('stock.reports.sales.title')}</h4>
                 <div className="d-flex gap-2 flex-grow-1 w-100 w-sm-auto justify-content-between justify-content-sm-end">
                     <Form.Select 
                         size="sm" 
@@ -99,10 +101,10 @@ const SalesReports = () => {
                         value={period}
                         onChange={handlePeriodChange}
                     >
-                        <option value="last_30_days">Last 30 Days</option>
-                        <option value="this_month">This Month</option>
-                        <option value="last_month">Last Month</option>
-                        <option value="this_year">This Year</option>
+                        <option value="last_30_days">{t('stock.reports.sales.period.last_30_days')}</option>
+                        <option value="this_month">{t('stock.reports.sales.period.this_month')}</option>
+                        <option value="last_month">{t('stock.reports.sales.period.last_month')}</option>
+                        <option value="this_year">{t('stock.reports.sales.period.this_year')}</option>
                     </Form.Select>
                     <Button 
                         variant="outline-primary" 
@@ -116,8 +118,8 @@ const SalesReports = () => {
                         ) : (
                             <Download size={16} />
                         )}
-                        <span className="d-none d-sm-inline">{exporting ? 'Exporting...' : 'Export CSV'}</span>
-                        <span className="d-inline d-sm-none">Export</span>
+                        <span className="d-none d-sm-inline">{exporting ? t('stock.reports.sales.exporting') : t('stock.reports.sales.export_csv')}</span>
+                        <span className="d-inline d-sm-none">{t('stock.reports.sales.export_short')}</span>
                     </Button>
                 </div>
             </div>
@@ -131,11 +133,11 @@ const SalesReports = () => {
                                 <div className="bg-success bg-opacity-10 p-2 rounded text-success">
                                     <IndianRupee size={20} />
                                 </div>
-                                <span className="text-muted small text-uppercase fw-bold">Total Revenue</span>
+                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.total_revenue')}</span>
                             </div>
                             <h4 className="fw-bold mb-0">{formatCurrency(data.stats.totalRevenue)}</h4>
                             <small className={data.stats.revenueGrowth >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}>
-                                {data.stats.revenueGrowth >= 0 ? '+' : ''}{data.stats.revenueGrowth}% from last period
+                                {data.stats.revenueGrowth >= 0 ? '+' : ''}{data.stats.revenueGrowth}% {t('stock.reports.sales.stats.growth_suffix')}
                             </small>
                         </Card.Body>
                     </Card>
@@ -147,11 +149,11 @@ const SalesReports = () => {
                                 <div className="bg-primary bg-opacity-10 p-2 rounded text-primary">
                                     <ShoppingBag size={20} />
                                 </div>
-                                <span className="text-muted small text-uppercase fw-bold">Total Orders</span>
+                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.total_orders')}</span>
                             </div>
                             <h4 className="fw-bold mb-0">{data.stats.totalOrders}</h4>
                             <small className={data.stats.ordersGrowth >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}>
-                                {data.stats.ordersGrowth >= 0 ? '+' : ''}{data.stats.ordersGrowth}% from last period
+                                {data.stats.ordersGrowth >= 0 ? '+' : ''}{data.stats.ordersGrowth}% {t('stock.reports.sales.stats.growth_suffix')}
                             </small>
                         </Card.Body>
                     </Card>
@@ -163,10 +165,10 @@ const SalesReports = () => {
                                 <div className="bg-warning bg-opacity-10 p-2 rounded text-warning">
                                     <TrendingUp size={20} />
                                 </div>
-                                <span className="text-muted small text-uppercase fw-bold">Avg Order Value</span>
+                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.avg_order_value')}</span>
                             </div>
                             <h4 className="fw-bold mb-0">{formatCurrency(data.stats.avgOrderValue)}</h4>
-                            <small className="text-muted">Standard period avg</small>
+                            <small className="text-muted">{t('stock.reports.sales.stats.standard_avg')}</small>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -177,10 +179,10 @@ const SalesReports = () => {
                                 <div className="bg-info bg-opacity-10 p-2 rounded text-info">
                                     <Calendar size={20} />
                                 </div>
-                                <span className="text-muted small text-uppercase fw-bold">Period Sales</span>
+                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.period_sales')}</span>
                             </div>
                             <h4 className="fw-bold mb-0">{formatCurrency(data.stats.periodSales)}</h4>
-                            <small className="text-muted">Currently viewing {period.replace(/_/g, ' ')}</small>
+                            <small className="text-muted">{t('stock.reports.sales.stats.currently_viewing', { period: t(`stock.reports.sales.period.${period}`) })}</small>
                         </Card.Body>
                     </Card>
                 </Col>
@@ -189,7 +191,7 @@ const SalesReports = () => {
             {/* Sales Table */}
             <Card className="border-0 shadow-sm min-vh-50">
                 <Card.Header className="bg-white py-3 border-0">
-                    <h6 className="mb-0 fw-bold">Recent Transactions</h6>
+                    <h6 className="mb-0 fw-bold">{t('stock.reports.sales.table.title')}</h6>
                 </Card.Header>
                 <Card.Body className="p-0 position-relative">
                     {loading && (
@@ -200,13 +202,13 @@ const SalesReports = () => {
                     <Table hover responsive className="mb-0 align-middle">
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Order ID</th>
-                                <th className="border-0 py-3">Date</th>
-                                <th className="border-0 py-3">Customer</th>
-                                <th className="border-0 py-3">Items</th>
-                                <th className="border-0 py-3">Payment</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3 text-end pe-4">Amount</th>
+                                <th className="ps-4 border-0 py-3">{t('stock.reports.sales.table.order_id')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.sales.table.date')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.sales.table.customer')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.sales.table.items')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.sales.table.payment')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.sales.table.status')}</th>
+                                <th className="border-0 py-3 text-end pe-4">{t('stock.reports.sales.table.amount')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -214,7 +216,7 @@ const SalesReports = () => {
                                 <tr>
                                     <td colSpan="7" className="text-center py-5">
                                         <AlertCircle size={40} className="text-muted opacity-25 mb-2" />
-                                        <p className="text-muted small mb-0">No transactions found for the selected period.</p>
+                                        <p className="text-muted small mb-0">{t('stock.reports.sales.table.no_transactions')}</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -223,7 +225,7 @@ const SalesReports = () => {
                                         <td className="ps-4 fw-bold text-primary">{order.id}</td>
                                         <td className="text-muted small">{order.date}</td>
                                         <td>{order.customer}</td>
-                                        <td>{order.items} Items</td>
+                                        <td>{t('stock.reports.sales.table.items_count', { count: order.items })}</td>
                                         <td>
                                             <span className="text-xs fw-medium px-2 py-1 bg-gray-100 rounded text-gray-600">
                                                 {order.payment}
@@ -250,7 +252,7 @@ const SalesReports = () => {
                 {data.pagination.total > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, data.pagination.total)}</span> of <span className="fw-semibold text-dark">{data.pagination.total}</span> orders
+                            {t('stock.reports.sales.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('stock.reports.sales.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, data.pagination.total)}</span> {t('stock.reports.sales.pagination.of')} <span className="fw-semibold text-dark">{data.pagination.total}</span> {t('stock.reports.sales.pagination.orders')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

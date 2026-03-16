@@ -62,7 +62,7 @@ const BranchStock = () => {
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, debouncedSearch, statusFilter, branchFilter]);
+    }, [adminUser.token, page, debouncedSearch, statusFilter, branchFilter, t]);
 
     useEffect(() => {
         fetchStock();

@@ -1555,6 +1555,246 @@
               "page": "Sector"
             },
             "error_load": "Failed to fetch node inventory"
+          },
+          "adjustments": {
+            "title": "Inventory Audit Trail",
+            "new_adjustment": "Manual Adjustment",
+            "loading": "Retrieving logs...",
+            "error_load": "Failed to load audit trail",
+            "unknown_product": "Unknown Asset",
+            "system_user": "System Auto",
+            "no_logs": "No inventory adjustments found",
+            "table": {
+              "id": "Log ID",
+              "date": "Timestamp",
+              "product": "Product",
+              "branch": "Node",
+              "type": "Logic",
+              "changed": "Delta",
+              "quantity": "Final",
+              "reason": "Context",
+              "user": "Auth"
+            },
+            "types": {
+              "addition": "Restock",
+              "deduction": "Manual Out",
+              "damage": "Log Loss",
+              "return": "Return",
+              "audit": "Set Exact",
+              "adjustment": "Generic"
+            },
+            "pagination": {
+              "showing": "Listing",
+              "to": "thru",
+              "of": "from",
+              "adjustments": "logs"
+            }
+          },
+          "add_adjustment": {
+            "title": "Initialize Inventory Proxy",
+            "subtitle": "Bulk re-allocation and state adjustment for physical assets.",
+            "preparing": "Building secure bridge...",
+            "step1": "Asset Selection",
+            "step2": "Logic Calibration",
+            "search_placeholder": "Search product grid...",
+            "selected_items": "{{count}} items in buffer",
+            "set_common_qty": "Apply global delta",
+            "qty_placeholder": "Qty",
+            "target_branch": "Deployment Node",
+            "select_branch": "Choose destination node",
+            "adjustment_type": "Adjustment Logic",
+            "reason": "Calibration Context",
+            "select_reason": "Select context...",
+            "notes": "Operation Logs",
+            "notes_placeholder": "Enter additional operational context...",
+            "processing": "Transmitting...",
+            "submit_btn": "Commit {{count}} Adjustments",
+            "cancel": "Abort",
+            "reasons": {
+              "arrival": "New Deployment",
+              "damaged": "Physical Damage",
+              "correction": "Grid Correction",
+              "return": "Recall / Return",
+              "loss": "Untracked Loss",
+              "audit": "Scheduled Audit",
+              "other": "Manual Override"
+            },
+            "table": {
+              "product": "Asset",
+              "quantity": "Delta",
+              "remove": "Rem"
+            },
+            "alerts": {
+              "load_error": "Fault in data retrieval",
+              "validation": "Selection incomplete",
+              "qty_required": "Non-zero delta required for this logic",
+              "success": "Inventory state committed",
+              "error": "Fault in transmission"
+            }
+          },
+          "requests": {
+            "title": "Internal Resource Requests",
+            "subtitle": "Review and authorize cross-node inventory movements.",
+            "search_placeholder": "Filter by node or asset...",
+            "refresh": "Sync Requests",
+            "loading": "Accessing request queue...",
+            "no_requests": "No pending resource authorizations",
+            "table": {
+              "product": "Asset",
+              "branch": "Requesting Node",
+              "adjustment": "State Delta",
+              "status": "Auth State",
+              "actions": "Cmd",
+              "sku": "SKU",
+              "by": "Requester",
+              "reviewed_by": "Authorized by"
+            },
+            "alerts": {
+              "fetch_error": "Fault in request retrieval",
+              "approve_success": "Resource movement authorized",
+              "approve_error": "Authorization fault",
+              "reject_confirm": "Confirm resource request denial?",
+              "reject_success": "Resource request denied",
+              "reject_error": "Denial fault"
+            }
+          },
+          "reports": {
+            "inventory": {
+              "title": "Inventory Reports",
+              "subtitle": "Unified cross-store stock monitoring and replenishment analytics.",
+              "out_of_stock_btn": "Out of Stock ({{count}})",
+              "low_stock_btn": "Low Stock ({{count}})",
+              "export_report": "Export Report",
+              "exporting": "Exporting...",
+              "table_title": "Current Stock Levels",
+              "search_placeholder": "Search by product name or SKU...",
+              "filter": "Filter",
+              "filter_menu": {
+                "title": "Filter Reports",
+                "category_label": "By Category",
+                "all_categories": "All Categories",
+                "source_label": "Source (Branch/Vendor)",
+                "all_sources": "All Sources (Global)",
+                "branches_group": "Branches",
+                "vendors_group": "Vendors",
+                "status_label": "Stock Status",
+                "all_items": "All Items",
+                "in_stock": "In Stock",
+                "low_stock_only": "Low Stock Only",
+                "out_of_stock": "Out of Stock",
+                "clear_filters": "Clear All Filters"
+              },
+              "table": {
+                "product": "Product",
+                "vendor_source": "Vendor/Source",
+                "category": "Category",
+                "stock_level": "Stock Level",
+                "reorder_point": "Reorder Point",
+                "status": "Status",
+                "units": "units",
+                "no_data": "No inventory data found matching your criteria."
+              },
+              "pagination": {
+                "showing": "Showing",
+                "to": "to",
+                "of": "of",
+                "products": "products"
+              },
+              "alerts": {
+                "export_success": "Inventory report exported",
+                "export_error": "Failed to export report"
+              }
+            },
+            "sales": {
+              "title": "Sales Reports",
+              "period": {
+                "last_30_days": "Last 30 Days",
+                "this_month": "This Month",
+                "last_month": "Last Month",
+                "this_year": "This Year"
+              },
+              "export_csv": "Export CSV",
+              "exporting": "Exporting...",
+              "export_short": "Export",
+              "stats": {
+                "total_revenue": "Total Revenue",
+                "total_orders": "Total Orders",
+                "avg_order_value": "Avg Order Value",
+                "period_sales": "Period Sales",
+                "growth_suffix": "from last period",
+                "standard_avg": "Standard period avg",
+                "currently_viewing": "Currently viewing {{period}}"
+              },
+              "table": {
+                "title": "Recent Transactions",
+                "order_id": "Order ID",
+                "date": "Date",
+                "customer": "Customer",
+                "items": "Items",
+                "items_count": "{{count}} Items",
+                "payment": "Payment",
+                "status": "Status",
+                "amount": "Amount",
+                "no_transactions": "No transactions found for the selected period."
+              },
+              "pagination": {
+                "showing": "Showing",
+                "to": "to",
+                "of": "of",
+                "orders": "orders"
+              },
+              "alerts": {
+                "export_success": "Sales report exported successfully",
+                "export_error": "Failed to export sales report",
+                "load_error": "Failed to load sales reports"
+              }
+            },
+            "vendors": {
+              "title": "Vendor Performance Reports",
+              "subtitle": "Evaluate your vendor partners based on inventory and sales metrics.",
+              "export_report": "Export Report",
+              "exporting": "Exporting...",
+              "table": {
+                "title": "Vendor Performance Directory",
+                "search_placeholder": "Search by vendor store name...",
+                "vendor_store": "Vendor Store",
+                "contact_details": "Contact Details",
+                "products": "Products",
+                "total_sales": "Total Sales",
+                "member_since": "Member Since",
+                "status": "Status",
+                "actions": "Actions",
+                "items_count": "{{count}} Items",
+                "orders_count": "{{count}} Orders",
+                "view_stats": "View Stats",
+                "no_data": "No vendor performance data found."
+              },
+              "performance_modal": {
+                "id": "ID",
+                "lifetime_sales": "Lifetime Sales",
+                "catalog_size": "Catalog Size",
+                "items": "Items",
+                "admin_details": "Administrative Details",
+                "store_owner": "Store Owner",
+                "onboarded_on": "Onboarded On",
+                "phone_number": "Phone Number",
+                "total_orders": "Total Orders",
+                "status_msg": "This vendor account is currently {{status}} in the SaathiGrow network.",
+                "close": "Close",
+                "refresh_stats": "Refresh Stats"
+              },
+              "pagination": {
+                "showing": "Showing",
+                "to": "to",
+                "of": "of",
+                "vendors": "vendors"
+              },
+              "alerts": {
+                "fetch_error": "Failed to fetch vendor reports",
+                "export_success": "Vendor report exported successfully",
+                "export_error": "Failed to export report"
+              }
+            }
           }
         }
       }

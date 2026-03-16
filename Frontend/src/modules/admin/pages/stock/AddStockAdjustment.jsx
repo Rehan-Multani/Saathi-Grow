@@ -61,14 +61,11 @@ const AddStockAdjustment = () => {
         };
 
         if (adminUser?.token) fetchInitialData();
-    }, [adminUser]);
+    }, [adminUser, t]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        
-        // If changing common amount, update all individual ones that aren't set?
-        // Or just let individual ones override.
     };
 
     const handleProductSelect = (event, newValue) => {
@@ -131,11 +128,6 @@ const AddStockAdjustment = () => {
             </div>
         );
     }
-
-    // Filter branches based on selected products (only show branches that all selected products are in)
-    // Or simpler: Show all branches, backend will handle or push if missing.
-    // The user wants "admin ka kam asan ho", usually they pick a branch first then products.
-    // Let's allow picking any active branch.
 
     return (
         <div className="p-3">
@@ -210,15 +202,15 @@ const AddStockAdjustment = () => {
                                                     {selectedProducts.map(p => (
                                                         <tr key={p._id}>
                                                             <td className="ps-3">
-                                                                <div className="d-flex align-items-center gap-2">
-                                                                    <div className="rounded bg-light border p-1">
-                                                                         <img src={p.image || '/placeholder.png'} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-                                                                    </div>
-                                                                    <div>
-                                                                        <div className="fw-bold small">{p.name}</div>
-                                                                        <div className="extra-small text-muted">{p.sku}</div>
-                                                                    </div>
-                                                                </div>
+                                                                 <div className="d-flex align-items-center gap-2">
+                                                                     <div className="rounded bg-light border p-1">
+                                                                          <img src={p.image || '/placeholder.png'} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+                                                                     </div>
+                                                                     <div>
+                                                                         <div className="fw-bold small">{p.name}</div>
+                                                                         <div className="extra-small text-muted">{p.sku}</div>
+                                                                     </div>
+                                                                 </div>
                                                             </td>
                                                             <td className="text-center" style={{ width: '120px' }}>
                                                                 <Form.Control 
@@ -296,9 +288,6 @@ const AddStockAdjustment = () => {
                                     >
                                         <option value="">{t('stock.add_adjustment.select_reason')}</option>
                                         {REASONS.map((r, idx) => {
-                                            const reasonKey = r.toLowerCase().replace(/[\s\/]/g, '_');
-                                            // Mapping hardcoded reasons to keys if I want, or just translation call with generic map
-                                            // Let's use a mapping object for safety
                                             const map = {
                                                 'new stock arrival': 'arrival',
                                                 'damaged goods': 'damaged',

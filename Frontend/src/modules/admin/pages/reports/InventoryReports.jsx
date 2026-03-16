@@ -7,8 +7,10 @@ import { getBranches } from '../../api/branchApi';
 import { getVendors } from '../../api/vendorApi';
 import { getCategories } from '../../api/categoryApi';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const InventoryReports = () => {
+    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -118,10 +120,10 @@ const InventoryReports = () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Inventory report exported');
+            toast.success(t('stock.reports.inventory.alerts.export_success'));
         } catch (error) {
             console.error('Export failed:', error);
-            toast.error('Failed to export report');
+            toast.error(t('stock.reports.inventory.alerts.export_error'));
         } finally {
             setExporting(false);
         }
@@ -151,8 +153,8 @@ const InventoryReports = () => {
                         <ShoppingBag size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark">Inventory Reports</h4>
-                        <p className="text-muted small mb-0 d-none d-sm-block">Unified cross-store stock monitoring and replenishment analytics.</p>
+                        <h4 className="fw-bold mb-1 text-dark">{t('stock.reports.inventory.title')}</h4>
+                        <p className="text-muted small mb-0 d-none d-sm-block">{t('stock.reports.inventory.subtitle')}</p>
                     </div>
                 </div>
 
@@ -163,7 +165,7 @@ const InventoryReports = () => {
                         className={`d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-3 ${stockStatus === 'Out of Stock' ? 'active shadow-none bg-danger text-white' : ''}`}
                         onClick={() => setStockStatus(stockStatus === 'Out of Stock' ? '' : 'Out of Stock')}
                     >
-                        <X size={16} /> <span>Out of Stock ({summary.outOfStockCount})</span>
+                        <X size={16} /> <span>{t('stock.reports.inventory.out_of_stock_btn', { count: summary.outOfStockCount })}</span>
                     </Button>
                     <Button 
                         variant="outline-warning" 
@@ -171,7 +173,7 @@ const InventoryReports = () => {
                         className={`d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-3 ${stockStatus === 'Low Stock' ? 'active shadow-none bg-warning text-dark' : ''}`}
                         onClick={() => setStockStatus(stockStatus === 'Low Stock' ? '' : 'Low Stock')}
                     >
-                        <AlertTriangle size={16} /> <span>Low Stock ({summary.lowStockCount})</span>
+                        <AlertTriangle size={16} /> <span>{t('stock.reports.inventory.low_stock_btn', { count: summary.lowStockCount })}</span>
                     </Button>
                     <Button 
                         variant="primary" 
@@ -181,7 +183,7 @@ const InventoryReports = () => {
                         disabled={exporting}
                     >
                         {exporting ? <Spinner animation="border" size="sm" /> : <Download size={16} />}
-                        <span>{exporting ? 'Exporting...' : 'Export Report'}</span>
+                        <span>{exporting ? t('stock.reports.inventory.exporting') : t('stock.reports.inventory.export_report')}</span>
                     </Button>
                 </div>
             </div>
@@ -190,7 +192,7 @@ const InventoryReports = () => {
             <Card className="border-0 shadow-sm">
                 <Card.Header className="bg-white py-3 border-0">
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                        <h6 className="mb-0 fw-bold">Current Stock Levels</h6>
+                        <h6 className="mb-0 fw-bold">{t('stock.reports.inventory.table_title')}</h6>
                         <div className="d-flex flex-column flex-sm-row gap-3 w-100 w-md-auto align-items-stretch">
                             <div className="flex-grow-1" style={{ maxWidth: '400px' }}>
                                 <InputGroup className="bg-light rounded-3 overflow-hidden border-0">
@@ -198,7 +200,7 @@ const InventoryReports = () => {
                                         <Search size={18} />
                                     </InputGroup.Text>
                                     <Form.Control
-                                        placeholder="Search by product name or SKU..."
+                                        placeholder={t('stock.reports.inventory.search_placeholder')}
                                         className="bg-light border-0 ps-1 py-2 shadow-none font-small"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -214,7 +216,7 @@ const InventoryReports = () => {
                                     onClick={() => setShowFilterMenu(!showFilterMenu)}
                                 >
                                     <Filter size={18} />
-                                    <span>Filter</span>
+                                    <span>{t('stock.reports.inventory.filter')}</span>
                                     {(selectedCategory || selectedSource.id || stockStatus) && (
                                         <Badge bg="white" text="primary" pill className="ms-1 small">!</Badge>
                                     )}
@@ -228,27 +230,27 @@ const InventoryReports = () => {
                                             right: '0'
                                         }}>
                                         <div className="d-flex justify-content-between align-items-center mb-3">
-                                            <h6 className="mb-0 fw-bold small text-uppercase text-muted letter-spacing-wider">Filter Reports</h6>
+                                            <h6 className="mb-0 fw-bold small text-uppercase text-muted letter-spacing-wider">{t('stock.reports.inventory.filter_menu.title')}</h6>
                                             <Button variant="link" className="p-0 text-muted" onClick={() => setShowFilterMenu(false)}>
                                                 <X size={18} />
                                             </Button>
                                         </div>
 
                                         <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">By Category</Form.Label>
+                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">{t('stock.reports.inventory.filter_menu.category_label')}</Form.Label>
                                             <Form.Select
                                                 size="sm"
                                                 className="bg-light border-0 py-2 shadow-none"
                                                 value={selectedCategory}
                                                 onChange={(e) => setSelectedCategory(e.target.value)}
                                             >
-                                                <option value="">All Categories</option>
+                                                <option value="">{t('stock.reports.inventory.filter_menu.all_categories')}</option>
                                                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                             </Form.Select>
                                         </div>
 
                                         <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Source (Branch/Vendor)</Form.Label>
+                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">{t('stock.reports.inventory.filter_menu.source_label')}</Form.Label>
                                             <Form.Select
                                                 size="sm"
                                                 className="bg-light border-0 py-2 shadow-none"
@@ -258,13 +260,13 @@ const InventoryReports = () => {
                                                     setSelectedSource({ id: id || '', type: type || '' });
                                                 }}
                                             >
-                                                <option value="|">All Sources (Global)</option>
-                                                <optgroup label="Branches">
+                                                <option value="|">{t('stock.reports.inventory.filter_menu.all_sources')}</option>
+                                                <optgroup label={t('stock.reports.inventory.filter_menu.branches_group')}>
                                                     {sourceOptions.filter(s => s.type === 'branch').map(s => (
                                                         <option key={s.id} value={`${s.id}|${s.type}`}>🏪 {s.name}</option>
                                                     ))}
                                                 </optgroup>
-                                                <optgroup label="Vendors">
+                                                <optgroup label={t('stock.reports.inventory.filter_menu.vendors_group')}>
                                                     {sourceOptions.filter(s => s.type === 'vendor').map(s => (
                                                         <option key={s.id} value={`${s.id}|${s.type}`}>🚚 {s.name}</option>
                                                     ))}
@@ -273,17 +275,17 @@ const InventoryReports = () => {
                                         </div>
 
                                         <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">Stock Status</Form.Label>
+                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">{t('stock.reports.inventory.filter_menu.status_label')}</Form.Label>
                                             <Form.Select
                                                 size="sm"
                                                 className="bg-light border-0 py-2 shadow-none"
                                                 value={stockStatus}
                                                 onChange={(e) => setStockStatus(e.target.value)}
                                             >
-                                                <option value="">All Items</option>
-                                                <option value="In Stock">In Stock</option>
-                                                <option value="Low Stock">Low Stock Only</option>
-                                                <option value="Out of Stock">Out of Stock</option>
+                                                <option value="">{t('stock.reports.inventory.filter_menu.all_items')}</option>
+                                                <option value="In Stock">{t('stock.reports.inventory.filter_menu.in_stock')}</option>
+                                                <option value="Low Stock">{t('stock.reports.inventory.filter_menu.low_stock_only')}</option>
+                                                <option value="Out of Stock">{t('stock.reports.inventory.filter_menu.out_of_stock')}</option>
                                             </Form.Select>
                                         </div>
 
@@ -293,7 +295,7 @@ const InventoryReports = () => {
                                                 className="w-100 p-0 text-danger small text-decoration-none border-top pt-2 mt-2"
                                                 onClick={clearFilters}
                                             >
-                                                Clear All Filters
+                                                {t('stock.reports.inventory.filter_menu.clear_filters')}
                                             </Button>
                                         )}
                                     </div>
@@ -311,12 +313,12 @@ const InventoryReports = () => {
                     <Table hover responsive className={`mb-0 align-middle ${loading ? 'opacity-50' : ''}`}>
                         <thead className="bg-light text-muted small text-uppercase">
                             <tr>
-                                <th className="ps-4 border-0 py-3">Product</th>
-                                <th className="border-0 py-3">Vendor/Source</th>
-                                <th className="border-0 py-3">Category</th>
-                                <th className="border-0 py-3" style={{ width: '200px' }}>Stock Level</th>
-                                <th className="border-0 py-3 text-center">Reorder Point</th>
-                                <th className="border-0 py-3 text-end pe-4">Status</th>
+                                <th className="ps-4 border-0 py-3">{t('stock.reports.inventory.table.product')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.inventory.table.vendor_source')}</th>
+                                <th className="border-0 py-3">{t('stock.reports.inventory.table.category')}</th>
+                                <th className="border-0 py-3" style={{ width: '200px' }}>{t('stock.reports.inventory.table.stock_level')}</th>
+                                <th className="border-0 py-3 text-center">{t('stock.reports.inventory.table.reorder_point')}</th>
+                                <th className="border-0 py-3 text-end pe-4">{t('stock.reports.inventory.table.status')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -344,7 +346,7 @@ const InventoryReports = () => {
                                             <span className="small fw-bold">{item.stock} {item.unitType}</span>
                                         </div>
                                     </td>
-                                    <td className="text-center text-muted small">{item.reorderLevel} units</td>
+                                    <td className="text-center text-muted small">{item.reorderLevel} {t('stock.reports.inventory.table.units')}</td>
                                     <td className="text-end pe-4">
                                         <Badge
                                             bg={getStatusVariant(item.status)}
@@ -357,7 +359,7 @@ const InventoryReports = () => {
                             )) : !loading && (
                                 <tr>
                                     <td colSpan="6" className="text-center py-5 text-muted">
-                                        No inventory data found matching your criteria.
+                                        {t('stock.reports.inventory.table.no_data')}
                                     </td>
                                 </tr>
                             )}
@@ -369,7 +371,7 @@ const InventoryReports = () => {
                 {totalItems > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalItems)}</span> of <span className="fw-semibold text-dark">{totalItems}</span> products
+                            {t('stock.reports.inventory.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('stock.reports.inventory.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalItems)}</span> {t('stock.reports.inventory.pagination.of')} <span className="fw-semibold text-dark">{totalItems}</span> {t('stock.reports.inventory.pagination.products')}
                         </div>
                         <div className="d-flex align-items-center gap-2">
                             <Button

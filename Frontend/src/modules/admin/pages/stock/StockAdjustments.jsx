@@ -26,7 +26,6 @@ const StockAdjustments = () => {
                     setLogs(data.logs);
                     setPagination(data.pagination);
                 } else {
-                    // Logic for old API if needed, but we updated it
                     setLogs(data);
                 }
             } catch (error) {
@@ -38,7 +37,7 @@ const StockAdjustments = () => {
         };
 
         fetchLogs();
-    }, [adminUser, page]);
+    }, [adminUser, page, t]);
 
     return (
         <div className="p-3">
@@ -127,7 +126,6 @@ const StockAdjustments = () => {
                     </Table>
                 </Card.Body>
 
-                {/* Pagination Controls */}
                 {!loading && pagination.total > 0 && (
                     <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
                         <div className="text-secondary small">

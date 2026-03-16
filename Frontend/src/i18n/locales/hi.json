@@ -1554,8 +1554,202 @@
             "page": "सेक्टर"
           },
           "error_load": "नोड इन्वेंटरी लाने में विफल"
+        },
+        "adjustments": {
+          "title": "इन्वेंट्री ऑडिट ट्रेल",
+          "new_adjustment": "मैनुअल समायोजन",
+          "loading": "लॉग प्राप्त किए जा रहे हैं...",
+          "error_load": "ऑडिट ट्रेल लोड करने में विफल",
+          "unknown_product": "अज्ञात उत्पाद",
+          "system_user": "सिस्टम ऑटो",
+          "no_logs": "कोई इन्वेंट्री समायोजन नहीं मिला",
+          "table": {
+            "id": "लॉग आईडी",
+            "date": "समय",
+            "product": "उत्पाद",
+            "branch": "नोड",
+            "type": "तर्क",
+            "changed": "परिवर्तन",
+            "quantity": "अंतिम",
+            "reason": "संदर्भ",
+            "user": "प्राधिकरण"
+          },
+          "types": {
+            "addition": "स्टॉक जोड़ें",
+            "deduction": "मैनुअल घटाएं",
+            "damage": "क्षति लॉग",
+            "return": "वापसी",
+            "audit": "सटीक सेट करें",
+            "adjustment": "सामान्य"
+          },
+          "pagination": {
+            "showing": "सूचीबद्ध",
+            "to": "से",
+            "of": "कुल",
+            "adjustments": "लॉग"
+          }
+        },
+        "add_adjustment": {
+          "title": "इन्वेंट्री प्रॉक्सी आरंभ करें",
+          "subtitle": "भौतिक संपत्तियों के लिए थोक पुनरालोकेशन और स्थिति समायोजन।",
+          "preparing": "सुरक्षित ब्रिज बनाया जा रहा है...",
+          "step1": "संपत्ति चयन",
+          "step2": "तर्क अंशांकन",
+          "search_placeholder": "उत्पाद ग्रिड खोजें...",
+          "selected_items": "बफर में {{count}} आइटम",
+          "set_common_qty": "ग्लोबल डेल्टा लागू करें",
+          "qty_placeholder": "मात्रा",
+          "target_branch": "तैनाती नोड",
+          "select_branch": "गंतव्य नोड चुनें",
+          "adjustment_type": "समायोजन तर्क",
+          "reason": "अंशांकन संदर्भ",
+          "select_reason": "संदर्भ चुनें...",
+          "notes": "संचालन लॉग",
+          "notes_placeholder": "अतिरिक्त परिचालन संदर्भ दर्ज करें...",
+          "processing": "प्रसारित किया जा रहा है...",
+          "submit_btn": "{{count}} समायोजन प्रतिबद्ध करें",
+          "cancel": "रद्द करें",
+          "reasons": {
+            "arrival": "नई तैनाती",
+            "damaged": "भौतिक क्षति",
+            "correction": "ग्रिड सुधार",
+            "return": "वापसी / रिकॉल",
+            "loss": "बिना ट्रैक की गई हानि",
+            "audit": "नियत ऑडिट",
+            "other": "मैनुअल ओवरराइड"
+          },
+          "table": {
+            "product": "संपत्ति",
+            "quantity": "परिवर्तन",
+            "remove": "हटाएं"
+          },
+          "alerts": {
+            "load_error": "डेटा पुनर्प्राप्ति में खराबी",
+            "validation": "चयन अधूरा",
+            "qty_required": "इस तर्क के लिए गैर-शून्य डेल्टा आवश्यक है",
+            "success": "इन्वेंट्री स्थिति प्रतिबद्ध की गई",
+            "error": "प्रसारण में खराबी"
+          }
+        },
+        "requests": {
+          "title": "आंतरिक संसाधन अनुरोध",
+          "subtitle": "क्रॉस-नोड इन्वेंट्री मूवमेंट की समीक्षा और प्राधिकरण करें।",
+          "search_placeholder": "नोड या संपत्ति द्वारा फ़िल्टर करें...",
+          "refresh": "अनुरोध सिंक करें",
+          "loading": "अनुरोध कतार तक पहुँच रहे हैं...",
+          "no_requests": "कोई लंबित संसाधन प्राधिकरण नहीं",
+          "table": {
+            "product": "संपत्ति",
+            "branch": "अनुरोध करने वाला नोड",
+            "adjustment": "स्थिति डेल्टा",
+            "status": "प्राधिकरण स्थिति",
+            "actions": "कमांड",
+            "sku": "SKU",
+            "by": "अनुरोधकर्ता",
+            "reviewed_by": "द्वारा अधिकृत"
+          },
+          "alerts": {
+            "fetch_error": "अनुरोध पुनर्प्राप्ति में खराबी",
+            "approve_success": "संसाधन आंदोलन अधिकृत",
+            "approve_error": "प्राधिकरण खराबी",
+            "reject_confirm": "संसाधन अनुरोध अस्वीकार करने की पुष्टि करें?",
+            "reject_success": "संसाधन अनुरोध अस्वीकार कर दिया गया",
+            "reject_error": "अस्वीकार खराबी"
+            }
+          },
+          "reports": {
+            "inventory": {
+              "title": "इन्वेंट्री रिपोर्ट्स",
+              "subtitle": "यूनिफाइड क्रॉस-स्टोर स्टॉक मॉनिटरिंग और पुनःपूर्ति एनालिटिक्स।",
+              "out_of_stock_btn": "स्टॉक में नहीं ({{count}})",
+              "low_stock_btn": "कम स्टॉक ({{count}})",
+              "export_report": "रिपोर्ट निर्यात करें",
+              "exporting": "निर्यात हो रहा है...",
+              "table_title": "वर्तमान स्टॉक स्तर",
+              "search_placeholder": "उत्पाद का नाम या SKU द्वारा खोजें...",
+              "filter": "फ़िल्टर",
+              "filter_menu": {
+                "title": "फ़िल्टर रिपोर्ट्स",
+                "category_label": "श्रेणी द्वारा",
+                "all_categories": "सभी श्रेणियां",
+                "source_label": "स्रोत (शाखा/विक्रेता)",
+                "all_sources": "सभी स्रोत (वैश्विक)",
+                "branches_group": "शाखाएं",
+                "vendors_group": "विक्रेता",
+                "status_label": "स्टॉक स्थिति",
+                "all_items": "सभी आइटम",
+                "in_stock": "स्टॉक में",
+                "low_stock_only": "केवल कम स्टॉक",
+                "out_of_stock": "स्टॉक में नहीं",
+                "clear_filters": "सभी फ़िल्टर हटाएँ"
+              },
+              "table": {
+                "product": "उत्पाद",
+                "vendor_source": "विक्रेता/स्रोत",
+                "category": "श्रेणी",
+                "stock_level": "स्टॉक स्तर",
+                "reorder_point": "रीऑर्डर पॉइंट",
+                "status": "स्थिति",
+                "units": "इकाइयाँ",
+                "no_data": "आपके मानदंडों से मेल खाने वाला कोई इन्वेंट्री डेटा नहीं मिला।"
+              },
+              "pagination": {
+                "showing": "दिखा रहा है",
+                "to": "से",
+                "of": "का",
+                "products": "उत्पाद"
+              },
+              "alerts": {
+                "export_success": "इन्वेंट्री रिपोर्ट निर्यात की गई",
+                "export_error": "रिपोर्ट निर्यात करने में विफल"
+              }
+            },
+            "sales": {
+              "title": "बिक्री रिपोर्ट्स",
+              "period": {
+                "last_30_days": "पिछले 30 दिन",
+                "this_month": "इस महीने",
+                "last_month": "पिछले महीने",
+                "this_year": "इस साल"
+              },
+              "export_csv": "CSV निर्यात करें",
+              "exporting": "निर्यात हो रहा है...",
+              "export_short": "निर्यात",
+              "stats": {
+                "total_revenue": "कुल राजस्व",
+                "total_orders": "कुल ऑर्डर",
+                "avg_order_value": "औसत ऑर्डर मूल्य",
+                "period_sales": "अवधि की बिक्री",
+                "growth_suffix": "पिछली अवधि से",
+                "standard_avg": "मानक अवधि औसत",
+                "currently_viewing": "वर्तमान में {{period}} देख रहे हैं"
+              },
+              "table": {
+                "title": "हाल के लेनदेन",
+                "order_id": "ऑर्डर आईडी",
+                "date": "तारीख",
+                "customer": "ग्राहक",
+                "items": "आइटम",
+                "items_count": "{{count}} आइटम",
+                "payment": "भुगतान",
+                "status": "स्थिति",
+                "amount": "राशि",
+                "no_transactions": "चयनित अवधि के लिए कोई लेनदेन नहीं मिला।"
+              },
+              "pagination": {
+                "showing": "दिखा रहा है",
+                "to": "से",
+                "of": "का",
+                "orders": "ऑर्डर"
+              },
+              "alerts": {
+                "export_success": "बिक्री रिपोर्ट सफलतापूर्वक निर्यात की गई",
+                "export_error": "बिक्री रिपोर्ट निर्यात करने में विफल",
+                "load_error": "बिक्री रिपोर्ट लोड करने में विफल"
+              }
+            }
+          }
         }
-      }
     }
   }
 }
