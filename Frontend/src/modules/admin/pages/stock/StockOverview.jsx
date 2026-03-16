@@ -31,9 +31,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 
-const { t } = useTranslation();
-const { adminUser } = useAdminAuth();
-const navigate = useNavigate();
+const StockOverview = () => {
+    const { t } = useTranslation();
+    const { adminUser } = useAdminAuth();
+    const navigate = useNavigate();
 const [loading, setLoading] = useState(true);
 const [refreshing, setRefreshing] = useState(false);
 const [branches, setBranches] = useState([]);
@@ -81,12 +82,14 @@ const formatCurrency = (val) => {
     }).format(val);
 };
 
-return (
-    <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3 text-muted fw-medium animate-pulse">{t('stock.overview.syncing')}</p>
-    </div>
-);
+    if (loading) {
+        return (
+            <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-3 text-muted fw-medium animate-pulse">{t('stock.overview.syncing')}</p>
+            </div>
+        );
+    }
 
 return (
     <div className="p-3">
@@ -361,7 +364,7 @@ return (
         </Row>
     </div>
 );
-
+};
 
 export default StockOverview;
 
