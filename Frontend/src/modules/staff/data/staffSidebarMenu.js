@@ -1,9 +1,9 @@
-﻿export const staffSidebarMenu = [
+export const staffSidebarMenu = [
     {
         title: 'Dashboard',
         path: '/staff/dashboard',
         icon: 'LayoutDashboard',
-        permission: 'VIEW_DASHBOARD'
+        permission: null
     },
     {
         title: 'POS Billing',
@@ -48,12 +48,12 @@
         title: 'Staff Management',
         path: '/staff/staff',
         icon: 'UserPlus',
-        permission: 'MANAGE_STAFF'
+        permission: null
     },
     {
         title: 'Policies & Legal',
         path: '/staff/legal',
         icon: 'Shield',
-        permission: 'VIEW_DASHBOARD'
+        permission: null
     }
 ];

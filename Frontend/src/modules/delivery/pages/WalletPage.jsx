@@ -1,214 +1,249 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
     Wallet,
-    ArrowUpRight,
     ArrowDownLeft,
     TrendingUp,
-    CreditCard,
-    DollarSign,
     ChevronRight,
-    Search,
-    Loader2,
     HelpCircle,
     Check,
-    History,
-    FileDown
+    FileDown,
+    ShieldAlert,
+    Clock,
+    UserCheck,
+    ArrowUpFromLine
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import useDelivery from '../hooks/useDelivery';
 import useDeliveryStore from '../store/deliveryStore';
+import { formatCurrency } from '../../vendor/utils/formatDate';
 
 const WalletPage = () => {
     const { token } = useDeliveryStore();
-    const { wallet, transactions = [], stats, loading, profile } = useDelivery();
+    const { wallet, transactions = [], stats, profile } = useDelivery();
 
     const handleExport = () => {
-        const toastId = toast.loading("Preparing financial report...");
+        const toastId = toast.loading("Processing tactical audit...");
         setTimeout(() => {
-            const csvContent = "date,category,type,amount,status\n" +
-                transactions.map(tx => `${new Date(tx.createdAt).toLocaleDateString()},${tx.category},${tx.type},${tx.amount},${tx.status}`).join("\n");
+            const csvContent = "date,order,type,amount,status\n" +
+                transactions.map(tx => `${new Date(tx.createdAt).toLocaleDateString()},${tx.order?.orderId || 'N/A'},${tx.type},${tx.amount},${tx.status}`).join("\n");
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `cash_collection_report_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute("download", `cash_audit_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            toast.update(toastId, { render: "Report downloaded successfully", type: "success", isLoading: false, autoClose: 2000 });
-        }, 1500);
+            toast.update(toastId, { render: "Audit Log Downloaded", type: "success", isLoading: false, autoClose: 2000 });
+        }, 1200);
     };
 
+    const cashLiability = wallet?.balance || 0;
+    const liabilityLimit = 10000;
+    const liabilityProgress = Math.min((cashLiability / liabilityLimit) * 100, 100);
+
     return (
-        <div className="space-y-4 md:space-y-6 pb-10">
-            {/* Header - Compact */}
-            <div className="flex justify-between items-center">
+        <div className="max-w-[1200px] mx-auto space-y-8 pb-32">
+            {/* Professional Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-zinc-100">Cash Collection</h1>
-                    <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] mt-0.5">Physical Settlement Control</p>
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                        <div className="p-2 bg-slate-900 text-white rounded-xl">
+                            <Wallet size={20} />
+                        </div>
+                        Cash Management Core
+                    </h1>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Personnel Liability & Collection Control</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800/60 shadow-sm active:scale-95 transition-all">
-                        <HelpCircle size={16} md:size={18} className="text-slate-400" />
-                    </button>
-                </div>
+                <button 
+                    onClick={handleExport}
+                    className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-900 hover:shadow-md transition-all active:scale-95"
+                >
+                    <FileDown size={14} />
+                    Audit Export
+                </button>
             </div>
 
-            {/* Virtual Wallet Card - Slim & Premium */}
-            <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-[#028A0F] max-w-xl mx-auto rounded-3xl md:rounded-[2.5rem] p-4 md:p-5 text-white shadow-2xl shadow-[#028A0F]/20 relative overflow-hidden group"
-            >
-                {/* Abstract Glass decoration */}
-                <div className="absolute top-0 right-0 w-48 h-48 md:w-64 md:h-64 bg-[#028A0F]/10 rounded-full -mr-24 md:-mr-32 -mt-24 md:-mt-32 blur-3xl group-hover:bg-[#028A0F]/20 transition-colors duration-700"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 md:w-32 md:h-32 bg-sky-500/5 rounded-full -ml-12 md:-ml-16 -mb-12 md:-mb-16 blur-2xl"></div>
-
-                <div className="relative z-10 space-y-5 md:space-y-8">
-                    <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2 md:gap-3">
-                            <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/20">
-                                <Wallet size={16} md:size={18} className="text-white" />
-                            </div>
-                            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/60">Tactical pay</span>
-                        </div>
-                        <img
-                            src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
-                            alt="visa"
-                            className="h-2.5 md:h-3 opacity-30 invert"
-                        />
-                    </div>
-
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
-                        <div>
-                            <p className="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-1 md:mb-1.5 ">Pending Deposit to Admin</p>
-                            <div className="flex items-baseline gap-1 md:gap-1.5">
-                                <span className="text-xl md:text-2xl font-bold text-white tracking-tight">₹</span>
-                                <h2 className="text-3xl md:text-5xl font-black tracking-tighter">
-                                    {(wallet?.balance || 0).toFixed(2)}
-                                </h2>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pt-6 border-t border-white/5 flex justify-between items-center">
-                        <div className="flex gap-8">
-                            <div>
-                                <p className="text-[8px] font-black uppercase tracking-widest text-white/50 mb-1">Status</p>
-                                <p className="text-xs font-bold text-white tracking-widest">Awaiting Settlement</p>
-                            </div>
-                            <div>
-                                <p className="text-[8px] font-black uppercase tracking-widest text-white/50 mb-1">Rider ID</p>
-                                <p className="text-xs font-bold text-white tracking-widest">{profile?.uniqueId || 'N/A'}</p>
-                            </div>
-                        </div>
-                        <div className="w-10 h-10 border border-white/5 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <TrendingUp size={18} className="text-white/30" />
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* Quick Stats Grid - High Density */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                <div className="bg-white dark:bg-zinc-900 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1 md:gap-1.5">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Today Collected</p>
-                    <h4 className="text-base md:text-lg font-black text-slate-800 dark:text-zinc-100">₹{stats?.todayEarnings || '0'}</h4>
-                    <div className="flex items-center gap-1 text-[8px] font-bold text-emerald-500 mt-0.5 md:mt-1">
-                        <TrendingUp size={10} />
-                        <span>+12.5%</span>
-                    </div>
-                </div>
-                <div className="bg-white dark:bg-zinc-900 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1 md:gap-1.5">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Duty missions</p>
-                    <h4 className="text-base md:text-lg font-black text-slate-800 dark:text-zinc-100">{stats?.todayDeliveries || '0'}</h4>
-                    <p className="text-[8px] font-bold text-slate-400 mt-0.5 md:mt-1">Successful</p>
-                </div>
-                <div className="bg-white dark:bg-zinc-900 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1 md:gap-1.5">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Total ops</p>
-                    <h4 className="text-base md:text-lg font-black text-slate-800 dark:text-zinc-100">128</h4>
-                    <p className="text-[8px] font-bold text-slate-400 mt-0.5 md:mt-1">Cumulative</p>
-                </div>
-                <div className="bg-white dark:bg-zinc-900 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200/60 dark:border-zinc-800/60 shadow-sm flex flex-col gap-1 md:gap-1.5">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Uptime</p>
-                    <h4 className="text-base md:text-lg font-black text-slate-800 dark:text-zinc-100">98.2%</h4>
-                    <div className="flex items-center gap-1 text-[8px] font-bold text-emerald-500 mt-0.5 md:mt-1">
-                        <Check size={10} />
-                        <span>Elite rating</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Transactions Section - Tighter List */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                    <h3 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 italic">Collection History</h3>
-                    <button
-                        onClick={handleExport}
-                        className="text-[10px] font-black text-[#028A0F] uppercase tracking-widest hover:underline transition-all flex items-center gap-1.5"
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Cash Liability Card */}
+                <div className="lg:col-span-2">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group"
                     >
-                        <FileDown size={12} />
-                        Export report
-                    </button>
-                </div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -mr-32 -mt-32"></div>
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/5 rounded-full blur-[60px] -ml-24 -mb-24"></div>
 
-                <div className="space-y-2 md:space-y-3">
-                    {transactions.length > 0 ? (
-                        transactions.map((tx) => (
-                            <div
-                                key={tx._id}
-                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-2xl md:rounded-3xl hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group"
-                            >
-                                <div
-                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 ${tx.status === 'collected'
-                                        ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600'
-                                        : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
-                                        }`}
-                                >
-                                    <ArrowDownLeft size={18} md:size={20} />
+                        <div className="relative z-10 space-y-10">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Total Cash Liability (COD)</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <h2 className="text-5xl font-black tracking-tight">{formatCurrency(cashLiability)}</h2>
+                                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">In Possession</span>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h5 className="font-bold text-slate-900 dark:text-white uppercase text-xs md:text-sm truncate">
-                                        Order #{tx.order?.orderId || 'Unknown'}
-                                    </h5>
-                                    <p className="text-[10px] md:text-xs text-slate-500 font-medium truncate">
-                                        {new Date(tx.createdAt).toLocaleString()}
-                                    </p>
-                                </div>
-                                <div className="text-right shrink-0">
-                                    <h5 className="font-black text-sm md:text-base text-slate-900 dark:text-white">
-                                        ₹{tx.amount}
-                                    </h5>
-                                    <p
-                                        className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${tx.status === 'settled_with_admin' ? 'text-emerald-400' : 'text-amber-500'
-                                            }`}
-                                    >
-                                        {tx.status.replace(/_/g, ' ')}
-                                    </p>
-                                </div>
-                                <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity pl-1">
-                                    <ChevronRight size={16} className="text-slate-300" />
+                                <div className="p-4 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                    <ShieldAlert size={24} className={cashLiability > 8000 ? 'text-rose-400 animate-pulse' : 'text-emerald-400'} />
                                 </div>
                             </div>
-                        ))
-                    ) : (
-                        <div className="text-center py-10 text-xs font-bold uppercase tracking-[0.3em] text-slate-300">
-                            Transaction log empty
+
+                            <div className="space-y-4">
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                                    <span className="text-white/30">Hub Deposit Limit</span>
+                                    <span className="text-white/60">₹10,000.00</span>
+                                </div>
+                                <div className="h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                    <motion.div 
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${liabilityProgress}%` }}
+                                        className={`h-full rounded-full transition-all duration-1000 ${cashLiability > 8000 ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                                    ></motion.div>
+                                </div>
+                                {cashLiability > 8000 && (
+                                    <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest animate-pulse">
+                                        Crititcal Limit Reached: Please deposit at HQ
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="pt-8 border-t border-white/5 grid grid-cols-2 md:grid-cols-3 gap-8">
+                                <div>
+                                    <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mb-1">Status</p>
+                                    <p className="text-xs font-bold">Unsettled</p>
+                                </div>
+                                <div>
+                                    <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mb-1">Personnel</p>
+                                    <p className="text-xs font-bold truncate">#{profile?.uniqueId || 'DP-X'}</p>
+                                </div>
+                                <div className="hidden md:block text-right">
+                                    <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mb-1">Security Factor</p>
+                                    <p className="text-xs font-bold text-emerald-400">99.2%</p>
+                                </div>
+                            </div>
                         </div>
-                    )}
+                    </motion.div>
                 </div>
-                {transactions.length > 0 && (
-                    <button className="w-full mt-4 md:mt-6 py-3 md:py-4 border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-xl md:rounded-2xl text-slate-400 font-bold text-xs tracking-widest uppercase hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all">
-                        Load more
-                    </button>
-                )}
+
+                {/* Tactical Stats Sidebar */}
+                <div className="space-y-4 text-slate-900">
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <TrendingUp size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Today's Catch</p>
+                                <h4 className="font-black text-lg">{formatCurrency(stats?.todayEarnings || 0)}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <UserCheck size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Missions</p>
+                                <h4 className="font-black text-lg">{stats?.todayDeliveries || 0} Successful</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
+                        <div className="flex items-center gap-2">
+                            <HelpCircle size={16} className="text-slate-400" />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Settlement Hub Rules</h4>
+                        </div>
+                        <ul className="space-y-3">
+                            <li className="text-[11px] font-bold text-slate-600 flex gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shrink-0"></div>
+                                Cash collected must be deposited daily at the Branch HQ.
+                            </li>
+                            <li className="text-[11px] font-bold text-slate-600 flex gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shrink-0"></div>
+                                Keep digital receipts for all physical handovers.
+                            </li>
+                            <li className="text-[11px] font-bold text-slate-600 flex gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 shrink-0"></div>
+                                Limit exceed alert will disable new missions.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {/* Collection Stream */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+                        <Clock size={16} />
+                        Mission Log Audit
+                    </h3>
+                </div>
+
+                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100">
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Objective</th>
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</th>
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Protocol</th>
+                                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Total Collection</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {transactions.length > 0 ? (
+                                    transactions.map((tx) => (
+                                        <tr key={tx._id} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`p-2 rounded-xl bg-opacity-10 ${tx.status === 'collected' ? 'bg-amber-500 text-amber-600' : 'bg-emerald-500 text-emerald-600'}`}>
+                                                        <ArrowDownLeft size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-sm text-slate-900">MISSION #{tx.order?.orderId?.slice(-6)}</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Delivery Handover</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <p className="text-xs font-bold text-slate-600">{new Date(tx.createdAt).toLocaleDateString()}</p>
+                                                <p className="text-[10px] text-slate-400 font-medium uppercase">{new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                            </td>
+                                            <td className="px-8 py-5 text-center">
+                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                                    tx.status === 'settled_with_admin' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                                                }`}>
+                                                    {tx.status.replace(/_/g, ' ')}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                <p className="font-black text-slate-900">{formatCurrency(tx.amount)}</p>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="px-8 py-20 text-center">
+                                            <p className="text-xs font-bold text-slate-300 uppercase tracking-[0.4em] italic mb-2">No historical records found</p>
+                                            <div className="w-12 h-1 bg-slate-50 mx-auto rounded-full"></div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     );
 };
 
 export default WalletPage;
-

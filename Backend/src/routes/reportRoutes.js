@@ -8,7 +8,8 @@ import {
   exportVendorReport,
   getRevenueAnalytics,
   getAdminVendorEarnings,
-  getAdminVendorPayoutDetail
+  getAdminVendorPayoutDetail,
+  getBranchStrategicAnalytics
 } from '../controllers/reportController.js';
 import { protectAdmin } from '../middleware/authMiddleware.js';
 
@@ -28,6 +29,7 @@ router.get('/vendors/export', protectAdmin, exportVendorReport);
 
 // Revenue & Financial Analytics
 router.get('/revenue-analytics', protectAdmin, getRevenueAnalytics);
+router.get('/strategic-analytics', protectAdmin, getBranchStrategicAnalytics);
 router.get('/vendor-earnings', protectAdmin, getAdminVendorEarnings);
 router.get('/vendor-payouts/:id', protectAdmin, getAdminVendorPayoutDetail);
 

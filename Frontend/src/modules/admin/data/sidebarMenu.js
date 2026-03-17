@@ -4,7 +4,7 @@ export const adminSidebarMenu = [
         key: 'dashboard',
         path: '/admin/dashboard',
         icon: 'LayoutDashboard',
-        permission: 'VIEW_DASHBOARD'
+        permission: null
     },
     {
         title: 'Orders',
@@ -32,7 +32,7 @@ export const adminSidebarMenu = [
         title: 'Categories & Brands',
         key: 'categories_brands',
         icon: 'Tag',
-        permission: 'MANAGE_CATEGORIES_BRANDS',
+        permission: null,
         submenu: [
             { title: 'All Categories', key: 'all_categories', path: '/admin/categories' },
             { title: 'Add Category', key: 'add_category', path: '/admin/categories/add' },
@@ -54,7 +54,7 @@ export const adminSidebarMenu = [
         title: 'Staff Management',
         key: 'staff_management',
         icon: 'Briefcase',
-        permission: 'MANAGE_STAFF',
+        permission: null,
         submenu: [
             { title: 'All Staff', key: 'all_staff', path: '/admin/staff' },
             { title: 'Add Staff', key: 'add_staff', path: '/admin/staff/add' },
@@ -77,7 +77,7 @@ export const adminSidebarMenu = [
         title: 'Delivery Management',
         key: 'delivery_management',
         icon: 'Truck',
-        permission: 'MANAGE_DELIVERY',
+        permission: null,
         submenu: [
             { title: 'Delivery Partners', key: 'delivery_partners', path: '/admin/delivery/partners' },
             { title: 'Assign Deliveries', key: 'assign_deliveries', path: '/admin/delivery/assign' },
@@ -90,7 +90,7 @@ export const adminSidebarMenu = [
         title: 'Vendors',
         key: 'vendors',
         icon: 'Store',
-        permission: 'MANAGE_VENDORS',
+        permission: null,
         submenu: [
             { title: 'All Vendors', key: 'all_vendors', path: '/admin/vendors' },
             { title: 'Add Vendor', key: 'add_vendor', path: '/admin/vendors/add' },
@@ -102,7 +102,7 @@ export const adminSidebarMenu = [
         title: 'Locations',
         key: 'locations',
         icon: 'MapPin',
-        permission: 'MANAGE_BRANCHES',
+        permission: null,
         submenu: [
             { title: 'Branches', key: 'branches', path: '/admin/locations/branches' },
             { title: 'Add Branch', key: 'add_branch', path: '/admin/locations/branches/add' },
@@ -112,7 +112,7 @@ export const adminSidebarMenu = [
         title: 'Offers & Sliders',
         key: 'offers_sliders',
         icon: 'Percent',
-        permission: 'MANAGE_CAMPAIGNS',
+        permission: null,
         submenu: [
             { title: 'Banner Deals', key: 'banner_deals', path: '/admin/offers/deals' },
             { title: 'Festive Campaigns', key: 'festive_campaigns', path: '/admin/campaigns' },
@@ -122,7 +122,7 @@ export const adminSidebarMenu = [
         title: 'Promo Codes',
         key: 'promo_codes',
         icon: 'Ticket',
-        permission: 'MANAGE_CAMPAIGNS',
+        permission: null,
         submenu: [
             { title: 'All Promo Codes', key: 'all_promo_codes', path: '/admin/promocodes' },
             { title: 'Create Promo Code', key: 'create_promo_code', path: '/admin/promocodes/create' },
@@ -132,7 +132,7 @@ export const adminSidebarMenu = [
         title: 'Notifications',
         key: 'notifications',
         icon: 'Bell',
-        permission: 'MANAGE_SETTINGS',
+        permission: null,
         submenu: [
             { title: 'Push Notification', key: 'push_notification', path: '/admin/notifications/push' }
         ]
@@ -152,6 +152,7 @@ export const adminSidebarMenu = [
         title: 'Reports',
         key: 'reports',
         icon: 'FileText',
+        permission: null,
         submenu: [
             { title: 'Sales Reports', key: 'sales_reports', path: '/admin/reports/sales' },
             { title: 'Inventory Reports', key: 'inventory_reports', path: '/admin/reports/inventory' },
@@ -162,6 +163,7 @@ export const adminSidebarMenu = [
         title: 'Analytics & Finance',
         key: 'analytics_finance',
         icon: 'BarChart3',
+        permission: null,
         submenu: [
             { title: 'Revenue Analytics', key: 'revenue_analytics', path: '/admin/analytics/revenue' },
             { title: 'Demand Analytics', key: 'demand_analytics', path: '/admin/analytics/demand' },
@@ -175,12 +177,13 @@ export const adminSidebarMenu = [
         key: 'legal_policies',
         path: '/admin/policies',
         icon: 'Shield',
-        permission: 'MANAGE_SETTINGS'
+        permission: null
     },
     {
         title: 'Settings',
         key: 'settings',
         icon: 'Settings',
+        permission: null,
         submenu: [
             { title: 'Admin Profile', key: 'admin_profile', path: '/admin/settings/profile' },
 

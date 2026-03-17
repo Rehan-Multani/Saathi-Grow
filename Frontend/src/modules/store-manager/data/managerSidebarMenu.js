@@ -3,7 +3,7 @@ export const managerSidebarMenu = [
     title: 'Dashboard',
     path: '/store-manager/dashboard',
     icon: 'LayoutDashboard',
-    permission: 'VIEW_DASHBOARD'
+    permission: null
   },
   {
     title: 'POS Billing',
@@ -36,7 +36,7 @@ export const managerSidebarMenu = [
     title: 'Staff Management',
     path: '/store-manager/staff',
     icon: 'Users',
-    permission: 'MANAGE_STAFF'
+    permission: null
   },
   {
     title: 'Customers',
@@ -48,24 +48,24 @@ export const managerSidebarMenu = [
     title: 'Reports & Analytics',
     path: '/store-manager/reports',
     icon: 'BarChart3',
-    permission: 'VIEW_DASHBOARD'
+    permission: null
   },
   {
     title: 'Support Tickets',
     path: '/store-manager/support',
     icon: 'Headphones',
-    permission: 'VIEW_DASHBOARD'
+    permission: null
   },
   {
     title: 'Branch Profile',
     path: '/store-manager/profile',
     icon: 'Store',
-    permission: 'VIEW_DASHBOARD'
+    permission: null
   },
   {
     title: 'Legal & Policies',
     path: '/store-manager/policies',
     icon: 'Shield',
-    permission: 'VIEW_DASHBOARD'
+    permission: null
   }
 ];

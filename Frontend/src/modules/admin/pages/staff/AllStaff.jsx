@@ -299,24 +299,15 @@ const AllStaff = () => {
 
                             <h6 className="fw-bold mb-3 text-muted small text-uppercase">{t('staff.permissions_modal.access_control')}</h6>
                             <div className="d-flex flex-column gap-2 overflow-auto" style={{ maxHeight: '350px' }}>
-                                {[
-                                    'VIEW_DASHBOARD',
-                                    'VIEW_ORDERS',
-                                    'MANAGE_ORDERS',
-                                    'MANAGE_REFUNDS_RETURNS',
-                                    'VIEW_PRODUCTS',
-                                    'MANAGE_PRODUCTS',
-                                    'MANAGE_CATEGORIES_BRANDS',
-                                    'MANAGE_INVENTORY',
-                                    'MANAGE_DELIVERY',
-                                    'VIEW_CUSTOMERS',
-                                    'MANAGE_CUSTOMERS',
-                                    'MANAGE_STAFF',
-                                    'MANAGE_BRANCHES',
-                                    'MANAGE_VENDORS',
-                                    'MANAGE_POS_BILLING',
-                                    'MANAGE_SETTINGS'
-                                ].map((permId) => (
+                                 {[
+                                     'VIEW_ORDERS',
+                                     'MANAGE_ORDERS',
+                                     'MANAGE_REFUNDS_RETURNS',
+                                     'VIEW_PRODUCTS',
+                                     'MANAGE_INVENTORY',
+                                     'VIEW_CUSTOMERS',
+                                     'MANAGE_POS_BILLING'
+                                 ].map((permId) => (
                                     <div key={permId} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light transition-all">
                                         <div className="d-flex align-items-center gap-2">
                                             {permId.includes('MANAGE') ? <Shield size={16} className="text-primary" /> : <div style={{ width: 16 }} />}

@@ -1,6 +1,6 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw, Shield, Tag } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Wallet, User, Menu, X, LogOut, BarChart2, Layers, ChevronDown, ChevronUp, RotateCcw, Shield, Tag, Headphones } from 'lucide-react';
 import logo from '../../../assets/logo.png';
 import { useVendor } from '../contexts/VendorContext';
 
@@ -49,6 +49,7 @@ const VendorSidebar = () => {
         { icon: Tag, label: 'Offers & Deals', path: '/vendor/offers' },
         { icon: Wallet, label: 'Earnings', path: '/vendor/earnings' },
         { icon: User, label: 'Profile', path: '/vendor/profile' },
+        { icon: Headphones, label: 'Support Tickets', path: '/vendor/support-tickets' },
         { icon: Shield, label: 'Legal & Policies', path: '/vendor/policies' },
     ];
 

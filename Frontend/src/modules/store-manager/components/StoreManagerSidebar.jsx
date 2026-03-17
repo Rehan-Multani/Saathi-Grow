@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { managerSidebarMenu } from '../data/managerSidebarMenu';
@@ -12,9 +12,11 @@ const StoreManagerSidebar = ({ showMobile, onClose }) => {
 
     const hasAccess = (permissionCode) => {
         if (!managerUser) return false;
-        if (!permissionCode) return true;
-        if (permissionCode === 'VIEW_DASHBOARD') return true; // Always show Manager Dashboard & Basic modules
-        return Array.isArray(managerUser.permissions) && managerUser.permissions.includes(permissionCode);
+        // Dashboard and items with null permission are accessible to all managers
+        if (!permissionCode || permissionCode === 'VIEW_DASHBOARD') return true;
+        
+        const permissions = Array.isArray(managerUser.permissions) ? managerUser.permissions : [];
+        return permissions.includes(permissionCode);
     };
 
     const toggleSubmenu = (title) => {

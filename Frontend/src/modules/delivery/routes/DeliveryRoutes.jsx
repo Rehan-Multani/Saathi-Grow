@@ -11,7 +11,6 @@ const Profile = lazy(() => import('../pages/ProfileSettings'));
 const Tracking = lazy(() => import('../pages/LiveTracking'));
 const RunDetail = lazy(() => import('../pages/RunDetail'));
 const Login = lazy(() => import('../pages/DeliveryLogin'));
-const Grievances = lazy(() => import('../pages/Grievances'));
 const Legal = lazy(() => import('../pages/LegalDocuments'));
 import useDeliveryStore from '../store/deliveryStore';
 
@@ -48,7 +47,6 @@ const DeliveryRoutes = () => {
                                         <Route path="/profile" element={<Profile />} />
                                         <Route path="/run/:id" element={<RunDetail />} />
                                         <Route path="/tracking/:id" element={<Tracking />} />
-                                        <Route path="/grievances" element={<Grievances />} />
                                         <Route path="/legal" element={<Legal />} />
                                         <Route path="*" element={<Navigate to="dashboard" replace />} />
                                     </Routes>

@@ -127,17 +127,15 @@ export const createAdmin = async (req, res) => {
     let finalRole = role;
     let finalBranchId = branchId;
 
-    // Restricted permissions for Staff and Branch Managers
-    const RESTRICTED_PERMISSIONS = [
-      'VIEW_DASHBOARD',
-      'MANAGE_PRODUCTS',
-      'MANAGE_CATEGORIES_BRANDS',
-      'MANAGE_DELIVERY',
-      'MANAGE_DELIVERY_BOYS',
-      'MANAGE_CUSTOMERS',
-      'MANAGE_BRANCHES',
-      'MANAGE_VENDORS',
-      'MANAGE_SETTINGS'
+    // Allowed permissions for non-Super Admin roles
+    const ALLOWED_PERMISSIONS = [
+      'VIEW_ORDERS',
+      'MANAGE_ORDERS',
+      'MANAGE_REFUNDS_RETURNS',
+      'VIEW_PRODUCTS',
+      'MANAGE_INVENTORY',
+      'VIEW_CUSTOMERS',
+      'MANAGE_POS_BILLING'
     ];
 
     let finalPermissions = permissions || [];
@@ -159,11 +157,8 @@ export const createAdmin = async (req, res) => {
       }
     }
 
-    // Only Admin can have restricted permissions. 
-    // If creating Branch Manager or Staff, strip restricted permissions
-    if (finalRole === 'Branch Manager' || finalRole === 'Staff') {
-      finalPermissions = finalPermissions.filter(p => !RESTRICTED_PERMISSIONS.includes(p));
-    }
+    // Filter permissions to only allowed ones
+    finalPermissions = finalPermissions.filter(p => ALLOWED_PERMISSIONS.includes(p));
 
     const admin = await Admin.create({
       name,
@@ -201,17 +196,15 @@ export const updateAdmin = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to edit Admin accounts' });
     }
 
-    // Restricted permissions for Staff and Branch Managers
-    const RESTRICTED_PERMISSIONS = [
-      'VIEW_DASHBOARD',
-      'MANAGE_PRODUCTS',
-      'MANAGE_CATEGORIES_BRANDS',
-      'MANAGE_DELIVERY',
-      'MANAGE_DELIVERY_BOYS',
-      'MANAGE_CUSTOMERS',
-      'MANAGE_BRANCHES',
-      'MANAGE_VENDORS',
-      'MANAGE_SETTINGS'
+    // Allowed permissions for non-Super Admin roles
+    const ALLOWED_PERMISSIONS = [
+      'VIEW_ORDERS',
+      'MANAGE_ORDERS',
+      'MANAGE_REFUNDS_RETURNS',
+      'VIEW_PRODUCTS',
+      'MANAGE_INVENTORY',
+      'VIEW_CUSTOMERS',
+      'MANAGE_POS_BILLING'
     ];
 
     // Hierarchy Enforcement:
@@ -231,13 +224,9 @@ export const updateAdmin = async (req, res) => {
     admin.phone = req.body.phone || admin.phone;
     admin.role = req.body.role || admin.role;
 
-    // Only Admin can have restricted permissions.
+    // Filter and update permissions
     if (req.body.permissions) {
-      let finalPermissions = req.body.permissions;
-      if (admin.role === 'Branch Manager' || admin.role === 'Staff') {
-        finalPermissions = finalPermissions.filter(p => !RESTRICTED_PERMISSIONS.includes(p));
-      }
-      admin.permissions = finalPermissions;
+      admin.permissions = req.body.permissions.filter(p => ALLOWED_PERMISSIONS.includes(p));
     }
 
     admin.branchId = req.body.branchId !== undefined ? req.body.branchId : admin.branchId;

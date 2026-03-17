@@ -1,47 +1,96 @@
-﻿import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    BarChart3, TrendingUp, PieChart,
+    TrendingUp, PieChart,
     ArrowUpRight, ArrowDownRight, Package,
     DollarSign, AlertTriangle, Download,
-    Leaf, Apple, Milk, Croissant, ChevronRight
+    Leaf, Apple, Milk, Croissant, ChevronRight,
+    Loader2, ShoppingBag
 } from 'lucide-react';
 import SummaryCards from './components/SummaryCards';
+import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
+import { getStrategicAnalytics } from '../admin/api/reportApi';
+import Swal from 'sweetalert2';
 
 const ReportsAnalytics = () => {
     const navigate = useNavigate();
+    const { managerUser } = useStoreManagerAuth();
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(null);
+    const [error, setError] = useState(null);
+
+    const fetchData = async () => {
+        if (!managerUser?.token) return;
+        
+        try {
+            setLoading(true);
+            setError(null);
+            const res = await getStrategicAnalytics(managerUser.token);
+            if (res.success) {
+                setData(res);
+            } else {
+                setError(res.message || 'Failed to fetch analytics');
+            }
+        } catch (err) {
+            console.error('Failed to fetch strategic analytics:', err);
+            setError('Could not load branch analytics. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [managerUser?.token]);
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-400">
+                <Loader2 className="animate-spin mb-4 text-emerald-500" size={40} />
+                <p className="text-xs font-black uppercase tracking-widest animate-pulse">Analyzing branch logistics...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-400 text-center p-6">
+                <AlertTriangle className="mb-4 text-rose-500" size={48} />
+                <h3 className="text-slate-800 font-bold mb-2">Analytics Unavailable</h3>
+                <p className="text-xs mb-4 max-w-xs mx-auto">{error}</p>
+                <button 
+                    onClick={fetchData}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition-all"
+                >
+                    Retry Analysis
+                </button>
+            </div>
+        );
+    }
 
     const stats = [
-        { label: 'Inventory Value', value: '₹4,85,200', icon: 'DollarSign', color: 'bg-emerald-500', textColor: 'text-emerald-500', trend: 8.5, path: '/store-manager/inventory' },
-        { label: 'Total SKU', value: '3,450', icon: 'Package', color: 'bg-blue-600', textColor: 'text-blue-600', trend: 12.1, path: '/store-manager/inventory' },
-        { label: 'Top Product', value: 'Cow Milk', icon: 'TrendingUp', color: 'bg-violet-600', textColor: 'text-violet-600', trend: 5.4, path: '/store-manager/inventory' },
-        { label: 'Alerts', value: '14', icon: 'AlertTriangle', color: 'bg-amber-500', textColor: 'text-amber-500', trend: -2.3, path: '/store-manager/inventory' },
+        { label: 'Inventory Value', value: data ? `₹${data.summary.inventoryValue.toLocaleString()}` : '₹0', icon: 'DollarSign', color: 'bg-emerald-500', textColor: 'text-emerald-500', trend: 8.5, path: '/store-manager/inventory' },
+        { label: 'Total SKU', value: data ? data.summary.totalSku.toString() : '0', icon: 'Package', color: 'bg-blue-600', textColor: 'text-blue-600', trend: 12.1, path: '/store-manager/inventory' },
+        { label: 'Top Product', value: data ? data.summary.topProduct : 'N/A', icon: 'TrendingUp', color: 'bg-violet-600', textColor: 'text-violet-600', trend: 5.4, path: '/store-manager/inventory' },
+        { label: 'Alerts', value: data ? data.summary.alerts.toString() : '0', icon: 'AlertTriangle', color: 'bg-amber-500', textColor: 'text-amber-500', trend: -2.3, path: '/store-manager/inventory' },
     ];
 
-    const topProducts = [
-        { name: 'Cow Milk 1L', sales: 450, growth: 12, category: 'Dairy' },
-        { name: 'Organic Tomatoes', sales: 320, growth: 8, category: 'Vegetables' },
-        { name: 'Farm Fresh Eggs', sales: 280, growth: 15, category: 'Dairy' },
-        { name: 'Whole Wheat Bread', sales: 210, growth: -3, category: 'Bakery' },
-        { name: 'Greek Yogurt', sales: 150, growth: 5, category: 'Dairy' },
-    ];
+    const categoryIcons = {
+        'Vegetables': Leaf,
+        'Fruits': Apple,
+        'Dairy': Milk,
+        'Bakery': Croissant,
+    };
 
-    const wastageData = [
-        { month: 'Jan', value: 2000 },
-        { month: 'Feb', value: 3500 },
-        { month: 'Mar', value: 1500 },
-        { month: 'Apr', value: 6000 },
-        { month: 'May', value: 4000 },
-        { month: 'Jun', value: 2500 },
-        { month: 'Jul', value: 4500 },
-        { month: 'Aug', value: 3000 },
-        { month: 'Sep', value: 5000 },
-        { month: 'Oct', value: 2000 },
-        { month: 'Nov', value: 1000 },
-        { month: 'Dec', value: 3000 },
-    ];
+    const categoryColors = {
+        'Vegetables': 'bg-emerald-500',
+        'Fruits': 'bg-orange-500',
+        'Dairy': 'bg-blue-500',
+        'Bakery': 'bg-amber-500',
+    };
 
-    const maxValue = Math.max(...wastageData.map(d => d.value));
+    const wastageData = data?.wastageData || [];
+    const maxValue = wastageData.length > 0 ? Math.max(...wastageData.map(d => d.value)) : 1000;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-10">
@@ -74,29 +123,27 @@ const ReportsAnalytics = () => {
                     </div>
 
                     <div className="space-y-4">
-                        {[
-                            { name: 'Vegetables', value: 45, color: 'bg-emerald-500', icon: Leaf },
-                            { name: 'Fruits', value: 25, color: 'bg-orange-500', icon: Apple },
-                            { name: 'Dairy', value: 15, color: 'bg-blue-500', icon: Milk },
-                            { name: 'Bakery', value: 10, color: 'bg-amber-500', icon: Croissant },
-                            { name: 'Others', value: 5, color: 'bg-slate-400', icon: Package },
-                        ].map((cat) => (
-                            <div key={cat.name} className="space-y-1.5 group/item cursor-pointer" onClick={() => navigate('/store-manager/inventory')}>
-                                <div className="flex justify-between items-center px-1">
-                                    <div className="flex items-center gap-2">
-                                        <cat.icon size={12} className="text-slate-400" />
-                                        <span className="text-[11px] font-semibold text-slate-600">{cat.name}</span>
+                        {(data?.assetDistribution || []).map((cat) => {
+                            const Icon = categoryIcons[cat.name] || Package;
+                            const color = categoryColors[cat.name] || 'bg-slate-400';
+                            return (
+                                <div key={cat.name} className="space-y-1.5 group/item cursor-pointer" onClick={() => navigate('/store-manager/inventory')}>
+                                    <div className="flex justify-between items-center px-1">
+                                        <div className="flex items-center gap-2">
+                                            <Icon size={12} className="text-slate-400" />
+                                            <span className="text-[11px] font-semibold text-slate-600">{cat.name}</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-800">{cat.value}%</span>
                                     </div>
-                                    <span className="text-xs font-bold text-slate-800">{cat.value}%</span>
+                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full ${color} rounded-full transition-all duration-1000 group-hover/item:brightness-110`}
+                                            style={{ width: `${cat.value}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
-                                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                    <div
-                                        className={`h-full ${cat.color} rounded-full transition-all duration-1000 group-hover/item:brightness-110`}
-                                        style={{ width: `${cat.value}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -113,7 +160,7 @@ const ReportsAnalytics = () => {
                     </div>
 
                     <div className="space-y-2">
-                        {topProducts.map((product, i) => (
+                        {(data?.topMovingAssets || []).map((product, i) => (
                             <div
                                 key={i}
                                 onClick={() => navigate('/store-manager/inventory')}
@@ -121,7 +168,7 @@ const ReportsAnalytics = () => {
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 flex items-center justify-center font-bold text-[10px] shadow-sm group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 transition-all">
-                                        0{i + 1}
+                                        0{product.image ? <img src={product.image} className="w-full h-full object-cover rounded-lg" /> : i + 1}
                                     </div>
                                     <div>
                                         <p className="text-[11px] font-bold text-slate-800">{product.name}</p>
@@ -140,26 +187,32 @@ const ReportsAnalytics = () => {
                                 </div>
                             </div>
                         ))}
+                        {(!data?.topMovingAssets || data.topMovingAssets.length === 0) && (
+                            <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                                <ShoppingBag className="mb-2 opacity-20" size={32} />
+                                <p className="text-[10px] font-bold uppercase tracking-widest">No Sales Data Yet</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* Leakage & Wastage Analysis - Professional Redesign */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden mt-8">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] -mr-32 -mt-32"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/10 rounded-full blur-[80px] -mr-32 -mt-32"></div>
 
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 relative z-10">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="p-1.5 bg-blue-500/20 rounded-lg text-blue-400 border border-blue-500/20">
+                            <div className="p-1.5 bg-emerald-500/20 rounded-lg text-emerald-400 border border-emerald-500/20">
                                 <AlertTriangle size={14} />
                             </div>
                             <h3 className="font-bold text-white text-lg tracking-tight">Leakage & Wastage Analysis</h3>
                         </div>
                         <p className="text-slate-400 text-[11px]">Quantifying fiscal loss due to expiration, damage, or logistical errors.</p>
                     </div>
-                    <div className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-[9px] font-bold uppercase tracking-widest border border-blue-500/20">
-                        Efficiency Optimized: 92%
+                    <div className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[9px] font-bold uppercase tracking-widest border border-emerald-500/20">
+                        Historical Trend
                     </div>
                 </div>
 
@@ -171,8 +224,8 @@ const ReportsAnalytics = () => {
 
                             {/* Interactive Bar */}
                             <div
-                                className="w-full bg-gradient-to-t from-blue-600 to-indigo-400 group-hover:from-indigo-500 group-hover:to-purple-400 transition-all duration-300 rounded-t-sm relative z-10 shadow-lg"
-                                style={{ height: `${(d.value / maxValue) * 100}%` }}
+                                className="w-full bg-gradient-to-t from-emerald-600 to-emerald-400 group-hover:from-emerald-50 group-hover:to-emerald-300 transition-all duration-300 rounded-t-sm relative z-10 shadow-lg"
+                                style={{ height: `${maxValue > 0 ? (d.value / maxValue) * 100 : 0}%` }}
                             >
                                 {/* Tooltip */}
                                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[9px] py-1 px-2 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap font-bold z-20">

@@ -33,22 +33,13 @@ const AddStaff = () => {
     const ROLES = isBranchManager ? ['Staff'] : ['Admin', 'Branch Manager', 'Staff'];
 
     const PERMISSIONS_LIST = [
-        'VIEW_DASHBOARD',
         'VIEW_ORDERS',
         'MANAGE_ORDERS',
         'MANAGE_REFUNDS_RETURNS',
         'VIEW_PRODUCTS',
-        'MANAGE_PRODUCTS',
-        'MANAGE_CATEGORIES_BRANDS',
         'MANAGE_INVENTORY',
-        'MANAGE_DELIVERY',
         'VIEW_CUSTOMERS',
-        'MANAGE_CUSTOMERS',
-        'MANAGE_STAFF',
-        'MANAGE_POS_BILLING',
-        'MANAGE_BRANCHES',
-        'MANAGE_VENDORS',
-        'MANAGE_SETTINGS'
+        'MANAGE_POS_BILLING'
     ];
 
     useEffect(() => {
@@ -302,22 +293,7 @@ const AddStaff = () => {
                                         <Shield size={16} /> {t('staff.add_new.specific_permissions')}
                                     </Form.Label>
                                     <div className="bg-light p-3 rounded custom-scrollbar border" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                        {PERMISSIONS_LIST.filter(perm => {
-                                            const RESTRICTED_IDS = [
-                                                'VIEW_DASHBOARD',
-                                                'MANAGE_PRODUCTS',
-                                                'MANAGE_CATEGORIES_BRANDS',
-                                                'MANAGE_DELIVERY',
-                                                'MANAGE_DELIVERY_BOYS',
-                                                'MANAGE_CUSTOMERS',
-                                                'MANAGE_STAFF',
-                                                'MANAGE_BRANCHES',
-                                                'MANAGE_VENDORS',
-                                                'MANAGE_SETTINGS'
-                                            ];
-                                            if (formData.role === 'Admin') return true;
-                                            return !RESTRICTED_IDS.includes(permId);
-                                        }).map(permId => (
+                                        {PERMISSIONS_LIST.map(permId => (
                                             <Form.Check
                                                 key={permId}
                                                 type="switch"

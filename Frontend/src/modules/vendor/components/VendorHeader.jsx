@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import { Bell, Store } from 'lucide-react';
+import React from 'react';
+import { Bell, User } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,11 +26,15 @@ const VendorHeader = () => {
 
                 <div className="flex items-center gap-3 h-10 ml-2">
                     <div className="text-right hidden sm:flex flex-col justify-center mr-1">
-                        <p className="text-sm font-bold text-gray-900 leading-none mb-1">{vendor.name}</p>
-                        <p className="text-xs text-gray-500 font-medium">{vendor.owner}</p>
+                        <p className="text-sm font-bold text-gray-900 leading-none mb-1">{vendor?.storeName || 'Vendor'}</p>
+                        <p className="text-xs text-gray-500 font-medium">{vendor?.ownerName || 'Managing Account'}</p>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-gray-50 p-0.5 border border-gray-200 shadow-sm">
-                        <img src={vendor.image} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden">
+                        {vendor?.logo ? (
+                            <img src={vendor.logo} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                            <User size={20} className="text-slate-400" />
+                        )}
                     </div>
                 </div>
             </div>

@@ -4,15 +4,13 @@ import {
     LayoutDashboard,
     Package,
     Wallet,
-    History,
-    User,
     LogOut,
     Bell,
     Check,
     Trash2,
-    Clock,
-    RotateCcw,
-    Shield
+    Shield,
+    Activity,
+    Settings
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNotifications } from './NotificationProvider';
@@ -26,7 +24,6 @@ const DeliveryLayout = ({ children }) => {
         notifications,
         markAsRead,
         markAllAsRead,
-        removeNotification,
         clearNotifications
     } = useNotifications();
     const { profile, logout } = useDeliveryStore();
@@ -74,87 +71,78 @@ const DeliveryLayout = ({ children }) => {
     };
 
     const navItems = [
-        { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/delivery/dashboard' },
-        { icon: <Package size={20} />, label: 'Orders', path: '/delivery/orders' },
-        { icon: <Wallet size={20} />, label: 'Wallet', path: '/delivery/wallet' },
-        { icon: <User size={20} />, label: 'Profile', path: '/delivery/profile' }
+        { icon: <LayoutDashboard size={20} />, label: 'Tactical Hub', path: '/delivery/dashboard' },
+        { icon: <Package size={20} />, label: 'Missions', path: '/delivery/orders' },
+        { icon: <Wallet size={20} />, label: 'Cash Hub', path: '/delivery/wallet' },
+        { icon: <Activity size={20} />, label: 'History', path: '/delivery/history' }
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-slate-100 font-sans">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
             {/* Mobile Header */}
-            <header className="fixed top-0 left-0 right-0 h-14 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-zinc-800/60 flex items-center justify-between px-4 z-40 md:hidden shadow-sm">
-                <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#028A0F] flex items-center justify-center text-white font-bold text-sm shadow-sm transition-transform active:scale-95">S</div>
-                    <span className="font-bold text-base tracking-tight text-slate-800 dark:text-slate-100">sathiGro</span>
-                </div>
+            <header className="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-6 z-40 md:hidden shadow-sm">
                 <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-slate-200">S</div>
+                    <span className="font-black text-base tracking-tighter text-slate-900">SAATHI<span className="text-emerald-500">GROW</span></span>
+                </div>
+                <div className="flex items-center gap-4">
                     <button
                         onClick={() => setIsNotificationOpen((prev) => !prev)}
-                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 relative transition-all active:scale-90"
-                        aria-label="Open notifications"
+                        className="relative p-2 rounded-xl hover:bg-slate-50 transition-all active:scale-90"
                     >
-                        <Bell size={18} className="text-slate-600 dark:text-zinc-400" />
+                        <Bell size={20} className="text-slate-400 group-hover:text-slate-900" />
                         {unreadCount > 0 && (
-                            <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-[#028A0F] text-[7px] font-black text-white rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900">
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 text-[8px] font-black text-white rounded-lg flex items-center justify-center border-2 border-white">
                                 {unreadCount}
                             </span>
                         )}
                     </button>
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-800 overflow-hidden border border-slate-200 dark:border-zinc-700">
+                    <div 
+                        onClick={() => navigate('/delivery/profile')}
+                        className="w-10 h-10 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm"
+                    >
                         <img src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover" alt="avatar" />
                     </div>
                 </div>
             </header>
 
             {isNotificationOpen && (
-                <div ref={notificationPanelRef} className="fixed top-14 right-3 z-50 w-[min(320px,calc(100vw-1.5rem))] rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md shadow-2xl xl:shadow-[#028A0F]/5 animate-in slide-in-from-top-2 duration-200">
-                    <div className="px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
-                        <h3 className="text-[13px] font-black uppercase tracking-wider text-slate-800 dark:text-zinc-100">Notifications</h3>
+                <div ref={notificationPanelRef} className="fixed top-20 right-4 z-50 w-[320px] rounded-3xl border border-slate-100 bg-white/95 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Tactical Comms</h3>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={markAllAsRead}
-                                disabled={notifications.length === 0}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#028A0F] hover:bg-green-50 dark:hover:bg-[#028A0F]/10 transition-all disabled:opacity-40"
-                                title="Mark all as read"
+                                className="p-2 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
                             >
-                                <Check size={14} />
+                                <Check size={16} />
                             </button>
                             <button
                                 onClick={clearNotifications}
-                                disabled={notifications.length === 0}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all disabled:opacity-40"
-                                title="Clear all notifications"
+                                className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
                             >
-                                <Trash2 size={14} />
+                                <Trash2 size={16} />
                             </button>
                         </div>
                     </div>
 
-                    <div className="max-h-[300px] overflow-y-auto no-scrollbar">
+                    <div className="max-h-[350px] overflow-y-auto p-2">
                         {notifications.length === 0 ? (
-                            <div className="px-4 py-6 text-center">
-                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Clear for now</p>
+                            <div className="py-12 text-center">
+                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">All units clear</p>
                             </div>
                         ) : (
                             notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`px-4 py-3 border-b border-slate-50 dark:border-zinc-800/40 flex items-start gap-3 transition-colors ${notification.read ? 'bg-transparent' : 'bg-green-50/40 dark:bg-[#028A0F]/5'}`}
+                                    onClick={() => handleNotificationClick(notification)}
+                                    className={`p-4 rounded-2xl mb-1 cursor-pointer transition-all ${notification.read ? 'opacity-50' : 'bg-slate-50 hover:bg-slate-100'}`}
                                 >
-                                    <button
-                                        onClick={() => handleNotificationClick(notification)}
-                                        className="flex-1 text-left min-w-0"
-                                    >
-                                        <div className="flex items-center justify-between mb-0.5">
-                                            <p className="text-[11px] font-black text-slate-800 dark:text-zinc-100 uppercase tracking-tight">New order</p>
-                                            <p className="text-[9px] text-slate-400 font-medium">{notification.time || 'Just now'}</p>
-                                        </div>
-                                        <p className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">
-                                            #{notification.orderId || 'N/A'} ₹ {notification.customerName || 'Customer'}
-                                        </p>
-                                    </button>
-                                    {!notification.read && <div className="w-1.5 h-1.5 rounded-full bg-[#028A0F] mt-1.5"></div>}
+                                    <div className="flex items-start justify-between mb-1">
+                                        <p className="text-[10px] font-black text-slate-900 uppercase">New Mission</p>
+                                        <p className="text-[9px] text-slate-400 font-bold">{notification.time}</p>
+                                    </div>
+                                    <p className="text-xs text-slate-500 font-medium">#{notification.orderId?.slice(-6) || 'N/A'} - {notification.customerName}</p>
                                 </div>
                             ))
                         )}
@@ -163,54 +151,58 @@ const DeliveryLayout = ({ children }) => {
             )}
 
             {/* Desktop Sidebar */}
-            <aside className="fixed left-0 top-0 bottom-0 w-60 bg-white dark:bg-zinc-900 border-r border-slate-200/60 dark:border-zinc-800/60 hidden md:flex flex-col z-40 shadow-[1px_0_10px_rgba(0,0,0,0.02)]">
-                <div className="p-5">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-[#028A0F] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-[#028A0F]/10">S</div>
-                        <span className="font-black text-lg tracking-tight text-slate-800 dark:text-zinc-100">sathiGro</span>
+            <aside className="fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-slate-100 hidden md:flex flex-col z-40">
+                <div className="p-8">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-lg shadow-xl shadow-slate-200">S</div>
+                        <span className="font-black text-xl tracking-tighter text-slate-900">SAATHI<span className="text-emerald-500">GROW</span></span>
                     </div>
                 </div>
 
-                <nav className="flex-1 px-3 py-2 space-y-0.5">
+                <nav className="flex-1 px-6 space-y-1">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) => `
-                                flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-300 group
+                                flex items-center gap-4 px-5 py-4 rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all
                                 ${isActive
-                                    ? 'bg-[#028A0F] text-white shadow-lg shadow-[#028A0F]/15 font-bold'
-                                    : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/60 hover:text-slate-800 dark:hover:text-zinc-100'}
+                                    ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
+                                    : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'}
                             `}
                         >
                             {({ isActive }) => (
                                 <>
-                                    <div className={`transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`}>
-                                        {isActive ? React.cloneElement(item.icon, { size: 18, strokeWidth: 2.5 }) : React.cloneElement(item.icon, { size: 18, strokeWidth: 2 })}
-                                    </div>
-                                    <span className="text-[13px] tracking-tight">{item.label}</span>
+                                    {isActive ? React.cloneElement(item.icon, { size: 18, strokeWidth: 3 }) : React.cloneElement(item.icon, { size: 18, strokeWidth: 2.5 })}
+                                    <span>{item.label}</span>
                                 </>
                             )}
                         </NavLink>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-slate-200 dark:border-zinc-800">
-                    <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-2xl p-4 mb-4">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full border-2 border-[#028A0F] p-0.5">
-                                <img src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full rounded-full object-cover" alt="profile" />
+                <div className="p-6">
+                    <div className="bg-slate-50 rounded-[2rem] p-6 mb-4 border border-slate-100">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-md overflow-hidden bg-white">
+                                <img src={profile?.profileImage || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} className="w-full h-full object-cover" alt="profile" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-sm truncate">{profile?.name || 'Rider'}</h4>
-                                <p className="text-xs text-slate-500 dark:text-zinc-400 truncate">#{profile?.uniqueId || 'N/A'}</p>
+                                <h4 className="font-black text-sm text-slate-900 truncate">{profile?.name || 'Rider'}</h4>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">#{profile?.uniqueId || 'DP-X'}</p>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${profile?.dutyStatus === 'Online' ? 'bg-green-100 dark:bg-green-500/10 text-green-600' : 'bg-slate-100 dark:bg-slate-500/10 text-slate-500'}`}>
-                                <div className={`w-1.5 h-1.5 rounded-full ${profile?.dutyStatus === 'Online' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${profile?.dutyStatus === 'Online' ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${profile?.dutyStatus === 'Online' ? 'bg-white animate-pulse' : 'bg-slate-400'}`}></div>
                                 {profile?.dutyStatus || 'Offline'}
-                            </div>
+                            </span>
+                            <button 
+                                onClick={() => navigate('/delivery/profile')}
+                                className="p-2 text-slate-400 hover:text-slate-900 transition-colors"
+                            >
+                                <Settings size={18} />
+                            </button>
                         </div>
                     </div>
                     <button
@@ -218,42 +210,39 @@ const DeliveryLayout = ({ children }) => {
                             logout();
                             navigate('/delivery/login');
                         }}
-                        className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-colors"
+                        className="flex items-center gap-4 w-full px-5 py-4 rounded-2xl text-rose-500 font-black text-[11px] uppercase tracking-widest hover:bg-rose-50 transition-all"
                     >
                         <LogOut size={20} />
-                        <span className="font-medium">Logout</span>
+                        Logout Session
                     </button>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <main className="pt-14 md:pt-0 md:pl-60 min-h-screen">
-                <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pb-24 md:pb-8">
+            <main className="pt-16 md:pt-0 md:pl-72 min-h-screen">
+                <div className="p-4 md:p-8 max-w-[1400px] mx-auto">
                     {children}
                 </div>
             </main>
 
             {/* Mobile Bottom Nav */}
-            <nav className="fixed bottom-0 left-0 right-0 h-14 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-slate-200/60 dark:border-zinc-800/60 flex items-center justify-around px-2 z-40 md:hidden shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.05)]">
+            <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-slate-50 flex items-center justify-around px-4 z-40 md:hidden shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.05)]">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) => `
-                            flex flex-col items-center gap-0.5 transition-all duration-300 relative px-2 py-0.5
-                            ${isActive ? 'text-[#028A0F]' : 'text-slate-400 dark:text-zinc-500'}
+                            flex flex-col items-center gap-1 transition-all
+                            ${isActive ? 'text-slate-900' : 'text-slate-300'}
                         `}
                     >
                         {({ isActive }) => (
                             <>
-                                <motion.div
-                                    whileTap={{ scale: 0.9 }}
-                                    className={`p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-[#028A0F]/10 shadow-inner' : ''}`}
-                                >
-                                    {React.cloneElement(item.icon, { size: 20, strokeWidth: isActive ? 2.5 : 2 })}
-                                </motion.div>
-                                <span className={`text-[8px] font-black uppercase tracking-widest transition-all duration-300 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-0.5 max-h-0'}`}>
-                                    {item.label}
+                                <div className={`p-2.5 rounded-2xl transition-all ${isActive ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : ''}`}>
+                                    {React.cloneElement(item.icon, { size: 20 })}
+                                </div>
+                                <span className={`text-[8px] font-black uppercase tracking-widest transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`}>
+                                    {item.label.split(' ')[0]}
                                 </span>
                             </>
                         )}
@@ -265,4 +254,3 @@ const DeliveryLayout = ({ children }) => {
 };
 
 export default DeliveryLayout;
-

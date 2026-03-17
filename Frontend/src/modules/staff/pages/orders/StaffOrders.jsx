@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import OrderDetailsModal from '../../../admin/components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, updateOrderStatus } from '../../../admin/api/orderApi';
 import { useStaffAuth } from '../../context/StaffAuthContext';
 
 const StaffOrders = () => {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const initialStatus = queryParams.get('status');
+
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('All');
+    const [statusFilter, setStatusFilter] = useState(initialStatus || 'All');
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);

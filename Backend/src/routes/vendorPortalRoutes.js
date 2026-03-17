@@ -47,6 +47,10 @@ router.post('/register', register);
 
 // Protected routes
 router.get('/profile', protectVendor, getProfile);
+router.get('/dashboard/stats', protectVendor, async (req, res) => {
+  const { getVendorDashboardStats } = await import('../controllers/dashboardController.js');
+  return getVendorDashboardStats(req, res);
+});
 router.put('/profile', protectVendor, upload.single('logo'), updateProfile);
 
 // Product management for vendor

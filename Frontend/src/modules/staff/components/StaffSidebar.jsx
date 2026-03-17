@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { staffSidebarMenu } from '../data/staffSidebarMenu';
@@ -10,10 +10,20 @@ const StaffSidebar = ({ showMobile, onClose }) => {
     const { staffUser, staffLogout } = useStaffAuth();
     const [openSubmenus, setOpenSubmenus] = useState({});
 
-    const hasAccess = (permissionCode) => {
+    const hasAccess = (item) => {
         if (!staffUser) return false;
+        
+        // Special case for Staff Management - only Branch Managers see this
+        if (item.title === 'Staff Management') {
+            return staffUser.role === 'Branch Manager';
+        }
+
+        const permissionCode = item.permission;
+        // Dashboard and items with null permission are accessible to all logged in staff
         if (!permissionCode || permissionCode === 'VIEW_DASHBOARD') return true;
-        return Array.isArray(staffUser.permissions) && staffUser.permissions.includes(permissionCode);
+        
+        const permissions = Array.isArray(staffUser.permissions) ? staffUser.permissions : [];
+        return permissions.includes(permissionCode);
     };
 
     useEffect(() => {
@@ -62,7 +72,7 @@ const StaffSidebar = ({ showMobile, onClose }) => {
                 <nav className="py-3">
                     <div className="flex flex-col gap-1">
                         {staffSidebarMenu.map((item, index) => {
-                            if (!hasAccess(item.permission)) return null;
+                            if (!hasAccess(item)) return null;
 
                             const hasChildActive = item.submenu?.some(sub => location.pathname === sub.path);
                             const isMenuOpen = openSubmenus[item.title];

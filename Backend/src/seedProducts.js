@@ -90,7 +90,7 @@ const seedData = async () => {
                 password: 'admin@123',
                 role: 'Admin',
                 isActive: true,
-                permissions: ['dashboard_view', 'orders_manage', 'products_manage']
+                permissions: ['VIEW_ORDERS', 'MANAGE_ORDERS', 'VIEW_PRODUCTS', 'MANAGE_INVENTORY', 'MANAGE_POS_BILLING']
             });
             console.log('Admin seeded.');
         } else {

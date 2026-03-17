@@ -21,7 +21,7 @@ const StaffManagement = () => {
   const isBranchManager = currentUser?.role === 'Branch Manager';
   const isStaff = currentUser?.role === 'Staff';
 
-  const hasPermission = isSuperAdmin || currentUser?.permissions?.includes('MANAGE_STAFF');
+  const hasPermission = isSuperAdmin || isBranchManager;
   const canPerformActions = isSuperAdmin || isBranchManager; // Only Admin/Manager can Edit/Delete/Add
 
   const [staff, setStaff] = useState([]);
@@ -48,7 +48,7 @@ const StaffManagement = () => {
     { id: 'VIEW_PRODUCTS', label: 'View Products Catalog' },
     { id: 'MANAGE_INVENTORY', label: 'Update Stock/Inventory' },
     { id: 'VIEW_CUSTOMERS', label: 'View Customer Info' },
-    { id: 'MANAGE_STAFF', label: 'Create/Edit Staff' }
+    { id: 'MANAGE_POS_BILLING', label: 'Handle POS Billing & Terminal' }
   ];
 
   const fetchStaff = async () => {

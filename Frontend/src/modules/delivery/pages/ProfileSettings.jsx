@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -21,7 +21,8 @@ import {
     FileText,
     Lock,
     Globe,
-    CheckCircle2
+    CheckCircle2,
+    MessageCircle
 } from 'lucide-react';
 import useDeliveryStore from '../store/deliveryStore';
 import { toast } from 'react-toastify';
@@ -155,6 +156,51 @@ const ProfileSettings = () => {
                             </div>
                         </div>
                     ))}
+                </div>
+            ),
+            help: (
+                <div className="space-y-6">
+                    {/* Contact Hub */}
+                    <div className="grid grid-cols-3 gap-3">
+                        <a href="https://wa.me/919199899899" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-500/20 group active:scale-95 transition-all">
+                            <MessageCircle size={20} className="text-emerald-600 mb-2" />
+                            <span className="text-[10px] font-black uppercase text-emerald-700">WhatsApp</span>
+                        </a>
+                        <a href="tel:+919199899899" className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/20 group active:scale-95 transition-all">
+                            <Phone size={20} className="text-blue-600 mb-2" />
+                            <span className="text-[10px] font-black uppercase text-blue-700">Call HQ</span>
+                        </a>
+                        <a href="mailto:support@saathigrow.com" className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 group active:scale-95 transition-all">
+                            <Mail size={20} className="text-slate-600 dark:text-zinc-400 mb-2" />
+                            <span className="text-[10px] font-black uppercase text-slate-700 dark:text-zinc-300">Email</span>
+                        </a>
+                    </div>
+
+                    {/* FAQ Section */}
+                    <div className="space-y-4">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Tactical FAQ</h4>
+                        <div className="space-y-2">
+                            {[
+                                { q: "Mission Assignment Issues", a: "Check your data connection and ensure Duty Toggle is ON." },
+                                { q: "Cash Liability Settlement", a: "Visit HQ within 24hrs once liability exceeds ₹8,000." },
+                                { q: "Customer No-Response", a: "Call 3 times, then mark 'Failed' with 'User Unavailable' reason." },
+                                { q: "App Performance", a: "Clear cache or update to latest v1.2.4 from Tactical Hub." }
+                            ].map((faq, i) => (
+                                <div key={i} className="p-4 bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-2xl">
+                                    <p className="text-xs font-black text-slate-800 dark:text-zinc-100 mb-1">{faq.q}</p>
+                                    <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 leading-relaxed">{faq.a}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-rose-50 dark:bg-rose-500/5 rounded-2xl border border-rose-100 dark:border-rose-500/20">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Shield size={14} className="text-rose-600" />
+                            <span className="text-[10px] font-black uppercase text-rose-700">Emergency Protocol</span>
+                        </div>
+                        <p className="text-[11px] font-medium text-rose-600/80 leading-relaxed">In case of accidents or vehicle failure during an active run, immediately contact Dispatch HQ via the <b>Call HQ</b> button above.</p>
+                    </div>
                 </div>
             )
         };

@@ -94,9 +94,6 @@ const StoreManagerLayout = () => {
                                             >
                                                 <User size={16} className="mr-2 text-slate-400" /> Profile Settings
                                             </button>
-                                            <button className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all">
-                                                <Settings size={16} className="mr-2 text-slate-400" /> System Settings
-                                            </button>
                                             <div className="my-1 border-t border-slate-100"></div>
                                             <button
                                                 onClick={handleLogout}

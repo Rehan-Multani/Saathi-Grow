@@ -37,6 +37,7 @@ export const VendorProvider = ({ children }) => {
         orderCount: 0,
         returnCount: 0
     });
+    const [dashboardData, setDashboardData] = useState(null);
 
     // Fetch profile and products on initial load if token exists
     useEffect(() => {
@@ -123,6 +124,17 @@ export const VendorProvider = ({ children }) => {
             setStats(prev => ({ ...prev, earnings: wallet.totalEarnings }));
         } catch (error) {
             console.error('Failed to fetch wallet data:', error);
+        }
+    };
+
+    const fetchDashboardStats = async () => {
+        if (!vendor?.token) return;
+        try {
+            const data = await vendorAuthApi.getDashboardStats(vendor.token);
+            setDashboardData(data);
+            return data;
+        } catch (error) {
+            console.error('Failed to fetch dashboard stats:', error);
         }
     };
 
@@ -307,7 +319,9 @@ export const VendorProvider = ({ children }) => {
             handleReturnAction,
             walletData,
             earningsStats,
-            fetchWalletData
+            fetchWalletData,
+            dashboardData,
+            fetchDashboardStats
         }}>
             {children}
         </VendorContext.Provider>
