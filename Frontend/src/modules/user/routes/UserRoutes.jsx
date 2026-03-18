@@ -16,6 +16,7 @@ import { ShopProvider, useShop } from '../context/ShopContext';
 import { useStore } from '../context/StoreContext';
 import StoreSelector from '../components/location/StoreSelector';
 import PullToRefresh from '../../../common/components/PullToRefresh';
+import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -115,7 +116,9 @@ const UserLayout = () => {
 
     return (
         <div className="user-module-root flex flex-col min-h-screen">
+            <FirebaseNotificationHandler token={token} role="user" isApp={isWebView} />
             <ScrollToTop />
+
             <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''}`}>
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>

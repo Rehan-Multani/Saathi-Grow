@@ -11,27 +11,41 @@ export const updateFCMToken = async (req, res) => {
       return res.status(400).json({ success: false, message: 'FCM Token is required' });
     }
 
-    // Identify which user object exists in request (populated by middleware)
-    if (req.admin) {
-      if (platform === 'app') req.admin.fcmToken.app = fcmToken;
-      else req.admin.fcmToken.web = fcmToken;
-      await req.admin.save();
-    } else if (req.vendor) {
-      req.vendor.fcmToken = fcmToken;
-      await req.vendor.save();
-    } else if (req.partner) {
-      req.partner.fcmToken = fcmToken;
-      await req.partner.save();
-    } else if (req.user) {
-      req.user.fcmToken = fcmToken;
-      await req.user.save();
-    } else {
-      return res.status(401).json({ success: false, message: 'Unauthenticated' });
+    if (!['app', 'web'].includes(platform)) {
+      return res.status(400).json({ success: false, message: 'Invalid platform. Must be "app" or "web"' });
     }
 
-    res.status(200).json({ success: true, message: 'FCM Token updated successfully' });
+    let target;
+    // Identify which user object exists in request (populated by respective middleware)
+    if (req.user) target = await User.findById(req.user._id);
+    else if (req.admin) target = await Admin.findById(req.admin._id);
+    else if (req.vendor) target = await Vendor.findById(req.vendor._id);
+    else if (req.partner) target = await DeliveryPartner.findById(req.partner._id);
+
+    if (!target) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Update the correct platform token
+    if (!target.fcmToken) {
+      target.fcmToken = { app: '', web: '' };
+    }
+    
+    if (platform === 'app') {
+      target.fcmToken.app = fcmToken;
+    } else {
+      target.fcmToken.web = fcmToken;
+    }
+
+    await target.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: `FCM ${platform} token updated successfully` 
+    });
   } catch (error) {
     console.error('FCM update error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+

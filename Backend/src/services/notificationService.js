@@ -5,6 +5,10 @@ import Vendor from '../models/Vendor.js';
 import Branch from '../models/Branch.js';
 import Admin from '../models/Admin.js';
 
+// Simple in-memory deduplication cache (store message + recipient for 10 seconds)
+const sentCache = new Map();
+const CACHE_TTL = 10000; // 10 seconds
+
 /**
  * Send push notification to a specific user/partner
  * @param {string} recipientId - MongoDB ID of the recipient
@@ -14,9 +18,16 @@ import Admin from '../models/Admin.js';
  */
 export const sendPushNotification = async (recipientId, recipientModel, notification, data = {}) => {
   try {
-    let recipient;
+    // Deduplication check
+    const cacheKey = `${recipientId}_${notification.title}_${notification.body}`;
+    if (sentCache.has(cacheKey)) {
+      console.log(`Notification already sent to ${recipientId} recently. Skipping.`);
+      return true;
+    }
+    sentCache.set(cacheKey, Date.now());
+    setTimeout(() => sentCache.delete(cacheKey), CACHE_TTL);
 
-    // Find recipient based on model type
+    let recipient;
     switch (recipientModel) {
       case 'User': recipient = await User.findById(recipientId); break;
       case 'DeliveryPartner': recipient = await DeliveryPartner.findById(recipientId); break;
@@ -26,37 +37,32 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
       default: throw new Error('Invalid recipient model');
     }
 
-    if (!recipient) {
-      console.log(`Notification recipient not found: ${recipientId} (${recipientModel})`);
+    if (!recipient || !recipient.fcmToken) {
+      console.log(`No recipient or FCM tokens found for: ${recipientId}`);
       return false;
     }
 
-    let token = null;
-    if (recipientModel === 'Admin') {
-      token = recipient.fcmToken?.app || recipient.fcmToken?.web;
-    } else {
-      token = recipient.fcmToken;
-    }
+    const tokens = [];
+    if (recipient.fcmToken.app) tokens.push(recipient.fcmToken.app);
+    if (recipient.fcmToken.web) tokens.push(recipient.fcmToken.web);
 
-    if (!token) {
-      console.log(`No FCM token found for recipient: ${recipientId}`);
-      return false;
-    }
+    if (tokens.length === 0) return false;
 
-    const message = {
+    const messages = tokens.map(token => ({
       notification: {
         title: notification.title,
         body: notification.body
       },
       data: {
         ...data,
-        click_action: 'FLUTTER_NOTIFICATION_CLICK' // For mobile apps
+        click_action: 'FLUTTER_NOTIFICATION_CLICK'
       },
       token: token
-    };
+    }));
 
-    const response = await firebaseAdmin.messaging().send(message);
-    console.log(`Successfully sent notification to ${recipientId}:`, response);
+    // sendEach is the replacement for sendAll in firebase-admin 12.x
+    const response = await firebaseAdmin.messaging().sendEach(messages);
+    console.log(`Successfully sent notifications to ${recipientId} (${response.successCount} succeeded)`);
     return true;
 
   } catch (error) {
@@ -66,20 +72,29 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
 };
 
 /**
- * Send notification to all admins
+ * Send notification to all admins/staff
  */
 export const notifyAdmins = async (notification, data = {}) => {
   try {
     const admins = await Admin.find({ isActive: true });
-    const notifications = admins
-      .filter(admin => admin.fcmToken?.app || admin.fcmToken?.web)
-      .map(admin => {
-        const token = admin.fcmToken.web || admin.fcmToken.app;
-        return sendPushNotification(admin._id, 'Admin', notification, data);
-      });
-
-    await Promise.all(notifications);
+    for (const admin of admins) {
+      await sendPushNotification(admin._id, 'Admin', notification, data);
+    }
   } catch (error) {
     console.error('Error notifying admins:', error);
   }
 };
+
+/**
+ * Send notification to multiple users (e.g., promotional)
+ */
+export const notifyUsers = async (userIds, notification, data = {}) => {
+  try {
+    for (const id of userIds) {
+      await sendPushNotification(id, 'User', notification, data);
+    }
+  } catch (error) {
+    console.error('Error notifying users:', error);
+  }
+};
+

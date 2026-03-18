@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StoreManagerSidebar from './components/StoreManagerSidebar';
 import { Menu, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
+import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
 
 const StoreManagerLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -10,6 +11,7 @@ const StoreManagerLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { managerUser, managerLogout } = useStoreManagerAuth();
+    const managerToken = managerUser?.token;
 
     const handleLogout = () => {
         managerLogout();
@@ -27,6 +29,7 @@ const StoreManagerLayout = () => {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900">
+            <FirebaseNotificationHandler token={managerToken} role="store-manager" />
             <StoreManagerSidebar
                 showMobile={showMobileSidebar}
                 onClose={() => setShowMobileSidebar(false)}
@@ -120,7 +123,7 @@ const StoreManagerLayout = () => {
                 <footer className="py-4 px-6 border-t border-slate-200 bg-white">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
                         <p className="text-[11px] text-slate-400 font-medium">
-                            Â© 2026 sathiGro Store Management System
+                            © 2026 sathiGro Store Management System
                         </p>
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
@@ -136,4 +139,3 @@ const StoreManagerLayout = () => {
 };
 
 export default StoreManagerLayout;
-

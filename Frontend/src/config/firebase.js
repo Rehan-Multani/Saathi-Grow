@@ -1,4 +1,4 @@
-﻿import { initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getDatabase } from "firebase/database";
 import { getMessaging, getToken, onMessage } from "firebase/messaging"; // for web push
@@ -45,12 +45,12 @@ export const generateToken = async () => {
   }
 };
 
-export const onMessageListener = () =>
-  new Promise((resolve) => {
-    if (!messaging) return;
-    onMessage(messaging, (payload) => {
-      resolve(payload);
-    });
+export const onMessageListener = (callback) => {
+  if (!messaging) return;
+  return onMessage(messaging, (payload) => {
+    callback(payload);
   });
+};
+
 
 export { app, analytics, db, messaging };

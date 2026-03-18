@@ -8,7 +8,8 @@ import {
     getAdminProfile,
     updateAdminProfile
 } from '../controllers/adminController.js';
-import { protectAdmin, restrictTo, requirePermission } from '../middleware/authMiddleware.js';
+import { updateFCMToken } from '../controllers/notificationController.js';
+import { protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 import { adminLoginLimiter, adminWriteLimiter, sensitiveAdminActionLimiter, auditAction, idempotencyGuard } from '../middleware/securityMiddleware.js';
 
@@ -20,6 +21,7 @@ router.post('/login', adminLoginLimiter, adminLogin);
 // Protected routes (Any authenticated admin/staff)
 router.get('/profile', protectAdmin, getAdminProfile);
 router.put('/profile', protectAdmin, idempotencyGuard(), adminWriteLimiter, upload.single('profileImage'), auditAction('ADMIN_PROFILE_UPDATE'), updateAdminProfile);
+router.put('/fcm-token', protectAdmin, updateFCMToken);
 
 // Staff Management (Branch Scoped for Managers/Staff with permission)
 router.route('/staff')

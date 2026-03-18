@@ -147,11 +147,14 @@ import faqRoutes from './routes/faqRoutes.js';
 import posRoutes from './routes/posRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import promoCodeRoutes from './routes/promoCodeRoutes.js';
+import userProfileRoutes from './routes/userProfileRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
 
 
 // Use Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userProfileRoutes);
+
 app.use('/api/admin/users', userRoutes);
 app.use('/api/admin/branches', branchRoutes);
 app.use('/api/admin/vendors', vendorRoutes);

@@ -13,6 +13,9 @@ const RunDetail = lazy(() => import('../pages/RunDetail'));
 const Login = lazy(() => import('../pages/DeliveryLogin'));
 const Legal = lazy(() => import('../pages/LegalDocuments'));
 import useDeliveryStore from '../store/deliveryStore';
+import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
+import { isWebView } from '../../../utils/deviceUtils';
+
 
 const Loading = () => (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -30,6 +33,7 @@ const DeliveryRoutes = () => {
     const { token } = useDeliveryStore();
     return (
         <div className="delivery-module-root min-h-screen">
+            <FirebaseNotificationHandler token={token} role="delivery" isApp={isWebView()} />
             <NotificationProvider>
                 <Suspense fallback={<Loading />}>
                     <Routes>

@@ -8,6 +8,8 @@ import {
   saveBankAccount,
   deleteBankAccount
 } from '../controllers/vendorAuthController.js';
+import { updateFCMToken } from '../controllers/notificationController.js';
+
 import {
   getVendorProducts,
   addVendorProduct,
@@ -52,6 +54,8 @@ router.get('/dashboard/stats', protectVendor, async (req, res) => {
   return getVendorDashboardStats(req, res);
 });
 router.put('/profile', protectVendor, upload.single('logo'), updateProfile);
+router.put('/fcm-token', protectVendor, updateFCMToken);
+
 
 // Product management for vendor
 router.route('/products')

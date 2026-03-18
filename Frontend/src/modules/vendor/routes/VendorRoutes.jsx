@@ -1,8 +1,10 @@
-﻿import React from 'react';
+import React from 'react';
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import VendorSidebar from '../components/VendorSidebar';
 import VendorHeader from '../components/VendorHeader';
 import { VendorProvider } from '../contexts/VendorContext';
+import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
+
 
 // Pages
 import Dashboard from '../pages/Dashboard';
@@ -40,10 +42,13 @@ import { useLocation } from 'react-router-dom';
 
 const VendorLayout = () => {
     const location = useLocation();
+    const vendorToken = localStorage.getItem('sathiGro_vendor_token');
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+            <FirebaseNotificationHandler token={vendorToken} role="vendor" />
             <VendorSidebar />
             <VendorHeader />
+
             <main
                 key={location.pathname}
                 className="md:ml-64 p-4 md:p-6 pb-24 animate-page-entry"

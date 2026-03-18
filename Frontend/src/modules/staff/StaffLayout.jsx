@@ -4,6 +4,7 @@ import StaffSidebar from './components/StaffSidebar';
 import { Bell, Menu, User, Settings, LogOut } from 'lucide-react';
 import { staffSidebarMenu } from './data/staffSidebarMenu';
 import { useStaffAuth } from './context/StaffAuthContext';
+import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
 
 const StaffLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -11,6 +12,7 @@ const StaffLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { staffUser, staffLogout } = useStaffAuth();
+    const staffToken = staffUser?.token;
 
     // Helper to find current page title
     const getCurrentTitle = () => {
@@ -25,7 +27,8 @@ const StaffLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900">
+            <FirebaseNotificationHandler token={staffToken} role="staff" />
             <StaffSidebar
                 showMobile={showMobileSidebar}
                 onClose={() => setShowMobileSidebar(false)}

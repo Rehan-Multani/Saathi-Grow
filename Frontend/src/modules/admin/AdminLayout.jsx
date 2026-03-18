@@ -5,10 +5,12 @@ import AdminSidebar from './components/AdminSidebar';
 import { Bell, Menu, User, Settings, LogOut, Languages, ChevronDown } from 'lucide-react';
 import { adminSidebarMenu } from './data/sidebarMenu';
 import { useAdminAuth } from './context/AdminAuthContext';
+import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
 
 const AdminLayout = () => {
     const { t, i18n } = useTranslation();
     const { adminLogout, adminUser } = useAdminAuth();
+    const adminToken = adminUser?.token;
     const navigate = useNavigate();
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -43,6 +45,7 @@ const AdminLayout = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <FirebaseNotificationHandler token={adminToken} role="admin" />
             <AdminSidebar
                 showMobile={showMobileSidebar}
                 onClose={() => setShowMobileSidebar(false)}
