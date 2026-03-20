@@ -1,5 +1,6 @@
 import OfferDeal from '../models/OfferDeal.js';
 import Product from '../models/Product.js';
+import { notifyAllUsers } from '../services/notificationService.js';
 
 // @desc    Get all offer deals
 // @route   GET /api/admin/offers
@@ -71,6 +72,14 @@ export const createOfferDeal = async (req, res) => {
       vendor: req.vendor ? req.vendor._id : null
     });
 
+    // Notify users about new Offer/Deal
+    if (offer.isActive) {
+      notifyAllUsers({
+        title: `🔥 New Deal: ${offer.title}`,
+        body: offer.subtitle || 'Flash sale! Grab your favorites before they are gone.'
+      }, { offerId: offer._id.toString(), type: 'offer' });
+    }
+
     const populatedOffer = await offer.populate('products.productId', 'name image basePrice mrp sku');
     res.status(201).json(populatedOffer);
   } catch (error) {
@@ -105,6 +114,16 @@ export const updateOfferDeal = async (req, res) => {
     offer.textColor = textColor || offer.textColor;
     offer.accentColor = accentColor || offer.accentColor;
     offer.isActive = isActive !== undefined ? isActive : offer.isActive;
+
+    // Notify if becoming active
+    const isNowActive = isActive === true || isActive === 'true';
+    if (!offer.isActive && isNowActive) {
+      notifyAllUsers({
+        title: `🎇 ${offer.title} is now Live!`,
+        body: offer.subtitle || 'Check out our latest flash deals.'
+      }, { offerId: offer._id.toString(), type: 'offer' });
+    }
+
     offer.order = order !== undefined ? order : offer.order;
     offer.expiryDate = expiryDate || offer.expiryDate;
     offer.displayLocation = displayLocation || offer.displayLocation;

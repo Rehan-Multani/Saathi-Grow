@@ -1,6 +1,8 @@
 import User from '../models/User.js';
 import Order from '../models/Order.js';
 import { cloudinary } from '../config/cloudinary.js';
+import { sendPushNotification } from '../services/notificationService.js';
+import { sendSystemNotificationEmail } from '../services/emailService.js';
 
 // @desc    Get all users
 // @route   GET /api/admin/users
@@ -173,6 +175,15 @@ export const updateUser = async (req, res) => {
 
     const updatedUser = await user.save();
     res.json({ success: true, user: updatedUser });
+
+    // Notify User on Status Change (Deactivation/Activation)
+    if (req.body.isActive !== undefined) {
+      const title = 'Account Status Updated';
+      const body = `Your user account has been ${updatedUser.isActive ? 'activated' : 'deactivated'}. Please contact support for any queries.`;
+      
+      await sendSystemNotificationEmail(updatedUser.email, `Account Notice: ${updatedUser.isActive ? 'Activated' : 'Deactivated'}`, title, body);
+      await sendPushNotification(updatedUser._id, 'User', { title, body }, { type: 'account_status', status: updatedUser.isActive ? 'active' : 'inactive' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Error updating user' });
   }

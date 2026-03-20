@@ -9,6 +9,7 @@ import DeliveryLocation from '../models/DeliveryLocation.js';
 import CashCollection from '../models/CashCollection.js';
 import { findOptimalSource } from '../services/locationService.js';
 import { creditVendorWallet, debitVendorWallet, creditAdminWallet, debitAdminWallet } from './orderController.js';
+import { sendPushNotification } from '../services/notificationService.js';
 
 // @desc    Get delivery partner profile
 // @route   GET /api/delivery/profile
@@ -184,6 +185,12 @@ export const updateDeliveryStatus = async (req, res) => {
                         order.paymentStatus = 'paid';
                     }
                     await order.save();
+
+                    // Notify User about Delivery
+                    sendPushNotification(order.user, 'User', {
+                        title: 'Order Delivered! 🛍️',
+                        body: `Your order #${order.orderId} has been successfully delivered by ${partner.vehicleNumber}. Enjoy your purchase!`
+                    }, { orderId: order._id.toString(), type: 'order_delivered' });
                     if (order.vendor) {
                         await creditVendorWallet(order);
                         await creditAdminWallet(order);
@@ -200,6 +207,12 @@ export const updateDeliveryStatus = async (req, res) => {
                             amount: order.totalAmount,
                             status: 'collected'
                         });
+
+                        // Notify Partner about Collection
+                        sendPushNotification(partner._id, 'DeliveryPartner', {
+                            title: 'Cash Collected! 💰',
+                            body: `You have collected ₹${order.totalAmount} for Order #${order.orderId}.`
+                        }, { orderId: order._id.toString(), type: 'cash_collection' });
                     }
                     partner.currentStopIndex += 1;
                     await partner.save();
@@ -223,6 +236,12 @@ export const updateDeliveryStatus = async (req, res) => {
                     order.returnRequest.status = 'PickedUp';
                     order.returnRequest.pickedUpAt = Date.now();
                     await order.save();
+
+                    // Notify User about Pickup
+                    sendPushNotification(order.user, 'User', {
+                        title: 'Return Item Picked Up! 📦',
+                        body: `Our partner has picked up your return request for order #${order.orderId}.`
+                    }, { orderId: order._id.toString(), type: 'return_picked_up' });
                     partner.currentStopIndex += 1;
                     await partner.save();
                 }
@@ -274,6 +293,12 @@ export const updateDeliveryStatus = async (req, res) => {
                                         description: `Refund for Returned Order #${order.orderId}`,
                                         orderId: order._id
                                     });
+
+                                    // Notify User about Refund
+                                    sendPushNotification(user._id, 'User', {
+                                        title: 'Refund Credited! 💸',
+                                        body: `₹${order.totalAmount} has been credited to your wallet for returned order #${order.orderId}.`
+                                    }, { orderId: order._id.toString(), type: 'refund_credited' });
                                 }
                                 order.paymentStatus = 'refunded';
                             }

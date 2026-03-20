@@ -4,6 +4,7 @@ import DeliveryPartner from '../models/DeliveryPartner.js';
 import Vendor from '../models/Vendor.js';
 import Branch from '../models/Branch.js';
 import Admin from '../models/Admin.js';
+import Notification from '../models/Notification.js';
 
 // Simple in-memory deduplication cache (store message + recipient for 10 seconds)
 const sentCache = new Map();
@@ -63,6 +64,21 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
     // sendEach is the replacement for sendAll in firebase-admin 12.x
     const response = await firebaseAdmin.messaging().sendEach(messages);
     console.log(`Successfully sent notifications to ${recipientId} (${response.successCount} succeeded)`);
+
+    // PERSISTENCE: Save to database for history
+    try {
+      await Notification.create({
+        recipient: recipientId,
+        recipientModel: recipientModel === 'Admin' || recipientModel === 'Branch' ? 'Staff' : recipientModel,
+        title: notification.title,
+        body: notification.body,
+        data: data,
+        type: data.type || 'general'
+      });
+    } catch (saveError) {
+      console.error('Error saving notification to DB:', saveError.message);
+    }
+
     return true;
 
   } catch (error) {
@@ -72,7 +88,7 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
 };
 
 /**
- * Send notification to all admins/staff
+ * Send notification to all admins/staff based on role and branch scope
  */
 export const notifyAdmins = async (notification, data = {}) => {
   try {
@@ -86,6 +102,42 @@ export const notifyAdmins = async (notification, data = {}) => {
 };
 
 /**
+ * Notify staff members with specific permissions, optionally scoped to a branch
+ * @param {string} permission - Required permission string (e.g., 'MANAGE_ORDERS')
+ * @param {string|null} branchId - Mongo ID of the branch (null for across all)
+ * @param {object} notification - Title and Body
+ * @param {object} data - Payload
+ */
+export const notifyByBranchAndPermission = async (permission, branchId, notification, data = {}) => {
+  try {
+    const query = { isActive: true };
+    if (permission) query.permissions = permission;
+    if (branchId) query.branchId = branchId;
+
+    // Admin role always gets notifications if it matches branch or is global (role: 'Admin')
+    // We fetch matching Staff and Branch Managers
+    const staff = await Admin.find(query);
+    
+    // Also include Super Admins if not scoped strictly to branch
+    if (!branchId || permission === 'VIEW_DASHBOARD') {
+      const superAdmins = await Admin.find({ role: 'Admin', isActive: true });
+      // Union both lists avoiding duplicates
+      const allRecipients = [...new Map([...staff, ...superAdmins].map(item => [item._id.toString(), item])).values()];
+      
+      for (const recipient of allRecipients) {
+        await sendPushNotification(recipient._id, 'Admin', notification, data);
+      }
+    } else {
+      for (const s of staff) {
+        await sendPushNotification(s._id, 'Admin', notification, data);
+      }
+    }
+  } catch (error) {
+    console.error('Error in notifyByBranchAndPermission:', error);
+  }
+};
+
+/**
  * Send notification to multiple users (e.g., promotional)
  */
 export const notifyUsers = async (userIds, notification, data = {}) => {
@@ -95,6 +147,20 @@ export const notifyUsers = async (userIds, notification, data = {}) => {
     }
   } catch (error) {
     console.error('Error notifying users:', error);
+  }
+};
+
+/**
+ * Notify ALL active users (Marketing/Campaigns)
+ */
+export const notifyAllUsers = async (notification, data = {}) => {
+  try {
+    const users = await User.find({ status: 'Active' }, '_id');
+    for (const user of users) {
+      await sendPushNotification(user._id, 'User', notification, data);
+    }
+  } catch (error) {
+    console.error('Error in notifyAllUsers:', error);
   }
 };
 

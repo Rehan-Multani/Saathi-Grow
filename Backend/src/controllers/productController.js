@@ -4,8 +4,10 @@ import InventoryLog from '../models/InventoryLog.js';
 import CampaignSection from '../models/CampaignSection.js';
 import Branch from '../models/Branch.js';
 import Category from '../models/Category.js';
+import User from '../models/User.js';
 import { generateProductDescription, generateProductTags, analyzeSearchQuery } from '../utils/aiService.js';
 import QRCode from 'qrcode';
+import { sendPushNotification } from '../services/notificationService.js';
 
 // Helper to determine status based on total stock
 const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshold = null) => {
@@ -748,7 +750,21 @@ export const updateProduct = async (req, res) => {
       if (req.body.tags) {
         product.tags = typeof req.body.tags === 'string' ? req.body.tags.split(',') : req.body.tags;
       }
+      
+      const oldPrice = product.basePrice;
       product.basePrice = req.body.basePrice || product.basePrice;
+
+      // Price Drop Notification
+      if (oldPrice > 0 && product.basePrice < oldPrice) {
+        const interestedUsers = await User.find({ wishlist: product._id });
+        for (const user of interestedUsers) {
+          sendPushNotification(user._id, 'User', {
+            title: 'Price Drop Alert! 📉',
+            body: `Great news! ${product.name} in your wishlist is now available at a lower price: ₹${product.basePrice}`
+          }, { productId: product._id.toString(), type: 'price_drop' });
+        }
+      }
+
       product.unitType = req.body.unitType || product.unitType;
       product.unitValue = req.body.unitValue !== undefined ? Number(req.body.unitValue) : product.unitValue;
       product.physicalLocation = req.body.physicalLocation || product.physicalLocation;

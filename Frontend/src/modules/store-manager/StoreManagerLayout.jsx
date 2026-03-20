@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StoreManagerSidebar from './components/StoreManagerSidebar';
 import { Menu, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/apiConfig';
 
 const StoreManagerLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -12,6 +14,27 @@ const StoreManagerLayout = () => {
     const navigate = useNavigate();
     const { managerUser, managerLogout } = useStoreManagerAuth();
     const managerToken = managerUser?.token;
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const fetchUnreadCount = async () => {
+        try {
+            if (!managerToken) return;
+            const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+                headers: { Authorization: `Bearer ${managerToken}` }
+            });
+            if (res.data.success) {
+                setUnreadCount(res.data.count);
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, [managerToken]);
 
     const handleLogout = () => {
         managerLogout();
@@ -54,9 +77,16 @@ const StoreManagerLayout = () => {
                     <div className="flex items-center gap-6">
 
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-all">
+                        <button 
+                            onClick={() => navigate('/store-manager/notifications')}
+                            className="relative p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-all"
+                        >
                             <Bell size={20} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 border-2 border-white rounded-full"></span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 border border-white rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
                         </button>
 
                         <div className="h-6 w-px bg-slate-200"></div>

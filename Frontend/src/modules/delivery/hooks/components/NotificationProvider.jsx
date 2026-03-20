@@ -1,8 +1,11 @@
-﻿import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import { createDummyOrder } from '../../data/mockDeliveryData';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/apiConfig';
+import useDeliveryStore from '../../store/deliveryStore';
 
 const NotificationContext = createContext();
 
@@ -15,6 +18,34 @@ const ORDER_ACCEPTED_EVENT = 'delivery:order-accepted';
 export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
     const navigate = useNavigate();
+    const { token } = useDeliveryStore();
+
+    const fetchNotifications = async () => {
+        try {
+            if (!token) return;
+            const res = await axios.get(`${API_BASE_URL}/notifications/my`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.data.success) {
+                const mapped = res.data.notifications.map(n => ({
+                    id: n._id,
+                    orderId: n.data?.orderId || 'N/A',
+                    customerName: n.data?.customerName || 'N/A',
+                    read: n.isRead,
+                    time: new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    title: n.title,
+                    body: n.body
+                }));
+                setNotifications(mapped);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, [token]);
 
     useEffect(() => {
         const handleNewOrder = (event) => {
@@ -86,7 +117,7 @@ export const NotificationProvider = ({ children }) => {
         return order;
     }, []);
 
-    const markAsRead = useCallback((notificationId) => {
+    const markAsRead = useCallback(async (notificationId) => {
         setNotifications((prev) =>
             prev.map((notification) =>
                 notification.id === notificationId
@@ -94,15 +125,29 @@ export const NotificationProvider = ({ children }) => {
                     : notification
             )
         );
-    }, []);
+        try {
+            await axios.put(`${API_BASE_URL}/notifications/read/${notificationId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error('Error marking as read:', error);
+        }
+    }, [token]);
 
-    const markAllAsRead = useCallback(() => {
+    const markAllAsRead = useCallback(async () => {
         setNotifications((prev) =>
             prev.map((notification) =>
                 notification.read ? notification : { ...notification, read: true }
             )
         );
-    }, []);
+        try {
+            await axios.put(`${API_BASE_URL}/notifications/read-all`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    }, [token]);
 
     const removeNotification = useCallback((notificationId) => {
         setNotifications((prev) =>

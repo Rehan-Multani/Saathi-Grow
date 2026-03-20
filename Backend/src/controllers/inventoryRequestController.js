@@ -2,6 +2,8 @@ import InventoryUpdateRequest from '../models/InventoryUpdateRequest.js';
 import Product from '../models/Product.js';
 import InventoryLog from '../models/InventoryLog.js';
 import mongoose from 'mongoose';
+import { sendPushNotification, notifyByBranchAndPermission } from '../services/notificationService.js';
+import { sendSystemNotificationEmail } from '../services/emailService.js';
 
 // @desc    Store Manager requests inventory change
 // @route   POST /api/inventory-requests
@@ -38,6 +40,12 @@ export const createRequest = async (req, res) => {
     });
 
     res.status(201).json(request);
+
+    // Notify Admins of the new inventory request
+    await notifyByBranchAndPermission('MANAGE_INVENTORY', null, {
+      title: 'New Inventory Request',
+      body: `New request from ${req.admin.name} for ${product.name}. Adjustment: ${type} ${adjustment}`
+    }, { type: 'inventory_request', requestId: request._id.toString() });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -132,6 +140,14 @@ export const approveRequest = async (req, res) => {
 
     await session.commitTransaction();
     res.json(request);
+
+    // Notify Manager of Approval
+    const manager = await mongoose.model('Admin').findById(request.managerId);
+    if (manager) {
+      const title = 'Inventory Request Approved';
+      const body = `Your inventory request for ${product.name} has been approved. Stock updated.`;
+      await sendPushNotification(manager._id, 'Staff', { title, body }, { type: 'inventory_update', status: 'Approved' });
+    }
   } catch (error) {
     await session.abortTransaction();
     res.status(400).json({ message: error.message });
@@ -162,6 +178,14 @@ export const rejectRequest = async (req, res) => {
     await request.save();
 
     res.json(request);
+
+    // Notify Manager of Rejection
+    const manager = await mongoose.model('Admin').findById(request.managerId);
+    if (manager) {
+      const title = 'Inventory Request Rejected';
+      const body = `Your inventory request for product ID ${request.product} was rejected by admin.`;
+      await sendPushNotification(manager._id, 'Staff', { title, body }, { type: 'inventory_update', status: 'Rejected' });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

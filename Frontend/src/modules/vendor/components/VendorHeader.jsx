@@ -1,11 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, User } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/apiConfig';
 
 const VendorHeader = () => {
     const { vendor } = useVendor();
     const navigate = useNavigate();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const fetchUnreadCount = async () => {
+        try {
+            if (!vendor?.token) return;
+            const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+                headers: { Authorization: `Bearer ${vendor.token}` }
+            });
+            if (res.data.success) {
+                setUnreadCount(res.data.count);
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, [vendor?.token]);
 
     return (
         <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 ml-0 md:ml-64 sticky top-0 z-30 transition-all duration-200">
@@ -20,7 +43,11 @@ const VendorHeader = () => {
                         className="relative p-2 rounded-full transition-colors hover:bg-gray-50 text-gray-400 hover:text-gray-600"
                     >
                         <Bell size={20} />
-                        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                        {unreadCount > 0 && (
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full border border-white flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
                     </button>
                 </div>
 

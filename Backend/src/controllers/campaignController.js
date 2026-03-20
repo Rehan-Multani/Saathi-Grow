@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import CampaignSection from '../models/CampaignSection.js';
 import Product from '../models/Product.js';
+import { notifyAllUsers } from '../services/notificationService.js';
 
 // @desc    Get all campaign sections
 // @route   GET /api/admin/campaigns
@@ -243,6 +244,14 @@ export const createCampaignSection = async (req, res) => {
       bannerImage: req.file ? req.file.path : ''
     });
 
+    // Notify all users about New Festive Campaign
+    if (section.isActive) {
+      notifyAllUsers({
+        title: `🎁 ${section.title}`,
+        body: section.highlightText || section.subtitle || 'Check out our latest offers!'
+      }, { campaignId: section._id.toString(), type: 'campaign' });
+    }
+
     const populatedSection = await section.populate('products.productId', 'name image basePrice mrp sku');
     res.status(201).json(populatedSection);
   } catch (error) {
@@ -275,6 +284,17 @@ export const updateCampaignSection = async (req, res) => {
     section.textColor = textColor || section.textColor;
     section.accentColor = accentColor || section.accentColor;
     section.isActive = isActive !== undefined ? isActive : section.isActive;
+    
+    // Notify if becoming active
+    const wasActive = section.isActive;
+    const isNowActive = isActive === true || isActive === 'true';
+    if (!wasActive && isNowActive) {
+      notifyAllUsers({
+        title: `🎊 ${section.title} is now Live!`,
+        body: section.highlightText || section.subtitle || 'Don\'t miss out on amazing deals.'
+      }, { campaignId: section._id.toString(), type: 'campaign' });
+    }
+    
     section.order = order !== undefined ? order : section.order;
     if (displayType) section.displayType = displayType;
 

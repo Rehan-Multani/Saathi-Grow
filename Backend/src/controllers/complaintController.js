@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Complaint from '../models/Complaint.js';
 import Order from '../models/Order.js';
-import { sendPushNotification, notifyAdmins } from '../services/notificationService.js';
+import { sendPushNotification, notifyAdmins, notifyByBranchAndPermission } from '../services/notificationService.js';
 import User from '../models/User.js';
 import Vendor from '../models/Vendor.js';
 import Branch from '../models/Branch.js';
@@ -60,8 +60,8 @@ export const raiseComplaint = async (req, res) => {
       attachments: finalAttachments
     });
 
-    // Notify Admins
-    await notifyAdmins({
+    // Notify Staff of specific branch with Support permission
+    await notifyByBranchAndPermission('MANAGE_SUPPORT', storeId, {
       title: `New Ticket: ${complaint.ticketId}`,
       body: order ? `Order #${order.orderId} - ${category}` : `General - ${category}`
     }, {
@@ -122,15 +122,26 @@ export const escalateToStore = async (req, res) => {
     await complaint.save();
 
 
-    // Notify the relevant Store (Vendor or Branch Manager)
-    await sendPushNotification(complaint.store._id, complaint.storeModel, {
-      title: 'New Complaint Escalated',
-      body: `Complaint ${ticketId} needs your attention for order ${complaint.order.orderId}`
-    }, {
-      ticketId: ticketId,
-      orderId: complaint.order.orderId,
-      type: 'escatalion'
-    });
+    // Notify the relevant Store (Vendor or Branch Manager/Staff)
+    if (complaint.storeModel === 'Branch') {
+      await notifyByBranchAndPermission('MANAGE_SUPPORT', complaint.store._id, {
+        title: 'New Complaint Escalated',
+        body: `Complaint ${ticketId} needs your attention for order ${complaint.order.orderId}`
+      }, {
+        ticketId: ticketId,
+        orderId: complaint.order.orderId,
+        type: 'escalation'
+      });
+    } else {
+      await sendPushNotification(complaint.store._id, complaint.storeModel, {
+        title: 'New Complaint Escalated',
+        body: `Complaint ${ticketId} needs your attention for order ${complaint.order.orderId}`
+      }, {
+        ticketId: ticketId,
+        orderId: complaint.order.orderId,
+        type: 'escalation'
+      });
+    }
 
     // Notify Delivery Partner if linked
     if (complaint.deliveryPartner) {

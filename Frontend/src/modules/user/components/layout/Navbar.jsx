@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
 import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map, Mic, Globe, AlertCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
@@ -11,6 +11,8 @@ import { useStore } from '../../context/StoreContext';
 import { searchProducts } from '../../api/shopApi';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const logo = ASSET_URLS.logo;
+import axios from 'axios';
+import { API_BASE_URL } from '../../../../config/apiConfig';
 import ProductCard from '../product/ProductCard';
 import { ProductCardSkeleton } from '../common/Skeleton';
 
@@ -34,6 +36,7 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem('preferredLanguage') || 'English');
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { activeStore, isStoreOutOfRange, isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
 
   const recognitionRef = React.useRef(null);
@@ -119,6 +122,27 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
     }
   }, [searchQuery]);
 
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setUnreadCount(res.data.count);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const handleSuggestionClick = (query) => {
     if (query) {
       const updatedRecent = [query, ...recentSearches.filter(q => q !== query)].slice(0, 5);
@@ -179,7 +203,11 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             {/* Notification Icon */}
             <Link to="/notifications" className="relative p-2 bg-white/50 dark:bg-white/10 rounded-full text-gray-700 dark:text-gray-200 border border-white dark:border-white/5 shadow-sm active:scale-90 transition-transform">
               <Bell size={20} className="text-[#0c831f] dark:text-white" strokeWidth={2.5} />
-              <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-black"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full border border-white dark:border-black flex items-center justify-center text-[8px] text-white font-black animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Link>
 
             {/* Unified Location & Store Selector */}
@@ -379,6 +407,20 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
               >
                 {isDarkMode ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
               </button>
+
+              <div className="relative">
+                <Link
+                  to="/notifications"
+                  className="p-2.5 flex items-center justify-center bg-gray-100 dark:bg-white/5 hover:bg-[#0c831f] hover:text-white dark:hover:bg-[#0c831f] text-gray-800 dark:text-[#0c831f] rounded-full transition-all duration-300 group shadow-sm"
+                >
+                  <Bell size={20} strokeWidth={2} className="group-hover:rotate-12 transition-transform" />
+                </Link>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-sm transform scale-100 animate-in zoom-in">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
 
               {user ? (
                 <div className="flex items-center">

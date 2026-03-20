@@ -4,6 +4,8 @@ import generateToken from '../utils/generateToken.js';
 import smsService from '../utils/smsService.js';
 import { cloudinary } from '../config/cloudinary.js';
 import Order from '../models/Order.js';
+import { sendPushNotification } from '../services/notificationService.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 // @desc    Request OTP for Login/Register
 // @route   POST /api/auth/request-otp
 // @access  Public
@@ -119,6 +121,21 @@ export const verifyOTP = async (req, res) => {
       isNewUser = true;
       await user.save();
       await Otp.deleteOne({ phone });
+
+      // --- Production Welcome Flow ---
+      const welcomeTitle = 'Welcome to Saathi-Grow! 🏮';
+      const welcomeBody = `Hi ${user.name}, thank you for joining us. Enjoy fresh products delivered to your doorstep.`;
+      
+      // 1. Send Push Notification
+      sendPushNotification(user._id, 'User', {
+        title: welcomeTitle,
+        body: welcomeBody
+      }, { type: 'welcome', screen: 'Home' });
+
+      // 2. Send Welcome Email (if email exists)
+      if (user.email) {
+        await sendWelcomeEmail(user.email, user.name, 'Customer');
+      }
     }
 
     res.json({

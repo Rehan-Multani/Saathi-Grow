@@ -1,18 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StaffSidebar from './components/StaffSidebar';
 import { Bell, Menu, User, Settings, LogOut } from 'lucide-react';
 import { staffSidebarMenu } from './data/staffSidebarMenu';
 import { useStaffAuth } from './context/StaffAuthContext';
 import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/apiConfig';
 
 const StaffLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const [unreadCount, setUnreadCount] = useState(0);
     const { staffUser, staffLogout } = useStaffAuth();
     const staffToken = staffUser?.token;
+
+    const fetchUnreadCount = async () => {
+        try {
+            if (!staffToken) return;
+            const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+                headers: { Authorization: `Bearer ${staffToken}` }
+            });
+            if (res.data.success) {
+                setUnreadCount(res.data.count);
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, [staffToken]);
 
     // Helper to find current page title
     const getCurrentTitle = () => {
@@ -48,8 +71,16 @@ const StaffLayout = () => {
 
                     <div className="flex items-center gap-4">
 
-                        <button className="relative p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors">
+                        <button 
+                            onClick={() => navigate('/staff/notifications')}
+                            className="relative p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+                        >
                             <Bell size={20} className="text-gray-600" />
+                            {unreadCount > 0 && (
+                                <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
                         </button>
 
                         <div className="h-6 w-px bg-gray-200 mx-1"></div>

@@ -4,6 +4,8 @@ import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
 import { cloudinary } from '../config/cloudinary.js';
 import { geocodeAddress, getFullAddress } from '../services/locationService.js';
+import { sendPushNotification } from '../services/notificationService.js';
+import { sendWelcomeEmail, sendSystemNotificationEmail } from '../services/emailService.js';
 
 // @desc    Get all vendors
 // @route   GET /api/admin/vendors
@@ -135,6 +137,17 @@ export const createVendor = async (req, res) => {
     });
 
     res.status(201).json(vendor);
+
+    // Send Welcome Email
+    await sendWelcomeEmail(vendor.email, vendor.ownerName, 'Vendor', password || '123456');
+
+    // Optional: Push notification if they have FCM token (usually not on first create)
+    if (vendor.fcmToken?.web || vendor.fcmToken?.app) {
+      await sendPushNotification(vendor._id, 'Vendor', {
+        title: 'Welcome to SaathiGro!',
+        body: 'Your vendor account has been created successfully.'
+      }, { type: 'vendor_welcome' });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -190,6 +203,16 @@ export const updateVendor = async (req, res) => {
 
     const updatedVendor = await vendor.save();
     res.json(updatedVendor);
+
+    // Notify on Status Change
+    if (status && status !== vendor.status) {
+      const subject = `Account Status Updated: ${status}`;
+      const title = 'Account Status Update';
+      const body = `Hi ${vendor.ownerName}, your store '${vendor.storeName}' account status has been updated to ${status}.`;
+      
+      await sendSystemNotificationEmail(vendor.email, subject, title, body);
+      await sendPushNotification(vendor._id, 'Vendor', { title, body }, { type: 'account_status', status });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -428,6 +451,20 @@ export const updatePayoutStatus = async (req, res) => {
       .populate('processedBy', 'name email');
 
     res.json(populatedPayout);
+
+    // Notify Vendor on Payout Status Change
+    if (status && status !== prevStatus) {
+      const vendor = populatedPayout.vendor;
+      const title = 'Payout Status Updated';
+      const body = `Your payout of ₹${payout.amount} is now ${status}. ${note ? `Note: ${note}` : ''}`;
+      
+      await sendSystemNotificationEmail(vendor.email, `Payout Update: ${status}`, title, body);
+      await sendPushNotification(vendor._id, 'Vendor', { title, body }, { 
+        type: 'payout_update', 
+        payoutId: payout._id.toString(),
+        status 
+      });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

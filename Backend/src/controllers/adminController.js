@@ -1,5 +1,6 @@
 import Admin from '../models/Admin.js';
 import generateToken from '../utils/generateToken.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 
 // @desc    Admin Login
 // @route   POST /api/admin/login
@@ -176,6 +177,9 @@ export const createAdmin = async (req, res) => {
       email: admin.email,
       role: admin.role
     });
+
+    // Send Welcome Email to staff
+    await sendWelcomeEmail(admin.email, admin.name, admin.role, password);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -2,6 +2,7 @@ import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
 import Order from '../models/Order.js';
 import VendorPayout from '../models/VendorPayout.js';
+import { notifyByBranchAndPermission } from '../services/notificationService.js';
 
 // @desc    Get vendor wallet balance and paginated transactions
 // @route   GET /api/vendors/wallet?page=1&limit=10
@@ -130,6 +131,12 @@ export const requestWithdrawal = async (req, res) => {
       message: 'Withdrawal request submitted successfully. Admin will process it shortly.',
       request: payoutRequest
     });
+
+    // Notify Admins of the new withdrawal request
+    await notifyByBranchAndPermission('MANAGE_FINANCE', null, {
+      title: 'New Withdrawal Request',
+      body: `Vendor ${req.vendor.storeName} has requested a withdrawal of ₹${withdrawAmount}.`
+    }, { type: 'withdrawal_request', payoutId: payoutRequest._id.toString() });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

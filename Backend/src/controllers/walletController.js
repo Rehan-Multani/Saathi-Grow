@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import UserTransaction from '../models/UserTransaction.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import { sendPushNotification } from '../services/notificationService.js';
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'dummy_id',
@@ -106,6 +107,12 @@ export const verifyTopup = async (req, res) => {
       balance: user.walletBalance,
       message: 'Wallet topped up successfully'
     });
+
+    // Notify User (Push)
+    await sendPushNotification(req.user._id, 'User', {
+      title: 'Wallet Topped Up!',
+      body: `₹${amount} has been successfully added to your wallet. New balance: ₹${user.walletBalance}`
+    }, { type: 'wallet_topup', balance: user.walletBalance.toString() });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

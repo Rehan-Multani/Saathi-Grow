@@ -1,9 +1,11 @@
 import Product from '../models/Product.js';
 import Branch from '../models/Branch.js';
 import InventoryLog from '../models/InventoryLog.js';
+import User from '../models/User.js';
 import { cloudinary } from '../config/cloudinary.js';
 import QRCode from 'qrcode';
 import { generateProductDescription, generateProductTags } from '../utils/aiService.js';
+import { sendPushNotification } from '../services/notificationService.js';
 
 // Helper to determine status based on stock
 const determineProductStatus = (stock, threshold, existingStatus) => {
@@ -150,7 +152,20 @@ export const updateVendorProduct = async (req, res) => {
     if (product) {
       product.name = req.body.name || product.name;
       product.description = req.body.description || product.description;
+      const oldPrice = product.basePrice;
       product.basePrice = req.body.basePrice ? Number(req.body.basePrice) : product.basePrice;
+
+      // --- Production: Price Drop Notification ---
+      if (product.basePrice < oldPrice) {
+        const usersToNotify = await User.find({ wishlist: product._id });
+        for (const user of usersToNotify) {
+          sendPushNotification(user._id, 'User', {
+            title: 'Price Drop Alert! 📉',
+            body: `Great news! ${product.name} in your wishlist is now available at a lower price: ₹${product.basePrice}`
+          }, { productId: product._id.toString(), type: 'price_drop' });
+        }
+      }
+
       product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
       product.category = req.body.category || product.category;
       product.brandName = req.body.brandName || product.brandName;
@@ -236,6 +251,15 @@ export const updateVendorProduct = async (req, res) => {
       product.status = determineProductStatus(product.stock, product.lowStockThreshold, product.status);
 
       const updatedProduct = await product.save();
+
+      // --- Production Vendor Stock Alert ---
+      if (updatedProduct.stock <= (updatedProduct.lowStockThreshold || 10)) {
+        await sendPushNotification(req.vendor._id, 'Vendor', {
+          title: 'Low Stock Alert!',
+          body: `Inventory check: '${updatedProduct.name}' is currently low (${updatedProduct.stock} left).`
+        }, { productId: updatedProduct._id.toString(), type: 'inventory_alert' });
+      }
+
       res.json(updatedProduct);
     } else {
       res.status(404).json({ message: 'Product not found or not authorized' });
@@ -282,6 +306,15 @@ export const updateVendorProductStock = async (req, res) => {
     product.status = determineProductStatus(product.stock, product.lowStockThreshold, product.status);
 
     await product.save();
+
+    // --- Production Vendor Stock Alert ---
+    if (product.stock <= (product.lowStockThreshold || 10)) {
+      await sendPushNotification(req.vendor._id, 'Vendor', {
+        title: 'Low Stock Alert!',
+        body: `Inventory update: '${product.name}' is now at low stock (${product.stock} units remaining).`
+      }, { productId: product._id.toString(), type: 'inventory_alert' });
+    }
+
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });

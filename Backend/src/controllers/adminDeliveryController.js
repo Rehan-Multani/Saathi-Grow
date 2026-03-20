@@ -6,6 +6,8 @@ import Branch from '../models/Branch.js';
 import OrderDelivery from '../models/OrderDelivery.js';
 import DeliveryRun from '../models/DeliveryRun.js';
 import CashCollection from '../models/CashCollection.js';
+import { sendPushNotification } from '../services/notificationService.js';
+import { sendWelcomeEmail, sendSystemNotificationEmail } from '../services/emailService.js';
 
 // Helper to generate 4-digit numeric OTP securely
 const generateOTP = () => {
@@ -64,6 +66,9 @@ export const addDeliveryPartner = async (req, res) => {
         authStatus: partner.authStatus,
         dutyStatus: partner.dutyStatus
       });
+
+      // Send Welcome Email
+      await sendWelcomeEmail(partner.email, partner.name, 'Delivery Partner', password);
     } else {
       res.status(400).json({ message: 'Invalid delivery partner data' });
     }
@@ -128,6 +133,12 @@ export const updateDeliveryPartnerStatus = async (req, res) => {
       partner.authStatus = authStatus;
       const updatedPartner = await partner.save();
       res.json(updatedPartner);
+
+      // Notify on Status Change
+      const title = 'Account Status Update';
+      const body = `Your Partner account status has been updated to ${authStatus}.`;
+      await sendSystemNotificationEmail(partner.email, `Partner Account: ${authStatus}`, title, body);
+      await sendPushNotification(partner._id, 'DeliveryPartner', { title, body }, { type: 'auth_status', status: authStatus });
     } else {
       res.status(404).json({ message: 'Delivery partner not found' });
     }
@@ -378,6 +389,12 @@ const performAssignment = async (orderId, partnerId, session) => {
   order.stopSequence = 1;
   await order.save({ session });
 
+  // 6. Notify the Delivery Partner (Push)
+  await sendPushNotification(partner._id, 'DeliveryPartner', {
+    title: 'New Order Assigned!',
+    body: `Pickup from ${order.vendor?.storeName || 'Branch'}. Order #${order.orderId}`
+  }, { orderId: order._id.toString(), type: 'assignment' });
+
   return { order, partner, run };
 };
 
@@ -543,6 +560,12 @@ export const unassignOrderFromPartner = async (req, res) => {
         partner.activeRun = null;
         partner.currentStopIndex = 0;
         await partner.save({ session });
+
+        // Notify Partner of Unassignment
+        await sendPushNotification(partner._id, 'DeliveryPartner', {
+          title: 'Order Unassigned',
+          body: `Order #${unassignedOrderId || order.orderId} was unassigned from you.`
+        }, { type: 'unassignment' });
       }
 
       unassignedOrderId = order.orderId;

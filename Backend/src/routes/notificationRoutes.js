@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { updateFCMToken } from '../controllers/notificationController.js';
+import { updateFCMToken, getMyNotifications, markAsRead, markAllRead, getUnreadCount } from '../controllers/notificationController.js';
 import User from '../models/User.js';
 import Admin from '../models/Admin.js';
 import Vendor from '../models/Vendor.js';
@@ -57,5 +57,11 @@ const multiRoleProtect = async (req, res, next) => {
 };
 
 router.put('/update-token', multiRoleProtect, validateFcmUpdatePayload, updateFCMToken);
+
+// Notification History & Read Status
+router.get('/my', multiRoleProtect, getMyNotifications);
+router.get('/unread-count', multiRoleProtect, getUnreadCount);
+router.put('/read/:id', multiRoleProtect, markAsRead);
+router.put('/read-all', multiRoleProtect, markAllRead);
 
 export default router;

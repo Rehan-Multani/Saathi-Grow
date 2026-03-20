@@ -19,6 +19,8 @@ import DeliveryRun from '../models/DeliveryRun.js';
 import { findOptimalSource, geocodeAddress, calculateDistance } from '../services/locationService.js';
 import PromoCode from '../models/PromoCode.js';
 import PromoUsage from '../models/PromoUsage.js';
+import { sendPushNotification, notifyByBranchAndPermission } from '../services/notificationService.js';
+import { sendSystemNotificationEmail } from '../services/emailService.js';
 
 const validateStoreDistance = async (storeId, storeType, userLocation) => {
   if (!storeId || !userLocation || !userLocation.coordinates || userLocation.coordinates.length < 2) return true;
@@ -307,8 +309,32 @@ export const verifyRazorpayPayment = async (req, res) => {
     if (computedBill.promoId) {
       await updatePromoUsage(createdOrder._id, computedBill.promoId, req.user._id);
     }
-
     res.status(201).json({ success: true, order: createdOrder });
+
+    // --- Production Notifications ---
+    // 1. Notify Customer
+    sendPushNotification(req.user._id, 'User', {
+      title: 'Order Placed!',
+      body: `Your order ${createdOrder.orderId} was successful and is being processed.`
+    }, { orderId: createdOrder.orderId, status: 'confirmed' });
+
+    // 2. Notify Branch Staff / Manager
+    if (createdOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
+        title: 'New Online Order',
+        body: `Order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is ready for processing.`
+      }, { orderId: createdOrder.orderId, action: 'VIEW_ORDER' });
+    }
+
+    // 3. Send Transactional Email to User
+    if (req.user.email) {
+      await sendSystemNotificationEmail(
+        req.user.email,
+        `Order Confirmed: #${createdOrder.orderId}`,
+        'Order Received! 🏮',
+        `Hi ${req.user.name}, your order #${createdOrder.orderId} for ₹${createdOrder.totalAmount} was successful. We are preparing it for delivery!`
+      );
+    }
   } catch (error) {
     console.error('Verify Payment Error:', error);
     res.status(500).json({ message: error.message || 'Internal Verification Error' });
@@ -366,6 +392,15 @@ export const decrementStock = async (order) => {
             reason: `Order Placement #${order.orderId}`,
             orderId: order._id
           });
+
+          // --- Production Stock Alert ---
+          const threshold = currentBS?.lowStockThreshold || 10;
+          if (currentBS?.stock <= threshold) {
+            notifyByBranchAndPermission('MANAGE_INVENTORY', branchId, {
+              title: 'Low Stock Alert!',
+              body: `Product ${updatedProduct.name} is low at your branch (${currentBS.stock} left).`
+            }, { productId: updatedProduct._id.toString(), type: 'inventory_alert' });
+          }
         } else {
           console.warn(`[STOCK-WARN] No match found for Product: ${productId} even after attempt to initialize Branch: ${branchId}`);
         }
@@ -389,6 +424,14 @@ export const decrementStock = async (order) => {
             reason: `Order Placement #${order.orderId}`,
             orderId: order._id
           });
+
+          // --- Production Vendor Stock Alert ---
+          if (updatedProduct.stock <= (updatedProduct.lowStockThreshold || 10)) {
+            await sendPushNotification(vendor, 'Vendor', {
+              title: 'Low Stock Alert!',
+              body: `Your product '${updatedProduct.name}' is running low (${updatedProduct.stock} items left).`
+            }, { productId: updatedProduct._id.toString(), type: 'inventory_alert' });
+          }
         } else {
           console.warn(`[STOCK-WARN] No match found for Product: ${productId} at Vendor: ${vendor}`);
         }
@@ -746,8 +789,32 @@ export const createCODOrder = async (req, res) => {
     if (computedBill.promoId) {
       await updatePromoUsage(createdOrder._id, computedBill.promoId, req.user._id);
     }
-
     res.status(201).json({ success: true, order: createdOrder });
+
+    // --- Production Notifications ---
+    // 1. Notify Customer
+    sendPushNotification(req.user._id, 'User', {
+      title: 'Order Placed (COD)',
+      body: `Order ${createdOrder.orderId} placed successfully. Please keep ₹${createdOrder.totalAmount} ready for delivery.`
+    }, { orderId: createdOrder.orderId, status: 'pending' });
+
+    // 2. Notify Branch Staff
+    if (createdOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
+        title: 'New COD Order',
+        body: `A new COD order ${createdOrder.orderId} needs confirmation.`
+      }, { orderId: createdOrder.orderId, action: 'CONFIRM_ORDER' });
+    }
+
+    // 3. Status Change Email
+    if (req.user.email) {
+      await sendSystemNotificationEmail(
+        req.user.email,
+        `Order Placed: #${createdOrder.orderId}`,
+        'Order Confirmed! 📦',
+        `Hi ${req.user.name}, your COD order #${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed. Please keep the cash ready!`
+      );
+    }
   } catch (error) {
     console.error('COD Order Error:', error);
     res.status(500).json({ message: error.message || 'Internal COD Error' });
@@ -858,6 +925,31 @@ export const createWalletOrder = async (req, res) => {
     }
 
     res.status(201).json({ success: true, order: createdOrder });
+
+    // --- Production Notifications ---
+    // 1. Notify Customer
+    sendPushNotification(req.user._id, 'User', {
+      title: 'Order Placed (Wallet)!',
+      body: `Order ${createdOrder.orderId} was successful using your wallet balance.`
+    }, { orderId: createdOrder.orderId, status: 'confirmed' });
+
+    // 2. Notify Branch Staff
+    if (createdOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_ORDERS', createdOrder.branchId, {
+        title: 'New Prepaid Order',
+        body: `Digital order ${createdOrder.orderId} for ₹${createdOrder.totalAmount} is confirmed.`
+      }, { orderId: createdOrder.orderId, action: 'PROCESS_ORDER' });
+    }
+
+    // 3. User Wallet Order Email
+    if (req.user.email) {
+      await sendSystemNotificationEmail(
+        req.user.email,
+        `Payment Success: #${createdOrder.orderId}`,
+        'Order Received! 🏮',
+        `Hi ${req.user.name}, your order #${createdOrder.orderId} was paid via wallet (₹${createdOrder.totalAmount}). We're on it!`
+      );
+    }
   } catch (error) {
     console.error('Wallet Order Error:', error);
     res.status(500).json({ message: error.message || 'Internal Wallet Error' });
@@ -932,6 +1024,14 @@ export const cancelOrderUser = async (req, res) => {
     await incrementStock(updatedOrder);
 
     res.json({ success: true, order: updatedOrder });
+
+    // Notify Branch Staff of User Cancellation
+    if (updatedOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_ORDERS', updatedOrder.branchId, {
+        title: 'Order Cancelled by User',
+        body: `Order #${updatedOrder.orderId} was cancelled by the customer.`
+      }, { orderId: updatedOrder.orderId, type: 'user_cancellation' });
+    }
   } catch (error) {
     console.error('Cancellation Endpoint Error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -986,6 +1086,14 @@ export const requestReturn = async (req, res) => {
     order.status = 'return_requested';
     const updatedOrder = await order.save();
     res.json({ success: true, order: updatedOrder });
+
+    // Notify Branch Staff of Return Request
+    if (updatedOrder.branchId) {
+      notifyByBranchAndPermission('MANAGE_REFUNDS_RETURNS', updatedOrder.branchId, {
+        title: 'New Return Request',
+        body: `Customer requested a return for Order #${updatedOrder.orderId}. Reason: ${reason}`
+      }, { orderId: updatedOrder.orderId, type: 'return_request' });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -1348,6 +1456,13 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     res.json(updatedOrder);
+
+    // --- Production Notifications ---
+    // Notify Customer of Status Update
+    sendPushNotification(updatedOrder.user, 'User', {
+      title: `Order ${updatedOrder.status.charAt(0).toUpperCase() + updatedOrder.status.slice(1)}`,
+      body: `Your order ${updatedOrder.orderId} status has been updated to ${updatedOrder.status}.`
+    }, { orderId: updatedOrder.orderId, status: updatedOrder.status });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -1694,6 +1809,7 @@ export const handleStoreReturnAction = async (req, res) => {
     }
 
     await order.save();
+
     res.json({ 
       message: `Return ${action} successfully`, 
       order: {
@@ -1701,6 +1817,14 @@ export const handleStoreReturnAction = async (req, res) => {
         returnOTP: (order.returnRequest.status === "Accepted" || order.returnRequest.status === "Approved") ? order.returnRequest.returnOTP : null
       } 
     });
+
+    // Notify User of Return Action
+    sendPushNotification(order.user, 'User', {
+      title: `Return Request ${action === 'Approved' || action === 'Accepted' ? 'Accepted' : 'Rejected'}`,
+      body: action === 'Rejected' 
+        ? `Your return request for Order #${order.orderId} was rejected. Note: ${rejectionReason || 'Contact support for details.'}`
+        : `Your return request for Order #${order.orderId} has been accepted. We will schedule a pickup shortly.`
+    }, { orderId: order.orderId, status: order.returnRequest.status, type: 'return_update' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -1790,6 +1914,14 @@ export const createReturnBatch = async (req, res) => {
     });
 
     res.json({ success: true, run: createdRun, scheduledCount: normalizedOrderIds.length });
+
+    // Notify Partner of Return Batch
+    if (createdRun) {
+      sendPushNotification(partnerId, 'DeliveryPartner', {
+        title: 'New Return Pickup Batch',
+        body: `You have been assigned ${normalizedOrderIds.length} return pickups.`
+      }, { runId: createdRun._id.toString(), type: 'return_batch' });
+    }
   } catch (error) {
     res.status(error.statusCode || 500).json({ message: error.message });
   } finally {

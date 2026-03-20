@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import Complaint from '../models/Complaint.js';
-import { notifyAdmins } from './notificationService.js';
+import { notifyAdmins, sendPushNotification, notifyByBranchAndPermission } from './notificationService.js';
 
 /**
  * Initialize all cron jobs
@@ -33,6 +33,19 @@ export const initCronJobs = () => {
             ticketId: ticket.ticketId,
             type: 'sla_breach'
           });
+
+          // Also Notify the Store via Push (Final Warning)
+          if (ticket.storeModel === 'Branch') {
+            await notifyByBranchAndPermission('MANAGE_SUPPORT', ticket.store, {
+              title: 'CRITICAL: SLA Breach! ⚠️',
+              body: `Immediate action required for Ticket ${ticket.ticketId}. SLA expired.`
+            }, { ticketId: ticket.ticketId, type: 'critical_sla' });
+          } else if (ticket.storeModel === 'Vendor') {
+            await sendPushNotification(ticket.store, 'Vendor', {
+              title: 'CRITICAL: SLA Breach! ⚠️',
+              body: `You failed to respond to Ticket ${ticket.ticketId} on time. Check dashboard.`
+            }, { ticketId: ticket.ticketId, type: 'critical_sla' });
+          }
         }
       }
     } catch (error) {

@@ -1,6 +1,7 @@
 import PromoCode from '../models/PromoCode.js';
 import PromoUsage from '../models/PromoUsage.js';
 import mongoose from 'mongoose';
+import { notifyAllUsers } from '../services/notificationService.js';
 
 // @desc    Create a new promo code
 // @route   POST /api/promocodes
@@ -34,6 +35,14 @@ export const createPromoCode = async (req, res) => {
         });
         await promoCode.save();
         res.status(201).json({ success: true, data: promoCode });
+
+        // Notify All Users about new Promo Code
+        if (promoCode.isActive) {
+            notifyAllUsers({
+                title: `🎟️ New Promo: ${promoCode.code}`,
+                body: `Use this code to get ${promoCode.discountType === 'Percentage' ? promoCode.discountValue + '%' : '₹' + promoCode.discountValue} off on orders above ₹${promoCode.minOrderValue}!`
+            }, { promoCode: promoCode.code, type: 'promo' });
+        }
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }

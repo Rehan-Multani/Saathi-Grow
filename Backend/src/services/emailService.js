@@ -84,3 +84,76 @@ export const sendInvoiceEmail = async (toEmail, order) => {
     return false;
   }
 };
+
+/**
+ * Send Welcome Email to New User / Staff / Vendor / Partner
+ * @param {string} toEmail 
+ * @param {string} name 
+ * @param {string} role 
+ * @param {string} password 
+ */
+export const sendWelcomeEmail = async (toEmail, name, role, password = null) => {
+  try {
+    if (!toEmail) return false;
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || 'gmail',
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
+
+    const mailOptions = {
+      from: `"SaathiGro" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: `Welcome to SaathiGro: ${role}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #6366f1;">Welcome, ${name}!</h2>
+          <p>We are excited to have you onboard as a <strong>${role}</strong> at SaathiGro.</p>
+          ${password ? `<p>Your temporary password is: <strong>${password}</strong><br>Please change it after your first login.</p>` : ''}
+          <p>You can now access your portal and start managing your operations.</p>
+          <div style="margin-top: 30px; text-align: center;">
+            <a href="${process.env.BASE_URL || '#'}" style="background-color: #6366f1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Portal</a>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('[EMAIL-ERROR] Welcome email failed:', error.message);
+    return false;
+  }
+};
+
+/**
+ * Send Generic Notification Email
+ */
+export const sendSystemNotificationEmail = async (toEmail, subject, title, body) => {
+  try {
+    if (!toEmail) return false;
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || 'gmail',
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
+
+    const mailOptions = {
+      from: `"SaathiGro Notifications" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: subject,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+          <h3 style="color: #6366f1;">${title}</h3>
+          <p style="color: #333; line-height: 1.6;">${body}</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="font-size: 12px; color: #999; text-align: center;">This is an automated notification from SaathiGro. Please do not reply to this email.</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('[EMAIL-ERROR] Notification email failed:', error.message);
+    return false;
+  }
+};
