@@ -30,6 +30,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://saathi-grow-frontend.vercel.app',
   'https://saathi-grow.vercel.app',
+  'https://saathigro.in',
   'https://saathi-grow-admin.vercel.app',
   'https://saathi-grow-vendor.vercel.app',
   'https://saathi-grow-8oyg.vercel.app',
