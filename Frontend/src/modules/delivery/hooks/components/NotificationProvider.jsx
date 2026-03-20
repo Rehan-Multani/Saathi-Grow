@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import { createDummyOrder } from '../../data/mockDeliveryData';
 import axios from 'axios';
-import { API_BASE_URL } from '../../config/apiConfig';
+import { API_BASE_URL } from '../../../../config/apiConfig';
 import useDeliveryStore from '../../store/deliveryStore';
 
 const NotificationContext = createContext();
