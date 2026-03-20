@@ -19,10 +19,10 @@ const collectMissingVars = (vars) =>
 
 export const validateRuntimeEnv = () => {
   const nodeEnv = process.env.NODE_ENV || 'development';
-  const strictValidation =
-    process.env.STRICT_ENV_VALIDATION === 'true' ||
-    nodeEnv === 'production' ||
-    nodeEnv === 'staging';
+  // In production we may still want the server to start even if some vars are missing,
+  // so that the API can respond with proper errors instead of causing nginx 502.
+  // Set STRICT_ENV_VALIDATION=true to enforce hard-fail.
+  const strictValidation = process.env.STRICT_ENV_VALIDATION === 'true';
 
   const missingCore = collectMissingVars(CORE_REQUIRED_VARS);
   const missingRecommended = collectMissingVars(RECOMMENDED_VARS);

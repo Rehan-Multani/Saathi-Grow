@@ -17,7 +17,12 @@ import { validateRuntimeEnv, printEnvValidationSummary } from './config/validate
 // Database Connection
 const envSummary = validateRuntimeEnv();
 printEnvValidationSummary(envSummary);
-await connectDB();
+try {
+  await connectDB();
+} catch (err) {
+  // If DB init fails, keep server alive so we don't get nginx 502.
+  console.error('DB initialization failed (server will start with limited functionality):', err);
+}
 
 const app = express();
 app.set('trust proxy', 1);
@@ -91,6 +96,19 @@ app.use(cors({
     } else {
       callback(new Error('Not allowed by CORS'));
     }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
+
+// Explicit preflight handler.
+// Some proxies/bundles can cause OPTIONS not to go through the normal middleware path,
+// which results in missing `Access-Control-Allow-Origin` and browser CORS failures.
+app.options('*', cors({
+  origin: (origin, callback) => {
+    if (isAllowed(origin)) callback(null, true);
+    else callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
