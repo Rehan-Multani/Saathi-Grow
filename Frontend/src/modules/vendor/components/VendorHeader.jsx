@@ -3,7 +3,7 @@ import { Bell, User } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { API_BASE_URL } from '../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 const VendorHeader = () => {
     const { vendor } = useVendor();
