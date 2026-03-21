@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchProductById, fetchProducts, logDemandRequest } from '../../api/shopApi';
 import { useCart } from '../../context/CartContext';
@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 import { toast } from 'react-toastify';
+import SEO from '../../../../common/components/SEO';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const ProductDetailsPage = () => {
@@ -173,6 +174,31 @@ const ProductDetailsPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-[#09090b] pb-20 transition-colors duration-300">
+            <SEO 
+                title={product.name} 
+                description={product.description || `Buy ${product.name} at the best price from Saathi-Grow. Fresh quality and super fast delivery.`}
+                image={product.image}
+                type="product"
+                schemaData={{
+                    "@context": "https://schema.org/",
+                    "@type": "Product",
+                    "name": product.name,
+                    "image": [product.image, ...product.images],
+                    "description": product.description || `Premium quality ${product.name} available at Saathi-Grow.`,
+                    "brand": {
+                        "@type": "Brand",
+                        "name": "Saathi-Grow"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "url": window.location.href,
+                        "priceCurrency": "INR",
+                        "price": product.price,
+                        "availability": product.availableStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                        "itemCondition": "https://schema.org/NewCondition"
+                    }
+                }}
+            />
             {/* Minimal Breadcrumb */}
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center text-[11px] text-gray-400 gap-2 uppercase tracking-widest">

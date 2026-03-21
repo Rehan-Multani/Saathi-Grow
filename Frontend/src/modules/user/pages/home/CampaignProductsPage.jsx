@@ -7,6 +7,7 @@ import { fetchCampaignMetadata, fetchProducts } from '../../api/shopApi';
 import { normalizeProduct } from '../home/HomePage';
 import ProductCard from '../../components/product/ProductCard';
 import { toast } from 'react-toastify';
+import SEO from '../../../../common/components/SEO';
 
 const CampaignProductsPage = () => {
   const { campaignId } = useParams();
@@ -133,6 +134,16 @@ const CampaignProductsPage = () => {
 
   return (
     <div className="min-h-screen pb-20 bg-white dark:bg-black transition-colors duration-300">
+      <SEO 
+        title={campaign?.title || 'Campaign'} 
+        description={campaign?.subtitle || `Explore the finest selection of ${campaign?.title || 'products'} at Saathi-Grow.`}
+        schemaData={{
+          "@context": "https://schema.org/",
+          "@type": "CollectionPage",
+          "name": campaign?.title,
+          "description": campaign?.subtitle
+        }}
+      />
       {/* Header */}
       <div
         className="sticky top-0 z-50 transition-all duration-300 shadow-sm border-b border-gray-100 dark:border-white/5"

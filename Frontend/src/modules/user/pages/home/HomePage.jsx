@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProductCard from '../../components/product/ProductCard';
 import LowestPricesSection from '../../components/product/LowestPricesSection';
@@ -10,6 +10,7 @@ import { BannerSkeleton, CategorySkeleton, ProductCardSkeleton } from '../../com
 import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
+import SEO from '../../../../common/components/SEO';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const categoryColors = {
@@ -169,7 +170,40 @@ const HomePage = ({ }) => {
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300">
-
+            <SEO 
+                title="Fresh Grocery Delivery" 
+                description="Get fresh groceries, staples, and daily essentials delivered to your doorstep with Saathi-Grow. Best quality and fast delivery guaranteed."
+                schemaData={[
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "WebSite",
+                        "name": "Saathi-Grow",
+                        "url": "https://saathigro.com",
+                        "potentialAction": {
+                            "@type": "SearchAction",
+                            "target": "https://saathigro.com/search?q={search_term_string}",
+                            "query-input": "required name=search_term_string"
+                        }
+                    },
+                    {
+                        "@context": "https://schema.org",
+                        "@type": "Organization",
+                        "name": "Saathi-Grow",
+                        "url": "https://saathigro.com",
+                        "logo": "https://saathigro.com/logo.png",
+                        "sameAs": [
+                            "https://www.facebook.com/saathigro",
+                            "https://www.instagram.com/saathigro",
+                            "https://twitter.com/saathigro"
+                        ],
+                        "contactPoint": {
+                            "@type": "ContactPoint",
+                            "telephone": "+91-XXXXXXXXXX",
+                            "contactType": "customer service"
+                        }
+                    }
+                ]}
+            />
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
             {!isSearching && !loading && activeOffers.length > 0 && (

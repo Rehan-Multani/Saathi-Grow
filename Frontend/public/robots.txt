@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /vendor/
+Disallow: /staff/
+Disallow: /store-manager/
+Disallow: /delivery/
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /orders
+Disallow: /cart
+Disallow: /checkout
+
+Sitemap: https://saathigro.com/sitemap.xml

@@ -1,9 +1,10 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, ChevronDown, TrendingDown } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { products } from '../../data/products';
 import ProductCard from '../../components/product/ProductCard';
+import SEO from '../../../../common/components/SEO';
 
 const LowestPricesPage = () => {
     const navigate = useNavigate();
@@ -33,6 +34,10 @@ const LowestPricesPage = () => {
                 minHeight: '100vh'
             }}
         >
+            <SEO 
+                title="Lowest Prices Ever" 
+                description="Unbeatable deals and lowest prices on fresh groceries, staples, and daily essentials at Saathi-Grow. Save big on your daily shopping!" 
+            />
             {/* Header */}
             <div
                 className="sticky top-0 z-40 px-4 pt-[74px] pb-2 flex items-center gap-3 shadow-sm transition-colors duration-300 backdrop-blur-md bg-opacity-95"

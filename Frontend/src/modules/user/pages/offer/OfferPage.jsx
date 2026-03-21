@@ -17,6 +17,7 @@ import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
 import { fetchProducts } from '../../api/shopApi';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
+import SEO from '../../../../common/components/SEO';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 // Helper for countdown
@@ -249,6 +250,19 @@ const OfferPage = () => {
 
     return (
         <>
+            <SEO 
+                title={offer.title} 
+                description={offer.description || `Claim the best deals on ${offer.title} at Saathi-Grow. Hurry up, festive discounts are live!`}
+                image={offer.bannerImage || offer.image}
+                schemaData={{
+                    "@context": "https://schema.org/",
+                    "@type": "SpecialAnnouncement",
+                    "name": offer.title,
+                    "description": offer.description,
+                    "expires": offer.expiryDate,
+                    "url": window.location.href
+                }}
+            />
             <style>
                 {`
                     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');

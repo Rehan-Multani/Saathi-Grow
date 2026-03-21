@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { fetchProducts, fetchBrands } from '../../api/shopApi';
@@ -8,6 +8,7 @@ import { ProductCardSkeleton } from '../../components/common/Skeleton';
 import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 import { normalizeProduct } from '../home/HomePage';
+import SEO from '../../../../common/components/SEO';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const categoryColors = {
@@ -146,6 +147,7 @@ const CategoryPage = () => {
     if (isMainListView) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white dark:bg-none dark:bg-black p-4 pt-6 pb-24">
+                <SEO title="All Categories" description="Browse through all categories of fresh products and groceries available on Saathi-Grow." />
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-8">
@@ -208,6 +210,11 @@ const CategoryPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:bg-none dark:bg-black pb-28 transition-colors duration-300">
+            <SEO 
+                title={currentCategory?.name || 'Category'} 
+                description={`Shop for ${currentCategory?.name || 'products'} at Saathi-Grow. Best quality and fast delivery for all your needs.`}
+                image={currentCategory?.image}
+            />
             {/* Sticky Header */}
             <div className="sticky top-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 px-4 py-3">
                 <div className="max-w-7xl mx-auto">
