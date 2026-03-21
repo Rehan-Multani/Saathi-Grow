@@ -6,6 +6,8 @@ import { getActiveTracking } from '../../api/adminDeliveryApi';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 // Fix for default marker icon missing in React Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -73,7 +75,10 @@ const DeliveryTracking = () => {
         <div className="p-3">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 className="fw-bold mb-0">{t('delivery.tracking.title')}</h4>
+                    <div className="d-flex align-items-center gap-2">
+                         <h4 className="fw-bold mb-0">{t('delivery.tracking.title')}</h4>
+                         <PageInfoTooltip info={pageInfoData.deliveryTracking} />
+                    </div>
                     <p className="text-muted small mb-0">{t('delivery.tracking.subtitle')}</p>
                 </div>
                 <div className="d-flex gap-2">

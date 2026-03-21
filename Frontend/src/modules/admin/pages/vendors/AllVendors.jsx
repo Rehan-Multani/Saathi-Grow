@@ -9,6 +9,8 @@ import { getVendors, deleteVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AllVendors = () => {
     const { t } = useTranslation();
@@ -101,7 +103,10 @@ const AllVendors = () => {
                             <Store size={20} />
                         </div>
                         <div className="d-flex align-items-center gap-3 text-nowrap">
-                            <h5 className="mb-0 fw-bold">{t('vendors.title')}</h5>
+                            <div className="d-flex align-items-center gap-2">
+                                <h5 className="mb-0 fw-bold">{t('vendors.title')}</h5>
+                                <PageInfoTooltip data={pageInfoData.allVendors} />
+                            </div>
                             <Badge bg="primary" pill>{totalFiltered}</Badge>
                         </div>
                     </div>
@@ -138,7 +143,6 @@ const AllVendors = () => {
                                     <th className="ps-4 border-0 py-3">{t('vendors.table.name')}</th>
                                     <th className="border-0 py-3">{t('vendors.table.contact')}</th>
                                     <th className="border-0 py-3 text-center">{t('vendors.table.products')}</th>
-                                    <th className="border-0 py-3 text-center">{t('vendors.table.rating')}</th>
                                     <th className="border-0 py-3 text-center">{t('vendors.table.status')}</th>
                                     <th className="border-0 py-3 text-end pe-4">{t('vendors.table.actions')}</th>
                                 </tr>
@@ -178,11 +182,6 @@ const AllVendors = () => {
                                             </div>
                                         </td>
                                         <td className="fw-bold text-center">{v.products || 0}</td>
-                                        <td className="text-center">
-                                            <Badge bg="light" text="dark" className="border shadow-none">
-                                                ₹ {v.rating > 0 ? v.rating : t('vendors.new_rating')}
-                                            </Badge>
-                                        </td>
                                         <td className="text-center">
                                             <Badge bg={
                                                 v.status === 'Active' ? 'success' :

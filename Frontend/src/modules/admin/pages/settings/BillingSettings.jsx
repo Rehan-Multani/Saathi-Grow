@@ -3,6 +3,8 @@ import { IndianRupee, Info, Plus, CreditCard, Receipt, Loader, Settings2, Shield
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as settingApi from '../../api/settingApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const BillingSettings = () => {
     const { adminUser } = useAdminAuth();
@@ -83,7 +85,10 @@ const BillingSettings = () => {
                         <Settings2 size={12} />
                         <span className="text-[8px] font-bold uppercase tracking-[0.2em]">Global Configurations</span>
                     </div>
-                    <h1 className="text-xl font-black text-gray-900 tracking-tight">Tax & Billing Settings</h1>
+                    <div className="d-flex align-items-center gap-2">
+                         <h1 className="text-xl font-black text-gray-900 tracking-tight mb-0">Tax & Billing Settings</h1>
+                         <PageInfoTooltip info={pageInfoData.billingSettings} />
+                    </div>
                     <p className="text-gray-500 text-[11px] mt-0.5 font-medium italic opacity-80">Configure taxes, delivery, and commissions.</p>
                 </div>
 

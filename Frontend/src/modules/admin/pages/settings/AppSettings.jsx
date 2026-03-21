@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Badge, Image } from 'react-bootstrap';
 import { Save, Globe, Smartphone, Mail, Layout, Palette, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AppSettings = () => {
     const { t } = useTranslation();
 
     return (
         <div className="p-3">
-            <h4 className="fw-bold mb-4">{t('settings.app.title')}</h4>
+            <div className="d-flex align-items-center gap-2 mb-4">
+                <h4 className="fw-bold mb-0">{t('settings.app.title')}</h4>
+                <PageInfoTooltip info={pageInfoData.appSettings} />
+            </div>
 
             <Row className="g-4">
                 <Col lg={12}>

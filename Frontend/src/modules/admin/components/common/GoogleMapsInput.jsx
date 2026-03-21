@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Form, ListGroup } from 'react-bootstrap';
 import { MapPin, Navigation as NavIcon } from 'lucide-react';
 
@@ -77,11 +77,20 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
     );
   };
 
+  // Stable callback ref to prevent useEffect loop
+  const onLocationSelectRef = useRef(onLocationSelect);
+  useEffect(() => {
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
+
   useEffect(() => {
     let isMounted = true;
 
     const initialize = async () => {
       try {
+        // Prevent re-initialization if already loaded
+        if (autocompleteRef.current) return;
+
         const { loadGoogleMaps } = await import('../../../../utils/googleMapsLoader');
         await loadGoogleMaps();
         if (isMounted) {
@@ -135,10 +144,12 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
         });
 
         setInputValue(place.formatted_address);
-        onLocationSelect(addressData);
+        if (onLocationSelectRef.current) {
+          onLocationSelectRef.current(addressData);
+        }
       });
     }
-  }, [onLocationSelect]);
+  }, []); // Only run once on mount
 
   return (
     <div className="position-relative">

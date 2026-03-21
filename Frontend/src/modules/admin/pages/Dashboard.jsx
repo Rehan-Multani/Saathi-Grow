@@ -13,6 +13,8 @@ import {
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getDashboardStats } from '../api/adminApi';
 import OrderDetailsModal from '../components/orders/OrderDetailsModal';
+import PageInfoTooltip from '../components/common/PageInfoTooltip';
+import { pageInfoData } from '../data/pageInfoData';
 
 const StatCard = ({ title, value, icon: Icon, color, trend, trendValue, gradient, subtitle }) => (
     <div className="relative group overflow-hidden bg-white rounded-3xl p-6 border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -111,9 +113,14 @@ const Dashboard = () => {
                         <Activity size={12} className="animate-pulse" /> 
                         {t('dashboard.operational_command_center')}
                     </div>
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tighter leading-none">
-                        {t('common.welcome_back')}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{adminUser?.name?.split(' ')[0]}</span>
-                    </h1>
+                    <div className="flex justify-between items-center w-full">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-4xl font-black text-gray-900 tracking-tighter leading-none">
+                                {t('common.welcome_back')}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{adminUser?.name?.split(' ')[0]}</span>
+                            </h1>
+                            <PageInfoTooltip data={pageInfoData.dashboard} />
+                        </div>
+                    </div>
                     <p className="text-gray-400 text-sm mt-2 font-medium">
                         {adminUser?.role === 'Admin' 
                             ? t('dashboard.monitoring_global_operations') 

@@ -4,6 +4,8 @@ import { Save, Facebook, Twitter, Instagram, Linkedin, Globe, MessageCircle, Mai
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as settingApi from '../../api/settingApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const SocialProfile = () => {
     const { adminUser } = useAdminAuth();
@@ -76,7 +78,10 @@ const SocialProfile = () => {
     return (
         <div className="p-3">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="fw-bold mb-0">Social & Contact Links</h4>
+                <div className="d-flex align-items-center gap-2">
+                    <h4 className="fw-bold mb-0">Social & Contact Links</h4>
+                    <PageInfoTooltip info={pageInfoData.socialProfile} />
+                </div>
                 <Button 
                     variant="primary" 
                     size="sm" 

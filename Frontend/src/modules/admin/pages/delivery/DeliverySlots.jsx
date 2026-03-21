@@ -4,6 +4,8 @@ import { Plus, Edit, Trash2, Clock, ChevronLeft, ChevronRight } from 'lucide-rea
 import Swal from 'sweetalert2';
 import * as api from '../../api/deliverySlotApi';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const DeliverySlots = () => {
     const { t } = useTranslation();
@@ -110,7 +112,10 @@ const DeliverySlots = () => {
               <Clock size={20} />
             </div>
             <div>
-              <h5 className="mb-0 fw-bold">{t('delivery.slots.title')}</h5>
+              <div className="d-flex align-items-center gap-2">
+                  <h5 className="mb-0 fw-bold">{t('delivery.slots.title')}</h5>
+                  <PageInfoTooltip info={pageInfoData.deliverySlots} />
+              </div>
               <p className="text-muted small mb-0">{t('delivery.slots.subtitle')}</p>
             </div>
           </div>

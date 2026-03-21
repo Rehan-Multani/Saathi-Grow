@@ -8,6 +8,8 @@ import { getVendors } from '../../api/vendorApi';
 import { getCategories } from '../../api/categoryApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const InventoryReports = () => {
     const { t } = useTranslation();
@@ -153,7 +155,10 @@ const InventoryReports = () => {
                         <ShoppingBag size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark">{t('stock.reports.inventory.title')}</h4>
+                        <div className="d-flex align-items-center gap-2">
+                            <h4 className="fw-bold mb-1 text-dark">{t('stock.reports.inventory.title')}</h4>
+                            <PageInfoTooltip data={pageInfoData.inventoryReports} />
+                        </div>
                         <p className="text-muted small mb-0 d-none d-sm-block">{t('stock.reports.inventory.subtitle')}</p>
                     </div>
                 </div>

@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
 import Swal from 'sweetalert2';
 import * as api from '../../api/adminDeliveryApi';
-
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 const DeliveryPartners = () => {
     const { t } = useTranslation();
     const [partners, setPartners] = useState([]);
@@ -100,7 +101,10 @@ const DeliveryPartners = () => {
                         <div className="bg-primary bg-opacity-10 p-2 rounded text-primary d-none d-md-flex">
                             <Truck size={20} />
                         </div>
-                        <h5 className="mb-0 fw-bold text-nowrap">{t('delivery.partners.title')}</h5>
+                        <div className="d-flex align-items-center gap-2">
+                            <h5 className="mb-0 fw-bold text-nowrap">{t('delivery.partners.title')}</h5>
+                            <PageInfoTooltip data={pageInfoData.allDeliveryPartners} />
+                        </div>
                     </div>
                     <div className="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-md-end">
                         <InputGroup className="w-100" style={{ maxWidth: '400px' }}>

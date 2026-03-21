@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Image, Spinner } from 'react-bootstrap';
 import { Save, X, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,8 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import { createBrand } from '../../api/brandApi';
 import { getCategories } from '../../api/categoryApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AddBrand = () => {
     const navigate = useNavigate();
@@ -110,7 +112,10 @@ const AddBrand = () => {
                     <Card className="border-0 shadow-sm overflow-hidden mb-4">
                         <Card.Header className="bg-gradient-to-r from-blue-50 to-white py-4 px-4 border-b border-gray-100 d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 className="mb-0 fw-black text-gray-900 uppercase tracking-tight">Add New Brand</h6>
+                                <div className="d-flex align-items-center gap-2">
+                                    <h6 className="mb-0 fw-black text-gray-900 uppercase tracking-tight">Add New Brand</h6>
+                                    <PageInfoTooltip info={pageInfoData.addBrand} />
+                                </div>
                                 <p className="text-gray-400 text-[10px] fw-bold uppercase tracking-widest mt-1 opacity-60">Register and Configure Marketplace Brands</p>
                             </div>
                             <Button variant="light" onClick={() => navigate('/admin/brands')} className="d-flex align-items-center gap-2 shadow-sm px-4 fw-bold" disabled={loading}>

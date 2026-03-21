@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useStore } from './StoreContext';
 import * as cartApi from '../api/userCartApi';
@@ -95,31 +95,35 @@ export const CartProvider = ({ children }) => {
     const addToCart = (product) => {
         // Enforce Store-First logic: Only add if deliverable from the ACTIVE store
         if (product.isDeliverable === false) {
-            toast.error("This product is not deliverable from your selected store.");
+            toast.error("Not deliverable from this store", { toastId: 'not-deliverable' });
             return;
         }
 
         if (!activeStore) {
-            toast.warning("Please select a store first.");
+            toast.warning("Please select a store first", { toastId: 'select-store' });
             return;
         }
 
         const availableStock = product.availableStock ?? 999;
-        if (availableStock <= 0) {
-            toast.error("This product is currently out of stock.");
+        const threshold = product.lowStockThreshold || 0;
+        const maxAllowed = Math.max(0, availableStock - threshold);
+        const prodId = product.id || product._id;
+
+        if (maxAllowed <= 0) {
+            toast.error("Safety stock limit reached", { toastId: `stock-limit-${prodId}` });
+            return;
+        }
+
+        const existingItem = cart.find(item => item.id === prodId);
+        if (existingItem && existingItem.quantity >= maxAllowed) {
+            toast.warning(`Max ${maxAllowed} units allowed`, { toastId: `stock-limit-${prodId}` });
             return;
         }
 
         setCart((prevCart) => {
-            const prodId = product.id || product._id;
-            const priceToUse = product.price || product.basePrice || 0; // Fallback mapping
-
+            const priceToUse = product.price || product.basePrice || 0;
             const existing = prevCart.find((item) => item.id === prodId);
             if (existing) {
-                if (existing.quantity >= availableStock) {
-                    toast.warning(`Only ${availableStock} units available in stock.`);
-                    return prevCart;
-                }
                 return prevCart.map((item) =>
                     item.id === prodId ? { ...item, quantity: item.quantity + 1 } : item
                 );
@@ -133,17 +137,23 @@ export const CartProvider = ({ children }) => {
     };
 
     const updateQuantity = (id, delta) => {
+        if (delta > 0) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                const availableStock = item.availableStock ?? 999;
+                const threshold = item.lowStockThreshold || 0;
+                const maxAllowed = Math.max(0, availableStock - threshold);
+                if (item.quantity + delta > maxAllowed) {
+                    toast.warning(`Max ${maxAllowed} units allowed`, { toastId: `stock-limit-${id}` });
+                    return;
+                }
+            }
+        }
+
         setCart((prevCart) =>
             prevCart.map((item) => {
                 if (item.id === id) {
-                    const availableStock = item.availableStock ?? 999;
                     const newQuantity = Math.max(0, item.quantity + delta);
-
-                    if (delta > 0 && newQuantity > availableStock) {
-                        toast.warning(`Only ${availableStock} units available in stock.`);
-                        return item;
-                    }
-
                     return { ...item, quantity: newQuantity };
                 }
                 return item;

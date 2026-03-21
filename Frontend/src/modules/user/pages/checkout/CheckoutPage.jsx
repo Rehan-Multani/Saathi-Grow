@@ -179,8 +179,9 @@ const CheckoutPage = () => {
             return;
         }
 
-        if (isStoreOutOfRange) {
-            toast.error("Store is out of delivery range for this address.");
+        if (!activeStore || isStoreOutOfRange || isStoreInactive) {
+            openStoreSelector?.();
+            toast.error(isStoreInactive ? 'This store is currently inactive.' : 'Store is no longer available. Please select another store.');
             return;
         }
 
@@ -247,7 +248,13 @@ const CheckoutPage = () => {
                     name: item.name,
                     image: item.image
                 }));
-                const rpPayload = await orderApi.createRazorpayOrder(token, itemsToCheckout, appliedPromo?._id);
+                const rpPayload = await orderApi.createRazorpayOrder(
+                    token, 
+                    itemsToCheckout, 
+                    appliedPromo?._id,
+                    activeStore?.id,
+                    activeStore?.type
+                );
 
                 const options = {
                     key: import.meta.env.VITE_RAZORPAY_KEY_ID,

@@ -4,7 +4,8 @@ import { Search, Plus, Edit, Trash2, Shield, Eye, FileText, CheckCircle, XCircle
 import { toast } from 'react-toastify';
 import { fetchAllLegalPages, createLegalPage, updateLegalPage, deleteLegalPage } from '../../api/legalApi';
 import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
-
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 const LegalManagement = () => {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -121,7 +122,10 @@ const LegalManagement = () => {
             <Shield size={24} />
           </div>
           <div>
-            <h4 className="fw-bold mb-1 text-dark">Legal & Policies</h4>
+            <div className="d-flex align-items-center gap-2">
+              <h4 className="fw-bold mb-1 text-dark">Legal & Policies</h4>
+              <PageInfoTooltip info={pageInfoData.legalManagement} />
+            </div>
             <p className="text-muted small mb-0">Manage legal documents across all platform modules.</p>
           </div>
         </div>

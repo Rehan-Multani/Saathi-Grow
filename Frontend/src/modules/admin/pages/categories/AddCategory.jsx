@@ -1,10 +1,12 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Image as BSImage, Spinner, Badge } from 'react-bootstrap';
 import { Save, X, Upload, Palette, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { createCategory } from '../../api/categoryApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const PRESET_COLORS = [
     '#FEE2E2', '#FEF3C7', '#D1FAE5', '#DBEAFE',
@@ -84,7 +86,10 @@ const AddCategory = () => {
     return (
         <div className="p-3">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="fw-bold mb-0">Add New Category</h4>
+                <div className="d-flex align-items-center gap-2">
+                    <h4 className="fw-bold mb-0">Add New Category</h4>
+                    <PageInfoTooltip info={pageInfoData.addCategory} />
+                </div>
                 <Button variant="light" onClick={() => navigate('/admin/categories')} className="shadow-sm border d-flex align-items-center gap-1 px-3 py-2" disabled={loading}>
                     <X size={16} /> <span className="fw-medium text-sm">Cancel</span>
                 </Button>

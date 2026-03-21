@@ -105,3 +105,24 @@ export const fetchPublicSettings = async () => {
   if (!response.ok) throw new Error(data.message || 'Failed to fetch settings');
   return data;
 };
+
+export const fetchProductReviews = async (productId, page = 1, limit = 10) => {
+  const response = await fetch(`${API_BASE_URL}/reviews/product/${productId}?page=${page}&limit=${limit}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch reviews');
+  return data;
+};
+
+export const submitProductReview = async (payload, token) => {
+  const response = await fetch(`${API_BASE_URL}/reviews`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to submit review');
+  return data;
+};

@@ -25,6 +25,8 @@ import {
 import { fetchDemandAnalytics } from '../../api/demandAnalyticsApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const COLORS = ['#0c831f', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
 const GOOGLE_MAPS_LIBRARIES = ['places', 'visualization'];
@@ -81,6 +83,7 @@ const DemandAnalytics = () => {
           <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
             <TrendingUp className="text-[#0c831f]" />
             Demand Analytics & Lost Sales
+            <PageInfoTooltip data={pageInfoData.demandAnalytics} />
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             Understand what your users want that you don't have.

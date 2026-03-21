@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/admin/branches`;
 const buildQuery = (params = {}) => {
@@ -33,13 +33,14 @@ export const getBranches = async (token, params = {}, options = {}) => {
 };
 
 export const createBranch = async (token, branchData) => {
+  const isFormData = branchData instanceof FormData;
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' })
     },
-    body: JSON.stringify(branchData)
+    body: isFormData ? branchData : JSON.stringify(branchData)
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to create branch');
@@ -47,13 +48,14 @@ export const createBranch = async (token, branchData) => {
 };
 
 export const updateBranch = async (token, id, branchData) => {
+  const isFormData = branchData instanceof FormData;
   const response = await fetch(`${API_URL}/${id}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' })
     },
-    body: JSON.stringify(branchData)
+    body: isFormData ? branchData : JSON.stringify(branchData)
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to update branch');
@@ -67,5 +69,14 @@ export const deleteBranch = async (token, id) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to delete branch');
+  return data;
+};
+
+export const getBranchById = async (token, id) => {
+  const response = await fetch(`${API_URL}/${id}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch branch');
   return data;
 };

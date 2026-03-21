@@ -9,6 +9,8 @@ import { getAllOrdersAdmin, updateOrderStatus } from '../../api/orderApi';
 import { Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const OrderStatusBadge = ({ status }) => {
     const { t, i18n } = useTranslation();
@@ -156,6 +158,10 @@ const OnlineOrders = () => {
 
     return (
         <div className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">{t('orders.online.title')}</h1>
+                <PageInfoTooltip info={pageInfoData.onlineOrders} />
+            </div>
 
             {/* Stats Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

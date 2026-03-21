@@ -3,6 +3,8 @@ import { Card, Table, Button, Form, InputGroup, Row, Col, Badge, Dropdown, Spinn
 import { Search, Filter, Calendar, ChevronLeft, ChevronRight, XCircle, Clock, Loader2, Package } from 'lucide-react';
 import { getAllOrdersAdmin } from '../../api/orderApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const CustomerOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -75,7 +77,10 @@ const CustomerOrders = () => {
                                 <Clock size={20} />
                             </div>
                             <div>
-                                <h5 className="mb-0 font-black text-gray-800">Order Audit</h5>
+                                <div className="d-flex align-items-center gap-2">
+                                    <h5 className="mb-0 font-black text-gray-800">Order Audit</h5>
+                                    <PageInfoTooltip info={pageInfoData.customerOrders} />
+                                </div>
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Global Customer Transactions</p>
                             </div>
                         </div>

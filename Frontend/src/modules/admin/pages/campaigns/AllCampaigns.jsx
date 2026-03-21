@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getCampaigns, deleteCampaign } from '../../api/campaignApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AllCampaigns = () => {
   const navigate = useNavigate();
@@ -56,7 +58,10 @@ const AllCampaigns = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h5 className="mb-0 font-bold text-gray-800 text-lg">Festive & Special Campaign Sections</h5>
+            <div className="d-flex align-items-center gap-2">
+              <h5 className="mb-0 font-bold text-gray-800 text-lg">Festive & Special Campaign Sections</h5>
+               <PageInfoTooltip data={pageInfoData.allCampaigns} />
+            </div>
             <p className="text-muted small mb-0">Create and manage customizable UI sections for your mobile app & web frontend.</p>
           </div>
           <button

@@ -5,6 +5,8 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getSalesReports, exportSalesCSV } from '../../api/reportApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const SalesReports = () => {
     const { t } = useTranslation();
@@ -92,7 +94,10 @@ const SalesReports = () => {
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0 text-nowrap">{t('stock.reports.sales.title')}</h4>
+                <div className="d-flex align-items-center gap-2">
+                    <h4 className="fw-bold mb-0 text-nowrap">{t('stock.reports.sales.title')}</h4>
+                    <PageInfoTooltip data={pageInfoData.salesReports} />
+                </div>
                 <div className="d-flex gap-2 flex-grow-1 w-100 w-sm-auto justify-content-between justify-content-sm-end">
                     <Form.Select 
                         size="sm" 

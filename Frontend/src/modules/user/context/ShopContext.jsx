@@ -40,7 +40,14 @@ export const ShopProvider = ({ children }) => {
       setCategories(categoriesData);
       setProducts([]); // No longer needed for home page mapping
       setCampaigns(campaignsData);
-      setOffers(offersData);
+
+      // Filter offers that are isActive and not expired
+      const now = new Date();
+      const filteredOffers = (offersData || []).filter(o => 
+        o.isActive && (!o.expiryDate || new Date(o.expiryDate) > now)
+      );
+      setOffers(filteredOffers);
+      
       setSettings(settingsData);
       setError(null);
     } catch (err) {

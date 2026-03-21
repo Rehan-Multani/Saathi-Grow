@@ -12,6 +12,8 @@ import { getVendors } from '../../api/vendorApi';
 import { createProduct, getAISuggestions } from '../../api/productApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AddProduct = () => {
     const { t } = useTranslation();
@@ -23,6 +25,7 @@ const AddProduct = () => {
 
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
+    const [filteredBrands, setFilteredBrands] = useState([]);
 
     const [branches, setBranches] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -322,7 +325,10 @@ const AddProduct = () => {
 
     return (
         <div className="p-3">
-            <h4 className="mb-4 fw-bold">{t('products.add_title')}</h4>
+            <div className="d-flex align-items-center gap-2 mb-4">
+                <h4 className="mb-0 fw-bold">{t('products.add_title')}</h4>
+                <PageInfoTooltip info={pageInfoData.addProduct} />
+            </div>
 
             <Form onSubmit={handleSubmit}>
                 <Row className="g-4">

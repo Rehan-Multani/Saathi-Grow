@@ -5,6 +5,8 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getVendorReports, exportVendorCSV } from '../../api/reportApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 import VendorPerformanceModal from './VendorPerformanceModal';
 
 const VendorReports = () => {
@@ -90,7 +92,10 @@ const VendorReports = () => {
         <div className="p-2 p-md-4">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                 <div>
-                    <h4 className="fw-bold mb-1">{t('stock.reports.vendors.title')}</h4>
+                    <div className="d-flex align-items-center gap-2">
+                        <h4 className="fw-bold mb-1">{t('stock.reports.vendors.title')}</h4>
+                        <PageInfoTooltip data={pageInfoData.vendorReports} />
+                    </div>
                     <p className="text-muted small mb-0">{t('stock.reports.vendors.subtitle')}</p>
                 </div>
                 <div className="d-flex gap-2">

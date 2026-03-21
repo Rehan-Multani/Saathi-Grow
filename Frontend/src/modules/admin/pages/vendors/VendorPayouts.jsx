@@ -9,6 +9,8 @@ import Swal from 'sweetalert2';
 import { getPayouts, approvePayoutRequest, rejectPayoutRequest } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const STATUS_BADGE = {
     Pending:    { bg: 'warning',  label: 'Pending Review' },
@@ -156,14 +158,17 @@ const VendorPayouts = () => {
                         <Wallet size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark">
-                            Vendor Payouts
-                            {pendingCount > 0 && (
-                                <Badge bg="warning" text="dark" className="ms-2 rounded-pill" style={{ fontSize: '0.7rem' }}>
-                                    {pendingCount} Pending
-                                </Badge>
-                            )}
-                        </h4>
+                        <div className="d-flex align-items-center gap-2">
+                            <h4 className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                                Vendor Payouts
+                                {pendingCount > 0 && (
+                                    <Badge bg="warning" text="dark" className="ms-2 rounded-pill" style={{ fontSize: '0.7rem' }}>
+                                        {pendingCount} Pending
+                                    </Badge>
+                                )}
+                            </h4>
+                            <PageInfoTooltip info={pageInfoData.vendorPayouts} />
+                        </div>
                         <p className="text-muted small mb-0">Review and process vendor withdrawal requests.</p>
                     </div>
                 </div>

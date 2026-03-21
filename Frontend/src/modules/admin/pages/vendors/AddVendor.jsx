@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Form, Button, Row, Col, Image, Spinner } from 'react-bootstrap';
 import { Save, X, Upload, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,8 @@ import { createVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import GoogleMapsInput from '../../components/common/GoogleMapsInput';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AddVendor = () => {
     const navigate = useNavigate();
@@ -106,7 +108,10 @@ const AddVendor = () => {
         <div className="p-3">
             <Form onSubmit={handleSubmit}>
                 <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-                    <h4 className="fw-bold mb-0 text-nowrap">Register New Vendor</h4>
+                    <div className="d-flex align-items-center gap-2">
+                        <h4 className="fw-bold mb-0 text-nowrap">Register New Vendor</h4>
+                        <PageInfoTooltip info={pageInfoData.addVendor} />
+                    </div>
                     <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto gap-2">
                         <Button variant="light" onClick={() => navigate('/admin/vendors')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center">
                             <X size={18} /> Cancel

@@ -8,6 +8,8 @@ import { createOfferDeal, updateOfferDeal, getOfferDealById } from '../../api/of
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import ProductPickerModal from '../../components/common/ProductPickerModal';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const ManageOffer = () => {
   const { id } = useParams();
@@ -233,7 +235,10 @@ const ManageOffer = () => {
     <div className="p-4 p-md-6">
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <div>
-          <h4 className="fw-bold mb-1 text-gray-800">{id ? 'Edit Banner Offer' : 'Launch New Banner Offer'}</h4>
+          <div className="d-flex align-items-center gap-2">
+            <h4 className="fw-bold mb-1 text-gray-800">{id ? 'Edit Banner Offer' : 'Launch New Banner Offer'}</h4>
+            <PageInfoTooltip info={pageInfoData.manageOffer} />
+          </div>
           <Breadcrumb className="small mb-0 font-medium">
             <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/admin/offers/deals" }}>Offers & Deals</Breadcrumb.Item>
             <Breadcrumb.Item active>{id ? 'Edit' : 'Create'}</Breadcrumb.Item>

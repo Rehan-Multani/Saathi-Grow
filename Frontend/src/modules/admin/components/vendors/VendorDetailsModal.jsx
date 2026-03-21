@@ -1,6 +1,6 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Mail, Phone, MapPin, Store, Star, Package, ShieldCheck, Globe, Info } from 'lucide-react';
+import { X, Mail, Phone, MapPin, Store, Package, ShieldCheck, Globe, Info } from 'lucide-react';
 import { Badge } from 'react-bootstrap';
 
 const VendorDetailsModal = ({ show, onHide, vendor }) => {
@@ -50,7 +50,6 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                             <h5 className="text-xl font-bold text-gray-800">{vendor.storeName}</h5>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <span className="font-mono text-xs">#{vendor._id}</span>
-                                <span>₹</span>
                                 <span className={`flex items-center gap-1 ${vendor.status === 'Active' ? 'text-green-600' : 'text-amber-600'}`}>
                                     {vendor.status === 'Active' ? <ShieldCheck size={14} /> : null} {vendor.status}
                                 </span>
@@ -69,16 +68,10 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                 <div className="p-6 overflow-y-auto">
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
                         <div className="p-3 sm:p-4 bg-green-50 rounded-xl text-center border border-green-100 flex flex-row sm:flex-col items-center justify-between sm:justify-center">
                             <span className="block text-xl sm:text-2xl font-bold text-green-700">{vendor.products || 0}</span>
                             <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Products</span>
-                        </div>
-                        <div className="p-3 sm:p-4 bg-blue-50 rounded-xl text-center border border-blue-100 flex flex-row sm:flex-col items-center justify-between sm:justify-center">
-                            <span className="block text-xl sm:text-2xl font-bold text-blue-700 flex items-center justify-center gap-1">
-                                {vendor.rating || 0} <Star size={18} fill="currentColor" />
-                            </span>
-                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Rating</span>
                         </div>
                         <div className="p-3 sm:p-4 bg-purple-50 rounded-xl text-center border border-purple-100 flex flex-row sm:flex-col items-center justify-between sm:justify-center">
                             <span className="block text-xl sm:text-2xl font-bold text-purple-700">₹0</span>

@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const CashSettlement = () => {
   const [partners, setPartners] = useState([]);
@@ -97,7 +99,10 @@ const CashSettlement = () => {
     <div className="p-4 p-md-6 min-vh-100 bg-slate-50/50">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Cash Settlement</h1>
+          <div className="d-flex align-items-center gap-2">
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight mb-0">Cash Settlement</h1>
+              <PageInfoTooltip info={pageInfoData.cashSettlement} />
+          </div>
           <p className="text-sm text-slate-500 font-medium">Reconcile COD collections from physical handovers</p>
         </div>
         <button

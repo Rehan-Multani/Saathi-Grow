@@ -9,6 +9,8 @@ import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import { getReturnRequests, handleReturnRequest, createReturnBatch } from '../../api/orderApi';
 import { getDeliveryPartners } from '../../api/adminDeliveryApi';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const statusColors = {
     Pending: 'bg-amber-100 text-amber-700 border-amber-200',
@@ -195,7 +197,10 @@ const ReturnRequests = () => {
                         <RotateCcw size={18} />
                     </div>
                     <div>
-                        <h2 className="font-bold text-gray-800 text-lg leading-tight">{t('orders.returns.title')}</h2>
+                        <div className="flex items-center gap-2">
+                            <h2 className="font-bold text-gray-800 text-lg leading-tight">{t('orders.returns.title')}</h2>
+                            <PageInfoTooltip info={pageInfoData.returnRequests} />
+                        </div>
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('orders.returns.logistics_control')}</span>
                             <span className="w-1 h-1 rounded-full bg-gray-200"></span>

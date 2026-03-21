@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getOfferDeals, deleteOfferDeal } from '../../api/offerDealApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AllOffers = () => {
   const navigate = useNavigate();
@@ -56,7 +58,10 @@ const AllOffers = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h5 className="mb-0 font-bold text-gray-800 text-lg">Banner Offers & High-Yield Deals</h5>
+            <div className="d-flex align-items-center gap-2">
+              <h5 className="mb-0 font-bold text-gray-800 text-lg">Banner Offers & High-Yield Deals</h5>
+              <PageInfoTooltip data={pageInfoData.allOffers} />
+            </div>
             <p className="text-muted small mb-0">Manage premium banners that showcase specific product collections on the user home screen.</p>
           </div>
           <button

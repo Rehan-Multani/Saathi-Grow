@@ -10,6 +10,9 @@ import { Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
+
 const OrderStatusBadge = ({ status }) => {
     const { t } = useTranslation();
     const variants = {
@@ -210,6 +213,11 @@ const AllOrders = () => {
 
     return (
         <div className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">{t('sidebar.all_orders', { defaultValue: 'All Orders' })}</h1>
+                <PageInfoTooltip data={pageInfoData.allOrders} />
+            </div>
+
             {/* Action Toolbar */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
                 <div className="flex flex-col xl:flex-row justify-between gap-4">

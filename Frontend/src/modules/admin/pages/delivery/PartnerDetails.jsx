@@ -11,6 +11,8 @@ import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerE
 import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
 import { getDeliveryPartnerById, updateDeliveryPartner } from '../../api/adminDeliveryApi';
 import { showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -128,7 +130,10 @@ const PartnerDetails = () => {
                             </div>
                         )}
                         <div className="overflow-hidden">
-                            <h4 className="fw-bold mb-0 text-truncate">{partner.name}</h4>
+                            <div className="d-flex align-items-center gap-2">
+                                <h4 className="fw-bold mb-0 text-truncate">{partner.name}</h4>
+                                <PageInfoTooltip info={pageInfoData.allDeliveryPartners} />
+                            </div>
                             <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
                                 <span className="badge bg-primary bg-opacity-10 text-primary px-2">{partner.vehicleType}</span>
                                 <span className="text-secondary opacity-50">|</span>

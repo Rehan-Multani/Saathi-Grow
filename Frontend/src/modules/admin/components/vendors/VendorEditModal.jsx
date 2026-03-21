@@ -16,7 +16,16 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         ownerName: '',
         email: '',
         phone: '',
-        address: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            location: {
+                type: 'Point',
+                coordinates: [0, 0]
+            }
+        },
         description: '',
         status: 'Pending'
     });
@@ -24,13 +33,22 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
     const [logoPreview, setLogoPreview] = useState(null);
 
     useEffect(() => {
-        if (vendor) {
+        if (vendor && show) {
             setFormData({
                 storeName: vendor.storeName || '',
                 ownerName: vendor.ownerName || '',
                 email: vendor.email || '',
                 phone: vendor.phone || '',
-                address: vendor.address && typeof vendor.address === 'object' ? vendor.address : {
+                address: vendor.address && typeof vendor.address === 'object' ? {
+                    street: vendor.address.street || '',
+                    city: vendor.address.city || '',
+                    state: vendor.address.state || '',
+                    zipCode: vendor.address.zipCode || '',
+                    location: vendor.address.location || {
+                        type: 'Point',
+                        coordinates: [0, 0]
+                    }
+                } : {
                     street: vendor.address || '',
                     city: '',
                     state: '',
@@ -46,7 +64,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
             setLogoPreview(vendor.logo || null);
             setLogoFile(null);
         }
-    }, [vendor]);
+    }, [vendor, show]);
 
     useEffect(() => {
         if (show) {
@@ -62,7 +80,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleLocationSelect = (locData) => {
+    const handleLocationSelect = React.useCallback((locData) => {
         setFormData(prev => ({
             ...prev,
             address: {
@@ -76,7 +94,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                 }
             }
         }));
-    };
+    }, []);
 
     const handleLogoChange = (e) => {
         const file = e.target.files[0];
@@ -210,62 +228,60 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                                 placeholder={t('vendors.edit_modal.address_placeholder')}
                             />
 
-                            <div className="mt-3 p-3 bg-light rounded border">
-                                <Row className="g-2">
-                                    <Col md={12}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.street')}</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            value={formData.address.street}
-                                            onChange={(e) => setFormData({
-                                                ...formData,
-                                                address: { ...formData.address, street: e.target.value }
-                                            })}
-                                            className="bg-white border-0 py-2 shadow-none"
-                                            required
-                                        />
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.city')}</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            value={formData.address.city}
-                                            onChange={(e) => setFormData({
-                                                ...formData,
-                                                address: { ...formData.address, city: e.target.value }
-                                            })}
-                                            className="bg-white border-0 py-2 shadow-none"
-                                            required
-                                        />
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.state')}</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            value={formData.address.state}
-                                            onChange={(e) => setFormData({
-                                                ...formData,
-                                                address: { ...formData.address, state: e.target.value }
-                                            })}
-                                            className="bg-white border-0 py-2 shadow-none"
-                                            required
-                                        />
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.zip_code')}</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            value={formData.address.zipCode}
-                                            onChange={(e) => setFormData({
-                                                ...formData,
-                                                address: { ...formData.address, zipCode: e.target.value }
-                                            })}
-                                            className="bg-white border-0 py-2 shadow-none"
-                                            required
-                                        />
-                                    </Col>
-                                </Row>
-                            </div>
+                            <Row className="g-3 mt-1">
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.street')}</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={formData.address.street}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            address: { ...formData.address, street: e.target.value }
+                                        })}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.city')}</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={formData.address.city}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            address: { ...formData.address, city: e.target.value }
+                                        })}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.state')}</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={formData.address.state}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            address: { ...formData.address, state: e.target.value }
+                                        })}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.zip_code')}</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={formData.address.zipCode}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            address: { ...formData.address, zipCode: e.target.value }
+                                        })}
+                                        className="bg-light border-0 py-2 shadow-none"
+                                        required
+                                    />
+                                </Col>
+                            </Row>
                         </Col>
                     </Row>
 

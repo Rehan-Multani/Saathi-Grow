@@ -5,6 +5,8 @@ import { getProducts } from '../../api/productApi';
 import { getVendors } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const VendorProducts = () => {
     const { adminUser } = useAdminAuth();
@@ -91,6 +93,7 @@ const VendorProducts = () => {
                             <div>
                                 <h4 className="mb-1 fw-bold text-dark d-flex align-items-center gap-2">
                                     Vendor Inventory
+                                    <PageInfoTooltip info={pageInfoData.vendorProducts} />
                                     <Badge bg="primary" pill className="fs-xs fw-normal py-1 px-2">{filtered.length}</Badge>
                                 </h4>
                                 <p className="text-muted small mb-0 d-none d-sm-block">Manage and track inventory received from all verified vendors.</p>

@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 const VENDOR_PRODUCTS_API_BASE_URL = `${API_BASE_URL}/vendors/products`;
 
@@ -85,5 +85,28 @@ export const getBranchesForVendor = async (token) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch branches');
+  return data;
+};
+
+export const getVendorReviews = async (token) => {
+  const response = await fetch(`${API_BASE_URL}/reviews/vendor/all`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch reviews');
+  return data.data || [];
+};
+
+export const replyToReview = async (token, reviewId, reply) => {
+  const response = await fetch(`${API_BASE_URL}/reviews/vendor/${reviewId}/reply`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ reply })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to reply to review');
   return data;
 };

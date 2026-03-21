@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getAdminVendorEarnings } from '../../api/reportApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const VendorEarnings = () => {
     const { t } = useTranslation();
@@ -128,7 +130,10 @@ const VendorEarnings = () => {
                         <Wallet size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark text-nowrap">{t('analytics.vendors.title')}</h4>
+                        <div className="d-flex align-items-center gap-2">
+                            <h4 className="fw-bold mb-1 text-dark text-nowrap">{t('analytics.vendors.title')}</h4>
+                            <PageInfoTooltip data={pageInfoData.vendorEarnings} />
+                        </div>
                         <p className="text-muted small mb-0 d-none d-sm-block">{t('analytics.vendors.subtitle')}</p>
                     </div>
                 </div>

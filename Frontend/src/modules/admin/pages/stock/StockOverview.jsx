@@ -14,6 +14,8 @@ import {
     MapPin,
     AlertCircle
 } from 'lucide-react';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 import {
     BarChart,
     Bar,
@@ -96,7 +98,10 @@ return (
         {/* Command Header */}
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
             <div>
-                <h4 className="fw-bold text-dark mb-1">{t('stock.overview.title')}</h4>
+                <div className="d-flex align-items-center gap-2">
+                    <h4 className="fw-bold text-dark mb-1">{t('stock.overview.title')}</h4>
+                    <PageInfoTooltip data={pageInfoData.stockOverview} />
+                </div>
                 <p className="text-muted small mb-0 d-flex align-items-center gap-2">
                     <Activity size={14} className="text-success" />
                     {isAdmin ? t('stock.overview.live_status_all') : t('stock.overview.live_status_branch')}

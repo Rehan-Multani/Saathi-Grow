@@ -7,6 +7,8 @@ import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AddStaff = () => {
     const { t } = useTranslation();
@@ -115,7 +117,10 @@ const AddStaff = () => {
         <div className="p-3">
             <div className="mb-4 d-flex align-items-center justify-content-between">
                 <div>
-                    <h4 className="fw-bold text-dark mb-1">{t('staff.add_new.title')}</h4>
+                    <div className="d-flex align-items-center gap-2">
+                        <h4 className="fw-bold text-dark mb-1">{t('staff.add_new.title')}</h4>
+                        <PageInfoTooltip info={pageInfoData.addStaff} />
+                    </div>
                     <p className="text-muted small mb-0">{t('staff.add_new.subtitle')}</p>
                 </div>
                 <Link to="/admin/staff" className="btn btn-light d-flex align-items-center gap-2 shadow-sm">

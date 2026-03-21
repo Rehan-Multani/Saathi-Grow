@@ -1,10 +1,10 @@
-﻿import React from 'react';
+import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Heart } from 'lucide-react';
+import { Plus, Minus, Heart, Star } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useStore } from '../../context/StoreContext';
@@ -68,6 +68,14 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
       <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[7.5px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
         <span>Save ₹{Number(savings).toFixed(2)}</span>
       </div>
+
+      {/* Rating Badge */}
+      {product.averageRating > 0 && (
+        <div className="absolute top-0 right-[-1px] bg-white/90 dark:bg-black/80 backdrop-blur-sm text-gray-900 dark:text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-bl-lg z-30 shadow-sm flex items-center gap-1 border-l border-b border-gray-100 dark:border-white/5">
+          <Star size={10} className="fill-yellow-500 text-yellow-500" />
+          <span>{product.averageRating.toFixed(1)}</span>
+        </div>
+      )}
 
       {/* Wishlist Button */}
       <button

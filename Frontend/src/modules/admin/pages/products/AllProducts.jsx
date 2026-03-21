@@ -14,6 +14,8 @@ import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const ProductStatusBadge = ({ status }) => {
     const { t } = useTranslation();
@@ -210,6 +212,7 @@ const AllProducts = () => {
                 <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
                     <div className="flex items-center gap-3">
                         <h5 className="mb-0 font-bold text-gray-800 text-lg text-nowrap">{t('products.title')}</h5>
+                        <PageInfoTooltip data={pageInfoData.allProducts} />
                         <span className="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold px-2 py-0.5 rounded-full">
                             {t('products.count', { count: totalProducts })}
                         </span>

@@ -8,6 +8,8 @@ import BrandEditModal from '../../components/products/BrandEditModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getBrands, deleteBrand, updateBrand } from '../../api/brandApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AllBrands = () => {
     const { t } = useTranslation();
@@ -88,7 +90,10 @@ const AllBrands = () => {
         <div className="p-3">
             <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <h5 className="mb-0 fw-bold">{t('brands.title')}</h5>
+                    <div className="d-flex align-items-center gap-2">
+                        <h5 className="mb-0 fw-bold">{t('brands.title')}</h5>
+                        <PageInfoTooltip data={pageInfoData.allBrands} />
+                    </div>
                     <div className="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-sm-end">
                         <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
                             <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>

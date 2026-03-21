@@ -9,6 +9,8 @@ import { createCampaign, updateCampaign, getCampaignById } from '../../api/campa
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import ProductPickerModal from '../../components/common/ProductPickerModal';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const ManageCampaign = () => {
   const { t } = useTranslation();
@@ -181,7 +183,10 @@ const ManageCampaign = () => {
     <div className="p-4 p-md-6">
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <div>
-          <h4 className="fw-bold mb-1 text-gray-800">{id ? t('campaigns.edit') : t('campaigns.add_new')}</h4>
+          <div className="d-flex align-items-center gap-2">
+            <h4 className="fw-bold mb-1 text-gray-800">{id ? t('campaigns.edit') : t('campaigns.add_new')}</h4>
+            <PageInfoTooltip info={pageInfoData.manageCampaign} />
+          </div>
           <Breadcrumb className="small mb-0">
             <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/admin/campaigns" }}>{t('campaigns.title')}</Breadcrumb.Item>
             <Breadcrumb.Item active>{id ? t('common.edit') : t('common.create')}</Breadcrumb.Item>

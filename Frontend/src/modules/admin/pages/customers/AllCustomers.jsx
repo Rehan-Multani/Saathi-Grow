@@ -8,6 +8,8 @@ import { showSuccessAlert } from '../../../../common/utils/alertUtils';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as customerApi from '../../api/customerManagementApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AllCustomers = () => {
     const { t } = useTranslation();
@@ -103,6 +105,7 @@ const AllCustomers = () => {
                 <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                     <div className="d-flex align-items-center gap-3 text-nowrap">
                         <h5 className="mb-0 fw-bold">{t('customers.all.title')}</h5>
+                        <PageInfoTooltip data={pageInfoData.allCustomers} />
                         <Badge bg="primary" pill>{totalFiltered}</Badge>
                     </div>
                     <div className="d-flex gap-2 flex-grow-1 justify-content-md-end">

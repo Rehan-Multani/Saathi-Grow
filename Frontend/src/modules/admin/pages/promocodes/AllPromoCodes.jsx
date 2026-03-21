@@ -7,6 +7,8 @@ import PromoCodeEditModal from '../../components/promocodes/PromoCodeEditModal';
 import { getPromoCodes, deletePromoCode, updatePromoCode } from '../../api/promoCodeApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AllPromoCodes = () => {
     const { adminUser } = useAdminAuth();
@@ -115,7 +117,10 @@ const AllPromoCodes = () => {
                         <div className="bg-primary bg-opacity-10 p-2 rounded text-primary d-none d-md-flex">
                             <Ticket size={20} />
                         </div>
-                        <h5 className="mb-0 fw-bold text-nowrap">Promo Codes</h5>
+                        <div className="d-flex align-items-center gap-2">
+                            <h5 className="mb-0 fw-bold text-nowrap">Promo Codes</h5>
+                            <PageInfoTooltip data={pageInfoData.allPromoCodes} />
+                        </div>
                     </div>
                     <div className="d-flex flex-column flex-sm-row gap-2 flex-grow-1 justify-content-sm-end">
                         <InputGroup className="w-100 shadow-sm" style={{ maxWidth: '350px' }}>

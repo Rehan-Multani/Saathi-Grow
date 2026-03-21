@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
 import { RefreshCw, Save, Upload, X, Sparkles, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -394,24 +394,24 @@ const AddProduct = () => {
                                     </Col>
                                     <Col md={3}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">Veg / Non-Veg</Form.Label>
-                                            <div className="d-flex gap-2">
-                                                <Button
-                                                    variant={formData.isVeg ? "success" : "outline-success"}
-                                                    size="sm"
-                                                    className="flex-fill py-1.5 fw-bold text-[9px]"
+                                            <Form.Label className="small fw-semibold text-gray-600 mb-1">{t('products.form.food_type', { defaultValue: 'Dietary Type' })}</Form.Label>
+                                            <div className="d-flex p-1 bg-gray-50 border border-gray-100 rounded-lg gap-1">
+                                                <button
+                                                    type="button"
+                                                    className={`flex-fill d-flex align-items-center justify-content-center gap-1.5 py-1.5 rounded-md border-0 transition-all font-bold text-[9px] ${formData.isVeg ? 'bg-green-600 text-white shadow-sm' : 'bg-transparent text-green-700 hover:bg-green-50'}`}
                                                     onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
                                                 >
-                                                    VEG
-                                                </Button>
-                                                <Button
-                                                    variant={!formData.isVeg ? "danger" : "outline-danger"}
-                                                    size="sm"
-                                                    className="flex-fill py-1.5 fw-bold text-[9px]"
+                                                    <div className={`rounded-circle ${formData.isVeg ? 'bg-white' : 'bg-green-600'}`} style={{ width: '6px', height: '6px' }}></div>
+                                                    {t('products.dietary.veg', { defaultValue: 'VEG' })}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`flex-fill d-flex align-items-center justify-content-center gap-1.5 py-1.5 rounded-md border-0 transition-all font-bold text-[9px] ${!formData.isVeg ? 'bg-red-600 text-white shadow-sm' : 'bg-transparent text-red-700 hover:bg-red-50'}`}
                                                     onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
                                                 >
-                                                    NON-VEG
-                                                </Button>
+                                                    <div className={`rounded-circle ${!formData.isVeg ? 'bg-white' : 'bg-red-600'}`} style={{ width: '6px', height: '6px' }}></div>
+                                                    {t('products.dietary.non_veg', { defaultValue: 'NON-VEG' })}
+                                                </button>
                                             </div>
                                         </Form.Group>
                                     </Col>

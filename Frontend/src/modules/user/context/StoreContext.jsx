@@ -15,6 +15,7 @@ export const StoreProvider = ({ children }) => {
   const [nearbyStores, setNearbyStores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isStoreOutOfRange, setIsStoreOutOfRange] = useState(false);
+  const [isStoreInactive, setIsStoreInactive] = useState(false); // New flag for production status management
   const [isStoreSelectorOpen, setIsStoreSelectorOpen] = useState(false);
 
   // Fetch nearby stores whenever the user's location changes
@@ -30,13 +31,23 @@ export const StoreProvider = ({ children }) => {
           // If we have an active store, check if it's still in the nearby list
           if (activeStore) {
             const exists = stores.find(s => s.id === activeStore.id);
-            setIsStoreOutOfRange(!exists);
-
+            
+            // In a production app, "exists" might be null if 
+            // 1. Store is too far
+            // 2. Store is Inactive (since backend filters inactive ones)
             if (!exists) {
-              console.warn("Active store is no longer in range for the current location.");
+              // We should decide if it's out of range OR inactive.
+              // Since getNearbyStores returns all active stores up to 25km,
+              // "not exists" usually means either too far or inactive.
+              setIsStoreOutOfRange(true);
+              setIsStoreInactive(true); // Treat as inactive for UX safety
+            } else {
+              setIsStoreOutOfRange(false);
+              setIsStoreInactive(false);
             }
           } else {
             setIsStoreOutOfRange(false);
+            setIsStoreInactive(false);
           }
         } catch (error) {
           console.error("Failed to fetch nearby stores:", error);
@@ -71,6 +82,7 @@ export const StoreProvider = ({ children }) => {
   const selectStore = (store) => {
     setActiveStore(store);
     setIsStoreOutOfRange(false); // Reset on selection
+    setIsStoreInactive(false);
   };
 
   return (
@@ -79,6 +91,7 @@ export const StoreProvider = ({ children }) => {
         activeStore,
         nearbyStores,
         isStoreOutOfRange,
+        isStoreInactive,
         selectStore,
         loading,
         setActiveStore,

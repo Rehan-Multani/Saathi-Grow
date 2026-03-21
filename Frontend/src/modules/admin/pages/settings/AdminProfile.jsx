@@ -1,8 +1,10 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Button, Row, Col } from 'react-bootstrap';
 import { Save, User, Mail, Phone, Lock, Camera, Loader2 } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AdminProfile = () => {
     const { adminUser, adminUpdateProfile } = useAdminAuth();
@@ -103,7 +105,10 @@ const AdminProfile = () => {
 
     return (
         <div className="p-3">
-            <h4 className="fw-bold mb-4">Admin Profile</h4>
+            <div className="d-flex align-items-center gap-2 mb-4">
+                <h4 className="fw-bold mb-0">Admin Profile</h4>
+                <PageInfoTooltip info={pageInfoData.adminProfile} />
+            </div>
 
             <Row>
                 <Col lg={4}>

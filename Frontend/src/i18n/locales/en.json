@@ -366,13 +366,14 @@
       "loading": "Loading products...",
       "no_products": "No products found",
       "no_products_msg": "Try adjusting your search or filters.",
+      "managed_by_vendor": "Managed by vendor",
       "qr": {
         "title": "Product QR Code",
         "download": "DOWNLOAD QR"
       },
       "dietary": {
-        "veg": "Vegetarian",
-        "non_veg": "Non-Vegetarian"
+        "veg": "VEG",
+        "non_veg": "NON-VEG"
       },
       "pagination": {
         "showing": "Showing",
@@ -549,7 +550,6 @@
       "add_new": "Add New",
       "loading": "Loading Vendors...",
       "no_vendors": "No vendors found",
-      "new_rating": "New",
       "view_info": "View Info",
       "approve": "Approve",
       "block": "Block",
@@ -564,7 +564,6 @@
         "name": "Vendor Name",
         "contact": "Contact",
         "products": "Products",
-        "rating": "Rating",
         "status": "Status",
         "actions": "Actions"
       },
@@ -2319,7 +2318,6 @@
     "add_new": "Add New",
     "loading": "Loading Vendors...",
     "no_vendors": "No vendors found",
-    "new_rating": "New",
     "view_info": "View Info",
     "approve": "Approve",
     "block": "Block",
@@ -2334,7 +2332,6 @@
       "name": "Vendor Name",
       "contact": "Contact",
       "products": "Products",
-      "rating": "Rating",
       "status": "Status",
       "actions": "Actions"
     },
@@ -2369,6 +2366,7 @@
     "count": "{{count}} products",
     "loading_failed": "Failed to load products",
     "search_placeholder": "Search name, SKU, vendor...",
+    "managed_by_vendor": "Managed by vendor",
     "filter_btn": "Filter",
     "filter_options": "Filter Options",
     "all_categories": "All Categories",
@@ -2458,8 +2456,8 @@
       "download": "DOWNLOAD QR"
     },
     "dietary": {
-      "veg": "PURE VEGETARIAN",
-      "non_veg": "NON-VEGETARIAN"
+      "veg": "VEG",
+      "non_veg": "NON-VEG"
     },
     "pagination": {
       "showing": "Showing",

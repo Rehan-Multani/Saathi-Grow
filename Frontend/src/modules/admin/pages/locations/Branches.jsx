@@ -9,6 +9,8 @@ import { getBranches, deleteBranch, updateBranch } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const Branches = () => {
     const { t } = useTranslation();
@@ -107,7 +109,10 @@ const Branches = () => {
                         <Store size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark">{t('locations.branches.title')}</h4>
+                        <div className="d-flex align-items-center gap-2">
+                            <h4 className="fw-bold mb-1 text-dark">{t('locations.branches.title')}</h4>
+                            <PageInfoTooltip data={pageInfoData.allBranches} />
+                        </div>
                         <p className="text-muted small mb-0 d-none d-sm-block">{t('locations.branches.subtitle')}</p>
                     </div>
                 </div>

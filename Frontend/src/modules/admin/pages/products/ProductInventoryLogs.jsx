@@ -8,6 +8,8 @@ import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
 import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const ProductInventoryLogs = () => {
     const { id } = useParams();
@@ -88,7 +90,10 @@ const ProductInventoryLogs = () => {
                             <History size={28} />
                         </div>
                         <div>
-                            <h3 className="fw-bold text-dark mb-1">Inventory History</h3>
+                            <div className="d-flex align-items-center gap-2">
+                                <h3 className="fw-bold text-dark mb-1">Inventory History</h3>
+                                <PageInfoTooltip info={pageInfoData.productInventoryLogs} />
+                            </div>
                             <div className="d-flex align-items-center gap-2">
                                 <span className="text-muted small">Tracking movements for</span>
                                 {product ? (

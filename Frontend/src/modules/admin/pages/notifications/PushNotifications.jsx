@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Card, Form, Button, Row, Col, Badge, Table } from 'react-bootstrap';
 import { Send, Bell, Smartphone, User, Clock, CheckCircle } from 'lucide-react';
+import { Send, Bell, Smartphone, User, Clock, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const NOTIFICATIONS_HISTORY = [
     { title: 'Big Summer Sale!', body: 'Get 50% off on all electronics today.', audience: 'All Users', sentAt: '2023-11-01 10:00 AM', status: 'Sent' },
@@ -24,7 +28,10 @@ const PushNotifications = () => {
     return (
         <div className="p-3">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="fw-bold mb-0">{t('notifications.push.title')}</h4>
+                <div className="d-flex align-items-center gap-2">
+                    <h4 className="fw-bold mb-0">{t('notifications.push.title')}</h4>
+                    <PageInfoTooltip data={pageInfoData.pushNotifications} />
+                </div>
             </div>
 
             <Row className="g-4 mb-4">

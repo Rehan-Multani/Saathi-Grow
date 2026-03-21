@@ -1,15 +1,25 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Row, Col } from 'react-bootstrap';
-import { Save, X, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Button, Row, Col, Spinner, Image } from 'react-bootstrap';
+import { Save, X, ArrowLeft, Upload, Store } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Swal from 'sweetalert2';
+import { getBranchById, updateBranch } from '../../api/branchApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 import GoogleMapsInput from '../../components/common/GoogleMapsInput';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const EditBranch = () => {
     const navigate = useNavigate();
     const { id } = useParams();
+    const { adminUser } = useAdminAuth();
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(true);
     const [formData, setFormData] = useState({
         name: '',
+        code: '',
+        phone: '',
+        email: '',
         address: {
             street: '',
             city: '',
@@ -20,36 +30,68 @@ const EditBranch = () => {
                 coordinates: [0, 0]
             }
         },
-        phone: '',
-        manager: '',
-        email: '',
-        status: 'Active'
+        isActive: true
     });
+    const [logoFile, setLogoFile] = useState(null);
+    const [logoPreview, setLogoPreview] = useState(null);
 
-    // Mock loading data
     useEffect(() => {
-        // In a real app, you'd fetch branch data by ID here
-        const mockBranchData = {
-            '1': { name: 'Main Store - Downtown', address: '123 Market St, Downtown', phone: '+91 98765 43210', manager: 'Sarah Connor', email: 'downtown@sathigro.com', status: 'Active' },
-            '2': { name: 'Northside Branch', address: '456 North Ave, Uptown', phone: '+91 98765 43211', manager: 'Kyle Reese', email: 'northside@sathigro.com', status: 'Active' },
-            '3': { name: 'West Mall Kiosk', address: '789 West Mall, Westside', phone: '+91 98765 43212', manager: 'John Connor', email: 'westmall@sathigro.com', status: 'Inactive' },
+        const fetchBranch = async () => {
+            try {
+                const data = await getBranchById(adminUser.token, id);
+                setFormData({
+                    name: data.name || '',
+                    code: data.code || '',
+                    phone: data.phone || '',
+                    email: data.email || '',
+                    address: data.address || {
+                        street: '',
+                        city: '',
+                        state: '',
+                        zipCode: '',
+                        location: { type: 'Point', coordinates: [0, 0] }
+                    },
+                    isActive: data.isActive ?? true
+                });
+                if (data.logo) {
+                    setLogoPreview(data.logo);
+                }
+            } catch (error) {
+                toast.error('Failed to fetch branch details');
+                navigate('/admin/locations/branches');
+            } finally {
+                setFetching(false);
+            }
         };
 
-        if (mockBranchData[id]) {
-            setFormData(mockBranchData[id]);
+        if (id && adminUser.token) {
+            fetchBranch();
         }
-    }, [id]);
+    }, [id, adminUser.token, navigate]);
+
+    const handleLogoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setLogoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLogoPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
+        const val = type === 'checkbox' ? checked : value;
         if (name.includes('.')) {
             const [parent, child] = name.split('.');
             setFormData(prev => ({
                 ...prev,
-                [parent]: { ...prev[parent], [child]: value }
+                [parent]: { ...prev[parent], [child]: val }
             }));
         } else {
-            setFormData({ ...formData, [name]: value });
+            setFormData(prev => ({ ...prev, [name]: val }));
         }
     };
 
@@ -69,191 +111,261 @@ const EditBranch = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        Swal.fire({
-            title: 'Updating Branch...',
-            didOpen: () => Swal.showLoading(),
-            timer: 1000,
-            showConfirmButton: false
-        }).then(() => {
-            Swal.fire({
-                title: 'Updated!',
-                text: 'Branch details have been updated successfully.',
-                icon: 'success',
-                confirmButtonColor: '#0c831f'
-            }).then(() => {
-                navigate('/admin/locations/branches');
+        setLoading(true);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'address') {
+                    data.append(key, JSON.stringify(formData[key]));
+                } else {
+                    data.append(key, formData[key]);
+                }
             });
-        });
+            if (logoFile) {
+                data.append('logo', logoFile);
+            }
+
+            await updateBranch(adminUser.token, id, data);
+            toast.success('Branch updated successfully');
+            navigate('/admin/locations/branches');
+        } catch (error) {
+            toast.error(error.message || 'Failed to update branch');
+        } finally {
+            setLoading(false);
+        }
     };
 
+    if (fetching) {
+        return (
+            <div className="d-flex justify-content-center align-items-center p-5">
+                <Spinner animation="border" variant="primary" />
+            </div>
+        );
+    }
+
     return (
-        <div className="p-2 p-md-4">
+        <Form onSubmit={handleSubmit} className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
                 <div className="d-flex align-items-center gap-3">
                     <Button
                         variant="light"
                         size="sm"
-                        className="rounded-circle p-2 shadow-sm border"
+                        className="rounded-circle p-2 shadow-sm border bg-white"
                         onClick={() => navigate(-1)}
                     >
-                        <ArrowLeft size={18} />
+                        <ArrowLeft size={16} />
                     </Button>
-                    <h4 className="fw-bold mb-0 text-nowrap">Edit Branch</h4>
+                    <div>
+                        <div className="d-flex align-items-center gap-2">
+                            <h4 className="fw-bold mb-0 text-nowrap">Edit Branch</h4>
+                            <PageInfoTooltip info={pageInfoData.addBranch} />
+                        </div>
+                        <p className="text-muted small mb-0 uppercase tracking-widest opacity-60">Update Location Details</p>
+                    </div>
                 </div>
                 <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto gap-2">
-                    <Button variant="light" onClick={() => navigate('/admin/locations/branches')} className="d-flex align-items-center gap-2 shadow-sm px-4">
+                    <Button variant="light" onClick={() => navigate('/admin/locations/branches')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4">
                         <X size={18} /> Cancel
+                    </Button>
+                    <Button variant="primary" type="submit" disabled={loading} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4">
+                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
+                        {loading ? 'Updating...' : 'Update Branch'}
                     </Button>
                 </div>
             </div>
 
-            <Row className="justify-content-center">
+            <Row>
                 <Col lg={8}>
                     <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body className="p-4">
-                            <Form onSubmit={handleSubmit}>
-                                <h6 className="fw-bold mb-4 text-primary">Branch Information</h6>
-                                <Row>
-                                    <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-bold">Branch Name</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="e.g. Main Store - Downtown"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                required
-                                                className="py-2 shadow-none border-light-subtle bg-light-subtle"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                                <Row>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-bold">Manager Name</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="e.g. Sarah Connor"
-                                                name="manager"
-                                                value={formData.manager}
-                                                onChange={handleChange}
-                                                required
-                                                className="py-2 shadow-none border-light-subtle bg-light-subtle"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-bold">Contact Phone</Form.Label>
-                                            <Form.Control
-                                                type="tel"
-                                                placeholder="+91 00000 00000"
-                                                name="phone"
-                                                value={formData.phone}
-                                                onChange={handleChange}
-                                                required
-                                                className="py-2 shadow-none border-light-subtle bg-light-subtle"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Email Address</Form.Label>
-                                    <Form.Control
-                                        type="email"
-                                        placeholder="branch@sathigro.com"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        className="py-2 shadow-none border-light-subtle bg-light-subtle"
-                                    />
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">Street Address (Search on Map)</Form.Label>
-                                    <GoogleMapsInput
-                                        onLocationSelect={handleLocationSelect}
-                                        defaultValue={formData.address.street}
-                                        placeholder="Search for store location..."
-                                    />
-                                    <div className="mt-2">
+                        <Card.Body className="p-4 p-md-5">
+                            <h6 className="fw-bold mb-4 text-primary border-bottom pb-2">Branch Information</h6>
+                            <Row>
+                                <Col md={8}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">Branch Name <span className="text-danger">*</span></Form.Label>
                                         <Form.Control
                                             type="text"
-                                            placeholder="123 Market St"
-                                            name="address.street"
-                                            value={formData.address.street}
+                                            placeholder="e.g. Main Store - Downtown"
+                                            name="name"
+                                            value={formData.name}
                                             onChange={handleChange}
-                                            className="shadow-none border-light-subtle bg-light-subtle py-2"
+                                            required
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
                                         />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={4}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">Branch Code <span className="text-danger">*</span></Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="BNH001"
+                                            name="code"
+                                            value={formData.code}
+                                            onChange={handleChange}
+                                            required
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle text-uppercase font-monospace"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">Branch Phone <span className="text-danger">*</span></Form.Label>
+                                        <Form.Control
+                                            type="tel"
+                                            placeholder="+91 00000 00000"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            required
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">Branch Email</Form.Label>
+                                        <Form.Control
+                                            type="email"
+                                            placeholder="branch@sathigro.com"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+
+                            <h6 className="fw-bold mb-3 mt-4 text-primary border-bottom pb-2">Location Details</h6>
+                            <Row>
+                                <Col md={12}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">Street Address (Search on Map) <span className="text-danger">*</span></Form.Label>
+                                        <GoogleMapsInput
+                                            onLocationSelect={handleLocationSelect}
+                                            defaultValue={formData.address.street}
+                                            placeholder="Search for branch location..."
+                                        />
+                                        <div className="mt-3">
+                                            <Form.Control
+                                                type="text"
+                                                name="address.street"
+                                                value={formData.address.street}
+                                                onChange={handleChange}
+                                                placeholder="123 Market St"
+                                                required
+                                                className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
+                                            />
+                                        </div>
+                                    </Form.Group>
+                                </Col>
+                                <Col md={4}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">City</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            name="address.city"
+                                            value={formData.address.city}
+                                            onChange={handleChange}
+                                            placeholder="City"
+                                            required
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={4}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">State</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            name="address.state"
+                                            value={formData.address.state}
+                                            onChange={handleChange}
+                                            placeholder="State"
+                                            required
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={4}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted">Zip Code</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            name="address.zipCode"
+                                            value={formData.address.zipCode}
+                                            onChange={handleChange}
+                                            placeholder="000000"
+                                            required
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle font-monospace"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
+                </Col>
+
+                <Col lg={4}>
+                    <Card className="border-0 shadow-sm mb-4">
+                        <Card.Body className="p-4">
+                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">Branch Logo</h6>
+                            <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative" style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {logoPreview ? (
+                                    <div className="position-relative w-100">
+                                        <Image src={logoPreview} fluid rounded style={{ maxHeight: '150px' }} />
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            className="position-absolute top-0 end-0 m-2 rounded-circle p-1"
+                                            onClick={() => { setLogoPreview(null); setLogoFile(null); }}
+                                        >
+                                            <X size={16} />
+                                        </Button>
                                     </div>
-                                </Form.Group>
-                                <Row className="g-3 mb-3">
-                                    <Col md={4}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-bold">City</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="address.city"
-                                                value={formData.address.city}
-                                                onChange={handleChange}
-                                                className="shadow-none border-light-subtle bg-light-subtle py-2"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-bold">State</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="address.state"
-                                                value={formData.address.state}
-                                                onChange={handleChange}
-                                                className="shadow-none border-light-subtle bg-light-subtle py-2"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-bold">Zip Code</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="address.zipCode"
-                                                value={formData.address.zipCode}
-                                                onChange={handleChange}
-                                                className="shadow-none border-light-subtle bg-light-subtle py-2"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
+                                ) : (
+                                    <div className="text-muted py-4">
+                                        <Store className="mb-2 opacity-25" size={48} />
+                                        <p className="small mb-0">Drag and drop or click to upload logo</p>
+                                    </div>
+                                )}
+                                <Form.Control
+                                    type="file"
+                                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
+                                    onChange={handleLogoChange}
+                                    accept="image/*"
+                                />
+                            </div>
+                            <Form.Text className="text-muted small">Recommended size: 500x500px. Max: 2MB</Form.Text>
+                        </Card.Body>
+                    </Card>
 
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="small fw-bold">Status</Form.Label>
-                                    <Form.Select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
-                                        className="py-2 shadow-none border-light-subtle bg-light-subtle"
-                                    >
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
-                                        <option value="Under Renovation">Under Renovation</option>
-                                    </Form.Select>
-                                </Form.Group>
-
-                                <Button type="submit" variant="primary" className="w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold shadow-sm">
-                                    <Save size={18} /> Update Branch Details
-                                </Button>
-                            </Form>
+                    <Card className="border-0 shadow-sm">
+                        <Card.Body className="p-4">
+                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">Branch Settings</h6>
+                            <Form.Group className="mb-3 d-flex align-items-center justify-content-between">
+                                <Form.Label className="small fw-bold mb-0">Branch Status</Form.Label>
+                                <Form.Check
+                                    type="switch"
+                                    id="branch-status-switch"
+                                    label={formData.isActive ? "Active" : "Inactive"}
+                                    name="isActive"
+                                    checked={formData.isActive}
+                                    onChange={handleChange}
+                                />
+                            </Form.Group>
+                            <p className="small text-muted mb-0">Inactive branches won't be visible in the user app and can't process orders.</p>
                         </Card.Body>
                     </Card>
                 </Col>
             </Row>
-        </div>
+        </Form>
     );
 };
 

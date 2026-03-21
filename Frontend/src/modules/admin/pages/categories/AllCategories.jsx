@@ -8,6 +8,8 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getCategories, deleteCategory, updateCategory } from '../../api/categoryApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AllCategories = () => {
     const { t } = useTranslation();
@@ -88,7 +90,10 @@ const AllCategories = () => {
                         <ImageIcon size={24} />
                     </div>
                     <div>
-                        <h4 className="fw-bold mb-1 text-dark">{t('categories.title')}</h4>
+                        <div className="d-flex align-items-center gap-2">
+                            <h4 className="fw-bold mb-1 text-dark">{t('categories.title')}</h4>
+                            <PageInfoTooltip data={pageInfoData.allCategories} />
+                        </div>
                         <p className="text-muted small mb-0 d-none d-sm-block">{t('categories.subtitle')}</p>
                     </div>
                 </div>

@@ -30,6 +30,8 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
 import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 const AssignDeliveries = () => {
     const { t } = useTranslation();
@@ -182,10 +184,13 @@ const AssignDeliveries = () => {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                        <Layers size={28} className="text-indigo-600" />
-                        {t('delivery.assign_deliveries.title')}
-                    </h1>
+                    <div className="d-flex align-items-center gap-2">
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3 mb-0">
+                            <Layers size={28} className="text-indigo-600" />
+                            {t('delivery.assign_deliveries.title')}
+                        </h1>
+                        <PageInfoTooltip info={pageInfoData.assignDeliveries} />
+                    </div>
                     <p className="text-sm text-slate-500 font-medium">{t('delivery.assign_deliveries.subtitle')}</p>
                 </div>
 

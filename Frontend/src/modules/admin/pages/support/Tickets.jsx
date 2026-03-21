@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as complaintApi from '../../api/complaintApi';
 import { toast } from 'react-toastify';
+import PageInfoTooltip from '../../components/common/PageInfoTooltip';
+import { pageInfoData } from '../../data/pageInfoData';
 
 import TicketEditModal from '../../components/support/TicketEditModal';
 
@@ -88,6 +90,7 @@ const SupportTickets = () => {
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div className="d-flex align-items-center gap-2">
                             <h5 className="mb-0 fw-bold uppercase tracking-tight text-[#0c831f]">{t('support.tickets.title')}</h5>
+                            <PageInfoTooltip data={pageInfoData.supportTickets} />
                             <Badge bg="success" pill className="fw-normal">{filtered.length}</Badge>
                         </div>
                         <div className="d-flex flex-column flex-sm-row gap-2 flex-grow-1 justify-content-sm-end">
