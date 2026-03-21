@@ -1,4 +1,4 @@
-import { admin as firebaseAdmin } from '../config/firebase.js';
+import { admin as firebaseAdmin, isFirebaseInitialized } from '../config/firebase.js';
 import User from '../models/User.js';
 import DeliveryPartner from '../models/DeliveryPartner.js';
 import Vendor from '../models/Vendor.js';
@@ -19,6 +19,12 @@ const CACHE_TTL = 10000; // 10 seconds
  */
 export const sendPushNotification = async (recipientId, recipientModel, notification, data = {}) => {
   try {
+    if (!isFirebaseInitialized) {
+      // Allow the API to keep working even if Firebase credentials are missing/misconfigured.
+      // In that case we just skip push delivery.
+      return false;
+    }
+
     // Deduplication check
     const cacheKey = `${recipientId}_${notification.title}_${notification.body}`;
     if (sentCache.has(cacheKey)) {

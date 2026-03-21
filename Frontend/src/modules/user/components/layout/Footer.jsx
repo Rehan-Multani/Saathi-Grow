@@ -7,7 +7,7 @@ import { useShop } from '../../context/ShopContext';
 
 const Footer = ({ customTheme }) => {
   const [policies, setPolicies] = useState([]);
-  const { categories } = useShop();
+  const { categories, settings } = useShop();
 
   useEffect(() => {
     const fetchPolicies = async () => {

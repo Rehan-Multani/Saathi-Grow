@@ -25,7 +25,10 @@ const connectDB = async () => {
             console.error('Server Selection Reason:', JSON.stringify(error.reason, null, 2));
         }
         console.log(`🔍 TIP: If using Atlas, ensure your IP is whitelisted. We are currently using the Standard Connection String to bypass SRV DNS issues.`);
-        process.exit(1); 
+        // Don't kill the server process on DB failures.
+        // This keeps the API reachable (so nginx doesn't return 502),
+        // and lets endpoints respond with proper JSON errors.
+        return null;
     }
 };
 
