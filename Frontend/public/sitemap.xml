@@ -2,25 +2,25 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Core Pages -->
   <url>
-    <loc>https://saathigro.com/</loc>
+    <loc>https://saathigro.in/</loc>
     <lastmod>2026-03-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://saathigro.com/category</loc>
+    <loc>https://saathigro.in/category</loc>
     <lastmod>2026-03-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://saathigro.com/lowest-prices</loc>
+    <loc>https://saathigro.in/lowest-prices</loc>
     <lastmod>2026-03-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://saathigro.com/help</loc>
+    <loc>https://saathigro.in/help</loc>
     <lastmod>2026-03-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

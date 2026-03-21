@@ -12,4 +12,4 @@ Disallow: /orders
 Disallow: /cart
 Disallow: /checkout
 
-Sitemap: https://saathigro.com/sitemap.xml
+Sitemap: https://saathigro.in/sitemap.xml

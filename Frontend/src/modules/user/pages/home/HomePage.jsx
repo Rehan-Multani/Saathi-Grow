@@ -178,10 +178,10 @@ const HomePage = ({ }) => {
                         "@context": "https://schema.org",
                         "@type": "WebSite",
                         "name": "Saathi-Grow",
-                        "url": "https://saathigro.com",
+                        "url": "https://saathigro.in",
                         "potentialAction": {
                             "@type": "SearchAction",
-                            "target": "https://saathigro.com/search?q={search_term_string}",
+                            "target": "https://saathigro.in/search?q={search_term_string}",
                             "query-input": "required name=search_term_string"
                         }
                     },
@@ -189,8 +189,8 @@ const HomePage = ({ }) => {
                         "@context": "https://schema.org",
                         "@type": "Organization",
                         "name": "Saathi-Grow",
-                        "url": "https://saathigro.com",
-                        "logo": "https://saathigro.com/logo.png",
+                        "url": "https://saathigro.in",
+                        "logo": "https://saathigro.in/logo.png",
                         "sameAs": [
                             "https://www.facebook.com/saathigro",
                             "https://www.instagram.com/saathigro",
