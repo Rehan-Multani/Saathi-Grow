@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
@@ -21,10 +21,14 @@ const SearchOverlay = () => {
         return saved ? JSON.parse(saved) : [];
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [isMoreLoading, setIsMoreLoading] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [micError, setMicError] = useState(null);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [suggestions, setSuggestions] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalResults, setTotalResults] = useState(0);
 
     const recognitionRef = React.useRef(null);
 
@@ -92,16 +96,21 @@ const SearchOverlay = () => {
             setFilteredProducts([]);
             setSuggestions([]);
             setIsLoading(false);
+            setCurrentPage(1);
+            setTotalPages(1);
             return;
         }
 
         const runSearch = async () => {
             setIsLoading(true);
+            setCurrentPage(1); // Reset to first page
             try {
                 const storeParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
                 const data = await searchProducts(searchQuery, 1, storeParams);
 
-                const productsArray = Array.isArray(data) ? data : (data.products || []);
+                const productsArray = data.products || [];
+                setTotalPages(data.pages || 1);
+                setTotalResults(data.total || 0);
 
                 if (productsArray.length > 0) {
                     setFilteredProducts(productsArray);
@@ -132,6 +141,27 @@ const SearchOverlay = () => {
 
         return () => clearTimeout(timer);
     }, [searchQuery]);
+
+    const handleLoadMore = async () => {
+        if (currentPage >= totalPages || isMoreLoading) return;
+
+        setIsMoreLoading(true);
+        try {
+            const nextPage = currentPage + 1;
+            const storeParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
+            const data = await searchProducts(searchQuery, nextPage, storeParams);
+
+            const newProducts = data.products || [];
+            if (newProducts.length > 0) {
+                setFilteredProducts(prev => [...prev, ...newProducts]);
+                setCurrentPage(nextPage);
+            }
+        } catch (err) {
+            console.error("Load more failed:", err);
+        } finally {
+            setIsMoreLoading(false);
+        }
+    };
 
     const addToHistory = (query) => {
         if (!query || query.trim() === '') return;
@@ -351,14 +381,19 @@ const SearchOverlay = () => {
                         {/* 2. Scalable Product Grid */}
                         <div>
                             {!isLoading && filteredProducts.length > 0 && (
-                                <h2 className="text-[13px] md:text-[18px] font-bold text-gray-800 dark:text-gray-100 mb-6 px-1">
-                                    Showing results for <span className="text-[#0c831f]">"{searchQuery}"</span>
-                                </h2>
+                                <div className="flex items-center justify-between mb-6 px-1">
+                                    <h2 className="text-[13px] md:text-[18px] font-bold text-gray-800 dark:text-gray-100">
+                                        Showing results for <span className="text-[#0c831f]">"{searchQuery}"</span>
+                                    </h2>
+                                    <span className="text-[10px] md:text-[12px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-white/5 px-3 py-1.5 rounded-full border border-gray-100 dark:border-white/5">
+                                        {totalResults} Products
+                                    </span>
+                                </div>
                             )}
 
                             {isLoading ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
-                                    {Array.from({ length: 12 }).map((_, i) => (
+                                    {Array.from({ length: 20 }).map((_, i) => (
                                         <ProductCardSkeleton key={i} />
                                     ))}
                                 </div>
@@ -380,6 +415,29 @@ const SearchOverlay = () => {
                                     </div>
                                     <p className="text-sm font-black text-gray-400 uppercase tracking-widest">No products found</p>
                                     <p className="text-xs text-gray-400 mt-1">Try a different keyword or category</p>
+                                </div>
+                            )}
+
+                            {/* Load More Button */}
+                            {!isLoading && filteredProducts.length > 0 && currentPage < totalPages && (
+                                <div className="mt-8 flex justify-center pb-8">
+                                    <button
+                                        onClick={handleLoadMore}
+                                        disabled={isMoreLoading}
+                                        className={`group relative flex items-center gap-2 px-8 py-3 bg-[#0c831f] text-white font-bold rounded-xl transition-all hover:bg-[#0a701a] active:scale-95 disabled:opacity-70 disabled:active:scale-100 shadow-lg shadow-green-500/20`}
+                                    >
+                                        {isMoreLoading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                <span>Loading items...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Load More Products</span>
+                                                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse group-hover:bg-white"></div>
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                             )}
                         </div>

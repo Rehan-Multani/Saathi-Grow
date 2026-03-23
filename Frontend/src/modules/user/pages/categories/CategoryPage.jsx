@@ -95,7 +95,7 @@ const CategoryPage = () => {
 
             const params = {
                 page: pageNum,
-                limit: 12,
+                limit: 20,
                 sort: sortOption,
                 status: ['Active', 'Low Stock', 'Out of Stock']
             };
@@ -355,7 +355,7 @@ const CategoryPage = () => {
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {isLoading ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
+                        {Array.from({ length: 12 }).map((_, i) => (
                             <ProductCardSkeleton key={i} />
                         ))}
                     </div>

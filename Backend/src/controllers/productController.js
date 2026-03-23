@@ -244,7 +244,7 @@ export const getProducts = async (req, res) => {
       isVeg,
       sort = '-createdAt',
       page = 1,
-      limit = 100,
+      limit = 20,
       campaignId,
       source, // 'vendor' | 'branch' | '' (all)
       storeId,
@@ -617,7 +617,7 @@ export const searchProductsWithAI = async (req, res) => {
     }
 
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 30;
+    const limit = Number(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
     const total = await Product.countDocuments(searchQuery);

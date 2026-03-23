@@ -459,7 +459,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
             const data = await fetchProducts({
                 category: category.name,
                 page: pageNum,
-                limit: 10,
+                limit: 20,
                 status: 'Active',
                 storeId: activeStore?.id,
                 storeType: activeStore?.type
@@ -641,7 +641,7 @@ const OccasionSection = ({
             const data = await fetchProducts({
                 campaignId: campaignId,
                 page: nextPage,
-                limit: 10,
+                limit: 20,
                 status: 'Active',
                 storeId: activeStore?.id,
                 storeType: activeStore?.type
