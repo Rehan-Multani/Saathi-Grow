@@ -647,6 +647,23 @@ export const pageInfoData = {
         ],
     },
 
+    adminNotifications: {
+        title: 'System Alerts & Inbox',
+        description: 'Manage incoming system alerts, inventory warnings, and automated reports targeted to your administrative account.',
+        keyPoints: [
+            'Monitor critical system-level automated notifications',
+            'Mark alerts as read/unread for better organization',
+            'Bulk delete older or resolved alerts to keep it clean',
+            'Real-time synchronization with the notification gateway',
+        ],
+        workflow: [
+            'Review the subject and body of recent alerts.',
+            'Use the multi-select checkbox for bulk actions.',
+            'Click the "Check" icon to mark individual items as read.',
+            'Use the "Trash" icon for cleanup of legacy alerts.',
+        ],
+    },
+
     // ─── SUPPORT DESK ─────────────────────────────────────────
     tickets: {
         title: 'Support Tickets',

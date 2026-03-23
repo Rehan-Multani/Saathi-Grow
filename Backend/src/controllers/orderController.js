@@ -79,6 +79,50 @@ const validateSlotAvailability = async (deliverySlotId, isImmediate) => {
   return true;
 };
 
+const validateStockAvailability = async (items, storeId, storeType) => {
+  if (!items || items.length === 0) return true;
+
+  for (const item of items) {
+    const productId = item.product._id || item.product;
+    const requestedQty = parseInt(item.quantity) || 0;
+    
+    const product = await Product.findById(productId);
+    if (!product) throw new Error(`Product not found: ${productId}`);
+
+    let availableStock = 0;
+    let threshold = 10; // Default threshold
+
+    if (storeType === 'branch') {
+      const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === storeId?.toString());
+      if (!branchStock) throw new Error(`Product ${product.name} is not available at the selected branch.`);
+      availableStock = branchStock.stock || 0;
+      threshold = branchStock.lowStockThreshold || 10;
+    } else if (storeType === 'vendor') {
+      // For vendor, check if product belongs to this vendor
+      if (product.vendor?.toString() !== storeId?.toString()) {
+        throw new Error(`Product ${product.name} is not available at the selected vendor.`);
+      }
+      availableStock = product.stock || 0;
+      threshold = product.lowStockThreshold || 10;
+    } else {
+      // Global fallback (if no store context, though unlikely in Store-First)
+      availableStock = product.stock || 0;
+      threshold = product.lowStockThreshold || 10;
+    }
+
+    const remaining = availableStock - requestedQty;
+    if (remaining < threshold) {
+      const maxAllowed = Math.max(0, availableStock - threshold);
+      if (maxAllowed <= 0) {
+        throw new Error(`${product.name} is currently non-orderable as it has reached its safety stock limit.`);
+      } else {
+        throw new Error(`Only ${maxAllowed} units of ${product.name} can be ordered to maintain safety stock.`);
+      }
+    }
+  }
+  return true;
+};
+
 export const computeBillDetails = async (items, options = {}) => {
   const { promoId = null, userId = null } = options;
   let subTotal = 0;
@@ -181,6 +225,14 @@ export const createRazorpayOrder = async (req, res) => {
       return res.status(400).json({ message: 'Cart items are required to calculate bill' });
     }
 
+    // 1. Stock Guard (Sprint 2: enforcing safety stock threshold)
+    const { storeId, storeType } = req.body;
+    try {
+      await validateStockAvailability(items, storeId, storeType);
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
     // Always recompute on backend. NEVER trust frontend amount.
     const computedBill = await computeBillDetails(items, { promoId, userId: req.user._id });
 
@@ -242,6 +294,9 @@ export const verifyRazorpayPayment = async (req, res) => {
 
     // SLOT VALIDATION
     await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
+
+    // STOCK VALIDATION (Double Check)
+    await validateStockAvailability(orderData.items, orderData.storeId, orderData.storeType);
 
     // Recompute bill to guarantee no manipulation during payment verify leap
     const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
@@ -726,6 +781,9 @@ export const createCODOrder = async (req, res) => {
 
     // SLOT VALIDATION
     await validateSlotAvailability(orderData.deliverySlotId, orderData.isImmediate);
+
+    // STOCK VALIDATION
+    await validateStockAvailability(orderData.items, orderData.storeId, orderData.storeType);
 
     // Always recompute on backend. NEVER trust frontend amount
     const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });

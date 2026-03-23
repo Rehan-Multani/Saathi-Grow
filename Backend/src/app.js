@@ -167,6 +167,7 @@ import posRoutes from './routes/posRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import promoCodeRoutes from './routes/promoCodeRoutes.js';
 import userProfileRoutes from './routes/userProfileRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
 
 
@@ -191,6 +192,7 @@ app.use('/api/delivery', deliveryRoutes);
 app.use('/api/promocodes', promoCodeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/reports', reportRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // User Profile/Front-End Routes
 app.use('/api/user/addresses', userAddressRoutes);

@@ -205,3 +205,58 @@ export const optionalProtectStoreManager = async (req, res, next) => {
   }
   next();
 };
+// Protect for any valid user (Admin, Vendor, Partner, or Customer)
+export const protectAny = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Check Admin
+      const admin = await Admin.findById(decoded.id);
+      if (admin) {
+        if (admin.isActive !== false) {
+          req.admin = admin;
+          return next();
+        } else {
+          return res.status(403).json({ message: 'Admin account inactive' });
+        }
+      }
+
+      // Check Vendor
+      const vendor = await Vendor.findById(decoded.id);
+      if (vendor) {
+        if (vendor.status === 'Active') {
+          req.vendor = vendor;
+          return next();
+        } else {
+          return res.status(403).json({ message: 'Vendor account not active' });
+        }
+      }
+
+      // Check Delivery Partner
+      const partner = await DeliveryPartner.findById(decoded.id);
+      if (partner) {
+        if (partner.authStatus === 'Active') {
+          req.partner = partner;
+          return next();
+        } else {
+          return res.status(403).json({ message: 'Delivery partner account not active' });
+        }
+      }
+
+      // Check User
+      const user = await User.findById(decoded.id);
+      if (user) {
+        req.user = user;
+        return next();
+      }
+
+      return res.status(401).json({ message: 'User not found' });
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+  }
+  if (!token) return res.status(401).json({ message: 'Authentication required' });
+};

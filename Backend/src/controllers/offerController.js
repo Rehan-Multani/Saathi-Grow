@@ -177,11 +177,21 @@ export const deleteOfferDeal = async (req, res) => {
 export const getActiveOfferDeals = async (req, res) => {
   try {
     const { storeId, storeType } = req.query;
+    const now = new Date();
 
     // Fetch ALL active offers (admin + all vendors) to show on home screen
-    // This allows users to see all available deals as requested.
+    // Only show offers that are isActive AND (no expiry date OR expiry date in future)
     const result = await OfferDeal.aggregate([
-      { $match: { isActive: true } },
+      { 
+        $match: { 
+          isActive: true,
+          $or: [
+            { expiryDate: { $gt: now } },
+            { expiryDate: { $exists: false } },
+            { expiryDate: null }
+          ]
+        } 
+      },
       { $addFields: { totalProducts: { $size: "$products" } } },
       { $sort: { order: 1 } },
       {
@@ -265,11 +275,20 @@ export const getOfferProducts = async (req, res) => {
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
 
-    const offer = await OfferDeal.findById(req.params.id)
+    const now = new Date();
+    const offer = await OfferDeal.findOne({
+      _id: req.params.id,
+      isActive: true,
+      $or: [
+        { expiryDate: { $gt: now } },
+        { expiryDate: { $exists: false } },
+        { expiryDate: null }
+      ]
+    })
       .slice('products', [(pageNum - 1) * limitNum, limitNum])
       .populate('products.productId', 'name image basePrice mrp sku unitType unitValue status isVeg branchStocks vendor category');
 
-    if (!offer) return res.status(404).json({ message: 'Offer not found' });
+    if (!offer) return res.status(404).json({ message: 'Offer not found or expired' });
 
     // Inject store context if available
     let products = offer.products || [];

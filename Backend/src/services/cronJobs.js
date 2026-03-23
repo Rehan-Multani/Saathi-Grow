@@ -1,11 +1,34 @@
 import cron from 'node-cron';
 import Complaint from '../models/Complaint.js';
+import OfferDeal from '../models/OfferDeal.js';
 import { notifyAdmins, sendPushNotification, notifyByBranchAndPermission } from './notificationService.js';
 
 /**
  * Initialize all cron jobs
  */
 export const initCronJobs = () => {
+  // 1. Offer Expiration Monitor (Run every hour)
+  cron.schedule('0 * * * *', async () => {
+    console.log('[CRON] Checking for expired offers...');
+    try {
+      const now = new Date();
+      const expiredOffers = await OfferDeal.updateMany(
+        { 
+          isActive: true, 
+          expiryDate: { $lte: now } 
+        },
+        { $set: { isActive: false } }
+      );
+
+      if (expiredOffers.modifiedCount > 0) {
+        console.log(`[CRON] Deactivated ${expiredOffers.modifiedCount} expired offers.`);
+      }
+    } catch (error) {
+      console.error('[CRON-ERROR] Offer Expiry Check Failed:', error);
+    }
+  });
+
+  // 2. SLA Expiry Monitor (Run every hour)
   // Run every hour to check SLA expiry
   cron.schedule('0 * * * *', async () => {
     console.log('[CRON] Checking for SLA expirations...');

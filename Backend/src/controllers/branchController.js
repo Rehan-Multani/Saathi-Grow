@@ -7,7 +7,13 @@ import { geocodeAddress } from '../services/locationService.js';
 // @access  Private (Admin)
 export const createBranch = async (req, res) => {
   try {
-    const { name, code, address, phone, email } = req.body;
+    let { name, code, address, phone, email } = req.body;
+    const logo = req.file ? req.file.path : '';
+
+    // Handle parsed Form Data if address is a string
+    if (typeof address === 'string') {
+        try { address = JSON.parse(address); } catch(e) {}
+    }
 
     const branchExists = await Branch.findOne({ $or: [{ name }, { code }] });
     if (branchExists) {
@@ -27,7 +33,8 @@ export const createBranch = async (req, res) => {
       code,
       address: finalAddress,
       phone,
-      email
+      email,
+      logo
     });
 
     res.status(201).json(branch);
@@ -120,13 +127,19 @@ export const updateMyBranch = async (req, res) => {
       return res.status(403).json({ message: 'No branch assigned to this manager' });
     }
 
-    const { phone, email, address, isActive } = req.body;
-    const branch = await Branch.findById(req.admin.branchId);
+    let { phone, email, address, isActive } = req.body;
+    const logo = req.file ? req.file.path : null;
+
+    // Handle parsed Form Data if address is a string
+    if (typeof address === 'string') {
+        try { address = JSON.parse(address); } catch(e) {}
+    }
 
     if (branch) {
       branch.phone = phone || branch.phone;
       branch.email = email || branch.email;
       branch.isActive = isActive ?? branch.isActive;
+      if (logo) branch.logo = logo;
 
       if (address) {
         // Limited address update for managers (maybe just street/phone)
@@ -148,7 +161,14 @@ export const updateMyBranch = async (req, res) => {
 // @access  Private (Admin)
 export const updateBranch = async (req, res) => {
   try {
-    const { name, code, address, phone, email, isActive } = req.body;
+    let { name, code, address, phone, email, isActive } = req.body;
+    const logo = req.file ? req.file.path : null;
+
+    // Handle parsed Form Data if address is a string
+    if (typeof address === 'string') {
+        try { address = JSON.parse(address); } catch(e) {}
+    }
+
     const branch = await Branch.findById(req.params.id);
 
     if (branch) {
@@ -171,6 +191,7 @@ export const updateBranch = async (req, res) => {
       branch.phone = phone || branch.phone;
       branch.email = email || branch.email;
       branch.isActive = isActive ?? branch.isActive;
+      if (logo) branch.logo = logo;
 
       const updatedBranch = await branch.save();
       res.json(updatedBranch);

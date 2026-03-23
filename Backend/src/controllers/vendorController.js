@@ -1,4 +1,5 @@
 import Vendor from '../models/Vendor.js';
+import Product from '../models/Product.js';
 import VendorPayout from '../models/VendorPayout.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
@@ -29,15 +30,21 @@ export const getVendors = async (req, res) => {
     }
 
     const vendorsQuery = Vendor.find(query)
-      .select('storeName ownerName email phone status logo rating products createdAt updatedAt')
+      .select('storeName ownerName email phone address status logo createdAt updatedAt')
       .sort({ createdAt: -1 })
       .lean();
 
     if (hasPagination) {
       const total = await Vendor.countDocuments(query);
-      const vendors = await vendorsQuery
+      let vendors = await vendorsQuery
         .skip((pageNumber - 1) * limitNumber)
         .limit(limitNumber);
+
+      // Attach products count
+      vendors = await Promise.all(vendors.map(async (v) => {
+        const productCount = await Product.countDocuments({ vendor: v._id });
+        return { ...v, products: productCount };
+      }));
 
       res.set('X-Total-Count', String(total));
       res.set('X-Page', String(pageNumber));
@@ -58,7 +65,14 @@ export const getVendors = async (req, res) => {
       return res.json(vendors);
     }
 
-    const vendors = await vendorsQuery;
+    let vendors = await vendorsQuery;
+    
+    // Attach products count
+    vendors = await Promise.all(vendors.map(async (v) => {
+      const productCount = await Product.countDocuments({ vendor: v._id });
+      return { ...v, products: productCount };
+    }));
+
     if (includeMeta) {
       return res.json({ success: true, vendors });
     }
@@ -73,9 +87,14 @@ export const getVendors = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getVendorById = async (req, res) => {
   try {
-    const vendor = await Vendor.findById(req.params.id);
+    const vendor = await Vendor.findById(req.params.id).lean();
     if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
-    res.json(vendor);
+
+    // Attach products count
+    const productCount = await Product.countDocuments({ vendor: vendor._id });
+    const vendorWithProducts = { ...vendor, products: productCount };
+
+    res.json(vendorWithProducts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

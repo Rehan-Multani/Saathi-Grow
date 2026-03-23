@@ -42,6 +42,7 @@ import EditBranch from '../pages/locations/EditBranch';
 import AllPromoCodes from '../pages/promocodes/AllPromoCodes';
 import CreatePromoCode from '../pages/promocodes/CreatePromoCode';
 import PushNotifications from '../pages/notifications/PushNotifications';
+import AdminNotifications from '../pages/notifications/AdminNotifications';
 import SupportTickets from '../pages/support/Tickets';
 
 import FAQs from '../pages/support/FAQs';
@@ -185,6 +186,7 @@ const AdminRoutes = () => {
 
                         {/* Notifications */}
                         <Route path="notifications/push" element={<PushNotifications />} />
+                        <Route path="notifications/inbox" element={<AdminNotifications />} />
 
                         {/* Support Desk */}
                         <Route path="support/tickets" element={<SupportTickets />} />

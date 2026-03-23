@@ -63,7 +63,7 @@ export const getMyNotifications = async (req, res) => {
       recipientModel = 'User';
     } else if (req.admin) {
       recipientId = req.admin._id;
-      recipientModel = 'Staff';
+      recipientModel = 'Admin'; // Fixed recipientModel for Admin
     } else if (req.vendor) {
       recipientId = req.vendor._id;
       recipientModel = 'Vendor';
@@ -76,12 +76,31 @@ export const getMyNotifications = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthenticated' });
     }
 
-    const notifications = await Notification.find({
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const query = {
       recipient: recipientId,
       recipientModel: recipientModel
-    }).sort({ createdAt: -1 }).limit(50);
+    };
 
-    res.status(200).json({ success: true, notifications });
+    const total = await Notification.countDocuments(query);
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({ 
+      success: true, 
+      notifications,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -135,6 +154,133 @@ export const getUnreadCount = async (req, res) => {
     });
 
     res.status(200).json({ success: true, count });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Admin: Send notification
+ */
+export const adminSendNotification = async (req, res) => {
+  try {
+    if (!req.admin) {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+
+    const { title, body, targetType, recipientId, recipientType, group } = req.body;
+
+    if (!title || !body) {
+      return res.status(400).json({ success: false, message: 'Title and body are required' });
+    }
+
+    const notificationData = {
+      title,
+      body,
+      sentBy: req.admin._id,
+      type: targetType === 'broadcast' ? 'admin_broadcast' : 'individual',
+      isBroadcast: targetType === 'broadcast',
+      targetGroup: targetType === 'broadcast' ? (group || 'all') : undefined,
+      recipient: targetType !== 'broadcast' ? recipientId : undefined,
+      recipientModel: targetType !== 'broadcast' ? recipientType : undefined
+    };
+
+    const record = await Notification.create(notificationData);
+    res.status(200).json({ success: true, message: 'Notification processed', record });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Admin: Get Sent History
+ */
+export const getAdminNotificationHistory = async (req, res) => {
+  try {
+    if (!req.admin) {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const query = { sentBy: { $exists: true } };
+
+    const total = await Notification.countDocuments(query);
+    const notifications = await Notification.find(query)
+      .populate('recipient', 'name phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({ 
+      success: true, 
+      notifications,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Delete Notification(s) - Single or Bulk
+ */
+export const deleteNotifications = async (req, res) => {
+  try {
+    const { ids } = req.body; // Expecting array of IDs
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'Notification IDs array is required' });
+    }
+
+    // Logic: If it's a simple user, they can only delete notifications where they are the recipient.
+    // If it's an admin, they can delete anything (history or received).
+    
+    let query = { _id: { $in: ids } };
+    
+    if (!req.admin) {
+      // Non-admin can only delete their own notifications
+      const recipientId = req.user?._id || req.vendor?._id || req.partner?._id;
+      query.recipient = recipientId;
+    }
+
+    await Notification.deleteMany(query);
+
+    res.status(200).json({ success: true, message: 'Notifications deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Admin: Search Recipient Candidates
+ */
+export const searchRecipients = async (req, res) => {
+  try {
+    if (!req.admin) {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+
+    const { q, type } = req.query;
+    if (!q || !type) return res.status(400).json({ success: false, message: 'Query and type required' });
+
+    let results = [];
+    const filter = { name: { $regex: q, $options: 'i' } };
+
+    if (type === 'User') results = await User.find(filter).limit(20).select('name phone');
+    else if (type === 'Vendor') results = await Vendor.find(filter).limit(20).select('name phone');
+    else if (type === 'DeliveryPartner') results = await DeliveryPartner.find(filter).limit(20).select('name phone');
+    else if (type === 'Staff') results = await Admin.find({ ...filter, role: 'Staff' }).limit(20).select('name phone');
+    else if (type === 'Branch Manager') results = await Admin.find({ ...filter, role: 'Branch Manager' }).limit(20).select('name phone');
+
+    res.status(200).json({ success: true, results });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

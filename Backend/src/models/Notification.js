@@ -3,13 +3,23 @@ import mongoose from 'mongoose';
 const notificationSchema = new mongoose.Schema({
   recipient: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
     refPath: 'recipientModel'
   },
   recipientModel: {
     type: String,
-    required: true,
     enum: ['User', 'Admin', 'Vendor', 'DeliveryPartner', 'Staff']
+  },
+  isBroadcast: {
+    type: Boolean,
+    default: false
+  },
+  targetGroup: {
+    type: String,
+    enum: ['all', 'users', 'vendors', 'delivery_partners', 'staff', 'branch_managers']
+  },
+  sentBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin'
   },
   title: {
     type: String,

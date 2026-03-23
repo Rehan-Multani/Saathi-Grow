@@ -5,6 +5,7 @@ import CampaignSection from '../models/CampaignSection.js';
 import Branch from '../models/Branch.js';
 import Category from '../models/Category.js';
 import User from '../models/User.js';
+import Brand from '../models/Brand.js';
 import { generateProductDescription, generateProductTags, analyzeSearchQuery } from '../utils/aiService.js';
 import QRCode from 'qrcode';
 import { sendPushNotification } from '../services/notificationService.js';
@@ -264,6 +265,31 @@ export const getProducts = async (req, res) => {
     // Build query object
     let query = {};
 
+    // 1. Store Status & Context Validation (Production Level Security)
+    // If not admin/vendor, exclude products from inactive sources
+    if (!req.admin && !req.vendor) {
+      if (effectiveStoreId && storeType) {
+        // Verify current selected store status
+        if (storeType === 'branch') {
+          const branch = await Branch.findById(effectiveStoreId).select('isActive');
+          if (!branch || !branch.isActive) {
+            return res.json({ products: [], total: 0, pages: 0, message: 'Selected store is currently inactive' });
+          }
+        } else if (storeType === 'vendor') {
+          const v = await mongoose.model('Vendor').findById(effectiveStoreId).select('status');
+          if (!v || v.status !== 'Active') {
+            return res.json({ products: [], total: 0, pages: 0, message: 'Selected vendor is currently inactive' });
+          }
+        }
+      }
+
+      // Globally exclude inactive vendors from all public listings
+      const inactiveVendors = await mongoose.model('Vendor').find({ status: { $ne: 'Active' } }).distinct('_id');
+      if (inactiveVendors.length > 0) {
+        query.vendor = { $nin: inactiveVendors };
+      }
+    }
+
     // Campaign filtering
     if (campaignId) {
       const campaign = await CampaignSection.findById(campaignId);
@@ -430,12 +456,12 @@ export const getProducts = async (req, res) => {
 
     // If it's a public/user request (no admin/vendor), select only necessary fields
     if (!req.admin && !req.vendor) {
-      productQuery = productQuery.select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks stock lowStockThreshold');
+      productQuery = productQuery.select('name image description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount');
     }
 
     let products = await productQuery
-      .populate('branchStocks.branchId', 'name code')
-      .populate('vendor', 'storeName logo businessType')
+      .populate('branchStocks.branchId', 'name code logo phone email address')
+      .populate('vendor', 'storeName logo businessType phone email address')
       .lean();
 
     // Store-Aware logic: Inject isDeliverable flag and specific stock info
@@ -597,9 +623,9 @@ export const searchProductsWithAI = async (req, res) => {
     const total = await Product.countDocuments(searchQuery);
 
     let products = await Product.find(searchQuery)
-      .select('name image basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks stock lowStockThreshold')
-      .populate('branchStocks.branchId', 'name code')
-      .populate('vendor', 'storeName logo')
+      .select('name image description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount')
+      .populate('branchStocks.branchId', 'name code logo phone email address')
+      .populate('vendor', 'storeName logo businessType phone email address')
       .sort({ isSaathiGrow: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -678,8 +704,8 @@ export const searchProductsWithAI = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('branchStocks.branchId', 'name code')
-      .populate('vendor', 'storeName logo businessType');
+      .populate('branchStocks.branchId', 'name code logo phone email address')
+      .populate('vendor', 'storeName logo businessType phone email address');
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
@@ -691,6 +717,19 @@ export const getProductById = async (req, res) => {
     const { storeId, storeType } = req.query;
     const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
     if (effectiveStoreId && storeType) {
+      // Security Check: Verify store status before returning store-specific stock
+      if (storeType === 'branch') {
+        const branch = await Branch.findById(effectiveStoreId).select('isActive');
+        if (!branch || !branch.isActive) {
+          return res.status(403).json({ message: 'This store is currently inactive' });
+        }
+      } else {
+        const v = await mongoose.model('Vendor').findById(effectiveStoreId).select('status');
+        if (!v || v.status !== 'Active') {
+          return res.status(403).json({ message: 'This vendor is currently inactive' });
+        }
+      }
+
       let isDeliverable = false;
       let availableStock = 0;
       let lowStockThreshold = 10;
@@ -723,7 +762,45 @@ export const getProductById = async (req, res) => {
       pObj.isDeliverable = isDeliverable;
       pObj.availableStock = availableStock;
       pObj.lowStockThreshold = lowStockThreshold;
+      pObj.maxAllowed = Math.max(0, availableStock - lowStockThreshold);
       pObj.inStore = inStore;
+
+      // Enrich sourceInfo
+      if (storeType === 'branch') {
+        const targetBranch = pObj.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === effectiveStoreId.toString());
+        if (targetBranch) {
+          pObj.sourceInfo = {
+            type: 'Branch',
+            name: targetBranch.branchId?.name,
+            logo: targetBranch.branchId?.logo,
+            code: targetBranch.branchId?.code,
+            phone: targetBranch.branchId?.phone,
+            email: targetBranch.branchId?.email,
+            address: targetBranch.branchId?.address
+          };
+        }
+      } else if (storeType === 'vendor' && pObj.vendor) {
+        pObj.sourceInfo = {
+          type: 'Vendor',
+          name: pObj.vendor.storeName,
+          logo: pObj.vendor.logo,
+          phone: pObj.vendor.phone,
+          email: pObj.vendor.email,
+          address: pObj.vendor.address
+        };
+      }
+    }
+
+    // Enrich Brand Info
+    if (pObj.brandName) {
+      const brandDoc = await Brand.findOne({ name: new RegExp(`^${escapeRegExp(pObj.brandName)}$`, 'i') }).lean();
+      if (brandDoc) {
+        pObj.brandInfo = {
+          name: brandDoc.name,
+          logo: brandDoc.logo,
+          description: brandDoc.description
+        };
+      }
     }
 
     res.json(pObj);

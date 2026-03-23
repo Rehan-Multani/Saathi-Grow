@@ -134,7 +134,8 @@ export const adminSidebarMenu = [
         icon: 'Bell',
         permission: null,
         submenu: [
-            { title: 'Push Notification', key: 'push_notification', path: '/admin/notifications/push' }
+            { title: 'Push Notification', key: 'push_notification', path: '/admin/notifications/push' },
+            { title: 'Admin Inbox', key: 'admin_inbox', path: '/admin/notifications/inbox' }
         ]
     },
     {

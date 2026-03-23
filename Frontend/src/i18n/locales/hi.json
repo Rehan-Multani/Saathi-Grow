@@ -23,6 +23,7 @@
     "account": "खाता",
     "search": "खोजें",
     "notifications_empty": "कोई नई सूचना नहीं",
+    "now": "अभी",
     "welcome_back": "वापस स्वागत है",
     "admin_user": "एडमिन यूजर",
     "staff": "कर्मचारी",
@@ -88,6 +89,7 @@
     "all_promo_codes": "सभी प्रोमो कोड",
     "create_promo_code": "प्रोमो कोड बनाएं",
     "push_notification": "पुश नोटिफिकेशन",
+    "admin_inbox": "एडमिन इनबॉक्स",
     "tickets": "टिकट",
     "faqs": "अक्सर पूछे जाने वाले प्रश्न",
     "sales_reports": "बिक्री रिपोर्ट",
@@ -100,6 +102,61 @@
     "tax_billing_settings": "टैक्स और बिलिंग सेटिंग्स",
     "app_settings": "ऐप सेटिंग्स",
     "social_profile": "सोशल प्रोफ़ाइल"
+  },
+  "notifications": {
+    "admin_inbox": {
+      "title": "सिस्टम अलर्ट और सूचनाएं",
+      "sync": "सिंक करें",
+      "selected": "चयनित",
+      "delete_selected": "चयनित हटाएं",
+      "mark_all_read": "सभी को पढ़ा हुआ मार्क करें",
+      "state": "स्थिति",
+      "subject": "विषय",
+      "timestamp": "समय (टैमस्टैम्प)",
+      "actions": "कार्रवाई",
+      "empty": "आपका इनबॉक्स वर्तमान में अलर्ट से खाली है।",
+      "delete_confirm": "{{count}} सूचनाएं हटाएं?",
+      "delete_success": "सफलतापूर्वक हटाया गया",
+      "mark_read_success": "सूचना को पढ़ा हुआ मार्क किया गया",
+      "mark_all_read_success": "सभी को पढ़ा हुआ मार्क किया गया"
+    },
+    "push": {
+      "title": "पुश नोटिफिकेशन कंट्रोल",
+      "initialize": "ब्रॉडकास्ट शुरू करें",
+      "transmission_protocol": "ट्रांसमिशन प्रोटोकॉल",
+      "mass_broadcast": "मास ब्रॉडकास्ट",
+      "direct_signal": "डायरेक्ट सिग्नल",
+      "strategic_audience": "रणनीतिक दर्शक",
+      "all_nodes": "सभी नोड्स (ग्लोबल)",
+      "premium_users": "प्रीमियम उपयोगकर्ता और ग्राहक",
+      "vendor_network": "विक्रेता नेटवर्क",
+      "logistics_partners": "रसद भागीदार (लॉजिस्टिक्स पार्टनर)",
+      "internal_staff": "आंतरिक कर्मचारी",
+      "regional_managers": "क्षेत्रीय प्रबंधक",
+      "entity_type": "एंटिटी प्रकार",
+      "locate_recipient": "प्राप्तकर्ता खोजें",
+      "signal_title": "सिग्नल शीर्षक",
+      "protocol_msg": "प्रोटोकॉल संदेश",
+      "dispatch_signal": "सिग्नल डिस्पैच करें",
+      "dispatch_success": "सिग्नल सफलतापूर्वक भेजा गया",
+      "resend": "पुन: भेजें",
+      "history": "ब्रॉडकास्ट हिस्ट्री स्ट्रीम",
+      "historical_logs": "ऐतिहासिक लॉग्स",
+      "signal_content": "सिग्नल कंटेंट",
+      "target_entity": "लक्ष्य इकाई (टारगेट एंटिटी)",
+      "dispatch_time": "भेजने का समय",
+      "protocol_state": "प्रोटोकॉल स्थिति",
+      "delete_record_confirm": "क्या आप वाकई इस सूचना के रिकॉर्ड को हटाना चाहते हैं?",
+      "group": "ग्रुप (Group)",
+      "unknown_recipient": "अज्ञात प्राप्तकर्ता",
+      "sent": "सफलतापूर्वक भेजा गया",
+      "analysis_title": "त्वरित वितरण विश्लेषण",
+      "total_dispatched": "कुल भेजे गए",
+      "response_rate": "रिस्पॉन्स रेट",
+      "protocol_health": "प्रोटोकॉल स्वास्थ्य",
+      "metrics_wait": "ग्लोबल गेटवे द्वारा सिग्नल संसाधित होने पर रीयल-टाइम मेट्रिक्स सक्रिय हो जाएंगे।",
+      "preview_instruction": "आपका संदेश डिवाइस पर इस तरह दिखाई देगा।"
+    }
   },
   "dashboard": {
     "monitoring_global_operations": "वैश्विक संचालन की निगरानी",
@@ -2705,39 +2762,7 @@
       }
     }
   },
-  "notifications": {
-    "push": {
-      "title": "पुश नोटिफिकेशन",
-      "send_new": "प्रसारण शुरू करें",
-      "target_audience": "रणनीतिक दर्शक",
-      "audiences": {
-        "all": "सभी नोड्स (ग्लोबल)",
-        "specific": "लक्षित इकाई (SID)",
-        "active_30": "सक्रिय चक्र (30 दिन)",
-        "abandoners": "अधूरे चैन"
-      },
-      "notification_title": "सिग्नल शीर्षक",
-      "title_placeholder": "आकर्षक शीर्षक दर्ज करें...",
-      "message_body": "प्रोटोकॉल संदेश",
-      "message_placeholder": "विस्तृत संदेश मुख्य भाग दर्ज करें...",
-      "send_btn": "सिग्नल भेजें",
-      "quick_stats": "त्वरित वितरण विश्लेषण",
-      "total_sent": "कुल भेजे गए",
-      "open_rate": "इंटरैक्शन दर",
-      "failed_delivery": "सिग्नल ड्रॉपआउट",
-      "history": "प्रसारण इतिहास",
-      "table": {
-        "content": "सिग्नल सामग्री",
-        "audience": "लक्षित इकाई",
-        "sent_at": "भेजने का समय",
-        "status": "प्रोटोकॉल अवस्था",
-        "actions": "CMD"
-      },
-      "resend": "पुनः भेजें",
-      "sending_msg": "{{target}} को नोटिफिकेशन भेजा जा रहा है: {{title}}",
-      "message_preview": "इस तरह आपका संदेश डिवाइस पर दिखाई देगा।"
-    }
-  },
+
   "support": {
     "tickets": {
       "title": "टिकट इनटेक सेंटर",

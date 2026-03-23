@@ -23,6 +23,7 @@
     "account": "Account",
     "search": "Search",
     "notifications_empty": "No new notifications",
+    "now": "Now",
     "welcome_back": "Welcome back",
     "admin_user": "Admin User",
     "staff": "Staff",
@@ -88,6 +89,7 @@
     "all_promo_codes": "All Promo Codes",
     "create_promo_code": "Create Promo Code",
     "push_notification": "Push Notification",
+    "admin_inbox": "Admin Inbox",
     "tickets": "Tickets",
     "faqs": "FAQs",
     "sales_reports": "Sales Reports",
@@ -100,6 +102,61 @@
     "tax_billing_settings": "Tax & Billing Settings",
     "app_settings": "App Settings",
     "social_profile": "Social Profile"
+  },
+  "notifications": {
+    "admin_inbox": {
+      "title": "System Alerts & Notifications",
+      "sync": "Sync",
+      "selected": "Selected",
+      "delete_selected": "Delete Selected",
+      "mark_all_read": "Mark all as Read",
+      "state": "State",
+      "subject": "Subject",
+      "timestamp": "Timestamp",
+      "actions": "Actions",
+      "empty": "Your inbox is currently clear of alerts.",
+      "delete_confirm": "Delete {{count}} notification(s)?",
+      "delete_success": "Deleted successfully",
+      "mark_read_success": "Notification marked as read",
+      "mark_all_read_success": "All marked as read"
+    },
+    "push": {
+      "title": "Push Notifications Control",
+      "initialize": "Initialize Broadcast",
+      "transmission_protocol": "Transmission Protocol",
+      "mass_broadcast": "Mass Broadcast",
+      "direct_signal": "Direct Signal",
+      "strategic_audience": "Strategic Audience",
+      "all_nodes": "All Nodes (Global)",
+      "premium_users": "Premium Users & Customers",
+      "vendor_network": "Vendor Network",
+      "logistics_partners": "Logistics Partners",
+      "internal_staff": "Internal Staff",
+      "regional_managers": "Regional Managers",
+      "entity_type": "Entity Type",
+      "locate_recipient": "Locate Recipient",
+      "signal_title": "Signal Title",
+      "protocol_msg": "Protocol Message",
+      "dispatch_signal": "Dispatch Signal",
+      "dispatch_success": "Signal Dispatched Successfully",
+      "resend": "Re-Dispatch",
+      "history": "Broadcast History Stream",
+      "historical_logs": "Historical Logs",
+      "signal_content": "Signal Content",
+      "target_entity": "Target Entity",
+      "dispatch_time": "Dispatch Time",
+      "protocol_state": "Protocol State",
+      "delete_record_confirm": "Are you sure you want to delete this notification record?",
+      "group": "Group",
+      "unknown_recipient": "Unknown Recipient",
+      "sent": "Sent",
+      "analysis_title": "Quick Delivery Analysis",
+      "total_dispatched": "Total Dispatched",
+      "response_rate": "Response Rate",
+      "protocol_health": "Protocol Health",
+      "metrics_wait": "Real-time metrics will activate as signals are processed by the global gateway.",
+      "preview_instruction": "This is how your message will appear on the device."
+    }
   },
   "dashboard": {
     "monitoring_global_operations": "Monitoring Global Operations",
@@ -2851,39 +2908,7 @@
       }
     }
   },
-  "notifications": {
-    "push": {
-      "title": "Push Notifications",
-      "send_new": "Initialize Broadcast",
-      "target_audience": "Strategic Audience",
-      "audiences": {
-        "all": "All Nodes (Global)",
-        "specific": "Targeted Entity (SID)",
-        "active_30": "Active Cycles (30d)",
-        "abandoners": "Incomplete Chains"
-      },
-      "notification_title": "Signal Title",
-      "title_placeholder": "Enter catchy title...",
-      "message_body": "Protocol Message",
-      "message_placeholder": "Enter detailed message body...",
-      "send_btn": "Dispatch Signal",
-      "quick_stats": "Quick Delivery Analysis",
-      "total_sent": "Total Dispatched",
-      "open_rate": "Interaction Rate",
-      "failed_delivery": "Signal Dropouts",
-      "history": "Broadcast History",
-      "table": {
-        "content": "Signal Content",
-        "audience": "Target Entity",
-        "sent_at": "Dispatch Time",
-        "status": "Protocol State",
-        "actions": "CMD"
-      },
-      "resend": "Re-Dispatch",
-      "sending_msg": "Sending notification to {{target}}: {{title}}",
-      "message_preview": "This is how your message will appear on the device."
-    }
-  },
+
   "support": {
     "tickets": {
       "title": "Ticket Intake Center",
