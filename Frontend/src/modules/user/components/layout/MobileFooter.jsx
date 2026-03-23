@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, LayoutGrid, User, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -7,9 +7,10 @@ const MobileFooter = ({ setIsMenuOpen }) => {
     const { user } = useAuth();
     const location = useLocation();
 
-    // Do not show on auth pages or checkout
+    // Do not show on auth pages, checkout, or tracking
     const hideOnPages = ['/login', '/register', '/checkout', '/order-success'];
-    if (hideOnPages.includes(location.pathname)) return null;
+    const isTrackingPage = location.pathname.includes('/tracking');
+    if (hideOnPages.includes(location.pathname) || isTrackingPage) return null;
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },

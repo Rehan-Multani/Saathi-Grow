@@ -1,59 +1,90 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../../../../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.marker.slideto';
+import { GoogleMap, MarkerF, Polyline, InfoWindowF } from '@react-google-maps/api';
 import polylineUtil from '@mapbox/polyline';
-import { ArrowLeft, Navigation as NavIcon, Phone, MessageSquare, Package, CheckCircle, Truck, Info, PhoneCall, MapPin, ChevronLeft, ChevronRight, Star, MessageCircle } from 'lucide-react';
+import { Navigation as NavIcon, Phone, Truck, ChevronLeft, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as orderApi from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
+import { useLocation } from '../../context/LocationContext';
 import { toast } from 'react-toastify';
-
-// Import Asset URLs with Cloudinary fallbacks
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 
 const bikeImg = ASSET_URLS.bike;
 const storeImg = ASSET_URLS.store;
 const houseImg = ASSET_URLS.house;
 
-// Fix for default marker icon in Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-// Custom component to handle map centering and interaction
-const MapController = ({ center, isFOLLOWING, setIsFOLLOWING }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (center && isFOLLOWING) {
-      map.setView(center, map.getZoom(), { animate: true });
-    }
-  }, [center, isFOLLOWING, map]);
-
-  useMapEvents({
-    dragstart: () => setIsFOLLOWING(false),
-    zoomstart: () => setIsFOLLOWING(false),
-    touchmove: () => setIsFOLLOWING(false)
-  });
-
-  return null;
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%'
 };
 
-// Distance Helper
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: false,
+  styles: [
+    {
+      "featureType": "all",
+      "elementType": "labels.text.fill",
+      "stylers": [{ "color": "#7c93a3" }, { "lightness": "-10" }]
+    },
+    {
+      "featureType": "administrative.country",
+      "elementType": "geometry",
+      "stylers": [{ "visibility": "on" }]
+    },
+    {
+      "featureType": "landscape",
+      "elementType": "geometry",
+      "stylers": [{ "color": "#f5f5f5" }, { "lightness": 20 }]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "geometry",
+      "stylers": [{ "color": "#f5f5f5" }, { "lightness": 21 }]
+    },
+    {
+      "featureType": "road.highway",
+      "elementType": "geometry.fill",
+      "stylers": [{ "color": "#ffffff" }, { "lightness": 17 }]
+    },
+    {
+      "featureType": "road.highway",
+      "elementType": "geometry.stroke",
+      "stylers": [{ "color": "#ffffff" }, { "lightness": 29 }, { "weight": 0.2 }]
+    },
+    {
+      "featureType": "road.arterial",
+      "elementType": "geometry",
+      "stylers": [{ "color": "#ffffff" }, { "lightness": 18 }]
+    },
+    {
+      "featureType": "road.local",
+      "elementType": "geometry",
+      "stylers": [{ "color": "#ffffff" }, { "lightness": 16 }]
+    },
+    {
+      "featureType": "transit",
+      "elementType": "geometry",
+      "stylers": [{ "color": "#f2f2f2" }, { "lightness": 19 }]
+    },
+    {
+      "featureType": "water",
+      "elementType": "geometry",
+      "stylers": [{ "color": "#e9e9e9" }, { "lightness": 17 }]
+    }
+  ],
+  gestureHandling: 'greedy'
+};
+
 const getDistance = (pos1, pos2) => {
   if (!pos1 || !pos2) return 0;
-  const lat1 = Number(pos1[0]);
-  const lng1 = Number(pos1[1]);
-  const lat2 = Number(pos2[0]);
-  const lng2 = Number(pos2[1]);
+  const lat1 = pos1.lat;
+  const lng1 = pos1.lng;
+  const lat2 = pos2.lat;
+  const lng2 = pos2.lng;
 
   const R = 6371e3;
   const f1 = lat1 * Math.PI / 180;
@@ -73,58 +104,26 @@ const OrderTrackingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { token } = useAuth();
+  const { mapLoaded } = useLocation(); // Destructure mapLoaded from useLocation
 
   const [order, setOrder] = useState(null);
-  const [driverLocation, setDriverLocation] = useState(null);
-  const [heading, setHeading] = useState(0);
+  const [riderLocation, setRiderLocation] = useState(null); // Renamed from driverLocation
   const [isLoading, setIsLoading] = useState(true);
-  const [routeCoords, setRouteCoords] = useState([]);
-  const [trimmedRoute, setTrimmedRoute] = useState([]);
+  const [error, setError] = useState(null); // Added new state
   const [isFOLLOWING, setIsFOLLOWING] = useState(true);
-  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Added new state
+  const [routeCoordinates, setRouteCoordinates] = useState([]); // Renamed from routeCoords
+  const [trimmedRoute, setTrimmedRoute] = useState([]);
+  const [map, setMap] = useState(null);
+  const [bikeHeading, setBikeHeading] = useState(0); // Added new state
 
-  const markerRef = useRef(null);
+  const onLoad = useCallback(function callback(m) {
+    setMap(m);
+  }, []);
 
-  // Custom Map Icons
-  const bikeIcon = useMemo(() => new L.divIcon({
-    html: `<div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative;">
-                 <span style="position: absolute; top: 0; right: 0; display: flex; height: 16px; width: 16px; z-index: 10;">
-                   <span style="animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background-color: #bef264; opacity: 0.75;"></span>
-                   <span style="position: relative; display: inline-flex; border-radius: 50%; height: 16px; width: 16px; background-color: #84cc16; border: 2px solid white;"></span>
-                 </span>
-                 <img src="${bikeImg}" 
-                      onerror="this.onerror=null; this.src='${ASSET_URLS.bikeCloudinary}';"
-                      style="width: 100%; height: 100%; object-fit: contain;" />
-               </div>`,
-    className: '',
-    iconSize: [50, 50],
-    iconAnchor: [25, 25],
-    popupAnchor: [0, -25]
-  }), [bikeImg]);
-
-  const storeIcon = useMemo(() => L.divIcon({
-    html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-             <img src="${storeImg}" 
-                  onerror="this.onerror=null; this.src='${ASSET_URLS.storeCloudinary}';"
-                  style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-    className: '',
-    iconSize: [45, 45],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -22]
-  }), [storeImg]);
-
-  const homeIcon = useMemo(() => L.divIcon({
-    html: `<div style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-             <img src="${houseImg}" 
-                  onerror="this.onerror=null; this.src='${ASSET_URLS.houseCloudinary}';"
-                  style="width: 100%; height: 100%; object-fit: contain;" />
-           </div>`,
-    className: '',
-    iconSize: [45, 45],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -22]
-  }), [houseImg]);
+  const onUnmount = useCallback(function callback(m) {
+    setMap(null);
+  }, []);
 
   // Load Order Data
   useEffect(() => {
@@ -136,6 +135,7 @@ const OrderTrackingPage = () => {
         } catch (err) {
           console.error("Failed to load order for tracking", err);
           toast.error("Failed to sync order status");
+          setError(err); // Set error state
         } finally {
           setIsLoading(false);
         }
@@ -153,13 +153,10 @@ const OrderTrackingPage = () => {
     const unsubscribe = onValue(trackingRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.location) {
-        const newPos = [data.location.lat, data.location.lng];
-        setDriverLocation(newPos);
-        if (data.heading !== undefined) setHeading(data.heading);
-
-        // Animate marker transition
-        if (markerRef.current) {
-          markerRef.current.slideTo(newPos, { duration: 2000, keepAtCenter: false });
+        const newPos = { lat: data.location.lat, lng: data.location.lng };
+        setRiderLocation(newPos); // Updated to riderLocation
+        if (data.heading !== undefined) { // Check for heading
+          setBikeHeading(data.heading);
         }
       }
     });
@@ -169,205 +166,236 @@ const OrderTrackingPage = () => {
   // Fetch Route Path
   useEffect(() => {
     const fetchRoute = async () => {
-      // Don't fetch if missing info or location is too primitive (0,0)
-      if (!id || !token || !driverLocation) return;
-      if (driverLocation[0] === 0 && driverLocation[1] === 0) return;
+      if (!id || !token || !riderLocation) return; // Updated to riderLocation
+      if (riderLocation.lat === 0 && riderLocation.lng === 0) return; // Updated to riderLocation
 
       try {
-        const originStr = `${driverLocation[0]},${driverLocation[1]}`;
+        const originStr = `${riderLocation.lat},${riderLocation.lng}`; // Updated to riderLocation
         const response = await orderApi.fetchOrderRoute(token, id, originStr);
         if (response.routes && response.routes.length > 0) {
           const encodedPolyline = response.routes[0].overview_polyline.points;
-          const decoded = polylineUtil.decode(encodedPolyline);
-          setRouteCoords(decoded);
-          console.log("🗺️ Order route updated with real-time road directions");
+          const decoded = polylineUtil.decode(encodedPolyline).map(p => ({ lat: p[0], lng: p[1] }));
+          setRouteCoordinates(decoded); // Updated to routeCoordinates
         }
       } catch (err) {
         console.error("Route fetch error:", err);
       }
     };
     fetchRoute();
-  }, [id, token, driverLocation?.[0], driverLocation?.[1]]);
+  }, [id, token, riderLocation?.lat, riderLocation?.lng]); // Updated to riderLocation
 
-  // Dynamic Route Trimming
+  // Dynamic Route Trimming & Auto-fit
   useEffect(() => {
-    if (!routeCoords.length || !driverLocation) {
+    if (!routeCoordinates.length || !riderLocation) { // Updated to routeCoordinates and riderLocation
       setTrimmedRoute([]);
       return;
     }
-    const destination = routeCoords[routeCoords.length - 1];
-    if (getDistance(driverLocation, destination) < 150) {
+    const destination = routeCoordinates[routeCoordinates.length - 1]; // Updated to routeCoordinates
+    if (getDistance(riderLocation, destination) < 150) { // Updated to riderLocation
       setTrimmedRoute([]);
       return;
     }
     let closestIndex = 0;
     let minDistance = Infinity;
-    routeCoords.forEach((p, i) => {
-      const d = getDistance(driverLocation, p);
+    routeCoordinates.forEach((p, i) => { // Updated to routeCoordinates
+      const d = getDistance(riderLocation, p); // Updated to riderLocation
       if (d < minDistance) {
         minDistance = d;
         closestIndex = i;
       }
     });
-    setTrimmedRoute([driverLocation, ...routeCoords.slice(closestIndex)]);
-  }, [driverLocation, routeCoords]);
+    const newPath = [riderLocation, ...routeCoordinates.slice(closestIndex)]; // Updated to riderLocation and routeCoordinates
+    setTrimmedRoute(newPath);
 
-  if (isLoading) return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 dark:bg-black">
+    // Initial Auto-fit
+    if (map && isFOLLOWING) {
+      const bounds = new window.google.maps.LatLngBounds();
+      newPath.forEach(p => bounds.extend(p));
+      map.fitBounds(bounds, { top: 120, bottom: 250, left: 50, right: 50 });
+    }
+  }, [riderLocation, routeCoordinates, map, isFOLLOWING]); // Updated to riderLocation and routeCoordinates
+
+  if (isLoading || !mapLoaded) return ( // Updated condition to mapLoaded
+    <div className="h-screen flex flex-col items-center justify-center bg-zinc-950 text-white">
       <motion.div
         animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-        className="w-12 h-12 border-4 border-[#0c831f]/20 border-t-[#0c831f] rounded-full"
+        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+        className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full mb-6"
       />
-      <p className="mt-4 text-xs font-black text-gray-400 uppercase tracking-widest animate-pulse">Establishing Live Sync...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Syncing Pilot...</p>
     </div>
   );
 
   if (!order) return null;
 
   const destCoords = order.shippingAddress?.location?.coordinates;
-  const destPos = destCoords ? [destCoords[1], destCoords[0]] : [22.7196, 75.8577];
+  const destPos = destCoords ? { lat: destCoords[1], lng: destCoords[0] } : { lat: 22.7196, lng: 75.8577 };
   const storeCoords = order.branchId?.address?.location?.coordinates || order.vendor?.address?.location?.coordinates;
-  const storePos = storeCoords ? [storeCoords[1], storeCoords[0]] : null;
+  const storePos = storeCoords ? { lat: storeCoords[1], lng: storeCoords[0] } : null;
 
   const mapCenter = driverLocation || destPos;
   const etaMins = driverLocation ? Math.max(2, Math.round(getDistance(driverLocation, destPos) / 333) + 1) : null;
 
   return (
     <div className="fixed inset-0 z-[100] bg-white dark:bg-black overflow-hidden flex flex-col">
-      {/* Top Bar Navigation */}
-      <div className="absolute top-4 left-4 right-4 z-[1000] flex justify-between items-center">
+      {/* Top Bar Navigation - Mission Style */}
+      <div className="absolute top-6 left-4 right-4 z-[1000] flex justify-between items-center">
         <button
           onClick={() => navigate(-1)}
-          className="p-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 active:scale-95 transition-all text-gray-800 dark:text-white"
+          className="w-10 h-10 flex items-center justify-center bg-[#2d2d2d] text-white shadow-xl active:scale-95 transition-all rounded-none"
         >
-          <ChevronLeft size={24} strokeWidth={3} />
+          <ChevronLeft size={20} strokeWidth={3} />
         </button>
-        <div className="px-6 py-3 bg-white/95 dark:bg-black/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#0c831f] animate-pulse"></div>
-          <span className="text-[11px] font-black uppercase tracking-widest text-[#0c831f]">Live Tracking</span>
+
+        <div className="flex flex-col items-center justify-center flex-1 mx-2">
+            <div className="bg-[#2d2d2d] w-[110px] h-[44px] rounded-[100px] shadow-2xl flex items-center justify-center relative px-4 border border-white/5">
+                <div className="absolute left-3 w-1 h-3 bg-[#00c982] rounded-full animate-pulse shadow-[0_0_8px_#00c982]"></div>
+                <div className="flex flex-col items-center">
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white leading-none mb-0.5">Delivery</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white leading-none">Mission</span>
+                </div>
+            </div>
+            <div className="mt-1">
+                <div className="bg-gray-400/40 backdrop-blur-md px-4 py-0.5 rounded-full flex items-center justify-center">
+                    <span className="text-[7.5px] font-black text-[#2d2d2d] uppercase tracking-widest leading-none">#{order.orderId || id.slice(-8)}</span>
+                </div>
+            </div>
         </div>
+
         <button
           onClick={() => {
             setIsFOLLOWING(true);
-            toast.success("Recenter Map", { autoClose: 1000, hideProgressBar: true });
+            if (map && trimmedRoute.length > 0) {
+                const bounds = new window.google.maps.LatLngBounds();
+                trimmedRoute.forEach(p => bounds.extend(p));
+                map.fitBounds(bounds, { top: 120, bottom: 250, left: 50, right: 50 });
+            }
           }}
-          className={`p-3 rounded-2xl shadow-2xl border transition-all ${isFOLLOWING ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-white/5 text-gray-400'}`}
+          className={`w-10 h-10 flex items-center justify-center shadow-2xl transition-all rounded-none ${isFOLLOWING ? 'bg-[#00965e] text-white font-bold' : 'bg-[#2d2d2d] text-gray-400'}`}
         >
-          <NavIcon size={24} className={isFOLLOWING ? 'fill-current' : ''} />
+          <NavIcon size={20} className={isFOLLOWING ? 'fill-white' : ''} />
         </button>
       </div>
 
-      {/* Map Container */}
       <div className="flex-1 w-full h-full relative">
-        <MapContainer
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
           center={mapCenter}
           zoom={15}
-          zoomControl={false}
-          style={{ height: '100%', width: '100%' }}
+          onLoad={onLoad}
+          onUnmount={onUnmount}
+          options={mapOptions}
         >
-          <MapController
-            center={mapCenter}
-            isFOLLOWING={isFOLLOWING}
-            setIsFOLLOWING={setIsFOLLOWING}
-          />
-          <TileLayer
-            url="https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-            attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-          />
-
           {storePos && order.status !== 'picked_up' && (
-            <Marker position={storePos} icon={storeIcon} />
+            <MarkerF
+              position={storePos}
+              icon={{
+                url: storeImg,
+                scaledSize: new window.google.maps.Size(40, 40),
+                anchor: new window.google.maps.Point(20, 20)
+              }}
+            />
           )}
 
-          <Marker position={destPos} icon={homeIcon} />
+          <MarkerF
+            position={destPos}
+            icon={{
+              url: houseImg,
+              scaledSize: new window.google.maps.Size(40, 40),
+              anchor: new window.google.maps.Point(20, 20)
+            }}
+          />
 
           {driverLocation && (
-            <Marker
-              ref={markerRef}
+            <MarkerF
               position={driverLocation}
-              icon={bikeIcon}
+              icon={{
+                url: bikeImg,
+                scaledSize: new window.google.maps.Size(45, 45),
+                anchor: new window.google.maps.Point(22.5, 22.5)
+              }}
             />
           )}
 
           {trimmedRoute.length > 0 && (
             <>
-              {/* Outer shadow for path depth */}
+              {/* Path Shadow */}
               <Polyline
-                positions={trimmedRoute}
-                color="#000"
-                weight={8}
-                opacity={0.1}
-                lineCap="round"
-                lineJoin="round"
+                path={trimmedRoute}
+                options={{
+                  strokeColor: "#000000",
+                  strokeOpacity: 0.1,
+                  strokeWeight: 8,
+                  lineCap: "round",
+                }}
               />
-              {/* Main Path with glow */}
+              {/* Main Glowing Path */}
               <Polyline
-                positions={trimmedRoute}
-                color="#0c831f"
-                weight={5}
-                opacity={0.7}
-                lineCap="round"
-                lineJoin="round"
+                path={trimmedRoute}
+                options={{
+                  strokeColor: "#0c831f",
+                  strokeOpacity: 0.7,
+                  strokeWeight: 6,
+                  lineCap: "round",
+                }}
               />
-              {/* Core Path line */}
+              {/* Center Core Path */}
               <Polyline
-                positions={trimmedRoute}
-                color="#bef264"
-                weight={2}
-                opacity={0.9}
-                lineCap="round"
-                lineJoin="round"
+                path={trimmedRoute}
+                options={{
+                  strokeColor: "#bef264",
+                  strokeOpacity: 1,
+                  strokeWeight: 2,
+                  lineCap: "round",
+                }}
               />
             </>
           )}
-        </MapContainer>
+        </GoogleMap>
       </div>
 
-      {/* Bottom Slider Sheet */}
+      {/* Bottom Slider Sheet - Dark Mission UI */}
       <div className="absolute bottom-0 left-0 right-0 z-[1001]">
         <motion.div
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="bg-white dark:bg-zinc-950 rounded-t-[2rem] shadow-[0_-15px_40px_-10px_rgba(0,0,0,0.2)] border-t border-gray-100 dark:border-white/5 w-full max-w-2xl mx-auto"
+          className="bg-[#1a1a1a] rounded-t-[2.5rem] shadow-2xl w-full max-w-2xl mx-auto overflow-hidden border-t border-white/5"
         >
           {/* Drag Handle */}
-          <div
-            className="w-full pt-4 pb-1 flex justify-center cursor-pointer"
-            onClick={() => setIsSheetExpanded(!isSheetExpanded)}
-          >
-            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-800 rounded-full" />
+          <div className="w-full pt-4 pb-1 flex justify-center">
+            <div className="w-12 h-1 bg-white/10 rounded-full" />
           </div>
 
-          <div className="px-5 pb-4">
-            {/* Summary Header */}
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <div>
-                <h2 className="text-xl font-black text-gray-900 dark:text-white leading-tight tracking-tight">
-                  {etaMins ? `${etaMins} mins` : "Arriving soon"}
-                </h2>
-                <p className="text-[#0c831f] font-black text-[9px] uppercase tracking-widest mt-0.5">
-                  {order.status === 'picked_up' ? "On the way to home" : "Heading to store"}
+          <div className="px-6 pb-8 pt-2">
+            <div className="flex items-end justify-between gap-4 mb-6">
+              <div className="flex-1">
+                <p className="text-[#00c982] font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
+                  PHASE: {order.status === 'picked_up' ? 'DELIVERING' : 'PREPARING'}
                 </p>
+                <h2 className="text-3xl font-black text-white leading-tight tracking-tight">
+                  {order.status === 'picked_up' ? 'Out for Delivery' : 'Assigning Rider'}
+                </h2>
+                {etaMins && (
+                  <p className="text-gray-400 font-bold text-xs mt-1 uppercase tracking-widest">
+                    Estimate: {etaMins} mins away
+                  </p>
+                )}
               </div>
 
-              {order.deliveryOTP && (
-                <div className="px-4 py-2 bg-[#0c831f] text-white rounded-2xl shadow-lg shadow-green-500/20 flex flex-col items-center justify-center min-w-[80px]">
-                  <span className="text-[7px] font-black uppercase tracking-widest opacity-80 mb-0.5">PIN</span>
-                  <span className="text-xl font-black tracking-[0.2em] leading-none">{order.deliveryOTP}</span>
-                </div>
-              )}
-
-              <div className="w-11 h-11 rounded-2xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center border border-green-100 dark:border-green-500/10 shadow-inner flex-shrink-0">
-                <Truck size={22} className="text-[#0c831f]" />
+              <div className="flex flex-col items-center gap-2">
+                {order.deliveryOTP && (
+                  <div className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl flex flex-col items-center justify-center">
+                    <span className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-0.5">PIN</span>
+                    <span className="text-xl font-black tracking-widest leading-none">{order.deliveryOTP}</span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Rider Card UI matching user's reference */}
-            <div className="bg-gray-50/50 dark:bg-white/5 p-3.5 rounded-[1.5rem] border border-gray-100 dark:border-white/5 flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-lg border-2 border-white dark:border-zinc-800 flex-shrink-0">
+            {/* Rider Card - Transparent Dark Style */}
+            <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800 border-2 border-white/10 flex-shrink-0">
                 <img
                   src={order.deliveryPartnerId?.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${order.deliveryPartnerId?._id || 'Sarthak'}`}
                   alt="Rider"
@@ -375,73 +403,27 @@ const OrderTrackingPage = () => {
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-black text-gray-900 dark:text-white text-sm leading-tight mb-0.5 truncate">
-                  {order.deliveryPartnerId?.name || "Assigning..."}
+                <h4 className="font-black text-white text-base leading-tight mb-0.5 truncate">
+                  {order.deliveryPartnerId?.name || "Locating Partner..."}
                 </h4>
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-0.5 text-[9px] font-black text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded-full uppercase">
-                    <Star size={9} fill="currentColor" /> {order.deliveryPartnerId?.rating || "4.9"}
+                <div className="flex items-center gap-2.5">
+                  <span className="flex items-center gap-0.5 text-[10px] font-black text-amber-400">
+                    <Star size={10} fill="currentColor" /> {order.deliveryPartnerId?.rating || "4.9"}
                   </span>
-                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest truncate">
-                    {order.deliveryPartnerId?.vehicleNumber || "Verified"}
+                  <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                  <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest truncate">
+                    {order.deliveryPartnerId?.vehicleNumber || "Verified Driver"}
                   </span>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button className="w-9 h-9 rounded-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 flex items-center justify-center text-blue-600 shadow-sm active:scale-95 transition-all">
-                  <MessageCircle size={18} strokeWidth={2.5} />
-                </button>
-                {order.deliveryPartnerId?.phone && (
-                  <a
-                    href={`tel:${order.deliveryPartnerId.phone}`}
-                    className="w-9 h-9 rounded-full bg-[#0c831f] flex items-center justify-center text-white shadow-lg shadow-green-500/30 active:scale-95 transition-all"
-                  >
-                    <Phone size={18} strokeWidth={2.5} />
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Collapsible Steps Log */}
-            <AnimatePresence>
-              {isSheetExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
+              {order.deliveryPartnerId?.phone && (
+                <a
+                  href={`tel:${order.deliveryPartnerId.phone}`}
+                  className="w-12 h-12 rounded-2xl bg-[#00c982] flex items-center justify-center text-white shadow-lg shadow-green-500/20 active:scale-95 transition-all"
                 >
-                  <div className="space-y-4 px-2 pb-4 border-t border-gray-100 dark:border-white/5 pt-4">
-                    <div className="flex items-start gap-4 relative">
-                      <div className="absolute left-[3.5px] top-[14px] bottom-[-18px] w-[1px] bg-gray-100 dark:bg-white/5"></div>
-                      <div className={`w-2 h-2 rounded-full z-10 mt-1.5 ${order.status !== 'picked_up' ? 'bg-[#0c831f] ring-2 ring-green-50 dark:ring-green-900/20' : 'bg-gray-300'}`}></div>
-                      <div>
-                        <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-0.5">At Store</p>
-                        <p className="text-xs font-black text-gray-800 dark:text-gray-200 leading-tight">
-                          {order.branchId?.name || order.vendor?.storeName || 'Store Location'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className={`w-2 h-2 rounded-full z-10 mt-1.5 ${order.status === 'picked_up' ? 'bg-[#0c831f] ring-2 ring-green-50 dark:ring-green-900/20 animate-pulse' : 'bg-gray-200'}`}></div>
-                      <div>
-                        <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest mb-0.5">Delivering To</p>
-                        <p className="text-xs font-black text-gray-800 dark:text-gray-200 leading-tight">
-                          {order.shippingAddress?.street}, {order.shippingAddress?.city}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+                  <Phone size={20} strokeWidth={3} />
+                </a>
               )}
-            </AnimatePresence>
-
-            {/* Safety Disclaimer matching reference */}
-            <div className="bg-amber-50/30 dark:bg-amber-500/5 p-3 rounded-2xl border border-amber-50/50 dark:border-amber-500/10 flex items-start gap-3 mb-1">
-              <Info size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
-              <p className="text-[9px] font-black text-amber-700/80 dark:text-amber-500/80 uppercase leading-relaxed italic tracking-tight">
-                Complaints are escalated directly to the store manager and monitored by SaathiGro Admins.
-              </p>
             </div>
           </div>
         </motion.div>
@@ -452,4 +434,3 @@ const OrderTrackingPage = () => {
 };
 
 export default OrderTrackingPage;
-

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield } from 'lucide-react';
+import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
 import { toast } from 'react-toastify';
@@ -28,7 +28,12 @@ const OrderDetailsPage = () => {
                         id: data._id,
                         status: data.status,
                         date: formattedDate,
-                        total: '₹' + data.totalAmount.toFixed(2),
+                        subTotal: data.subTotal || 0,
+                        deliveryFee: data.deliveryFee || 0,
+                        taxAmount: data.taxAmount || 0,
+                        handlingFee: data.handlingFee || 0,
+                        discountAmount: data.discountAmount || 0,
+                        total: data.totalAmount,
                         items: data.items.map(item => ({
                             name: item.name || item.product?.name || "Unknown Product",
                             qty: item.quantity,
@@ -107,58 +112,48 @@ const OrderDetailsPage = () => {
                     </div>
                 )}
 
-                {/* Secure Delivery PIN Display */}
-                {rawOrder?.deliveryOTP && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(rawOrder.status) && (
-                    <div className="bg-[#0c831f] text-white p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-green-500/20 mb-6 border border-white/10 animate-in slide-in-from-top duration-500">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
-                                <Shield size={20} className="text-white" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/80 leading-none mb-1">Secure Delivery PIN</p>
-                                <p className="text-xs md:text-sm font-bold tracking-tight">Share with partner at doorstep</p>
-                            </div>
+                {/* PIN and Tracking in one line */}
+                <div className="flex gap-2 mb-4">
+                    {rawOrder?.deliveryOTP && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(rawOrder.status) && (
+                        <div className="flex-1 bg-[#0c831f] text-white p-2.5 !rounded-[1.2rem] flex items-center justify-center gap-2 shadow-lg shadow-green-500/10 border border-white/10 overflow-hidden">
+                            <Shield size={14} className="text-white" />
+                            <span className="text-[10.5px] font-black tracking-widest uppercase">PIN: {rawOrder.deliveryOTP}</span>
                         </div>
-                        <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/20">
-                            <span className="text-xl md:text-2xl font-black tracking-[0.15em]">{rawOrder.deliveryOTP}</span>
-                        </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Secure Return PIN Display */}
-                {rawOrder?.returnRequest?.isRequested && 
-                 ['Accepted', 'Approved', 'Scheduled', 'PickedUp'].includes(rawOrder.returnRequest.status) && 
-                 rawOrder.returnRequest.returnOTP && 
-                 rawOrder.status !== 'returned' && (
-                    <div className="bg-orange-600 text-white p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-orange-500/20 mb-6 border border-white/10 animate-in slide-in-from-top duration-500">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
-                                <Shield size={20} className="text-white" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/80 leading-none mb-1">Secure Return PIN</p>
-                                <p className="text-xs md:text-sm font-bold tracking-tight">Share with partner for pickup</p>
-                            </div>
+                    {rawOrder?.deliveryPartnerId && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(order.status) && (
+                        <div
+                            role="button"
+                            onClick={() => navigate(`/orders/${order.id}/tracking`)}
+                            className="flex-[1.5] bg-[#0c831f] text-white py-2.5 !rounded-[1.2rem] flex items-center justify-center gap-2 font-black text-[10.5px] uppercase tracking-widest shadow-lg shadow-green-500/10 active:scale-95 transition-all cursor-pointer overflow-hidden border-none"
+                        >
+                            <NavIcon size={14} />
+                            Track Delivery
                         </div>
-                        <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/20">
-                            <span className="text-xl md:text-2xl font-black tracking-[0.15em]">{rawOrder.returnRequest.returnOTP}</span>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
-                {rawOrder?.deliveryPartnerId && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(order.status) && (
-                    <button
-                        onClick={() => navigate(`/orders/${order.id}/tracking`)}
-                        className="w-full bg-[#0c831f] text-white mb-6 py-4 rounded-xl flex items-center justify-center gap-2 font-black !text-[12px] uppercase tracking-widest shadow-lg shadow-green-500/20 active:scale-95 transition-all"
-                    >
-                        <NavIcon size={18} />
-                        Track Live Delivery
-                    </button>
-                )}
+                {/* Secure Return PIN Display - Always Full Width */}
+                {rawOrder?.returnRequest?.isRequested &&
+                    ['Accepted', 'Approved', 'Scheduled', 'PickedUp'].includes(rawOrder.returnRequest.status) &&
+                    rawOrder.returnRequest.returnOTP &&
+                    rawOrder.status !== 'returned' && (
+                        <div className="bg-orange-600 text-white p-3 rounded-xl flex items-center justify-between shadow-lg shadow-orange-500/10 mb-4 border border-white/10 animate-in slide-in-from-top duration-500">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-md">
+                                    <Shield size={16} className="text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-[10.5px] font-black uppercase tracking-widest text-white leading-none mb-0.5">Return PIN: {rawOrder.returnRequest.returnOTP}</p>
+                                    <p className="text-[8.5px] font-bold tracking-tight text-white/80">Share with partner for pickup</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                 <div className="space-y-8 animate-in fade-in duration-500 md:grid md:grid-cols-2 md:gap-8">
                     {/* Order Items */}
-                    <div className="bg-transparent md:bg-white md:dark:bg-[#141414] md:border border-gray-100 dark:border-white/5 md:rounded-2xl p-0 md:p-4">
+                    <div className="bg-transparent md:bg-white md:dark:bg-[#141414] md:border border-gray-100 dark:border-white/5 md:rounded-2xl p-0 md:p-4 mb-8">
                         <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Ordered items</p>
                         <div className="divide-y divide-gray-100 dark:divide-white/5 border-y border-gray-100 dark:border-white/5">
                             {order.items.map((item, i) => (
@@ -172,6 +167,51 @@ const OrderDetailsPage = () => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+
+                    {/* Bill Details */}
+                    <div className="bg-transparent md:bg-white md:dark:bg-[#141414] md:border border-gray-100 dark:border-white/5 md:rounded-2xl p-0 md:p-4 mb-10">
+                        <div className="flex items-center gap-2 mb-4 px-1">
+                            <ShoppingBag size={14} className="text-[#0c831f]" />
+                            <h3 className="!text-[10px] font-black text-gray-400 tracking-widest uppercase">Bill details</h3>
+                        </div>
+                        <div className="space-y-4 px-1">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[11px] text-gray-500 font-medium capitalize">Items total</span>
+                                <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{order.subTotal}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-[11px] text-gray-500 font-medium capitalize">Delivery fee</span>
+                                <span className={`text-[11px] font-black ${order.deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                    {order.deliveryFee === 0 ? 'Free' : `₹${order.deliveryFee}`}
+                                </span>
+                            </div>
+                            {order.handlingFee > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[11px] text-gray-500 font-medium capitalize">Handling fee</span>
+                                    <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{order.handlingFee}</span>
+                                </div>
+                            )}
+
+                            {order.taxAmount > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[11px] text-gray-500 font-medium capitalize">Taxes (GST)</span>
+                                    <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{order.taxAmount}</span>
+                                </div>
+                            )}
+
+                            {order.discountAmount > 0 && (
+                                <div className="flex justify-between items-center text-[#0c831f]">
+                                    <span className="text-[11px] font-bold capitalize">Promo Discount</span>
+                                    <span className="text-[11px] font-black">−₹{order.discountAmount}</span>
+                                </div>
+                            )}
+
+                            <div className="pt-5 border-t border-dashed border-gray-100 dark:border-white/10 flex justify-between items-center">
+                                <span className="text-[14px] font-black text-gray-900 dark:text-white">Grand Total</span>
+                                <span className="text-[20px] font-black text-gray-900 dark:text-white tracking-tighter">₹{order.total}</span>
+                            </div>
                         </div>
                     </div>
 
