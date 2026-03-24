@@ -6,7 +6,8 @@ import Notification from '../models/Notification.js';
 
 export const updateFCMToken = async (req, res) => {
   try {
-    const { fcmToken, platform } = req.body; // platform: 'app' or 'web'
+    console.log('FCM update body:', req.body);
+    const { fcmToken, platform = 'app' } = req.body; 
 
     if (!fcmToken) {
       return res.status(400).json({ success: false, message: 'FCM Token is required' });
