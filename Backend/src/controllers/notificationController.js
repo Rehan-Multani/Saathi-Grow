@@ -12,7 +12,7 @@ export const updateFCMToken = async (req, res) => {
       return res.status(400).json({ success: false, message: 'FCM Token is required' });
     }
 
-    if (!['app', 'web'].includes(platform)) {
+    if (platform && !['app', 'web'].includes(platform)) {
       return res.status(400).json({ success: false, message: 'Invalid platform. Must be "app" or "web"' });
     }
 
