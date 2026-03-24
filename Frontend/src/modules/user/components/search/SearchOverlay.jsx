@@ -29,6 +29,7 @@ const SearchOverlay = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
+    const [isFocused, setIsFocused] = useState(true); // Default to true since it auto-focuses on mount
 
     const recognitionRef = React.useRef(null);
 
@@ -233,7 +234,13 @@ const SearchOverlay = () => {
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         addToHistory(searchQuery);
+                                        e.target.blur(); // Blur on enter to hide suggestions
                                     }
+                                }}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => {
+                                    // Timeout to allow clicking suggestions before they disappear
+                                    setTimeout(() => setIsFocused(false), 200);
                                 }}
                                 autoFocus
                                 className={`w-full pl-4 md:pl-12 pr-12 md:pr-24 py-2.5 md:py-3.5 bg-white/50 md:bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 md:border-transparent focus:border-[#0c831f] rounded-xl text-[14px] md:text-[15px] font-medium text-gray-800 dark:text-gray-100 focus:outline-none transition-all placeholder:text-gray-400 ${isListening ? 'ring-2 ring-[#0c831f]/50' : ''}`}
@@ -331,7 +338,8 @@ const SearchOverlay = () => {
                 {searchQuery && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         {/* 1. Text Suggestions (The "Recommendations" based on input) */}
-                        <div>
+                        {isFocused && (
+                            <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <Sparkles size={14} className="text-yellow-500" />
                                 <h3 className="text-[11px] font-bold text-gray-500 dark:text-gray-400">Suggestions</h3>
@@ -377,6 +385,7 @@ const SearchOverlay = () => {
                                 <p className="text-xs text-gray-400 italic">Finding the best matches...</p>
                             )}
                         </div>
+                        )}
 
                         {/* 2. Scalable Product Grid */}
                         <div>

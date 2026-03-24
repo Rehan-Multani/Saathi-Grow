@@ -101,6 +101,6 @@ export const analyzeSearchQuery = async (query) => {
     - If the query is a recipe or dish (e.g., "pakoda", "matar paneer", "chai"), return the core ingredients needed to make it (e.g., "besan, oil, onion, potato, spices" or "paneer, peas, tomato, masala" or "tea leaves, milk, sugar, ginger").
     - If it's a generic category (e.g., "snack", "drink", "cleaning"), return related specific product types (e.g., "chips, biscuits, namkeen, cold drink" or "detergent, floor cleaner, dish wash").
     - If it's a specific product, just return that product and closely related terms.
-    Return ONLY a comma-separated list of 1 to 10 keywords. Do NOT include any intro text, quotes, or markdown.`;
+    Return ONLY a comma-separated list of 1 to 10 keywords. Focus on specific product types or ingredients (e.g., "paneer", "rice", "detergent") and AVOID broad descriptors, adjectives, or qualities (e.g., "sweet", "organic", "healthy"). Do NOT include any intro text, quotes, or markdown.`;
   return await generateWithFallback(prompt, 'search completion');
 };

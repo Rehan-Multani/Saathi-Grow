@@ -592,7 +592,12 @@ export const searchProductsWithAI = async (req, res) => {
     const combinedRegex = new RegExp(searchPattern, 'i');
 
     // Find products matching the combined pattern in name, tags, or description
-    const searchQuery = {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    // Build base match for count and initial aggregate filtering
+    const baseMatch = {
       status: { $in: ['Active', 'Out of Stock', 'Low Stock'] },
       $or: [
         { name: { $regex: combinedRegex } },
@@ -603,32 +608,54 @@ export const searchProductsWithAI = async (req, res) => {
       ]
     };
 
-    // 2. Branch/Store Scoping Filter (Database Level)
-    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
-      searchQuery['branchStocks.branchId'] = req.admin.branchId;
-    } else if (req.vendor) {
-      searchQuery.vendor = req.vendor._id;
-    } else if ((req.admin || req.vendor) && effectiveStoreId) {
-      if (storeType === 'branch') {
-        searchQuery['branchStocks.branchId'] = effectiveStoreId;
-      } else if (storeType === 'vendor') {
-        searchQuery.vendor = effectiveStoreId;
-      }
-    }
+    const total = await Product.countDocuments(baseMatch);
 
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
+    // Use Aggregation for Production-Level Relevance Scoring and Sorting
+    const aggregateQuery = [
+      { $match: baseMatch },
+      {
+        $addFields: {
+          // Compute relevance score
+          relevanceScore: {
+            $add: [
+              // Exact match of original query in name is highest priority
+              { $cond: [{ $regexMatch: { input: "$name", regex: new RegExp(`^${escapeRegExp(q)}$`, 'i') } }, 100, 0] },
+              // Partial match of complete query in name
+              { $cond: [{ $regexMatch: { input: "$name", regex: new RegExp(escapeRegExp(q), 'i') } }, 50, 0] },
+              // Match AI keywords in name
+              { $cond: [{ $regexMatch: { input: "$name", regex: combinedRegex } }, 20, 0] },
+              // Match original words in tags
+              { $cond: [{ $regexMatch: { input: { $reduce: { input: "$tags", initialValue: "", in: { $concat: ["$$value", " ", "$$this"] } } }, regex: new RegExp(escapeRegExp(q), 'i') } }, 10, 0] },
+              // Match AI keywords in tags
+              { $cond: [{ $regexMatch: { input: { $reduce: { input: "$tags", initialValue: "", in: { $concat: ["$$value", " ", "$$this"] } } }, regex: combinedRegex } }, 5, 0] },
+              // Saathi Grow brands get a small boost
+              { $cond: ["$isSaathiGrow", 5, 0] }
+            ]
+          }
+        }
+      },
+      // Store/Branch Filter (if applicable)
+      ...(req.admin && req.admin.role !== 'Admin' && req.admin.branchId ? [{ $match: { 'branchStocks.branchId': new mongoose.Types.ObjectId(req.admin.branchId) } }] : []),
+      ...(req.vendor ? [{ $match: { vendor: new mongoose.Types.ObjectId(req.vendor._id) } }] : []),
+      ...((req.admin || req.vendor) && effectiveStoreId ? [
+        {
+          $match: storeType === 'branch'
+            ? { 'branchStocks.branchId': new mongoose.Types.ObjectId(effectiveStoreId) }
+            : { vendor: new mongoose.Types.ObjectId(effectiveStoreId) }
+        }
+      ] : []),
+      { $sort: { relevanceScore: -1, isSaathiGrow: -1, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ];
 
-    const total = await Product.countDocuments(searchQuery);
+    let products = await Product.aggregate(aggregateQuery);
 
-    let products = await Product.find(searchQuery)
-      .select('name image description basePrice mrp category status brandName unitType unitValue isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount')
-      .populate('branchStocks.branchId', 'name code logo phone email address')
-      .populate('vendor', 'storeName logo businessType phone email address')
-      .sort({ isSaathiGrow: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    // Manually populate branchStocks and vendor for the plain objects
+    products = await Product.populate(products, [
+      { path: 'branchStocks.branchId', select: 'name code logo phone email address' },
+      { path: 'vendor', select: 'storeName logo businessType phone email address' }
+    ]);
 
     // Store-Aware logic for search results
     if (effectiveStoreId && storeType) {

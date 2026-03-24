@@ -128,5 +128,27 @@ const productSchema = new mongoose.Schema({
   timestamps: true
 });
 
+productSchema.index(
+  {
+    name: "text",
+    tags: "text",
+    brandName: "text",
+    category: "text",
+    description: "text"
+  },
+  {
+    weights: {
+      name: 10,
+      tags: 5,
+      brandName: 3,
+      category: 2,
+      description: 1
+    },
+    name: "ProductSearchIndex"
+  }
+);
+
+productSchema.index({ status: 1, isSaathiGrow: -1, createdAt: -1 });
+
 const Product = mongoose.model('Product', productSchema);
 export default Product;
