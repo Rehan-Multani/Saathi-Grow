@@ -18,7 +18,8 @@ class SMSIndiaHubService {
 
   async sendOTP(phone, otp) {
     // Template: Welcome to Saathi-Grow! Your OTP for verification is {#var#}. - Saathi-Grow Team
-    const message = `Welcome to Saathi-Grow! Your OTP for verification is ${otp}. - SaathiGro`;
+    const message = `Welcome to the SaathiGro powered by SMSINDIAHUB.Your OTP for registration is ${otp}`;
+    // Welcome to the Rukkoo.in powered by SMSINDIAHUB.Your OTP for registration is ${ otp }`
     return this.sendSMS(phone, message);
   }
 
@@ -55,7 +56,7 @@ class SMSIndiaHubService {
       // SMSIndiaHub sometimes returns response as string or JSON
       const responseData = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
 
-      if (responseData.includes('ErrorCode="000"') || responseData.includes('ErrorCode:000')) {
+      if (responseData.includes('ErrorCode="000"') || responseData.includes('ErrorCode:000') || responseData.includes('"ErrorCode":"000"')) {
         console.log('✅ SMS Sent Successfully');
         return { success: true, response: responseData };
       } else {
