@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
@@ -91,32 +91,66 @@ const SearchOverlay = () => {
         }
     };
 
+    const lastSearchRef = useRef({ query: '', storeId: '__UNINITIALIZED__' });
+    const abortControllerRef = useRef(null);
+    // Track whether the store context has been "settled" (either null meaning no store, or an actual store)
+    const storeSettledRef = useRef(false);
+
+    // Mark store as settled once we've observed at least one render of the SearchOverlay
+    // (activeStore will either be null=no store or an object=has store, both are valid)
+    useEffect(() => {
+        storeSettledRef.current = true;
+    }, [activeStore]);
+
     // Search Debouncer & Backend Integration
     useEffect(() => {
-        if (!searchQuery.trim()) {
-            setFilteredProducts([]);
-            setSuggestions([]);
-            setIsLoading(false);
-            setCurrentPage(1);
-            setTotalPages(1);
+        const trimmedQuery = searchQuery.trim();
+
+        // 1. Clear state if query is too short or empty
+        if (trimmedQuery.length < 3) {
+            if (!trimmedQuery) {
+                setFilteredProducts([]);
+                setSuggestions([]);
+                setIsLoading(false);
+                // Reset lastSearch so next search always fires
+                lastSearchRef.current = { query: '', storeId: '__UNINITIALIZED__' };
+            }
+            return;
+        }
+
+        // 2. Wait for store context to settle before firing any search
+        if (!storeSettledRef.current) return;
+
+        // 3. Avoid redundant calls: only fire if query or storeId actually changed
+        const currentStoreId = activeStore?.id ?? null;
+        if (lastSearchRef.current.query === trimmedQuery && lastSearchRef.current.storeId === currentStoreId) {
             return;
         }
 
         const runSearch = async () => {
+            // Cancel any previous in-flight request
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            abortControllerRef.current = new AbortController();
+
             setIsLoading(true);
-            setCurrentPage(1); // Reset to first page
+            setCurrentPage(1);
+
             try {
+                // Always use the settled storeId — either a real store or empty params
                 const storeParams = activeStore ? { storeId: activeStore.id, storeType: activeStore.type } : {};
-                const data = await searchProducts(searchQuery, 1, storeParams);
+                const data = await searchProducts(trimmedQuery, 1, storeParams, abortControllerRef.current.signal);
 
                 const productsArray = data.products || [];
                 setTotalPages(data.pages || 1);
                 setTotalResults(data.total || 0);
 
+                // Record successful search to prevent duplicate calls
+                lastSearchRef.current = { query: trimmedQuery, storeId: currentStoreId };
+
                 if (productsArray.length > 0) {
                     setFilteredProducts(productsArray);
-
-                    // Generate basic suggestions based on top results
                     setSuggestions(productsArray.slice(0, 5).map(p => ({
                         id: p._id || p.id,
                         name: p.name,
@@ -128,7 +162,8 @@ const SearchOverlay = () => {
                     setSuggestions([]);
                 }
             } catch (err) {
-                console.error("Search failed:", err);
+                if (err.name === 'AbortError') return; // Ignore intentional cancellations
+                console.error('Search failed:', err);
                 setFilteredProducts([]);
                 setSuggestions([]);
             } finally {
@@ -136,12 +171,15 @@ const SearchOverlay = () => {
             }
         };
 
-        const timer = setTimeout(() => {
-            runSearch();
-        }, 600); // 600ms debounce
+        const timer = setTimeout(runSearch, 800);
 
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
+        return () => {
+            clearTimeout(timer);
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, [searchQuery, activeStore?.id]);
 
     const handleLoadMore = async () => {
         if (currentPage >= totalPages || isMoreLoading) return;

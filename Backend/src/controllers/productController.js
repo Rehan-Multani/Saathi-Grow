@@ -535,149 +535,147 @@ export const getProducts = async (req, res) => {
   }
 };
 
-// @desc    Smart Search (AI-Powered)
+
+// @desc    AI-Powered Product Search
 // @route   GET /api/admin/products/search/ai
 // @access  Public
 export const searchProductsWithAI = async (req, res) => {
   try {
     const { q, storeId, storeType } = req.query;
     const effectiveStoreId = (storeId && storeId !== 'null' && storeId !== 'undefined') ? storeId : null;
-    if (!q) {
-      return res.json([]);
+
+    if (!q || q.trim().length < 2) {
+      return res.json({ products: [], total: 0, page: 1, pages: 0 });
     }
 
-    let searchKeywords = [];
-
-    // Attempt AI Analysis to extract ingredients/components
-    try {
-      const aiResponse = await analyzeSearchQuery(q);
-      if (aiResponse) {
-        // Strip out any weird characters and split by comma
-        const cleaned = aiResponse.replace(/[^a-zA-Z0-9,\s]/g, '');
-        searchKeywords = cleaned.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
-      }
-    } catch (aiError) {
-      console.error('[AI-SEARCH] Failed to analyze query, falling back to standard search:', aiError.message);
-    }
-
-    // Always include the original query's words as base keywords to ensure direct matches work too
-    const originalWords = q.split(' ').map(s => s.trim().toLowerCase()).filter(s => s);
-    searchKeywords = [...new Set([...searchKeywords, ...originalWords])];
-
-    // Filter out common short noise words to prevent false-positive substring matches
-    const stopWords = ['is', 'ki', 'ka', 'ke', 'ko', 'me', 'se', 'the', 'a', 'an', 'and', 'for', 'with', 'in', 'of', 'to', 'on'];
-    searchKeywords = searchKeywords.filter(k => !stopWords.includes(k) && k.length > 1);
-
-    if (searchKeywords.length === 0 && q) {
-      searchKeywords = [q.toLowerCase()];
-    }
-
-    console.log(`[SMART-SEARCH] Keywords for "${q}":`, searchKeywords);
-
-    // Build a single Regex pattern for all keywords
-    const searchPattern = searchKeywords.map(k => {
-      // Escape special characters so they don't break regex
-      const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-      // For very short words (<= 3 chars like "dal", "oil"), enforce word boundaries 
-      // so "dal" doesn't accidentally match "pedal" or "oil" doesn't match "spoil"
-      if (escaped.length <= 3) {
-        return `\\b${escaped}\\b`;
-      }
-
-      // For longer words, allow partial matching
-      return escaped;
-    }).join('|');
-
-    const combinedRegex = new RegExp(searchPattern, 'i');
-
-    // Find products matching the combined pattern in name, tags, or description
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
     const skip = (page - 1) * limit;
+    const qTrimmed = q.trim();
 
-    // Build base match for count and initial aggregate filtering
+    // ─── Store Scope ────────────────────────────────────────────────────────────
+    const buildStoreScope = () => {
+      if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+        return { 'branchStocks.branchId': new mongoose.Types.ObjectId(req.admin.branchId) };
+      }
+      if (req.vendor) return { vendor: new mongoose.Types.ObjectId(req.vendor._id) };
+      if (effectiveStoreId) {
+        return storeType === 'branch'
+          ? { 'branchStocks.branchId': new mongoose.Types.ObjectId(effectiveStoreId) }
+          : { vendor: new mongoose.Types.ObjectId(effectiveStoreId) };
+      }
+      return {};
+    };
+    const storeScope = buildStoreScope();
+
+    // ─── Step 1: Get AI keywords from the user's query ──────────────────────────
+    let aiKeywords = [];
+    try {
+      const aiResponse = await analyzeSearchQuery(qTrimmed);
+      if (aiResponse) {
+        const cleaned = aiResponse.replace(/[^a-zA-Z0-9,\s]/g, '');
+        const stopWords = new Set(['is', 'ki', 'ka', 'ke', 'ko', 'me', 'se', 'the', 'a', 'an', 'and', 'for', 'with', 'in', 'of', 'to', 'on', 'at', 'by', 'or']);
+        aiKeywords = cleaned
+          .split(',')
+          .map(s => s.trim().toLowerCase())
+          .filter(s => s && s.length > 1 && !stopWords.has(s));
+      }
+    } catch (aiErr) {
+      console.warn('[AI-SEARCH] AI keyword extraction failed, falling back to raw query:', aiErr.message);
+    }
+
+    // Always include the original query words as a fallback guarantee
+    const rawWords = qTrimmed.split(/\s+/).map(s => s.toLowerCase()).filter(s => s.length > 1);
+    const allKeywords = [...new Set([...aiKeywords, ...rawWords])];
+
+    console.log(`[AI-SEARCH] Query: "${qTrimmed}" → Keywords:`, allKeywords);
+
+    // ─── Step 2: Build regex from keywords ─────────────────────────────────────
+    const keywordPattern = allKeywords.map(k => {
+      const esc = escapeRegExp(k);
+      // Use word boundaries for short words to avoid substring noise (e.g. "dal" ≠ "medal")
+      return esc.length <= 3 ? `\\b${esc}\\b` : esc;
+    }).join('|');
+    const keywordRegex = new RegExp(keywordPattern, 'i');
+
+    // Also build an exact query regex for boosting exact name matches
+    const exactRegex = new RegExp(`^${escapeRegExp(qTrimmed)}$`, 'i');
+    const partialRegex = new RegExp(escapeRegExp(qTrimmed), 'i');
+
+    // ─── Step 3: Match products by name and description ────────────────────────
     const baseMatch = {
       status: { $in: ['Active', 'Out of Stock', 'Low Stock'] },
       $or: [
-        { name: { $regex: combinedRegex } },
-        { tags: { $regex: combinedRegex } },
-        { description: { $regex: combinedRegex } },
-        { brandName: { $regex: combinedRegex } },
-        { category: { $regex: combinedRegex } }
-      ]
+        { name: { $regex: keywordRegex } },
+        { description: { $regex: keywordRegex } }
+      ],
+      ...storeScope
     };
 
-    const total = await Product.countDocuments(baseMatch);
-
-    // Use Aggregation for Production-Level Relevance Scoring and Sorting
-    const aggregateQuery = [
+    // ─── Step 4: Aggregate with relevance scoring + faceted pagination ──────────
+    const pipeline = [
       { $match: baseMatch },
       {
         $addFields: {
-          // Compute relevance score
           relevanceScore: {
             $add: [
-              // Exact match of original query in name is highest priority
-              { $cond: [{ $regexMatch: { input: "$name", regex: new RegExp(`^${escapeRegExp(q)}$`, 'i') } }, 100, 0] },
-              // Partial match of complete query in name
-              { $cond: [{ $regexMatch: { input: "$name", regex: new RegExp(escapeRegExp(q), 'i') } }, 50, 0] },
-              // Match AI keywords in name
-              { $cond: [{ $regexMatch: { input: "$name", regex: combinedRegex } }, 20, 0] },
-              // Match original words in tags
-              { $cond: [{ $regexMatch: { input: { $reduce: { input: "$tags", initialValue: "", in: { $concat: ["$$value", " ", "$$this"] } } }, regex: new RegExp(escapeRegExp(q), 'i') } }, 10, 0] },
-              // Match AI keywords in tags
-              { $cond: [{ $regexMatch: { input: { $reduce: { input: "$tags", initialValue: "", in: { $concat: ["$$value", " ", "$$this"] } } }, regex: combinedRegex } }, 5, 0] },
-              // Saathi Grow brands get a small boost
-              { $cond: ["$isSaathiGrow", 5, 0] }
+              // Exact name match (highest priority)
+              { $cond: [{ $regexMatch: { input: '$name', regex: exactRegex } }, 100, 0] },
+              // Partial name match of original query
+              { $cond: [{ $regexMatch: { input: '$name', regex: partialRegex } }, 50, 0] },
+              // Name match via AI keywords
+              { $cond: [{ $regexMatch: { input: '$name', regex: keywordRegex } }, 30, 0] },
+              // Description match via AI keywords (lower weight)
+              { $cond: [{ $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: keywordRegex } }, 10, 0] },
+              // Saathi Grow brand bonus
+              { $cond: ['$isSaathiGrow', 5, 0] }
             ]
           }
         }
       },
-      // Store/Branch Filter (if applicable)
-      ...(req.admin && req.admin.role !== 'Admin' && req.admin.branchId ? [{ $match: { 'branchStocks.branchId': new mongoose.Types.ObjectId(req.admin.branchId) } }] : []),
-      ...(req.vendor ? [{ $match: { vendor: new mongoose.Types.ObjectId(req.vendor._id) } }] : []),
-      ...((req.admin || req.vendor) && effectiveStoreId ? [
-        {
-          $match: storeType === 'branch'
-            ? { 'branchStocks.branchId': new mongoose.Types.ObjectId(effectiveStoreId) }
-            : { vendor: new mongoose.Types.ObjectId(effectiveStoreId) }
+      // Require at least a name keyword match to avoid returning pure description results
+      { $match: { relevanceScore: { $gte: 30 } } },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $sort: { relevanceScore: -1, isSaathiGrow: -1, createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit }
+          ]
         }
-      ] : []),
-      { $sort: { relevanceScore: -1, isSaathiGrow: -1, createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit }
+      }
     ];
 
-    let products = await Product.aggregate(aggregateQuery);
+    const [result] = await Product.aggregate(pipeline);
+    const total = result?.metadata?.[0]?.total || 0;
+    const pages = Math.ceil(total / limit);
+    let products = result?.data || [];
 
-    // Manually populate branchStocks and vendor for the plain objects
-    products = await Product.populate(products, [
-      { path: 'branchStocks.branchId', select: 'name code logo phone email address' },
-      { path: 'vendor', select: 'storeName logo businessType phone email address' }
-    ]);
+    // ─── Step 5: Populate refs ──────────────────────────────────────────────────
+    if (products.length > 0) {
+      products = await Product.populate(products, [
+        { path: 'branchStocks.branchId', select: 'name code logo phone email address' },
+        { path: 'vendor', select: 'storeName logo businessType phone email address' }
+      ]);
+    }
 
-    // Store-Aware logic for search results
-    if (effectiveStoreId && storeType) {
+    // ─── Step 6: Store-aware stock + deliverability ─────────────────────────────
+    if (products.length > 0 && effectiveStoreId && storeType) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
-        let isDeliverable = false;
-        let availableStock = 0;
-        let lowStockThreshold = 10;
-        let inStore = false;
+        let isDeliverable = false, availableStock = 0, lowStockThreshold = 10, inStore = false;
 
         if (storeType === 'branch') {
-          const branchStock = pObj.branchStocks?.find(bs => {
-            const bId = bs.branchId?._id || bs.branchId;
+          const bs = pObj.branchStocks?.find(b => {
+            const bId = b.branchId?._id || b.branchId;
             return bId && bId.toString() === effectiveStoreId.toString();
           });
-          if (branchStock) {
+          if (bs) {
             inStore = true;
-            availableStock = branchStock.stock || 0;
-            lowStockThreshold = branchStock.lowStockThreshold || 10;
-            if (availableStock > 0) {
-              isDeliverable = true;
-            }
+            availableStock = bs.stock || 0;
+            lowStockThreshold = bs.lowStockThreshold || 10;
+            if (availableStock > 0) isDeliverable = true;
           }
         } else if (storeType === 'vendor') {
           const vId = pObj.vendor?._id || pObj.vendor;
@@ -685,9 +683,7 @@ export const searchProductsWithAI = async (req, res) => {
             inStore = true;
             availableStock = pObj.stock || 0;
             lowStockThreshold = pObj.lowStockThreshold || 10;
-            if (availableStock > 0) {
-              isDeliverable = true;
-            }
+            if (availableStock > 0) isDeliverable = true;
           }
         }
 
@@ -695,33 +691,28 @@ export const searchProductsWithAI = async (req, res) => {
       });
     }
 
-    // If Branch Manager/Staff, transform products to only show their branch details and local status
+    // ─── Step 7: Branch Manager role — filter to own branch only ───────────────
     if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
       products = products.map(p => {
         const pObj = p.toObject ? p.toObject() : p;
-        pObj.branchStocks = pObj.branchStocks.filter(bs => {
-          const bsBranchId = bs.branchId?._id || bs.branchId;
-          return bsBranchId && bsBranchId.toString() === req.admin.branchId.toString();
+        pObj.branchStocks = (pObj.branchStocks || []).filter(bs => {
+          const bId = bs.branchId?._id || bs.branchId;
+          return bId && bId.toString() === req.admin.branchId.toString();
         });
         if (pObj.status !== 'Draft') {
-          if (pObj.vendor) {
-            pObj.status = determineProductStatus([], pObj.stock, pObj.lowStockThreshold);
-          } else {
-            pObj.status = determineProductStatus(pObj.branchStocks);
-          }
+          pObj.status = pObj.vendor
+            ? determineProductStatus([], pObj.stock, pObj.lowStockThreshold)
+            : determineProductStatus(pObj.branchStocks);
         }
         return pObj;
       });
     }
 
-    res.json({
-      products,
-      total,
-      page,
-      pages: Math.ceil(total / limit)
-    });
+    return res.json({ products, total, page, pages });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('[AI-SEARCH] Fatal error:', error);
+    res.status(500).json({ message: 'Search failed. Please try again.', error: error.message });
   }
 };
 

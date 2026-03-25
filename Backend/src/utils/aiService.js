@@ -94,6 +94,10 @@ export const generateProductTags = async (productName) => {
   return await generateWithFallback(prompt, 'tags');
 };
 
+/**
+ * Analyze a user's search query and extract relevant product/ingredient keywords.
+ * These keywords are used directly to search against product name and description in the database.
+ */
 export const analyzeSearchQuery = async (query) => {
   const prompt = `You are a smart e-commerce search assistant for an Indian grocery and quick commerce app. 
     The user searched for: "${query}". 

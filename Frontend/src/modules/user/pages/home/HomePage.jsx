@@ -207,7 +207,7 @@ const HomePage = ({ }) => {
 
             {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
             {!isSearching && !loading && activeOffers.length > 0 && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-4 group/offers relative">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative">
                     <div className="relative overflow-hidden sm:rounded-2xl">
                         <div
                             className={`flex ${isTransitioning && isCarousel ? 'transition-transform duration-700 ease-in-out' : ''}`}
@@ -284,7 +284,7 @@ const HomePage = ({ }) => {
 
             {/* Categories */}
             {(filteredCategories.length > 0 || !isSearching) && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10 mb-6 md:mb-10">
                     <div className="flex items-center justify-between mb-2 md:mb-6">
                         <h2 className="text-[13px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
                         {!isSearching && (
@@ -406,7 +406,7 @@ const HomePage = ({ }) => {
                                 totalProductsCount={campaign.totalProducts}
                             />
                         )}
-                        <div className="h-4 sm:h-8" />
+                        <div className="h-10 sm:h-16" />
                     </React.Fragment>
                 );
             })}
@@ -516,7 +516,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10">
             <div className="flex items-center justify-between mb-2 md:mb-6">
                 <h2 className="text-[11px] md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
@@ -671,7 +671,7 @@ const OccasionSection = ({
     };
 
     return (
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 my-0 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-6 md:mb-10 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex flex-col">
                     <h2 className="text-lg md:text-xl font-black tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>

@@ -69,9 +69,9 @@ export const fetchOfferProducts = async (id, params = {}) => {
   if (!response.ok) throw new Error(data.message || 'Failed to fetch offer products');
   return data;
 };
-export const searchProducts = async (query = '', page = 1, storeParams = {}) => {
+export const searchProducts = async (query = '', page = 1, storeParams = {}, signal = null) => {
   const params = new URLSearchParams({ q: query, page, ...storeParams }).toString();
-  const response = await fetch(`${API_BASE_URL}/admin/products/search/ai?${params}`);
+  const response = await fetch(`${API_BASE_URL}/admin/products/search/ai?${params}`, { signal });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to search products');
   return data;
