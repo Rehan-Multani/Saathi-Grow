@@ -119,10 +119,44 @@ const HomePage = ({ }) => {
         setOfferIndex((prev) => prev - 1);
     };
 
-    const handleDotClick = (index) => {
-        setIsTransitioning(true);
-        setOfferIndex(activeOffers.length + index);
+    const [startX, setStartX] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handlePointerDown = (e) => {
+        setStartX(e.clientX);
+        setIsDragging(true);
     };
+
+    const handlePointerMove = (e) => {
+        if (!isDragging) return;
+        const currentX = e.clientX;
+        const diff = startX - currentX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) {
+                handleNextOffer(e);
+            } else {
+                handlePrevOffer(e);
+            }
+            setIsDragging(false);
+        }
+    };
+
+    const handlePointerUp = () => {
+        setIsDragging(false);
+    };
+
+    // Auto-scroll logic for Banner
+    useEffect(() => {
+        if (!isCarousel || activeOffers.length === 0) return;
+
+        const interval = setInterval(() => {
+            if (isTransitioning) {
+                setOfferIndex((prev) => prev + 1);
+            }
+        }, 5000); // Scroll every 5 seconds
+
+        return () => clearInterval(interval);
+    }, [isCarousel, activeOffers.length, isTransitioning]);
 
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
@@ -210,10 +244,15 @@ const HomePage = ({ }) => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative">
                     <div className="relative overflow-hidden sm:rounded-2xl">
                         <div
-                            className={`flex ${isTransitioning && isCarousel ? 'transition-transform duration-700 ease-in-out' : ''}`}
+                            onPointerDown={handlePointerDown}
+                            onPointerMove={handlePointerMove}
+                            onPointerUp={handlePointerUp}
+                            onPointerLeave={handlePointerUp}
+                            className={`flex cursor-grab active:cursor-grabbing ${isTransitioning && isCarousel ? 'transition-transform duration-700 ease-in-out' : ''}`}
                             style={{
                                 transform: isCarousel ? `translateX(-${offerIndex * (100 / itemsToShow)}%)` : 'none',
-                                gap: itemsToShow === 1 ? '0px' : '12px'
+                                gap: itemsToShow === 1 ? '0px' : '12px',
+                                touchAction: 'pan-y'
                             }}
                         >
                             {(isCarousel ? [...activeOffers, ...activeOffers, ...activeOffers] : activeOffers).map((offer, idx) => (
@@ -230,7 +269,7 @@ const HomePage = ({ }) => {
                                         role="button"
                                         tabIndex={0}
                                     >
-                                        <div className={`overflow-hidden rounded-lg sm:rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/10 pointer-events-none bg-gray-50 dark:bg-gray-900 transition-all duration-300 ${itemsToShow === 1 ? 'aspect-[16/7.5] sm:aspect-[24/8]' : 'aspect-[16/7.5] md:aspect-[21/9]'}`}>
+                                        <div className={`overflow-hidden rounded-lg sm:rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/10 pointer-events-none bg-gray-50 dark:bg-gray-900 transition-all duration-300 ${itemsToShow === 1 ? 'aspect-[16/8.5] sm:aspect-[24/9]' : 'aspect-[16/8.5] md:aspect-[21/10]'}`}>
                                             <img
                                                 src={offer.bannerImage || offer.image}
                                                 alt={offer.title || "Special Offer"}
@@ -244,25 +283,7 @@ const HomePage = ({ }) => {
                         </div>
                     </div>
 
-                    {/* Navigation Arrows - Premium Redesigned Controls */}
-                    {isCarousel && (
-                        <>
-                            <button
-                                onClick={handlePrevOffer}
-                                className="absolute left-2 md:-left-6 top-1/2 -translate-y-1/2 z-30 bg-white/90 dark:bg-[#1c1c1c]/90 text-gray-800 dark:text-white w-9 h-9 md:w-12 md:h-12 rounded-full shadow-lg hover:shadow-2xl flex items-center justify-center transition-all duration-300 md:opacity-0 group-hover/offers:opacity-100 backdrop-blur-xl cursor-pointer border border-gray-200/50 dark:border-white/10 hover:border-[var(--saathi-green)] hover:scale-110 active:scale-90 group/btn"
-                                aria-label="Previous Offer"
-                            >
-                                <ChevronRight size={24} className="md:w-6 md:h-6 rotate-180 group-hover/btn:text-[var(--saathi-green)] transition-colors duration-300" />
-                            </button>
-                            <button
-                                onClick={handleNextOffer}
-                                className="absolute right-2 md:-right-6 top-1/2 -translate-y-1/2 z-30 bg-white/90 dark:bg-[#1c1c1c]/90 text-gray-800 dark:text-white w-9 h-9 md:w-12 md:h-12 rounded-full shadow-lg hover:shadow-2xl flex items-center justify-center transition-all duration-300 md:opacity-0 group-hover/offers:opacity-100 backdrop-blur-xl cursor-pointer border border-gray-200/50 dark:border-white/10 hover:border-[var(--saathi-green)] hover:scale-110 active:scale-90 group/btn"
-                                aria-label="Next Offer"
-                            >
-                                <ChevronRight size={24} className="md:w-6 md:h-6 group-hover/btn:text-[var(--saathi-green)] transition-colors duration-300" />
-                            </button>
-                        </>
-                    )}
+                    {/* Navigation Arrows removed as per user request for mobile-like flow */}
 
                     {/* Pagination Lines (Blinkit Style) - Moved below image */}
                     {isCarousel && (

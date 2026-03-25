@@ -106,23 +106,10 @@ const CartSidebar = () => {
                         </div>
                     ) : (
                         <>
-                            {/* Delivery Info - Integrated */}
-                            <div className="px-3 py-3 border-b border-gray-100/50 dark:border-white/5 mx-1">
-                                <div className="flex items-center gap-3 text-left">
-                                    <div className="w-8 h-8 bg-[#eefaf1] dark:bg-[#0c831f]/10 rounded-lg flex items-center justify-center">
-                                        <Clock size={14} className="text-[#0c831f]" strokeWidth={3} />
-                                    </div>
-                                    <div>
-                                        <h3 className="!text-[10px] font-black text-gray-800 dark:text-gray-100 leading-tight">Approximately in 8 minutes</h3>
-                                        <p className="text-[7.5px] text-gray-400 font-bold mt-0.5 uppercase tracking-widest leading-none">Shipment of {cartCount} item{cartCount !== 1 ? 's' : ''}</p>
-                                        <div className="flex items-start gap-1 mt-1.5 p-1.5 bg-red-50 dark:bg-red-500/10 rounded-md border border-red-100 dark:border-red-500/20 max-w-[200px]">
-                                            <Info size={10} className="text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                                            <p className="text-[8px] text-red-600 dark:text-red-300 transform leading-tight font-medium">
-                                                Delivery time is estimated and may vary due to traffic or weather conditions.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                            {/* Delivery Info removed by user request (slot-based delivery) */}
+                            <div className="px-3.5 pt-2 flex items-center gap-2">
+                                <ShoppingBag size={14} className="text-[#0c831f]" />
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Your Shipment ({cartCount} {cartCount > 1 ? 'items' : 'item'})</span>
                             </div>
 
                             {/* Items List - Integrated */}

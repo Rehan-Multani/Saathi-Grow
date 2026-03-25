@@ -14,7 +14,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const { activeStore, isStoreOutOfRange } = useStore();
+  const { activeStore, isStoreOutOfRange, isStoreInactive } = useStore();
 
   const productId = product.id || product._id;
 
@@ -31,7 +31,7 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
   const isOutOfStock = availableStock <= 0;
   const isLowStock = availableStock <= lowStockThreshold && availableStock > 0;
 
-  const isBtnDisabled = !isDeliverable || isStoreOutOfRange || isOutOfStock || isLowStock;
+  const isBtnDisabled = !isDeliverable || isStoreOutOfRange || isStoreInactive || isOutOfStock || isLowStock;
 
   const handleAddToCart = (e) => {
     if (isBtnDisabled) return;

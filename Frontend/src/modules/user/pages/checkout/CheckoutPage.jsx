@@ -43,7 +43,7 @@ const CheckoutPage = () => {
     const { cartTotal = 0, clearCart, cartCount = 0, cart = [] } = useCart();
     const { location: globalLocation, openLocationModal, savedAddresses, updateLocation } = useGlobalLocation();
     const { user, token } = useAuth();
-    const { activeStore, isStoreOutOfRange, openStoreSelector } = useStore();
+    const { activeStore, isStoreOutOfRange, isStoreInactive, openStoreSelector } = useStore();
     const [isPlacing, setIsPlacing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [walletBalance, setWalletBalance] = useState(0);
@@ -499,39 +499,7 @@ const CheckoutPage = () => {
                                 {paymentMethod === 'online' && <ShieldCheck size={14} className="text-[#0c831f]" />}
                             </div>
 
-                            {/* Sub-options for Online Payment */}
-                            {paymentMethod === 'online' && (
-                                <div className="space-y-2 pl-7 animate-in slide-in-from-top-2 duration-300">
-                                    <div
-                                        onClick={(e) => { e.stopPropagation(); setOnlineMethod('phonepe'); }}
-                                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${onlineMethod === 'phonepe' ? 'bg-white dark:bg-white/10 border-green-200' : 'bg-transparent border-transparent hover:bg-white/30'}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-3 h-3 rounded-full border-2 ${onlineMethod === 'phonepe' ? 'border-[#0c831f] bg-[#0c831f]' : 'border-gray-300'}`}></div>
-                                            <img
-                                                src="https://download.logo.wine/logo/PhonePe/PhonePe-Logo.wine.png"
-                                                alt="PhonePe"
-                                                className="h-4 w-auto object-contain brightness-110"
-                                            />
-                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">PhonePe</span>
-                                        </div>
-                                    </div>
-                                    <div
-                                        onClick={(e) => { e.stopPropagation(); setOnlineMethod('gpay'); }}
-                                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${onlineMethod === 'gpay' ? 'bg-white dark:bg-white/10 border-green-200' : 'bg-transparent border-transparent hover:bg-white/30'}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-3 h-3 rounded-full border-2 ${onlineMethod === 'gpay' ? 'border-[#0c831f] bg-[#0c831f]' : 'border-gray-300'}`}></div>
-                                            <img
-                                                src="https://www.gstatic.com/lamda/images/google_pay_logo_stack_64dp.png"
-                                                alt="Google Pay"
-                                                className="h-4 w-auto object-contain"
-                                            />
-                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">Google Pay</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                            {/* Sub-options for Online Payment removed as per user request */}
                         </div>
                     </div>
                 </div>
