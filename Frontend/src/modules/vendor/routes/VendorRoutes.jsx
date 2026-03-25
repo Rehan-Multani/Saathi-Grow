@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import VendorSidebar from '../components/VendorSidebar';
 import VendorHeader from '../components/VendorHeader';
 import { VendorProvider } from '../contexts/VendorContext';
@@ -38,7 +38,6 @@ import VendorAllOffers from '../pages/offers/VendorAllOffers';
 import VendorManageOffer from '../pages/offers/VendorManageOffer';
 import VendorPOS from '../pages/VendorPOS';
 import { useVendor } from '../contexts/VendorContext';
-import { useLocation } from 'react-router-dom';
 
 const VendorLayout = () => {
     const location = useLocation();

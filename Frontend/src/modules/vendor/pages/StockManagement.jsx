@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Search, Filter, Save, RefreshCw, Plus, Minus, Layers, RotateCcw, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { formatCurrency } from '../utils/formatDate';

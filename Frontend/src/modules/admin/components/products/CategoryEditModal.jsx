@@ -1,6 +1,9 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { Save, X, Upload, Palette, Image as ImageIcon, Camera } from 'lucide-react';
+import { Modal, Form, Row, Col, Button, Spinner, Image as BSImage } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
+
 
 const PRESET_COLORS = [
     '#FEE2E2', '#FEF3C7', '#D1FAE5', '#DBEAFE',

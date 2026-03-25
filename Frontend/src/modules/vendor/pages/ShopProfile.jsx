@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Camera, Save, MapPin, Store, User, Phone, Mail, Clock, X, Check, Lock, Eye, EyeOff, CheckCircle, AlertCircle, Navigation, Search, Globe } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
 import { useNavigate } from 'react-router-dom';

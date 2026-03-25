@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, {useEffect, useRef, useState} from 'react';
 import { useCart } from '../../context/CartContext';
 import { ChevronRight } from 'lucide-react';
 import { useLocation } from 'react-router-dom';

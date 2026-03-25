@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { getCategories } from '../../api/categoryApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useEffect, useState, useRef } from 'react';
 
 const BrandEditModal = ({ show, onHide, brand, onSave }) => {
     const { t } = useTranslation();
