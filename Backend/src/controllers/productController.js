@@ -583,66 +583,74 @@ export const searchProductsWithAI = async (req, res) => {
       if (aiResponse) {
         const cleaned = aiResponse.replace(/[^a-zA-Z0-9,\s]/g, '');
         const stopWords = new Set(['is', 'ki', 'ka', 'ke', 'ko', 'me', 'se', 'the', 'a', 'an', 'and', 'for', 'with', 'in', 'of', 'to', 'on', 'at', 'by', 'or']);
-        aiKeywords = cleaned
-          .split(',')
-          .map(s => s.trim().toLowerCase())
-          .filter(s => s && s.length > 1 && !stopWords.has(s));
+        aiKeywords = cleaned.split(',').map(s => s.trim().toLowerCase()).filter(s => s && s.length > 1 && !stopWords.has(s));
       }
     } catch (aiErr) {
       console.warn('[AI-SEARCH] AI keyword extraction failed, falling back to raw query:', aiErr.message);
     }
 
-    // Always include the original query words as a fallback guarantee
     const rawWords = qTrimmed.split(/\s+/).map(s => s.toLowerCase()).filter(s => s.length > 1);
     const allKeywords = [...new Set([...aiKeywords, ...rawWords])];
 
-    console.log(`[AI-SEARCH] Query: "${qTrimmed}" → Keywords:`, allKeywords);
-
-    // ─── Step 2: Build regex from keywords ─────────────────────────────────────
     const keywordPattern = allKeywords.map(k => {
       const esc = escapeRegExp(k);
-      // Use word boundaries for short words to avoid substring noise (e.g. "dal" ≠ "medal")
       return esc.length <= 3 ? `\\b${esc}\\b` : esc;
     }).join('|');
     const keywordRegex = new RegExp(keywordPattern, 'i');
 
-    // Also build an exact query regex for boosting exact name matches
+    // Separate regexes for different weights
+    const primaryPattern = rawWords.map(k => {
+      const esc = escapeRegExp(k);
+      return esc.length <= 3 ? `\\b${esc}\\b` : esc;
+    }).join('|');
+    const primaryRegex = new RegExp(primaryPattern || escapeRegExp(qTrimmed), 'i');
+
+    const secondaryPattern = aiKeywords.length > 0 ? aiKeywords.map(k => {
+      const esc = escapeRegExp(k);
+      return esc.length <= 3 ? `\\b${esc}\\b` : esc;
+    }).join('|') : null;
+    const secondaryRegex = secondaryPattern ? new RegExp(secondaryPattern, 'i') : null;
+
     const exactRegex = new RegExp(`^${escapeRegExp(qTrimmed)}$`, 'i');
     const partialRegex = new RegExp(escapeRegExp(qTrimmed), 'i');
 
-    // ─── Step 3: Match products by name and description ────────────────────────
+    // ─── Step 3: Match products (Broad match for base set) ──────────────────────
     const baseMatch = {
       status: { $in: ['Active', 'Out of Stock', 'Low Stock'] },
       $or: [
         { name: { $regex: keywordRegex } },
-        { description: { $regex: keywordRegex } }
+        { description: { $regex: keywordRegex } },
+        { tags: { $in: [primaryRegex] } }
       ],
       ...storeScope
     };
 
-    // ─── Step 4: Aggregate with relevance scoring + faceted pagination ──────────
+    // ─── Step 4: Aggregate with weighted relevance scoring ──────────────────────
     const pipeline = [
       { $match: baseMatch },
       {
         $addFields: {
           relevanceScore: {
             $add: [
-              // Exact name match (highest priority)
+              // Exact name match (Highest Weight)
               { $cond: [{ $regexMatch: { input: '$name', regex: exactRegex } }, 100, 0] },
-              // Partial name match of original query
-              { $cond: [{ $regexMatch: { input: '$name', regex: partialRegex } }, 50, 0] },
-              // Name match via AI keywords
-              { $cond: [{ $regexMatch: { input: '$name', regex: keywordRegex } }, 30, 0] },
-              // Description match via AI keywords (lower weight)
-              { $cond: [{ $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: keywordRegex } }, 10, 0] },
-              // Saathi Grow brand bonus
+              // Partial original query in name
+              { $cond: [{ $regexMatch: { input: '$name', regex: partialRegex } }, 70, 0] },
+              // Original query in tags
+              { $cond: [{ $regexMatch: { input: { $reduce: { input: { $ifNull: ["$tags", []] }, initialValue: "", in: { $concat: ["$$value", " ", "$$this"] } } }, regex: primaryRegex } }, 50, 0] },
+              // AI Keyword in name
+              { $cond: [secondaryRegex ? { $regexMatch: { input: '$name', regex: secondaryRegex } } : false, 50, 0] },
+              // Matches in description (Lowest Weight)
+              { $cond: [{ $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: partialRegex } }, 20, 0] },
+              { $cond: [secondaryRegex ? { $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: secondaryRegex } } : false, 10, 0] },
               { $cond: ['$isSaathiGrow', 5, 0] }
             ]
           }
         }
       },
-      // Require at least a name keyword match to avoid returning pure description results
-      { $match: { relevanceScore: { $gte: 30 } } },
+      // Higher threshold: items must reach at least 50 points to be included.
+      // This requires at least a direct name match, original tag match, or AI keyword name match.
+      { $match: { relevanceScore: { $gte: 50 } } },
       {
         $facet: {
           metadata: [{ $count: 'total' }],
