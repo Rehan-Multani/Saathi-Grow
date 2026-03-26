@@ -68,9 +68,36 @@ const UserLayout = () => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
     const location = useLocation();
     const { isDarkMode } = useTheme();
+    const { isBottomSheetOpen } = useShop();
     const authNoChromePaths = ['/logout-confirmation', '/login', '/register', '/order-success'];
     const hideDesktopChrome = authNoChromePaths.includes(location.pathname);
-    const hideNavbarMobile = location.pathname === '/orders' || location.pathname === '/checkout' || hideDesktopChrome;
+    
+    // Hide navbar on mobile for focused browsing/management pages
+    const focusedPaths = [
+        '/orders', 
+        '/checkout', 
+        '/profile', 
+        '/wallet', 
+        '/wishlist', 
+        '/my-complaints', 
+        '/settings', 
+        '/help', 
+        '/notifications', 
+        '/saved-addresses', 
+        '/add-address',
+        '/support/raise-ticket',
+        '/product',
+        '/lowest-prices',
+        '/occasion',
+        '/campaign'
+    ];
+    
+    const isFocusedPath = focusedPaths.some(path => location.pathname.startsWith(path)) || 
+                          location.pathname.startsWith('/legal/') ||
+                          location.pathname.startsWith('/edit-address/') ||
+                          (location.pathname.startsWith('/category/') && location.pathname !== '/category'); // Only hide on individual category pages, not the main list
+
+    const hideNavbarMobile = isFocusedPath || hideDesktopChrome;
 
     // Determine Theme based on route (for Occasion Pages & Lowest Prices)
     const occasionMatch = matchPath("/occasion/:slug", location.pathname);
@@ -136,8 +163,8 @@ const UserLayout = () => {
             <SearchOverlay />
 
             <main className="flex-grow bg-white dark:!bg-black transition-colors duration-300 pb-20 md:pb-0">
-                <PullToRefresh onRefresh={handleRefresh}>
-                    <Suspense fallback={<LoadingFallback />}>
+                {hideDesktopChrome ? (
+                     <Suspense fallback={<LoadingFallback />}>
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={location.pathname}
@@ -151,7 +178,24 @@ const UserLayout = () => {
                             </motion.div>
                         </AnimatePresence>
                     </Suspense>
-                </PullToRefresh>
+                ) : (
+                    <PullToRefresh onRefresh={handleRefresh}>
+                        <Suspense fallback={<LoadingFallback />}>
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={location.pathname}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                    className="w-full h-full"
+                                >
+                                    <Outlet />
+                                </motion.div>
+                            </AnimatePresence>
+                        </Suspense>
+                    </PullToRefresh>
+                )}
             </main>
 
             {/* Desktop Footer */}
@@ -162,7 +206,7 @@ const UserLayout = () => {
             )}
 
             {/* Mobile Navigation */}
-            {!hideDesktopChrome && <MobileFooter setIsMenuOpen={setIsMenuOpen} />}
+            <MobileFooter setIsMenuOpen={setIsMenuOpen} isBottomSheetOpen={isBottomSheetOpen} />
         </div>
     );
 };

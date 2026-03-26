@@ -82,6 +82,8 @@ export const ShopProvider = ({ children }) => {
     );
   };
 
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  
   return (
     <ShopContext.Provider
       value={{
@@ -93,7 +95,9 @@ export const ShopProvider = ({ children }) => {
         error,
         settings,
         refreshShopData,
-        getProductsByCategory
+        getProductsByCategory,
+        isBottomSheetOpen,
+        setIsBottomSheetOpen
       }}
     >
       {children}

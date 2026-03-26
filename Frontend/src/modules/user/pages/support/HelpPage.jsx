@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Headset, MessageCircle, HelpCircle, Phone, Mail, ArrowLeft, ChevronDown, ChevronUp, Loader } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getPublicSettings } from '../../api/publicSettingApi';
@@ -46,8 +46,8 @@ const HelpPage = () => {
     return (
         <div className="min-h-screen bg-[#f8fafc] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none dark:bg-none dark:bg-black md:dark:bg-black transition-colors duration-300 pb-20 md:p-10">
             <div className="max-w-2xl md:max-w-5xl mx-auto md:px-0">
-                {/* Header - Dashboard Style */}
-                <div className="flex items-center gap-3 px-4 py-6 md:px-0 md:py-0 md:mb-12 bg-white md:bg-transparent dark:bg-black md:dark:bg-black md:border-none sticky top-0 md:relative z-40">
+                {/* Header - Sticky & Blurred */}
+                <div className="flex items-center gap-3 px-4 py-8 md:px-0 md:py-0 md:mb-12 border-b border-gray-100 dark:border-white/5 md:border-none bg-white/80 dark:bg-black/80 backdrop-blur-lg sticky top-0 md:relative z-50 transition-colors">
                     <button
                         onClick={() => {
                             const from = routerLocation.state?.from || '/';
@@ -66,7 +66,7 @@ const HelpPage = () => {
                 </div>
 
                 {/* Main Contact Section - Premium Banner */}
-                <div className="mx-6 md:mx-0 mb-6 md:mb-16 bg-[#0c831f] rounded-[24px] md:rounded-[40px] p-6 md:p-12 text-white shadow-xl shadow-green-500/20 relative overflow-hidden group">
+                <div className="mx-6 md:mx-0 mt-8 mb-6 md:mb-16 bg-[#0c831f] rounded-[24px] md:rounded-[40px] p-6 md:p-12 text-white shadow-xl shadow-green-500/20 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-12 md:p-20 transform translate-x-4 -translate-y-4 opacity-10 group-hover:scale-110 transition-transform">
                         <Headset size={120} className="hidden md:block" />
                         <Headset size={80} className="md:hidden" />

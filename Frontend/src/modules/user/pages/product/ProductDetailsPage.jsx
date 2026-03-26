@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchProductById, fetchProducts, logDemandRequest, fetchProductReviews, submitProductReview } from '../../api/shopApi';
 import { useCart } from '../../context/CartContext';
@@ -21,8 +21,6 @@ const ProductDetailsPage = () => {
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(null);
     const [productImages, setProductImages] = useState([]);
-    const [similarProducts, setSimilarProducts] = useState([]);
-    const [recommendedProducts, setRecommendedProducts] = useState([]);
     const [error, setError] = useState(false);
     const [isSubmittingDemand, setIsSubmittingDemand] = useState(false);
     const [demandLogged, setDemandLogged] = useState(false);
@@ -76,51 +74,6 @@ const ProductDetailsPage = () => {
             setSelectedImage(p.image);
             setProductImages(p.images.length >= 3 ? p.images : [p.image, p.image, p.image]); // Fill layout if few images
 
-            // Fetch relative products
-            if (p.category) {
-                try {
-                    const simres = await fetchProducts({
-                        category: p.category,
-                        limit: 10,
-                        storeId: activeStore?.id,
-                        storeType: activeStore?.type
-                    });
-                    const sim = (Array.isArray(simres) ? simres : (simres?.products || [])).filter(simP => simP._id !== id).map(simP => ({
-                        id: simP._id,
-                        name: simP.name,
-                        image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
-                        price: simP.basePrice,
-                        mrp: simP.mrp,
-                        weight: `${simP.unitValue} ${simP.unitType}`,
-                        isDeliverable: simP.isDeliverable
-                    }));
-                    setSimilarProducts(sim);
-                } catch (simErr) {
-                    console.error("Failed to load similar products:", simErr);
-                }
-            }
-
-            // General Recommendations
-            try {
-                const recres = await fetchProducts({
-                    limit: 12,
-                    storeId: activeStore?.id,
-                    storeType: activeStore?.type
-                });
-                const rec = (Array.isArray(recres) ? recres : (recres?.products || [])).filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
-                    id: recP._id,
-                    name: recP.name,
-                    image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
-                    price: recP.basePrice,
-                    mrp: recP.mrp,
-                    weight: `${recP.unitValue} ${recP.unitType}`,
-                    isDeliverable: recP.isDeliverable
-                }));
-                setRecommendedProducts(rec);
-            } catch (recErr) {
-                console.error("Failed to load recommended products:", recErr);
-            }
-
         } catch (err) {
             console.error("Failed to load product details:", err);
             setError(true);
@@ -136,11 +89,11 @@ const ProductDetailsPage = () => {
             const initialReviews = data.data || [];
             setReviews(initialReviews);
             setReviewsPagination(data.pagination);
-            
+
             // Check if current user has already reviewed
             if (token && user) {
-               const userReview = initialReviews.find(r => (r.user?._id || r.user) === user?._id);
-               if (userReview) setHasUserReviewed(true);
+                const userReview = initialReviews.find(r => (r.user?._id || r.user) === user?._id);
+                if (userReview) setHasUserReviewed(true);
             }
         } catch (err) {
             console.error("Failed to load reviews:", err);
@@ -151,7 +104,7 @@ const ProductDetailsPage = () => {
 
     const loadMoreReviews = async () => {
         if (reviewsPagination.page >= reviewsPagination.pages || isLoadingMore) return;
-        
+
         try {
             setIsLoadingMore(true);
             const nextPage = reviewsPagination.page + 1;
@@ -230,7 +183,7 @@ const ProductDetailsPage = () => {
 
     const handleSubmitReview = async (e) => {
         e.preventDefault();
-        
+
         if (!token) {
             toast.info("Please login to write a review");
             return;
@@ -248,7 +201,7 @@ const ProductDetailsPage = () => {
                 rating: reviewRating,
                 comment: reviewComment
             }, token);
-            
+
             toast.success("Thank you for your feedback!");
             setReviewComment('');
             setReviewRating(5);
@@ -280,8 +233,8 @@ const ProductDetailsPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-[#09090b] pb-20 transition-colors duration-300">
-            <SEO 
-                title={product.name} 
+            <SEO
+                title={product.name}
                 description={product.description || `Buy ${product.name} at the best price from Saathi-Grow. Fresh quality and super fast delivery.`}
                 image={product.image}
                 type="product"
@@ -564,25 +517,18 @@ const ProductDetailsPage = () => {
                 </div>
             </div>
 
-            {/* Lazy Loaded Recommendation Sections */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-8 md:space-y-12">
-                <RecommendationSections 
-                    id={id} 
-                    category={product.category} 
-                    activeStore={activeStore} 
-                />
-            </div>
+
 
             {/* Product Feedback Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 mb-16">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Left: Rating Stats & Write Review */}
                     <div className="lg:col-span-4">
                         <div className="flex items-center gap-2 mb-4">
-                             <div className="w-0.5 h-4 bg-[#0c831f] rounded-full shrink-0" />
-                             <p className="!text-[13px] !font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight leading-none">
-                                 Product Feedback
-                             </p>
+                            <div className="w-0.5 h-4 bg-[#0c831f] rounded-full shrink-0" />
+                            <p className="!text-[13px] !font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight leading-none">
+                                Product Feedback
+                            </p>
                         </div>
 
                         <div className="bg-white dark:bg-[#18181b] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">
@@ -649,7 +595,7 @@ const ProductDetailsPage = () => {
                                 Customer Stories ({product.ratingCount})
                             </p>
                             {reviews.length > 0 && (
-                                <button 
+                                <button
                                     onClick={openAllReviews}
                                     className="!text-[11px] font-black text-[#0c831f] uppercase tracking-widest hover:underline leading-none"
                                 >
@@ -708,7 +654,7 @@ const ProductDetailsPage = () => {
                                     </div>
                                 ))}
                                 {reviews.length > 3 && (
-                                    <button 
+                                    <button
                                         onClick={openAllReviews}
                                         className="bg-gray-50 dark:bg-white/5 rounded-2xl px-6 py-4 flex flex-col items-center justify-center min-w-[120px] group transition-all"
                                     >
@@ -735,7 +681,7 @@ const ProductDetailsPage = () => {
                                 <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">Customer Experiences</h2>
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{reviewsPagination.total} reviews for {product.name}</p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setIsAllReviewsModalOpen(false)}
                                 className="w-8 h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
                             >
@@ -778,15 +724,15 @@ const ProductDetailsPage = () => {
 
                             {reviewsPagination.page < reviewsPagination.pages && (
                                 <div className="py-4">
-                                    <button 
+                                    <button
                                         onClick={loadMoreReviews}
                                         disabled={isLoadingMore}
                                         className="w-full font-black text-[10px] text-[#0c831f] uppercase tracking-widest bg-[#eefaf1] py-4 rounded-2xl hover:bg-[#0c831f]/10 transition-colors flex items-center justify-center gap-2"
                                     >
                                         {isLoadingMore ? (
                                             <>
-                                               <div className="w-3 h-3 border-2 border-[#0c831f]/30 border-t-[#0c831f] rounded-full animate-spin" />
-                                               Fetching more stories...
+                                                <div className="w-3 h-3 border-2 border-[#0c831f]/30 border-t-[#0c831f] rounded-full animate-spin" />
+                                                Fetching more stories...
                                             </>
                                         ) : "Load more reviews"}
                                     </button>
@@ -798,11 +744,11 @@ const ProductDetailsPage = () => {
             )}
 
             {/* Lazy Loaded Recommendation Sections */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-8 md:space-y-12">
-                <RecommendationSections 
-                    id={id} 
-                    category={product.category} 
-                    activeStore={activeStore} 
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 space-y-8 md:space-y-12 pb-12">
+                <RecommendationSections
+                    id={id}
+                    category={product.category}
+                    activeStore={activeStore}
                 />
             </div>
         </div>

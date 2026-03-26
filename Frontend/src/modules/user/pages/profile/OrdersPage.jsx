@@ -25,15 +25,15 @@ const OrdersPage = () => {
 
                     // Determine Color 
                     const statusLower = (o.status || '').toLowerCase();
-                    let colorClass = 'text-green-600 bg-green-50'; // Default Delivered
+                    let colorClass = 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-500/10'; // Default Delivered
                     if (['pending', 'confirmed', 'processing', 'preparing'].includes(statusLower)) {
-                        colorClass = 'text-orange-600 bg-orange-50';
+                        colorClass = 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-500/10';
                     }
                     if (['out_for_delivery', 'shipped', 'in_transit'].includes(statusLower)) {
-                        colorClass = 'text-blue-600 bg-blue-50';
+                        colorClass = 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10';
                     }
                     if (['cancelled', 'returned'].includes(statusLower)) {
-                        colorClass = 'text-red-600 bg-red-50';
+                        colorClass = 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-500/10';
                     }
 
                     return {
@@ -69,7 +69,8 @@ const OrdersPage = () => {
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-20 md:p-8 md:pb-8">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-0 md:mb-10 p-4 md:p-0 border-b border-gray-200/50 md:border-none bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black z-40 sticky top-0">
+                {/* Header- Sticky & Blurred */}
+                <div className="flex items-center gap-3 mb-0 md:mb-10 p-4 md:p-0 border-b border-gray-200/50 dark:border-white/5 md:border-none bg-white/80 dark:bg-black/80 backdrop-blur-lg z-50 sticky top-0 transition-colors">
                     <button
                         onClick={() => navigate(-1)}
                         className="p-1.5 md:p-2 bg-white/50 dark:bg-[#141414] rounded-full shadow-sm hover:bg-gray-100 transition-colors md:bg-gray-50 active:scale-95"
@@ -81,7 +82,7 @@ const OrdersPage = () => {
 
                 {/* Orders List */}
                 <div className="px-0 md:px-0">
-                    <p className="!text-[10px] md:!text-sm font-bold text-gray-400 px-4 py-2 md:px-0 md:mb-6 tracking-widest uppercase bg-gray-50/50 md:bg-transparent">Your Purchase History</p>
+                    <p className="!text-[10px] md:!text-sm font-bold text-gray-500 dark:text-gray-400 px-4 py-3 md:px-0 md:mb-6 tracking-widest uppercase bg-gray-50/80 dark:bg-white/5 border-y border-gray-100 dark:border-white/5 md:border-none md:bg-transparent">Your Purchase History</p>
                     <div className="divide-y divide-gray-200 dark:divide-white/5 md:divide-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-6 bg-transparent md:bg-transparent">
                         {orders.map((order) => (
                             <div
@@ -110,14 +111,14 @@ const OrdersPage = () => {
                                             </div>
                                         )}
                                         {/* Return OTP Flow */}
-                                        {order.returnRequest?.isRequested && 
-                                         ['Accepted', 'Approved', 'Scheduled', 'PickedUp'].includes(order.returnRequest.status) && 
-                                         order.returnRequest.returnOTP && 
-                                         order.status !== 'returned' && (
-                                            <div className="px-2 py-0.5 bg-orange-600 text-white rounded-lg text-[9px] md:text-[10px] font-black tracking-widest shadow-sm">
-                                                RETURN PIN: {order.returnRequest.returnOTP}
-                                            </div>
-                                        )}
+                                        {order.returnRequest?.isRequested &&
+                                            ['Accepted', 'Approved', 'Scheduled', 'PickedUp'].includes(order.returnRequest.status) &&
+                                            order.returnRequest.returnOTP &&
+                                            order.status !== 'returned' && (
+                                                <div className="px-2 py-0.5 bg-orange-600 text-white rounded-lg text-[9px] md:text-[10px] font-black tracking-widest shadow-sm">
+                                                    RETURN PIN: {order.returnRequest.returnOTP}
+                                                </div>
+                                            )}
                                     </div>
                                 </div>
 

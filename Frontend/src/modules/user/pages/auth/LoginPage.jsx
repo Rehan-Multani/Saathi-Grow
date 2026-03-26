@@ -81,7 +81,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="relative min-h-screen md:min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative h-[100dvh] overflow-hidden md:min-h-[calc(100vh-64px)] flex items-center justify-center px-4 sm:px-6 lg:px-8">
             {/* Background Image with Blur */}
             <div
                 className="absolute inset-0 bg-cover bg-center z-0"
@@ -179,7 +179,7 @@ const LoginPage = () => {
                         </form>
                     )}
                 </div>
-                <div className="bg-gray-50/50 dark:bg-white/5 px-6 py-3.5 text-center border-t border-gray-100 dark:border-white/5">
+                <div className="bg-gray-50/50 dark:bg-white/5 px-6 py-2.5 text-center border-t border-gray-100 dark:border-white/5">
                     <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
                         Don't have an account?{' '}
                         <Link to={`/register?redirect=${encodeURIComponent(redirectPath)}`} className="font-bold text-[#0c831f] dark:text-[#10b981] hover:underline">

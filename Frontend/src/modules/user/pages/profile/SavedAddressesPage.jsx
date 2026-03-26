@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { MapPin, ArrowLeft, Plus, ShoppingBag, Edit2, Trash2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLocation as useAppLocation } from '../../context/LocationContext';
@@ -17,10 +17,10 @@ const SavedAddressesPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:from-[#141414] dark:to-[#141414] md:bg-white md:bg-none md:dark:bg-black pb-24 md:p-8 md:pb-8 transition-colors duration-300">
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-black transition-colors duration-300 pb-24 md:p-8 md:pb-8">
             <div className="max-w-2xl md:max-w-6xl mx-auto md:px-0">
-                {/* Header - Now visible and beautiful on mobile */}
-                <div className="flex items-center justify-between mb-2 md:mb-10 px-4 py-4 md:p-0 bg-white md:bg-transparent dark:bg-black/80 md:dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none sticky top-0 z-40 md:relative">
+                {/* Header - Sticky & Focused */}
+                <div className="flex items-center justify-between mb-2 md:mb-10 px-4 py-8 md:p-0 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-b border-gray-100 dark:border-white/5 md:border-none sticky top-0 z-50 md:relative transition-colors">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => {
@@ -60,7 +60,7 @@ const SavedAddressesPage = () => {
                                             <div className="flex items-center gap-2 md:gap-3">
                                                 <h3 className="text-[14px] md:text-xl font-black text-gray-900 dark:text-gray-100">{addr.type}</h3>
                                                 {addr.isDefault && (
-                                                    <span className="px-1.5 py-0.5 md:px-2.5 md:py-1 bg-green-50 text-[var(--saathi-green)] text-[8px] md:text-[10px] font-black uppercase rounded-md border border-green-100 dark:border-green-900/30">Default</span>
+                                                    <span className="px-1.5 py-0.5 md:px-2.5 md:py-1 bg-green-50 dark:bg-green-500/10 text-[var(--saathi-green)] dark:text-green-400 text-[8px] md:text-[10px] font-black uppercase rounded-md border border-green-100 dark:border-green-500/20">Default</span>
                                                 )}
                                             </div>
                                             <p className="text-[11px] md:text-sm text-gray-500 font-medium mt-0.5">{addr.name || 'Synced with Account'}</p>

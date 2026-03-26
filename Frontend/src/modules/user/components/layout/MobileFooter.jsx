@@ -3,14 +3,14 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, LayoutGrid, User, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const MobileFooter = ({ setIsMenuOpen }) => {
+const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
     const { user } = useAuth();
     const location = useLocation();
 
     // Do not show on auth pages, checkout, or tracking
     const hideOnPages = ['/login', '/register', '/checkout', '/order-success'];
     const isTrackingPage = location.pathname.includes('/tracking');
-    if (hideOnPages.includes(location.pathname) || isTrackingPage) return null;
+    const isActuallyHidden = hideOnPages.includes(location.pathname) || isTrackingPage;
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },
@@ -20,7 +20,7 @@ const MobileFooter = ({ setIsMenuOpen }) => {
     ];
 
     return (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#f8f9fa] dark:bg-[#0a0a0a] border-t border-gray-100 dark:border-white/10 z-[999] px-6 py-3 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] pb-safe transition-colors duration-300">
+        <div className={`md:hidden fixed bottom-0 left-0 right-0 bg-[#f8f9fa] dark:bg-[#0a0a0a] border-t border-gray-100 dark:border-white/10 z-[999] px-6 py-3 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] pb-safe transition-all duration-500 transform ${isBottomSheetOpen || isActuallyHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
             <div className="flex items-center justify-between">
                 {navItems.map((item, index) => (
                     item.action ? (

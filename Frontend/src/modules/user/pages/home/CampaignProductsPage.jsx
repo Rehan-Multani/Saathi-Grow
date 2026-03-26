@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '../../context/StoreContext';
 import { fetchCampaignMetadata, fetchProducts } from '../../api/shopApi';
 import { normalizeProduct } from '../home/HomePage';
+import { useShop } from '../../context/ShopContext';
 import ProductCard from '../../components/product/ProductCard';
 import { toast } from 'react-toastify';
 import SEO from '../../../../common/components/SEO';
@@ -15,6 +16,7 @@ const CampaignProductsPage = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { activeStore } = useStore();
+  const { setIsBottomSheetOpen } = useShop();
 
   const [campaign, setCampaign] = useState(null);
   const [products, setProducts] = useState([]);
@@ -97,6 +99,11 @@ const CampaignProductsPage = () => {
     return () => clearTimeout(timer);
   }, [loadProducts]);
 
+  useEffect(() => {
+    setIsBottomSheetOpen(showFilters);
+    return () => setIsBottomSheetOpen(false);
+  }, [showFilters, setIsBottomSheetOpen]);
+
   const handleLoadMore = () => {
     if (page < totalPages) {
       loadProducts(page + 1, true);
@@ -144,12 +151,12 @@ const CampaignProductsPage = () => {
           "description": campaign?.subtitle
         }}
       />
-      {/* Header */}
+      {/* Campaign Header - Flow Relative */}
       <div
-        className="sticky top-0 z-50 transition-all duration-300 shadow-sm border-b border-gray-100 dark:border-white/5"
+        className="relative z-50 transition-all duration-300 border-b border-gray-100 dark:border-white/5"
         style={{ backgroundColor: isDarkMode ? '#000000' : bgColor }}
       >
-        <div className="pt-16 pb-3 px-4 flex items-center gap-4">
+        <div className="pt-8 pb-3 px-4 flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
             className="p-2.5 rounded-2xl bg-white dark:bg-zinc-900 shadow-md border border-gray-100 dark:border-white/10 active:scale-90 transition-all"

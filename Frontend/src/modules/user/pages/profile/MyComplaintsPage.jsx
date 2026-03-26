@@ -30,18 +30,18 @@ const MyComplaintsPage = () => {
   }, [token]);
 
   const statusMap = {
-    'OPEN': { color: 'text-amber-600 bg-amber-50', label: 'Under Review' },
-    'ESCALATED_TO_STORE': { color: 'text-orange-600 bg-orange-50', label: 'Escalated to Store' },
-    'STORE_RESPONDED': { color: 'text-blue-600 bg-blue-50', label: 'Response Received' },
-    'RESOLVED': { color: 'text-green-600 bg-green-50', label: 'Resolved' },
-    'CLOSED': { color: 'text-gray-500 bg-gray-100', label: 'Closed' }
+    'OPEN': { color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10', label: 'Under Review' },
+    'ESCALATED_TO_STORE': { color: 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-500/10', label: 'Escalated to Store' },
+    'STORE_RESPONDED': { color: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10', label: 'Response Received' },
+    'RESOLVED': { color: 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-500/10', label: 'Resolved' },
+    'CLOSED': { color: 'text-gray-500 bg-gray-100 dark:text-gray-400 dark:bg-white/5', label: 'Closed' }
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-20 md:p-10 md:pb-16">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-black transition-colors duration-300 pb-20 md:p-10 md:pb-16">
       <div className="max-w-2xl md:max-w-7xl mx-auto">
         {/* Header - Professional Dashboard Style */}
-        <div className="flex items-center gap-3 px-4 py-6 md:px-0 md:py-0 md:mb-12 border-b md:border-none bg-white md:bg-transparent dark:bg-black md:dark:bg-black sticky top-0 md:relative z-40">
+        <div className="flex items-center gap-3 px-4 py-6 md:px-0 md:py-0 md:mb-12 border-b border-gray-100 dark:border-white/5 md:border-none bg-white/80 dark:bg-black/80 backdrop-blur-lg sticky top-0 md:relative z-40">
           <button
             onClick={() => navigate('/profile')}
             className="p-2 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-all active:scale-95"
@@ -55,8 +55,8 @@ const MyComplaintsPage = () => {
         </div>
 
         {/* Complaints List */}
-        <div className="px-0 md:px-0 mt-2 md:mt-0">
-          <p className="!text-[10px] md:text-[11px] font-black text-gray-400/80 px-4 py-3 md:px-0 md:mb-8 tracking-[0.2em] uppercase bg-gray-50/50 md:bg-transparent border-b md:border-none">Active Support Requests</p>
+        <div className="px-0 md:px-0 mt-4 md:mt-0">
+          <p className="!text-[10px] md:text-[11px] font-black text-gray-500 dark:text-gray-400 px-4 py-3 md:px-0 md:mb-8 tracking-[0.2em] uppercase bg-gray-50/80 dark:bg-white/5 border-y border-gray-100 dark:border-white/5 md:border-none md:bg-transparent">Active Support Requests</p>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 bg-transparent">
               <Loader2 className="animate-spin text-[#0c831f] mb-4 w-8 h-8 md:w-12 md:h-12" />

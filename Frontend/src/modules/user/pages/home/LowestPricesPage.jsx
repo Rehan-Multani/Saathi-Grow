@@ -38,9 +38,9 @@ const LowestPricesPage = () => {
                 title="Lowest Prices Ever" 
                 description="Unbeatable deals and lowest prices on fresh groceries, staples, and daily essentials at Saathi-Grow. Save big on your daily shopping!" 
             />
-            {/* Header */}
+            {/* Header - Flow Relative */}
             <div
-                className="sticky top-0 z-40 px-4 pt-[74px] pb-2 flex items-center gap-3 shadow-sm transition-colors duration-300 backdrop-blur-md bg-opacity-95"
+                className="relative z-40 px-4 pt-8 pb-4 flex items-center gap-3 transition-colors duration-300"
                 style={{ backgroundColor: bgColor }}
             >
                 <button
@@ -59,9 +59,9 @@ const LowestPricesPage = () => {
                 </div>
             </div>
 
-            {/* Filter/Sort Bar */}
+            {/* Filter/Sort Bar - Flow Relative */}
             <div
-                className="sticky top-[122px] z-30 px-4 py-2 backdrop-blur-md transition-colors duration-300"
+                className="relative z-30 px-4 py-2 transition-colors duration-300"
                 style={{ backgroundColor: `${bgColor}90` }}
             >
                 <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">

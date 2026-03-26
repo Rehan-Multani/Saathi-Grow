@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, ChevronDown } from 'lucide-react';
 import { products } from '../../data/products';
@@ -40,9 +40,9 @@ const OccasionPage = () => {
                 background: isDarkMode ? '#000000' : `linear-gradient(to bottom, ${occasionConfig.bgColor} 0%, #ffffff 100%)`
             }}
         >
-            {/* Header */}
+            {/* Header - Flow Relative */}
             <div
-                className="sticky top-0 z-40 px-4 pt-[74px] pb-2 flex items-center gap-3 shadow-sm transition-colors duration-300 backdrop-blur-md bg-opacity-95"
+                className="relative z-40 px-4 pt-8 pb-4 flex items-center gap-3 transition-colors duration-300"
                 style={{ backgroundColor: isDarkMode ? '#000000' : occasionConfig.bgColor }}
             >
                 <button
@@ -76,8 +76,8 @@ const OccasionPage = () => {
                 </div>
             </div>
 
-            {/* Filter / Sort Bar (Visual Only for now) */}
-            <div className="sticky top-[122px] z-30 bg-white/50 dark:bg-black/50 backdrop-blur-md border-b border-gray-100/20 py-2 px-4 shadow-sm mb-4 transition-colors duration-300">
+            {/* Filter / Sort Bar - Flow Relative */}
+            <div className="relative z-30 py-2 px-4 transition-colors duration-300 mb-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <p className="text-[10px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">{displayProducts.length} Items Found</p>
                     <div className="flex gap-2">

@@ -94,7 +94,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="relative min-h-screen md:min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative h-[100dvh] overflow-hidden md:min-h-[calc(100vh-64px)] flex items-center justify-center px-4 sm:px-6 lg:px-8">
             {/* Background Image with Blur */}
             <div
                 className="absolute inset-0 bg-cover bg-center z-0"
@@ -223,7 +223,7 @@ const RegisterPage = () => {
                         </form>
                     )}
 
-                    <div className="mt-6 text-center">
+                    <div className="mt-4 text-center">
                         <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
                             Already have an account? <Link to={`/login?redirect=${encodeURIComponent(redirectPath)}`} className="text-[#0c831f] dark:text-[#10b981] font-bold hover:underline">Log in</Link>
                         </p>

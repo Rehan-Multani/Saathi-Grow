@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { fetchProducts, fetchBrands } from '../../api/shopApi';
@@ -9,7 +9,6 @@ import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 import { normalizeProduct } from '../home/HomePage';
 import SEO from '../../../../common/components/SEO';
-import { motion, AnimatePresence } from 'framer-motion';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const categoryColors = {
@@ -139,105 +138,75 @@ const CategoryPage = () => {
         setLocalSearch('');
     }, [slug]);
 
+    const { setIsBottomSheetOpen } = useShop();
+
+    useEffect(() => {
+        setIsBottomSheetOpen(isFilterOpen);
+        return () => setIsBottomSheetOpen(false);
+    }, [isFilterOpen, setIsBottomSheetOpen]);
+
     useEffect(() => {
         const handleRefresh = () => loadCategoryProducts(1, false);
         window.addEventListener('saathi_refresh', handleRefresh);
         return () => window.removeEventListener('saathi_refresh', handleRefresh);
     }, [loadCategoryProducts]);
 
-    // Intersection Observer for Infinite Scroll
-    const lastProductRef = useRef(null);
-
-    useEffect(() => {
-        if (isLoading || isFetchingMore || page >= totalPages) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) {
-                    loadCategoryProducts(page + 1, true);
-                }
-            },
-            { threshold: 0.1, rootMargin: '200px' }
-        );
-
-        if (lastProductRef.current) {
-            observer.observe(lastProductRef.current);
-        }
-
-        return () => {
-            if (lastProductRef.current) observer.unobserve(lastProductRef.current);
-        };
-    }, [isLoading, isFetchingMore, page, totalPages, loadCategoryProducts]);
-
     if (isMainListView) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white dark:bg-none dark:bg-black p-4 pt-6 pb-24 transition-all duration-300">
+            <div className="min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white dark:bg-none dark:bg-black p-4 pt-6 pb-24">
                 <SEO title="All Categories" description="Browse through all categories of fresh products and groceries available on Saathi-Grow." />
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-4 mb-8"
-                    >
+                    <div className="flex items-center gap-4 mb-8">
                         <button
                             onClick={() => navigate('/')}
-                            className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm hidden md:flex active:scale-90 transition-transform"
+                            className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm hidden md:flex"
                         >
                             <ArrowLeft size={16} />
                         </button>
                         <h1 className="text-sm md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
-                    </motion.div>
+                    </div>
 
                     {isLoading ? (
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
                             {Array.from({ length: 12 }).map((_, i) => (
-                                <div key={i} className="w-20 sm:w-28 aspect-square bg-gray-100 dark:bg-white/5 rounded-xl sm:rounded-[32px] animate-pulse" />
+                                <div key={i} className="w-20 aspect-square bg-gray-100 dark:bg-white/5 rounded-xl sm:rounded-[32px] animate-pulse" />
                             ))}
                         </div>
                     ) : (
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                hidden: { opacity: 0 },
-                                visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
-                            }}
-                            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1"
-                        >
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
                             {categories.map((cat) => {
                                 const catSlug = cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
                                 return (
-                                    <motion.div
+                                    <Link
                                         key={cat._id || cat.id}
-                                        variants={{
-                                            hidden: { opacity: 0, scale: 0.9, y: 10 },
-                                            visible: { opacity: 1, scale: 1, y: 0 }
-                                        }}
+                                        to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`}
+                                        className="flex flex-col items-center group active:scale-95 transition-all"
                                     >
-                                        <Link
-                                            to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`}
-                                            className="flex flex-col items-center group active:scale-95 transition-all"
+                                        <div
+                                            className="w-20 sm:w-28 aspect-square rounded-xl sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
+                                            style={{ backgroundColor: categoryColors[cat.slug] || '#f3f4f6' }}
                                         >
-                                            <div
-                                                className="w-20 sm:w-28 aspect-square rounded-xl sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
-                                                style={{ backgroundColor: categoryColors[cat.slug] || '#f3f4f6' }}
-                                            >
-                                                <img
-                                                    src={cat.image || categoryPlaceholder}
-                                                    alt={cat.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                    loading="lazy"
-                                                />
-                                            </div>
-                                            <span className="text-[10px] sm:text-[14px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight tracking-tight px-1 capitalize">
-                                                {cat.name?.toLowerCase() || 'Category'}
-                                            </span>
-                                        </Link>
-                                    </motion.div>
+                                            <img
+                                                src={cat.image || categoryPlaceholder}
+                                                alt={cat.name}
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                onError={(e) => {
+                                                    if (e.target.src !== categoryPlaceholder) {
+                                                        e.target.src = categoryPlaceholder;
+                                                        e.target.classList.add('opacity-80');
+                                                        e.target.style.objectFit = 'cover';
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                        <span className="text-[10px] sm:text-[14px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight tracking-tight px-1 capitalize">
+                                            {cat.name?.toLowerCase() || 'Category'}
+                                        </span>
+                                    </Link>
                                 );
                             })}
-                        </motion.div>
+                        </div>
                     )}
                 </div>
             </div>
@@ -260,23 +229,19 @@ const CategoryPage = () => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/category')}
-                                className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-300 active:scale-90 transition-transform"
+                                className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-300"
                             >
                                 <ArrowLeft size={16} />
                             </button>
                             {!showSearch ? (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="flex flex-col"
-                                >
+                                <div className="flex flex-col">
                                     <h1 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 leading-none">
                                         {currentCategory?.name || 'Store'}
                                     </h1>
                                     <div className="flex items-center text-[8px] text-gray-400 gap-1.5 uppercase tracking-widest font-bold">
                                         <span>{totalResults} Products</span>
                                     </div>
-                                </motion.div>
+                                </div>
                             ) : null}
                         </div>
 
@@ -290,7 +255,7 @@ const CategoryPage = () => {
                                     value={localSearch}
                                     onChange={(e) => setLocalSearch(e.target.value)}
                                     className="w-full pl-9 pr-9 py-2 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#0c831f] transition-all"
-                                    autoFocus={showSearch}
+                                    autoFocus
                                 />
                                 {localSearch && (
                                     <button
@@ -322,81 +287,80 @@ const CategoryPage = () => {
                         </div>
                     </div>
 
-                    {/* Filter Drawer */}
-                    <AnimatePresence>
-                        {isFilterOpen && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="overflow-hidden"
-                            >
-                                <div className="mt-4 pt-4 border-t border-gray-50 dark:border-white/5 pb-2">
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex flex-wrap items-center gap-4">
-                                            <div className="flex flex-col gap-1.5">
-                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Sort By</span>
-                                                <div className="flex gap-2">
-                                                    {[
-                                                        { id: '-createdAt', label: 'Newest' },
-                                                        { id: 'basePrice', label: 'Price: Low-High' },
-                                                        { id: '-basePrice', label: 'Price: High-Low' }
-                                                    ].map(opt => (
-                                                        <button
-                                                            key={opt.id}
-                                                            onClick={() => setSortOption(opt.id)}
-                                                            className={`px-3 py-2 rounded-xl text-[10px] font-bold transition-all ${sortOption === opt.id ? 'bg-[#0c831f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-transparent'}`}
-                                                        >
-                                                            {opt.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col gap-1.5 ml-auto">
-                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Dietary</span>
+                    {/* Filter Drawer - Implementation of "other filters" */}
+                    {isFilterOpen && (
+                        <div className="mt-4 pt-4 border-t border-gray-50 dark:border-white/5 pb-2">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Sort By</span>
+                                        <div className="flex gap-2">
+                                            {[
+                                                { id: '-createdAt', label: 'Newest' },
+                                                { id: 'basePrice', label: 'Price: Low-High' },
+                                                { id: '-basePrice', label: 'Price: High-Low' }
+                                            ].map(opt => (
                                                 <button
-                                                    onClick={() => setIsVegOnly(!isVegOnly)}
-                                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold transition-all border ${isVegOnly ? 'bg-green-600 border-green-600 text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 border-transparent'}`}
+                                                    key={opt.id}
+                                                    onClick={() => setSortOption(opt.id)}
+                                                    className={`px-3 py-2 rounded-xl text-[10px] font-bold transition-all ${sortOption === opt.id ? 'bg-[#0c831f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-transparent'}`}
                                                 >
-                                                    <Leaf size={12} className={isVegOnly ? 'text-white' : 'text-green-600'} />
-                                                    Veg Only
+                                                    {opt.label}
                                                 </button>
-                                            </div>
+                                            ))}
                                         </div>
+                                    </div>
 
-                                        {availableBrands.length > 0 && (
-                                            <div className="flex flex-col gap-1.5 w-full">
-                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Brands</span>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {availableBrands.map(brand => (
-                                                        <button
-                                                            key={brand}
-                                                            onClick={() => {
-                                                                setSelectedBrands(prev =>
-                                                                    prev.includes(brand)
-                                                                        ? prev.filter(b => b !== brand)
-                                                                        : [...prev, brand]
-                                                                );
-                                                            }}
-                                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${selectedBrands.includes(brand) ? 'bg-black text-white border-black shadow-md' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 border-gray-100 dark:border-white/10'}`}
-                                                        >
-                                                            {brand}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="flex flex-col gap-1.5 ml-auto">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Dietary</span>
+                                        <button
+                                            onClick={() => setIsVegOnly(!isVegOnly)}
+                                            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold transition-all border ${isVegOnly ? 'bg-green-600 border-green-600 text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 border-transparent'}`}
+                                        >
+                                            <Leaf size={12} className={isVegOnly ? 'text-white' : 'text-green-600'} />
+                                            Veg Only
+                                        </button>
                                     </div>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+
+                                {availableBrands.length > 0 && (
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Brands</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {availableBrands.map(brand => (
+                                                <button
+                                                    key={brand}
+                                                    onClick={() => {
+                                                        setSelectedBrands(prev =>
+                                                            prev.includes(brand)
+                                                                ? prev.filter(b => b !== brand)
+                                                                : [...prev, brand]
+                                                        );
+                                                    }}
+                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${selectedBrands.includes(brand) ? 'bg-black text-white border-black shadow-md' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 border-gray-100 dark:border-white/10'}`}
+                                                >
+                                                    {brand}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
+            {/* Filters Applied Counter */}
+            {(debouncedSearch || isVegOnly || sortOption !== '-createdAt' || selectedBrands.length > 0) && (
+                <div className="max-w-7xl mx-auto px-4 mt-2 text-[8px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#0c831f] animate-pulse" />
+                    Filters Applied: {(debouncedSearch ? 1 : 0) + (isVegOnly ? 1 : 0) + (sortOption !== '-createdAt' ? 1 : 0) + (selectedBrands.length)}
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto px-4 py-6">
-                {isLoading && page === 1 ? (
+                {isLoading ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4">
                         {Array.from({ length: 12 }).map((_, i) => (
                             <ProductCardSkeleton key={i} />
@@ -404,44 +368,38 @@ const CategoryPage = () => {
                     </div>
                 ) : normalizedProducts.length > 0 ? (
                     <>
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                hidden: { opacity: 0 },
-                                visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
-                            }}
-                            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4"
-                        >
-                            {normalizedProducts.map((product, idx) => (
-                                <motion.div
-                                    key={`${product._id || product.id}-${idx}`}
-                                    variants={{
-                                        hidden: { opacity: 0, y: 20 },
-                                        visible: { opacity: 1, y: 0 }
-                                    }}
-                                >
-                                    <ProductCard
-                                        product={product}
-                                        isCompact={true}
-                                    />
-                                </motion.div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4 animate-in fade-in duration-500">
+                            {normalizedProducts.map((product) => (
+                                <ProductCard
+                                    key={product._id || product.id}
+                                    product={product}
+                                    isCompact={true}
+                                />
                             ))}
-                        </motion.div>
+                        </div>
 
-                        {/* Pagination / Load More Trigger */}
-                        <div ref={lastProductRef} className="h-20 flex items-center justify-center mt-8">
-                            {isFetchingMore && (
-                                <div className="flex flex-col items-center gap-2">
-                                    <div className="w-8 h-8 border-[3px] border-[#0c831f30] border-t-[#0c831f] rounded-full animate-spin" />
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest animate-pulse">Loading amazing deals...</span>
-                                </div>
-                            )}
-                            {!isFetchingMore && page >= totalPages && normalizedProducts.length > 0 && (
-                                <div className="text-[9px] text-gray-300 font-bold uppercase tracking-[0.2em] border-t border-gray-100 dark:border-white/5 pt-8 w-full text-center">
-                                    You've reached the end of the aisle
-                                </div>
-                            )}
+                        {/* Pagination / Load More */}
+                        {page < totalPages && (
+                            <div className="mt-12 flex justify-center">
+                                <button
+                                    onClick={() => loadCategoryProducts(page + 1, true)}
+                                    disabled={isFetchingMore}
+                                    className="group flex items-center gap-3 bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/10 px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white shadow-xl shadow-gray-200/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                >
+                                    {isFetchingMore ? (
+                                        <div className="w-4 h-4 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <TrendingUp size={16} className="text-[#0c831f]" />
+                                    )}
+                                    {isFetchingMore ? 'Cooking more results...' : 'Load More Products'}
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="mt-8 text-center">
+                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                                Showing {normalizedProducts.length} of {totalResults} items
+                            </p>
                         </div>
                     </>
                 ) : (
@@ -456,12 +414,20 @@ const CategoryPage = () => {
                                 setLocalSearch('');
                                 setSortOption('-createdAt');
                                 setIsVegOnly(false);
-                                setSelectedBrands([]);
                             }}
                             className="bg-[#0c831f] text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/20 active:scale-95 transition-all"
                         >
                             Reset All Filters
                         </button>
+                    </div>
+                )}
+            </div>
+            {/* Mobile Bottom Float Info */}
+            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                {debouncedSearch && (
+                    <div className="bg-black/90 text-white text-[8px] font-black px-4 py-2 rounded-full backdrop-blur-md shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-4">
+                        <Info size={10} className="text-yellow-400" />
+                        FILTERED BY "{debouncedSearch.toUpperCase()}"
                     </div>
                 )}
             </div>

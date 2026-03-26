@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, ArrowLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getPoliciesList } from '../../../../common/utils/legalUtils';
@@ -22,22 +22,22 @@ const SettingsPage = () => {
         <div className="min-h-screen bg-[#f8fafc] dark:bg-black transition-colors duration-300 pb-24 md:p-8">
             <div className="max-w-2xl md:max-w-3xl mx-auto">
                 {/* Header - Minimalist & Professional */}
-                <div className="flex items-center gap-3 px-4 py-6 md:px-0 md:py-0 md:mb-8 bg-white md:bg-transparent dark:bg-black sticky top-0 md:relative z-40">
+                <div className="flex items-center gap-4 px-4 py-8 md:px-0 md:py-0 md:mb-10 bg-white md:bg-transparent dark:bg-black relative z-40">
                     <button
                         onClick={() => navigate(location.state?.from || '/', { state: { openMenu: true } })}
-                        className="p-1.5 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                        className="p-2 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-all active:scale-90"
                     >
-                        <ArrowLeft size={16} className="text-gray-600 dark:text-gray-400" />
+                        <ArrowLeft size={20} className="text-gray-900 dark:text-gray-100" />
                     </button>
                     <div>
-                        <h1 className="text-[8px] md:text-sm font-black text-gray-900 dark:text-gray-100 tracking-tight uppercase">Legal Documents</h1>
-                        <p className="hidden md:block text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Policies & Compliance</p>
+                        <h1 className="text-lg md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight uppercase">Legal Documents</h1>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Policies & Compliance</p>
                     </div>
                 </div>
 
                 {/* Legal Section */}
-                <div className="px-4 md:px-0 mt-0 md:mt-0">
-                    <div className="grid grid-cols-1 gap-2.5">
+                <div className="px-4 md:px-0 mt-6 md:mt-0">
+                    <div className="grid grid-cols-1 gap-3 md:gap-4">
                         {loadingPolicies ? (
                             <div className="p-12 text-center bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-white/5">
                                 <div className="w-6 h-6 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin mx-auto"></div>

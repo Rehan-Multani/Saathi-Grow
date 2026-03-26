@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wallet, ArrowLeft, Plus, TrendingUp, History, CreditCard, ShieldCheck, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -52,11 +52,11 @@ const WalletPage = () => {
     return (
         <div className="min-h-screen bg-[#f8fafc] dark:bg-black p-0 pt-0 pb-24 md:p-8 md:pb-8 transition-colors duration-300">
             <div className="max-w-2xl md:max-w-6xl mx-auto">
-                {/* Header - Now visible and beautiful on mobile */}
-                <div className="flex items-center gap-3 mb-2 md:mb-10 px-4 py-6 md:p-0 bg-white md:bg-transparent dark:bg-black border-b border-gray-100 dark:border-white/5 md:border-none sticky top-0 z-40 md:relative">
+                {/* Header - Sticky & Blurred */}
+                <div className="flex items-center gap-3 mb-2 md:mb-10 px-4 py-8 md:p-0 border-b border-gray-100 dark:border-white/5 md:border-none bg-white/80 dark:bg-black/80 backdrop-blur-lg sticky top-0 z-50 md:relative">
                     <button
                         onClick={() => navigate('/profile')}
-                        className="p-2 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 transition-colors"
+                        className="p-2 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 transition-all active:scale-95"
                     >
                         <ArrowLeft size={18} className="text-gray-600 dark:text-gray-400 md:w-6 md:h-6" />
                     </button>
@@ -66,7 +66,7 @@ const WalletPage = () => {
                     </div>
                 </div>
 
-                <div className="px-6 py-12 bg-transparent md:bg-gray-50 dark:md:bg-white/5 mb-0 md:mb-6 md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-10 text-center">
+                <div className="px-6 py-12 bg-transparent md:bg-gray-50 dark:md:bg-white/5 mb-0 md:mb-6 md:bg-white dark:md:bg-[#141414] md:rounded-2xl md:border md:border-gray-100 dark:md:border-white/5 md:p-10 text-center mt-6">
                     <div className="flex flex-col items-center justify-center">
                         <span className="!text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Total Balance</span>
                         <h2 className="!text-[36px] md:!text-[28px] font-black text-gray-900 dark:text-white leading-none tracking-tighter mb-4">{formatCurrency(balance)}</h2>
