@@ -65,30 +65,30 @@ const StoreSelector = ({ isOpen, onClose }) => {
                 <button
                   key={store.id}
                   onClick={() => handleStoreSelect(store)}
-                  className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center gap-4 group ${activeStore?.id === store.id
-                    ? 'border-[#0c831f] bg-white dark:bg-[#0c831f]/10 shadow-md ring-1 ring-[#0c831f]/20'
-                    : 'border-transparent bg-gray-50 dark:bg-white/5 hover:border-[#0c831f]/30 hover:bg-green-50/30 dark:hover:bg-[#0c831f]/10'
-                    }`}
+                  className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center gap-4 group ${
+                    activeStore?.id === store.id
+                      ? 'border-[#0c831f] bg-white dark:bg-[#0c831f]/10 shadow-md ring-1 ring-[#0c831f]/20'
+                      : 'border-transparent bg-gray-50 dark:bg-white/5 hover:border-[#0c831f]/30 hover:bg-green-50/30 dark:hover:bg-[#0c831f]/10'
+                  }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${store.type === 'branch' ? 'bg-[#0c831f] text-white' : 'bg-orange-500 text-white'
-                    }`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${
+                    store.type === 'branch' ? 'bg-[#0c831f] text-white' : 'bg-orange-500 text-white'
+                  }`}>
                     {store.type === 'branch' ? <Store size={24} /> : <ShoppingCart size={24} />}
                   </div>
+                  
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-base font-black text-gray-900 dark:text-gray-100 truncate">{store.name}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400 font-medium">
-                      <div className="flex items-center gap-1">
-                        <MapPin size={12} className="text-gray-300" />
-                        <span>{store.roadDistance || '?...'} km</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-[#0c831f] font-bold">
-                        <Clock size={12} />
-                        <span>{store.estimatedTime || '??'} mins</span>
-                      </div>
+                    <span className="block text-base font-black text-gray-900 dark:text-gray-100 truncate mb-1">
+                      {store.name}
+                    </span>
+                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-2 py-1 rounded-lg inline-flex">
+                      <MapPin size={10} className="text-[#0c831f]" />
+                      <span className="text-[#0c831f] text-[11px] font-bold tracking-tight">
+                        {store.roadDistance || '?...'} km away
+                      </span>
                     </div>
                   </div>
+
                   {activeStore?.id === store.id && (
                     <div className="w-6 h-6 bg-[#0c831f] rounded-full flex items-center justify-center shadow-lg shadow-green-500/20">
                       <div className="w-2.5 h-2.5 bg-white rounded-full" />

@@ -1,7 +1,7 @@
 import Branch from '../models/Branch.js';
 import Vendor from '../models/Vendor.js';
 import GlobalSetting from '../models/GlobalSetting.js';
-import { getGoogleDistances } from '../services/locationService.js';
+import { getGoogleDistances, calculateDistance } from '../services/locationService.js';
 
 // @desc    Get nearby branches and vendors with Google Maps verification
 // @route   GET /api/user/stores/nearby
@@ -23,7 +23,6 @@ export const getNearbyStores = async (req, res) => {
     const userCoordinates = [parseFloat(lng), parseFloat(lat)];
 
     // 1. First fetch candidates via fast MongoDB geospatial query
-    // We catch a bit more candidates to verify with Google
     const nearbyBranches = await Branch.find({
       isActive: true,
       'address.location': {
@@ -60,7 +59,7 @@ export const getNearbyStores = async (req, res) => {
     let stores = [];
 
     if (googleData) {
-      // Filter and enrich with road distance/time
+      // Filter and enrich with road distance (Time removed as per user request)
       allCandidates.forEach((candidate, idx) => {
         const roadInfo = googleData[idx];
         if (roadInfo && roadInfo.distance <= MAX_ROAD_DISTANCE_KM) {
@@ -71,7 +70,6 @@ export const getNearbyStores = async (req, res) => {
             location: candidate.address?.location?.coordinates,
             address: candidate.address,
             roadDistance: roadInfo.distance.toFixed(1), // in KM
-            estimatedTime: Math.ceil(roadInfo.duration / 60), // in Minutes
             isNearby: true
           });
         }
@@ -79,14 +77,21 @@ export const getNearbyStores = async (req, res) => {
     } else {
       // Fallback to Euclidean if Google fails (e.g. invalid API key)
       console.warn('[STORES] Google Distance Matrix failed, falling back to Euclidean mapping');
-      stores = allCandidates.map(candidate => ({
-        id: candidate._id,
-        name: candidate.storeName || candidate.name,
-        type: candidate.storeType,
-        location: candidate.address?.location?.coordinates,
-        address: candidate.address,
-        isNearby: true
-      }));
+      stores = allCandidates.map(candidate => {
+        const destCoords = candidate.address?.location?.coordinates;
+        // Calculate haversine distance as a fallback
+        const dist = destCoords ? calculateDistance(lat, lng, destCoords[1], destCoords[0]) : 0;
+
+        return {
+          id: candidate._id,
+          name: candidate.storeName || candidate.name,
+          type: candidate.storeType,
+          location: destCoords,
+          address: candidate.address,
+          roadDistance: dist.toFixed(1),
+          isNearby: true
+        };
+      });
     }
 
     // Sort by distance
