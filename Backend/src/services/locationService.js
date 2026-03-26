@@ -5,7 +5,7 @@ import axios from 'axios';
 import { GOOGLE_MAPS_BASE_URL } from '../config/serviceUrls.js';
 
 const GOOGLE_MAPS_DISTANCEMATRIX_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json';
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API;
+const getApiKey = () => process.env.GOOGLE_MAPS_API;
 
 /**
  * Validates stock availability for a list of items at a specific branch
@@ -117,7 +117,8 @@ export const findOptimalSource = async (coordinates, items) => {
     }
 
     // 3. Filter and Sort using Google Maps Distance Matrix for accuracy
-    if (candidates.length > 0 && GOOGLE_MAPS_API_KEY) {
+    const apiKey = getApiKey();
+    if (candidates.length > 0 && apiKey) {
       console.log(`[SOURCE-DEBUG] Verifying ${candidates.length} candidates with Google Distance Matrix`);
       const googleDistances = await getGoogleDistances(coordinates, candidates.map(c => c.location));
 
@@ -159,12 +160,13 @@ export const findOptimalSource = async (coordinates, items) => {
  * Get coordinates from address string using Google Geocoding API
  */
 export const geocodeAddress = async (addressString) => {
-  if (!GOOGLE_MAPS_API_KEY) return null;
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
   try {
     const response = await axios.get(GOOGLE_MAPS_BASE_URL, {
       params: {
         address: addressString,
-        key: GOOGLE_MAPS_API_KEY
+        key: apiKey
       }
     });
     if (response.data.status === 'OK') {
@@ -182,12 +184,13 @@ export const geocodeAddress = async (addressString) => {
  * Get full address details from address string using Google Geocoding API
  */
 export const getFullAddress = async (addressString) => {
-  if (!GOOGLE_MAPS_API_KEY) return null;
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
   try {
     const response = await axios.get(GOOGLE_MAPS_BASE_URL, {
       params: {
         address: addressString,
-        key: GOOGLE_MAPS_API_KEY
+        key: apiKey
       }
     });
 
@@ -234,7 +237,8 @@ export const getFullAddress = async (addressString) => {
  * Get road distances from origin to multiple destinations using Google Distance Matrix
  */
 export const getGoogleDistances = async (origin, destinations) => {
-  if (!GOOGLE_MAPS_API_KEY || !destinations.length) return null;
+  const apiKey = getApiKey();
+  if (!apiKey || !destinations.length) return null;
   try {
     const destString = destinations.map(d => `${d[1]},${d[0]}`).join('|');
     const originString = `${origin[1]},${origin[0]}`;
@@ -243,7 +247,7 @@ export const getGoogleDistances = async (origin, destinations) => {
       params: {
         origins: originString,
         destinations: destString,
-        key: GOOGLE_MAPS_API_KEY,
+        key: apiKey,
         mode: 'driving'
       }
     });
@@ -258,6 +262,69 @@ export const getGoogleDistances = async (origin, destinations) => {
     return null;
   } catch (error) {
     console.error('Distance Matrix error:', error);
+    return null;
+  }
+};
+
+/**
+ * Reverse Geocode coordinates to address details using Google Geocoding API (REST)
+ * @param {Array} coords - [longitude, latitude]
+ */
+export const reverseGeocode = async (coords) => {
+  const apiKey = getApiKey();
+  if (!apiKey || !Array.isArray(coords) || coords.length !== 2) return null;
+  try {
+    console.log(`[REV-GEO] Fetching for: ${coords[1]},${coords[0]}`);
+    console.log(`[REV-GEO] API Key Status: ${apiKey ? 'Present (ending in ' + apiKey.slice(-4) + ')' : 'MISSING'}`);
+    const response = await axios.get(GOOGLE_MAPS_BASE_URL, {
+      params: {
+        latlng: `${coords[1]},${coords[0]}`,
+        key: apiKey
+      }
+    });
+
+    console.log(`[REV-GEO] Google Response Status: ${response.data.status}`);
+    if (response.data.error_message) {
+      console.error(`[REV-GEO] Google Error Message: ${response.data.error_message}`);
+    }
+    
+    if (response.data.status === 'OK' && response.data.results[0]) {
+      const place = response.data.results[0];
+      let street = "";
+      let area = "";
+      let city = "";
+
+      place.address_components.forEach(component => {
+        const types = component.types;
+        if (types.includes("sublocality_level_1") || types.includes("route")) {
+          street = component.long_name;
+        }
+        if (types.includes("sublocality_level_2") || types.includes("neighborhood")) {
+          area = component.long_name;
+        }
+        if (types.includes("locality")) {
+          city = component.long_name;
+        }
+      });
+
+      const displayArea = street || area || place.address_components[0]?.long_name || "Unknown Area";
+
+      return {
+        address: place.formatted_address,
+        street: displayArea,
+        city: city || "Indore",
+        status: response.data.status
+      };
+    }
+    
+    // Return status if not OK
+    if (response.data.status !== 'OK') {
+        return { status: response.data.status };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Reverse Geocoding error:', error);
     return null;
   }
 };

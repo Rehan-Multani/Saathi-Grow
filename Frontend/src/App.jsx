@@ -1,4 +1,4 @@
-﻿import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './modules/user/context/AuthContext';
 import { CartProvider } from './modules/user/context/CartContext';
@@ -66,14 +66,15 @@ function App() {
                                                 <ToastContainer
                                                     position="bottom-center"
                                                     autoClose={2000}
-                                                    hideProgressBar={false}
+                                                    hideProgressBar={true}
                                                     newestOnTop={false}
                                                     closeOnClick
                                                     rtl={false}
                                                     pauseOnFocusLoss
                                                     draggable
                                                     pauseOnHover
-                                                    theme="colored"
+                                                    theme="light"
+                                                    toastClassName="premium-toast"
                                                 />
                                             </Suspense>
                                         </BrowserRouter>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, MapPin, Navigation as NavIcon, Search } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
 
@@ -23,13 +23,31 @@ const LocationModal = () => {
 
                 const lat = place.geometry.location.lat();
                 const lng = place.geometry.location.lng();
-                const city = place.address_components.find(c => c.types.includes('locality'))?.long_name || '';
+                
+                let street = "";
+                let area = "";
+                let city = "";
+                
+                place.address_components.forEach(component => {
+                    if (component.types.includes("sublocality_level_1") || component.types.includes("route")) {
+                        street = component.long_name;
+                    }
+                    if (component.types.includes("sublocality_level_2") || component.types.includes("neighborhood")) {
+                        area = component.long_name;
+                    }
+                    if (component.types.includes("locality")) {
+                        city = component.long_name;
+                    }
+                });
+
+                const displayArea = street || area || place.address_components[0]?.long_name || "Unknown Area";
 
                 updateLocation({
-                    address: place.formatted_address,
-                    city: city,
-                    coordinates: [lng, lat]
-                });
+                    address: displayArea,
+                    city: city || "Indore",
+                    coordinates: [lng, lat],
+                    fullAddress: place.formatted_address
+                }, true);
             });
         }
     }, [mapLoaded, showLocationModal]);
@@ -44,10 +62,11 @@ const LocationModal = () => {
                     const geoData = await reverseGeocode(coords);
 
                     updateLocation({
-                        address: geoData?.address || 'Detected Location',
-                        city: geoData?.city || 'Indore, MP',
-                        coordinates: coords
-                    });
+                        address: geoData?.street || geoData?.address || 'Detected Location',
+                        city: geoData?.city || 'Indore',
+                        coordinates: coords,
+                        fullAddress: geoData?.address
+                    }, true);
                     setDetecting(false);
                 },
                 (error) => {
@@ -69,7 +88,7 @@ const LocationModal = () => {
             city: addr.city,
             coordinates: addr.coordinates,
             label: addr.type || addr.label
-        });
+        }, true);
     };
 
     const cityCoords = {
@@ -82,10 +101,10 @@ const LocationModal = () => {
 
     const handleManualSelect = (city) => {
         updateLocation({
-            address: `${city}, India`,
+            address: city,
             city: city,
             coordinates: cityCoords[city] || [75.8577, 22.7196] // Default to Indore if unknown
-        });
+        }, true);
     };
 
     const suggestions = Object.keys(cityCoords).concat(['Pune', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Chandigarh', 'Noida', 'Gurgaon']).filter(

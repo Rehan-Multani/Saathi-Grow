@@ -564,6 +564,15 @@ const ProductDetailsPage = () => {
                 </div>
             </div>
 
+            {/* Lazy Loaded Recommendation Sections */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-8 md:space-y-12">
+                <RecommendationSections 
+                    id={id} 
+                    category={product.category} 
+                    activeStore={activeStore} 
+                />
+            </div>
+
             {/* Product Feedback Section */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -788,59 +797,147 @@ const ProductDetailsPage = () => {
                 </div>
             )}
 
-            {/* Recommendations Sections */}
+            {/* Lazy Loaded Recommendation Sections */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-8 md:space-y-12">
-
-                {/* Similar Products */}
-                {similarProducts.length > 0 && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="flex items-center justify-between mb-3 md:mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-[#eefaf1] dark:bg-[#0c831f]/10 flex items-center justify-center text-[#0c831f] shadow-sm">
-                                    <TrendingUp size={20} strokeWidth={2.5} />
-                                </div>
-                                <div>
-                                    <h2 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">Similar Items</h2>
-                                    <p className="text-[10px] md:text-xs text-gray-400 font-medium">Explore more items in this category</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
-                            {similarProducts.map((p) => (
-                                <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
-                                    <ProductCard product={p} isCompact={true} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* General Recommendations */}
-                {recommendedProducts.length > 0 && (
-                    <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                        <div className="flex items-center justify-between mb-3 md:mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 shadow-sm">
-                                    <Sparkles size={20} strokeWidth={2.5} />
-                                </div>
-                                <div>
-                                    <h2 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">You may also like</h2>
-                                    <p className="text-[10px] md:text-xs text-gray-400 font-medium">Flash deals on top brands for you</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
-                            {recommendedProducts.map((p) => (
-                                <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
-                                    <ProductCard product={p} isCompact={true} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <RecommendationSections 
+                    id={id} 
+                    category={product.category} 
+                    activeStore={activeStore} 
+                />
             </div>
+        </div>
+    );
+};
+
+const RecommendationSections = ({ id, category, activeStore }) => {
+    const [similarProducts, setSimilarProducts] = useState([]);
+    const [recommendedProducts, setRecommendedProducts] = useState([]);
+    const [hasEntredViewport, setHasEntredViewport] = useState(false);
+    const observerRef = useRef(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setHasEntredViewport(true);
+                    observer.unobserve(entry.target);
+                }
+            },
+            { rootMargin: '400px' }
+        );
+
+        if (observerRef.current) observer.observe(observerRef.current);
+        return () => {
+            if (observerRef.current) observer.unobserve(observerRef.current);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!hasEntredViewport) return;
+
+        const fetchData = async () => {
+            // Fetch similar products
+            if (category) {
+                try {
+                    const simres = await fetchProducts({
+                        category: category,
+                        limit: 10,
+                        storeId: activeStore?.id,
+                        storeType: activeStore?.type
+                    });
+                    const sim = (Array.isArray(simres) ? simres : (simres?.products || [])).filter(simP => simP._id !== id).map(simP => ({
+                        id: simP._id,
+                        name: simP.name,
+                        image: simP.image || (simP.gallery && simP.gallery.length > 0 ? simP.gallery[0] : ''),
+                        price: simP.basePrice,
+                        mrp: simP.mrp,
+                        weight: `${simP.unitValue} ${simP.unitType}`,
+                        isDeliverable: simP.isDeliverable
+                    }));
+                    setSimilarProducts(sim);
+                } catch (simErr) {
+                    console.error("Failed to load similar products:", simErr);
+                }
+            }
+
+            // General Recommendations
+            try {
+                const recres = await fetchProducts({
+                    limit: 12,
+                    storeId: activeStore?.id,
+                    storeType: activeStore?.type
+                });
+                const rec = (Array.isArray(recres) ? recres : (recres?.products || [])).filter(recP => recP._id !== id).sort(() => Math.random() - 0.5).slice(0, 8).map(recP => ({
+                    id: recP._id,
+                    name: recP.name,
+                    image: recP.image || (recP.gallery && recP.gallery.length > 0 ? recP.gallery[0] : ''),
+                    price: recP.basePrice,
+                    mrp: recP.mrp,
+                    weight: `${recP.unitValue} ${recP.unitType}`,
+                    isDeliverable: recP.isDeliverable
+                }));
+                setRecommendedProducts(rec);
+            } catch (recErr) {
+                console.error("Failed to load recommended products:", recErr);
+            }
+        };
+
+        fetchData();
+    }, [hasEntredViewport, id, category, activeStore]);
+
+    if (!hasEntredViewport) {
+        return <div ref={observerRef} className="h-60 w-full animate-pulse bg-gray-50 dark:bg-white/5 rounded-3xl" />;
+    }
+
+    return (
+        <div className="space-y-8 md:space-y-12 pb-12">
+            {/* Similar Products */}
+            {similarProducts.length > 0 && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="flex items-center justify-between mb-3 md:mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-[#eefaf1] dark:bg-[#0c831f]/10 flex items-center justify-center text-[#0c831f] shadow-sm">
+                                <TrendingUp size={20} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h2 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">Similar Items</h2>
+                                <p className="text-[10px] md:text-xs text-gray-400 font-medium">Items you might prefer</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
+                        {similarProducts.map((p) => (
+                            <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
+                                <ProductCard product={p} isCompact={true} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Recommended Products */}
+            {recommendedProducts.length > 0 && (
+                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+                    <div className="flex items-center justify-between mb-3 md:mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 shadow-sm">
+                                <Sparkles size={20} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h2 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 tracking-tight">You may also like</h2>
+                                <p className="text-[10px] md:text-xs text-gray-400 font-medium">Recommended just for you</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-0 sm:px-0">
+                        {recommendedProducts.map((p) => (
+                            <div key={p.id} className="w-[155px] md:w-[200px] flex-shrink-0">
+                                <ProductCard product={p} isCompact={true} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -11,6 +11,8 @@ import { useStore } from '../../context/StoreContext';
 import { useTheme } from '../../context/ThemeContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 import SEO from '../../../../common/components/SEO';
+import { motion, AnimatePresence } from 'framer-motion';
+
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const categoryColors = {
@@ -202,46 +204,42 @@ const HomePage = ({ }) => {
 
     const { activeStore } = useStore();
 
+    // Animation Variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const sectionVariants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: "spring", stiffness: 100, damping: 20 }
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300">
+        <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#000000] dark:to-[#000000] md:bg-none md:bg-white md:dark:bg-black transition-colors duration-300 overflow-x-hidden"
+        >
             <SEO 
                 title="Fresh Grocery Delivery" 
                 description="Get fresh groceries, staples, and daily essentials delivered to your doorstep with Saathi-Grow. Best quality and fast delivery guaranteed."
-                schemaData={[
-                    {
-                        "@context": "https://schema.org",
-                        "@type": "WebSite",
-                        "name": "Saathi-Grow",
-                        "url": "https://saathigro.in",
-                        "potentialAction": {
-                            "@type": "SearchAction",
-                            "target": "https://saathigro.in/search?q={search_term_string}",
-                            "query-input": "required name=search_term_string"
-                        }
-                    },
-                    {
-                        "@context": "https://schema.org",
-                        "@type": "Organization",
-                        "name": "Saathi-Grow",
-                        "url": "https://saathigro.in",
-                        "logo": "https://saathigro.in/logo.png",
-                        "sameAs": [
-                            "https://www.facebook.com/saathigro",
-                            "https://www.instagram.com/saathigro",
-                            "https://twitter.com/saathigro"
-                        ],
-                        "contactPoint": {
-                            "@type": "ContactPoint",
-                            "telephone": "+91-XXXXXXXXXX",
-                            "contactType": "customer service"
-                        }
-                    }
-                ]}
             />
 
-            {/* Premium Offers Carousel - 1 at a time on mobile, 3 on desktop */}
+            {/* Premium Offers Carousel */}
             {!isSearching && !loading && activeOffers.length > 0 && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative">
+                <motion.div 
+                    variants={sectionVariants}
+                    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative"
+                >
                     <div className="relative overflow-hidden sm:rounded-2xl">
                         <div
                             onPointerDown={handlePointerDown}
@@ -283,15 +281,11 @@ const HomePage = ({ }) => {
                         </div>
                     </div>
 
-                    {/* Navigation Arrows removed as per user request for mobile-like flow */}
-
-                    {/* Pagination Lines (Blinkit Style) - Moved below image */}
                     {isCarousel && (
                         <div className="flex justify-center gap-2.5 mt-4">
                             {activeOffers.map((_, idx) => (
                                 <div
                                     key={idx}
-                                    onClick={() => handleDotClick(idx)}
                                     className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer hover:scale-110 ${(offerIndex % activeOffers.length) === idx
                                         ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
                                         : 'w-4 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
@@ -300,17 +294,19 @@ const HomePage = ({ }) => {
                             ))}
                         </div>
                     )}
-                </div>
+                </motion.div>
             )}
 
             {/* Categories */}
             {(filteredCategories.length > 0 || !isSearching) && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10 mb-6 md:mb-10">
+                <motion.div 
+                    variants={sectionVariants}
+                    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10 mb-6 md:mb-10"
+                >
                     <div className="flex items-center justify-between mb-2 md:mb-6">
                         <h2 className="text-[13px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
                         {!isSearching && (
                             <Link
-                                autoFocus={false}
                                 to="/category"
                                 className="flex items-center gap-1 text-[#0c831f] text-[10px] md:text-sm font-black tracking-widest hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
                             >
@@ -332,65 +328,47 @@ const HomePage = ({ }) => {
                                     </div>
                                 ))
                             ) : (
-                                filteredCategories.map((cat) => {
+                                filteredCategories.map((cat, idx) => {
                                     const bgColor = categoryColors[cat.slug] || '#f3f4f6';
                                     return (
-                                        <Link key={cat._id || cat.id} to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} className="flex flex-col items-center group w-[80px] sm:w-28 flex-shrink-0 active:scale-95 transition-transform duration-200 md:snap-start">
-                                            <div
-                                                className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-lg sm:rounded-xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
-                                                style={{ backgroundColor: isDarkMode ? 'var(--bg-surface)' : bgColor }}
-                                            >
-                                                {/* Glassy reflection overlay */}
-                                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 pointer-events-none opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
-                                                <img
-                                                    src={cat.image || categoryPlaceholder}
-                                                    alt={cat.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-active:scale-110 z-10"
-                                                    onError={(e) => {
-                                                        if (e.target.src !== categoryPlaceholder) {
-                                                            e.target.src = categoryPlaceholder;
-                                                            e.target.classList.add('opacity-80');
-                                                            e.target.style.objectFit = 'cover';
-                                                        }
-                                                    }}
-                                                    loading="lazy"
-                                                />
-                                            </div>
-                                            <span className="text-[9px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[26px] sm:min-h-[32px] flex items-center justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
-                                                {cat.name}
-                                            </span>
-                                        </Link>
+                                        <motion.div
+                                            key={cat._id || cat.id}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className="flex-shrink-0"
+                                        >
+                                            <Link to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} className="flex flex-col items-center group w-[80px] sm:w-28 transition-transform duration-200 md:snap-start">
+                                                <div
+                                                    className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-lg sm:rounded-xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
+                                                    style={{ backgroundColor: isDarkMode ? 'var(--bg-surface)' : bgColor }}
+                                                >
+                                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 pointer-events-none opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
+                                                    <img
+                                                        src={cat.image || categoryPlaceholder}
+                                                        alt={cat.name}
+                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-active:scale-110 z-10"
+                                                        onError={(e) => {
+                                                            if (e.target.src !== categoryPlaceholder) {
+                                                                e.target.src = categoryPlaceholder;
+                                                            }
+                                                        }}
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                                <span className="text-[9px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[26px] sm:min-h-[32px] flex items-center justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
+                                                    {cat.name}
+                                                </span>
+                                            </Link>
+                                        </motion.div>
                                     );
                                 })
                             )}
                         </div>
-
-                        {!loading && (
-                            <>
-                                {canScrollLeft && (
-                                    <button
-                                        onClick={scrollLeft}
-                                        className="absolute -left-4 top-[35px] sm:top-[47.5px] -translate-y-1/2 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
-                                        aria-label="Scroll left"
-                                    >
-                                        <ArrowLeft size={18} strokeWidth={2.5} />
-                                    </button>
-                                )}
-                                {canScrollRight && (
-                                    <button
-                                        onClick={scrollRight}
-                                        className="absolute -right-4 top-[35px] sm:top-[47.5px] -translate-y-1/2 z-30 bg-white dark:bg-[#1c1c1c] text-black dark:text-white w-9 h-9 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer hidden md:flex border border-gray-100 dark:border-white/5"
-                                        aria-label="Scroll right"
-                                    >
-                                        <ArrowRight size={18} strokeWidth={2.5} />
-                                    </button>
-                                )}
-                            </>
-                        )}
                     </div>
-                </div>
+                </motion.div>
             )}
-            {/* Dynamic Campaign Sections ₹ admin-controlled (festive + lowest prices) */}
+
+            {/* Dynamic Campaign Sections */}
             {!isSearching && campaigns.map((campaign) => {
                 // Build normalized product list for this campaign
                 const campaignProducts = campaign.products
@@ -404,13 +382,19 @@ const HomePage = ({ }) => {
                         isDeliverable: cp.productId?.isDeliverable
                     }));
                 return (
-                    <React.Fragment key={campaign._id}>
+                    <motion.div 
+                        key={campaign._id}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                        variants={sectionVariants}
+                    >
                         {campaign.displayType === 'lowest_prices' ? (
                             <LowestPricesSection
                                 campaignProducts={campaignProducts}
                                 loading={loading}
                                 sectionTitle={campaign.title}
-                                highlightText={campaign.highlightText || '🔥 Massive Discounts - Limited Time Only!'}
+                                highlightText={campaign.highlightText || '🔥 Massive Discounts'}
                                 campaignId={campaign._id}
                             />
                         ) : (
@@ -422,13 +406,12 @@ const HomePage = ({ }) => {
                                 loading={loading}
                                 themeColor={campaign.accentColor || '#0c831f'}
                                 bgColor={campaign.bgColor || '#f0fdf4'}
-                                slug={null}
                                 campaignId={campaign._id}
                                 totalProductsCount={campaign.totalProducts}
                             />
                         )}
                         <div className="h-10 sm:h-16" />
-                    </React.Fragment>
+                    </motion.div>
                 );
             })}
 
@@ -436,15 +419,22 @@ const HomePage = ({ }) => {
             {!isSearching && (
                 <div className="pb-12">
                     {categories.map((category) => (
-                        <ProductRow
+                        <motion.div 
                             key={category._id || category.id}
-                            category={category}
-                            loading={loading}
-                        />
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: "-100px" }}
+                            variants={sectionVariants}
+                        >
+                            <ProductRow
+                                category={category}
+                                loading={loading}
+                            />
+                        </motion.div>
                     ))}
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 };
 
@@ -464,10 +454,13 @@ export const normalizeProduct = (product) => ({
     isDeliverable: product.isDeliverable
 });
 
-// Sub-component for individual product rows to manage scroll state
+// Sub-component for individual product rows to manage scroll state with Lazy Loading
 const ProductRow = ({ category, loading: globalLoading }) => {
     const { activeStore } = useStore();
     const sectionRef = useRef(null);
+    const observerRef = useRef(null);
+    const [hasEntredViewport, setHasEntredViewport] = useState(false);
+    
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
     const [localProducts, setLocalProducts] = useState([]);
@@ -498,12 +491,35 @@ const ProductRow = ({ category, loading: globalLoading }) => {
         } finally {
             setIsLoading(false);
         }
-    }, [category.name, activeStore?.id]); // Added activeStore dependence
+    }, [category.name, activeStore?.id]);
+
+    // Intersection Observer to trigger fetch only when visible
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setHasEntredViewport(true);
+                    observer.unobserve(entry.target);
+                }
+            },
+            { rootMargin: '200px' } // Start fetching 200px before it enters view
+        );
+
+        if (observerRef.current) {
+            observer.observe(observerRef.current);
+        }
+
+        return () => {
+            if (observerRef.current) observer.unobserve(observerRef.current);
+        };
+    }, []);
 
     useEffect(() => {
-        setPage(1);
-        fetchItems(1);
-    }, [category.name, activeStore?.id]); // Added activeStore dependence
+        if (hasEntredViewport) {
+            setPage(1);
+            fetchItems(1);
+        }
+    }, [hasEntredViewport, category.name, activeStore?.id]);
 
     const handleScroll = () => {
         if (sectionRef.current) {
@@ -513,9 +529,13 @@ const ProductRow = ({ category, loading: globalLoading }) => {
         }
     };
 
-    if (isLoading && page === 1) {
+    if (!hasEntredViewport || (isLoading && page === 1)) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-8">
+            <div ref={observerRef} className="max-w-7xl mx-auto px-4 py-8">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="h-6 w-32 bg-gray-100 dark:bg-white/5 animate-pulse rounded" />
+                    <div className="h-4 w-16 bg-gray-100 dark:bg-white/5 animate-pulse rounded" />
+                </div>
                 <div className="flex gap-4 overflow-hidden">
                     {Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[200px]">
@@ -537,7 +557,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10">
+        <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10">
             <div className="flex items-center justify-between mb-2 md:mb-6">
                 <h2 className="text-[11px] md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
@@ -614,7 +634,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     );
 };
 
-// Reusable Occasion Section Component
+// Reusable Occasion Section Component with Lazy Loading
 const OccasionSection = ({
     title,
     subtitle,
@@ -633,6 +653,9 @@ const OccasionSection = ({
     const { activeStore } = useStore();
     const navigate = useNavigate();
     const sectionRef = useRef(null);
+    const observerRef = useRef(null);
+    const [hasEntredViewport, setHasEntredViewport] = useState(false);
+
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
     const [localProducts, setLocalProducts] = useState(initialProducts || []);
@@ -640,11 +663,34 @@ const OccasionSection = ({
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState((initialProducts?.length || 0) < (totalProductsCount || 0));
 
+    // Intersection Observer to trigger fetch/reveal only when visible
     useEffect(() => {
-        setLocalProducts(initialProducts);
-        setHasMore((initialProducts?.length || 0) < (totalProductsCount || 0));
-        setPage(1);
-    }, [initialProducts, totalProductsCount]);
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setHasEntredViewport(true);
+                    observer.unobserve(entry.target);
+                }
+            },
+            { rootMargin: '250px' }
+        );
+
+        if (observerRef.current) {
+            observer.observe(observerRef.current);
+        }
+
+        return () => {
+            if (observerRef.current) observer.unobserve(observerRef.current);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (hasEntredViewport) {
+            setLocalProducts(initialProducts);
+            setHasMore((initialProducts?.length || 0) < (totalProductsCount || 0));
+            setPage(1);
+        }
+    }, [hasEntredViewport, initialProducts, totalProductsCount]);
 
     const handleScroll = () => {
         if (sectionRef.current) {
@@ -682,6 +728,14 @@ const OccasionSection = ({
         }
     };
 
+    if (!hasEntredViewport) {
+        return (
+            <div ref={observerRef} className="max-w-7xl mx-auto px-4 py-8 rounded-xl" style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
+                <div className="h-20 w-full bg-gray-100/10 animate-pulse rounded-lg" />
+            </div>
+        );
+    }
+
     if (!localProducts || localProducts.length === 0) return null;
 
     const sectionScroll = (dir) => {
@@ -692,7 +746,7 @@ const OccasionSection = ({
     };
 
     return (
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-6 md:mb-10 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
+        <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-6 md:mb-10 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex flex-col">
                     <h2 className="text-lg md:text-xl font-black tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>

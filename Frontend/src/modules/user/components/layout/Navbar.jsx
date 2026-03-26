@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
-import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map, Mic, Globe, AlertCircle } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, Search, User, LogOut, ChevronDown, MapPin, X, Menu, Settings, Bell, HelpCircle, Sun, Moon, Map, Mic, Globe, AlertCircle, Star, Flame, Clock, Zap } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation } from '../../context/LocationContext';
@@ -13,8 +13,6 @@ import { ASSET_URLS } from '../../../../constants/assetUrls';
 const logo = ASSET_URLS.logo;
 import axios from 'axios';
 import { API_BASE_URL } from '../../../../config/apiConfig';
-import ProductCard from '../product/ProductCard';
-import { ProductCardSkeleton } from '../common/Skeleton';
 
 const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const { cartCount, cartTotal, toggleCart } = useCart();
@@ -22,24 +20,22 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
   const { location, openLocationModal } = useLocation();
   const { searchQuery, setSearchQuery, isSearchOverlayOpen, setIsSearchOverlayOpen } = useSearch();
   const { isDarkMode, toggleTheme } = useTheme();
-  // isMenuOpen is now a prop
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
-  const [showCategories, setShowCategories] = useState(false);
-  const { categories } = useShop();
-  const uniqueCategories = categories.map(c => c.name);
-  const navigate = useNavigate();
-  const routerLocation = useRouterLocation();
-  const [recentSearches, setRecentSearches] = useState([]);
-  const [isFocused, setIsFocused] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState(localStorage.getItem('preferredLanguage') || 'English');
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const { activeStore, isStoreOutOfRange, isStoreSelectorOpen, setIsStoreSelectorOpen } = useStore();
+  const navigate = useNavigate();
+  const routerLocation = useRouterLocation();
 
-  const recognitionRef = React.useRef(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -53,407 +49,195 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setSearchQuery(transcript);
-        setIsListening(false);
-        handleSuggestionClick(transcript);
         navigate(`/category?search=${transcript}`);
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
       };
 
       recognitionRef.current = recognition;
     }
   }, [navigate, setSearchQuery]);
 
-  const startListening = () => {
-    if (!recognitionRef.current) {
-      alert('Voice search is not supported in this browser.');
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      try {
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (err) {
-        console.error('Failed to start recognition:', err);
-        recognitionRef.current.stop();
-        setIsListening(false);
-      }
-    }
-  };
-
   useEffect(() => {
     if (routerLocation.state?.openMenu) {
       setIsMenuOpen(true);
-      // Clean up state to prevent menu opening on random refreshes/re-navigates
       window.history.replaceState({ ...routerLocation.state, openMenu: false }, '');
     }
-    // Load recent searches on mount
-    const saved = localStorage.getItem('recentSearches');
-    if (saved) setRecentSearches(JSON.parse(saved));
-  }, [routerLocation]);
+  }, [routerLocation.state, setIsMenuOpen]);
 
-  useEffect(() => {
-    if (searchQuery.trim().length > 1) {
-      setIsLoading(true);
-      const timer = setTimeout(async () => {
-        try {
-          const response = await searchProducts(searchQuery);
-          setSuggestions(response.products || []);
-        } catch (err) {
-          console.error('Search error:', err);
-        } finally {
-          setIsLoading(false);
+  const renderLocation = () => {
+    if (location.label) return location.label;
+    
+    const addr = location.address;
+    const city = location.city;
+    
+    if (addr && typeof addr === 'string') {
+        const street = addr.split(',')[0];
+        // If street is just the city name, don't repeat it
+        if (city && street.toLowerCase() === city.toLowerCase()) {
+            return city;
         }
-      }, 500);
-      return () => clearTimeout(timer);
-    } else {
-      setSuggestions([]);
-      setIsLoading(false);
+        if (city) return `${street}, ${city}`;
+        return street;
     }
-  }, [searchQuery]);
-
-  const fetchUnreadCount = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data.success) {
-        setUnreadCount(res.data.count);
-      }
-    } catch (error) {
-      console.error('Error fetching unread count:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
-
-  const handleSuggestionClick = (query) => {
-    if (query) {
-      const updatedRecent = [query, ...recentSearches.filter(q => q !== query)].slice(0, 5);
-      setRecentSearches(updatedRecent);
-      localStorage.setItem('recentSearches', JSON.stringify(updatedRecent));
-    }
-    setSearchQuery('');
-    setSuggestions([]);
-    setIsMobileSearchOpen(false);
-    setIsFocused(false);
-  };
-
-  const handleRecentClick = (query) => {
-    setSearchQuery(query);
-    // Keep it focused to show results
-    setIsFocused(true);
-  };
-
-  const removeRecent = (e, query) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const updated = recentSearches.filter(q => q !== query);
-    setRecentSearches(updated);
-    localStorage.setItem('recentSearches', JSON.stringify(updated));
+    
+    return city || 'Select Location';
   };
 
   return (
     <div className="z-50 transition-colors duration-300 font-sans">
 
-      {/* MOBILE LAYOUT */}
-      <div className="md:hidden transition-colors duration-300">
-        {/* Row 1: Logo & Actions */}
-        <div
-          className={`flex items-center justify-between px-4 pt-4 pb-2 gap-3 transition-colors duration-300 relative ${isDarkMode ? 'bg-black' : 'backdrop-blur-md'}`}
-          style={{
-            background: (!isDarkMode && customTheme)
-              ? `linear-gradient(to right, ${customTheme.bgColor}, #ffffff90)`
-              : undefined
+      {/* MOBILE LAYOUT (App Native Experience) */}
+      <div className="md:hidden w-full relative z-[100] glass-header">
+        {/* Row 1: Brand & Actions (Collapsible) */}
+        <div 
+          className={`px-4 flex items-center justify-between relative transition-all duration-300 ease-in-out ${isScrolled ? 'h-0 opacity-0 pointer-events-none' : 'h-[52px] pt-3 pb-1'}`}
+          style={{ 
+            background: (!isDarkMode && customTheme) ? customTheme.bgColor : undefined,
+            backgroundColor: isDarkMode ? '#000' : (customTheme?.bgColor || '#fff') 
           }}
         >
-          {/* Default Background if no custom theme - Light Mode Only */}
-          {!customTheme && !isDarkMode && (
-            <div className="absolute inset-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90 -z-10" />
-          )}
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0 flex items-center">
+          <Link to="/" className="active:scale-95 transition-transform">
             <img
               src={logo}
               alt="sathiGro"
               onError={(e) => { e.target.onerror = null; e.target.src = ASSET_URLS.logoCloudinary; }}
-              className="h-9 w-auto object-contain transition-all duration-300"
+              className="h-8 w-auto object-contain"
               style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
             />
           </Link>
 
-          {/* Right Side: Notification & Location Group */}
-          <div className="flex items-center gap-2.5">
-            {/* Notification Icon */}
-            <Link to="/notifications" className="relative p-2 bg-white/50 dark:bg-white/10 rounded-full text-gray-700 dark:text-gray-200 border border-white dark:border-white/5 shadow-sm active:scale-90 transition-transform">
-              <Bell size={20} className="text-[#0c831f] dark:text-white" strokeWidth={2.5} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full border border-white dark:border-black flex items-center justify-center text-[8px] text-white font-black animate-pulse">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </Link>
+          <Link to="/notifications" className="relative p-2.5 bg-black/5 dark:bg-white/5 rounded-full shadow-sm border border-black/5 active:scale-90 transition-transform">
+            <Bell size={18} className="text-[#0c831f]" strokeWidth={2.5} />
+            {unreadCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-black flex items-center justify-center text-[7px] text-white font-bold">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
+        </div>
 
-            {/* Unified Location & Store Selector */}
-            <div
-              className={`flex flex-col items-end justify-center leading-none max-w-[170px] ${isStoreOutOfRange ? 'bg-red-50 dark:bg-red-500/10 px-2.5 py-1.5 rounded-xl border border-red-200/50' : ''}`}
-            >
-              <div
-                onClick={openLocationModal}
-                className="flex items-center gap-1 mb-1 w-full justify-end cursor-pointer group active:opacity-70 transition-opacity"
-              >
-                {isStoreOutOfRange && <AlertCircle size={10} className="text-red-500" strokeWidth={3} />}
-                <span className={`text-[13px] font-black uppercase tracking-tighter truncate text-right ${isStoreOutOfRange ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100 group-hover:text-[#0c831f]'}`}>
-                  {location.label || location.city || 'Select Location'}
-                </span>
-                <ChevronDown size={12} className={isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'} strokeWidth={4} />
-              </div>
-              <div
-                onClick={() => setIsStoreSelectorOpen(true)}
-                className={`flex items-center gap-1 cursor-pointer truncate w-full justify-end group active:opacity-70 transition-opacity ${isStoreOutOfRange ? 'text-red-500/80 font-bold' : 'text-gray-400 dark:text-gray-500'}`}
-              >
-                <span className="text-[10px] font-bold truncate tracking-tight">
-                  {isStoreOutOfRange ? 'Out of range • Change Store' : (activeStore ? activeStore.name : 'Select Store')}
-                </span>
-                <ChevronDown size={10} className={isStoreOutOfRange ? 'text-red-500' : 'text-gray-400'} strokeWidth={3} />
-              </div>
+        {/* Row 1.5/2: Location & Store Cluster (Collapsible) */}
+        <div 
+          className={`px-4 flex items-center justify-between gap-4 transition-all duration-300 ease-in-out ${isScrolled ? 'h-0 opacity-0 py-0 pointer-events-none' : 'h-[36px] py-1 border-t border-black/5'}`}
+          style={{ backgroundColor: isDarkMode ? '#000' : (customTheme?.bgColor || '#fff') }}
+        >
+          {/* Location Pillar */}
+          <div
+            onClick={openLocationModal}
+            className={`flex-1 flex flex-col items-start cursor-pointer transition-all ${isStoreOutOfRange ? 'bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded-lg border border-red-100' : ''}`}
+          >
+            <div className="flex items-center gap-1 max-w-full">
+              <span className={`text-[11px] font-semibold tracking-tight truncate ${isStoreOutOfRange ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                {renderLocation()}
+              </span>
+              <ChevronDown size={11} strokeWidth={3} className={isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'} />
+            </div>
+          </div>
+
+          <div className="h-5 w-[0.5px] bg-gray-300 dark:bg-white/20" />
+
+          {/* Store Pillar */}
+          <div
+            onClick={() => setIsStoreSelectorOpen(true)}
+            className="flex-1 flex flex-col items-end cursor-pointer"
+          >
+            <div className="flex items-center gap-1 justify-end w-full">
+              <span className="text-[11px] font-semibold tracking-tight truncate text-right text-gray-900 dark:text-white">
+                {activeStore ? activeStore.name : 'Select Store'}
+              </span>
+              <ChevronDown size={11} strokeWidth={3} className="text-[#0c831f]" />
             </div>
           </div>
         </div>
 
-        {/* Row 2: Search & Actions (Mobile) */}
-        <div
-          className={`px-4 pb-4 pt-2 flex items-center gap-3 transition-colors duration-300 relative ${isDarkMode ? 'bg-black' : 'backdrop-blur-md'}`}
-          style={{
-            background: (!isDarkMode && customTheme)
-              ? `linear-gradient(to right, ${customTheme.bgColor}, #ffffff90)`
-              : undefined
-          }}
+        {/* Row 3: Search Bar (Always fixed via Parent) */}
+        <div 
+          className={`pb-3 transition-all duration-300 ${isScrolled ? 'px-2 pt-2' : 'px-4 pt-1'} ${isDarkMode ? 'bg-black' : 'bg-white/80'} backdrop-blur-md border-b border-black/5 shadow-sm`}
+          style={{ backgroundColor: isDarkMode ? '#000' : (customTheme?.bgColor ? `${customTheme.bgColor}cc` : '#ffffffcc') }}
         >
-          {/* Default Background if no custom theme - Light Mode Only */}
-          {!customTheme && !isDarkMode && (
-            <div className="absolute inset-0 bg-gradient-to-r from-[#e8f5e9] to-[#ffffff]/90 -z-10" />
-          )}
-          {/* Search Input */}
-          <div className="flex-1 relative group">
-            <input
-              type="text"
-              placeholder='Search "dal"'
-              value=""
-              onClick={() => setIsSearchOverlayOpen(true)}
-              readOnly
-              className="w-full pl-10 pr-10 py-3 bg-[#f6fbf7] border border-[#e8f5e9] dark:bg-[#1c1c1c] dark:border-white/5 rounded-2xl text-[14px] font-bold text-gray-800 dark:text-gray-100 focus:outline-none shadow-sm transition-all placeholder:text-gray-400 cursor-pointer"
-            />
-            <Search className="absolute left-3.5 top-3.5 text-gray-400" size={18} strokeWidth={2.5} />
-            <Mic className="absolute right-3.5 top-3.5 text-[#0c831f]" size={18} strokeWidth={2.5} />
-          </div>
-
-          {/* Language Switcher - Transparent in Light Mode */}
-          <div className="relative ml-1">
-            <button
-              onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-              className={`flex flex-col items-center justify-center p-1.5 rounded-xl transition-all min-w-[32px] ${isDarkMode
-                ? 'bg-white/10 border border-white/5 shadow-sm'
-                : 'bg-transparent border-transparent shadow-none'
-                }`}
-            >
-              <Globe size={18} className="text-[#0c831f] dark:text-gray-100" strokeWidth={2.5} />
-              <span className="text-[8px] font-black text-[#0c831f] dark:text-gray-300 uppercase tracking-tighter mt-0.5 leading-none">
-                {language === 'English' ? 'EN' : 'HI'}
-              </span>
-            </button>
-
-            {isLanguageMenuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsLanguageMenuOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-[#1c1c1c] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-200">
-                  <div className="p-1.5 space-y-0.5">
-                    {[
-                      { name: 'English', sub: 'Default' },
-                      { name: 'Hindi', sub: 'हिंदी' }
-                    ].map((lang) => (
-                      <button
-                        key={lang.name}
-                        onClick={() => {
-                          setLanguage(lang.name);
-                          localStorage.setItem('preferredLanguage', lang.name);
-                          setIsLanguageMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${language === lang.name
-                          ? 'bg-[#0c831f] text-white shadow-md'
-                          : 'hover:bg-[#f0fdf4] dark:hover:bg-[#0c831f] text-gray-700 dark:text-gray-200 dark:hover:text-white'
-                          }`}
-                      >
-                        <div className="flex flex-col items-start translate-y-[1px]">
-                          <span className="text-[13px] font-bold leading-none">{lang.name}</span>
-                          <span className={`text-[9px] mt-0.5 font-medium ${language === lang.name ? 'text-white/70' : 'text-gray-400'}`}>
-                            {lang.sub}
-                          </span>
-                        </div>
-                        {language === lang.name && (
-                          <div className="w-1 h-1 rounded-full bg-white opacity-80" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+          <div 
+            onClick={() => setIsSearchOverlayOpen(true)}
+            className={`flex items-center gap-3 px-4 py-2 bg-[#f3f9f4] dark:bg-[#151515] border border-black/5 rounded-xl shadow-inner active:scale-[0.98] transition-all`}
+          >
+            <Search className="text-[#0c831f]" size={18} strokeWidth={2.5} />
+            <span className="text-[13px] font-medium text-gray-500 flex-1 truncate">
+              Search "dal", "milk" or "bread"...
+            </span>
+            <Mic className="text-[#0c831f]" size={18} strokeWidth={2} />
           </div>
         </div>
       </div>
 
       {/* DESKTOP LAYOUT (Hidden on Mobile) */}
-      <nav
-        className={`hidden md:block border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300 relative ${isDarkMode ? 'bg-black' : 'backdrop-blur-md'}`}
-        style={{ backgroundColor: (!isDarkMode && customTheme) ? customTheme.bgColor : undefined }}
-      >
-        {!customTheme && !isDarkMode && <div className="absolute inset-0 bg-white/90 -z-10" />}
+      <nav className={`hidden md:block border-b border-gray-100 dark:border-white/5 shadow-sm transition-all duration-300 relative ${isDarkMode ? 'bg-black' : 'bg-white/95 backdrop-blur-md'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
-
-            {/* Left: Logo & Location */}
+            {/* Left Desktop */}
             <div className="flex items-center gap-8">
               <Link to="/" className="flex-shrink-0 flex items-center group">
                 <img
                   src={logo}
                   alt="sathiGro Logo"
-                  onError={(e) => { e.target.onerror = null; e.target.src = ASSET_URLS.logoCloudinary; }}
-                  className="h-10 w-auto object-contain transition-all duration-300 hover:scale-105"
+                  className="h-10 w-auto object-contain hover:scale-105 transition-transform"
                   style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
               </Link>
-
-              {/* Location & Store Selector - Desktop */}
-              <div
-                className={`flex items-center gap-4 px-3 py-1.5 rounded-xl border border-transparent transition-all ${isStoreOutOfRange ? 'bg-red-50 dark:bg-red-500/10 border-red-200' : 'bg-gray-50/50 dark:bg-white/5 hover:border-gray-100 dark:hover:border-white/10'}`}
-              >
-                {/* Location Part */}
-                <div
-                  onClick={openLocationModal}
-                  className="flex flex-col items-start leading-none cursor-pointer group pr-4 border-r border-gray-200 dark:border-white/10 h-10 justify-center"
-                >
-                  <span className={`text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1 transition-colors ${isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f] group-hover:text-[#1c1c1c] dark:group-hover:text-white'}`}>
+              <div className={`flex items-center gap-4 px-3 py-1.5 rounded-xl border transition-all ${isStoreOutOfRange ? 'bg-red-50 border-red-200' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}>
+                <div onClick={openLocationModal} className="flex flex-col items-start leading-none cursor-pointer pr-4 border-r border-gray-200 dark:border-white/10 h-10 justify-center">
+                  <span className={`text-[10px] uppercase font-bold tracking-wider flex items-center gap-1 ${isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'}`}>
                     Delivery at <ChevronDown size={10} strokeWidth={3} />
                   </span>
-                  <span className={`text-[13px] font-semibold line-clamp-1 max-w-[180px] ${isStoreOutOfRange ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-gray-100'}`}>
-                    {location.label || location.city || 'Select Location'}
+                  <span className={`text-[13px] font-semibold text-gray-800 dark:text-white`}>
+                    {renderLocation()}
                   </span>
                 </div>
-
-                {/* Store Part */}
-                <div
-                  onClick={() => setIsStoreSelectorOpen(true)}
-                  className="flex flex-col items-start leading-none cursor-pointer group h-10 justify-center"
-                >
-                  <span className={`text-[10px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1 transition-colors ${isStoreOutOfRange ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#0c831f]'}`}>
-                    {isStoreOutOfRange ? 'Change Store' : 'Shop from'} <ChevronDown size={10} strokeWidth={3} />
+                <div onClick={() => setIsStoreSelectorOpen(true)} className="flex flex-col items-start leading-none cursor-pointer h-10 justify-center pl-1">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">
+                    Store <ChevronDown size={10} strokeWidth={3} className="inline" />
                   </span>
-                  <div className="flex items-center gap-2">
-                    {isStoreOutOfRange && <AlertCircle size={12} className="text-red-500" />}
-                    <span className={`text-[13px] font-semibold line-clamp-1 max-w-[150px] ${isStoreOutOfRange ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-gray-100'}`}>
-                      {activeStore?.name || 'Select Store'}
-                    </span>
-                  </div>
+                  <span className="text-[13px] font-semibold text-gray-800 dark:text-white">
+                    {activeStore?.name || 'Select Store'}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Center: Search Bar - Desktop */}
-            <div className="flex-1 max-w-xl relative group mx-8">
-              <div
+            {/* Center Desktop */}
+            <div className="flex-1 max-w-xl relative mx-8 group">
+              <div 
                 onClick={() => setIsSearchOverlayOpen(true)}
-                className="w-full pl-11 pr-24 py-2.5 bg-gray-100/50 dark:bg-[#1c1c1c] border border-transparent dark:border-white/5 rounded-full text-sm font-medium text-gray-400 dark:text-gray-500 shadow-inner group-hover:shadow-sm cursor-pointer flex items-center"
+                className="w-full pl-11 pr-10 py-2.5 bg-gray-100 dark:bg-[#1c1c1c] rounded-full text-sm font-medium text-gray-400 shadow-inner cursor-pointer"
               >
-                Search for 'milk', 'bread'...
+                Search categories...
               </div>
               <Search className="absolute left-4 top-3 text-[#0c831f]" size={18} strokeWidth={2.5} />
-              <div className="absolute right-3 top-2 flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsSearchOverlayOpen(true);
-                  }}
-                  className="p-1.5 rounded-full transition-all text-gray-400 hover:text-[#0c831f] hover:bg-gray-200 dark:hover:bg-white/10"
-                >
-                  <Mic size={16} strokeWidth={2.5} />
-                </button>
-              </div>
             </div>
-            {/* Right: Actions (Desktop) */}
+
+            {/* Right Desktop */}
             <div className="flex items-center gap-3">
-              <button
-                onClick={toggleTheme}
-                className="p-2.5 text-gray-400 hover:text-[#0c831f] hover:bg-green-50/50 dark:hover:bg-white/5 rounded-full transition-all"
-              >
-                {isDarkMode ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
+              <button onClick={toggleTheme} className="p-2.5 text-gray-400 hover:text-[#0c831f] transition-colors">
+                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-
               <div className="relative">
-                <Link
-                  to="/notifications"
-                  className="p-2.5 flex items-center justify-center bg-gray-100 dark:bg-white/5 hover:bg-[#0c831f] hover:text-white dark:hover:bg-[#0c831f] text-gray-800 dark:text-[#0c831f] rounded-full transition-all duration-300 group shadow-sm"
-                >
-                  <Bell size={20} strokeWidth={2} className="group-hover:rotate-12 transition-transform" />
+                <Link to="/notifications" className="p-2.5 bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-all">
+                  <Bell size={20} />
                 </Link>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-sm transform scale-100 animate-in zoom-in">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
+                {unreadCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-lg">{unreadCount}</span>}
               </div>
-
               {user ? (
-                <div className="flex items-center">
-                  <Link to="/profile" className="flex items-center gap-2 px-1 py-1 pr-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-full border border-transparent hover:border-gray-100 dark:hover:border-white/5 transition-all group">
-                    <div className="w-8 h-8 rounded-full bg-[#f0fff4] dark:bg-[#0c831f]/20 flex items-center justify-center text-[#0c831f] border border-[#0c831f]/20">
-                      {user.photoURL ? <img src={user.photoURL} className="w-full h-full rounded-full object-cover" /> : <User size={16} strokeWidth={2.5} />}
-                    </div>
-                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{user.name?.split(' ')[0] || 'User'}</span>
-                  </Link>
-                </div>
-              ) : (
-                <Link
-                  to={`/login?redirect=${encodeURIComponent(routerLocation.pathname)}`}
-                  style={{ borderRadius: '16px' }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-xs font-black uppercase tracking-wider hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                >
-                  <User size={14} strokeWidth={3} />
-                  Login
+                <Link to="/profile" className="flex items-center gap-2 px-1 py-1 pr-3 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-all">
+                  <div className="w-8 h-8 rounded-full bg-[#f0fff4] flex items-center justify-center text-[#0c831f]">
+                    {user.photoURL ? <img src={user.photoURL} alt="" className="w-full h-full rounded-full" /> : <User size={16} />}
+                  </div>
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{user.name?.split(' ')[0]}</span>
                 </Link>
+              ) : (
+                <Link to="/login" className="px-4 py-2 bg-gray-900 text-white text-xs font-black uppercase tracking-wider rounded-xl">Login</Link>
               )}
-
               <div className="relative">
-                <button
-                  onClick={() => protectAction(toggleCart)}
-                  className="p-2.5 bg-gray-100 dark:bg-white/5 hover:bg-[#0c831f] hover:text-white dark:hover:bg-[#0c831f] text-gray-800 dark:text-[#0c831f] rounded-full transition-all duration-300 group shadow-sm"
-                >
-                  <ShoppingBag size={20} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
+                <button onClick={() => protectAction(toggleCart)} className="p-2.5 bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-all">
+                  <ShoppingBag size={20} />
                 </button>
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#0c831f] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-sm transform scale-100 animate-in zoom-in">
-                    {cartCount}
-                  </span>
-                )}
+                {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-[#0c831f] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-lg">{cartCount}</span>}
               </div>
             </div>
           </div>
@@ -464,4 +248,3 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
 };
 
 export default Navbar;
-

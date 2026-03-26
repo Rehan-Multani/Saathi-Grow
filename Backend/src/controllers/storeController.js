@@ -1,7 +1,7 @@
 import Branch from '../models/Branch.js';
 import Vendor from '../models/Vendor.js';
 import GlobalSetting from '../models/GlobalSetting.js';
-import { getGoogleDistances, calculateDistance } from '../services/locationService.js';
+import { getGoogleDistances, calculateDistance, reverseGeocode } from '../services/locationService.js';
 
 // @desc    Get nearby branches and vendors with Google Maps verification
 // @route   GET /api/user/stores/nearby
@@ -101,5 +101,37 @@ export const getNearbyStores = async (req, res) => {
   } catch (error) {
     console.error('Error fetching optimized nearby stores:', error);
     res.status(500).json({ message: 'Failed to fetch nearby stores' });
+  }
+};
+
+// @desc    Reverse geocode coordinates to address
+// @route   GET /api/user/stores/reverse-geocode
+// @access  Public
+export const reverseGeocodeToAddress = async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+    console.log(`[STORES] Reverse Geocode request for lat: ${lat}, lng: ${lng}`);
+    if (!lat || !lng) {
+      return res.status(400).json({ message: 'Latitude and longitude are required' });
+    }
+
+    const coords = [parseFloat(lng), parseFloat(lat)];
+    const result = await reverseGeocode(coords);
+
+    if (!result) {
+      return res.status(404).json({ message: 'Could not resolve location', error: 'ZERO_RESULTS' });
+    }
+
+    if (result.status === 'REQUEST_DENIED') {
+        return res.status(401).json({ 
+            message: 'Reverse Geocoding API not enabled on backend credentials',
+            error: 'REQUEST_DENIED'
+        });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Reverse Geocode error:', error);
+    res.status(500).json({ message: 'Server error during reverse geocoding' });
   }
 };

@@ -465,28 +465,37 @@ const SearchOverlay = () => {
                                 </div>
                             )}
 
-                            {/* Load More Button */}
-                            {!isLoading && filteredProducts.length > 0 && currentPage < totalPages && (
-                                <div className="mt-8 flex justify-center pb-8">
-                                    <button
-                                        onClick={handleLoadMore}
-                                        disabled={isMoreLoading}
-                                        className={`group relative flex items-center gap-2 px-8 py-3 bg-[#0c831f] text-white font-bold rounded-xl transition-all hover:bg-[#0a701a] active:scale-95 disabled:opacity-70 disabled:active:scale-100 shadow-lg shadow-green-500/20`}
-                                    >
-                                        {isMoreLoading ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                <span>Loading items...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span>Load More Products</span>
-                                                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse group-hover:bg-white"></div>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            )}
+                            {/* Infinite Scroll Trigger */}
+                            <div 
+                                ref={(el) => {
+                                    if (el && !isLoading && !isMoreLoading && currentPage < totalPages) {
+                                        const observer = new IntersectionObserver(
+                                            ([entry]) => {
+                                                if (entry.isIntersecting) {
+                                                    handleLoadMore();
+                                                }
+                                            },
+                                            { threshold: 0.1, rootMargin: '300px' }
+                                        );
+                                        observer.observe(el);
+                                        return () => observer.disconnect();
+                                    }
+                                }}
+                                className="h-20 flex items-center justify-center mt-8 pb-10"
+                            >
+                                {isMoreLoading && (
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="w-8 h-8 border-4 border-[#0c831f15] border-t-[#0c831f] rounded-full animate-spin" />
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] animate-pulse">More results incoming...</span>
+                                    </div>
+                                )}
+                                {!isMoreLoading && currentPage >= totalPages && filteredProducts.length > 0 && (
+                                    <div className="flex flex-col items-center gap-2 text-gray-300">
+                                        <Search size={20} className="opacity-20" />
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">End of results for "{searchQuery}"</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

@@ -1,7 +1,7 @@
-﻿import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import * as addressApi from '../api/userAddressApi';
-
+import * as shopApi from '../api/shopApi';
 
 const LocationContext = createContext();
 
@@ -32,18 +32,67 @@ export const LocationProvider = ({ children }) => {
     }, []);
 
     const reverseGeocode = async (coords) => {
-        if (!window.google) return null;
+        // 1. High Performance Backend Priority
+        try {
+            const backendResult = await shopApi.getReverseGeocode(coords[1], coords[0]);
+            if (backendResult) return backendResult;
+        } catch (error) {
+            console.warn("Backend reverse geocode unavailable, trying SDK...", error.message);
+        }
+
+        // 2. Fallback to SDK - Wait for it to be ready if it's not yet
+        if (!window.google && !mapLoaded) {
+            console.log("Waiting for Google Maps SDK to load for reverse geocoding...");
+            // Wait up to 3 seconds for it to load
+            await new Promise((resolve) => {
+                const check = setInterval(() => {
+                    if (window.google) {
+                        clearInterval(check);
+                        resolve();
+                    }
+                }, 200);
+                setTimeout(() => { clearInterval(check); resolve(); }, 3000);
+            });
+        }
+
+        if (!window.google) {
+            console.error("Google Maps SDK not available for fallback");
+            return null;
+        }
+
         const geocoder = new window.google.maps.Geocoder();
         const latlng = { lat: coords[1], lng: coords[0] };
 
         return new Promise((resolve) => {
             geocoder.geocode({ location: latlng }, (results, status) => {
                 if (status === 'OK' && results[0]) {
+                    const place = results[0];
+                    let street = "";
+                    let area = "";
+                    let city = "";
+                    
+                    place.address_components.forEach(component => {
+                        const types = component.types;
+                        if (types.includes("sublocality_level_1") || types.includes("route")) {
+                            street = component.long_name;
+                        }
+                        if (types.includes("sublocality_level_2") || types.includes("neighborhood")) {
+                            area = component.long_name;
+                        }
+                        if (types.includes("locality")) {
+                            city = component.long_name;
+                        }
+                    });
+
+                    const displayArea = street || area || place.address_components[0]?.long_name || "Unknown Area";
+
                     resolve({
-                        address: results[0].formatted_address,
-                        city: results[0].address_components.find(c => c.types.includes('locality'))?.long_name || ''
+                        address: place.formatted_address,
+                        street: displayArea,
+                        city: city || "Indore"
                     });
                 } else {
+                    console.warn(`SDK Geocoder failed: ${status}`);
                     resolve(null);
                 }
             });

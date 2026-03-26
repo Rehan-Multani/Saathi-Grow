@@ -70,6 +70,15 @@ export const StoreProvider = ({ children }) => {
     }
   }, [location?.coordinates, isStoreOutOfRange, activeStore?.id]);
 
+  // Handle explicit manual location changes triggering store selector
+  useEffect(() => {
+    const handleForceOpen = () => {
+        setIsStoreSelectorOpen(true);
+    };
+    window.addEventListener('saathi_force_store_selector', handleForceOpen);
+    return () => window.removeEventListener('saathi_force_store_selector', handleForceOpen);
+  }, []);
+
   // Persist active store selection
   useEffect(() => {
     if (activeStore) {

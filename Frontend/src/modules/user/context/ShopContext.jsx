@@ -64,7 +64,6 @@ export const ShopProvider = ({ children }) => {
       if (lastStoreId && activeStore?.id) {
         // Only clear cart if it was a real switch between two different stores
         clearCart();
-        toast.info("Cart cleared due to store switch");
       }
       setLastStoreId(activeStore?.id);
       refreshShopData();

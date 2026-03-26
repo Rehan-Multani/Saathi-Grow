@@ -77,6 +77,14 @@ export const searchProducts = async (query = '', page = 1, storeParams = {}, sig
   return data;
 };
 
+export const getReverseGeocode = async (lat, lng) => {
+  const url = `${API_BASE_URL}/user/stores/reverse-geocode?lat=${lat}&lng=${lng}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to reverse geocode');
+  return data;
+};
+
 export const getNearbyStores = async (lat, lng, radius) => {
   const url = `${API_BASE_URL}/user/stores/nearby?lat=${lat}&lng=${lng}${radius ? `&radius=${radius}` : ''}`;
   const response = await fetch(url);

@@ -18,6 +18,8 @@ import StoreSelector from '../components/location/StoreSelector';
 import PullToRefresh from '../../../common/components/PullToRefresh';
 import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
 import { useState } from 'react';
+import OfferTicker from '../components/layout/OfferTicker';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
@@ -121,10 +123,11 @@ const UserLayout = () => {
             <ScrollToTop />
 
             <div className={`fixed top-0 left-0 right-0 z-[100] ${hideDesktopChrome ? 'hidden md:hidden' : ''} ${hideNavbarMobile && !hideDesktopChrome ? 'hidden md:block' : ''}`}>
+                <OfferTicker />
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>
-            {/* Spacer for fixed Navbar */}
-            {!hideDesktopChrome && <div className={`h-[128px] md:h-20 ${hideNavbarMobile ? 'hidden md:block' : ''}`}></div>}
+            {/* Spacer for fixed Navbar + Ticker */}
+            {!hideDesktopChrome && !hideNavbarMobile && <div className="h-[165px] md:h-28"></div>}
             <CartSidebar />
             <LocationModal />
             <StoreSelector isOpen={isStoreSelectorOpen} onClose={() => setIsStoreSelectorOpen(false)} />
@@ -135,7 +138,18 @@ const UserLayout = () => {
             <main className="flex-grow bg-white dark:!bg-black transition-colors duration-300 pb-20 md:pb-0">
                 <PullToRefresh onRefresh={handleRefresh}>
                     <Suspense fallback={<LoadingFallback />}>
-                        <Outlet />
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={location.pathname}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className="w-full h-full"
+                            >
+                                <Outlet />
+                            </motion.div>
+                        </AnimatePresence>
                     </Suspense>
                 </PullToRefresh>
             </main>
