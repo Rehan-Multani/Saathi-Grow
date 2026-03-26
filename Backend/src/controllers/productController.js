@@ -621,8 +621,7 @@ export const searchProductsWithAI = async (req, res) => {
         { name: { $regex: keywordRegex } },
         { description: { $regex: keywordRegex } },
         { tags: { $in: [primaryRegex] } }
-      ],
-      ...storeScope
+      ]
     };
 
     // ─── Step 4: Aggregate with weighted relevance scoring ──────────────────────
