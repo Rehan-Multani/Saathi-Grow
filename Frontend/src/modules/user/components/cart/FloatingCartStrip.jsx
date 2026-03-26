@@ -1,4 +1,4 @@
-﻿import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import { useCart } from '../../context/CartContext';
 import { ChevronRight } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
@@ -9,20 +9,9 @@ const FloatingCartStrip = () => {
     const { protectAction } = useAuth();
     const routerLocation = useLocation();
 
-    // Store the initial count when the component mounts to detect NEW additions
-    const initialCount = React.useRef(cartCount);
-    const [hasBeenTriggered, setHasBeenTriggered] = React.useState(false);
-
-    React.useEffect(() => {
-        // If current count is greater than what it was at start, user added something in this session
-        if (cartCount > initialCount.current) {
-            setHasBeenTriggered(true);
-        }
-    }, [cartCount]);
-
     // Hide if cart is empty, if sidebar is open, or on checkout/success pages
     const hiddenPages = ['/checkout', '/order-success', '/login', '/register'];
-    if (cartCount === 0 || isCartOpen || hiddenPages.includes(routerLocation.pathname) || !hasBeenTriggered) return null;
+    if (cartCount === 0 || isCartOpen || hiddenPages.includes(routerLocation.pathname)) return null;
 
     // Get unique product images (up to 2)
     const uniqueItems = Array.from(new Map(cart.map(item => [item.id, item])).values()).slice(-2);
