@@ -479,6 +479,7 @@ export const getProducts = async (req, res) => {
             const bId = bs.branchId?._id || bs.branchId;
             return bId && bId.toString() === effectiveStoreId.toString();
           });
+
           if (branchStock) {
             inStore = true;
             availableStock = branchStock.stock || 0;
@@ -487,6 +488,13 @@ export const getProducts = async (req, res) => {
             if (availableStock > 0) {
               isDeliverable = true;
             }
+          } else if (pObj.isAllBranches) {
+            // Product is globally available to all branches
+            // But if it's not explicitly in branchStocks, it hasn't been stocked yet (effectively 0)
+            inStore = true;
+            availableStock = 0;
+            lowStockThreshold = pObj.lowStockThreshold || 10;
+            isDeliverable = false;
           }
         } else if (storeType === 'vendor') {
           // Check if product belongs to this vendor
@@ -676,6 +684,11 @@ export const searchProductsWithAI = async (req, res) => {
             availableStock = bs.stock || 0;
             lowStockThreshold = bs.lowStockThreshold || 10;
             if (availableStock > 0) isDeliverable = true;
+          } else if (pObj.isAllBranches) {
+            inStore = true;
+            availableStock = 0;
+            lowStockThreshold = pObj.lowStockThreshold || 10;
+            isDeliverable = false;
           }
         } else if (storeType === 'vendor') {
           const vId = pObj.vendor?._id || pObj.vendor;
@@ -765,6 +778,11 @@ export const getProductById = async (req, res) => {
           if (availableStock > 0) {
             isDeliverable = true;
           }
+        } else if (pObj.isAllBranches) {
+          inStore = true;
+          availableStock = 0;
+          lowStockThreshold = pObj.lowStockThreshold || 10;
+          isDeliverable = false;
         }
       } else if (storeType === 'vendor') {
         const vId = pObj.vendor?._id || pObj.vendor;

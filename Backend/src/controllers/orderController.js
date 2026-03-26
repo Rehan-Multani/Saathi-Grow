@@ -94,9 +94,19 @@ const validateStockAvailability = async (items, storeId, storeType) => {
 
     if (storeType === 'branch') {
       const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === storeId?.toString());
-      if (!branchStock) throw new Error(`Product ${product.name} is not available at the selected branch.`);
-      availableStock = branchStock.stock || 0;
-      threshold = branchStock.lowStockThreshold || 10;
+      
+      if (!branchStock) {
+        if (product.isAllBranches) {
+          // If available to all branches but not yet initialized for this branch, assume 0 stock
+          availableStock = 0;
+          threshold = product.lowStockThreshold || 10;
+        } else {
+          throw new Error(`Product ${product.name} is not available at the selected branch.`);
+        }
+      } else {
+        availableStock = branchStock.stock || 0;
+        threshold = branchStock.lowStockThreshold || 10;
+      }
     } else if (storeType === 'vendor') {
       // For vendor, check if product belongs to this vendor
       if (product.vendor?.toString() !== storeId?.toString()) {

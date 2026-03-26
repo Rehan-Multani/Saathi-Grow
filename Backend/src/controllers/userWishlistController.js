@@ -26,8 +26,11 @@ export const getWishlist = async (req, res) => {
             const bId = bs.branchId?._id || bs.branchId;
             return bId && bId.toString() === storeId.toString();
           });
+
           if (branchStock && branchStock.stock > 0) {
             isDeliverable = true;
+          } else if (pObj.isAllBranches) {
+            isDeliverable = false;
           }
         } else if (storeType === 'vendor') {
           const vId = pObj.vendor?._id || pObj.vendor;
