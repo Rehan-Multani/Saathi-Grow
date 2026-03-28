@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import {
     getDeliveryProfile,
     verifyOTP as verifyOTPApi,
@@ -21,13 +21,16 @@ const useDeliveryStore = create((set, get) => ({
     history: [],
     wallet: null,
     transactions: [],
+    walletPagination: { totalPages: 1, currentPage: 1, totalCount: 0 },
+    historyPagination: { totalPages: 1, currentPage: 1, totalCount: 0 },
     loading: false,
     error: null,
 
     // ₹₹ Internal fetch-in-progress flags to prevent concurrent duplicate calls ₹₹
     _fetching: {
         profile: false,
-        orders: false,
+        activeOrders: false,
+        historyOrders: false,
         wallet: false,
         stats: false
     },
@@ -53,7 +56,7 @@ const useDeliveryStore = create((set, get) => ({
         set({
             profile: null, token: null,
             orders: [], history: [], stats: null, wallet: null, transactions: [],
-            _fetching: { profile: false, orders: false, wallet: false, stats: false }
+            _fetching: { profile: false, activeOrders: false, historyOrders: false, wallet: false, stats: false }
         });
     },
 
@@ -86,33 +89,47 @@ const useDeliveryStore = create((set, get) => ({
     },
 
     // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ ORDERS ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
-    fetchOrders: async (token, type = 'active') => {
+    fetchOrders: async (token, type = 'active', params = {}) => {
         const { _fetching } = get();
-        if (!token || _fetching.orders) return;
+        const fetchKey = type === 'active' ? 'activeOrders' : 'historyOrders';
+        if (!token || _fetching[fetchKey]) return;
 
-        set((s) => ({ _fetching: { ...s._fetching, orders: true } }));
+        set((s) => ({ _fetching: { ...s._fetching, [fetchKey]: true } }));
         try {
-            const orders = await getDeliveryOrders(token, type);
-            if (type === 'active') set((s) => ({ orders, _fetching: { ...s._fetching, orders: false } }));
-            else if (type === 'history') set((s) => ({ history: orders, _fetching: { ...s._fetching, orders: false } }));
-            else set((s) => ({ _fetching: { ...s._fetching, orders: false } }));
+            const queryStr = Object.keys(params)
+                .filter(k => params[k] !== '' && params[k] !== undefined && params[k] !== null)
+                .map(k => `${k}=${params[k]}`)
+                .join('&');
+            const response = await getDeliveryOrders(token, type, queryStr ? `&${queryStr}` : '');
+            
+            if (type === 'active') {
+                set((s) => ({ orders: response, _fetching: { ...s._fetching, activeOrders: false } }));
+            } else if (type === 'history') {
+                set((s) => ({ 
+                    history: response.history, 
+                    historyPagination: response.pagination || { totalPages: 1, currentPage: 1, totalCount: 0 },
+                    _fetching: { ...s._fetching, historyOrders: false } 
+                }));
+            } else {
+                set((s) => ({ _fetching: { ...s._fetching, [fetchKey]: false } }));
+            }
         } catch (error) {
-            set((s) => ({ error: error.message, _fetching: { ...s._fetching, orders: false } }));
+            set((s) => ({ error: error.message, _fetching: { ...s._fetching, [fetchKey]: false } }));
         }
     },
 
     // ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹ WALLET ₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹
-    fetchWallet: async (token) => {
+    fetchWallet: async (token, page = 1, limit = 10) => {
         const { _fetching } = get();
         if (!token || _fetching.wallet) return;
 
         set((s) => ({ _fetching: { ...s._fetching, wallet: true } }));
         try {
-            const data = await getWalletTransactions(token);
-            // Map cash collection data to wallet structure for backward compatibility or use new naming
+            const data = await getWalletTransactions(token, page, limit);
             set((s) => ({
-                wallet: { balance: data.cashInHand || 0 }, // Reuse wallet balance for cash in hand
+                wallet: { balance: data.cashInHand || 0 },
                 transactions: data.history || [],
+                walletPagination: data.pagination || { totalPages: 1, currentPage: 1, totalCount: 0 },
                 _fetching: { ...s._fetching, wallet: false }
             }));
         } catch (error) {

@@ -106,8 +106,8 @@ const CategoryPage = () => {
             if (isVegOnly) params.isVeg = 'true';
             if (selectedBrands.length > 0) params.brand = selectedBrands.join(',');
             if (activeStore) {
-                params.storeId = activeStore.id;
-                params.storeType = activeStore.type;
+                params.activeStoreId = activeStore.id;
+                params.activeStoreType = activeStore.type;
             }
 
             const response = await fetchProducts(params);
@@ -216,138 +216,129 @@ const CategoryPage = () => {
     const normalizedProducts = pageProducts.map(normalizeProduct);
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:bg-none dark:bg-black pb-28 transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-black pb-28 transition-colors duration-300">
+            <style dangerouslySetInnerHTML={{ __html: `
+                .back-btn-clear, .back-btn-clear:hover, .back-btn-clear:active {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                }
+                .shop-pill-btn {
+                    border-radius: 9999px !important;
+                }
+                .sort-pill-btn {
+                    border-radius: 9999px !important;
+                }
+            ` }} />
             <SEO
                 title={currentCategory?.name || 'Category'}
                 description={`Shop for ${currentCategory?.name || 'products'} at Saathi-Grow. Best quality and fast delivery for all your needs.`}
                 image={currentCategory?.image}
             />
-            {/* Sticky Header */}
-            <div className="sticky top-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 px-4 py-3">
+            {/* Compact Header - No Sticky */}
+            <div className="relative bg-white dark:bg-black border-b border-gray-50 dark:border-white/5 px-3 py-1.5">
                 <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={() => navigate('/category')}
-                                className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-300"
+                                className="back-btn-clear p-2 text-gray-800 dark:text-gray-200 active:scale-90 transition-all"
                             >
-                                <ArrowLeft size={16} />
+                                <ArrowLeft size={22} strokeWidth={2.5} />
                             </button>
                             {!showSearch ? (
                                 <div className="flex flex-col">
-                                    <h1 className="text-sm md:text-lg font-black text-gray-900 dark:text-gray-100 leading-none">
+                                    <h1 className="text-base font-black text-gray-900 dark:text-gray-100 leading-tight">
                                         {currentCategory?.name || 'Store'}
                                     </h1>
-                                    <div className="flex items-center text-[8px] text-gray-400 gap-1.5 uppercase tracking-widest font-bold">
-                                        <span>{totalResults} Products</span>
+                                    <div className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">
+                                        {totalResults} Products
                                     </div>
                                 </div>
                             ) : null}
                         </div>
 
-                        {/* Search Bar - Toggleable */}
+                        {/* Fast Search Toggle */}
                         <div className={`flex-1 transition-all duration-300 ${showSearch ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none absolute invisible max-w-0'}`}>
                             <div className="relative">
                                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder={`Search in ${currentCategory?.name || 'Store'}...`}
+                                    placeholder={`Search...`}
                                     value={localSearch}
                                     onChange={(e) => setLocalSearch(e.target.value)}
-                                    className="w-full pl-9 pr-9 py-2 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#0c831f] transition-all"
+                                    className="w-full pl-9 pr-9 py-2 bg-gray-50 dark:bg-white/5 border-none rounded-full text-[13px] font-bold text-gray-900 dark:text-white focus:outline-none shadow-inner"
                                     autoFocus
                                 />
                                 {localSearch && (
                                     <button
                                         onClick={() => setLocalSearch('')}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
                                     >
-                                        <X size={12} className="text-gray-500" />
+                                        <X size={14} className="text-gray-400" />
                                     </button>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => {
                                     setShowSearch(!showSearch);
                                     if (showSearch) setLocalSearch('');
                                 }}
-                                className={`p-2 rounded-full transition-all ${showSearch ? 'bg-[#0c831f] text-white shadow-lg shadow-green-500/20' : 'bg-gray-50 dark:bg-white/5 text-gray-600'}`}
+                                className={`back-btn-clear p-2 transition-all ${showSearch ? 'text-[#0c831f]' : 'text-gray-600'}`}
                             >
-                                <Search size={16} />
+                                <Search size={22} strokeWidth={2.5} />
                             </button>
                             <button
                                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                className={`p-2 rounded-full transition-all ${isFilterOpen ? 'bg-black text-white' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-300'}`}
+                                className={`back-btn-clear p-2 transition-all ${isFilterOpen ? 'text-black dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
                             >
-                                <SlidersHorizontal size={16} />
+                                <SlidersHorizontal size={22} strokeWidth={2.5} />
                             </button>
                         </div>
                     </div>
 
-                    {/* Filter Drawer - Implementation of "other filters" */}
-                    {isFilterOpen && (
-                        <div className="mt-4 pt-4 border-t border-gray-50 dark:border-white/5 pb-2">
-                            <div className="flex flex-col gap-4">
-                                <div className="flex flex-wrap items-center gap-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Sort By</span>
-                                        <div className="flex gap-2">
-                                            {[
-                                                { id: '-createdAt', label: 'Newest' },
-                                                { id: 'basePrice', label: 'Price: Low-High' },
-                                                { id: '-basePrice', label: 'Price: High-Low' }
-                                            ].map(opt => (
-                                                <button
-                                                    key={opt.id}
-                                                    onClick={() => setSortOption(opt.id)}
-                                                    className={`px-3 py-2 rounded-xl text-[10px] font-bold transition-all ${sortOption === opt.id ? 'bg-[#0c831f] text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-transparent'}`}
-                                                >
-                                                    {opt.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
+                    {/* Highly Compact Pill Filter Row */}
+                    <div className="mt-2 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+                        <button
+                            onClick={() => setIsVegOnly(!isVegOnly)}
+                            className={`shop-pill-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${isVegOnly ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-400'}`}
+                        >
+                            <Leaf size={12} className={isVegOnly ? 'text-white' : 'text-green-600'} />
+                            Veg Only
+                        </button>
 
-                                    <div className="flex flex-col gap-1.5 ml-auto">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Dietary</span>
-                                        <button
-                                            onClick={() => setIsVegOnly(!isVegOnly)}
-                                            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold transition-all border ${isVegOnly ? 'bg-green-600 border-green-600 text-white shadow-md' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 border-transparent'}`}
-                                        >
-                                            <Leaf size={12} className={isVegOnly ? 'text-white' : 'text-green-600'} />
-                                            Veg Only
-                                        </button>
-                                    </div>
-                                </div>
+                        {[
+                            { id: '-createdAt', label: 'Recent' },
+                            { id: 'basePrice', label: 'Price: Low' },
+                            { id: '-basePrice', label: 'Price: High' }
+                        ].map(opt => (
+                            <button
+                                key={opt.id}
+                                onClick={() => setSortOption(opt.id)}
+                                className={`sort-pill-btn px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${sortOption === opt.id ? 'bg-black text-white border-black' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-400'}`}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
 
-                                {availableBrands.length > 0 && (
-                                    <div className="flex flex-col gap-1.5 w-full">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Brands</span>
-                                        <div className="flex flex-wrap gap-2">
-                                            {availableBrands.map(brand => (
-                                                <button
-                                                    key={brand}
-                                                    onClick={() => {
-                                                        setSelectedBrands(prev =>
-                                                            prev.includes(brand)
-                                                                ? prev.filter(b => b !== brand)
-                                                                : [...prev, brand]
-                                                        );
-                                                    }}
-                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${selectedBrands.includes(brand) ? 'bg-black text-white border-black shadow-md' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 border-gray-100 dark:border-white/10'}`}
-                                                >
-                                                    {brand}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                        {availableBrands.map(brand => (
+                            <button
+                                key={brand}
+                                onClick={() => {
+                                    setSelectedBrands(prev =>
+                                        prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
+                                    );
+                                }}
+                                className={`sort-pill-btn px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${selectedBrands.includes(brand) ? 'bg-black text-white border-black shadow-md' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 border-gray-100 dark:border-white/5'}`}
+                            >
+                                {brand}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

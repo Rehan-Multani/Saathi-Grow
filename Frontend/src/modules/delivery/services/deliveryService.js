@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = API_BASE_URL;
@@ -37,8 +37,8 @@ export const updateDeliveryStatus = async (token, deliveryId, status, stopOrderI
     return data;
 };
 
-export const getWalletTransactions = async (token) => {
-    const { data } = await axios.get(`${API_URL}/delivery/wallet`, getAuthHeaders(token));
+export const getWalletTransactions = async (token, page = 1, limit = 10) => {
+    const { data } = await axios.get(`${API_URL}/delivery/wallet?page=${page}&limit=${limit}`, getAuthHeaders(token));
     return data;
 };
 

@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import useDeliveryStore from '../store/deliveryStore';
 
 /**
@@ -14,8 +14,10 @@ const useDelivery = () => {
         stats,
         orders,
         history,
+        historyPagination,
         wallet,
         transactions,
+        walletPagination,
         loading,
         error,
         fetchProfile,
@@ -41,7 +43,7 @@ const useDelivery = () => {
     }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const memoizedToggleStatus = useCallback((status) => toggleStatus(token, status), [token, toggleStatus]);
-    const refreshOrders = useCallback((type) => fetchOrders(token, type), [token, fetchOrders]);
+    const refreshOrders = useCallback((type, params = {}) => fetchOrders(token, type, params), [token, fetchOrders]);
     const refreshStats = useCallback(() => fetchStats(token), [token, fetchStats]);
     const refreshAll = useCallback(async () => {
         if (!token) return;
@@ -57,17 +59,21 @@ const useDelivery = () => {
     const simulate = useCallback(() => triggerSimulation(token), [token, triggerSimulation]);
 
     return {
+        token,
         profile,
         stats,
         orders,
         history,
+        historyPagination,
         wallet,
         transactions,
+        walletPagination,
         loading,
         error,
         toggleStatus: memoizedToggleStatus,
         refreshOrders,
         refreshStats,
+        refreshWallet: (page, limit) => fetchWallet(token, page, limit),
         refreshAll,
         updateLocation: memoizedUpdateLocation,
         simulate

@@ -8,7 +8,16 @@ export const fetchCategories = async () => {
 };
 
 export const fetchProducts = async (params = {}) => {
-  const query = new URLSearchParams(params).toString();
+  // Sanitize params: remove undefined, null, or empty string values
+  const sanitizedParams = Object.keys(params).reduce((acc, key) => {
+    const val = params[key];
+    if (val !== undefined && val !== null && val !== '') {
+      acc[key] = val;
+    }
+    return acc;
+  }, {});
+  
+  const query = new URLSearchParams(sanitizedParams).toString();
   const response = await fetch(`${API_BASE_URL}/admin/products?${query}`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to fetch products');

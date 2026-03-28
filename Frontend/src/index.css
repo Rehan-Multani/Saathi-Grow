@@ -260,7 +260,7 @@ img {
 
 /* 
    USER MODULE DARK MODE REFINEMENT
-   Scoped to .user-module-root to fulfill the "sirf user module k liye" requirement.
+   Specifically scoped to the user module to protect other administrative modules.
 */
 .dark .user-module-root {
   --bg-page-pure: #000000;
@@ -269,14 +269,18 @@ img {
   /* Force pure black on page backgrounds */
   &.bg-\[#fffef5\],
   .bg-\[#fffef5\],
-  .bg-\[#fffdf0\] {
+  .bg-\[#fffdf0\],
+  .bg-gray-50,
+  .bg-slate-50,
+  .bg-\[#FDFDFF\],
+  .bg-\[#f8fafc\] {
     background-color: var(--bg-page-pure) !important;
   }
 
   /* Force dark grey on cards/surfaces that are white or light gray */
   .bg-white,
-  .bg-gray-50,
-  .bg-gray-100 {
+  .bg-gray-100,
+  .bg-slate-100 {
     background-color: var(--bg-card-dark) !important;
   }
 
@@ -291,7 +295,9 @@ img {
   /* Adaptive borders for light components */
   .border-gray-100,
   .border-gray-200,
-  .border-gray-50 {
+  .border-gray-50,
+  .border-slate-100,
+  .border-slate-200 {
     border-color: var(--border-color) !important;
   }
 }

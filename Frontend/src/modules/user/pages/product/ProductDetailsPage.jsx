@@ -136,8 +136,10 @@ const ProductDetailsPage = () => {
     };
 
     useEffect(() => {
-        loadProduct();
-        loadReviews();
+        if (id) {
+            loadProduct();
+            loadReviews();
+        }
 
         const handleRefresh = () => {
             loadProduct(true);
@@ -145,7 +147,7 @@ const ProductDetailsPage = () => {
         };
         window.addEventListener('saathi_refresh', handleRefresh);
         return () => window.removeEventListener('saathi_refresh', handleRefresh);
-    }, [id]);
+    }, [id, activeStore?.id]);
 
     const handleDemandRequest = async () => {
         if (demandLogged) return;
@@ -359,7 +361,10 @@ const ProductDetailsPage = () => {
                         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide no-scrollbar pr-4">
                             {/* Brand Pill */}
                             {product.brandInfo && (
-                                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#18181b] border border-gray-100 dark:border-white/5 shadow-sm min-w-fit">
+                                <Link 
+                                    to={`/brand/${encodeURIComponent(product.brandInfo.name)}`}
+                                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#18181b] border border-gray-100 dark:border-white/5 shadow-sm min-w-fit hover:border-[#0c831f] hover:shadow-md transition-all active:scale-95 group/brand"
+                                >
                                     <div className="w-7 h-7 shrink-0 rounded-lg bg-gray-50 dark:bg-[#222] flex items-center justify-center overflow-hidden">
                                         {product.brandInfo.logo ? (
                                             <img src={product.brandInfo.logo} alt="brand" className="w-full h-full object-cover" />
@@ -368,15 +373,18 @@ const ProductDetailsPage = () => {
                                         )}
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[6.5px] text-gray-400 font-black uppercase tracking-tighter leading-none mb-0.5">Brand Source</span>
+                                        <span className="text-[6.5px] text-gray-400 font-black uppercase tracking-tighter leading-none mb-0.5 group-hover/brand:text-[#0c831f]">Brand Source</span>
                                         <span className="text-[10px] text-gray-900 dark:text-gray-100 font-black leading-none">{product.brandInfo.name}</span>
                                     </div>
-                                </div>
+                                </Link>
                             )}
 
                             {/* Source Pill */}
                             {product.sourceInfo && (
-                                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#18181b] border border-gray-100 dark:border-white/5 shadow-sm min-w-fit">
+                                <Link 
+                                    to={`/store/${product.sourceInfo.id}/${product.sourceInfo.type === 'Branch' ? 'branch' : 'vendor'}`}
+                                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#18181b] border border-gray-100 dark:border-white/5 shadow-sm min-w-fit hover:border-[#0c831f] hover:shadow-md transition-all active:scale-95 group/source"
+                                >
                                     <div className="w-7 h-7 shrink-0 rounded-lg bg-gray-50 dark:bg-[#222] flex items-center justify-center overflow-hidden">
                                         {product.sourceInfo.logo ? (
                                             <img src={product.sourceInfo.logo} alt="source" className="w-full h-full object-cover" />
@@ -385,7 +393,7 @@ const ProductDetailsPage = () => {
                                         )}
                                     </div>
                                     <div className="flex flex-col max-w-[140px]">
-                                        <span className="text-[6.5px] text-gray-400 font-black uppercase tracking-tighter leading-none mb-1">
+                                        <span className="text-[6.5px] text-gray-400 font-black uppercase tracking-tighter leading-none mb-1 group-hover/source:text-[#0c831f]">
                                             {product.sourceInfo.type} • {product.sourceInfo.phone}
                                         </span>
                                         <span className="text-[10px] text-gray-900 dark:text-gray-100 font-black leading-none truncate">{product.sourceInfo.name}</span>
@@ -393,7 +401,7 @@ const ProductDetailsPage = () => {
                                             <span className="text-[7px] text-gray-500 font-medium lowercase truncate mt-0.5">{product.sourceInfo.email}</span>
                                         )}
                                     </div>
-                                </div>
+                                </Link>
                             )}
                         </div>
 

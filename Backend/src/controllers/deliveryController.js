@@ -102,13 +102,60 @@ export const getOrders = async (req, res) => {
             return res.json(activeRuns);
 
         } else if (type === 'history') {
-            query.status = { $in: ['completed', 'partial_complete'] };
-            const completedRuns = await DeliveryRun.find(query)
-                .populate({ path: 'orders.order' })
-                .sort({ createdAt: -1 })
-                .limit(20);
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 20;
+            const skip = (page - 1) * limit;
+            const { search, date } = req.query;
 
-            return res.json(completedRuns);
+            query.status = { $in: ['completed', 'partial_complete'] };
+            
+            // Search filter for inner orders
+            let orderMatch = {};
+            if (search) {
+                orderMatch.$or = [
+                    { orderId: { $regex: search, $options: 'i' } }
+                ];
+            }
+
+            if (date) {
+                // Parse local date strictly to avoid UTC shifting
+                const [year, month, day] = date.split('-').map(Number);
+                const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
+                const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
+                
+                query.$or = [
+                    { createdAt: { $gte: startOfDay, $lte: endOfDay } },
+                    { completedAt: { $gte: startOfDay, $lte: endOfDay } }
+                ];
+            }
+
+            const totalCount = await DeliveryRun.countDocuments(query);
+            const history = await DeliveryRun.find(query)
+                .populate({ 
+                    path: 'orders.order',
+                    match: orderMatch,
+                    populate: [
+                        { path: 'user', select: 'name phone' },
+                        { path: 'branchId', select: 'name address' },
+                        { path: 'vendor', select: 'storeName address phone' }
+                    ]
+                })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
+
+            // Filter out runs that might have empty orders due to match
+            const filteredHistory = history.filter(run => run.orders.some(o => o.order));
+
+            return res.json({
+                history: filteredHistory,
+                pagination: {
+                    totalCount,
+                    totalPages: Math.ceil(totalCount / limit),
+                    currentPage: page,
+                    limit
+                }
+            });
         }
 
         res.json([]);
@@ -336,15 +383,26 @@ export const updateDeliveryStatus = async (req, res) => {
 export const getWallet = async (req, res) => {
     try {
         const partner = req.partner;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
 
+        const totalCount = await CashCollection.countDocuments({ deliveryPartner: partner._id });
         const history = await CashCollection.find({ deliveryPartner: partner._id })
             .populate('order', 'orderId totalAmount')
             .sort({ createdAt: -1 })
-            .limit(50);
+            .skip(skip)
+            .limit(limit);
 
         res.json({
             cashInHand: partner.cashInHand || 0,
-            history
+            history,
+            pagination: {
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+                currentPage: page,
+                limit
+            }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

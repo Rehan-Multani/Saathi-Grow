@@ -475,8 +475,8 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                 page: pageNum,
                 limit: 20,
                 status: 'Active',
-                storeId: activeStore?.id,
-                storeType: activeStore?.type
+                activeStoreId: activeStore?.id,
+                activeStoreType: activeStore?.type
             });
             const newProducts = data.products || [];
             if (pageNum === 1) {
@@ -515,6 +515,9 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     }, []);
 
     useEffect(() => {
+        // Skip if activeStore is not yet initialized to prevent redundant fetches
+        if (!activeStore && !hasEntredViewport) return;
+        
         if (hasEntredViewport) {
             setPage(1);
             fetchItems(1);
@@ -685,12 +688,15 @@ const OccasionSection = ({
     }, []);
 
     useEffect(() => {
+        // Skip if activeStore is not yet initialized to prevent redundant fetches
+        if (!activeStore && !hasEntredViewport) return;
+
         if (hasEntredViewport) {
             setLocalProducts(initialProducts);
             setHasMore((initialProducts?.length || 0) < (totalProductsCount || 0));
             setPage(1);
         }
-    }, [hasEntredViewport, initialProducts, totalProductsCount]);
+    }, [hasEntredViewport, initialProducts, totalProductsCount, activeStore?.id]);
 
     const handleScroll = () => {
         if (sectionRef.current) {
@@ -710,8 +716,8 @@ const OccasionSection = ({
                 page: nextPage,
                 limit: 20,
                 status: 'Active',
-                storeId: activeStore?.id,
-                storeType: activeStore?.type
+                activeStoreId: activeStore?.id,
+                activeStoreType: activeStore?.type
             });
             const newProducts = data.products || [];
             if (newProducts.length > 0) {

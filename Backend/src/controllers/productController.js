@@ -408,22 +408,20 @@ export const getProducts = async (req, res) => {
       query.vendor = { $in: [null, undefined] };
     }
 
-    // 2. Branch/Store Scoping Filter (Database Level)
-    // Priority 1: Auth-based scoping (req.admin/req.vendor)
-    if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
-      query['branchStocks.branchId'] = req.admin.branchId;
-    } else if (req.vendor) {
-      query.vendor = req.vendor._id;
-    }
-    // Priority 2: Explicit parameter scoping (for POS/Admin requests)
-    // For Public User Frontend (req.admin/req.vendor is null), we DON'T hard-filter by storeId
-    // to allow global visibility with store-specific status flags.
-    else if ((req.admin || req.vendor) && effectiveStoreId) {
+    // Priority 2: Explicit parameter scoping (Hard Filter for Store Pages)
+    // ONLY apply hard filter if explicitly requested via hardFilter=true
+    if (effectiveStoreId && req.query.hardFilter === 'true') {
       if (storeType === 'branch') {
         query['branchStocks.branchId'] = effectiveStoreId;
       } else if (storeType === 'vendor') {
         query.vendor = effectiveStoreId;
       }
+    }
+    // If no storeId, but we are a branch staff/vendor auth, apply their scope
+    else if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+      query['branchStocks.branchId'] = req.admin.branchId;
+    } else if (req.vendor) {
+      query.vendor = req.vendor._id;
     }
 
     // Pagination logic
@@ -465,50 +463,44 @@ export const getProducts = async (req, res) => {
       .lean();
 
     // Store-Aware logic: Inject isDeliverable flag and specific stock info
-    if (effectiveStoreId && storeType) {
+    const enrichmentStoreId = effectiveStoreId || req.query.activeStoreId;
+    const enrichmentStoreType = storeType || req.query.activeStoreType;
+
+    if (enrichmentStoreId && enrichmentStoreType) {
       products = products.map(p => {
-        const pObj = p.toObject ? p.toObject() : p;
+        const pObj = p; // already lean
         let isDeliverable = false;
         let availableStock = 0;
         let lowStockThreshold = 10;
         let inStore = false;
 
-        if (storeType === 'branch') {
+        if (enrichmentStoreType === 'branch') {
           // Check if product is in stock at this branch
           const branchStock = pObj.branchStocks?.find(bs => {
             const bId = bs.branchId?._id || bs.branchId;
-            return bId && bId.toString() === effectiveStoreId.toString();
+            return bId && bId.toString() === enrichmentStoreId.toString();
           });
-
+          
           if (branchStock) {
             inStore = true;
             availableStock = branchStock.stock || 0;
             lowStockThreshold = branchStock.lowStockThreshold || 10;
-            // Deliverable if stock > 0
-            if (availableStock > 0) {
-              isDeliverable = true;
-            }
+            if (availableStock > 0) isDeliverable = true;
           } else if (pObj.isAllBranches) {
-            // Product is globally available to all branches
-            // But if it's not explicitly in branchStocks, it hasn't been stocked yet (effectively 0)
             inStore = true;
             availableStock = 0;
             lowStockThreshold = pObj.lowStockThreshold || 10;
             isDeliverable = false;
           }
-        } else if (storeType === 'vendor') {
-          // Check if product belongs to this vendor
+        } else if (enrichmentStoreType === 'vendor') {
           const vId = pObj.vendor?._id || pObj.vendor;
-          if (vId && vId.toString() === effectiveStoreId.toString()) {
+          if (vId && vId.toString() === enrichmentStoreId.toString()) {
             inStore = true;
             availableStock = pObj.stock || 0;
             lowStockThreshold = pObj.lowStockThreshold || 10;
-            if (availableStock > 0) {
-              isDeliverable = true;
-            }
+            if (availableStock > 0) isDeliverable = true;
           }
         }
-
         return { ...pObj, isDeliverable, availableStock, lowStockThreshold, inStore };
       });
     }
@@ -813,6 +805,7 @@ export const getProductById = async (req, res) => {
         const targetBranch = pObj.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === effectiveStoreId.toString());
         if (targetBranch) {
           pObj.sourceInfo = {
+            id: effectiveStoreId,
             type: 'Branch',
             name: targetBranch.branchId?.name,
             logo: targetBranch.branchId?.logo,
@@ -824,6 +817,7 @@ export const getProductById = async (req, res) => {
         }
       } else if (storeType === 'vendor' && pObj.vendor) {
         pObj.sourceInfo = {
+          id: effectiveStoreId,
           type: 'Vendor',
           name: pObj.vendor.storeName,
           logo: pObj.vendor.logo,
@@ -839,6 +833,7 @@ export const getProductById = async (req, res) => {
       const brandDoc = await Brand.findOne({ name: new RegExp(`^${escapeRegExp(pObj.brandName)}$`, 'i') }).lean();
       if (brandDoc) {
         pObj.brandInfo = {
+          id: brandDoc._id,
           name: brandDoc.name,
           logo: brandDoc.logo,
           description: brandDoc.description

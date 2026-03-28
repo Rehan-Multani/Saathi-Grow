@@ -1,5 +1,6 @@
 import { Save, Camera, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Modal, Form, Row, Col, Button, Image } from 'react-bootstrap';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { getCategories } from '../../api/categoryApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';

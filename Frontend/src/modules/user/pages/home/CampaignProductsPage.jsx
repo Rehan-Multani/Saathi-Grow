@@ -141,6 +141,17 @@ const CampaignProductsPage = () => {
 
   return (
     <div className="min-h-screen pb-20 bg-white dark:bg-black transition-colors duration-300">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .back-btn-clear, .back-btn-clear:hover, .back-btn-clear:active {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .shop-pill-btn {
+            border-radius: 9999px !important;
+        }
+      ` }} />
       <SEO 
         title={campaign?.title || 'Campaign'} 
         description={campaign?.subtitle || `Explore the finest selection of ${campaign?.title || 'products'} at Saathi-Grow.`}
@@ -151,57 +162,57 @@ const CampaignProductsPage = () => {
           "description": campaign?.subtitle
         }}
       />
-      {/* Campaign Header - Flow Relative */}
+      {/* Compact Campaign Header */}
       <div
-        className="relative z-50 transition-all duration-300 border-b border-gray-100 dark:border-white/5"
+        className="relative z-50 transition-all duration-300 border-b border-gray-50 dark:border-white/5"
         style={{ backgroundColor: isDarkMode ? '#000000' : bgColor }}
       >
-        <div className="pt-8 pb-3 px-4 flex items-center gap-4">
+        <div className="pt-3 pb-1.5 px-4 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 rounded-2xl bg-white dark:bg-zinc-900 shadow-md border border-gray-100 dark:border-white/10 active:scale-90 transition-all"
+            className="back-btn-clear p-2 text-gray-800 dark:text-gray-200 active:scale-90 transition-all"
           >
-            <ArrowLeft size={20} className="text-gray-900 dark:text-white" />
+            <ArrowLeft size={24} strokeWidth={2.5} />
           </button>
           <div className="flex-1">
-            <h1 className="text-lg font-black tracking-tight line-clamp-1" style={{ color: isDarkMode ? '#ffffff' : themeColor }}>
-              {campaign?.title || 'Loading Campaign...'}
+            <h1 className="text-base font-black tracking-tight line-clamp-1" style={{ color: isDarkMode ? '#ffffff' : themeColor }}>
+              {campaign?.title || 'Loading...'}
             </h1>
-            <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 capitalize">
+            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 capitalize">
               {totalItems} items matching your choice
             </p>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="px-4 pb-4">
+        {/* Compact Search Bar */}
+        <div className="px-4 pb-3">
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400 group-focus-within:text-[var(--saathi-green)] transition-colors" />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <Search size={16} className="text-gray-400 group-focus-within:text-[var(--saathi-green)] transition-colors" />
             </div>
             <input
               type="text"
-              placeholder={`Search items in ${campaign?.title}...`}
+              placeholder={`Search in ${campaign?.title}...`}
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full pl-11 pr-11 py-3.5 bg-gray-50 dark:bg-zinc-900 rounded-2xl text-sm font-bold text-gray-900 dark:text-white border-2 border-transparent focus:border-[var(--saathi-green)] transition-all outline-none shadow-inner"
+              className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-zinc-900 rounded-full text-[13px] font-bold text-gray-900 dark:text-white border-2 border-transparent focus:border-[var(--saathi-green)] transition-all outline-none shadow-sm"
             />
             {searchQuery && (
               <button
                 onClick={() => { setSearchQuery(''); const np = new URLSearchParams(searchParams); np.delete('q'); setSearchParams(np); }}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                <X size={18} className="text-gray-400 hover:text-gray-600 transition-colors" />
+                <X size={16} className="text-gray-400 hover:text-gray-600 transition-colors" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Filter Chips */}
+        {/* Compact Filter Chips */}
         <div className="px-4 pb-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black tracking-wide border transition-all whitespace-nowrap ${showFilters ? 'bg-black text-white border-black' : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300'}`}
+            className={`shop-pill-btn flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-black tracking-wide border transition-all whitespace-nowrap ${showFilters ? 'bg-black text-white border-black' : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-white/10 text-gray-700 dark:text-gray-300 shadow-sm'}`}
           >
             {sortBy === '-createdAt' ? 'Newest' : sortBy === 'basePrice' ? 'Price: Low' : 'Price: High'}
             <ChevronDown size={14} className={showFilters ? 'rotate-180 transition-transform' : 'transition-transform'} />
@@ -209,7 +220,7 @@ const CampaignProductsPage = () => {
 
           <button
             onClick={toggleVeg}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black tracking-wide border transition-all whitespace-nowrap ${isVegOnly ? 'bg-green-600 text-white border-green-600 shadow-md' : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300'}`}
+            className={`shop-pill-btn flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-black tracking-wide border transition-all whitespace-nowrap ${isVegOnly ? 'bg-green-600 text-white border-green-600 shadow-md shadow-green-500/10' : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-white/10 text-gray-700 dark:text-gray-300 shadow-sm'}`}
           >
             <div className={`w-3 h-3 rounded-full border-2 ${isVegOnly ? 'border-white bg-white' : 'border-green-600 bg-transparent'} flex items-center justify-center`}>
               <div className="w-1.5 h-1.5 rounded-full bg-green-600"></div>

@@ -34,46 +34,54 @@ const LowestPricesPage = () => {
                 minHeight: '100vh'
             }}
         >
+            <style dangerouslySetInnerHTML={{ __html: `
+                .back-btn-clear, .back-btn-clear:hover, .back-btn-clear:active {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                }
+            ` }} />
             <SEO 
                 title="Lowest Prices Ever" 
                 description="Unbeatable deals and lowest prices on fresh groceries, staples, and daily essentials at Saathi-Grow. Save big on your daily shopping!" 
             />
-            {/* Header - Flow Relative */}
+            {/* Compact Header */}
             <div
-                className="relative z-40 px-4 pt-8 pb-4 flex items-center gap-3 transition-colors duration-300"
+                className="relative z-40 px-4 pt-4 pb-2 flex items-center gap-3 transition-colors duration-300 border-b border-gray-50 dark:border-white/5"
                 style={{ backgroundColor: bgColor }}
             >
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 rounded-full bg-white/20 hover:bg-white/40 transition-colors active:scale-95"
+                    className="back-btn-clear p-2 text-gray-800 dark:text-gray-200 active:scale-90 transition-all font-black"
                 >
-                    <ArrowLeft size={20} style={{ color: themeColor }} strokeWidth={2.5} />
+                    <ArrowLeft size={24} style={{ color: themeColor }} strokeWidth={2.5} />
                 </button>
                 <div className="flex flex-col">
-                    <h1 className="text-base font-black leading-none tracking-tight flex items-center gap-2 mb-0.5" style={{ color: themeColor }}>
-                        Lowest Prices Ever <TrendingDown size={18} />
+                    <h1 className="text-sm font-black leading-none tracking-tight flex items-center gap-2 mb-1" style={{ color: themeColor }}>
+                        Lowest Prices Ever <TrendingDown size={16} />
                     </h1>
-                    <p className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-400' : 'opacity-70'}`} style={{ color: isDarkMode ? '' : themeColor }}>
+                    <p className={`text-[9px] font-bold ${isDarkMode ? 'text-gray-400' : 'opacity-70'}`} style={{ color: isDarkMode ? '' : themeColor }}>
                         Massive discounts on top products
                     </p>
                 </div>
             </div>
 
-            {/* Filter/Sort Bar - Flow Relative */}
+            {/* Compact Filter/Sort Bar */}
             <div
-                className="relative z-30 px-4 py-2 transition-colors duration-300"
+                className="relative z-30 px-4 py-2.5 transition-colors duration-300"
                 style={{ backgroundColor: `${bgColor}90` }}
             >
                 <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 hover:opacity-90 rounded-full text-xs font-bold border border-gray-200 dark:border-white/10 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
-                        <Filter size={12} strokeWidth={2.5} />
+                    <button className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-zinc-800 hover:opacity-90 rounded-full text-[11px] font-bold border border-gray-100 dark:border-white/10 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
+                        <Filter size={11} strokeWidth={2.5} />
                         Filter
                     </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 hover:opacity-90 rounded-full text-xs font-bold border border-gray-200 dark:border-white/10 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
-                        Sort By <ChevronDown size={12} strokeWidth={2.5} />
+                    <button className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-zinc-800 hover:opacity-90 rounded-full text-[11px] font-bold border border-gray-100 dark:border-white/10 shadow-sm transition-all whitespace-nowrap" style={{ color: themeColor }}>
+                        Sort By <ChevronDown size={11} strokeWidth={2.5} />
                     </button>
-                    <div className="w-[1px] h-4 bg-black/5 mx-1"></div>
-                    <span className="text-[10px] font-bold opacity-60 uppercase tracking-wider" style={{ color: themeColor }}>
+                    <div className="w-[1px] h-3 bg-black/5 dark:bg-white/10 mx-1"></div>
+                    <span className="text-[9px] font-black opacity-60 uppercase tracking-wider" style={{ color: themeColor }}>
                         {discountedProducts.length} Items
                     </span>
                 </div>

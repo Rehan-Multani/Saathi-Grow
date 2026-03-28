@@ -57,6 +57,7 @@ const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage')
 const OfferPage = lazy(() => import('../pages/offer/OfferPage'));
 const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
 const LegalPage = lazy(() => import('../pages/support/LegalPage'));
+const ShopListingPage = lazy(() => import('../pages/shop/ShopListingPage'));
 
 const LoadingFallback = () => (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
@@ -89,7 +90,9 @@ const UserLayout = () => {
         '/product',
         '/lowest-prices',
         '/occasion',
-        '/campaign'
+        '/campaign',
+        '/brand',
+        '/store'
     ];
     
     const isFocusedPath = focusedPaths.some(path => location.pathname.startsWith(path)) || 
@@ -138,6 +141,25 @@ const UserLayout = () => {
 
     // Initial Loading State
     if (loading) return <LoadingFallback />;
+
+    // Theme Management: Apply .dark class ONLY when in user module
+    React.useEffect(() => {
+        const root = window.document.documentElement;
+        const body = window.document.body;
+        if (isDarkMode) {
+            root.classList.add('dark');
+            body.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+            body.classList.remove('dark');
+        }
+
+        // Cleanup: remove dark class when leaving user module or unmounting
+        return () => {
+            root.classList.remove('dark');
+            body.classList.remove('dark');
+        };
+    }, [isDarkMode]);
 
     // APK Mandatory Login Logic
     if (isWebView && !token && !isAuthPath) {
@@ -237,6 +259,8 @@ const UserRoutes = () => {
                         <Route path="/lowest-prices" element={<LowestPricesPage />} />
                         <Route path="/category" element={<CategoryPage />} />
                         <Route path="/category/:slug" element={<CategoryPage />} />
+                        <Route path="/brand/:brandName" element={<ShopListingPage type="brand" />} />
+                        <Route path="/store/:storeId/:storeType" element={<ShopListingPage type="store" />} />
                         <Route path="/product/:id" element={<ProductDetailsPage />} />
 
                         {/* Cart & Checkout */}
