@@ -36,6 +36,8 @@ export const adminSidebarMenu = [
         submenu: [
             { title: 'All Categories', key: 'all_categories', path: '/admin/categories' },
             { title: 'Add Category', key: 'add_category', path: '/admin/categories/add' },
+            { title: 'All Subcategories', key: 'all_subcategories', path: '/admin/subcategories' },
+            { title: 'Add Subcategory', key: 'add_subcategory', path: '/admin/subcategories/add' },
             { title: 'All Brands', key: 'all_brands', path: '/admin/brands' },
             { title: 'Add Brand', key: 'add_brand', path: '/admin/brands/add' },
         ],

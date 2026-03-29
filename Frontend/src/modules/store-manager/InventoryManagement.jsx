@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Download, Database, FileSpreadsheet, RefreshCcw } from 'lucide-react';
 import InventoryTable from './components/InventoryTable';
 import SearchFilterBar from './components/SearchFilterBar';
@@ -17,6 +17,7 @@ const InventoryManagement = () => {
     // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
+    const [subCategoryFilter, setSubCategoryFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
 
     // Modals State
@@ -24,6 +25,9 @@ const InventoryManagement = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const categories = [...new Set(products.map(p => p.category))];
+    const subCategories = categoryFilter === 'All' 
+        ? [] 
+        : [...new Set(products.filter(p => p.category === categoryFilter).map(p => p.subCategory).filter(Boolean))];
 
     const fetchInventory = async () => {
         try {
@@ -57,6 +61,10 @@ const InventoryManagement = () => {
             result = result.filter(p => p.category === categoryFilter);
         }
 
+        if (subCategoryFilter !== 'All') {
+            result = result.filter(p => p.subCategory === subCategoryFilter);
+        }
+
         if (statusFilter !== 'All') {
             if (statusFilter === 'In Stock') result = result.filter(p => p.status === 'Active');
             if (statusFilter === 'Low Stock') result = result.filter(p => p.status === 'Low Stock');
@@ -64,7 +72,7 @@ const InventoryManagement = () => {
         }
 
         setFilteredProducts(result);
-    }, [searchTerm, categoryFilter, statusFilter, products]);
+    }, [searchTerm, categoryFilter, subCategoryFilter, statusFilter, products]);
 
     const handleUpdateStock = async (requestData) => {
         try {
@@ -114,9 +122,12 @@ const InventoryManagement = () => {
                 setSearchTerm={setSearchTerm}
                 categoryFilter={categoryFilter}
                 setCategoryFilter={setCategoryFilter}
+                subCategoryFilter={subCategoryFilter}
+                setSubCategoryFilter={setSubCategoryFilter}
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
                 categories={categories}
+                subCategories={subCategories}
             />
 
             <div className="relative">

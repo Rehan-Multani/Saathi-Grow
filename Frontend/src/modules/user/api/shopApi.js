@@ -7,6 +7,14 @@ export const fetchCategories = async () => {
   return data;
 };
 
+export const fetchSubCategories = async (category = '') => {
+  const url = `${API_BASE_URL}/admin/subcategories${category ? `?category=${category}&status=Active` : '?status=Active'}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch subcategories');
+  return data;
+};
+
 export const fetchProducts = async (params = {}) => {
   // Sanitize params: remove undefined, null, or empty string values
   const sanitizedParams = Object.keys(params).reduce((acc, key) => {

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
 import { RefreshCw, Save, Upload, X, Sparkles, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { useVendor } from '../../contexts/VendorContext';
 import { getCategories } from '../../../admin/api/categoryApi';
+import { getSubCategories } from '../../../admin/api/subcategoryApi';
 import { getBrands } from '../../../admin/api/brandApi';
 import { updateVendorProduct, getVendorAISuggestions } from '../../api/vendorProductApi';
 import { toast } from 'react-toastify';
@@ -20,12 +21,15 @@ const EditProduct = () => {
     const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
 
     const [categories, setCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
+    const [filteredSubCategories, setFilteredSubCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
         category: '',
+        subCategory: '',
         brandName: '',
         basePrice: '',
         mrp: '',
@@ -58,6 +62,7 @@ const EditProduct = () => {
             setFormData({
                 name: product.name || '',
                 category: product.category || '',
+                subCategory: product.subCategory || '',
                 brandName: product.brandName || '',
                 basePrice: product.basePrice || '',
                 mrp: product.mrp || '',
@@ -83,11 +88,13 @@ const EditProduct = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [categoriesData, brandsData, branchesData] = await Promise.all([
+                const [categoriesData, subCategoriesData, brandsData] = await Promise.all([
                     getCategories(vendor.token),
+                    getSubCategories(vendor.token),
                     getBrands(vendor.token)
                 ]);
                 setCategories(categoriesData.filter(c => c.status === 'Active'));
+                setSubCategories(subCategoriesData.filter(sc => sc.status === 'Active'));
                 setBrands(brandsData.filter(b => b.status === 'Active'));
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -112,10 +119,17 @@ const EditProduct = () => {
                 return brandCat === selectedCat;
             });
             setFilteredBrands(matches);
+
+            const filteredSub = subCategories.filter(sc =>
+                (sc.categoryName || '').toLowerCase().trim() === (formData.category || '').toLowerCase().trim() ||
+                (sc.category?.name || '').toLowerCase().trim() === (formData.category || '').toLowerCase().trim()
+            );
+            setFilteredSubCategories(filteredSub);
         } else {
             setFilteredBrands([]);
+            setFilteredSubCategories([]);
         }
-    }, [formData.category, brands]);
+    }, [formData.category, brands, subCategories]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -315,6 +329,20 @@ const EditProduct = () => {
                                     <Form.Select name="category" value={formData.category} onChange={handleChange} required className="text-xs">
                                         <option value="">Select...</option>
                                         {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                    </Form.Select>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small">Subcategory</Form.Label>
+                                    <Form.Select
+                                        name="subCategory"
+                                        value={formData.subCategory}
+                                        onChange={handleChange}
+                                        disabled={!formData.category}
+                                        className="text-xs"
+                                    >
+                                        <option value="">Select Subcategory...</option>
+                                        {filteredSubCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}
                                     </Form.Select>
                                 </Form.Group>
                                 <Form.Group className="mb-3">

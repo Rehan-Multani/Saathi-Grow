@@ -329,24 +329,29 @@ const HomePage = ({ }) => {
                                 ))
                             ) : (
                                 filteredCategories.map((cat, idx) => {
-                                    const bgColor = categoryColors[cat.slug] || '#f3f4f6';
                                     return (
                                         <motion.div
                                             key={cat._id || cat.id}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
                                             className="flex-shrink-0"
                                         >
-                                            <Link to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} className="flex flex-col items-center group w-[80px] sm:w-28 transition-transform duration-200 md:snap-start">
-                                                <div
-                                                    className="w-[70px] h-[70px] sm:w-[95px] sm:h-[95px] rounded-lg sm:rounded-xl shadow-sm flex items-center justify-center mb-1.5 transition-all duration-300 group-hover:shadow-lg group-active:shadow-md relative overflow-hidden group-hover:-translate-y-1.5 border border-transparent hover:border-green-100/30 dark:hover:border-white/10"
-                                                    style={{ backgroundColor: isDarkMode ? 'var(--bg-surface)' : bgColor }}
+                                            <Link 
+                                                to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} 
+                                                className="flex flex-col items-center group w-[85px] sm:w-32 transition-all duration-300 active:scale-95 md:snap-start"
+                                            >
+                                                {/* Image Container with Soft Theme Background */}
+                                                <div 
+                                                    className="w-full aspect-square rounded-2xl sm:rounded-[32px] p-2.5 sm:p-5 flex items-center justify-center relative overflow-hidden transition-all duration-500 group-hover:shadow-lg group-hover:shadow-[#0c831f10] border border-gray-100/50 dark:border-white/5"
+                                                    style={{ 
+                                                        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (categoryColors[cat.slug] || '#f3f4f6') 
+                                                    }}
                                                 >
-                                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 pointer-events-none opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300" />
+                                                    {/* Background Glow Effect */}
+                                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+                                                    
                                                     <img
                                                         src={cat.image || categoryPlaceholder}
                                                         alt={cat.name}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-active:scale-110 z-10"
+                                                        className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-110 drop-shadow-sm"
                                                         onError={(e) => {
                                                             if (e.target.src !== categoryPlaceholder) {
                                                                 e.target.src = categoryPlaceholder;
@@ -355,8 +360,10 @@ const HomePage = ({ }) => {
                                                         loading="lazy"
                                                     />
                                                 </div>
-                                                <span className="text-[9px] sm:text-[13px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight line-clamp-2 w-full px-1 min-h-[26px] sm:min-h-[32px] flex items-center justify-center tracking-tight group-hover:text-[var(--saathi-green)] transition-colors">
-                                                    {cat.name}
+
+                                                {/* Title Below Image */}
+                                                <span className="text-[10px] sm:text-[14px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight mt-2.5 sm:mt-4 capitalize group-hover:text-[#0c831f] transition-colors line-clamp-2 px-1">
+                                                    {cat.name?.toLowerCase()}
                                                 </span>
                                             </Link>
                                         </motion.div>

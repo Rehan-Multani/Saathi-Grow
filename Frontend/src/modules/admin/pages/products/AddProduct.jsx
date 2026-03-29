@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getCategories } from '../../api/categoryApi';
+import { getSubCategories } from '../../api/subcategoryApi';
 import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
 import { getVendors } from '../../api/vendorApi';
@@ -24,6 +25,8 @@ const AddProduct = () => {
     const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
 
     const [categories, setCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
+    const [filteredSubCategories, setFilteredSubCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
 
@@ -33,6 +36,7 @@ const AddProduct = () => {
     const [formData, setFormData] = useState({
         name: '',
         category: '',
+        subCategory: '',
         brandName: '',
         basePrice: '',
         mrp: '',
@@ -67,13 +71,15 @@ const AddProduct = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [categoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
+                const [categoriesData, subCategoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
                     getCategories(adminUser.token),
+                    getSubCategories(adminUser.token),
                     getBrands(adminUser.token),
                     getBranches(adminUser.token),
                     getVendors(adminUser.token)
                 ]);
                 setCategories(categoriesData.filter(c => c.status === 'Active'));
+                setSubCategories(subCategoriesData.filter(sc => sc.status === 'Active'));
                 setBrands(brandsData.filter(b => b.status === 'Active'));
                 setBranches(branchesData.filter(b => b.isActive));
                 setVendors(vendorsData.filter(v => v.status === 'Active'));
@@ -131,20 +137,28 @@ const AddProduct = () => {
         ));
     };
 
-    // Filter Brands when category changes
+    // Filter Brands & SubCategories when category changes
     useEffect(() => {
         if (formData.category) {
-            const matches = brands.filter(b => b.category === formData.category);
-            setFilteredBrands(matches);
-            // Reset brand if it's not in the new matches
-            if (!matches.find(m => m.name === formData.brandName)) {
+            // Filter Brands
+            const brandMatches = brands.filter(b => b.category === formData.category);
+            setFilteredBrands(brandMatches);
+            if (!brandMatches.find(m => m.name === formData.brandName)) {
                 setFormData(prev => ({ ...prev, brandName: '' }));
+            }
+
+            // Filter SubCategories
+            const subCatMatches = subCategories.filter(sc => sc.categoryName === formData.category || sc.category?.name === formData.category);
+            setFilteredSubCategories(subCatMatches);
+            if (!subCatMatches.find(m => m.name === formData.subCategory)) {
+                setFormData(prev => ({ ...prev, subCategory: '' }));
             }
         } else {
             setFilteredBrands([]);
-            setFormData(prev => ({ ...prev, brandName: '' }));
+            setFilteredSubCategories([]);
+            setFormData(prev => ({ ...prev, brandName: '', subCategory: '' }));
         }
-    }, [formData.category, brands, formData.brandName]);
+    }, [formData.category, brands, subCategories, formData.brandName, formData.subCategory]);
 
     // SKU Generation Logic
     const generateSKU = () => {
@@ -620,6 +634,20 @@ const AddProduct = () => {
                                         <option value="">{t('products.form.placeholder.category')}</option>
                                         {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                     </Form.Select>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>{t('products.form.subcategory', { defaultValue: 'Subcategory' })}</Form.Label>
+                                    <Form.Select 
+                                        name="subCategory" 
+                                        value={formData.subCategory} 
+                                        onChange={handleChange} 
+                                        disabled={!formData.category}
+                                    >
+                                        <option value="">{t('products.form.placeholder.subcategory', { defaultValue: 'Select Subcategory' })}</option>
+                                        {filteredSubCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}
+                                    </Form.Select>
+                                    {!formData.category && <Form.Text className="text-muted">{t('products.form.placeholder.subcat_no_cat', { defaultValue: 'Select a category first' })}</Form.Text>}
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">

@@ -101,6 +101,7 @@ export const createProduct = async (req, res) => {
       unitType,
       physicalLocation,
       category,
+      subCategory,
       brandName,
       isAllBranches,
       specificBranches,
@@ -174,6 +175,7 @@ export const createProduct = async (req, res) => {
       unitValue: Number(unitValue) || 1,
       physicalLocation,
       category,
+      subCategory,
       brandName,
       isAllBranches: isAllBranches === 'true' || isAllBranches === true,
       specificBranches: typeof specificBranches === 'string'
@@ -884,6 +886,7 @@ export const updateProduct = async (req, res) => {
       product.unitValue = req.body.unitValue !== undefined ? Number(req.body.unitValue) : product.unitValue;
       product.physicalLocation = req.body.physicalLocation || product.physicalLocation;
       product.category = req.body.category || product.category;
+      product.subCategory = req.body.subCategory !== undefined ? req.body.subCategory : product.subCategory;
       product.brandName = req.body.brandName || product.brandName;
       product.vendor = req.body.vendor !== undefined ? (req.body.vendor || null) : product.vendor;
       

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
-import { fetchProducts, fetchBrands } from '../../api/shopApi';
+import { fetchProducts, fetchBrands, fetchSubCategories } from '../../api/shopApi';
 import ProductCard from '../../components/product/ProductCard';
 import { ChevronRight, Filter, ArrowLeft, Search, X, SlidersHorizontal, Leaf, Info, TrendingUp } from 'lucide-react';
 import { ProductCardSkeleton } from '../../components/common/Skeleton';
@@ -55,6 +55,7 @@ const CategoryPage = () => {
     const [selectedSubCat, setSelectedSubCat] = useState(queryParams.get('sub') || 'all');
     const [availableBrands, setAvailableBrands] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
+    const [availableSubCategories, setAvailableSubCategories] = useState([]);
 
     // If no slug, we represent the "All Categories" view
     const isMainListView = !slug;
@@ -73,17 +74,22 @@ const CategoryPage = () => {
         return () => clearTimeout(timer);
     }, [localSearch]);
 
-    // Fetch Brands for current category
+    // Fetch Brands and Subcategories for current category
     useEffect(() => {
-        const loadBrands = async () => {
+        const loadCategoryData = async () => {
+            if (!categoryName) return;
             try {
-                const data = await fetchBrands(categoryName || '');
-                setAvailableBrands(data);
+                const [brandsData, subCatsData] = await Promise.all([
+                    fetchBrands(categoryName),
+                    fetchSubCategories(categoryName)
+                ]);
+                setAvailableBrands(brandsData);
+                setAvailableSubCategories(subCatsData);
             } catch (err) {
-                console.error("Error loading brands:", err);
+                console.error("Error loading category metadata:", err);
             }
         };
-        loadBrands();
+        loadCategoryData();
     }, [categoryName]);
 
     const loadCategoryProducts = useCallback(async (pageNum = 1, append = false) => {
@@ -167,40 +173,41 @@ const CategoryPage = () => {
                         <h1 className="text-sm md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
                     </div>
 
+                    {/* Highly rounded categories grid */}
                     {isLoading ? (
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
                             {Array.from({ length: 12 }).map((_, i) => (
-                                <div key={i} className="w-20 aspect-square bg-gray-100 dark:bg-white/5 rounded-xl sm:rounded-[32px] animate-pulse" />
+                                <div key={i} className="w-full aspect-square bg-gray-100 dark:bg-white/5 rounded-2xl sm:rounded-[32px] animate-pulse" />
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-6 px-1">
                             {categories.map((cat) => {
-                                const catSlug = cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
                                 return (
                                     <Link
                                         key={cat._id || cat.id}
                                         to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`}
-                                        className="flex flex-col items-center group active:scale-95 transition-all"
+                                        className="flex flex-col items-center group w-full transition-all duration-300 active:scale-95"
                                     >
-                                        <div
-                                            className="w-20 sm:w-28 aspect-square rounded-xl sm:rounded-[32px] flex items-center justify-center mb-2.5 transition-all duration-300 group-hover:shadow-lg shadow-sm border border-transparent hover:border-green-100/30 dark:hover:border-white/10 overflow-hidden"
-                                            style={{ backgroundColor: categoryColors[cat.slug] || '#f3f4f6' }}
+                                        <div 
+                                            className="w-full aspect-square rounded-2xl sm:rounded-[32px] p-2 sm:p-4 flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:shadow-md border border-gray-100/50 dark:border-white/5 shadow-sm"
+                                            style={{ 
+                                                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (categoryColors[cat.slug] || '#f8f9fa') 
+                                            }}
                                         >
                                             <img
                                                 src={cat.image || categoryPlaceholder}
                                                 alt={cat.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110"
                                                 onError={(e) => {
                                                     if (e.target.src !== categoryPlaceholder) {
                                                         e.target.src = categoryPlaceholder;
                                                         e.target.classList.add('opacity-80');
-                                                        e.target.style.objectFit = 'cover';
                                                     }
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-[10px] sm:text-[14px] font-bold text-center text-gray-800 dark:text-gray-300 leading-tight tracking-tight px-1 capitalize">
+                                        <span className="text-[10px] sm:text-[14px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight mt-2 capitalize group-hover:text-[#0c831f] transition-colors line-clamp-1 px-1">
                                             {cat.name?.toLowerCase() || 'Category'}
                                         </span>
                                     </Link>
@@ -301,8 +308,63 @@ const CategoryPage = () => {
                         </div>
                     </div>
 
+                    {/* Subcategories Horizontal Scroll Row (Mobile App Style) */}
+                    {availableSubCategories.length > 0 && (
+                        <div className="mt-4 mb-4">
+                            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide px-1 py-1">
+                                {/* "All" as a compact card */}
+                                <button
+                                    onClick={() => setSelectedSubCat('all')}
+                                    className="flex-shrink-0 flex flex-col items-center group w-16 sm:w-20 transition-all duration-300 active:scale-95"
+                                >
+                                    <div 
+                                        className={`w-full aspect-square rounded-2xl flex items-center justify-center border transition-all ${selectedSubCat === 'all' ? 'bg-green-50 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
+                                    >
+                                        <Leaf size={20} className={selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-400'} />
+                                    </div>
+                                    <span className={`text-[10px] font-black mt-2 transition-colors ${selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-600'}`}>
+                                        All
+                                    </span>
+                                </button>
+
+                                {availableSubCategories.map((sc) => {
+                                    const scSlug = sc.slug || sc.name?.toLowerCase().replace(/\s+/g, '-');
+                                    const isActive = selectedSubCat === sc.name || selectedSubCat === scSlug;
+                                    
+                                    return (
+                                        <button
+                                            key={sc._id}
+                                            onClick={() => {
+                                                setSelectedSubCat(sc.name);
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }}
+                                            className="flex-shrink-0 flex flex-col items-center group w-16 sm:w-20 transition-all duration-300 active:scale-95"
+                                        >
+                                            <div 
+                                                className={`w-full aspect-square rounded-2xl p-2 flex items-center justify-center border transition-all overflow-hidden ${isActive ? 'bg-green-50 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
+                                                style={{ 
+                                                    backgroundColor: (!isActive && !isDarkMode) ? (categoryColors[scSlug] || categoryColors[catSlug] || '#f8f9fa') : undefined 
+                                                }}
+                                            >
+                                                <img 
+                                                    src={sc.image || currentCategory?.image || categoryPlaceholder} 
+                                                    alt={sc.name}
+                                                    className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110"
+                                                    onError={(e) => { e.target.src = categoryPlaceholder; }}
+                                                />
+                                            </div>
+                                            <span className={`text-[10px] font-black mt-2 transition-colors line-clamp-1 px-1 text-center capitalize ${isActive ? 'text-[#0c831f]' : 'text-gray-600'}`}>
+                                                {sc.name?.toLowerCase()}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Highly Compact Pill Filter Row */}
-                    <div className="mt-2 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+                    <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
                         <button
                             onClick={() => setIsVegOnly(!isVegOnly)}
                             className={`shop-pill-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${isVegOnly ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-400'}`}

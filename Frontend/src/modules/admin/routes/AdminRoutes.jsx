@@ -12,6 +12,8 @@ import AddProduct from '../pages/products/AddProduct';
 import ProductInventoryLogs from '../pages/products/ProductInventoryLogs';
 import AllCategories from '../pages/categories/AllCategories';
 import AddCategory from '../pages/categories/AddCategory';
+import AllSubCategories from '../pages/categories/AllSubCategories';
+import AddSubCategory from '../pages/categories/AddSubCategory';
 import AllBrands from '../pages/brands/AllBrands';
 import AddBrand from '../pages/brands/AddBrand';
 import AllCustomers from '../pages/customers/AllCustomers';
@@ -128,6 +130,8 @@ const AdminRoutes = () => {
                         {/* Categories */}
                         <Route path="categories" element={<AllCategories />} />
                         <Route path="categories/add" element={<AddCategory />} />
+                        <Route path="subcategories" element={<AllSubCategories />} />
+                        <Route path="subcategories/add" element={<AddSubCategory />} />
 
                         {/* Brands */}
                         <Route path="brands" element={<AllBrands />} />

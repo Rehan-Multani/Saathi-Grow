@@ -4,6 +4,7 @@ import { Save, X, Camera, Plus, Sparkles, Store } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 import { getCategories } from '../../api/categoryApi';
+import { getSubCategories } from '../../api/subcategoryApi';
 import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
 import { getVendors } from '../../api/vendorApi';
@@ -23,6 +24,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const adminUser = adminContext?.adminUser || staffContext?.staffUser || managerContext?.managerUser || null;
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
+    const [filteredSubCategories, setFilteredSubCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
     const [branches, setBranches] = useState([]);
@@ -35,6 +38,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         name: '',
         brandName: '',
         category: '',
+        subCategory: '',
         basePrice: 0,
         mrp: 0,
         isVeg: true,
@@ -60,13 +64,15 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [categoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
+                const [categoriesData, subCategoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
                     getCategories(adminUser.token),
+                    getSubCategories(adminUser.token),
                     getBrands(adminUser.token),
                     getBranches(adminUser.token),
                     getVendors(adminUser.token)
                 ]);
                 setCategories(categoriesData.filter(c => c.status === 'Active'));
+                setSubCategories(subCategoriesData.filter(sc => sc.status === 'Active'));
                 setBrands(brandsData.filter(b => b.status === 'Active'));
                 setBranches(branchesData.filter(b => b.isActive));
                 setVendors(vendorsData.filter(v => v.status === 'Active'));
@@ -158,15 +164,14 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
     useEffect(() => {
         if (formData.category && brands.length > 0) {
-            const matches = brands.filter(b => b.category === formData.category);
-            setFilteredBrands(matches);
+            const brandMatches = brands.filter(b => b.category === formData.category);
+            setFilteredBrands(brandMatches);
 
-            // Optional: reset brand if it doesn't match new category, 
-            // but in Edit we might want to keep it if it's already set correctly
-            if (formData.brandName && !matches.find(m => m.name === formData.brandName)) {
-                // Only reset if we are intentionally changing category
-                // This might trigger on initial load if brands aren't loaded yet, so check brands.length > 0
-            }
+            const subCatMatches = subCategories.filter(sc => sc.categoryName === formData.category || sc.category?.name === formData.category);
+            setFilteredSubCategories(subCatMatches);
+
+            // Optional: reset if not matching, but for Edit we might want to keep it if it's already set 
+            // from initial product load. So we only reset if User manually changed category.
         } else {
             setFilteredBrands([]);
         }
@@ -344,6 +349,22 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         >
                                             <option value="">{t('products.edit_modal.select_category')}</option>
                                             {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label className="small fw-medium text-muted">{t('products.edit_modal.subcategory_label', { defaultValue: 'Subcategory' })}</Form.Label>
+                                        <Form.Select
+                                            name="subCategory"
+                                            value={formData.subCategory}
+                                            onChange={handleChange}
+                                            className="bg-light border-0 py-2"
+                                            disabled={!formData.category}
+                                        >
+                                            <option value="">{t('products.edit_modal.select_subcategory', { defaultValue: 'Select Subcategory' })}</option>
+                                            {filteredSubCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}
                                         </Form.Select>
                                     </Form.Group>
                                 </Col>

@@ -74,6 +74,11 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Category is required']
   },
+  subCategory: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   brandName: {
     type: String,
     trim: true,
@@ -134,6 +139,7 @@ productSchema.index(
     tags: "text",
     brandName: "text",
     category: "text",
+    subCategory: "text",
     description: "text"
   },
   {
@@ -142,6 +148,7 @@ productSchema.index(
       tags: 5,
       brandName: 3,
       category: 2,
+      subCategory: 2,
       description: 1
     },
     name: "ProductSearchIndex"

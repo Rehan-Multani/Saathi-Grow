@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Search, Filter, X, SlidersHorizontal, RefreshCw } from 'lucide-react';
 
 const SearchFilterBar = ({
@@ -6,9 +6,12 @@ const SearchFilterBar = ({
     setSearchTerm,
     categoryFilter,
     setCategoryFilter,
+    subCategoryFilter,
+    setSubCategoryFilter,
     statusFilter,
     setStatusFilter,
-    categories = []
+    categories = [],
+    subCategories = []
 }) => {
     return (
         <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-100/50 mb-8 flex flex-wrap gap-6 items-end relative overflow-hidden">
@@ -58,6 +61,26 @@ const SearchFilterBar = ({
             </div>
 
             <div className="w-full sm:w-auto min-w-[200px] relative z-10">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Subcategory</label>
+                <div className="relative">
+                    <select
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 appearance-none focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-400 transition-all duration-300 outline-none cursor-pointer"
+                        value={subCategoryFilter}
+                        onChange={(e) => setSubCategoryFilter(e.target.value)}
+                        disabled={categoryFilter === 'All'}
+                    >
+                        <option value="All">All Subcategories</option>
+                        {subCategories.map(sc => (
+                            <option key={sc} value={sc}>{sc}</option>
+                        ))}
+                    </select>
+                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <Filter size={14} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="w-full sm:w-auto min-w-[200px] relative z-10">
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Inventory State</label>
                 <div className="relative">
                     <select
@@ -80,6 +103,7 @@ const SearchFilterBar = ({
                 onClick={() => {
                     setSearchTerm('');
                     setCategoryFilter('All');
+                    setSubCategoryFilter('All');
                     setStatusFilter('All');
                 }}
                 className="h-[52px] px-6 text-xs font-black text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all flex items-center gap-2 border border-transparent hover:border-red-100 uppercase tracking-widest relative z-10"
