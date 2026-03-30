@@ -18,14 +18,14 @@ const CategoryBrandStrip = ({ section, accentColor = '#0c831f' }) => {
         </p>
       )}
 
-      <div className="category-landing-scroll category-landing-brand-strip flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="category-landing-scroll category-landing-brand-strip flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
         {(section.items || []).map((brand) => (
           <button
             key={brand._id}
             onClick={() => navigate(`/brand/${encodeURIComponent(brand.name)}`)}
-            className="category-landing-brand-item group flex flex-col items-center flex-shrink-0 w-[74px] text-center transition-all active:scale-95"
+            className="category-landing-brand-item group flex flex-col items-center flex-shrink-0 w-[62px] text-center transition-all active:scale-95"
           >
-            <div className="category-landing-brand-media mb-2 flex aspect-square w-full items-center justify-center overflow-hidden rounded-[18px] ring-1 ring-black/5 dark:ring-white/10">
+            <div className="category-landing-brand-media mb-1.5 flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
               {brand.logo ? (
                 <img
                   src={brand.logo}
@@ -41,13 +41,13 @@ const CategoryBrandStrip = ({ section, accentColor = '#0c831f' }) => {
                 />
               ) : null}
               <div
-                className={`${brand.logo ? 'hidden' : 'flex'} h-full w-full items-center justify-center text-[18px] font-black text-white`}
+                className={`${brand.logo ? 'hidden' : 'flex'} h-full w-full items-center justify-center text-[14px] font-black text-white`}
                 style={{ backgroundColor: accentColor }}
               >
                 {brand.name?.slice(0, 2)?.toUpperCase()}
               </div>
             </div>
-            <div className="category-landing-brand-label w-full truncate px-1 text-[10px] font-bold text-gray-700 dark:text-gray-300">
+            <div className="category-landing-brand-label w-full truncate px-1 text-[9px] font-bold text-gray-700 dark:text-gray-400">
               {brand.name}
             </div>
           </button>
