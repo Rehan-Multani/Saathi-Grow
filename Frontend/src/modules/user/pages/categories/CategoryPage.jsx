@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { fetchProducts, fetchBrands, fetchSubCategories } from '../../api/shopApi';
 import ProductCard from '../../components/product/ProductCard';
@@ -142,12 +142,15 @@ const CategoryPage = () => {
         loadCategoryProducts(1, false);
     }, [debouncedSearch, sortOption, isVegOnly, slug, categoryName, selectedSubCat, selectedBrands]);
 
-    // Reset filters on category change
+    const [searchParams] = useSearchParams();
+    const querySub = searchParams.get('sub');
+
+    // Reset/Sync filters on category change or query param change
     useEffect(() => {
         setSelectedBrands([]);
-        setSelectedSubCat('all');
+        setSelectedSubCat(querySub || 'all');
         setLocalSearch('');
-    }, [slug]);
+    }, [slug, querySub]);
 
     const { setIsBottomSheetOpen } = useShop();
 
@@ -246,8 +249,11 @@ const CategoryPage = () => {
                 description={`Shop for ${currentCategory?.name || 'products'} at Saathi-Grow. Best quality and fast delivery for all your needs.`}
                 image={currentCategory?.image}
             />
-            {/* Compact Header - No Sticky */}
-            <div className="category-products-header relative bg-white dark:bg-black border-b border-gray-50 dark:border-white/5 px-3 py-1.5">
+            {/* Force Standard Scrolling Header - No Sticky */}
+            <div 
+                className="category-products-header bg-white dark:bg-black border-b border-gray-50 dark:border-white/5 px-3 py-1.5"
+                style={{ position: 'relative', zIndex: 10, display: 'block' }}
+            >
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
@@ -311,23 +317,30 @@ const CategoryPage = () => {
                         </div>
                     </div>
 
-                    {/* Subcategories Horizontal Scroll Row (Mobile App Style) */}
+                    {/* Subcategories Horizontal Scroll Row (Force Scroll with Flow) */}
                     {availableSubCategories.length > 0 && (
-                        <div className="mt-4 mb-4">
+                        <div className="mt-4 mb-4" style={{ position: 'relative', zIndex: 5 }}>
                             <div className="category-products-subcategories flex items-center gap-3 overflow-x-auto scrollbar-hide px-1 py-1">
                                 {/* "All" as a compact card */}
-                                <button
-                                    onClick={() => setSelectedSubCat('all')}
-                                    className="flex-shrink-0 flex flex-col items-center group w-16 sm:w-20 transition-all duration-300 active:scale-95"
-                                >
-                                    <div 
-                                        className={`w-full aspect-square rounded-2xl flex items-center justify-center border transition-all ${selectedSubCat === 'all' ? 'bg-green-50 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
+                                    <button
+                                        onClick={() => setSelectedSubCat('all')}
+                                        className="flex-shrink-0 flex flex-col items-center group transition-all duration-300 active:scale-95 mr-2"
+                                        style={{ width: '74px' }}
                                     >
-                                        <Leaf size={20} className={selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-400'} />
+                                        <div 
+                                            className={`rounded-2xl flex flex-col items-center border transition-all duration-300 ${selectedSubCat === 'all' ? 'bg-[#0c831f]/10 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
+                                            style={{ width: '74px', height: '74px', minWidth: '74px' }}
+                                        >
+                                        <span 
+                                            className={`font-bold text-center transition-colors ${selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}
+                                            style={{ fontSize: '9px', paddingTop: '10px', width: '100%', paddingLeft: '4px', paddingRight: '4px' }}
+                                        >
+                                            All
+                                        </span>
+                                        <div className="flex-1 w-full flex items-center justify-center pb-2">
+                                            <Leaf size={16} className={selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-400'} />
+                                        </div>
                                     </div>
-                                    <span className={`text-[10px] font-black mt-2 transition-colors ${selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-600'}`}>
-                                        All
-                                    </span>
                                 </button>
 
                                 {availableSubCategories.map((sc) => {
@@ -341,22 +354,35 @@ const CategoryPage = () => {
                                                 setSelectedSubCat(sc.name);
                                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                                             }}
-                                            className="flex-shrink-0 flex flex-col group w-20 sm:w-28 h-[100px] sm:h-[140px] transition-all duration-300 active:scale-95 rounded-2xl overflow-hidden border border-gray-100/50 dark:border-white/5 shadow-sm"
-                                            style={{ 
-                                                backgroundColor: isActive ? 'rgba(12, 131, 31, 0.08)' : (isDarkMode ? 'rgba(255,255,255,0.03)' : (categoryColors[scSlug] || categoryColors[slug] || '#f8f9fa')),
-                                                borderColor: isActive ? '#0c831f' : undefined
-                                            }}
+                                            className="flex-shrink-0 flex flex-col items-center group transition-all duration-300 active:scale-95"
+                                            style={{ width: '74px' }}
                                         >
-                                            <span className={`text-[9px] sm:text-[11px] font-black pt-2 px-1 text-center capitalize transition-colors ${isActive ? 'text-[#0c831f]' : 'text-gray-700 dark:text-gray-200'}`}>
-                                                {sc.name?.toLowerCase()}
-                                            </span>
-                                            <div className="flex-1 w-full p-2 flex items-center justify-center">
-                                                <img 
-                                                    src={sc.image || currentCategory?.image || categoryPlaceholder} 
-                                                    alt={sc.name}
-                                                    className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-sm"
-                                                    onError={(e) => { e.target.src = categoryPlaceholder; }}
-                                                />
+                                            <div 
+                                                className={`rounded-2xl flex flex-col items-center border transition-all duration-300 ${isActive ? 'bg-[#0c831f]/10 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
+                                                style={{ 
+                                                    width: '74px',
+                                                    height: '74px',
+                                                    backgroundColor: !isActive && !isDarkMode ? (categoryColors[scSlug] || categoryColors[slug] || '#f8f9fa') : (isActive ? 'rgba(12, 131, 31, 0.08)' : undefined)
+                                                }}
+                                            >
+                                                <span 
+                                                    className={`font-bold text-center capitalize transition-colors ${isActive ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-100'}`}
+                                                    style={{ fontSize: '9px', paddingTop: '10px', width: '100%', paddingLeft: '4px', paddingRight: '4px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                >
+                                                    {sc.name?.toLowerCase()}
+                                                </span>
+                                                <div 
+                                                    className="flex-1 w-full flex items-center justify-center p-2"
+                                                    style={{ overflow: 'hidden' }}
+                                                >
+                                                    <img 
+                                                        src={sc.image || currentCategory?.image || categoryPlaceholder} 
+                                                        alt={sc.name}
+                                                        className="transition-transform duration-500 group-hover:scale-110 drop-shadow-sm"
+                                                        style={{ maxHeight: '28px', width: 'auto', objectFit: 'contain' }}
+                                                        onError={(e) => { e.target.src = categoryPlaceholder; }}
+                                                    />
+                                                </div>
                                             </div>
                                         </button>
                                     );
@@ -365,8 +391,8 @@ const CategoryPage = () => {
                         </div>
                     )}
 
-                    {/* Highly Compact Pill Filter Row */}
-                    <div className="category-products-filter-row mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+                    {/* Combined Filter Row (Force Normal Flow) */}
+                    <div className="category-products-filter-row mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5" style={{ position: 'relative', zIndex: 4 }}>
                         <button
                             onClick={() => setIsVegOnly(!isVegOnly)}
                             className={`shop-pill-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${isVegOnly ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-400'}`}

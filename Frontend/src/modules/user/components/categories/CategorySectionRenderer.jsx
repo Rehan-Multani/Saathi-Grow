@@ -28,6 +28,7 @@ const CategorySectionRenderer = ({ categorySlug, section, theme }) => {
     return <CategoryPromoBanner section={section} accentColor={theme?.accent} />;
   }
 
+
   if (section.type === 'product_rail') {
     return (
       <CategoryProductRail

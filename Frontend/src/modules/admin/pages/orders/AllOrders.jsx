@@ -276,9 +276,9 @@ const AllOrders = () => {
                                                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dashboard.payment_method')}</label>
                                                 <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm font-bold rounded-lg focus:ring-violet-500 block w-full p-2 outline-none" value={paymentMethodFilter} onChange={handleFilterChange(setPaymentMethodFilter)}>
                                                     <option value="">{t('dashboard.all_methods')}</option>
-                                                    <option value="cod">COD</option>
-                                                    <option value="online">Online</option>
-                                                    <option value="wallet">Wallet</option>
+                                                    <option value="cod">{t('dashboard.payment_methods.cod', { defaultValue: 'COD' })}</option>
+                                                    <option value="online">{t('dashboard.payment_methods.online', { defaultValue: 'Online' })}</option>
+                                                    <option value="wallet">{t('dashboard.payment_methods.wallet', { defaultValue: 'Wallet' })}</option>
                                                 </select>
                                             </div>
                                             <div>

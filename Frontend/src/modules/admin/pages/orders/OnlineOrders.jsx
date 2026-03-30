@@ -84,6 +84,7 @@ const OnlineOrders = () => {
                 limit,
                 search: debouncedSearch,
                 paymentMethod: 'online',   // 🔒 Always filter to Razorpay/online orders
+                orderSource: 'online',     // 🔒 Exclude POS orders from digital inflow
                 status: statusFilter,
                 paymentStatus: paymentStatusFilter,
                 startDate,

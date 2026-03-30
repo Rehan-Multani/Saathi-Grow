@@ -62,6 +62,9 @@
     "add_product": "Add Product",
     "all_categories": "All Categories",
     "add_category": "Add Category",
+    "category_pages": "Category Pages",
+    "all_subcategories": "All Subcategories",
+    "add_subcategory": "Add Subcategory",
     "all_brands": "All Brands",
     "add_brand": "Add Brand",
     "all_customers": "All Customers",
@@ -102,6 +105,100 @@
     "tax_billing_settings": "Tax & Billing Settings",
     "app_settings": "App Settings",
     "social_profile": "Social Profile"
+  },
+  "category_pages": {
+    "title": "Category Landing Pages",
+    "subtitle": "Curate the big category experience with banners, brand rows, tiles, and product rails.",
+    "create_page": "Create Page",
+    "loading": "Loading category pages...",
+    "no_pages": "No category landing pages created yet.",
+    "delete_confirm_title": "Delete category page?",
+    "delete_confirm_text": "This will remove the curated landing page for {{name}}.",
+    "deleted_title": "Deleted",
+    "deleted_text": "Category page removed successfully.",
+    "table": {
+      "category": "Category",
+      "status": "Status",
+      "sections": "Sections",
+      "updated": "Updated",
+      "actions": "Actions"
+    }
+  },
+  "subcategories": {
+    "title": "All Subcategories",
+    "subtitle": "Organize products with hierarchical sub-categories",
+    "add_new": "Add Subcategory",
+    "search_placeholder": "Search subcategories...",
+    "loading_failed": "Failed to load subcategories",
+    "no_matches": "No subcategories match your search.",
+    "no_data": "No subcategories found.",
+    "create_title": "Add New Subcategory",
+    "edit_title": "Edit Subcategory",
+    "form": {
+      "parent_category": "Parent Category",
+      "name": "Subcategory Name",
+      "slug": "Slug (URL)",
+      "description": "Description",
+      "status": "Visibility Status",
+      "image": "Subcategory Image",
+      "upload_image": "Upload Subcategory Image",
+      "save_btn": "Save Subcategory",
+      "creating": "Creating..."
+    },
+    "table": {
+      "info": "Subcategory Info",
+      "parent": "Parent Category",
+      "slug": "Slug",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "manage_category_page": {
+    "edit_title": "Edit Category Landing Page",
+    "create_title": "Create Category Landing Page",
+    "back_to_list": "Back to List",
+    "view_live": "View Live",
+    "saving": "Saving...",
+    "save_btn": "Save Landing Page",
+    "theme": {
+      "title": "Theme",
+      "page_bg": "PageBg",
+      "hero_bg": "HeroBg",
+      "card_bg": "CardBg",
+      "accent": "Accent",
+      "text": "Text"
+    },
+    "hero": {
+      "title": "Hero Section",
+      "banner_image": "Hero Banner Image",
+      "main_title": "Main Title",
+      "subtitle": "Subtitle",
+      "sponsor": "Sponsorship",
+      "sponsor_label": "Sponsor Label",
+      "sponsor_brand": "Sponsor Brand (ID)",
+      "add_slide": "Add Slide",
+      "slide_number": "Slide #{{count}}",
+      "banner_image_label": "Banner Image"
+    },
+    "seo": {
+      "title": "SEO",
+      "meta_title": "SEO Title",
+      "meta_description": "SEO Description",
+      "meta_image": "SEO Image"
+    },
+    "sections": {
+      "title": "Page Sections",
+      "add_section": "Add Section",
+      "active": "Active",
+      "key": "Key",
+      "section_title": "Title",
+      "order": "Order",
+      "section_subtitle": "Subtitle",
+      "cta_label": "CTA Label",
+      "cta_link": "CTA Link",
+      "max_items": "Max Items",
+      "banners_slider": "Banners Slider / Carousel"
+    }
   },
   "notifications": {
     "admin_inbox": {
@@ -281,6 +378,7 @@
     },
     "payment_methods": {
       "cash": "Cash",
+      "cod": "COD",
       "online": "Online",
       "wallet": "Wallet"
     },

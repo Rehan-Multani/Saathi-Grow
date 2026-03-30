@@ -40,51 +40,52 @@ const CategorySubcategoryGrid = ({ categorySlug, section, accentColor = '#0c831f
         </p>
       )}
 
-      <div className="category-landing-subgrid grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+      <div className="category-landing-subscroll flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
         {(section.items || []).map((item) => (
           <button
             key={item._id}
             onClick={() => navigate(`/category/${encodeURIComponent(categorySlug)}/products?sub=${encodeURIComponent(item.name)}`)}
-            className="category-landing-subcard group rounded-[20px] border border-[#dceadf] p-2.5 text-left shadow-[0_10px_30px_rgba(12,131,31,0.08)] transition-all hover:-translate-y-1 dark:border-white/10 sm:rounded-[24px] sm:p-3"
-            style={{ backgroundColor: item.bgColor || cardBg }}
+            className="category-landing-subcard group flex flex-col items-center flex-shrink-0 transition-all active:scale-95"
+            style={{ width: '74px' }}
           >
-            <div className="category-landing-subcard-media mb-2.5 flex h-20 items-center justify-center overflow-hidden rounded-[16px] bg-white/80 p-2 dark:bg-black/20 sm:mb-3 sm:h-24 sm:rounded-[18px]">
-              {item.image ? (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-110"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = placeholder;
-                  }}
-                  loading="lazy"
-                />
-              ) : (
-                <div
-                  className="category-landing-subcard-placeholder relative flex h-full w-full items-center justify-center overflow-hidden rounded-[16px] sm:rounded-[18px]"
-                  style={{
-                    background: `radial-gradient(circle at top right, ${accentColor}18, transparent 38%), linear-gradient(135deg, rgba(255,255,255,0.96), rgba(237,247,239,0.92))`
-                  }}
-                >
+            {/* Square Media Box at Top */}
+            <div 
+              className="rounded-2xl flex flex-col items-center border border-black/5 bg-white dark:bg-white/5 shadow-sm overflow-hidden group-hover:border-green-500/30 transition-all"
+              style={{ backgroundColor: cardBg, width: '74px', height: '74px', minWidth: '74px' }}
+            >
+              {/* Label inside at top */}
+              <span 
+                className="font-bold text-gray-900 dark:text-gray-100 text-center capitalize group-hover:text-green-600 transition-colors"
+                style={{ fontSize: '9px', paddingTop: '10px', width: '100%', paddingLeft: '4px', paddingRight: '4px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >
+                {item.name?.toLowerCase()}
+              </span>
+
+              {/* Image below label */}
+              <div 
+                className="flex-1 w-full flex items-center justify-center p-2"
+                style={{ overflow: 'hidden' }}
+              >
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="transition-transform duration-300 group-hover:scale-110"
+                    style={{ maxHeight: '28px', width: 'auto', objectFit: 'contain' }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = placeholder;
+                    }}
+                    loading="lazy"
+                  />
+                ) : (
                   <div
-                    className="category-landing-subcard-placeholder-mark flex h-11 w-11 items-center justify-center rounded-[16px] text-[16px] font-black text-white shadow-sm sm:h-12 sm:w-12"
-                    style={{ backgroundColor: accentColor }}
+                    className="flex items-center justify-center rounded-2xl text-white shadow-sm"
+                    style={{ backgroundColor: accentColor, width: '28px', height: '28px', fontSize: '10px', fontWeight: '700' }}
                   >
                     {getInitials(item.name)}
                   </div>
-                </div>
-              )}
-            </div>
-            <div className="flex items-start justify-between gap-2">
-              <div className="category-landing-subcard-title text-[11px] font-black leading-tight text-gray-900 dark:text-white sm:text-[13px]">
-                {item.name}
-              </div>
-              <div
-                className="category-landing-chip-icon mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-white sm:h-7 sm:w-7"
-                style={{ backgroundColor: accentColor }}
-              >
-                <ChevronRight size={13} />
+                )}
               </div>
             </div>
           </button>

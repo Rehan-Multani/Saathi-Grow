@@ -7,6 +7,8 @@ import { useStore } from '../../context/StoreContext';
 import { fetchCategoryPage } from '../../api/categoryPageApi';
 import CategoryLandingSkeleton from '../../components/categories/CategoryLandingSkeleton';
 import CategorySectionRenderer from '../../components/categories/CategorySectionRenderer';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../../context/ThemeContext';
 
 const defaultTheme = {
   pageBg: '#f6fbf7',
@@ -21,6 +23,7 @@ const CategoryLandingPage = () => {
   const navigate = useNavigate();
   const { setIsSearchOverlayOpen } = useSearch();
   const { activeStore } = useStore();
+  const { isDarkMode } = useTheme();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,7 @@ const CategoryLandingPage = () => {
   const [redirectToProducts, setRedirectToProducts] = useState(false);
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
   const [heroImageFailed, setHeroImageFailed] = useState(false);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const latestRequestKeyRef = useRef('');
 
   const requestKey = useMemo(
@@ -84,23 +88,66 @@ const CategoryLandingPage = () => {
     };
   }, [slug, activeStore?.id, activeStore?.type, requestKey]);
 
-  const theme = useMemo(
-    () => ({
-      ...defaultTheme,
-      ...(data?.page?.theme || {})
-    }),
-    [data]
-  );
+  const theme = useMemo(() => {
+    const rawTheme = { ...defaultTheme, ...(data?.page?.theme || {}) };
+    if (!isDarkMode) return rawTheme;
+
+    // Force mobile-app dark mode defaults if user hasn't defined specific dark colors
+    return {
+      ...rawTheme,
+      pageBg: '#000000',
+      heroBg: '#0f0f0f',
+      cardBg: '#121212',
+      accent: rawTheme.accent || '#0c831f',
+      text: '#ffffff'
+    };
+  }, [data, isDarkMode]);
   const isCurrentCategoryData = data?.category?.slug === slug;
 
   const category = data?.category;
   const page = data?.page;
-  const heroBanner = page?.hero?.mobileBannerImage || page?.hero?.bannerImage || category?.image || '';
+  const banners = useMemo(() => {
+    if (page?.hero?.banners && page.hero.banners.length > 0) {
+      return page.hero.banners;
+    }
+    // Fallback if banners array is empty
+    if (page?.hero?.bannerImage) {
+      return [{
+        imageUrl: page.hero.bannerImage,
+        title: page.hero.title || '',
+        subtitle: page.hero.subtitle || '',
+        ctaLink: ''
+      }];
+    }
+    // Deep fallback to category
+    if (category?.image) {
+      return [{
+        imageUrl: category.image,
+        title: category.name || '',
+        subtitle: category.description || '',
+        ctaLink: ''
+      }];
+    }
+    return [];
+  }, [page, category]);
+
+  const currentBanner = banners[currentBannerIndex];
+  const heroBanner = currentBanner?.imageUrl || '';
 
   useEffect(() => {
-    setHeroImageLoaded(!heroBanner);
+    if (banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
+
+  useEffect(() => {
+    // Only reset if it's a new image URL, otherwise keep the current load state
+    // to avoid flickering or disappearing artifacts on carousel transitions.
     setHeroImageFailed(false);
   }, [heroBanner]);
+
 
   if (redirectToProducts) {
     return <Navigate to={`/category/${encodeURIComponent(slug)}/products`} replace />;
@@ -150,63 +197,99 @@ const CategoryLandingPage = () => {
       />
 
       <div className="category-landing-shell mx-auto max-w-6xl px-3 py-3 sm:px-4 sm:py-4">
-        <div className="category-landing-topbar mb-3">
+        <div className="category-landing-topbar mb-3" style={{ position: 'relative', zIndex: 10 }}>
           <div className="category-landing-topbar-row flex items-center justify-between gap-3">
             <button
-              onClick={() => navigate(-1)}
-              className="category-landing-topbar-btn flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-sm backdrop-blur-sm dark:bg-white/5 dark:text-white"
+              onClick={() => navigate('/category')}
+              className="category-landing-topbar-btn flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md transition-all active:scale-90 dark:bg-white/10 dark:text-white"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={20} strokeWidth={2.5} />
             </button>
             <button
               onClick={() => setIsSearchOverlayOpen(true)}
-              className="category-landing-topbar-btn flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-sm backdrop-blur-sm dark:bg-white/5 dark:text-white"
+              className="category-landing-topbar-btn flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-gray-900 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md transition-all active:scale-90 dark:bg-white/10 dark:text-white"
             >
-              <Search size={18} />
+              <Search size={20} strokeWidth={2.5} />
             </button>
           </div>
         </div>
 
         <div
-          className="category-landing-hero relative overflow-hidden rounded-[28px] border border-white/60 px-4 py-5 shadow-[0_25px_70px_rgba(12,131,31,0.12)] dark:border-white/10 sm:rounded-[34px] sm:px-6 sm:py-8"
+          className="category-landing-hero relative overflow-hidden rounded-[28px] border border-white/60 shadow-[0_25px_70px_rgba(12,131,31,0.12)] dark:border-white/10 sm:rounded-[34px]"
           style={{
-            background: `linear-gradient(135deg, ${theme.heroBg}, #ffffff)`
+            background: isDarkMode 
+              ? `linear-gradient(135deg, ${theme.heroBg}, #000000)` 
+              : `linear-gradient(135deg, ${theme.heroBg}, #ffffff)`,
+            height: banners.length > 0 ? 'auto' : '110px',
+            minHeight: '110px'
           }}
         >
-          {heroBanner && !heroImageFailed && (
-            <img
-              src={heroBanner}
-              alt={page.hero?.title || category?.name || 'Category banner'}
-              className={`category-landing-hero-media absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${heroImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              loading="eager"
-              fetchPriority="high"
-              onLoad={() => setHeroImageLoaded(true)}
-              onError={() => {
-                setHeroImageFailed(true);
-                setHeroImageLoaded(true);
-              }}
-            />
-          )}
-          <div className="category-landing-hero-overlay absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(255,255,255,0.78),rgba(255,255,255,0.64))]" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentBannerIndex}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.5 }}
+              className="relative w-full h-full"
+            >
+              <div
+                className="category-landing-hero-inner relative px-4 py-2 sm:px-8 sm:py-4 flex flex-col justify-center min-h-[110px] cursor-pointer"
+                onClick={() => banners[currentBannerIndex]?.ctaLink && navigate(banners[currentBannerIndex].ctaLink)}
+              >
+                {currentBanner?.imageUrl && !heroImageFailed && (
+                  <>
+                    <img
+                      src={currentBanner.imageUrl}
+                      alt={currentBanner.title || page.hero?.title || category?.name || 'Category banner'}
+                      className={`category-landing-hero-media absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${heroImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      loading="eager"
+                      fetchPriority="high"
+                      onLoad={() => setHeroImageLoaded(true)}
+                      onError={() => {
+                        setHeroImageFailed(true);
+                        setHeroImageLoaded(true);
+                      }}
+                    />
+                    <div className="category-landing-hero-overlay absolute inset-0 bg-black/10 dark:bg-black/40" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/40 to-transparent dark:from-black/80 dark:via-black/30 dark:to-transparent" />
+                  </>
+                )}
 
-          <div className="category-landing-hero-content relative z-10 max-w-md">
-            <div className="category-landing-overline text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: theme.accent }}>
-              SaathiGro Category
+                <div className="category-landing-hero-content relative z-10 max-w-sm sm:max-w-md">
+                  <div className="category-landing-overline text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: theme.accent }}>
+                    SaathiGro {category?.name || 'Category'}
+                  </div>
+                  <h1 className={`category-landing-title mt-2 text-3xl font-black uppercase tracking-tight sm:mt-3 sm:text-5xl ${isDarkMode ? 'text-white' : 'text-[#0e2b57]'}`}>
+                    {banners[currentBannerIndex]?.title || page.hero?.title || category?.name}
+                  </h1>
+                  {(banners[currentBannerIndex]?.subtitle || page.hero?.subtitle || category?.description) && (
+                    <p className="category-landing-hero-copy mt-2 text-[12px] font-medium text-gray-600 dark:text-gray-300 sm:mt-3 sm:text-sm">
+                      {banners[currentBannerIndex]?.subtitle || page.hero?.subtitle || category?.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {banners.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+              {banners.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentBannerIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${currentBannerIndex === idx ? 'w-6 bg-[#0c831f]' : 'w-1.5 bg-gray-300'}`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
             </div>
-            <h1 className="category-landing-title mt-3 text-[2.35rem] font-black uppercase tracking-tight text-[#0e2b57] sm:mt-4 sm:text-5xl">
-              {page.hero?.title || category?.name}
-            </h1>
-            {(page.hero?.subtitle || category?.description) && (
-              <p className="category-landing-hero-copy mt-2 text-[12px] font-medium text-gray-600 sm:mt-3 sm:text-sm">
-                {page.hero?.subtitle || category?.description}
-              </p>
-            )}
-          </div>
+          )}
         </div>
 
         {page.hero?.sponsorBrand && (
           <div
-            className="category-landing-sponsor mt-3 rounded-[22px] border border-[#dceadf] px-4 py-3 shadow-sm dark:border-white/10 sm:mt-4 sm:rounded-[28px] sm:px-5 sm:py-4"
+            className="category-landing-sponsor mt-3 rounded-[22px] border border-[#dceadf] px-4 py-3 shadow-sm dark:border-white/10 sm:mt-4 sm:rounded-[28px] sm:px-5 sm:py-4 transition-colors"
             style={{ backgroundColor: theme.cardBg }}
           >
             <div className="flex items-center gap-3 sm:gap-4">
@@ -256,8 +339,8 @@ const CategoryLandingPage = () => {
             <section className="category-landing-section">
               <button
                 onClick={() => navigate(`/category/${encodeURIComponent(category.slug || slug)}/products`)}
-                className="category-landing-cta flex w-full items-center justify-center gap-3 rounded-[24px] border border-[#dceadf] bg-white px-5 py-4 text-base font-black shadow-sm dark:border-white/10 dark:bg-[#111111]"
-                style={{ color: theme.accent }}
+                className="category-landing-cta flex w-full items-center justify-center gap-3 rounded-[24px] border border-[#dceadf] bg-white px-5 py-4 text-base font-black shadow-sm dark:border-white/10 dark:bg-[#111111] transition-colors"
+                style={{ color: theme.accent, backgroundColor: isDarkMode ? '#111111' : '#ffffff' }}
               >
                 <span>View more products</span>
               </button>

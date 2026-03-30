@@ -400,10 +400,12 @@ img {
 .category-landing-icon-btn {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  border-radius: 9999px !important;
+  overflow: hidden !important;
 }
 
 .category-landing-hero {
-  min-height: 9.75rem;
+  min-height: 110px;
   isolation: isolate;
 }
 
@@ -568,7 +570,7 @@ img {
   }
 
   .category-landing-subcard {
-    min-height: 8.5rem;
+    min-height: 6.5rem;
   }
 
   .category-landing-subcard-media {

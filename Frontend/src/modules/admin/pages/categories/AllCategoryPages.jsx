@@ -4,10 +4,12 @@ import { Edit, ExternalLink, FileText, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useTranslation } from 'react-i18next';
 import { deleteCategoryPage, getCategoryPages } from '../../api/categoryPageApi';
 import { showDeleteConfirmation, showErrorAlert, showSuccessAlert } from '../../../../common/utils/alertUtils';
 
 const AllCategoryPages = () => {
+  const { t } = useTranslation();
   const { adminUser } = useAdminAuth();
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ const AllCategoryPages = () => {
       const data = await getCategoryPages(adminUser.token);
       setPages(Array.isArray(data) ? data : []);
     } catch (error) {
-      toast.error(error.message || 'Failed to load category pages');
+      toast.error(error.message || t('category_pages.loading_failed', { defaultValue: 'Failed to load category pages' }));
     } finally {
       setLoading(false);
     }
@@ -29,15 +31,24 @@ const AllCategoryPages = () => {
   }, [fetchPages]);
 
   const handleDelete = async (id, name) => {
-    const result = await showDeleteConfirmation('Delete category page?', `This will remove the curated landing page for ${name}.`);
+    const result = await showDeleteConfirmation(
+      t('category_pages.delete_confirm_title', { defaultValue: 'Delete category page?' }),
+      t('category_pages.delete_confirm_text', { name, defaultValue: `This will remove the curated landing page for ${name}.` })
+    );
     if (!result.isConfirmed) return;
 
     try {
       await deleteCategoryPage(adminUser.token, id);
       setPages((prev) => prev.filter((item) => item._id !== id));
-      await showSuccessAlert('Deleted', 'Category page removed successfully.');
+      await showSuccessAlert(
+        t('category_pages.deleted_title', { defaultValue: 'Deleted' }),
+        t('category_pages.deleted_text', { defaultValue: 'Category page removed successfully.' })
+      );
     } catch (error) {
-      showErrorAlert('Delete failed', error.message || 'Failed to remove category page');
+      showErrorAlert(
+        t('dashboard.error_title', { defaultValue: 'Error' }),
+        error.message || t('category_pages.delete_failed', { defaultValue: 'Failed to remove category page' })
+      );
     }
   };
 
@@ -49,15 +60,15 @@ const AllCategoryPages = () => {
             <FileText size={22} />
           </div>
           <div>
-            <h4 className="mb-1 fw-bold text-dark">Category Landing Pages</h4>
-            <p className="mb-0 small text-muted">Curate the big category experience with banners, brand rows, tiles, and product rails.</p>
+            <h4 className="mb-1 fw-bold text-dark">{t('category_pages.title', { defaultValue: 'Category Landing Pages' })}</h4>
+            <p className="mb-0 small text-muted">{t('category_pages.subtitle', { defaultValue: 'Curate the big category experience with banners, brand rows, tiles, and product rails.' })}</p>
           </div>
         </div>
 
         <div className="d-flex gap-2">
           <Link to="/admin/category-pages/add" className="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
             <Plus size={18} />
-            <span className="fw-bold">Create Page</span>
+            <span className="fw-bold">{t('category_pages.create_page', { defaultValue: 'Create Page' })}</span>
           </Link>
         </div>
       </div>
@@ -67,17 +78,17 @@ const AllCategoryPages = () => {
           {loading ? (
             <div className="py-5 text-center">
               <Spinner animation="border" variant="primary" />
-              <p className="mt-3 mb-0 text-muted">Loading category pages...</p>
+              <p className="mt-3 mb-0 text-muted">{t('category_pages.loading', { defaultValue: 'Loading category pages...' })}</p>
             </div>
           ) : (
             <Table hover responsive className="mb-0 align-middle">
               <thead className="bg-light text-muted small text-uppercase">
                 <tr>
-                  <th className="border-0 ps-4 py-3">Category</th>
-                  <th className="border-0 py-3 text-center">Status</th>
-                  <th className="border-0 py-3 text-center">Sections</th>
-                  <th className="border-0 py-3 text-center">Updated</th>
-                  <th className="border-0 py-3 text-end pe-4">Actions</th>
+                  <th className="border-0 ps-4 py-3">{t('category_pages.table.category', { defaultValue: 'Category' })}</th>
+                  <th className="border-0 py-3 text-center">{t('category_pages.table.status', { defaultValue: 'Status' })}</th>
+                  <th className="border-0 py-3 text-center">{t('category_pages.table.sections', { defaultValue: 'Sections' })}</th>
+                  <th className="border-0 py-3 text-center">{t('category_pages.table.updated', { defaultValue: 'Updated' })}</th>
+                  <th className="border-0 py-3 text-end pe-4">{t('category_pages.table.actions', { defaultValue: 'Actions' })}</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,7 +142,7 @@ const AllCategoryPages = () => {
                 )) : (
                   <tr>
                     <td colSpan="5" className="py-5 text-center text-muted">
-                      No category landing pages created yet.
+                      {t('category_pages.no_pages', { defaultValue: 'No category landing pages created yet.' })}
                     </td>
                   </tr>
                 )}

@@ -36,8 +36,13 @@ const sanitizeHero = (hero = {}) => ({
   subtitle: hero.subtitle || '',
   bannerImage: hero.bannerImage || '',
   bannerImagePublicId: hero.bannerImagePublicId || '',
-  mobileBannerImage: hero.mobileBannerImage || '',
-  mobileBannerImagePublicId: hero.mobileBannerImagePublicId || '',
+  banners: (Array.isArray(hero.banners) ? hero.banners : []).map((banner) => ({
+    imageUrl: banner.imageUrl || '',
+    imagePublicId: banner.imagePublicId || '',
+    ctaLink: banner.ctaLink || '',
+    title: banner.title || '',
+    subtitle: banner.subtitle || ''
+  })),
   sponsorLabel: hero.sponsorLabel || '',
   sponsorBrand: normalizeObjectId(hero.sponsorBrand)
 });
@@ -63,10 +68,15 @@ const sanitizeSections = (sections = []) => {
       isActive: section.isActive !== false,
       imageUrl: section.imageUrl || '',
       imagePublicId: section.imagePublicId || '',
-      mobileImageUrl: section.mobileImageUrl || '',
-      mobileImagePublicId: section.mobileImagePublicId || '',
       ctaLabel: section.ctaLabel || '',
       ctaLink: section.ctaLink || '',
+      banners: (Array.isArray(section.banners) ? section.banners : []).map((banner) => ({
+        imageUrl: banner.imageUrl || '',
+        imagePublicId: banner.imagePublicId || '',
+        ctaLink: banner.ctaLink || '',
+        title: banner.title || '',
+        subtitle: banner.subtitle || ''
+      })),
       maxItems: Number.isFinite(Number(section.maxItems)) ? Math.max(1, Number(section.maxItems)) : 8,
       maxProducts: Number.isFinite(Number(section.maxProducts)) ? Math.max(1, Number(section.maxProducts)) : 10,
       brandIds: normalizeRefArray(section.brandIds),
@@ -94,9 +104,14 @@ const collectCategoryPagePublicIds = (page = {}) => {
     page.seo?.imagePublicId
   ];
 
+  for (const banner of page.hero?.banners || []) {
+    ids.push(banner.imagePublicId);
+  }
   for (const section of page.sections || []) {
     ids.push(section.imagePublicId);
-    ids.push(section.mobileImagePublicId);
+    for (const banner of section.banners || []) {
+      ids.push(banner.imagePublicId);
+    }
   }
 
   return [...new Set(ids.filter(Boolean))];
@@ -157,11 +172,6 @@ const applyUploadedFilesToPayload = async (payload = {}, files = []) => {
       continue;
     }
 
-    if (file.fieldname === 'hero.mobileBannerImage') {
-      nextPayload.hero.mobileBannerImage = uploadResult.secure_url;
-      nextPayload.hero.mobileBannerImagePublicId = uploadResult.public_id;
-      continue;
-    }
 
     if (file.fieldname === 'seo.image') {
       nextPayload.seo.image = uploadResult.secure_url;
@@ -169,18 +179,39 @@ const applyUploadedFilesToPayload = async (payload = {}, files = []) => {
       continue;
     }
 
-    const sectionMatch = file.fieldname.match(/^sections\[(\d+)\]\.(imageUrl|mobileImageUrl)$/);
+    const bannerMatch = file.fieldname.match(/^hero\.banners\[(\d+)\]\.imageUrl$/);
+    if (bannerMatch) {
+      const bannerIndex = Number(bannerMatch[1]);
+      const banner = nextPayload.hero.banners[bannerIndex];
+      if (banner) {
+        banner.imageUrl = uploadResult.secure_url;
+        banner.imagePublicId = uploadResult.public_id;
+      }
+      continue;
+    }
+
+    const sectionBannerMatch = file.fieldname.match(/^sections\[(\d+)\]\.banners\[(\d+)\]\.imageUrl$/);
+    if (sectionBannerMatch) {
+      const sectionIndex = Number(sectionBannerMatch[1]);
+      const bannerIndex = Number(sectionBannerMatch[2]);
+      const section = nextPayload.sections[sectionIndex];
+      if (section && section.banners && section.banners[bannerIndex]) {
+        section.banners[bannerIndex].imageUrl = uploadResult.secure_url;
+        section.banners[bannerIndex].imagePublicId = uploadResult.public_id;
+      }
+      continue;
+    }
+
+    const sectionMatch = file.fieldname.match(/^sections\[(\d+)\]\.imageUrl$/);
     if (!sectionMatch) continue;
 
     const sectionIndex = Number(sectionMatch[1]);
-    const fieldKey = sectionMatch[2];
-    const publicIdKey = fieldKey === 'imageUrl' ? 'imagePublicId' : 'mobileImagePublicId';
     const section = nextPayload.sections[sectionIndex];
 
     if (!section) continue;
 
-    section[fieldKey] = uploadResult.secure_url;
-    section[publicIdKey] = uploadResult.public_id;
+    section.imageUrl = uploadResult.secure_url;
+    section.imagePublicId = uploadResult.public_id;
   }
 
   return {
@@ -389,6 +420,7 @@ const serializePublicSection = async (section, category, storeContext) => {
     mobileImageUrl: section.mobileImageUrl,
     ctaLabel: section.ctaLabel,
     ctaLink: section.ctaLink,
+    banners: section.banners || [],
     maxItems: section.maxItems,
     maxProducts: section.maxProducts
   };

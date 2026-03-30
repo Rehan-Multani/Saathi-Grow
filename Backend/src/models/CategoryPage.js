@@ -29,30 +29,19 @@ const sectionSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  imageUrl: {
-    type: String,
-    default: ''
-  },
-  imagePublicId: {
-    type: String,
-    default: ''
-  },
-  mobileImageUrl: {
-    type: String,
-    default: ''
-  },
-  mobileImagePublicId: {
-    type: String,
-    default: ''
-  },
-  ctaLabel: {
-    type: String,
-    default: ''
-  },
-  ctaLink: {
-    type: String,
-    default: ''
-  },
+  // Legacy single image support
+  imageUrl: { type: String, default: '' },
+  imagePublicId: { type: String, default: '' },
+  ctaLabel: { type: String, default: '' },
+  ctaLink: { type: String, default: '' },
+  // Multiple banners support
+  banners: [{
+    imageUrl: { type: String, default: '' },
+    imagePublicId: { type: String, default: '' },
+    ctaLink: { type: String, default: '' },
+    title: { type: String, default: '' },
+    subtitle: { type: String, default: '' }
+  }],
   maxItems: {
     type: Number,
     default: 8
@@ -99,10 +88,17 @@ const categoryPageSchema = new mongoose.Schema({
   hero: {
     title: { type: String, trim: true, default: '' },
     subtitle: { type: String, trim: true, default: '' },
+    // Legacy single image support
     bannerImage: { type: String, default: '' },
     bannerImagePublicId: { type: String, default: '' },
-    mobileBannerImage: { type: String, default: '' },
-    mobileBannerImagePublicId: { type: String, default: '' },
+    // Multiple banners support
+    banners: [{
+      imageUrl: { type: String, default: '' },
+      imagePublicId: { type: String, default: '' },
+      ctaLink: { type: String, default: '' },
+      title: { type: String, default: '' },
+      subtitle: { type: String, default: '' }
+    }],
     sponsorLabel: { type: String, trim: true, default: '' },
     sponsorBrand: {
       type: mongoose.Schema.Types.ObjectId,

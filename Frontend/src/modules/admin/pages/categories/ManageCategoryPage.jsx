@@ -8,6 +8,7 @@ import { getCategories } from '../../api/categoryApi';
 import { getBrands } from '../../api/brandApi';
 import { getSubCategories } from '../../api/subcategoryApi';
 import { createCategoryPage, getCategoryPageById, updateCategoryPage } from '../../api/categoryPageApi';
+import { useTranslation } from 'react-i18next';
 import ProductPickerModal from '../../components/common/ProductPickerModal';
 import MediaUploadField from '../../components/common/MediaUploadField';
 
@@ -31,13 +32,9 @@ const createSection = (type = 'subcategory_grid') => ({
   imageFile: null,
   imagePreviewUrl: '',
   imageFileName: '',
-  mobileImageUrl: '',
-  mobileImagePublicId: '',
-  mobileImageFile: null,
-  mobileImagePreviewUrl: '',
-  mobileImageFileName: '',
   ctaLabel: type === 'view_more_cta' ? 'View more products' : '',
   ctaLink: '',
+  banners: (type === 'banner_slider' || type === 'promo_banner') ? [{ title: '', subtitle: '', ctaLink: '', imageUrl: '' }] : [],
   maxItems: 8,
   maxProducts: 10,
   brandIds: [],
@@ -55,6 +52,7 @@ const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
 });
 
 const ManageCategoryPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -79,11 +77,7 @@ const ManageCategoryPage = () => {
       bannerImageFile: null,
       bannerImagePreviewUrl: '',
       bannerImageFileName: '',
-      mobileBannerImage: '',
-      mobileBannerImagePublicId: '',
-      mobileBannerImageFile: null,
-      mobileBannerImagePreviewUrl: '',
-      mobileBannerImageFileName: '',
+      banners: [],
       sponsorLabel: 'Powered by',
       sponsorBrand: ''
     },
@@ -112,6 +106,30 @@ const ManageCategoryPage = () => {
 
         if (id) {
           const page = await getCategoryPageById(adminUser.token, id);
+          
+          // Migrate legacy hero image to banners array if empty
+          let heroBanners = (page.hero?.banners || []).map(b => ({
+            imageUrl: b.imageUrl || '',
+            imagePublicId: b.imagePublicId || '',
+            imageFile: null,
+            imagePreviewUrl: b.imageUrl || '',
+            ctaLink: b.ctaLink || '',
+            title: b.title || '',
+            subtitle: b.subtitle || ''
+          }));
+
+          if (heroBanners.length === 0 && page.hero?.bannerImage) {
+            heroBanners.push({
+              imageUrl: page.hero.bannerImage,
+              imagePublicId: page.hero.bannerImagePublicId || '',
+              imageFile: null,
+              imagePreviewUrl: page.hero.bannerImage,
+              ctaLink: '',
+              title: page.hero.title || '',
+              subtitle: page.hero.subtitle || ''
+            });
+          }
+
           setFormData({
             category: page.category?._id || '',
             status: page.status || 'draft',
@@ -124,13 +142,9 @@ const ManageCategoryPage = () => {
               bannerImageFile: null,
               bannerImagePreviewUrl: page.hero?.bannerImage || '',
               bannerImageFileName: '',
-              mobileBannerImage: page.hero?.mobileBannerImage || '',
-              mobileBannerImagePublicId: page.hero?.mobileBannerImagePublicId || '',
-              mobileBannerImageFile: null,
-              mobileBannerImagePreviewUrl: page.hero?.mobileBannerImage || '',
-              mobileBannerImageFileName: '',
               sponsorLabel: page.hero?.sponsorLabel || 'Powered by',
-              sponsorBrand: page.hero?.sponsorBrand?._id || page.hero?.sponsorBrand || ''
+              sponsorBrand: page.hero?.sponsorBrand?._id || page.hero?.sponsorBrand || '',
+              banners: heroBanners
             },
             seo: {
               title: page.seo?.title || '',
@@ -141,38 +155,58 @@ const ManageCategoryPage = () => {
               imagePreviewUrl: page.seo?.image || '',
               imageFileName: ''
             },
-            sections: (page.sections || []).map((section, index) => ({
-              key: section.key || `${section.type}-${index + 1}`,
-              type: section.type,
-              title: section.title || '',
-              subtitle: section.subtitle || '',
-              order: Number.isFinite(Number(section.order)) ? Number(section.order) : index,
-              isActive: section.isActive !== false,
-              imageUrl: section.imageUrl || '',
-              imagePublicId: section.imagePublicId || '',
-              imageFile: null,
-              imagePreviewUrl: section.imageUrl || '',
-              imageFileName: '',
-              mobileImageUrl: section.mobileImageUrl || '',
-              mobileImagePublicId: section.mobileImagePublicId || '',
-              mobileImageFile: null,
-              mobileImagePreviewUrl: section.mobileImageUrl || '',
-              mobileImageFileName: '',
-              ctaLabel: section.ctaLabel || '',
-              ctaLink: section.ctaLink || '',
-              maxItems: section.maxItems || 8,
-              maxProducts: section.maxProducts || 10,
-              brandIds: normalizeEntityIds(section.brandIds),
-              subCategoryIds: normalizeEntityIds(section.subCategoryIds),
-              productIds: normalizeEntityIds(section.productIds),
-              productPreviews: Array.isArray(section.productIds)
-                ? section.productIds.filter((item) => item && typeof item === 'object' && item._id)
-                : []
-            }))
+            sections: (page.sections || []).map((section, index) => {
+              let sectionBanners = (section.banners || []).map(b => ({
+                imageUrl: b.imageUrl || '',
+                imagePublicId: b.imagePublicId || '',
+                imageFile: null,
+                imagePreviewUrl: b.imageUrl || '',
+                ctaLink: b.ctaLink || '',
+                title: b.title || '',
+                subtitle: b.subtitle || ''
+              }));
+
+              if (sectionBanners.length === 0 && section.imageUrl && section.type === 'promo_banner') {
+                sectionBanners.push({
+                  imageUrl: section.imageUrl,
+                  imagePublicId: section.imagePublicId || '',
+                  imageFile: null,
+                  imagePreviewUrl: section.imageUrl,
+                  ctaLink: section.ctaLink || '',
+                  title: section.title || '',
+                  subtitle: section.subtitle || ''
+                });
+              }
+
+              return {
+                key: section.key || `${section.type}-${index + 1}`,
+                type: section.type,
+                title: section.title || '',
+                subtitle: section.subtitle || '',
+                order: Number.isFinite(Number(section.order)) ? Number(section.order) : index,
+                isActive: section.isActive !== false,
+                imageUrl: section.imageUrl || '',
+                imagePublicId: section.imagePublicId || '',
+                imageFile: null,
+                imagePreviewUrl: section.imageUrl || '',
+                imageFileName: '',
+                ctaLabel: section.ctaLabel || '',
+                ctaLink: section.ctaLink || '',
+                banners: sectionBanners,
+                maxItems: section.maxItems || 8,
+                maxProducts: section.maxProducts || 10,
+                brandIds: normalizeEntityIds(section.brandIds),
+                subCategoryIds: normalizeEntityIds(section.subCategoryIds),
+                productIds: normalizeEntityIds(section.productIds),
+                productPreviews: Array.isArray(section.productIds)
+                  ? section.productIds.filter((item) => item && typeof item === 'object' && item._id)
+                  : []
+              };
+            })
           });
         }
       } catch (error) {
-        toast.error(error.message || 'Failed to load category page data');
+        toast.error(error.message || t('manage_category_page.loading_failed', { defaultValue: 'Failed to load category page data' }));
       } finally {
         setLoading(false);
       }
@@ -195,7 +229,7 @@ const ManageCategoryPage = () => {
         });
         setSubCategories(Array.isArray(data) ? data : []);
       } catch (error) {
-        toast.error(error.message || 'Failed to load subcategories');
+        toast.error(error.message || t('subcategories.loading_failed', { defaultValue: 'Failed to load subcategories' }));
       }
     };
 
@@ -211,6 +245,33 @@ const ManageCategoryPage = () => {
     if (!selectedCategory) return [];
     return brands.filter((brand) => String(brand.category || '').toLowerCase() === String(selectedCategory.name || '').toLowerCase());
   }, [brands, selectedCategory]);
+
+  const handleCategoryChange = (categoryId) => {
+    const category = categories.find((c) => c._id === categoryId);
+    const productsPath = category?.slug ? `/category/${category.slug}/products` : '';
+
+    setFormData((prev) => ({
+      ...prev,
+      category: categoryId,
+      hero: {
+        ...prev.hero,
+        title: prev.hero.title || category?.name || '',
+        // If we want to autofill banners too
+        banners: prev.hero.banners.map((b) => ({
+          ...b,
+          ctaLink: b.ctaLink || productsPath
+        }))
+      },
+      sections: prev.sections.map((s) => ({
+        ...s,
+        ctaLink: s.ctaLink || productsPath,
+        banners: (s.banners || []).map((b) => ({
+          ...b,
+          ctaLink: b.ctaLink || productsPath
+        }))
+      }))
+    }));
+  };
 
   const handleLoadDemoLayout = () => {
     if (!selectedCategory) {
@@ -378,6 +439,74 @@ const ManageCategoryPage = () => {
     }
   };
 
+  const addHeroBanner = () => {
+    const productsPath = selectedCategory?.slug ? `/category/${selectedCategory.slug}/products` : '';
+    setFormData((prev) => ({
+      ...prev,
+      hero: {
+        ...prev.hero,
+        banners: [
+          ...prev.hero.banners,
+          {
+            imageUrl: '',
+            imagePublicId: '',
+            imageFile: null,
+            imagePreviewUrl: '',
+            mobileImageUrl: '',
+            mobileImagePublicId: '',
+            mobileImageFile: null,
+            mobileImagePreviewUrl: '',
+            ctaLink: productsPath,
+            title: '',
+            subtitle: ''
+          }
+        ]
+      }
+    }));
+  };
+
+  const removeHeroBanner = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      hero: {
+        ...prev.hero,
+        banners: prev.hero.banners.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const updateHeroBanner = (index, patch) => {
+    setFormData((prev) => ({
+      ...prev,
+      hero: {
+        ...prev.hero,
+        banners: prev.hero.banners.map((banner, i) => (i === index ? { ...banner, ...patch } : banner))
+      }
+    }));
+  };
+
+  const handleHeroBannerMediaChange = async (index, file) => {
+    if (!file) {
+      updateHeroBanner(index, {
+        imageUrl: '',
+        imagePublicId: '',
+        imagePreviewUrl: '',
+        imageFile: null
+      });
+      return;
+    }
+
+    try {
+      const previewUrl = await readFileAsDataUrl(file);
+      updateHeroBanner(index, {
+        imagePreviewUrl: previewUrl,
+        imageFile: file
+      });
+    } catch (error) {
+      toast.error(error.message || 'Failed to load selected image');
+    }
+  };
+
   const handleSeoMediaChange = async (file) => {
     if (!file) {
       setFormData((prev) => ({
@@ -418,11 +547,11 @@ const ManageCategoryPage = () => {
 
     if (!file) {
       updateSection(index, {
-        [field]: '',
-        [publicIdField]: '',
-        [previewField]: '',
-        [fileField]: null,
-        [fileNameField]: ''
+        imageUrl: '',
+        imagePublicId: '',
+        imagePreviewUrl: '',
+        imageFile: null,
+        imageFileName: ''
       });
       return;
     }
@@ -430,9 +559,9 @@ const ManageCategoryPage = () => {
     try {
       const previewUrl = await readFileAsDataUrl(file);
       updateSection(index, {
-        [previewField]: previewUrl,
-        [fileField]: file,
-        [fileNameField]: file.name
+        imagePreviewUrl: previewUrl,
+        imageFile: file,
+        imageFileName: file.name
       });
     } catch (error) {
       toast.error(error.message || 'Failed to load selected image');
@@ -455,14 +584,52 @@ const ManageCategoryPage = () => {
     }));
   };
 
+  const addSectionBanner = (sectionIndex) => {
+    const productsPath = selectedCategory?.slug ? `/category/${selectedCategory.slug}/products` : '';
+    const currentBanners = formData.sections[sectionIndex].banners || [];
+    updateSection(sectionIndex, {
+      banners: [...currentBanners, { title: '', subtitle: '', ctaLink: productsPath, imageUrl: '' }]
+    });
+  };
+
+  const removeSectionBanner = (sectionIndex, bannerIndex) => {
+    const banners = [...(formData.sections[sectionIndex].banners || [])];
+    banners.splice(bannerIndex, 1);
+    updateSection(sectionIndex, { banners });
+  };
+
+  const updateSectionBanner = (sectionIndex, bannerIndex, updates) => {
+    const banners = [...(formData.sections[sectionIndex].banners || [])];
+    banners[bannerIndex] = { ...banners[bannerIndex], ...updates };
+    updateSection(sectionIndex, { banners });
+  };
+
+  const handleSectionBannerMediaChange = (sectionIndex, bannerIndex, file) => {
+    const banners = [...(formData.sections[sectionIndex].banners || [])];
+    const banner = { ...banners[bannerIndex] };
+    if (file) {
+      banner.imageFile = file;
+      banner.imagePreviewUrl = URL.createObjectURL(file);
+      banner.imageFileName = file.name;
+    } else {
+      banner.imageFile = null;
+      banner.imagePreviewUrl = '';
+      banner.imageFileName = '';
+    }
+    banners[bannerIndex] = banner;
+    updateSection(sectionIndex, { banners });
+  };
+
   const addSection = (type) => {
+    const productsPath = selectedCategory?.slug ? `/category/${selectedCategory.slug}/products` : '';
     setFormData((prev) => ({
       ...prev,
       sections: [
         ...prev.sections,
         {
           ...createSection(type),
-          order: prev.sections.length
+          order: prev.sections.length,
+          ctaLink: (type === 'promo_banner' || type === 'product_rail' || type === 'view_more_cta') ? productsPath : ''
         }
       ]
     }));
@@ -514,7 +681,14 @@ const ManageCategoryPage = () => {
           mobileBannerImage: formData.hero.mobileBannerImage,
           mobileBannerImagePublicId: formData.hero.mobileBannerImagePublicId,
           sponsorLabel: formData.hero.sponsorLabel,
-          sponsorBrand: formData.hero.sponsorBrand || null
+          sponsorBrand: formData.hero.sponsorBrand || null,
+          banners: formData.hero.banners.map((banner) => ({
+            imageUrl: banner.imageUrl,
+            imagePublicId: banner.imagePublicId,
+            ctaLink: banner.ctaLink,
+            title: banner.title,
+            subtitle: banner.subtitle
+          }))
         },
         seo: {
           title: formData.seo.title,
@@ -531,10 +705,15 @@ const ManageCategoryPage = () => {
           isActive: section.isActive !== false,
           imageUrl: section.imageUrl,
           imagePublicId: section.imagePublicId,
-          mobileImageUrl: section.mobileImageUrl,
-          mobileImagePublicId: section.mobileImagePublicId,
           ctaLabel: section.ctaLabel,
           ctaLink: section.ctaLink,
+          banners: (section.banners || []).map(b => ({
+            imageUrl: b.imageUrl,
+            imagePublicId: b.imagePublicId,
+            ctaLink: b.ctaLink,
+            title: b.title,
+            subtitle: b.subtitle
+          })),
           maxItems: Number(section.maxItems) || 8,
           maxProducts: Number(section.maxProducts) || 10,
           brandIds: section.brandIds || [],
@@ -549,32 +728,40 @@ const ManageCategoryPage = () => {
       if (formData.hero.bannerImageFile) {
         requestData.append('hero.bannerImage', formData.hero.bannerImageFile);
       }
-      if (formData.hero.mobileBannerImageFile) {
-        requestData.append('hero.mobileBannerImage', formData.hero.mobileBannerImageFile);
-      }
+      formData.hero.banners.forEach((banner, index) => {
+        if (banner.imageFile) {
+          requestData.append(`hero.banners[${index}].imageUrl`, banner.imageFile);
+        }
+      });
       if (formData.seo.imageFile) {
         requestData.append('seo.image', formData.seo.imageFile);
       }
-      formData.sections.forEach((section, index) => {
+      formData.sections.forEach((section, sIdx) => {
         if (section.imageFile) {
-          requestData.append(`sections[${index}].imageUrl`, section.imageFile);
+          requestData.append(`sections[${sIdx}].imageUrl`, section.imageFile);
         }
         if (section.mobileImageFile) {
-          requestData.append(`sections[${index}].mobileImageUrl`, section.mobileImageFile);
+          requestData.append(`sections[${sIdx}].mobileImageUrl`, section.mobileImageFile);
         }
+
+        (section.banners || []).forEach((banner, bIdx) => {
+          if (banner.imageFile) {
+            requestData.append(`sections[${sIdx}].banners[${bIdx}].imageUrl`, banner.imageFile);
+          }
+        });
       });
 
       if (id) {
         await updateCategoryPage(adminUser.token, id, requestData);
-        toast.success('Category landing page updated successfully.');
+        toast.success(t('manage_category_page.update_success', { defaultValue: 'Category landing page updated successfully.' }));
       } else {
         await createCategoryPage(adminUser.token, requestData);
-        toast.success('Category landing page created successfully.');
+        toast.success(t('manage_category_page.create_success', { defaultValue: 'Category landing page created successfully.' }));
       }
 
       navigate('/admin/category-pages');
     } catch (error) {
-      toast.error(error.message || 'Failed to save category page');
+      toast.error(error.message || t('manage_category_page.save_failed', { defaultValue: 'Failed to save category page' }));
     } finally {
       setSaving(false);
     }
@@ -589,28 +776,28 @@ const ManageCategoryPage = () => {
       <div className="mb-4 d-flex flex-column flex-md-row justify-content-between gap-3">
         <div>
           <div className="d-flex align-items-center gap-2">
-            <h4 className="mb-1 fw-bold text-dark">{id ? 'Edit Category Landing Page' : 'Create Category Landing Page'}</h4>
+            <h4 className="mb-1 fw-bold text-dark">{id ? t('manage_category_page.edit_title', { defaultValue: 'Edit Category Landing Page' }) : t('manage_category_page.create_title', { defaultValue: 'Create Category Landing Page' })}</h4>
             <Badge bg={formData.status === 'published' ? 'success' : 'secondary'} className="text-uppercase px-3 py-2 rounded-pill">
-              {formData.status}
+              {formData.status === 'published' ? t('manage_category_page.sections.published', { defaultValue: 'published' }) : t('manage_category_page.sections.draft', { defaultValue: 'draft' })}
             </Badge>
           </div>
-          <p className="mb-0 small text-muted">Configure the category hero, promo banners, brands, tiles, and product rails for the user app.</p>
+          <p className="mb-0 small text-muted font-weight-medium">{t('manage_category_page.header_subtitle', { defaultValue: 'Configure the category hero, promo banners, brands, tiles, and product rails for the user app.' })}</p>
         </div>
 
         <div className="d-flex gap-2">
-          <Button type="button" variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm" onClick={handleLoadDemoLayout} disabled={!selectedCategory}>
+          <Button type="button" variant="outline-primary" className="d-flex align-items-center gap-2 shadow-sm py-2 px-3" onClick={handleLoadDemoLayout} disabled={!selectedCategory}>
             <LayoutTemplate size={16} />
-            Load Demo Setup
+            <span className="fw-bold">{t('manage_category_page.load_demo', { defaultValue: 'Load Demo Setup' })}</span>
           </Button>
           {selectedCategory?.slug && (
-            <Button as={Link} to={`/category/${selectedCategory.slug}`} target="_blank" variant="light" className="d-flex align-items-center gap-2 border shadow-sm">
+            <Button as={Link} to={`/category/${selectedCategory.slug}`} target="_blank" variant="light" className="d-flex align-items-center gap-2 border shadow-sm py-2 px-3">
               <ExternalLink size={16} />
-              Preview
+              <span className="fw-bold">{t('manage_category_page.view_live', { defaultValue: 'Preview' })}</span>
             </Button>
           )}
-          <Button as={Link} to="/admin/category-pages" variant="light" className="d-flex align-items-center gap-2 border shadow-sm">
+          <Button as={Link} to="/admin/category-pages" variant="light" className="d-flex align-items-center gap-2 border shadow-sm py-2 px-3">
             <ArrowLeft size={16} />
-            Back
+            <span className="fw-bold">{t('common.cancel', { defaultValue: 'Back' })}</span>
           </Button>
         </div>
       </div>
@@ -627,13 +814,13 @@ const ManageCategoryPage = () => {
                 <Card.Body className="p-4">
                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                     <LayoutTemplate size={18} className="text-primary" />
-                    Page Setup
+                    {t('manage_category_page.sections.page_setup', { defaultValue: 'Page Setup' })}
                   </h6>
 
                   <Form.Group className="mb-3">
-                    <Form.Label className="small fw-bold text-muted">Category</Form.Label>
-                    <Form.Select value={formData.category} onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value, hero: { ...prev.hero, title: prev.hero.title || categories.find((item) => item._id === e.target.value)?.name || '' } }))}>
-                      <option value="">Select category</option>
+                    <Form.Label className="small fw-bold text-muted">{t('manage_category_page.sections.category', { defaultValue: 'Category' })}</Form.Label>
+                    <Form.Select value={formData.category} onChange={(e) => handleCategoryChange(e.target.value)} disabled={loading}>
+                      <option value="">{t('manage_category_page.sections.select_category', { defaultValue: 'Select category' })}</option>
                       {categories.map((category) => (
                         <option key={category._id} value={category._id}>
                           {category.name}
@@ -643,56 +830,34 @@ const ManageCategoryPage = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label className="small fw-bold text-muted">Publishing Status</Form.Label>
+                    <Form.Label className="small fw-bold text-muted">{t('manage_category_page.sections.publishing_status', { defaultValue: 'Publishing Status' })}</Form.Label>
                     <Form.Select value={formData.status} onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}>
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
+                      <option value="draft">{t('manage_category_page.sections.draft', { defaultValue: 'Draft' })}</option>
+                      <option value="published">{t('manage_category_page.sections.published', { defaultValue: 'Published' })}</option>
                     </Form.Select>
                   </Form.Group>
 
                   <hr />
 
-                  <h6 className="fw-bold mb-3">Hero</h6>
+                  <hr />
+
+                  <h6 className="fw-bold mb-3">{t('manage_category_page.hero.title', { defaultValue: 'Hero Section' })}</h6>
                   <Form.Group className="mb-3">
-                    <Form.Label className="small fw-bold text-muted">Hero Title</Form.Label>
+                    <Form.Label className="small fw-bold text-muted">{t('manage_category_page.hero.main_title', { defaultValue: 'Hero Title' })}</Form.Label>
                     <Form.Control value={formData.hero.title} onChange={(e) => handleHeroChange('title', e.target.value)} placeholder="Electronics" />
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label className="small fw-bold text-muted">Hero Subtitle</Form.Label>
+                    <Form.Label className="small fw-bold text-muted">{t('manage_category_page.hero.subtitle', { defaultValue: 'Hero Subtitle' })}</Form.Label>
                     <Form.Control value={formData.hero.subtitle} onChange={(e) => handleHeroChange('subtitle', e.target.value)} placeholder="Best tech picks for every day" />
                   </Form.Group>
-                  <div className="mb-3">
-                    <MediaUploadField
-                      label="Hero Banner"
-                      previewUrl={formData.hero.bannerImagePreviewUrl || formData.hero.bannerImage}
-                      fileName={formData.hero.bannerImageFileName}
-                      pending={Boolean(formData.hero.bannerImageFile)}
-                      recommendation="Recommended: landscape banner for desktop/tablet."
-                      helperText="The image will upload to Cloudinary when you save this category page."
-                      onFileChange={(file) => handleHeroMediaChange('bannerImage', file)}
-                      onRemove={() => handleHeroMediaChange('bannerImage', null)}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <MediaUploadField
-                      label="Mobile Banner"
-                      previewUrl={formData.hero.mobileBannerImagePreviewUrl || formData.hero.mobileBannerImage}
-                      fileName={formData.hero.mobileBannerImageFileName}
-                      pending={Boolean(formData.hero.mobileBannerImageFile)}
-                      recommendation="Recommended: mobile-friendly crop for compact screens."
-                      helperText="If left empty, the main hero banner will still be used as fallback."
-                      onFileChange={(file) => handleHeroMediaChange('mobileBannerImage', file)}
-                      onRemove={() => handleHeroMediaChange('mobileBannerImage', null)}
-                    />
-                  </div>
                   <Form.Group className="mb-3">
-                    <Form.Label className="small fw-bold text-muted">Sponsor Label</Form.Label>
+                    <Form.Label className="small fw-bold text-muted">{t('manage_category_page.hero.sponsor_label', { defaultValue: 'Sponsor Label' })}</Form.Label>
                     <Form.Control value={formData.hero.sponsorLabel} onChange={(e) => handleHeroChange('sponsorLabel', e.target.value)} placeholder="Powered by" />
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label className="small fw-bold text-muted">Sponsor Brand</Form.Label>
+                    <Form.Label className="small fw-bold text-muted">{t('manage_category_page.hero.sponsor_brand', { defaultValue: 'Sponsor Brand' })}</Form.Label>
                     <Form.Select value={formData.hero.sponsorBrand} onChange={(e) => handleHeroChange('sponsorBrand', e.target.value)}>
-                      <option value="">No sponsor brand</option>
+                      <option value="">{t('manage_category_page.hero.no_sponsor', { defaultValue: 'No sponsor brand' })}</option>
                       {filteredBrands.map((brand) => (
                         <option key={brand._id} value={brand._id}>
                           {brand.name}
@@ -703,10 +868,74 @@ const ManageCategoryPage = () => {
 
                   <hr />
 
-                  <h6 className="fw-bold mb-3">Theme</h6>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h6 className="fw-bold mb-0">{t('manage_category_page.hero.banners_title', { defaultValue: 'Hero Banners (Slider)' })}</h6>
+                    <Button variant="outline-primary" size="sm" onClick={addHeroBanner}>
+                      <Plus size={14} /> {t('manage_category_page.hero.add_slide', { defaultValue: 'Add Banner' })}
+                    </Button>
+                  </div>
+
+                  {formData.hero.banners.length === 0 ? (
+                    <div className="small text-muted mb-3 p-2 border border-dashed rounded text-center">
+                      {t('manage_category_page.hero.no_banners', { defaultValue: 'No banners added yet. Added images will appear here.' })}
+                    </div>
+                  ) : (
+                    <div className="d-flex flex-column gap-3 mb-3">
+                      {formData.hero.banners.map((banner, index) => (
+                        <Card key={index} className="border bg-light bg-opacity-10 shadow-none">
+                          <Card.Body className="p-3">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <span className="small fw-bold">Banner #{index + 1}</span>
+                              <Button variant="link" className="text-danger p-0" onClick={() => removeHeroBanner(index)}>
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
+                            <Form.Group className="mb-2">
+                              <Form.Control
+                                size="sm"
+                                placeholder="Banner Title (Optional)"
+                                value={banner.title}
+                                onChange={(e) => updateHeroBanner(index, { title: e.target.value })}
+                              />
+                            </Form.Group>
+                            <Form.Group className="mb-2">
+                              <Form.Control
+                                size="sm"
+                                placeholder="Banner Subtitle (Optional)"
+                                value={banner.subtitle}
+                                onChange={(e) => updateHeroBanner(index, { subtitle: e.target.value })}
+                              />
+                            </Form.Group>
+                            <Form.Group className="mb-2">
+                              <Form.Control
+                                size="sm"
+                                placeholder="CTA Link (e.g. /category/slug/products)"
+                                value={banner.ctaLink}
+                                onChange={(e) => updateHeroBanner(index, { ctaLink: e.target.value })}
+                              />
+                            </Form.Group>
+                            <div className="mt-2">
+                              <MediaUploadField
+                                label="Banner Image"
+                                size="sm"
+                                previewUrl={banner.imagePreviewUrl || banner.imageUrl}
+                                pending={Boolean(banner.imageFile)}
+                                onFileChange={(file) => handleHeroBannerMediaChange(index, file)}
+                                onRemove={() => handleHeroBannerMediaChange(index, null)}
+                              />
+                            </div>
+                          </Card.Body>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+
+                  <hr />
+
+                  <h6 className="fw-bold mb-3">{t('manage_category_page.theme.title', { defaultValue: 'Theme' })}</h6>
                   {Object.entries(formData.theme).map(([key, value]) => (
                     <Form.Group className="mb-3" key={key}>
-                      <Form.Label className="small fw-bold text-muted text-capitalize">{key}</Form.Label>
+                      <Form.Label className="small fw-bold text-muted text-capitalize">{t(`manage_category_page.theme.${key}`, { defaultValue: key })}</Form.Label>
                       <div className="d-flex gap-2 align-items-center">
                         <Form.Control type="color" value={value} onChange={(e) => handleThemeChange(key, e.target.value)} style={{ width: 54, height: 42 }} />
                         <Form.Control value={value} onChange={(e) => handleThemeChange(key, e.target.value)} />
@@ -716,9 +945,9 @@ const ManageCategoryPage = () => {
 
                   <hr />
 
-                  <h6 className="fw-bold mb-3">SEO</h6>
+                  <h6 className="fw-bold mb-3">{t('manage_category_page.seo.title', { defaultValue: 'SEO' })}</h6>
                   <Form.Group className="mb-3">
-                    <Form.Label className="small fw-bold text-muted">SEO Title</Form.Label>
+                    <Form.Label className="small fw-bold text-muted">{t('manage_category_page.seo.meta_title', { defaultValue: 'SEO Title' })}</Form.Label>
                     <Form.Control value={formData.seo.title} onChange={(e) => handleSeoChange('title', e.target.value)} placeholder="Category page title" />
                   </Form.Group>
                   <Form.Group className="mb-3">
@@ -752,7 +981,7 @@ const ManageCategoryPage = () => {
                     <div className="d-flex flex-wrap gap-2">
                       <Button type="button" variant="outline-primary" size="sm" onClick={() => addSection('subcategory_grid')}>Add Subcategory Grid</Button>
                       <Button type="button" variant="outline-primary" size="sm" onClick={() => addSection('brand_strip')}>Add Brand Strip</Button>
-                      <Button type="button" variant="outline-primary" size="sm" onClick={() => addSection('promo_banner')}>Add Promo Banner</Button>
+                      <Button type="button" variant="outline-primary" size="sm" onClick={() => addSection('promo_banner')}>Add Promo Banners</Button>
                       <Button type="button" variant="outline-primary" size="sm" onClick={() => addSection('product_rail')}>Add Product Rail</Button>
                       <Button type="button" variant="outline-primary" size="sm" onClick={() => addSection('view_more_cta')}>Add CTA</Button>
                     </div>
@@ -829,33 +1058,70 @@ const ManageCategoryPage = () => {
                                 </>
                               )}
 
-                              {(section.type === 'promo_banner') && (
-                                <>
-                                  <Col md={6}>
-                                    <MediaUploadField
-                                      label="Banner Image"
-                                      previewUrl={section.imagePreviewUrl || section.imageUrl}
-                                      fileName={section.imageFileName}
-                                      pending={Boolean(section.imageFile)}
-                                      recommendation="Primary promo banner for this section."
-                                      helperText="This image uploads to Cloudinary on save."
-                                      onFileChange={(file) => handleSectionMediaChange(index, 'imageUrl', file)}
-                                      onRemove={() => handleSectionMediaChange(index, 'imageUrl', null)}
-                                    />
-                                  </Col>
-                                  <Col md={6}>
-                                    <MediaUploadField
-                                      label="Mobile Banner"
-                                      previewUrl={section.mobileImagePreviewUrl || section.mobileImageUrl}
-                                      fileName={section.mobileImageFileName}
-                                      pending={Boolean(section.mobileImageFile)}
-                                      recommendation="Optional mobile-specific crop."
-                                      helperText="If skipped, the primary banner will be reused on mobile."
-                                      onFileChange={(file) => handleSectionMediaChange(index, 'mobileImageUrl', file)}
-                                      onRemove={() => handleSectionMediaChange(index, 'mobileImageUrl', null)}
-                                    />
-                                  </Col>
-                                </>
+                              {(section.type === 'banner_slider' || section.type === 'promo_banner') && (
+                                <Col md={12}>
+                                  <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <Form.Label className="small fw-bold text-muted mb-0">Banners Slider / Carousel</Form.Label>
+                                    <Button variant="outline-success" size="sm" onClick={() => addSectionBanner(index)}>
+                                      <Plus size={14} /> Add Slide
+                                    </Button>
+                                  </div>
+
+                                  {(section.banners && section.banners.length > 0) ? (
+                                    <div className="row g-3">
+                                      {section.banners.map((banner, bIdx) => (
+                                        <Col key={bIdx} md={6}>
+                                          <Card className="border shadow-none bg-white">
+                                            <Card.Body className="p-3">
+                                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <span className="small fw-bold text-primary">Slide #{bIdx + 1}</span>
+                                                <Button 
+                                                  variant="link" 
+                                                  className="text-danger p-0" 
+                                                  onClick={() => removeSectionBanner(index, bIdx)}
+                                                >
+                                                  <Trash2 size={14} />
+                                                </Button>
+                                              </div>
+                                              <Form.Group className="mb-2">
+                                                <Form.Control 
+                                                  size="sm" 
+                                                  placeholder="Slide Title" 
+                                                  value={banner.title} 
+                                                  onChange={(e) => updateSectionBanner(index, bIdx, { title: e.target.value })}
+                                                />
+                                              </Form.Group>
+                                              <Form.Group className="mb-2">
+                                                <Form.Control 
+                                                  size="sm" 
+                                                  placeholder="CTA Link" 
+                                                  value={banner.ctaLink} 
+                                                  onChange={(e) => updateSectionBanner(index, bIdx, { ctaLink: e.target.value })}
+                                                />
+                                              </Form.Group>
+                                              <div className="row g-2">
+                                                <div className="col-12">
+                                                  <MediaUploadField
+                                                    label="Banner Image"
+                                                    size="sm"
+                                                    previewUrl={banner.imagePreviewUrl || banner.imageUrl}
+                                                    pending={Boolean(banner.imageFile)}
+                                                    onFileChange={(file) => handleSectionBannerMediaChange(index, bIdx, file)}
+                                                    onRemove={() => handleSectionBannerMediaChange(index, bIdx, null)}
+                                                  />
+                                                </div>
+                                              </div>
+                                            </Card.Body>
+                                          </Card>
+                                        </Col>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="p-3 border border-dashed rounded text-center small text-muted">
+                                      Add slides to create a banner carousel for this section.
+                                    </div>
+                                  )}
+                                </Col>
                               )}
 
                               {(section.type === 'subcategory_grid') && (

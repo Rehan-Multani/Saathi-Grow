@@ -18,51 +18,44 @@ const CategoryBrandStrip = ({ section, accentColor = '#0c831f' }) => {
         </p>
       )}
 
-      <div className="category-landing-scroll category-landing-brand-strip flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide sm:gap-3">
+      <div className="category-landing-scroll category-landing-brand-strip flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
         {(section.items || []).map((brand) => (
           <button
             key={brand._id}
             onClick={() => navigate(`/brand/${encodeURIComponent(brand.name)}`)}
-            className="category-landing-brand-item group w-[74px] flex-shrink-0 sm:w-[92px]"
+            className="category-landing-brand-item group flex flex-col items-center flex-shrink-0 w-[74px] text-center transition-all active:scale-95"
           >
-            <div className="category-landing-brand-card flex h-[74px] w-[74px] items-center justify-center rounded-[20px] border border-gray-200 bg-white p-3 shadow-sm transition-all group-hover:-translate-y-1 dark:border-white/10 dark:bg-[#101010] sm:h-[92px] sm:w-[92px] sm:rounded-[24px] sm:p-4">
+            <div className="category-landing-brand-media mb-2 flex aspect-square w-full items-center justify-center overflow-hidden rounded-[18px] ring-1 ring-black/5 dark:ring-white/10">
               {brand.logo ? (
-                <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[16px]">
-                  <img
-                    src={brand.logo}
-                    alt={brand.name}
-                    className="h-full w-full object-contain"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallbackNode = e.currentTarget.nextElementSibling;
-                      if (fallbackNode) {
-                        fallbackNode.style.display = 'flex';
-                      }
-                    }}
-                  />
-                  <div
-                    className="hidden h-full w-full items-center justify-center rounded-[16px] text-center text-[11px] font-black text-white"
-                    style={{ backgroundColor: accentColor }}
-                  >
-                    {brand.name?.slice(0, 2)?.toUpperCase()}
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="flex h-full w-full items-center justify-center rounded-2xl text-center text-[11px] font-black text-white"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  {brand.name?.slice(0, 2)?.toUpperCase()}
-                </div>
-              )}
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextElementSibling) {
+                      e.currentTarget.nextElementSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div
+                className={`${brand.logo ? 'hidden' : 'flex'} h-full w-full items-center justify-center text-[18px] font-black text-white`}
+                style={{ backgroundColor: accentColor }}
+              >
+                {brand.name?.slice(0, 2)?.toUpperCase()}
+              </div>
             </div>
-            <div className="category-landing-brand-label mt-1.5 truncate text-center text-[10px] font-bold text-gray-700 dark:text-gray-300 sm:mt-2 sm:text-[12px]">
+            <div className="category-landing-brand-label w-full truncate px-1 text-[10px] font-bold text-gray-700 dark:text-gray-300">
               {brand.name}
             </div>
           </button>
         ))}
       </div>
+
+
+
     </section>
   );
 };

@@ -62,6 +62,9 @@
     "add_product": "उत्पाद जोड़ें",
     "all_categories": "सभी श्रेणियां",
     "add_category": "श्रेणी जोड़ें",
+    "category_pages": "श्रेणी के पृष्ठ",
+    "all_subcategories": "सभी उप-श्रेणियां",
+    "add_subcategory": "उप-श्रेणी जोड़ें",
     "all_brands": "सभी ब्रांड",
     "add_brand": "ब्रांड जोड़ें",
     "all_customers": "सभी ग्राहक",
@@ -102,6 +105,100 @@
     "tax_billing_settings": "टैक्स और बिलिंग सेटिंग्स",
     "app_settings": "ऐप सेटिंग्स",
     "social_profile": "सोशल प्रोफ़ाइल"
+  },
+  "category_pages": {
+    "title": "श्रेणी लैंडिंग पृष्ठ",
+    "subtitle": "बैनर, ब्रांड रो, टाइल्स और उत्पाद रेल के साथ श्रेणी अनुभव को व्यवस्थित करें।",
+    "create_page": "पेज बनाएं",
+    "loading": "श्रेणी पेज लोड हो रहे हैं...",
+    "no_pages": "अभी तक कोई श्रेणी लैंडिंग पेज नहीं बनाया गया है।",
+    "delete_confirm_title": "श्रेणी पेज हटाएं?",
+    "delete_confirm_text": "यह {{name}} के लिए बनाए गए लैंडिंग पेज को हटा देगा।",
+    "deleted_title": "हटा दिया गया",
+    "deleted_text": "श्रेणी पेज सफलतापूर्वक हटा दिया गया।",
+    "table": {
+      "category": "श्रेणी",
+      "status": "स्थिति",
+      "sections": "सेक्शन",
+      "updated": "अपडेट किया गया",
+      "actions": "कार्रवाई"
+    }
+  },
+  "subcategories": {
+    "title": "सभी उप-श्रेणियां",
+    "subtitle": "उत्पादों को पदानुक्रमित उप-श्रेणियों के साथ व्यवस्थित करें",
+    "add_new": "उप-श्रेणी जोड़ें",
+    "search_placeholder": "उप-श्रेणियां खोजें...",
+    "loading_failed": "उप-श्रेणियां लोड करने में विफल",
+    "no_matches": "आपकी खोज से मेल खाने वाली कोई उप-श्रेणी नहीं मिली।",
+    "no_data": "कोई उप-श्रेणी नहीं मिली।",
+    "create_title": "नई उप-श्रेणी जोड़ें",
+    "edit_title": "उप-श्रेणी संपादित करें",
+    "form": {
+      "parent_category": "मूल श्रेणी (Parent Category)",
+      "name": "उप-श्रेणी का नाम",
+      "slug": "स्लग (slug)",
+      "description": "विवरण",
+      "status": "दृश्यता स्थिति",
+      "image": "उप-श्रेणी छवि",
+      "upload_image": "उप-श्रेणी छवि अपलोड करें",
+      "save_btn": "उप-श्रेणी सहेजें",
+      "creating": "बनाया जा रहा है..."
+    },
+    "table": {
+      "info": "उप-श्रेणी की जानकारी",
+      "parent": "मूल श्रेणी (Parent)",
+      "slug": "स्लग",
+      "status": "स्थिति",
+      "actions": "कार्रवाई"
+    }
+  },
+  "manage_category_page": {
+    "edit_title": "श्रेणी लैंडिंग पेज संपादित करें",
+    "create_title": "श्रेणी लैंडिंग पेज बनाएं",
+    "back_to_list": "सूची पर वापस जाएं",
+    "view_live": "लाइव देखें",
+    "saving": "सहेजा जा रहा है...",
+    "save_btn": "लैंडिंग पेज सहेजें",
+    "theme": {
+      "title": "विषय (Theme)",
+      "page_bg": "पेज बैकग्राउंड",
+      "hero_bg": "हीरो बैकग्राउंड",
+      "card_bg": "कार्ड बैकग्राउंड",
+      "accent": "एक्सेन्ट रंग",
+      "text": "टेक्स्ट रंग"
+    },
+    "hero": {
+      "title": "हीरो सेक्शन",
+      "banner_image": "हीरो बैनर छवि",
+      "main_title": "मुख्य शीर्षक",
+      "subtitle": "उपशीर्षक",
+      "sponsor": "प्रायोजन (Sponsorship)",
+      "sponsor_label": "प्रायोजक लेबल",
+      "sponsor_brand": "प्रायोजक ब्रांड (ID)",
+      "add_slide": "स्लाइड जोड़ें",
+      "slide_number": "स्लाइड #{{count}}",
+      "banner_image_label": "बैनर छवि"
+    },
+    "seo": {
+      "title": "एसईओ (SEO)",
+      "meta_title": "एसईओ शीर्षक",
+      "meta_description": "एसईओ विवरण",
+      "meta_image": "एसईओ छवि"
+    },
+    "sections": {
+      "title": "पेज सेक्शन",
+      "add_section": "सेक्शन जोड़ें",
+      "active": "सक्रिय",
+      "key": "कुंजी (Key)",
+      "section_title": "शीर्षक",
+      "order": "क्रम (Order)",
+      "section_subtitle": "उपशीर्षक",
+      "cta_label": "CTA लेबल",
+      "cta_link": "CTA लिंक",
+      "max_items": "अधिकतम आइटम",
+      "banners_slider": "बैनर स्लाइडर / हिंडोला"
+    }
   },
   "notifications": {
     "admin_inbox": {
@@ -276,6 +373,7 @@
     },
     "payment_methods": {
       "cash": "नकद",
+      "cod": "कैश ऑन डिलीवरी (COD)",
       "online": "ऑनलाइन",
       "wallet": "वॉलेट"
     },

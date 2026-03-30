@@ -186,7 +186,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                     <div>
                         <div class="section-title">${t('dashboard.order_details_modal.payment_info')}:</div>
                         ${t('dashboard.status')}: ${t(`dashboard.order_status.${displayOrder.paymentStatus || 'pending'}`, { defaultValue: displayOrder.paymentStatus || 'pending' })}<br>
-                        ${t('dashboard.payment_method')}: ${displayOrder.paymentMethod || 'N/A'}
+                        ${t('dashboard.payment_method')}: ${t(`dashboard.payment_methods.${displayOrder.paymentMethod}`, { defaultValue: displayOrder.paymentMethod })}
                     </div>
                 </div>
 
@@ -524,7 +524,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
 
                             <div className="flex justify-between items-center pt-3 mt-3 border-t border-gray-100">
                                 <span className="text-sm text-gray-500 font-medium">{t('dashboard.payment_method')}</span>
-                                <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">{displayOrder.paymentMethod || 'N/A'}</span>
+                                <span className="text-sm font-bold text-gray-800 uppercase tracking-wider">{t(`dashboard.payment_methods.${displayOrder.paymentMethod}`, { defaultValue: displayOrder.paymentMethod })}</span>
                             </div>
                             <div className="flex justify-between items-center pt-2">
                                 <span className="text-sm text-gray-500 font-medium">{t('dashboard.payment_status')}</span>
