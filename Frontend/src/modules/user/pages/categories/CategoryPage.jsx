@@ -284,7 +284,7 @@ const CategoryPage = () => {
                                     placeholder={`Search...`}
                                     value={localSearch}
                                     onChange={(e) => setLocalSearch(e.target.value)}
-                                    className="w-full pl-9 pr-9 py-2 bg-gray-50 dark:bg-white/5 border-none rounded-full text-[13px] font-bold text-gray-900 dark:text-white focus:outline-none shadow-inner"
+                                    className="w-full pl-9 pr-9 py-2 bg-gray-50 dark:bg-white/5 border-none rounded-full text-[16px] font-bold text-gray-900 dark:text-white focus:outline-none shadow-inner"
                                     autoFocus
                                 />
                                 {localSearch && (

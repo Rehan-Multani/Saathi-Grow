@@ -281,7 +281,7 @@ const SearchOverlay = () => {
                                     setTimeout(() => setIsFocused(false), 200);
                                 }}
                                 autoFocus
-                                className={`w-full pl-4 md:pl-12 pr-12 md:pr-24 py-2.5 md:py-3.5 bg-white/50 md:bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 md:border-transparent focus:border-[#0c831f] rounded-xl text-[14px] md:text-[15px] font-medium text-gray-800 dark:text-gray-100 focus:outline-none transition-all placeholder:text-gray-400 ${isListening ? 'ring-2 ring-[#0c831f]/50' : ''}`}
+                                className={`w-full pl-4 md:pl-12 pr-12 md:pr-24 py-2.5 md:py-3.5 bg-white/50 md:bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 md:border-transparent focus:border-[#0c831f] rounded-xl text-[16px] md:text-[15px] font-medium text-gray-800 dark:text-gray-100 focus:outline-none transition-all placeholder:text-gray-400 ${isListening ? 'ring-2 ring-[#0c831f]/50' : ''}`}
                             />
                             <div className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 md:gap-1">
                                 {searchQuery && (
