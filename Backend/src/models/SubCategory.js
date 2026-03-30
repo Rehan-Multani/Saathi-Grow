@@ -33,6 +33,10 @@ const subCategorySchema = new mongoose.Schema({
     enum: ['Active', 'Inactive'],
     default: 'Active'
   },
+  bgColor: {
+    type: String,
+    default: '#f8f9fa'
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin'

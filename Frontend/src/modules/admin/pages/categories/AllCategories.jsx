@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, OverlayTrigger, Tooltip, Image as BSImage, Spinner } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit, Trash2, ImageIcon, Info, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, ImageIcon, Info, Upload, Download, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CategoryEditModal from '../../components/products/CategoryEditModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -190,6 +190,16 @@ const AllCategories = () => {
                                                     disabled={adminUser.role !== 'Admin'}
                                                 >
                                                     <Edit size={16} />
+                                                </Button>
+                                                <Button
+                                                    as={Link}
+                                                    to={`/admin/category-pages/add?categoryId=${c._id}`}
+                                                    variant="light"
+                                                    size="sm"
+                                                    className="btn-icon-soft text-primary border shadow-none"
+                                                    disabled={adminUser.role !== 'Admin'}
+                                                >
+                                                    <FileText size={16} />
                                                 </Button>
                                                 <Button
                                                     variant="light" size="sm" className="btn-icon-soft text-danger border shadow-none"

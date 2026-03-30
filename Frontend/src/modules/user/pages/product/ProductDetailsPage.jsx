@@ -225,7 +225,26 @@ const ProductDetailsPage = () => {
     // Check if product is disabled based on stock/delivery
     const isOutOfStock = (product?.availableStock ?? 999) <= 0;
     const isLowStock = (product?.availableStock ?? 999) <= (product?.lowStockThreshold ?? 0);
-    const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange || isOutOfStock || isLowStock;
+    const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange || isStoreInactive || isOutOfStock || isLowStock;
+    const availabilityTone = isStoreInactive
+        ? 'border-red-500 text-red-500'
+        : isStoreOutOfRange
+            ? 'border-orange-500 text-orange-500'
+            : (product?.isDeliverable !== false
+                ? (isLowStock ? 'border-orange-500 text-orange-500' : 'border-gray-600 text-[#0c831f] dark:text-[#10b981]')
+                : (product?.inStore ? 'border-red-500 text-red-500' : 'border-orange-500 text-orange-500'));
+    const availabilityLabel = isStoreInactive
+        ? 'Store Closed'
+        : isStoreOutOfRange
+            ? 'Out of Zone'
+            : (product?.isDeliverable !== false
+                ? (isLowStock ? 'Low Stock' : 'In Stock')
+                : (product?.inStore ? 'Out of Stock' : 'Out of Zone'));
+    const disabledButtonLabel = isStoreInactive
+        ? 'Store Closed'
+        : (isStoreOutOfRange || !product?.inStore)
+            ? 'Out of Zone'
+            : (isLowStock ? 'Low Stock' : 'Out of Stock');
 
     if (loading) return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] transition-colors duration-300">
@@ -330,13 +349,8 @@ const ProductDetailsPage = () => {
                                     <span className="text-[10px] text-gray-500 font-medium">({product.ratingCount})</span>
                                 )}
                             </div>
-                            <div className={`border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isStoreOutOfRange
-                                ? 'border-orange-500 text-orange-500'
-                                : (product.isDeliverable !== false
-                                    ? (isLowStock ? 'border-orange-500 text-orange-500' : 'border-gray-600 text-[#0c831f] dark:text-[#10b981]')
-                                    : (product.inStore ? 'border-red-500 text-red-500' : 'border-orange-500 text-orange-500'))
-                                }`}>
-                                {isStoreOutOfRange ? 'Out of Zone' : (product.isDeliverable !== false ? (isLowStock ? 'Low Stock' : 'In Stock') : (product.inStore ? 'Out of Stock' : 'Out of Zone'))}
+                            <div className={`border px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${availabilityTone}`}>
+                                {availabilityLabel}
                             </div>
                         </div>
 
@@ -426,7 +440,7 @@ const ProductDetailsPage = () => {
                                         <ShoppingCart size={18} className={isBtnDisabled ? '' : 'fill-white'} />
                                         <span className="uppercase tracking-widest text-[11px] font-black">
                                             {isBtnDisabled
-                                                ? (isStoreOutOfRange || !product.inStore ? 'Out of Zone' : (isLowStock ? 'Low Stock' : 'Out of Stock'))
+                                                ? disabledButtonLabel
                                                 : 'Add to Cart'
                                             }
                                         </span>

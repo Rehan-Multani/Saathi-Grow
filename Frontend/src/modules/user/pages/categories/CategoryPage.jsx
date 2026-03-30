@@ -9,6 +9,9 @@ import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 import { normalizeProduct } from '../home/HomePage';
 import SEO from '../../../../common/components/SEO';
+import { useTheme } from '../../context/ThemeContext';
+// import { catSlug } from '../../../../constants/catSlug';
+
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const categoryColors = {
@@ -34,6 +37,7 @@ const CategoryPage = () => {
     const location = useLocation();
     const { categories, products: globalProducts, refreshShopData } = useShop();
     const { activeStore } = useStore();
+    const { isDarkMode } = useTheme();
 
     // Parse URL search params
     const queryParams = new URLSearchParams(location.search);
@@ -56,6 +60,7 @@ const CategoryPage = () => {
     const [availableBrands, setAvailableBrands] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
     const [availableSubCategories, setAvailableSubCategories] = useState([]);
+    const isProductsRoute = location.pathname.endsWith('/products');
 
     // If no slug, we represent the "All Categories" view
     const isMainListView = !slug;
@@ -159,7 +164,7 @@ const CategoryPage = () => {
 
     if (isMainListView) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white dark:bg-none dark:bg-black p-4 pt-6 pb-24">
+            <div className="category-products-page category-products-index min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white dark:bg-none dark:bg-black p-4 pt-6 pb-24">
                 <SEO title="All Categories" description="Browse through all categories of fresh products and groceries available on Saathi-Grow." />
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
@@ -187,18 +192,19 @@ const CategoryPage = () => {
                                     <Link
                                         key={cat._id || cat.id}
                                         to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`}
-                                        className="flex flex-col items-center group w-full transition-all duration-300 active:scale-95"
+                                        className="flex flex-col group w-full h-[110px] sm:h-[155px] transition-all duration-300 active:scale-95 rounded-2xl sm:rounded-[32px] overflow-hidden border border-gray-100/50 dark:border-white/5 shadow-sm"
+                                        style={{ 
+                                            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (cat.bgColor || categoryColors[cat.slug] || '#f8f9fa') 
+                                        }}
                                     >
-                                        <div 
-                                            className="w-full aspect-square rounded-2xl sm:rounded-[32px] p-2 sm:p-4 flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:shadow-md border border-gray-100/50 dark:border-white/5 shadow-sm"
-                                            style={{ 
-                                                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (categoryColors[cat.slug] || '#f8f9fa') 
-                                            }}
-                                        >
+                                        <span className="text-[10px] sm:text-[13px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight pt-2 sm:pt-4 px-1 capitalize group-hover:text-[#0c831f] transition-colors">
+                                            {cat.name?.toLowerCase() || 'Category'}
+                                        </span>
+                                        <div className="flex-1 w-full p-2 flex items-center justify-center">
                                             <img
                                                 src={cat.image || categoryPlaceholder}
                                                 alt={cat.name}
-                                                className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110"
+                                                className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-md"
                                                 onError={(e) => {
                                                     if (e.target.src !== categoryPlaceholder) {
                                                         e.target.src = categoryPlaceholder;
@@ -207,9 +213,6 @@ const CategoryPage = () => {
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-[10px] sm:text-[14px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight mt-2 capitalize group-hover:text-[#0c831f] transition-colors line-clamp-1 px-1">
-                                            {cat.name?.toLowerCase() || 'Category'}
-                                        </span>
                                     </Link>
                                 );
                             })}
@@ -223,7 +226,7 @@ const CategoryPage = () => {
     const normalizedProducts = pageProducts.map(normalizeProduct);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black pb-28 transition-colors duration-300">
+        <div className="category-products-page min-h-screen bg-white dark:bg-black pb-28 transition-colors duration-300">
             <style dangerouslySetInnerHTML={{ __html: `
                 .back-btn-clear, .back-btn-clear:hover, .back-btn-clear:active {
                     background: transparent !important;
@@ -244,12 +247,12 @@ const CategoryPage = () => {
                 image={currentCategory?.image}
             />
             {/* Compact Header - No Sticky */}
-            <div className="relative bg-white dark:bg-black border-b border-gray-50 dark:border-white/5 px-3 py-1.5">
+            <div className="category-products-header relative bg-white dark:bg-black border-b border-gray-50 dark:border-white/5 px-3 py-1.5">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => navigate('/category')}
+                                onClick={() => navigate(isProductsRoute && slug ? `/category/${encodeURIComponent(slug)}` : '/category')}
                                 className="back-btn-clear p-2 text-gray-800 dark:text-gray-200 active:scale-90 transition-all"
                             >
                                 <ArrowLeft size={22} strokeWidth={2.5} />
@@ -311,7 +314,7 @@ const CategoryPage = () => {
                     {/* Subcategories Horizontal Scroll Row (Mobile App Style) */}
                     {availableSubCategories.length > 0 && (
                         <div className="mt-4 mb-4">
-                            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide px-1 py-1">
+                            <div className="category-products-subcategories flex items-center gap-3 overflow-x-auto scrollbar-hide px-1 py-1">
                                 {/* "All" as a compact card */}
                                 <button
                                     onClick={() => setSelectedSubCat('all')}
@@ -338,24 +341,23 @@ const CategoryPage = () => {
                                                 setSelectedSubCat(sc.name);
                                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                                             }}
-                                            className="flex-shrink-0 flex flex-col items-center group w-16 sm:w-20 transition-all duration-300 active:scale-95"
+                                            className="flex-shrink-0 flex flex-col group w-20 sm:w-28 h-[100px] sm:h-[140px] transition-all duration-300 active:scale-95 rounded-2xl overflow-hidden border border-gray-100/50 dark:border-white/5 shadow-sm"
+                                            style={{ 
+                                                backgroundColor: isActive ? 'rgba(12, 131, 31, 0.08)' : (isDarkMode ? 'rgba(255,255,255,0.03)' : (categoryColors[scSlug] || categoryColors[slug] || '#f8f9fa')),
+                                                borderColor: isActive ? '#0c831f' : undefined
+                                            }}
                                         >
-                                            <div 
-                                                className={`w-full aspect-square rounded-2xl p-2 flex items-center justify-center border transition-all overflow-hidden ${isActive ? 'bg-green-50 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
-                                                style={{ 
-                                                    backgroundColor: (!isActive && !isDarkMode) ? (categoryColors[scSlug] || categoryColors[catSlug] || '#f8f9fa') : undefined 
-                                                }}
-                                            >
+                                            <span className={`text-[9px] sm:text-[11px] font-black pt-2 px-1 text-center capitalize transition-colors ${isActive ? 'text-[#0c831f]' : 'text-gray-700 dark:text-gray-200'}`}>
+                                                {sc.name?.toLowerCase()}
+                                            </span>
+                                            <div className="flex-1 w-full p-2 flex items-center justify-center">
                                                 <img 
                                                     src={sc.image || currentCategory?.image || categoryPlaceholder} 
                                                     alt={sc.name}
-                                                    className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110"
+                                                    className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-sm"
                                                     onError={(e) => { e.target.src = categoryPlaceholder; }}
                                                 />
                                             </div>
-                                            <span className={`text-[10px] font-black mt-2 transition-colors line-clamp-1 px-1 text-center capitalize ${isActive ? 'text-[#0c831f]' : 'text-gray-600'}`}>
-                                                {sc.name?.toLowerCase()}
-                                            </span>
                                         </button>
                                     );
                                 })}
@@ -364,7 +366,7 @@ const CategoryPage = () => {
                     )}
 
                     {/* Highly Compact Pill Filter Row */}
-                    <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+                    <div className="category-products-filter-row mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
                         <button
                             onClick={() => setIsVegOnly(!isVegOnly)}
                             className={`shop-pill-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap border transition-all ${isVegOnly ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-400'}`}
@@ -421,7 +423,7 @@ const CategoryPage = () => {
                     </div>
                 ) : normalizedProducts.length > 0 ? (
                     <>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4 animate-in fade-in duration-500">
+                        <div className="category-products-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-6 gap-x-5 sm:gap-4 animate-in fade-in duration-500">
                             {normalizedProducts.map((product) => (
                                 <ProductCard
                                     key={product._id || product.id}
@@ -437,7 +439,7 @@ const CategoryPage = () => {
                                 <button
                                     onClick={() => loadCategoryProducts(page + 1, true)}
                                     disabled={isFetchingMore}
-                                    className="group flex items-center gap-3 bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/10 px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white shadow-xl shadow-gray-200/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                    className="category-products-loadmore group flex items-center gap-3 bg-white dark:bg-[#141414] border border-gray-100 dark:border-white/10 px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white shadow-xl shadow-gray-200/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                                 >
                                     {isFetchingMore ? (
                                         <div className="w-4 h-4 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin" />

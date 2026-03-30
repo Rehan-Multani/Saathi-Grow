@@ -11,6 +11,7 @@
     "check:env": "node scripts/validate-env.mjs",
     "ci:check": "npm run check:syntax",
     "seed:products": "node src/seedProducts.js",
+    "seed:category-page": "node scripts/seed-category-page.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

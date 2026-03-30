@@ -37,7 +37,8 @@ const HomePage = lazy(() => import('../pages/home/HomePage'));
 const OccasionPage = lazy(() => import('../pages/home/OccasionPage'));
 const LowestPricesPage = lazy(() => import('../pages/home/LowestPricesPage'));
 const CampaignProductsPage = lazy(() => import('../pages/home/CampaignProductsPage'));
-const CategoryPage = lazy(() => import('../pages/categories/CategoryPage'));
+const CategoryProductsPage = lazy(() => import('../pages/categories/CategoryPage'));
+const CategoryLandingPage = lazy(() => import('../pages/categories/CategoryLandingPage'));
 const ProductDetailsPage = lazy(() => import('../pages/product/ProductDetailsPage'));
 const CartPage = lazy(() => import('../pages/cart/CartPage'));
 const CheckoutPage = lazy(() => import('../pages/checkout/CheckoutPage'));
@@ -139,9 +140,6 @@ const UserLayout = () => {
         }
     };
 
-    // Initial Loading State
-    if (loading) return <LoadingFallback />;
-
     // Theme Management: Apply .dark class ONLY when in user module
     React.useEffect(() => {
         const root = window.document.documentElement;
@@ -160,6 +158,9 @@ const UserLayout = () => {
             body.classList.remove('dark');
         };
     }, [isDarkMode]);
+
+    // Initial Loading State
+    if (loading) return <LoadingFallback />;
 
     // APK Mandatory Login Logic
     if (isWebView && !token && !isAuthPath) {
@@ -257,8 +258,9 @@ const UserRoutes = () => {
                         <Route path="/occasion/:slug" element={<OccasionPage />} />
                         <Route path="/campaign/:campaignId" element={<CampaignProductsPage />} />
                         <Route path="/lowest-prices" element={<LowestPricesPage />} />
-                        <Route path="/category" element={<CategoryPage />} />
-                        <Route path="/category/:slug" element={<CategoryPage />} />
+                        <Route path="/category" element={<CategoryProductsPage />} />
+                        <Route path="/category/:slug" element={<CategoryLandingPage />} />
+                        <Route path="/category/:slug/products" element={<CategoryProductsPage />} />
                         <Route path="/brand/:brandName" element={<ShopListingPage type="brand" />} />
                         <Route path="/store/:storeId/:storeType" element={<ShopListingPage type="store" />} />
                         <Route path="/product/:id" element={<ProductDetailsPage />} />

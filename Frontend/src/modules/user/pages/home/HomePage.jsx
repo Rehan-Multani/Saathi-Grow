@@ -336,22 +336,22 @@ const HomePage = ({ }) => {
                                         >
                                             <Link 
                                                 to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`} 
-                                                className="flex flex-col items-center group w-[85px] sm:w-32 transition-all duration-300 active:scale-95 md:snap-start"
+                                                className="flex flex-col group w-[85px] sm:w-36 h-[100px] sm:h-[155px] transition-all duration-300 active:scale-95 md:snap-start rounded-xl sm:rounded-[32px] overflow-hidden border border-gray-100/50 dark:border-white/5 shadow-sm"
+                                                style={{ 
+                                                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (cat.bgColor || categoryColors[cat.slug] || '#f3f4f6') 
+                                                }}
                                             >
-                                                {/* Image Container with Soft Theme Background */}
-                                                <div 
-                                                    className="w-full aspect-square rounded-2xl sm:rounded-[32px] p-2.5 sm:p-5 flex items-center justify-center relative overflow-hidden transition-all duration-500 group-hover:shadow-lg group-hover:shadow-[#0c831f10] border border-gray-100/50 dark:border-white/5"
-                                                    style={{ 
-                                                        backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (categoryColors[cat.slug] || '#f3f4f6') 
-                                                    }}
-                                                >
-                                                    {/* Background Glow Effect */}
-                                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
-                                                    
+                                                {/* Title Inside Card at Top */}
+                                                <span className="text-[9px] sm:text-[13px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight pt-2 sm:pt-4 px-1 capitalize group-hover:text-[#0c831f] transition-colors">
+                                                    {cat.name?.toLowerCase()}
+                                                </span>
+
+                                                {/* Image Container below title */}
+                                                <div className="flex-1 w-full p-1.5 sm:p-4 flex items-center justify-center relative overflow-hidden">
                                                     <img
                                                         src={cat.image || categoryPlaceholder}
                                                         alt={cat.name}
-                                                        className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-110 drop-shadow-sm"
+                                                        className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-110 drop-shadow-md"
                                                         onError={(e) => {
                                                             if (e.target.src !== categoryPlaceholder) {
                                                                 e.target.src = categoryPlaceholder;
@@ -360,11 +360,6 @@ const HomePage = ({ }) => {
                                                         loading="lazy"
                                                     />
                                                 </div>
-
-                                                {/* Title Below Image */}
-                                                <span className="text-[10px] sm:text-[14px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight mt-2.5 sm:mt-4 capitalize group-hover:text-[#0c831f] transition-colors line-clamp-2 px-1">
-                                                    {cat.name?.toLowerCase()}
-                                                </span>
                                             </Link>
                                         </motion.div>
                                     );
@@ -374,6 +369,9 @@ const HomePage = ({ }) => {
                     </div>
                 </motion.div>
             )}
+
+            {/* Gap between Category and Campaigns */}
+            {!isSearching && <div className="h-2 sm:h-4" />}
 
             {/* Dynamic Campaign Sections */}
             {!isSearching && campaigns.map((campaign) => {

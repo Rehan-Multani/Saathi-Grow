@@ -14,6 +14,8 @@ import AllCategories from '../pages/categories/AllCategories';
 import AddCategory from '../pages/categories/AddCategory';
 import AllSubCategories from '../pages/categories/AllSubCategories';
 import AddSubCategory from '../pages/categories/AddSubCategory';
+import AllCategoryPages from '../pages/categories/AllCategoryPages';
+import ManageCategoryPage from '../pages/categories/ManageCategoryPage';
 import AllBrands from '../pages/brands/AllBrands';
 import AddBrand from '../pages/brands/AddBrand';
 import AllCustomers from '../pages/customers/AllCustomers';
@@ -130,6 +132,9 @@ const AdminRoutes = () => {
                         {/* Categories */}
                         <Route path="categories" element={<AllCategories />} />
                         <Route path="categories/add" element={<AddCategory />} />
+                        <Route path="category-pages" element={<AllCategoryPages />} />
+                        <Route path="category-pages/add" element={<ManageCategoryPage />} />
+                        <Route path="category-pages/edit/:id" element={<ManageCategoryPage />} />
                         <Route path="subcategories" element={<AllSubCategories />} />
                         <Route path="subcategories/add" element={<AddSubCategory />} />
 
