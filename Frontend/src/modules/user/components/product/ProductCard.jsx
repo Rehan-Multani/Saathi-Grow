@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useCart } from '../../context/CartContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
 const categoryPlaceholder = ASSET_URLS.placeholder;
@@ -10,7 +10,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useStore } from '../../context/StoreContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false, isLargeButton = false }) => {
+const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding, wishlistPosition = "top-2 right-2", isLowestPrice = false, isValentine = false, isSaathiSignature = false, isLargeButton = false }) => {
   const { cart, addToCart, updateQuantity } = useCart();
   const { user, protectAction } = useAuth();
   const navigate = useNavigate();
@@ -199,6 +199,6 @@ const ProductCard = ({ product, isCompact = false, customTheme, imgPadding, wish
       `}</style>
     </motion.div >
   );
-};
+});
 
 export default ProductCard;

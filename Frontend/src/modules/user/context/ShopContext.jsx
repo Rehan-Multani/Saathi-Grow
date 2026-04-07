@@ -15,11 +15,20 @@ export const useShop = () => {
 };
 
 export const ShopProvider = ({ children }) => {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(() => {
+    const saved = localStorage.getItem('shop_categories');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [products, setProducts] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
-  const [offers, setOffers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState(() => {
+    const saved = localStorage.getItem('shop_campaigns');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [offers, setOffers] = useState(() => {
+    const saved = localStorage.getItem('shop_offers');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [loading, setLoading] = useState(!localStorage.getItem('shop_categories'));
   const [error, setError] = useState(null);
   const { activeStore } = useStore();
   const { clearCart } = useCart();
@@ -38,8 +47,12 @@ export const ShopProvider = ({ children }) => {
         import('../api/shopApi').then(m => m.fetchPublicSettings()).catch(() => null)
       ]);
       setCategories(categoriesData);
+      localStorage.setItem('shop_categories', JSON.stringify(categoriesData));
+      
       setProducts([]); // No longer needed for home page mapping
+      
       setCampaigns(campaignsData);
+      localStorage.setItem('shop_campaigns', JSON.stringify(campaignsData));
 
       // Filter offers that are isActive and not expired
       const now = new Date();
@@ -47,6 +60,7 @@ export const ShopProvider = ({ children }) => {
         o.isActive && (!o.expiryDate || new Date(o.expiryDate) > now)
       );
       setOffers(filteredOffers);
+      localStorage.setItem('shop_offers', JSON.stringify(filteredOffers));
       
       setSettings(settingsData);
       setError(null);

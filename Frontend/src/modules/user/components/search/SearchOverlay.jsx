@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+const VoiceSearchModal = lazy(() => import('./VoiceSearchModal'));
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, X, Search, Sparkles, Mic, MicOff } from 'lucide-react';
 import { useSearch } from '../../context/SearchContext';
@@ -31,64 +32,16 @@ const SearchOverlay = () => {
     const [totalResults, setTotalResults] = useState(0);
     const [isFocused, setIsFocused] = useState(true); // Default to true since it auto-focuses on mount
 
-    const recognitionRef = React.useRef(null);
-
-    useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition && !recognitionRef.current) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'en-IN'; // Better support for Indian users
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                setSearchQuery(transcript);
-                setIsListening(false);
-                addToHistory(transcript);
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                setIsListening(false);
-                if (event.error === 'audio-capture') {
-                    setMicError('Microphone not found or hardware error');
-                } else if (event.error === 'not-allowed') {
-                    setMicError('Mic permission denied. Please enable in browser settings.');
-                } else if (event.error !== 'aborted') {
-                    setMicError('Voice search failed. Please try again.');
-                }
-                setTimeout(() => setMicError(null), 4000);
-            };
-
-            recognition.onend = () => {
-                setIsListening(false);
-            };
-
-            recognitionRef.current = recognition;
-        }
-    }, [setSearchQuery]);
+    const [showVoiceModal, setShowVoiceModal] = useState(false);
 
     const startListening = () => {
-        if (!recognitionRef.current) {
-            alert('Voice search is not supported in this browser.');
-            return;
-        }
+        setShowVoiceModal(true);
+    };
 
-        if (isListening) {
-            recognitionRef.current.stop();
-        } else {
-            setMicError(null);
-            try {
-                recognitionRef.current.start();
-                setIsListening(true);
-            } catch (err) {
-                console.error('Failed to start recognition:', err);
-                recognitionRef.current.stop();
-                setIsListening(false);
-            }
-        }
+    const handleVoiceResult = (result) => {
+        setSearchQuery(result);
+        addToHistory(result);
+        setIsFocused(true);
     };
 
     const lastSearchRef = useRef({ query: '', storeId: '__UNINITIALIZED__' });
@@ -263,8 +216,7 @@ const SearchOverlay = () => {
                         <div className="flex-1 relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:block">
                                 <Search size={20} className="text-[#0c831f]" strokeWidth={2.5} />
-                            </div>
-                            <input
+                            </div>                            <input
                                 type="text"
                                 placeholder='Search for "dal", "milk", or "snacks"'
                                 value={searchQuery}
@@ -281,7 +233,7 @@ const SearchOverlay = () => {
                                     setTimeout(() => setIsFocused(false), 200);
                                 }}
                                 autoFocus
-                                className={`w-full pl-4 md:pl-12 pr-12 md:pr-24 py-2.5 md:py-3.5 bg-white/50 md:bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 md:border-transparent focus:border-[#0c831f] rounded-xl text-[16px] md:text-[15px] font-medium text-gray-800 dark:text-gray-100 focus:outline-none transition-all placeholder:text-gray-400 ${isListening ? 'ring-2 ring-[#0c831f]/50' : ''}`}
+                                className={`w-full pl-4 md:pl-12 pr-12 md:pr-24 py-2.5 md:py-3.5 bg-white/50 md:bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200 md:border-transparent focus:border-[#0c831f] rounded-xl text-[16px] md:text-[15px] font-medium text-gray-800 dark:text-gray-100 focus:outline-none transition-all placeholder:text-gray-400`}
                             />
                             <div className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 md:gap-1">
                                 {searchQuery && (
@@ -292,8 +244,8 @@ const SearchOverlay = () => {
                                 <div className="w-[1px] h-5 md:h-6 bg-gray-200 dark:bg-white/10 mx-0.5 md:mx-1"></div>
                                 <button
                                     onClick={startListening}
-                                    className={`p-2 rounded-lg transition-all ${isListening ? 'bg-[#0c831f] text-white animate-pulse' : 'text-[#0c831f] hover:bg-[#e8f5e9] dark:hover:bg-white/5'}`}
-                                    title={isListening ? "Stop listening" : "Voice search"}
+                                    className={`p-2 rounded-lg transition-all text-[#0c831f] hover:bg-[#e8f5e9] dark:hover:bg-white/5`}
+                                    title="Voice search"
                                 >
                                     <Mic size={20} strokeWidth={2.5} />
                                 </button>
@@ -500,6 +452,13 @@ const SearchOverlay = () => {
                     </div>
                 )}
             </div>
+            <Suspense fallback={null}>
+                <VoiceSearchModal 
+                    isOpen={showVoiceModal} 
+                    onClose={() => setShowVoiceModal(false)} 
+                    onResult={handleVoiceResult} 
+                />
+            </Suspense>
         </div>
     );
 };

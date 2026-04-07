@@ -144,13 +144,15 @@ export const markAllRead = async (req, res) => {
 export const getUnreadCount = async (req, res) => {
   try {
     let recipientId;
-    if (req.user) recipientId = req.user._id;
-    else if (req.admin) recipientId = req.admin._id;
-    else if (req.vendor) recipientId = req.vendor._id;
-    else if (req.partner) recipientId = req.partner._id;
+    let recipientModel;
+    if (req.user) { recipientId = req.user._id; recipientModel = 'User'; }
+    else if (req.admin) { recipientId = req.admin._id; recipientModel = 'Admin'; }
+    else if (req.vendor) { recipientId = req.vendor._id; recipientModel = 'Vendor'; }
+    else if (req.partner) { recipientId = req.partner._id; recipientModel = 'DeliveryPartner'; }
 
     const count = await Notification.countDocuments({
       recipient: recipientId,
+      recipientModel: recipientModel,
       isRead: false
     });
 

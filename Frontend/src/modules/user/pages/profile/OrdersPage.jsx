@@ -23,22 +23,31 @@ const OrdersPage = () => {
                     const d = new Date(o.createdAt);
                     const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-                    // Determine Color 
+                    // Determine Color & Display Status
                     const statusLower = (o.status || '').toLowerCase();
-                    let colorClass = 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-500/10'; // Default Delivered
-                    if (['pending', 'confirmed', 'processing', 'preparing'].includes(statusLower)) {
+                    let colorClass = 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-500/10'; // Default: Success/Delivered
+                    let displayStatus = o.status;
+
+                    if (['pending'].includes(statusLower)) {
+                        colorClass = 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-white/5';
+                        displayStatus = 'Placed';
+                    } else if (['confirmed', 'preparing', 'ready_for_pickup'].includes(statusLower)) {
                         colorClass = 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-500/10';
-                    }
-                    if (['out_for_delivery', 'shipped', 'in_transit'].includes(statusLower)) {
+                        displayStatus = statusLower === 'ready_for_pickup' ? 'Ready for Pickup' : statusLower === 'preparing' ? 'Preparing' : 'Confirmed';
+                    } else if (['out_for_delivery', 'shipped'].includes(statusLower)) {
                         colorClass = 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10';
-                    }
-                    if (['cancelled', 'returned'].includes(statusLower)) {
-                        colorClass = 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-500/10';
+                        displayStatus = 'Out for Delivery';
+                    } else if (['cancelled', 'returned'].includes(statusLower)) {
+                        colorClass = 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10';
+                        displayStatus = statusLower === 'cancelled' ? 'Cancelled' : 'Returned';
+                    } else if (statusLower.includes('return')) {
+                        colorClass = 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10';
+                        displayStatus = 'Return Processing';
                     }
 
                     return {
                         id: o._id,
-                        status: o.status,
+                        status: displayStatus,
                         date: formattedDate,
                         amount: '₹' + o.totalAmount.toFixed(2),
                         items: o.items.map(item => item.name).join(', '),

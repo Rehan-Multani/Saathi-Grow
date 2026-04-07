@@ -61,8 +61,30 @@ const LegalPage = lazy(() => import('../pages/support/LegalPage'));
 const ShopListingPage = lazy(() => import('../pages/shop/ShopListingPage'));
 
 const LoadingFallback = () => (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-[var(--saathi-green)] rounded-full animate-spin"></div>
+    <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center overflow-hidden">
+        <div className="flex flex-col items-center gap-10">
+            <div className="relative w-24 h-24 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" className="w-full h-full animate-spin duration-[1.2s]">
+                    <g transform="rotate(-90 50 50)">
+                        <circle cx="50" cy="50" r="44" stroke="#1a1c24" strokeWidth="4.5" fill="transparent" />
+                        <circle
+                            cx="50" cy="50" r="44" stroke="#CCFF00" strokeWidth="4.5" fill="transparent"
+                            strokeDasharray="276.46" strokeDashoffset={276.46 * 0.72} 
+                        />
+                    </g>
+                </svg>
+            </div>
+            <div className="flex flex-col items-center">
+                <span className="text-[18px] font-black tracking-[0.45em] text-[#CCFF00] uppercase">SATHIGRO</span>
+                <div className="w-24 h-[4.5px] bg-[#f2f4f7] mt-5 rounded-full overflow-hidden relative">
+                    <motion.div 
+                        className="absolute inset-0 bg-[#CCFF00]"
+                        animate={{ x: [-96, 96] }}
+                        transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                    />
+                </div>
+            </div>
+        </div>
     </div>
 );
 
@@ -185,7 +207,7 @@ const UserLayout = () => {
             <LoginModal />
             <SearchOverlay />
 
-            <main className="flex-grow bg-white dark:!bg-black transition-colors duration-300 pb-20 md:pb-0">
+            <main className={`flex-grow bg-white dark:!bg-black transition-colors duration-300 ${hideDesktopChrome ? '' : 'pb-20 md:pb-0'}`}>
                 {hideDesktopChrome ? (
                      <Suspense fallback={<LoadingFallback />}>
                         <AnimatePresence mode="wait">

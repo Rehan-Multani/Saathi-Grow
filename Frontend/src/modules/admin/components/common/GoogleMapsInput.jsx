@@ -159,7 +159,8 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
         placeholder={placeholder || "Search location..."}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        className="py-2 pr-5 shadow-none border-light-subtle bg-light-subtle"
+        className="py-2.5 shadow-none border-light-subtle bg-light-subtle rounded-xl font-bold"
+        style={{ paddingRight: '85px' }}
       />
       <div className="position-absolute end-0 top-50 translate-middle-y me-2 d-flex gap-2 align-items-center">
         {isDetecting ? (

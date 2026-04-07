@@ -94,7 +94,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="relative h-[100dvh] overflow-hidden md:min-h-[calc(100vh-64px)] flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="fixed inset-0 z-50 h-[100dvh] w-screen overflow-hidden flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-black">
             {/* Background Image with Blur */}
             <div
                 className="absolute inset-0 bg-cover bg-center z-0"
@@ -119,8 +119,9 @@ const RegisterPage = () => {
                             <div>
                                 <label className="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1 uppercase">Full Name</label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                                        <User size={14} />
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-900 dark:text-white">
+                                        <User size={14} className="text-gray-900 dark:text-white" />
+                                        <div className="h-4 w-[1px] bg-gray-200 dark:bg-gray-700 mx-2"></div>
                                     </div>
                                     <input
                                         type="text"
@@ -128,7 +129,7 @@ const RegisterPage = () => {
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="John Doe"
-                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
+                                        className="w-full pl-[56px] pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
                                         disabled={loading}
                                     />
                                 </div>
@@ -136,8 +137,9 @@ const RegisterPage = () => {
                             <div>
                                 <label className="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1 uppercase">Phone Number</label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                                        <Phone size={14} />
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-900 dark:text-white">
+                                        <span className="text-[13px] font-bold">+91</span>
+                                        <div className="h-4 w-[1px] bg-gray-200 dark:bg-gray-700 mx-2"></div>
                                     </div>
                                     <input
                                         type="tel"
@@ -146,7 +148,7 @@ const RegisterPage = () => {
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                                         placeholder="98765 43210"
-                                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
+                                        className="w-full pl-[56px] pr-3.5 py-2.5 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 rounded-xl focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all text-gray-900 dark:text-white text-[13px] font-bold placeholder:text-gray-400"
                                         disabled={loading}
                                     />
                                 </div>

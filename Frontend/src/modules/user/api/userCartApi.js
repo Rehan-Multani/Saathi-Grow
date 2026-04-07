@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/user/cart`;
 
@@ -7,7 +7,11 @@ export const getCart = async (token) => {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || 'Failed to fetch cart');
+  if (!response.ok) {
+    const error = new Error(data.message || 'Failed to fetch cart');
+    error.statusCode = response.status;
+    throw error;
+  }
   return data;
 };
 
@@ -21,7 +25,11 @@ export const syncCart = async (token, cartItems) => {
     body: JSON.stringify({ cartItems })
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || 'Failed to sync cart');
+  if (!response.ok) {
+    const error = new Error(data.message || 'Failed to sync cart');
+    error.statusCode = response.status;
+    throw error;
+  }
   return data;
 };
 

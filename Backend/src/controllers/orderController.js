@@ -281,6 +281,14 @@ export const verifyRazorpayPayment = async (req, res) => {
       orderData
     } = req.body;
 
+    // 0. ACCOUNT SECURITY SHIELD: Verify user is not blocked before finalization
+    const currentUser = await User.findById(req.user._id);
+    if (!currentUser || currentUser.isActive === false) {
+        return res.status(403).json({ 
+            message: "Purchase blocked: Your account is no longer active. Please contact support." 
+        });
+    }
+
     // Verify authenticity using crypto SHA256 digest
     const sign = razorpayOrderId + "|" + razorpayPaymentId;
     const expectedSign = crypto
@@ -778,6 +786,14 @@ export const debitAdminWallet = async (order) => {
 export const createCODOrder = async (req, res) => {
   try {
     const { orderData } = req.body;
+
+    // 0. ACCOUNT SECURITY SHIELD: Verify user is not blocked before finalization
+    const currentUser = await User.findById(req.user._id);
+    if (!currentUser || currentUser.isActive === false) {
+        return res.status(403).json({ 
+            message: "Order failed: Your account is deactivated. Please contact support." 
+        });
+    }
 
     // Strip empty location bounds so the 2dsphere index doesn't explode
     if (orderData.shippingAddress && (!orderData.shippingAddress.location || !orderData.shippingAddress.location.coordinates || orderData.shippingAddress.location.coordinates.length < 2)) {
@@ -1484,9 +1500,9 @@ export const updateOrderStatus = async (req, res) => {
 
     // Role-based Status Security
     if (req.admin.role === 'Branch Manager' || req.admin.role === 'Staff') {
-      const allowedRolesStatuses = ['preparing', 'ready_for_pickup', 'cancelled'];
+      const allowedRolesStatuses = ['confirmed', 'preparing', 'ready_for_pickup', 'cancelled'];
       if (!allowedRolesStatuses.includes(status)) {
-        return res.status(403).json({ message: 'Managers and Staff can only mark orders as preparing, ready for pickup, or cancelled.' });
+        return res.status(403).json({ message: 'Managers and Staff can only mark orders as confirmed, preparing, ready for pickup, or cancelled.' });
       }
     }
 

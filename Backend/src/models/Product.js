@@ -155,7 +155,10 @@ productSchema.index(
   }
 );
 
-productSchema.index({ status: 1, isSaathiGrow: -1, createdAt: -1 });
+// Compound Indexes for Performance (Phase 1 Optimization)
+productSchema.index({ category: 1, status: 1, isSaathiGrow: -1, createdAt: -1 });
+productSchema.index({ vendor: 1, status: 1 });
+productSchema.index({ 'branchStocks.branchId': 1, status: 1 });
 
 const Product = mongoose.model('Product', productSchema);
 export default Product;

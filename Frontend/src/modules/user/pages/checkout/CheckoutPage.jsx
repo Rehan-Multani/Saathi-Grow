@@ -185,6 +185,12 @@ const CheckoutPage = () => {
             return;
         }
 
+        // Account Security Guard
+        if (user && user.isActive === false) {
+            toast.error("Your account is deactivated. You cannot place orders.");
+            return;
+        }
+
         // Delivery timing is always valid — either Immediate or a chosen slot
 
         const totalToPay = billDetails?.totalAmount || cartTotal;
@@ -675,16 +681,16 @@ const CheckoutPage = () => {
                     </div>
                     <button
                         onClick={handlePlaceOrder}
-                        disabled={isPlacing || cart.length === 0 || isStoreOutOfRange}
+                        disabled={isPlacing || cart.length === 0 || isStoreOutOfRange || user?.isActive === false}
                         style={{ borderRadius: '16px' }}
-                        className={`flex-1 ${isStoreOutOfRange ? 'bg-gray-400' : 'bg-[#0c831f]'} text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2`}
+                        className={`flex-1 ${isStoreOutOfRange || user?.isActive === false ? 'bg-gray-400' : 'bg-[#0c831f]'} text-white h-12 font-black text-[12px] uppercase tracking-[0.15em] transition-all shadow-xl shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2`}
                     >
                         {isPlacing ? (
                             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                         ) : (
                             <>
-                                <span>{isStoreOutOfRange ? 'Out of Range' : 'Place Order'}</span>
-                                {!isStoreOutOfRange && <ArrowRight size={16} strokeWidth={3} />}
+                                <span>{isStoreOutOfRange ? 'Out of Range' : (user?.isActive === false ? 'Account Blocked' : 'Place Order')}</span>
+                                {!isStoreOutOfRange && user?.isActive !== false && <ArrowRight size={16} strokeWidth={3} />}
                             </>
                         )}
                     </button>

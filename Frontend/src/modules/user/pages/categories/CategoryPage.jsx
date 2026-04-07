@@ -249,10 +249,9 @@ const CategoryPage = () => {
                 description={`Shop for ${currentCategory?.name || 'products'} at Saathi-Grow. Best quality and fast delivery for all your needs.`}
                 image={currentCategory?.image}
             />
-            {/* Force Standard Scrolling Header - No Sticky */}
+            {/* Sticky Optimized Header - App-like Feel */}
             <div 
-                className="category-products-header bg-white dark:bg-black border-b border-gray-50 dark:border-white/5 px-3 py-1.5"
-                style={{ position: 'relative', zIndex: 10, display: 'block' }}
+                className="category-products-header sticky top-0 z-[50] bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 px-3 py-2"
             >
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center justify-between gap-3">
@@ -324,24 +323,24 @@ const CategoryPage = () => {
                                 {/* "All" as a compact card */}
                                     <button
                                         onClick={() => setSelectedSubCat('all')}
-                                        className="flex-shrink-0 flex flex-col items-center group transition-all duration-300 active:scale-95 mr-2"
-                                        style={{ width: '74px' }}
+                                        className="flex-shrink-0 flex flex-col items-center group transition-all duration-300 active:scale-95"
+                                        style={{ width: '68px' }}
                                     >
                                         <div 
                                             className={`rounded-2xl flex flex-col items-center border transition-all duration-300 ${selectedSubCat === 'all' ? 'bg-[#0c831f]/10 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
-                                            style={{ width: '74px', height: '74px', minWidth: '74px' }}
+                                            style={{ width: '68px', height: '68px', minWidth: '68px' }}
                                         >
-                                        <span 
-                                            className={`font-bold text-center transition-colors ${selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}
-                                            style={{ fontSize: '9px', paddingTop: '10px', width: '100%', paddingLeft: '4px', paddingRight: '4px' }}
-                                        >
-                                            All
-                                        </span>
-                                        <div className="flex-1 w-full flex items-center justify-center pb-2">
-                                            <Leaf size={16} className={selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-400'} />
+                                            <span 
+                                                className={`font-black text-center transition-colors ${selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}
+                                                style={{ fontSize: '8px', paddingTop: '8px', width: '100%', paddingLeft: '4px', paddingRight: '4px' }}
+                                            >
+                                                ALL
+                                            </span>
+                                            <div className="flex-1 w-full flex items-center justify-center pb-2">
+                                                <Leaf size={14} className={selectedSubCat === 'all' ? 'text-[#0c831f]' : 'text-gray-400'} />
+                                            </div>
                                         </div>
-                                    </div>
-                                </button>
+                                    </button>
 
                                 {availableSubCategories.map((sc) => {
                                     const scSlug = sc.slug || sc.name?.toLowerCase().replace(/\s+/g, '-');
@@ -355,31 +354,31 @@ const CategoryPage = () => {
                                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                                             }}
                                             className="flex-shrink-0 flex flex-col items-center group transition-all duration-300 active:scale-95"
-                                            style={{ width: '74px' }}
+                                            style={{ width: '68px' }}
                                         >
                                             <div 
                                                 className={`rounded-2xl flex flex-col items-center border transition-all duration-300 ${isActive ? 'bg-[#0c831f]/10 border-[#0c831f] shadow-sm' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}
                                                 style={{ 
-                                                    width: '74px',
-                                                    height: '74px',
+                                                    width: '68px',
+                                                    height: '68px',
                                                     backgroundColor: !isActive && !isDarkMode ? (categoryColors[scSlug] || categoryColors[slug] || '#f8f9fa') : (isActive ? 'rgba(12, 131, 31, 0.08)' : undefined)
                                                 }}
                                             >
                                                 <span 
-                                                    className={`font-bold text-center capitalize transition-colors ${isActive ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-100'}`}
-                                                    style={{ fontSize: '9px', paddingTop: '10px', width: '100%', paddingLeft: '4px', paddingRight: '4px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                                    className={`font-black text-center capitalize transition-colors ${isActive ? 'text-[#0c831f]' : 'text-gray-900 dark:text-gray-100'}`}
+                                                    style={{ fontSize: '8px', paddingTop: '8px', width: '100%', paddingLeft: '4px', paddingRight: '4px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                                 >
                                                     {sc.name?.toLowerCase()}
                                                 </span>
                                                 <div 
-                                                    className="flex-1 w-full flex items-center justify-center p-2"
+                                                    className="flex-1 w-full flex items-center justify-center p-1.5"
                                                     style={{ overflow: 'hidden' }}
                                                 >
                                                     <img 
                                                         src={sc.image || currentCategory?.image || categoryPlaceholder} 
                                                         alt={sc.name}
                                                         className="transition-transform duration-500 group-hover:scale-110 drop-shadow-sm"
-                                                        style={{ maxHeight: '28px', width: 'auto', objectFit: 'contain' }}
+                                                        style={{ maxHeight: '24px', width: 'auto', objectFit: 'contain' }}
                                                         onError={(e) => { e.target.src = categoryPlaceholder; }}
                                                     />
                                                 </div>

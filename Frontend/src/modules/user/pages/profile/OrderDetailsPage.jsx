@@ -80,21 +80,47 @@ const OrderDetailsPage = () => {
             </div>
 
             <div className="max-w-2xl md:max-w-6xl mx-auto px-2 md:px-0 py-4 md:py-8">
-                {/* Order Status Stepper */}
-                <div className="bg-transparent md:bg-white/40 md:rounded-xl p-3 md:p-5 mb-6 md:border border-gray-100 dark:border-white/10 md:shadow-sm overflow-hidden">
-                    <div className="flex items-center justify-between relative text-center">
-                        <div className="absolute top-3.5 left-[15%] right-[15%] h-[1px] bg-gray-200 dark:bg-white/10 -z-0"></div>
-                        <div className="flex flex-col items-center gap-1 z-10 relative">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${order.status === 'cancelled' ? 'bg-red-600 text-white shadow-red-500/10' : 'bg-[#0c831f] text-white shadow-green-500/10'}`}><Package size={10} /></div>
-                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${order.status === 'cancelled' ? 'text-red-500' : 'text-gray-400'}`}>Placed</span>
+                <div className="bg-transparent md:bg-white/40 md:rounded-xl p-3 md:p-5 mb-6 md:border border-gray-100 dark:border-white/10 md:shadow-sm overflow-hidden relative">
+                    {/* Background Line */}
+                    <div className="absolute top-[27px] md:top-[38px] left-[12.5%] right-[12.5%] h-[2px] bg-gray-200 dark:bg-white/10 z-0"></div>
+                    {/* Active Line (75% total span across 3 gaps) */}
+                    <div className="absolute top-[27px] md:top-[38px] left-[12.5%] h-[2px] bg-[#0c831f] z-0 transition-all duration-700 ease-in-out shadow-[0_0_10px_rgba(12,131,31,0.3)]" 
+                        style={{
+                            width: ['delivered', 'returned'].includes(order.status) ? '75%' :
+                                   order.status === 'out_for_delivery' ? '50%' :
+                                   ['confirmed', 'preparing', 'ready_for_pickup'].includes(order.status) ? '25%' : '0%'
+                        }}
+                    ></div>
+
+                    <div className="flex items-start justify-between relative z-10 text-center">
+                        <div className="flex flex-col items-center gap-2 w-1/4">
+                            <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${order.status === 'cancelled' ? 'bg-red-600 text-white shadow-red-500/20' : 'bg-[#0c831f] text-white shadow-green-500/20'}`}>
+                                <Package size={12} className="md:w-4 md:h-4" />
+                            </div>
+                            <span className={`text-[8px] md:text-sm font-black uppercase tracking-tight ${order.status === 'cancelled' ? 'text-red-500' : 'text-gray-800 dark:text-gray-100'}`}>Placed</span>
                         </div>
-                        <div className="flex flex-col items-center gap-1 z-10 relative">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${['out_for_delivery', 'delivered'].includes(order.status) ? 'bg-[#0c831f] text-white shadow-green-500/10' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}><Truck size={10} /></div>
-                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${['out_for_delivery', 'delivered'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>Shipped</span>
+                        
+                        <div className="flex flex-col items-center gap-2 w-1/4">
+                            <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${['confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'delivered', 'returned'].includes(order.status) ? 'bg-[#0c831f] text-white shadow-green-500/20' : 'bg-gray-100 dark:bg-white/5 text-gray-400 border border-gray-200 dark:border-white/10'}`}>
+                                <RefreshCw size={12} className="md:w-4 md:h-4" />
+                            </div>
+                            <span className={`text-[8px] md:text-sm font-black uppercase tracking-tight ${['confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'delivered', 'returned'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>Processing</span>
                         </div>
-                        <div className="flex flex-col items-center gap-1 z-10 relative">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-md ${['delivered', 'returned'].includes(order.status) ? 'bg-[#0c831f] text-white shadow-green-500/10' : 'bg-gray-200 dark:bg-white/10 text-gray-400'}`}><CheckCircle size={10} /></div>
-                            <span className={`text-[7px] md:text-sm font-black uppercase tracking-tight ${['delivered', 'returned'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>{order.status === 'returned' ? 'Returned' : 'Delivered'}</span>
+                        
+                        <div className="flex flex-col items-center gap-2 w-1/4">
+                            <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${['out_for_delivery', 'delivered', 'returned'].includes(order.status) ? 'bg-[#0c831f] text-white shadow-green-500/20' : 'bg-gray-100 dark:bg-white/5 text-gray-400 border border-gray-200 dark:border-white/10'}`}>
+                                <Truck size={12} className="md:w-4 md:h-4" />
+                            </div>
+                            <span className={`text-[8px] md:text-sm font-black uppercase tracking-tight ${['out_for_delivery', 'delivered', 'returned'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>Shipped</span>
+                        </div>
+                        
+                        <div className="flex flex-col items-center gap-2 w-1/4">
+                            <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${['delivered', 'returned'].includes(order.status) ? 'bg-[#0c831f] text-white shadow-green-500/20' : 'bg-gray-100 dark:bg-white/5 text-gray-400 border border-gray-200 dark:border-white/10'}`}>
+                                <CheckCircle size={12} className="md:w-4 md:h-4" />
+                            </div>
+                            <span className={`text-[8px] md:text-sm font-black uppercase tracking-tight leading-none ${['delivered', 'returned'].includes(order.status) ? 'text-[#0c831f]' : 'text-gray-400'}`}>
+                                {order.status === 'returned' || rawOrder?.returnRequest?.isRequested ? 'Returned' : 'Delivered'}
+                            </span>
                         </div>
                     </div>
                 </div>

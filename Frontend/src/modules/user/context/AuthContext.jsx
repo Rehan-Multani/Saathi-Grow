@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import * as authApi from '../api/userAuthApi';
 import { toast } from 'react-toastify';
 import { isWebView as checkWebView } from '../../../utils/deviceUtils';
@@ -92,10 +92,21 @@ export const AuthProvider = ({ children }) => {
         isFetchingProfile.current = true;
         try {
             const data = await authApi.getProfile(token);
+            
+            // SECURITY: If user is deactivated, force logout immediately
+            if (data.user && data.user.isActive === false) {
+                toast.error('Your account has been deactivated by admin.', { toastId: 'account-deactivated' });
+                logout();
+                return;
+            }
+            
             setUser(data.user);
         } catch (error) {
             console.error('Profile refresh failed:', error);
-            if (error.message.includes('expired') || error.message.includes('authorized')) {
+            if (error.statusCode === 403 || error.message.includes('deactivated') || error.message.includes('Access Denied')) {
+                toast.error('Account Access Denied', { toastId: 'access-denied' });
+                logout();
+            } else if (error.message.includes('expired') || error.message.includes('authorized')) {
                 logout();
             }
         } finally {

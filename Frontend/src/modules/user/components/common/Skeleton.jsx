@@ -1,34 +1,40 @@
-﻿import React from 'react';
+import React from 'react';
 
 const Skeleton = ({ className }) => {
     return (
-        <div className={`animate-pulse bg-gray-200 dark:bg-gray-800 rounded-md ${className}`}></div>
+        <div className={`relative overflow-hidden bg-gray-200 dark:bg-zinc-800 rounded-md ${className}`}>
+            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-[shimmer_1.5s_infinite]" />
+        </div>
     );
 };
 
 export const ProductCardSkeleton = () => (
-    <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-none md:bg-white md:dark:bg-black rounded-[14px] p-2.5 border border-gray-100 dark:border-white/10 flex flex-col gap-2 h-full">
-        <Skeleton className="aspect-square w-full rounded-xl" />
-        <div className="flex flex-col gap-2 p-1">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-            <div className="flex justify-between items-center mt-2">
-                <Skeleton className="h-5 w-16" />
-                <Skeleton className="h-8 w-14 rounded-md" />
+    <div className="bg-white dark:bg-[#111111] rounded-lg sm:rounded-xl p-2 sm:p-5 border border-gray-100 dark:border-white/10 flex flex-col gap-1 sm:gap-3 h-full shadow-sm">
+        <Skeleton className="aspect-square w-full rounded-md sm:rounded-lg" />
+        <div className="flex flex-col gap-2 px-1">
+            <Skeleton className="h-3 sm:h-4 w-5/6 rounded" />
+            <Skeleton className="h-2 sm:h-3 w-1/2 rounded" />
+            <div className="flex justify-between items-center mt-3">
+                <div className="flex flex-col gap-1">
+                    <Skeleton className="h-4 sm:h-5 w-12 sm:w-16 rounded" />
+                </div>
+                <Skeleton className="h-[22px] sm:h-[34px] w-[50px] sm:w-[70px] rounded-full" />
             </div> 
         </div>
     </div>
 );
 
 export const CategorySkeleton = () => (
-    <div className="flex flex-col items-center w-24 md:w-32">
-        <Skeleton className="w-20 h-20 md:w-28 md:h-28 rounded-2xl md:rounded-[2.2rem]" />
-        <Skeleton className="h-3 w-16 mt-3" />
+    <div className="flex flex-col group w-[85px] sm:w-36 h-[100px] sm:h-[155px] rounded-xl sm:rounded-[32px] border border-gray-100/50 dark:border-white/5 shadow-sm p-3 items-center justify-center bg-gray-50 dark:bg-white/5">
+        <Skeleton className="h-3 w-12 mb-3" />
+        <Skeleton className="flex-1 w-full rounded-lg" />
     </div>
 );
 
 export const BannerSkeleton = () => (
-    <Skeleton className="h-[150px] sm:h-[220px] md:h-[280px] w-full rounded-2xl md:rounded-[2.5rem]" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mb-6">
+        <Skeleton className="aspect-[16/8.5] sm:aspect-[24/9] w-full rounded-lg sm:rounded-2xl" />
+    </div>
 );
 
 export const ProductDetailSkeleton = () => (

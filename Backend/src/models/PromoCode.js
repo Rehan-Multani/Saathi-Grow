@@ -55,7 +55,19 @@ const promoCodeSchema = new mongoose.Schema({
         trim: true
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// Virtual for dynamic status
+promoCodeSchema.virtual('status').get(function() {
+    const now = new Date();
+    if (!this.isActive) return 'Inactive';
+    if (now < this.validFrom) return 'Upcoming';
+    if (now > this.validUntil) return 'Expired';
+    if (this.usageLimitTotal > 0 && this.usedCount >= this.usageLimitTotal) return 'Limit Reached';
+    return 'Active';
 });
 
 const PromoCode = mongoose.model('PromoCode', promoCodeSchema);

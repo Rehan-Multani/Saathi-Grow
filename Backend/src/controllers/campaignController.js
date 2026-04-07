@@ -86,9 +86,8 @@ export const getActiveCampaignSections = async (req, res) => {
       order: 1,
       isActive: 1,
       bannerImage: 1,
-      products: { $slice: 10 } // Initial batch
     })
-      .populate('products.productId', 'name image basePrice mrp sku unitType unitValue category status isVeg branchStocks vendor')
+      .populate('products.productId', 'name image basePrice mrp unitType unitValue category status isSaathiGrow')
       .sort('order')
       .lean();
 

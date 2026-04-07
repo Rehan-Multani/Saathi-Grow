@@ -19,8 +19,13 @@ class SMSIndiaHubService {
   async sendOTP(phone, otp) {
     // Template: Welcome to Saathi-Grow! Your OTP for verification is {#var#}. - Saathi-Grow Team
     const message = `Welcome to the SaathiGro powered by SMSINDIAHUB.Your OTP for registration is ${otp}`;
-    // Welcome to the Rukkoo.in powered by SMSINDIAHUB.Your OTP for registration is ${ otp }`
-    return this.sendSMS(phone, message);
+    
+    // Fire and forget - don't await this in the main controller to prevent timeouts from blocking users
+    this.sendSMS(phone, message).catch(err => {
+      console.error('🔥 [SMS-Background-Queue] Final failure:', err.message);
+    });
+    
+    return { success: true, queued: true };
   }
 
   async sendSMS(phone, message) {
@@ -46,15 +51,16 @@ class SMSIndiaHubService {
       });
 
       const apiUrl = `${this.baseUrl}?${params.toString()}`;
-      console.log(`📨 Sending SMS to ${normalizedPhone}...`);
+      console.log(`📨 [SMSIndiaHub] Dispatching to ${normalizedPhone}...`);
 
       const response = await axios.get(apiUrl, {
         headers: { 'User-Agent': 'SaathiGro/1.0' },
-        timeout: 10000
+        timeout: 8000 // Slightly shorter timeout to fail faster
       });
 
       // SMSIndiaHub sometimes returns response as string or JSON
       const responseData = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+      console.log(`📡 [SMSIndiaHub] Raw Response: ${responseData}`);
 
       if (responseData.includes('ErrorCode="000"') || responseData.includes('ErrorCode:000') || responseData.includes('"ErrorCode":"000"')) {
         console.log('✅ SMS Sent Successfully');

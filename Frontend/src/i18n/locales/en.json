@@ -1,5 +1,10 @@
 {
   "common": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "error": "Error",
+    "success": "Success",
+    "deleted": "Deleted",
     "dashboard": "Dashboard",
     "orders": "Orders",
     "products": "Products",
@@ -43,12 +48,9 @@
     "all_rights_reserved": "All rights reserved.",
     "main": "Main",
     "current_branch": "Current Branch",
-    "delete": "Delete",
     "save": "Save",
     "cancel": "Cancel",
     "add": "Add",
-    "error": "Error",
-    "success": "Success",
     "update": "Update",
     "loading": "Loading...",
     "actions": "Actions"

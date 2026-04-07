@@ -18,6 +18,9 @@ const AdminLayout = () => {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [showLangMenu, setShowLangMenu] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [showNotificationMenu, setShowNotificationMenu] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [loadingNotifications, setLoadingNotifications] = useState(false);
     const location = useLocation();
 
     const handleLogout = () => {
@@ -36,17 +39,49 @@ const AdminLayout = () => {
             const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
                 headers: { Authorization: `Bearer ${adminToken}` }
             });
-            if (res.data.success) {
-                setUnreadCount(res.data.count);
+            if (res.data.success || res.status === 200) {
+                setUnreadCount(res.data.count || 0);
             }
         } catch (error) {
             console.error('Error fetching unread count:', error);
         }
     };
 
+    const fetchNotifications = async () => {
+        try {
+            setLoadingNotifications(true);
+            const res = await axios.get(`${API_BASE_URL}/notifications/my?limit=5`, {
+                headers: { Authorization: `Bearer ${adminToken}` }
+            });
+            setNotifications(res.data.notifications || []);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        } finally {
+            setLoadingNotifications(false);
+        }
+    };
+
+    const handleMarkAsRead = async (id) => {
+        try {
+            await axios.put(`${API_BASE_URL}/notifications/read/${id}`, {}, {
+                headers: { Authorization: `Bearer ${adminToken}` }
+            });
+            fetchUnreadCount();
+            fetchNotifications();
+        } catch (error) {
+            console.error('Error marking as read:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (showNotificationMenu) {
+            fetchNotifications();
+        }
+    }, [showNotificationMenu]);
+
     useEffect(() => {
         fetchUnreadCount();
-        const interval = setInterval(fetchUnreadCount, 30000); // Polling every 30s as fallback to push
+        const interval = setInterval(fetchUnreadCount, 30000); // Polling every 30s
         return () => clearInterval(interval);
     }, [adminToken]);
 
@@ -122,17 +157,19 @@ const AdminLayout = () => {
                             )}
                         </div>
 
-                        <button 
-                            onClick={() => navigate('/admin/notifications/push')}
-                            className="relative p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
-                        >
-                            <Bell size={20} className="text-gray-600" />
-                            {unreadCount > 0 && (
-                                <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
-                                    {unreadCount > 9 ? '9+' : unreadCount}
-                                </span>
-                            )}
-                        </button>
+                        <div className="relative">
+                            <button 
+                                onClick={() => navigate('/admin/notifications/inbox')}
+                                className="relative p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-200"
+                            >
+                                <Bell size={20} className="text-gray-600" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-white font-black shadow-sm animate-pulse cursor-pointer">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
 
                         <div className="h-6 w-px bg-gray-200 mx-1"></div>
 

@@ -57,18 +57,23 @@ export const addDeliveryPartner = async (req, res) => {
     });
 
     if (partner) {
-      res.status(201).json({
+      // Send Welcome Email (We do this BEFORE response to ensure audit, but catch error to not block UI)
+      try {
+        await sendWelcomeEmail(partner.email, partner.name, 'Rider', password || 'Logged via Mobile OTP');
+      } catch (emailErr) {
+        console.error('[EMAIL-DELAY] Welcome email background failure:', emailErr.message);
+      }
+
+      return res.status(201).json({
         _id: partner._id,
         uniqueId: partner.uniqueId,
         name: partner.name,
         phone: partner.phone,
+        email: partner.email,
         vehicleType: partner.vehicleType,
         authStatus: partner.authStatus,
         dutyStatus: partner.dutyStatus
       });
-
-      // Send Welcome Email
-      await sendWelcomeEmail(partner.email, partner.name, 'Delivery Partner', password);
     } else {
       res.status(400).json({ message: 'Invalid delivery partner data' });
     }

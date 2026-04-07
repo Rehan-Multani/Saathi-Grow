@@ -154,30 +154,13 @@ const ProfilePage = () => {
                                     </div>
                                     <button
                                         onClick={toggleTheme}
-                                        className={`w-10 h-6 md:w-12 md:h-7 rounded-full transition-all relative ${isDarkMode ? 'bg-[#556b2f]' : 'bg-gray-200 dark:bg-white/10'}`}
+                                        className={`app-toggle-switch ${isDarkMode ? 'active' : ''}`}
                                     >
-                                        <div className={`absolute top-1 w-4 h-4 md:w-5 md:h-5 bg-white rounded-full transition-all ${isDarkMode ? 'left-[1.35rem] md:left-[1.6rem]' : 'left-1'}`} />
+                                        <div className="app-toggle-thumb" />
                                     </button>
                                 </div>
 
-                                {/* Notifications Toggle */}
-                                <div className="py-3 px-6 md:py-2 md:px-6 flex items-center justify-between group">
-                                    <div className="flex items-center gap-4 md:gap-6">
-                                        <div className="w-9 h-9 md:w-9 md:h-9 bg-pink-50 dark:bg-pink-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center md:shadow-sm">
-                                            <Bell size={18} className="text-pink-600 md:w-4.5 md:h-4.5" />
-                                        </div>
-                                        <div className="text-left leading-tight">
-                                            <h4 className="!text-[13px] md:!text-base font-black text-gray-800 dark:text-gray-100 leading-none mb-0 md:mb-0.5">Notifications</h4>
-                                            <p className="!text-[10px] md:!text-[11px] text-gray-400 font-medium">Order updates and offers</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                                        className={`w-10 h-6 md:w-12 md:h-7 rounded-full transition-all relative ${notificationsEnabled ? 'bg-[#556b2f]' : 'bg-gray-200 dark:bg-white/10'}`}
-                                    >
-                                        <div className={`absolute top-1 w-4 h-4 md:w-5 md:h-5 bg-white rounded-full transition-all ${notificationsEnabled ? 'left-[1.35rem] md:left-[1.6rem]' : 'left-1'}`} />
-                                    </button>
-                                </div>
+
                             </div>
 
                             {/* Logout Button */}

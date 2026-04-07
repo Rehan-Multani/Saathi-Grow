@@ -11,6 +11,7 @@ import { WishlistProvider } from './modules/user/context/WishlistContext';
 import "./App.css";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { motion } from 'framer-motion';
 
 // Lazy Load Module Routes
 const UserRoutes = lazy(() => import('./modules/user/routes/UserRoutes'));
@@ -23,16 +24,27 @@ const DeliveryRoutes = lazy(() => import('./modules/delivery/routes/DeliveryRout
 
 
 const GlobalLoading = () => (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-white dark:bg-[#000000]">
-        <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
-            <div className="relative">
-                <div className="w-16 h-16 border-[3px] border-gray-100 dark:border-white/5 rounded-full"></div>
-                <div className="absolute top-0 left-0 w-16 h-16 border-[3px] border-t-[var(--saathi-green)] rounded-full animate-spin"></div>
+    <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center overflow-hidden">
+        <div className="flex flex-col items-center gap-10">
+            <div className="relative w-24 h-24 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" className="w-full h-full animate-spin duration-[1.2s]">
+                    <g transform="rotate(-90 50 50)">
+                        <circle cx="50" cy="50" r="44" stroke="#1a1c24" strokeWidth="4.5" fill="transparent" />
+                        <circle
+                            cx="50" cy="50" r="44" stroke="#CCFF00" strokeWidth="4.5" fill="transparent"
+                            strokeDasharray="276.46" strokeDashoffset={276.46 * 0.72} 
+                        />
+                    </g>
+                </svg>
             </div>
-            <div className="flex flex-col items-center gap-1">
-                <span className="text-xl font-black text-[var(--saathi-green)] tracking-[0.3em] uppercase ml-1">sathiGro</span>
-                <div className="w-12 h-1 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-[var(--saathi-green)] w-1/2 animate-shimmer"></div>
+            <div className="flex flex-col items-center">
+                <span className="text-[18px] font-black tracking-[0.45em] text-[#CCFF00] uppercase">SATHIGRO</span>
+                <div className="w-24 h-[4.5px] bg-[#f2f4f7] mt-5 rounded-full overflow-hidden relative">
+                    <motion.div 
+                        className="absolute inset-0 bg-[#CCFF00]"
+                        animate={{ x: [-96, 96] }}
+                        transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                    />
                 </div>
             </div>
         </div>
@@ -43,15 +55,15 @@ const GlobalLoading = () => (
 
 function App() {
     return (
-        <ThemeProvider>
-            <AuthProvider>
-                <LocationProvider>
-                    <StoreProvider>
-                        <SearchProvider>
-                            <CartProvider>
-                                <WishlistProvider>
-                                    <ReturnRequestsProvider>
-                                        <BrowserRouter>
+        <BrowserRouter>
+            <ThemeProvider>
+                <AuthProvider>
+                    <LocationProvider>
+                        <StoreProvider>
+                            <SearchProvider>
+                                <CartProvider>
+                                    <WishlistProvider>
+                                        <ReturnRequestsProvider>
                                             <Suspense fallback={<GlobalLoading />}>
                                                 <Routes>
                                                     <Route path="/staff/*" element={<StaffRoutes />} />
@@ -61,7 +73,6 @@ function App() {
                                                     <Route path="/delivery/*" element={<DeliveryRoutes />} />
                                                     <Route path="/*" element={<UserRoutes />} />
                                                 </Routes>
-
 
                                                 <ToastContainer
                                                     position="bottom-center"
@@ -77,15 +88,15 @@ function App() {
                                                     toastClassName="premium-toast"
                                                 />
                                             </Suspense>
-                                        </BrowserRouter>
-                                    </ReturnRequestsProvider>
-                                </WishlistProvider>
-                            </CartProvider>
-                        </SearchProvider>
-                    </StoreProvider>
-                </LocationProvider>
-            </AuthProvider>
-        </ThemeProvider>
+                                        </ReturnRequestsProvider>
+                                    </WishlistProvider>
+                                </CartProvider>
+                            </SearchProvider>
+                        </StoreProvider>
+                    </LocationProvider>
+                </AuthProvider>
+            </ThemeProvider>
+        </BrowserRouter>
     );
 }
 

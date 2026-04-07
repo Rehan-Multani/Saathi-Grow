@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useStore } from './StoreContext';
+import { useNavigate } from 'react-router-dom';
 import * as cartApi from '../api/userCartApi';
 import { getPublicSettings } from '../api/publicSettingApi';
 import { toast } from 'react-toastify';
@@ -17,8 +18,9 @@ export const CartProvider = ({ children }) => {
     const [cart, setCart] = useState([]);
     const [cartReady, setCartReady] = useState(false); // track if cart has been initialized
 
-    const { token } = useAuth();
+    const { token, logout } = useAuth();
     const { activeStore } = useStore();
+    const navigate = useNavigate();
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [publicSettings, setPublicSettings] = useState({
         baseDeliveryFee: 0,
@@ -83,7 +85,15 @@ export const CartProvider = ({ children }) => {
         if (token) {
             // Debounce syncing so dragging counters doesn't spam APIs extremely fast
             timeoutId = setTimeout(() => {
-                cartApi.syncCart(token, cart).catch(err => console.error("Sync Cart Failure: " + err.message));
+                cartApi.syncCart(token, cart).catch(err => {
+                    console.error("Sync Cart Failure: " + err.message);
+                    // SECURITY: If user is deactivated/blocked (403), force logout immediately
+                    if (err.statusCode === 403 || err.message?.toLowerCase().includes('deactivated')) {
+                        toast.error("Your account has been deactivated. Logging out...", { toastId: 'cart-deactivated' });
+                        logout();
+                        navigate('/');
+                    }
+                });
             }, 1000);
         }
 

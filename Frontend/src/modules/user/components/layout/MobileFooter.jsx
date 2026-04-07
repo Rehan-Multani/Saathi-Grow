@@ -14,7 +14,7 @@ const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },
-        { path: '/orders', label: 'Order Again', icon: ShoppingBag },
+        { path: '/orders', label: 'Order', icon: ShoppingBag },
         { path: '/category', label: 'Categories', icon: LayoutGrid },
         { path: '/profile', label: 'Profile', icon: User }
     ];
@@ -50,7 +50,7 @@ const MobileFooter = ({ setIsMenuOpen, isBottomSheetOpen }) => {
                                         size={22}
                                         strokeWidth={isActive ? 2.5 : 2}
                                         className={`transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}
-                                        fill={isActive && item.label !== 'Categories' && item.label !== 'Order Again' ? "currentColor" : "none"}
+                                        fill={isActive && item.label !== 'Categories' && item.label !== 'Order' ? "currentColor" : "none"}
                                     />
                                     <span className={`text-[9px] font-bold tracking-tight ${isActive ? 'font-black' : 'font-medium'}`}>
                                         {item.label}

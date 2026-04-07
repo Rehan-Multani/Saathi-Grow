@@ -77,108 +77,170 @@ const AddDeliveryPartner = () => {
     return (
         <div className="p-3">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0 text-nowrap">{t('delivery.add_partner.title')}</h4>
-                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto">
-                    <Button variant="light" onClick={() => navigate('/admin/delivery/partners')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center">
-                        <X size={18} /> {t('delivery.add_partner.cancel')}
+                <div className="d-flex align-items-center gap-3">
+                    <Button
+                        variant="light"
+                        size="sm"
+                        className="rounded-circle p-2 shadow-sm border bg-white"
+                        onClick={() => navigate(-1)}
+                    >
+                        <X size={16} />
+                    </Button>
+                    <div>
+                        <h4 className="fw-black mb-0 text-nowrap tracking-tight">{t('delivery.add_partner.title', { defaultValue: 'Add New Rider' })}</h4>
+                        <p className="text-muted small mb-0 uppercase tracking-widest opacity-60 font-bold">{t('delivery.add_partner.subtitle', { defaultValue: 'Logistics Onboarding' })}</p>
+                    </div>
+                </div>
+                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto gap-2">
+                    <Button variant="light" onClick={() => navigate('/admin/delivery/partners')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4 rounded-xl font-bold text-xs uppercase tracking-wider">
+                        Cancel
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        onClick={(e) => handleSubmit(e)} 
+                        disabled={loading} 
+                        className="d-flex align-items-center gap-2 shadow-lg shadow-blue-500/20 justify-content-center px-4 rounded-xl font-black text-xs uppercase tracking-wider border-0"
+                    >
+                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
+                        {loading ? 'Saving...' : t('delivery.add_partner.create_btn', { defaultValue: 'Register Rider' })}
                     </Button>
                 </div>
             </div>
 
             <Row className="justify-content-center">
-                <Col lg={8}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">{t('delivery.add_partner.credentials_info')}</h6>
+                <Col lg={9}>
+                    <Card className="border-0 shadow-sm mb-4 rounded-3xl overflow-hidden">
+                        <Card.Body className="p-4 p-md-5">
+                            <h6 className="fw-black mb-4 text-primary border-bottom pb-2 uppercase tracking-widest text-xs opacity-75">{t('delivery.add_partner.credentials_info', { defaultValue: 'Authentication & Contact' })}</h6>
                             <Form onSubmit={handleSubmit}>
-                                <Row>
+                                <Row className="g-4">
                                     <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('delivery.add_partner.full_name')} <span className="text-danger">*</span></Form.Label>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.full_name', { defaultValue: 'Full Legal Name' })} <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder={t('delivery.add_partner.full_name_placeholder')}
+                                                placeholder={t('delivery.add_partner.full_name_placeholder', { defaultValue: 'e.g. Rahul Sharma' })}
                                                 name="name"
                                                 value={formData.name}
                                                 onChange={handleChange}
                                                 required
+                                                pattern="^[a-zA-Z\s\.]{3,50}$"
+                                                title="Full name should be 3-50 characters long and contain only letters"
+                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
                                             />
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('delivery.add_partner.mobile')} <span className="text-danger">*</span></Form.Label>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.mobile', { defaultValue: 'Mobile Number' })} <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="tel"
-                                                placeholder={t('delivery.add_partner.mobile_placeholder')}
+                                                placeholder={t('delivery.add_partner.mobile_placeholder', { defaultValue: '10-digit number' })}
                                                 name="phone"
                                                 value={formData.phone}
-                                                onChange={handleChange}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    setFormData({ ...formData, phone: val });
+                                                }}
                                                 required
+                                                pattern="^[6-9]\d{9}$"
+                                                title="Enter a valid 10-digit Indian mobile number starting with 6-9"
+                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
                                             />
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('delivery.add_partner.email')}</Form.Label>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.email', { defaultValue: 'Email Address' })} <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="email"
-                                                placeholder={t('delivery.add_partner.email_placeholder')}
+                                                placeholder={t('delivery.add_partner.email_placeholder', { defaultValue: 'rider@sathigro.com' })}
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleChange}
+                                                required
+                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
                                             />
                                         </Form.Group>
                                     </Col>
                                     <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('delivery.add_partner.profile_photo')}</Form.Label>
+                                        <div className="p-4 bg-primary bg-opacity-5 rounded-3xl border border-primary border-opacity-10 mt-2">
+                                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                                <div>
+                                                    <h6 className="fw-black mb-1 text-primary small uppercase tracking-wider">Login Credentials</h6>
+                                                    <p className="text-muted x-small mb-0 italic">Generated for first-time profile creation</p>
+                                                </div>
+                                                <Button 
+                                                    variant="primary" 
+                                                    size="sm" 
+                                                    onClick={handleGeneratePassword}
+                                                    className="rounded-pill px-3 py-1.5 text-[10px] fw-black uppercase tracking-widest border-0"
+                                                >
+                                                    {formData.password ? 'Regenerate' : 'Create Password'}
+                                                </Button>
+                                            </div>
+                                            {formData.password && (
+                                                <div className="d-flex align-items-center justify-content-between bg-white p-3 rounded-2xl border shadow-sm">
+                                                    <code className="text-primary fw-black text-md tracking-wider">{formData.password}</code>
+                                                    <span className="text-success x-small fw-bold uppercase tracking-tight">Ready for login</span>
+                                                </div>
+                                            )}
+                                            {!formData.password && (
+                                                <p className="text-muted text-center py-2 x-small opacity-50 mb-0 font-bold">Standard OTP-only login will be enabled if no password is set</p>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col md={12}>
+                                        <Form.Group className="mt-2">
+                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.profile_photo', { defaultValue: 'Verification Photo' })}</Form.Label>
                                             <Form.Control
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleImageChange}
+                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-bold text-xs"
                                             />
-                                            <Form.Text className="text-muted">{t('delivery.add_partner.profile_photo_help')}</Form.Text>
+                                            <Form.Text className="text-muted x-small italic mt-2 opacity-75">{t('delivery.add_partner.profile_photo_help', { defaultValue: 'Clear face photo for app profile.' })}</Form.Text>
                                         </Form.Group>
                                     </Col>
                                 </Row>
 
-                                <h6 className="fw-bold mt-4 mb-3 text-primary border-bottom pb-2">{t('delivery.add_partner.logistics_profile')}</h6>
-                                <Row>
+                                <h6 className="fw-black mt-5 mb-4 text-primary border-bottom pb-2 uppercase tracking-widest text-xs opacity-75">{t('delivery.add_partner.logistics_profile', { defaultValue: 'Resource Mapping' })}</h6>
+                                <Row className="g-4">
                                     <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('delivery.add_partner.vehicle_type')}</Form.Label>
-                                            <Form.Select name="vehicleType" value={formData.vehicleType} onChange={handleChange}>
-                                                <option value="Bike">{t('delivery.add_partner.vehicle_types.bike')}</option>
-                                                <option value="EV">{t('delivery.add_partner.vehicle_types.ev')}</option>
-                                                <option value="Cycle">{t('delivery.add_partner.vehicle_types.cycle')}</option>
-                                                <option value="Other">{t('delivery.add_partner.vehicle_types.other')}</option>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.vehicle_type', { defaultValue: 'Vehicle Type' })}</Form.Label>
+                                            <Form.Select 
+                                                name="vehicleType" 
+                                                value={formData.vehicleType} 
+                                                onChange={handleChange}
+                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm cursor-pointer"
+                                            >
+                                                <option value="Bike">{t('delivery.add_partner.vehicle_types.bike', { defaultValue: 'Motorcycle / Bike' })}</option>
+                                                <option value="EV">{t('delivery.add_partner.vehicle_types.ev', { defaultValue: 'Electric Vehicle (EV)' })}</option>
+                                                <option value="Cycle">{t('delivery.add_partner.vehicle_types.cycle', { defaultValue: 'Bicycle / Cycle' })}</option>
+                                                <option value="Other">{t('delivery.add_partner.vehicle_types.other', { defaultValue: 'Other Medium' })}</option>
                                             </Form.Select>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('delivery.add_partner.license_plate')}</Form.Label>
+                                        <Form.Group>
+                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.license_plate', { defaultValue: 'Vehicle Registration No.' })}</Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder={t('delivery.add_partner.license_plate_placeholder')}
+                                                placeholder={t('delivery.add_partner.license_plate_placeholder', { defaultValue: 'e.g. MP09AB1234' })}
                                                 name="vehicleNumber"
                                                 value={formData.vehicleNumber}
-                                                onChange={handleChange}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                                                    setFormData({ ...formData, vehicleNumber: val });
+                                                }}
+                                                pattern="^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$"
+                                                title="Enter a valid vehicle number (e.g. MP09AB1234)"
+                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
                                             />
                                         </Form.Group>
                                     </Col>
                                 </Row>
-
-                                <Button
-                                    variant="primary"
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-100 d-flex align-items-center justify-content-center gap-2 py-3 mt-4 fw-bold shadow-sm"
-                                >
-                                    {loading ? <Spinner size="sm" /> : <Save size={18} />}
-                                    {t('delivery.add_partner.create_btn')}
-                                </Button>
                             </Form>
                         </Card.Body>
                     </Card>

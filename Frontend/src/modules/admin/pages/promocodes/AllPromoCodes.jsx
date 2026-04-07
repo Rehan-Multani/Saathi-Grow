@@ -109,6 +109,30 @@ const AllPromoCodes = () => {
         });
     };
 
+    const getStatusBadge = (p) => {
+        const now = new Date();
+        const validUntil = new Date(p.validUntil);
+        const validFrom = new Date(p.validFrom);
+
+        if (!p.isActive) {
+            return <Badge bg="secondary" className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">Inactive</Badge>;
+        }
+
+        if (now < validFrom) {
+            return <Badge bg="info" className="bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill fw-normal px-3 py-1.5 shadow-sm">Upcoming</Badge>;
+        }
+
+        if (now > validUntil) {
+            return <Badge bg="danger" className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">Expired</Badge>;
+        }
+
+        if (p.usageLimitTotal > 0 && p.usedCount >= p.usageLimitTotal) {
+            return <Badge bg="dark" className="bg-opacity-75 rounded-pill fw-normal px-3 py-1.5 shadow-sm">Limit Reached</Badge>;
+        }
+
+        return <Badge bg="success" className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">Active</Badge>;
+    };
+
     return (
         <div className="p-3 p-md-4">
             <Card className="border-0 shadow-sm mb-4">
@@ -186,16 +210,9 @@ const AllPromoCodes = () => {
                                             </Badge>
                                         </td>
                                         <td className="text-center text-secondary small fw-bold">₹{p.minOrderValue}</td>
-                                        <td className="text-center">
-                                            <Badge bg={p.isActive ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">
-                                                {p.isActive ? 'Active' : 'Inactive'}
-                                            </Badge>
-                                            {p.validUntil && new Date(p.validUntil) < new Date() && (
-                                                <Badge bg="danger" className="ms-1 rounded-pill fw-normal px-2 py-1 shadow-sm" style={{fontSize: '10px'}}>
-                                                    Expired
-                                                </Badge>
-                                            )}
-                                        </td>
+                                         <td className="text-center">
+                                             {getStatusBadge(p)}
+                                         </td>
                                         <td className="text-end pe-4">
                                             <div className="d-flex justify-content-end gap-2">
                                                 <Button

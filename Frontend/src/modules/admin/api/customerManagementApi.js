@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 const API_URL = `${API_BASE_URL}/admin/users`;
 const buildQuery = (params = {}) => {
@@ -83,5 +83,33 @@ export const deleteCustomer = async (token, id) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to delete customer');
+  return data;
+};
+
+export const sendEmailToCustomer = async (token, id, payload) => {
+  const response = await fetch(`${API_URL}/${id}/email`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to send email');
+  return data;
+};
+
+export const sendMessageToCustomer = async (token, id, payload) => {
+  const response = await fetch(`${API_URL}/${id}/message`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to send message');
   return data;
 };

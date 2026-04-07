@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+﻿import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Admin from '../models/Admin.js';
 import Vendor from '../models/Vendor.js';
@@ -18,12 +18,6 @@ export const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id);
       if (!req.user) return res.status(401).json({ message: 'User no longer exists' });
-      
-      // Strict Block Check
-      if (req.user.isActive === false) {
-        return res.status(403).json({ message: 'Account is deactivated', isBlocked: true });
-      }
-      
       next();
     } catch (error) {
       res.status(401).json({ message: 'Not authorized, token failed' });
@@ -266,3 +260,4 @@ export const protectAny = async (req, res, next) => {
   }
   if (!token) return res.status(401).json({ message: 'Authentication required' });
 };
+

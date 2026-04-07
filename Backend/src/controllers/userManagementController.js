@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import Order from '../models/Order.js';
+import Notification from '../models/Notification.js';
 import { cloudinary } from '../config/cloudinary.js';
 import { sendPushNotification } from '../services/notificationService.js';
 import { sendSystemNotificationEmail } from '../services/emailService.js';
@@ -205,5 +206,57 @@ export const deleteUser = async (req, res) => {
     res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting user' });
+  }
+};
+
+// @desc    Send custom email to user
+// @route   POST /api/admin/users/:id/email
+// @access  Private (Admin/Manager)
+export const sendEmailToUser = async (req, res) => {
+  try {
+    const { subject, message } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user.email) return res.status(400).json({ message: 'User does not have an email address' });
+
+    await sendSystemNotificationEmail(
+      user.email,
+      subject,
+      'Admin Message 🏮',
+      message
+    );
+
+    res.json({ success: true, message: 'Email sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Send custom message (Push + In-app) to user
+// @route   POST /api/admin/users/:id/message
+// @access  Private (Admin/Manager)
+export const sendMessageToUser = async (req, res) => {
+  try {
+    const { title, body, data = {} } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // 1. Save In-app Notification
+    await Notification.create({
+      recipient: user._id,
+      recipientModel: 'User',
+      title,
+      body,
+      data,
+      sentBy: req.admin._id,
+      type: 'admin_message'
+    });
+
+    // 2. Send Push Notification
+    await sendPushNotification(user._id, 'User', { title, body }, data);
+
+    res.json({ success: true, message: 'Message sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

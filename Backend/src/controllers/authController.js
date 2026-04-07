@@ -27,6 +27,13 @@ export const requestOTP = async (req, res) => {
       return res.status(404).json({ message: 'Account not found. Please register first.', requiresRegistration: true });
     }
 
+    // SECURITY SHIELD: Prevent blocked users from requesting OTP
+    if (user && user.isActive === false) {
+        return res.status(403).json({ 
+            message: 'Your account has been deactivated. Please contact support to re-activate your account.' 
+        });
+    }
+
     if (type === 'register' && user) {
       return res.status(409).json({ message: 'User already exists with this phone number. Please login instead.', requiresLogin: true });
     }

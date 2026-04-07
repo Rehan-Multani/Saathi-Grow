@@ -108,7 +108,8 @@ export const sendWelcomeEmail = async (toEmail, name, role, password = null) => 
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
           <h2 style="color: #6366f1;">Welcome, ${name}!</h2>
           <p>We are excited to have you onboard as a <strong>${role}</strong> at SaathiGro.</p>
-          ${password ? `<p>Your temporary password is: <strong>${password}</strong><br>Please change it after your first login.</p>` : ''}
+          ${password && !password.includes('OTP') ? `<p>Your temporary password is: <strong>${password}</strong><br>Please change it after your first login.</p>` : ''}
+          ${role === 'Rider' || role === 'Delivery Partner' ? `<p style="padding: 15px; background: #f0f7ff; border-radius: 12px; color: #0369a1; border: 1px solid #bae6fd; font-size: 13px;"><strong>Logistics Note:</strong> You can quickly login to the Delivery App using your registered phone number and a secure 4-digit OTP sent to your mobile.</p>` : ''}
           <p>You can now access your portal and start managing your operations.</p>
           <div style="margin-top: 30px; text-align: center;">
             <a href="${process.env.BASE_URL || '#'}" style="background-color: #6366f1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Portal</a>

@@ -33,35 +33,35 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered className="delivery-partner-edit-modal">
-            <Modal.Header closeButton className="border-0 pb-0 px-4">
-                <Modal.Title className="fw-bold d-flex align-items-center gap-2">
-                    <User className="text-primary" size={24} /> Edit Delivery Partner
+        <Modal show={show} onHide={onHide} centered className="delivery-partner-edit-modal border-0" contentClassName="rounded-3xl border-0 shadow-2xl overflow-hidden">
+            <Modal.Header closeButton className="border-0 pb-0 px-4 pt-4">
+                <Modal.Title className="fw-black d-flex align-items-center gap-3 uppercase tracking-tight text-primary">
+                    <User className="text-primary" size={28} /> Edit Partner Profile
                 </Modal.Title>
             </Modal.Header>
-            <Modal.Body className="pt-4 px-4">
+            <Modal.Body className="pt-4 px-4 pb-4">
                 <Form onSubmit={handleSubmit}>
-                    <div className="mb-3">
-                        <Form.Label className="small fw-bold text-muted uppercase">Partner Name</Form.Label>
+                    <div className="mb-4">
+                        <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Partner Name / Full Legal Name</Form.Label>
                         <Form.Control
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="bg-light border-0 py-2 shadow-none"
-                            placeholder="e.g. FastTrack Logistics"
+                            className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm"
+                            placeholder="e.g. Rahul Sharma"
                             required
                         />
                     </div>
 
-                    <Row className="g-3 mb-3">
+                    <Row className="g-4 mb-4">
                         <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Vehicle</Form.Label>
+                            <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Vehicle Type</Form.Label>
                             <Form.Select
                                 name="vehicleType"
                                 value={formData.vehicleType}
                                 onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
+                                className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm cursor-not-allowed opacity-75"
                                 disabled
                             >
                                 <option value="Bike">Motorcycle</option>
@@ -70,41 +70,39 @@ const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
                             </Form.Select>
                         </Col>
                         <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Phone Number</Form.Label>
+                            <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Phone Number</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
-                                placeholder="+1 555-0000"
+                                className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm"
+                                placeholder="+91 00000 00000"
                                 required
                             />
                         </Col>
                     </Row>
 
-                    <Row className="g-3 mb-3">
-                        <Col md={12}>
-                            <Form.Label className="small fw-bold text-muted uppercase">Authorization Status</Form.Label>
-                            <Form.Select
-                                name="authStatus"
-                                value={formData.authStatus}
-                                onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
-                            >
-                                <option value="Active">Active / Approved</option>
-                                <option value="Suspended">Suspended / Blocked</option>
-                                <option value="Unverified">Unverified (Waiting)</option>
-                            </Form.Select>
-                        </Col>
-                    </Row>
+                    <Col md={12} className="mb-4">
+                        <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Authorization Status</Form.Label>
+                        <Form.Select
+                            name="authStatus"
+                            value={formData.authStatus}
+                            onChange={handleChange}
+                            className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm cursor-pointer"
+                        >
+                            <option value="Active">Active / Approved</option>
+                            <option value="Suspended">Suspended / Blocked</option>
+                            <option value="Unverified">Unverified (Waiting)</option>
+                        </Form.Select>
+                    </Col>
 
-                    <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium border shadow-none">
+                    <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-bold uppercase tracking-wider text-xs border-0 bg-gray-100 rounded-xl">
                             Cancel
                         </Button>
-                        <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm">
-                            <Save size={18} /> Save Changes
+                        <Button variant="primary" type="submit" className="px-4 py-2 fw-black d-flex align-items-center gap-2 shadow-lg shadow-blue-500/20 rounded-xl uppercase tracking-wider text-xs border-0">
+                            <Save size={18} /> Update Data
                         </Button>
                     </div>
                 </Form>

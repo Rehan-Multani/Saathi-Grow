@@ -1,0 +1,70 @@
+﻿import React, { lazy, Suspense } from 'react';
+import { Routes, Route, Outlet, useLocation, matchPath, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getOccasionConfig } from '../data/occasions';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
+import MobileRecommendations from '../components/layout/MobileRecommendations';
+import CartSidebar from '../components/cart/CartSidebar';
+import ScrollToTop from '../components/layout/ScrollToTop';
+import LocationModal from '../components/location/LocationModal';
+import FloatingCartStrip from '../components/cart/FloatingCartStrip';
+import MobileFooter from '../components/layout/MobileFooter';
+import SearchOverlay from '../components/search/SearchOverlay';
+import { useTheme } from '../context/ThemeContext';
+import { ShopProvider, useShop } from '../context/ShopContext';
+import { useStore } from '../context/StoreContext';
+import StoreSelector from '../components/location/StoreSelector';
+import PullToRefresh from '../../../common/components/PullToRefresh';
+import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
+import { useState } from 'react';
+import OfferTicker from '../components/layout/OfferTicker';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Standard Imports for Order Flow (to prevent lazy loading white screen issues)
+import OrdersPage from '../pages/profile/OrdersPage';
+import OrderDetailsPage from '../pages/profile/OrderDetailsPage';
+import CancelOrderPage from '../pages/profile/CancelOrderPage';
+import ReturnOrderPage from '../pages/profile/ReturnOrderPage';
+import RaiseComplaintPage from '../pages/profile/RaiseComplaintPage';
+import SupportChatPage from '../pages/profile/SupportChatPage';
+import OrderTrackingPage from '../pages/profile/OrderTrackingPage';
+const MyComplaintsPage = lazy(() => import('../pages/profile/MyComplaintsPage'));
+
+// Lazy Load Other Pages (Non-critical or large pages)
+const LoginModal = lazy(() => import('../components/auth/LoginModal'));
+const HomePage = lazy(() => import('../pages/home/HomePage'));
+const OccasionPage = lazy(() => import('../pages/home/OccasionPage'));
+const LowestPricesPage = lazy(() => import('../pages/home/LowestPricesPage'));
+const CampaignProductsPage = lazy(() => import('../pages/home/CampaignProductsPage'));
+const CategoryProductsPage = lazy(() => import('../pages/categories/CategoryPage'));
+const CategoryLandingPage = lazy(() => import('../pages/categories/CategoryLandingPage'));
+const ProductDetailsPage = lazy(() => import('../pages/product/ProductDetailsPage'));
+const CartPage = lazy(() => import('../pages/cart/CartPage'));
+const CheckoutPage = lazy(() => import('../pages/checkout/CheckoutPage'));
+const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'));
+const AddressPage = lazy(() => import('../pages/location/AddressPage'));
+const NotificationsPage = lazy(() => import('../pages/support/NotificationsPage'));
+const HelpPage = lazy(() => import('../pages/support/HelpPage'));
+const SettingsPage = lazy(() => import('../pages/support/SettingsPage'));
+const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
+const SavedAddressesPage = lazy(() => import('../pages/profile/SavedAddressesPage'));
+const AddressFormPage = lazy(() => import('../pages/profile/AddressFormPage'));
+const WalletPage = lazy(() => import('../pages/profile/WalletPage'));
+const AddMoneyPage = lazy(() => import('../pages/profile/AddMoneyPage'));
+const WishlistPage = lazy(() => import('../pages/profile/WishlistPage'));
+const OrderSuccessPage = lazy(() => import('../pages/checkout/OrderSuccessPage'));
+const OfferPage = lazy(() => import('../pages/offer/OfferPage'));
+const LogoutConfirmationPage = lazy(() => import('../pages/auth/LogoutConfirmationPage'));
+const LegalPage = lazy(() => import('../pages/support/LegalPage'));
+const ShopListingPage = lazy(() => import('../pages/shop/ShopListingPage'));
+
+const LoadingFallback = () => (
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-[var(--saathi-green)] rounded-full animate-spin"></div>
+    </div>
+);
+
+const UserLayout = () => {
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
