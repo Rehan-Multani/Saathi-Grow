@@ -129,7 +129,7 @@ const AllVendors = () => {
                 </Card.Body>
             </Card>
 
-            <Card className="border-0 shadow-sm overflow-hidden mt-2">
+            <Card className="border-0 shadow-sm mt-2">
                 <Card.Body className="p-0">
                     {loading ? (
                         <div className="text-center py-5">

@@ -19,6 +19,15 @@ export const createPromoCode = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Start date must be before expiry date' });
         }
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (new Date(validFrom) < today) {
+            return res.status(400).json({ success: false, message: 'Start date cannot be in the past' });
+        }
+        if (new Date(validUntil) <= today) {
+            return res.status(400).json({ success: false, message: 'Expiry date must be in the future' });
+        }
+
         if (discountValue < 0 || minOrderValue < 0 || usageLimitTotal < 0 || usageLimitPerUser < 0) {
             return res.status(400).json({ success: false, message: 'Negative values are not allowed for discount, limits or order value' });
         }

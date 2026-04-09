@@ -11,31 +11,53 @@ import { API_BASE_URL } from '../../config/apiConfig';
 const StaffLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [showNotificationMenu, setShowNotificationMenu] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const [unreadCount, setUnreadCount] = useState(0);
+    const [recentNotifications, setRecentNotifications] = useState([]);
     const { staffUser, staffLogout } = useStaffAuth();
     const staffToken = staffUser?.token;
 
-    const fetchUnreadCount = async () => {
+    const fetchNotifications = async () => {
         try {
             if (!staffToken) return;
-            const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+            // Fetch latest 3
+            const res = await axios.get(`${API_BASE_URL}/notifications/my?limit=3`, {
                 headers: { Authorization: `Bearer ${staffToken}` }
             });
             if (res.data.success) {
-                setUnreadCount(res.data.count);
+                setRecentNotifications(res.data.notifications);
+            }
+            
+            // Fetch unread count
+            const countRes = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
+                headers: { Authorization: `Bearer ${staffToken}` }
+            });
+            if (countRes.data.success) {
+                setUnreadCount(countRes.data.count);
             }
         } catch (error) {
-            console.error('Error fetching unread count:', error);
+            console.error('Error fetching notifications:', error);
         }
     };
 
     useEffect(() => {
-        fetchUnreadCount();
-        const interval = setInterval(fetchUnreadCount, 30000);
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 30000);
         return () => clearInterval(interval);
     }, [staffToken]);
+
+    const handleMarkAsRead = async (id) => {
+        try {
+            await axios.put(`${API_BASE_URL}/notifications/read/${id}`, {}, {
+                headers: { Authorization: `Bearer ${staffToken}` }
+            });
+            fetchNotifications();
+        } catch (error) {
+            console.error('Error marking as read:', error);
+        }
+    };
 
     // Helper to find current page title
     const getCurrentTitle = () => {
@@ -46,7 +68,7 @@ const StaffLayout = () => {
                 if (subItem) return subItem.title;
             }
         }
-        return 'Dashboard'; // Default fallback
+        return 'Dashboard';
     };
 
     return (
@@ -71,17 +93,58 @@ const StaffLayout = () => {
 
                     <div className="flex items-center gap-4">
 
-                        <button 
-                            onClick={() => navigate('/staff/notifications')}
-                            className="relative p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
-                        >
-                            <Bell size={20} className="text-gray-600" />
-                            {unreadCount > 0 && (
-                                <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
-                                    {unreadCount > 9 ? '9+' : unreadCount}
-                                </span>
+                        <div className="relative">
+                            <button 
+                                onClick={() => setShowNotificationMenu(!showNotificationMenu)}
+                                className="relative p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+                            >
+                                <Bell size={20} className="text-gray-600" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Notifications Dropdown */}
+                            {showNotificationMenu && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowNotificationMenu(false)}></div>
+                                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="p-4 border-b border-gray-50 flex items-center justify-between">
+                                            <h6 className="font-black text-gray-800 text-sm uppercase tracking-wider mb-0">Notifications</h6>
+                                            {unreadCount > 0 && <span className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">{unreadCount} New</span>}
+                                        </div>
+                                        <div className="max-h-96 overflow-y-auto">
+                                            {recentNotifications.length > 0 ? (
+                                                recentNotifications.map(notif => (
+                                                    <div 
+                                                        key={notif._id} 
+                                                        onClick={() => { handleMarkAsRead(notif._id); setShowNotificationMenu(false); }}
+                                                        className={`p-4 border-b border-gray-50 hover:bg-slate-50 transition-colors cursor-pointer relative ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
+                                                    >
+                                                        {!notif.isRead && <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-500"></div>}
+                                                        <p className="text-xs font-black text-gray-800 mb-0.5 line-clamp-1">{notif.title}</p>
+                                                        <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">{notif.body}</p>
+                                                        <p className="text-[9px] text-gray-400 font-bold mt-1.5 tracking-tight uppercase">{new Date(notif.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="p-8 text-center text-gray-400">
+                                                    <p className="text-xs font-bold uppercase tracking-widest">Inbox Zero</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button 
+                                            onClick={() => { navigate('/staff/notifications'); setShowNotificationMenu(false); }}
+                                            className="w-full p-3 bg-slate-50 text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-100 transition-colors border-t border-gray-100"
+                                        >
+                                            View All Notifications
+                                        </button>
+                                    </div>
+                                </>
                             )}
-                        </button>
+                        </div>
 
                         <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
@@ -103,13 +166,9 @@ const StaffLayout = () => {
                                 </div>
                             </button>
 
-                            {/* Dropdown Menu */}
                             {showProfileMenu && (
                                 <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowProfileMenu(false)}
-                                    ></div>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                                         <div className="px-4 py-2 border-b border-gray-50 mb-1">
                                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
@@ -120,9 +179,6 @@ const StaffLayout = () => {
                                                 className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all"
                                             >
                                                 <User size={16} className="mr-2 text-slate-400" /> Profile Settings
-                                            </button>
-                                            <button className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all">
-                                                <Settings size={16} className="mr-2 text-slate-400" /> System Settings
                                             </button>
                                         </div>
                                         <div className="my-1 border-t border-gray-50"></div>

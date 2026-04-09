@@ -150,9 +150,14 @@ const AddVendor = () => {
                                                 placeholder="e.g. John Doe"
                                                 name="ownerName"
                                                 value={formData.ownerName}
-                                                onChange={handleChange}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                    setFormData({ ...formData, ownerName: val });
+                                                }}
+                                                pattern="^[a-zA-Z\s]+$"
                                                 required
                                             />
+                                            <Form.Control.Feedback type="invalid">Owner name should only contain alphabets.</Form.Control.Feedback>
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -176,12 +181,18 @@ const AddVendor = () => {
                                             <Form.Label className="small fw-bold">Phone Number <span className="text-danger">*</span></Form.Label>
                                             <Form.Control
                                                 type="tel"
-                                                placeholder="+91 98765 43210"
+                                                placeholder="9876543210"
                                                 name="phone"
                                                 value={formData.phone}
-                                                onChange={handleChange}
+                                                maxLength={10}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, '');
+                                                    setFormData({ ...formData, phone: val });
+                                                }}
+                                                pattern="^[6-9]\d{9}$"
                                                 required
                                             />
+                                            <Form.Control.Feedback type="invalid">Enter a valid 10-digit mobile number.</Form.Control.Feedback>
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -213,10 +224,14 @@ const AddVendor = () => {
                                                     type="text"
                                                     placeholder="City"
                                                     value={formData.address.city}
-                                                    onChange={(e) => setFormData({
-                                                        ...formData,
-                                                        address: { ...formData.address, city: e.target.value }
-                                                    })}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                        setFormData({
+                                                            ...formData,
+                                                            address: { ...formData.address, city: val }
+                                                        });
+                                                    }}
+                                                    pattern="^[a-zA-Z\s]+$"
                                                     required
                                                 />
                                             </Col>
@@ -226,10 +241,14 @@ const AddVendor = () => {
                                                     type="text"
                                                     placeholder="State"
                                                     value={formData.address.state}
-                                                    onChange={(e) => setFormData({
-                                                        ...formData,
-                                                        address: { ...formData.address, state: e.target.value }
-                                                    })}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                        setFormData({
+                                                            ...formData,
+                                                            address: { ...formData.address, state: val }
+                                                        });
+                                                    }}
+                                                    pattern="^[a-zA-Z\s]+$"
                                                     required
                                                 />
                                             </Col>
@@ -239,10 +258,15 @@ const AddVendor = () => {
                                                     type="text"
                                                     placeholder="000000"
                                                     value={formData.address.zipCode}
-                                                    onChange={(e) => setFormData({
-                                                        ...formData,
-                                                        address: { ...formData.address, zipCode: e.target.value }
-                                                    })}
+                                                    maxLength={6}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, '');
+                                                        setFormData({
+                                                            ...formData,
+                                                            address: { ...formData.address, zipCode: val }
+                                                        });
+                                                    }}
+                                                    pattern="^\d{6}$"
                                                     required
                                                 />
                                             </Col>

@@ -309,7 +309,8 @@ return (
                                                 variant="primary"
                                                 size="sm"
                                                 className="btn-icon-soft"
-                                                onClick={() => navigate('/admin/stock/adjustments/add', { state: { productId: item._id, sku: item.sku } })}
+                                                onClick={() => navigate('/admin/stock/adjustments/add', { state: { productId: item._id, sku: item.sku, branchId: item.branchId } })}
+                                                disabled={item.isVendor}
                                             >
                                                 <RefreshCw size={14} />
                                             </Button>

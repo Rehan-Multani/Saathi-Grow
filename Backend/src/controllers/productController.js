@@ -1504,29 +1504,47 @@ export const getInventoryStats = async (req, res) => {
 
     const stats = statsResult[0] || { totalStock: 0, inventoryValue: 0, lowStockCount: 0, outOfStockCount: 0 };
 
-    // 2. Category Distribution
+    // 2. Category Distribution (Branch + Vendor)
     const categoryDistribution = await Product.aggregate([
-      { $match: matchQuery },
-      { $unwind: "$branchStocks" },
+      { $match: { status: { $ne: 'Draft' } } },
       {
-        $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
-          ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) } 
-          : {}
+          $facet: {
+              branchDist: [
+                  { $match: matchQuery },
+                  { $unwind: "$branchStocks" },
+                  {
+                      $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
+                          ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
+                          : {}
+                  },
+                  { $group: { _id: "$category", stock: { $sum: "$branchStocks.stock" } } }
+              ],
+              vendorDist: [
+                  { 
+                    $match: (targetBranchId && targetBranchId !== 'all') 
+                      ? { _id: null } 
+                      : { vendor: { $exists: true, $ne: null } } 
+                  },
+                  { $group: { _id: "$category", stock: { $sum: "$stock" } } }
+              ]
+          }
       },
       {
-        $group: {
-          _id: "$category",
-          stock: { $sum: "$branchStocks.stock" }
-        }
+          $project: {
+              combined: { $concatArrays: ["$branchDist", "$vendorDist"] }
+          }
       },
+      { $unwind: "$combined" },
+      { $group: { _id: "$combined._id", stock: { $sum: "$combined.stock" } } },
       { $sort: { stock: -1 } },
       { $limit: 10 }
     ]);
 
     // 3. Branch Health (If Super Admin)
     let branchHealth = [];
-    if (!targetBranchId) {
+    if (!targetBranchId || targetBranchId === 'all') {
       branchHealth = await Product.aggregate([
+        { $match: { status: { $ne: 'Draft' } } },
         { $unwind: "$branchStocks" },
         {
           $group: {
@@ -1537,7 +1555,7 @@ export const getInventoryStats = async (req, res) => {
                 $cond: [
                   { $and: [
                     { $gt: ["$branchStocks.stock", 0] },
-                    { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
+                    { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }
                   ]}, 1, 0] 
               }
             },
@@ -1580,41 +1598,88 @@ export const getInventoryStats = async (req, res) => {
       ]);
     }
 
-    // 4. Critical Items (Top 5 Low Stock)
+    // 4. Critical Items (Top 10 Low Stock - Branch + Vendor)
     const criticalItems = await Product.aggregate([
-        { $match: matchQuery },
-        { $unwind: "$branchStocks" },
+        { $match: { status: { $ne: 'Draft' } } },
         {
-          $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
-            ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) } 
-            : {}
-        },
-        { 
-          $match: { 
-            $expr: { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] } 
-          } 
-        }, 
-        { $sort: { "branchStocks.stock": 1 } },
-        { $limit: 5 },
-        {
-            $lookup: {
-                from: 'branches',
-                localField: 'branchStocks.branchId',
-                foreignField: '_id',
-                as: 'branch'
+            $facet: {
+                branchCritical: [
+                    { $match: matchQuery },
+                    { $unwind: "$branchStocks" },
+                    {
+                        $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
+                            ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
+                            : {}
+                    },
+                    {
+                        $match: {
+                            $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'branches',
+                            localField: 'branchStocks.branchId',
+                            foreignField: '_id',
+                            as: 'branch'
+                        }
+                    },
+                    { $unwind: "$branch" },
+                    {
+                        $project: {
+                            name: 1,
+                            sku: 1,
+                            image: 1,
+                            stock: "$branchStocks.stock",
+                            threshold: { $ifNull: ["$branchStocks.lowStockThreshold", 10] },
+                            branchName: "$branch.name",
+                            isVendor: { $literal: false }
+                        }
+                    }
+                ],
+                vendorCritical: [
+                    { 
+                      $match: (targetBranchId && targetBranchId !== 'all' && targetBranchId) 
+                        ? { _id: null } 
+                        : { vendor: { $exists: true, $ne: null } } 
+                    },
+                    {
+                        $match: {
+                            $expr: { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] }
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'vendors',
+                            localField: 'vendor',
+                            foreignField: '_id',
+                            as: 'vendorInfo'
+                        }
+                    },
+                    { $unwind: "$vendorInfo" },
+                    {
+                        $project: {
+                            name: 1,
+                            sku: 1,
+                            image: 1,
+                            stock: "$stock",
+                            threshold: { $ifNull: ["$lowStockThreshold", 10] },
+                            branchName: "$vendorInfo.storeName",
+                            isVendor: { $literal: true }
+                        }
+                    }
+                ]
             }
         },
-        { $unwind: "$branch" },
         {
             $project: {
-                name: 1,
-                sku: 1,
-                image: 1,
-                stock: "$branchStocks.stock",
-                threshold: "$branchStocks.lowStockThreshold",
-                branchName: "$branch.name"
+                combined: { $concatArrays: ["$branchCritical", "$vendorCritical"] }
             }
-        }
+        },
+        { $unwind: "$combined" },
+        { $replaceRoot: { newRoot: "$combined" } },
+        { $sort: { stock: 1, name: 1 } },
+        { $limit: 10 }
     ]);
 
     res.json({
@@ -1803,13 +1868,16 @@ export const getLowStockAlerts = async (req, res) => {
             { 
               $match: { 
                 ...baseMatch, 
-                vendor: { $exists: false } 
+                $or: [
+                  { vendor: { $exists: false } },
+                  { vendor: null }
+                ]
               } 
             },
             { $unwind: "$branchStocks" },
             { 
               $match: { 
-                $expr: { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] } 
+                $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] } 
               } 
             },
             { 
@@ -1846,7 +1914,7 @@ export const getLowStockAlerts = async (req, res) => {
             },
             { 
               $match: { 
-                $expr: { $lte: ["$stock", "$lowStockThreshold"] } 
+                $expr: { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] } 
               } 
             },
             { 

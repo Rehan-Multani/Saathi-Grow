@@ -46,6 +46,14 @@ export const createOfferDeal = async (req, res) => {
       }
     }
 
+    if (expiryDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(expiryDate) <= today) {
+        return res.status(400).json({ message: 'Expiry date must be in the future' });
+      }
+    }
+
     if (parsedProducts && parsedProducts.length > 0) {
       for (const p of parsedProducts) {
         if (p.basePrice !== undefined) {
@@ -126,6 +134,15 @@ export const updateOfferDeal = async (req, res) => {
 
     offer.order = order !== undefined ? order : offer.order;
     offer.expiryDate = expiryDate || offer.expiryDate;
+
+    if (expiryDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(expiryDate) <= today) {
+        return res.status(400).json({ message: 'Expiry date must be in the future' });
+      }
+    }
+    
     offer.displayLocation = displayLocation || offer.displayLocation;
     offer.discountPercentage = discountPercentage !== undefined ? discountPercentage : offer.discountPercentage;
     offer.animationType = animationType !== undefined ? animationType : offer.animationType;

@@ -131,7 +131,8 @@ const DeliveryPartners = () => {
                                 <th className="ps-4 border-0 py-3 text-start">{t('delivery.partners.table.name')}</th>
                                 <th className="border-0 py-3">{t('delivery.partners.table.type')}</th>
                                 <th className="border-0 py-3">{t('delivery.partners.table.contact')}</th>
-                                <th className="border-0 py-3">{t('delivery.partners.table.capacity')}</th>
+                                <th className="border-0 py-3">{t('delivery.partners.table.duty')}</th>
+                                <th className="border-0 py-3">{t('delivery.partners.table.assignment')}</th>
                                 <th className="border-0 py-3">{t('delivery.partners.table.status')}</th>
                                 <th className="border-0 py-3 text-end pe-4">{t('delivery.partners.table.actions')}</th>
                             </tr>
@@ -139,7 +140,7 @@ const DeliveryPartners = () => {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-5 text-muted">
+                                    <td colSpan="7" className="text-center py-5 text-muted">
                                         <Spinner animation="border" variant="primary" />
                                         <div className="mt-2">{t('delivery.partners.loading')}</div>
                                     </td>
@@ -168,7 +169,16 @@ const DeliveryPartners = () => {
                                             <Phone size={14} /> {p.phone}
                                         </div>
                                     </td>
-                                    <td className="fw-medium text-capitalize">{p.dutyStatus}</td>
+                                    <td>
+                                        <Badge bg={p.dutyStatus === 'Online' ? 'success' : 'secondary'} className="rounded-pill fw-normal px-2 py-1">
+                                            {p.dutyStatus}
+                                        </Badge>
+                                    </td>
+                                    <td>
+                                        <Badge bg={p.assignmentStatus === 'Free' ? 'info' : 'warning'} text={p.assignmentStatus === 'Free' ? 'white' : 'dark'} className="rounded-pill fw-normal px-2 py-1">
+                                            {p.assignmentStatus}
+                                        </Badge>
+                                    </td>
                                     <td>
                                         <Badge bg={p.authStatus === 'Active' ? 'success' : p.authStatus === 'Suspended' ? 'danger' : 'secondary'} className="rounded-pill fw-normal px-3 py-1 shadow-sm">
                                             {p.authStatus}
@@ -193,7 +203,7 @@ const DeliveryPartners = () => {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-5 text-muted small">
+                                    <td colSpan="7" className="text-center py-5 text-muted small">
                                         {t('delivery.partners.no_partners')}
                                     </td>
                                 </tr>

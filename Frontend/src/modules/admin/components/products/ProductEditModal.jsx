@@ -158,7 +158,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     // Handle Branch Stock change
     const handleBranchStockChange = (branchId, field, value) => {
         setBranchStocks(prev => prev.map(bs =>
-            bs.branchId === branchId ? { ...bs, [field]: Number(value) } : bs
+            bs.branchId === branchId ? { ...bs, [field]: value === '' ? '' : Number(value) } : bs
         ));
     };
 
@@ -410,6 +410,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             type="number"
                                             name="basePrice"
                                             value={formData.basePrice}
+                                            onFocus={(e) => { if (formData.basePrice === 0 || formData.basePrice === "0") setFormData(prev => ({ ...prev, basePrice: "" })) }}
+                                            onBlur={(e) => { if (formData.basePrice === "" || formData.basePrice === null) setFormData(prev => ({ ...prev, basePrice: 0 })) }}
                                             onChange={handleChange}
                                             className="bg-light border-0 py-2"
                                             required
@@ -424,6 +426,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             type="number"
                                             name="mrp"
                                             value={formData.mrp}
+                                            onFocus={(e) => { if (formData.mrp === 0 || formData.mrp === "0") setFormData(prev => ({ ...prev, mrp: "" })) }}
+                                            onBlur={(e) => { if (formData.mrp === "" || formData.mrp === null) setFormData(prev => ({ ...prev, mrp: 0 })) }}
                                             onChange={handleChange}
                                             className="bg-light border-0 py-2"
                                         />
@@ -461,6 +465,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                             type="number"
                                             name="unitValue"
                                             value={formData.unitValue}
+                                            onFocus={(e) => { if (formData.unitValue === 0 || formData.unitValue === "0") setFormData(prev => ({ ...prev, unitValue: "" })) }}
+                                            onBlur={(e) => { if (formData.unitValue === "" || formData.unitValue === null) setFormData(prev => ({ ...prev, unitValue: 1 })) }}
                                             onChange={handleChange}
                                             className="bg-light border-0 py-2 shadow-none"
                                             required
@@ -562,6 +568,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                             type="number"
                                                             name="stock"
                                                             value={formData.stock}
+                                                            onFocus={(e) => { if (formData.stock === 0 || formData.stock === "0") setFormData(prev => ({ ...prev, stock: "" })) }}
+                                                            onBlur={(e) => { if (formData.stock === "" || formData.stock === null) setFormData(prev => ({ ...prev, stock: 0 })) }}
                                                             onChange={handleChange}
                                                             className="bg-white border-purple-100 py-2"
                                                             required
@@ -575,6 +583,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                             type="number"
                                                             name="lowStockThreshold"
                                                             value={formData.lowStockThreshold}
+                                                            onFocus={(e) => { if (formData.lowStockThreshold === 0 || formData.lowStockThreshold === "0") setFormData(prev => ({ ...prev, lowStockThreshold: "" })) }}
+                                                            onBlur={(e) => { if (formData.lowStockThreshold === "" || formData.lowStockThreshold === null) setFormData(prev => ({ ...prev, lowStockThreshold: 10 })) }}
                                                             onChange={handleChange}
                                                             className="bg-white border-purple-100 py-2"
                                                         />
@@ -619,6 +629,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                                             size="sm"
                                                                             type="number"
                                                                             value={branch.stock}
+                                                                            onFocus={(e) => { if (branch.stock === 0 || branch.stock === "0") handleBranchStockChange(branch.branchId, 'stock', '') }}
+                                                                            onBlur={(e) => { if (branch.stock === "" || branch.stock === null) handleBranchStockChange(branch.branchId, 'stock', 0) }}
                                                                             onChange={(e) => handleBranchStockChange(branch.branchId, 'stock', e.target.value)}
                                                                             className="bg-light border-0 shadow-none"
                                                                         />
@@ -631,6 +643,8 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                                             size="sm"
                                                                             type="number"
                                                                             value={branch.lowStockThreshold}
+                                                                            onFocus={(e) => { if (branch.lowStockThreshold === 0 || branch.lowStockThreshold === "0") handleBranchStockChange(branch.branchId, 'lowStockThreshold', '') }}
+                                                                            onBlur={(e) => { if (branch.lowStockThreshold === "" || branch.lowStockThreshold === null) handleBranchStockChange(branch.branchId, 'lowStockThreshold', 10) }}
                                                                             onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
                                                                             className="bg-light border-0 shadow-none"
                                                                         />

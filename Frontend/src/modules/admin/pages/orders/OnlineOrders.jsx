@@ -218,7 +218,7 @@ const OnlineOrders = () => {
                         </div>
 
                         {/* Filter */}
-                        <div className="relative">
+                        <div className="relative z-30">
                             <button
                                 onClick={() => setShowFilterMenu(!showFilterMenu)}
                                 className={`flex items-center justify-center gap-2 px-4 py-2 bg-white border ${activeFiltersCount > 0 ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-700'} rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap`}
@@ -282,7 +282,7 @@ const OnlineOrders = () => {
             </div>
 
             {/* Orders Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col" style={{ minHeight: '400px' }}>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col" style={{ minHeight: '400px' }}>
                 <div className="overflow-x-auto flex-1">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold sticky top-0 z-10">

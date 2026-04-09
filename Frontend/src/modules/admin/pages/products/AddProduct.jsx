@@ -133,7 +133,7 @@ const AddProduct = () => {
     // Handle Branch Stock change
     const handleBranchStockChange = (branchId, field, value) => {
         setBranchStocks(prev => prev.map(bs =>
-            bs.branchId === branchId ? { ...bs, [field]: Number(value) } : bs
+            bs.branchId === branchId ? { ...bs, [field]: value === '' ? '' : Number(value) } : bs
         ));
     };
 
@@ -430,6 +430,8 @@ const AddProduct = () => {
                                                 placeholder={t('products.form.placeholder.price')}
                                                 name="basePrice"
                                                 value={formData.basePrice}
+                                                onFocus={(e) => { if (formData.basePrice === 0 || formData.basePrice === "0" || formData.basePrice === "") setFormData(prev => ({ ...prev, basePrice: "" })) }}
+                                                onBlur={(e) => { if (formData.basePrice === "" || formData.basePrice === null) setFormData(prev => ({ ...prev, basePrice: "" })) }}
                                                 onChange={handleChange}
                                                 required
                                             />
@@ -512,6 +514,8 @@ const AddProduct = () => {
                                                 placeholder={t('products.form.placeholder.unit')}
                                                 name="unitValue"
                                                 value={formData.unitValue}
+                                                onFocus={(e) => { if (formData.unitValue === 0 || formData.unitValue === "0") setFormData(prev => ({ ...prev, unitValue: "" })) }}
+                                                onBlur={(e) => { if (formData.unitValue === "" || formData.unitValue === null) setFormData(prev => ({ ...prev, unitValue: 1 })) }}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
@@ -559,6 +563,8 @@ const AddProduct = () => {
                                                                     placeholder="0"
                                                                     value={branch.stock}
                                                                     min="0"
+                                                                    onFocus={(e) => { if (branch.stock === 0 || branch.stock === "0") handleBranchStockChange(branch.branchId, 'stock', '') }}
+                                                                    onBlur={(e) => { if (branch.stock === "" || branch.stock === null) handleBranchStockChange(branch.branchId, 'stock', 0) }}
                                                                     onChange={(e) => handleBranchStockChange(branch.branchId, 'stock', e.target.value)}
                                                                 />
                                                             </Form.Group>
@@ -571,6 +577,8 @@ const AddProduct = () => {
                                                                     placeholder={t('products.form.placeholder.low_stock')}
                                                                     value={branch.lowStockThreshold}
                                                                     min="0"
+                                                                    onFocus={(e) => { if (branch.lowStockThreshold === 0 || branch.lowStockThreshold === "0") handleBranchStockChange(branch.branchId, 'lowStockThreshold', '') }}
+                                                                    onBlur={(e) => { if (branch.lowStockThreshold === "" || branch.lowStockThreshold === null) handleBranchStockChange(branch.branchId, 'lowStockThreshold', 10) }}
                                                                     onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
                                                                 />
                                                             </Form.Group>
@@ -599,6 +607,8 @@ const AddProduct = () => {
                                                             name="stock"
                                                             value={formData.stock}
                                                             min="0"
+                                                            onFocus={(e) => { if (formData.stock === 0 || formData.stock === "0") setFormData(prev => ({ ...prev, stock: "" })) }}
+                                                            onBlur={(e) => { if (formData.stock === "" || formData.stock === null) setFormData(prev => ({ ...prev, stock: 0 })) }}
                                                             onChange={handleChange}
                                                         />
                                                     </Form.Group>
@@ -612,6 +622,8 @@ const AddProduct = () => {
                                                             name="lowStockThreshold"
                                                             value={formData.lowStockThreshold}
                                                             min="0"
+                                                            onFocus={(e) => { if (formData.lowStockThreshold === 0 || formData.lowStockThreshold === "0") setFormData(prev => ({ ...prev, lowStockThreshold: "" })) }}
+                                                            onBlur={(e) => { if (formData.lowStockThreshold === "" || formData.lowStockThreshold === null) setFormData(prev => ({ ...prev, lowStockThreshold: 10 })) }}
                                                             onChange={handleChange}
                                                         />
                                                     </Form.Group>

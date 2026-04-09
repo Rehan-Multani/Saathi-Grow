@@ -100,19 +100,51 @@ export const sendWelcomeEmail = async (toEmail, name, role, password = null) => 
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
 
+    const isStaff = role === 'Staff' || role === 'Branch Manager' || role === 'Admin' || role === 'Vendor';
     const mailOptions = {
-      from: `"SaathiGro" <${process.env.EMAIL_USER}>`,
+      from: `"SaathiGro Teams" <${process.env.EMAIL_USER}>`,
       to: toEmail,
-      subject: `Welcome to SaathiGro: ${role}`,
+      subject: isStaff ? `System Access Granted: ${role} Portal` : `Welcome to SaathiGro: ${role}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-          <h2 style="color: #6366f1;">Welcome, ${name}!</h2>
-          <p>We are excited to have you onboard as a <strong>${role}</strong> at SaathiGro.</p>
-          ${password && !password.includes('OTP') ? `<p>Your temporary password is: <strong>${password}</strong><br>Please change it after your first login.</p>` : ''}
-          ${role === 'Rider' || role === 'Delivery Partner' ? `<p style="padding: 15px; background: #f0f7ff; border-radius: 12px; color: #0369a1; border: 1px solid #bae6fd; font-size: 13px;"><strong>Logistics Note:</strong> You can quickly login to the Delivery App using your registered phone number and a secure 4-digit OTP sent to your mobile.</p>` : ''}
-          <p>You can now access your portal and start managing your operations.</p>
-          <div style="margin-top: 30px; text-align: center;">
-            <a href="${process.env.BASE_URL || '#'}" style="background-color: #6366f1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Portal</a>
+        <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f0f0f0; padding: 40px; border-radius: 16px; background-color: #ffffff; color: #1a1a1a;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #6366f1; margin: 0; font-size: 28px; letter-spacing: -0.5px;">SaathiGro</h1>
+            <p style="color: #64748b; font-size: 14px; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">Partner Network</p>
+          </div>
+
+          <h2 style="color: #1e293b; font-size: 22px; margin-bottom: 20px; font-weight: 700;">Welcome, ${name}!</h2>
+          <p style="font-size: 16px; line-height: 1.6; color: #475569;">We are pleased to inform you that your professional access has been provisioned. You have been onboarded as a <strong style="color: #6366f1;">${role}</strong> within our system.</p>
+          
+          ${isStaff && password ? `
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0;">
+            <h3 style="margin-top: 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">Login Credentials</h3>
+            <div style="margin-bottom: 10px; font-size: 15px;">
+              <span style="color: #94a3b8;">Portal ID:</span> <strong style="color: #1e293b; font-family: monospace;">${toEmail}</strong>
+            </div>
+            <div style="font-size: 15px;">
+              <span style="color: #94a3b8;">Initial Key:</span> <strong style="color: #1e293b; font-family: monospace;">${password}</strong>
+            </div>
+            <p style="margin-top: 15px; margin-bottom: 0; font-size: 12px; color: #ef4444; font-weight: 600;">⚠️ Security Notice: Please change your password immediately after your first successful login.</p>
+          </div>
+          ` : ''}
+
+          ${!isStaff && password && !password.includes('OTP') ? `<p style="font-size: 15px;">Your temporary password is: <strong style="color: #6366f1;">${password}</strong></p>` : ''}
+          
+          ${role === 'Rider' || role === 'Delivery Partner' ? `
+          <div style="padding: 15px; background: #eff6ff; border-radius: 12px; color: #1e40af; border: 1px solid #bfdbfe; font-size: 13px; margin: 20px 0;">
+            <strong>Logistics Note:</strong> You can quickly login to the Delivery App using your registered phone number and a secure 4-digit OTP sent to your mobile.
+          </div>
+          ` : ''}
+
+          <p style="font-size: 16px; line-height: 1.6; color: #475569;">You can now access your dedicated dashboard to manage operations and view assigned tasks.</p>
+          
+          <div style="margin-top: 40px; text-align: center;">
+            <a href="${process.env.ADMIN_URL || process.env.BASE_URL || '#'}" style="background-color: #6366f1; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);">Access Management Portal</a>
+          </div>
+
+          <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
+            <p style="font-size: 12px; color: #94a3b8; margin: 0;">&copy; ${new Date().getFullYear()} SaathiGro Systems. All rights reserved.</p>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 5px;">This is a system-generated communication sent to ${toEmail}.</p>
           </div>
         </div>
       `

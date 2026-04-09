@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, Outlet, Link } from 'react-router-dom';
 import { StaffAuthProvider, useStaffAuth } from '../context/StaffAuthContext';
 import StaffLogin from '../pages/auth/StaffLogin';
@@ -14,6 +14,7 @@ import AllProducts from '../../admin/pages/products/AllProducts';
 import { StaffProfile } from '../../../components/ProfileSettings';
 import LegalSupport from '../pages/LegalSupport';
 import StaffPOS from '../pages/StaffPOS';
+import Notifications from '../pages/Notifications';
 
 const PlaceholderPage = ({ title }) => (
     <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
@@ -71,6 +72,7 @@ const StaffRoutes = () => {
                         <Route path="support" element={<StaffTickets />} />
                         <Route path="profile" element={<StaffProfile />} />
                         <Route path="legal" element={<LegalSupport />} />
+                        <Route path="notifications" element={<Notifications />} />
                         <Route path="*" element={<PlaceholderPage title="Page Not Found / Under Construction" />} />
                     </Route>
                 </Route>

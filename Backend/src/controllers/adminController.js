@@ -148,6 +148,10 @@ export const createAdmin = async (req, res) => {
       if (role === 'Admin') {
         return res.status(403).json({ message: 'Cannot create other Admin accounts via this module' });
       }
+
+      if (!finalBranchId) {
+        return res.status(400).json({ message: 'Branch assignment is required for staff and managers' });
+      }
     } else {
       // Branch Managers and Staff can ONLY create Staff for their own branch
       finalRole = 'Staff';
@@ -226,11 +230,23 @@ export const updateAdmin = async (req, res) => {
     admin.name = req.body.name || admin.name;
     admin.email = req.body.email || admin.email;
     admin.phone = req.body.phone || admin.phone;
+    
+    // Don't allow changing TO 'Admin' role if not already an Admin
+    if (req.body.role === 'Admin' && admin.role !== 'Admin') {
+      return res.status(403).json({ message: 'Cannot promote to Admin role via this module' });
+    }
+    
     admin.role = req.body.role || admin.role;
 
     // Filter and update permissions
     if (req.body.permissions) {
       admin.permissions = req.body.permissions.filter(p => ALLOWED_PERMISSIONS.includes(p));
+    }
+
+    if (req.body.branchId === '' || req.body.branchId === null) {
+      if (admin.role !== 'Admin') {
+         return res.status(400).json({ message: 'Branch assignment is required' });
+      }
     }
 
     admin.branchId = req.body.branchId !== undefined ? req.body.branchId : admin.branchId;

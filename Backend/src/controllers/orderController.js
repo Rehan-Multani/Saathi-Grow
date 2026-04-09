@@ -1362,8 +1362,8 @@ export const getAllOrdersAdmin = async (req, res) => {
     }
 
     // Search logic
-    if (search) {
-      const searchRegex = new RegExp(search, 'i');
+    if (search && search.trim() !== '') {
+      const searchRegex = new RegExp(search.trim(), 'i');
 
       // We need to search by orderId and also by user name/email.
       // Since user is a ref, we first find matching users.
@@ -1514,6 +1514,29 @@ export const updateOrderStatus = async (req, res) => {
     order.status = status;
     if (status === 'delivered') {
       order.paymentStatus = 'paid';
+    }
+
+    // Refund logic for User if status becomes 'returned' or 'cancelled' and it was paid
+    if ((status === 'returned' || status === 'cancelled') && oldStatus !== 'returned' && oldStatus !== 'cancelled' && order.paymentStatus === 'paid') {
+      const refundAmount = order.totalAmount;
+      const user = await User.findById(order.user);
+      if (user) {
+        user.walletBalance = (user.walletBalance || 0) + refundAmount;
+        await user.save();
+        
+        order.paymentStatus = 'refunded';
+        
+        // Log Transaction for User
+        await UserTransaction.create({
+          user: order.user,
+          amount: refundAmount,
+          type: 'credit',
+          category: 'order_refund',
+          status: 'completed',
+          description: `Refund for Order #${order.orderId} (${status})`,
+          orderId: order._id
+        });
+      }
     }
 
     if ((status === 'cancelled' || status === 'returned') && oldStatus !== 'cancelled' && oldStatus !== 'returned') {

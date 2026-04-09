@@ -32,7 +32,7 @@ const AddStaff = () => {
     const [validated, setValidated] = useState(false);
 
     const isBranchManager = adminUser.role === 'Branch Manager';
-    const ROLES = isBranchManager ? ['Staff'] : ['Admin', 'Branch Manager', 'Staff'];
+    const ROLES = isBranchManager ? ['Staff'] : ['Branch Manager', 'Staff'];
 
     const PERMISSIONS_LIST = [
         'VIEW_ORDERS',
@@ -146,10 +146,14 @@ const AddStaff = () => {
                                                 placeholder={t('staff.add_new.first_name_placeholder')}
                                                 name="firstName"
                                                 value={formData.firstName}
-                                                onChange={handleChange}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                    setFormData(prev => ({ ...prev, firstName: val }));
+                                                }}
+                                                pattern="^[a-zA-Z\s]+$"
                                                 className="shadow-none border-light-subtle bg-light-subtle"
                                             />
-                                            <Form.Control.Feedback type="invalid">{t('staff.add_new.validation.first_name_req')}</Form.Control.Feedback>
+                                            <Form.Control.Feedback type="invalid">First name should only contain alphabets.</Form.Control.Feedback>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
@@ -161,10 +165,14 @@ const AddStaff = () => {
                                                 placeholder={t('staff.add_new.last_name_placeholder')}
                                                 name="lastName"
                                                 value={formData.lastName}
-                                                onChange={handleChange}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                    setFormData(prev => ({ ...prev, lastName: val }));
+                                                }}
+                                                pattern="^[a-zA-Z\s]+$"
                                                 className="shadow-none border-light-subtle bg-light-subtle"
                                             />
-                                            <Form.Control.Feedback type="invalid">{t('staff.add_new.validation.last_name_req')}</Form.Control.Feedback>
+                                            <Form.Control.Feedback type="invalid">Last name should only contain alphabets.</Form.Control.Feedback>
                                         </Form.Group>
                                     </Col>
                                     <Col md={6}>
@@ -180,9 +188,9 @@ const AddStaff = () => {
                                                     name="email"
                                                     value={formData.email}
                                                     onChange={handleChange}
-                                                    className="shadow-none border-light-subtle bg-light-subtle"
+                                                    className="shadow-none border-light-subtle bg-light-subtle font-monospace text-lowercase"
                                                 />
-                                                <Form.Control.Feedback type="invalid">{t('staff.add_new.validation.email_invalid')}</Form.Control.Feedback>
+                                                <Form.Control.Feedback type="invalid">Please provide a valid business email address.</Form.Control.Feedback>
                                             </InputGroup>
                                         </Form.Group>
                                     </Col>
@@ -196,12 +204,16 @@ const AddStaff = () => {
                                                     type="tel"
                                                     placeholder={t('staff.add_new.phone_placeholder')}
                                                     pattern="^[6-9]\d{9}$"
+                                                    maxLength={10}
                                                     name="phone"
                                                     value={formData.phone}
-                                                    onChange={handleChange}
-                                                    className="shadow-none border-light-subtle bg-light-subtle"
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, '');
+                                                        setFormData(prev => ({ ...prev, phone: val }));
+                                                    }}
+                                                    className="shadow-none border-light-subtle bg-light-subtle font-monospace"
                                                 />
-                                                <Form.Control.Feedback type="invalid">{t('staff.add_new.validation.phone_invalid')}</Form.Control.Feedback>
+                                                <Form.Control.Feedback type="invalid">Enter a valid 10-digit mobile number starting with 6-9.</Form.Control.Feedback>
                                             </InputGroup>
                                         </Form.Group>
                                     </Col>
@@ -269,7 +281,7 @@ const AddStaff = () => {
                                         className="mb-3 shadow-none border-light-subtle bg-light-subtle"
                                     >
                                         {ROLES.map(role => (
-                                            <option key={role} value={role}>{role}</option>
+                                            <option key={role} value={role}>{role === 'Branch Manager' ? 'Store Manager' : role}</option>
                                         ))}
                                     </Form.Select>
                                 </Form.Group>
@@ -279,13 +291,14 @@ const AddStaff = () => {
                                         <Store size={16} /> {t('staff.add_new.assign_branch')}
                                     </Form.Label>
                                     <Form.Select
+                                        required
                                         name="branchId"
                                         value={formData.branchId}
                                         onChange={handleChange}
                                         disabled={isBranchManager}
                                         className="shadow-none border-light-subtle bg-light-subtle"
                                     >
-                                        {!isBranchManager && <option value="">{t('staff.add_new.global_no_branch')}</option>}
+                                        {!isBranchManager && <option value="" disabled>{t('staff.add_new.select_branch_placeholder', { defaultValue: 'Select Branch' })}</option>}
                                         {branches.map(b => (
                                             <option key={b._id} value={b._id}>{b.name}</option>
                                         ))}

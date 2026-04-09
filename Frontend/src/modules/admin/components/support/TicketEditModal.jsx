@@ -161,6 +161,8 @@ const TicketEditModal = ({ show, onHide, ticket, onEscalate, onRefresh }) => {
                                                     <Form.Control 
                                                         type="number"
                                                         value={refundAmount}
+                                                        onFocus={(e) => { if (refundAmount === 0 || refundAmount === "0") setRefundAmount("") }}
+                                                        onBlur={(e) => { if (refundAmount === "" || refundAmount === null) setRefundAmount(0) }}
                                                         onChange={(e) => setRefundAmount(e.target.value)}
                                                         className="fw-bold"
                                                     />

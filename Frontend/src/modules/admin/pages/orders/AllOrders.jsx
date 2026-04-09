@@ -70,7 +70,7 @@ const AllOrders = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
+            setDebouncedSearch(searchTerm.trim());
             setPage(1); // Reset to first page on new search
         }, 500);
         return () => clearTimeout(timer);
@@ -232,14 +232,18 @@ const AllOrders = () => {
                                     className="w-full px-3 py-2 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 font-medium"
                                     placeholder={t('dashboard.search_orders_placeholder')}
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val.startsWith(' ')) return;
+                                        setSearchTerm(val);
+                                    }}
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 sm:flex w-full xl:w-auto gap-3">
-                        <div className="relative w-full sm:w-auto">
+                        <div className="relative w-full sm:w-auto z-30">
                             <button
                                 onClick={() => setShowFilterMenu(!showFilterMenu)}
                                 className={`w-full flex justify-center items-center gap-2 px-4 py-2 bg-white border ${showFilterMenu || activeFiltersCount > 0 ? 'border-violet-500 text-violet-600 bg-violet-50' : 'border-gray-200 text-gray-700'} rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm whitespace-nowrap`}
@@ -344,7 +348,7 @@ const AllOrders = () => {
             </div>
 
             {/* Orders Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[650px]">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col min-h-[650px]">
                 <div className="overflow-x-auto flex-1">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50/50 text-gray-400 text-[10px] uppercase font-black tracking-widest sticky top-0 z-10">

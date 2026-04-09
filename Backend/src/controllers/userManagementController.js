@@ -15,6 +15,10 @@ export const getAllUsers = async (req, res) => {
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const search = (req.query.search || '').trim();
+    const status = req.query.status;
+    const city = req.query.city;
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
     const admin = req.admin;
     let query = {};
 
@@ -31,6 +35,24 @@ export const getAllUsers = async (req, res) => {
         { email: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } }
       ];
+    }
+
+    if (status !== undefined && status !== '') {
+      query.isActive = status === 'active' || status === 'true';
+    }
+
+    if (city) {
+      query['addresses.city'] = { $regex: city, $options: 'i' };
+    }
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
     }
 
     const usersQuery = User.find(query)

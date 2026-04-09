@@ -129,7 +129,7 @@ const BranchStock = () => {
                                 >
                                     <option value="">{t('stock.branch_stock.filters.status_all')}</option>
                                     <option value="In Stock">{t('stock.branch_stock.filters.in_stock')}</option>
-                                    <option value="Low Stock">{t('stock.branch_stock.filters.critically_low')}</option>
+                                    <option value="Low Stock">{t('stock.branch_stock.filters.low_stock')}</option>
                                     <option value="Out of Stock">{t('stock.branch_stock.filters.out_of_stock')}</option>
                                 </Form.Select>
                             </div>
@@ -233,7 +233,7 @@ const BranchStock = () => {
                                                         ? 'bg-amber-100 text-amber-700 border-amber-200' 
                                                         : 'bg-rose-100 text-rose-700 border-rose-200'
                                             }`}>
-                                                {t(`stock.branch_stock.filters.${item.status?.toLowerCase().replace(/\s/g, '_') || 'in_stock'}`)}
+                                                {t(`stock.branch_stock.filters.${(item.status || 'in_stock').toLowerCase().replace(/\s/g, '_')}`)}
                                             </Badge>
                                         </td>
                                         <td className="pe-4 py-2.5 text-right">

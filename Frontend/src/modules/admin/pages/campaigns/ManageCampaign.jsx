@@ -103,7 +103,7 @@ const ManageCampaign = () => {
 
   const handlePriceChange = (productId, price) => {
     setSelectedProducts(selectedProducts.map(p =>
-      p.productId === productId ? { ...p, basePrice: Number(price) } : p
+      p.productId === productId ? { ...p, basePrice: price === '' ? '' : Number(price) } : p
     ));
   };
 
@@ -380,6 +380,8 @@ const ManageCampaign = () => {
                               size="sm"
                               type="number"
                               value={p.basePrice}
+                              onFocus={(e) => { if (p.basePrice === 0 || p.basePrice === "0") handlePriceChange(p.productId, '') }}
+                              onBlur={(e) => { if (p.basePrice === "" || p.basePrice === null) handlePriceChange(p.productId, 0) }}
                               onChange={(e) => handlePriceChange(p.productId, e.target.value)}
                               className="text-center fw-bold text-primary"
                             />

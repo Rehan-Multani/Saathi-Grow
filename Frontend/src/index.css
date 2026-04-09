@@ -796,26 +796,20 @@ img {
   display: none !important;
 }
 
-.dark .Toastify__toast {
-  background: #121212 !important;
-  color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+
+/* Modern Tabs Styling - Staff Portal */
+.staff-tab-container {
+  @apply flex items-center p-1.5 bg-slate-100/50 rounded-[1.8rem] w-fit border border-slate-200/50 backdrop-blur-sm shadow-sm;
 }
 
-.dark .Toastify__toast--success { color: #4ade80 !important; border-left-color: #4ade80 !important; }
-.dark .Toastify__toast--error { color: #f87171 !important; border-left-color: #f87171 !important; }
-.dark .Toastify__toast--info { color: #60a5fa !important; border-left-color: #60a5fa !important; }
+.staff-tab-pill {
+  @apply px-8 py-3 rounded-[1.2rem] text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-300 relative;
+}
 
-@media (max-width: 640px) {
-  .Toastify__toast-container {
-    width: auto !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-  }
-  .Toastify__toast {
-    font-size: 13px !important;
-    padding: 8px 16px !important;
-    margin-bottom: 20px !important;
-  }
+.staff-tab-active {
+  @apply bg-emerald-600 text-white shadow-xl shadow-emerald-200/50 scale-105;
+}
+
+.staff-tab-inactive {
+  @apply text-slate-400 hover:bg-white hover:text-emerald-600 hover:shadow-sm transition-all;
 }

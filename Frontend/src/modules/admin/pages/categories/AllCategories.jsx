@@ -38,7 +38,7 @@ const AllCategories = () => {
     }, [fetchCategories]);
 
     const filtered = categories.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase())
+        c.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
     );
 
     // Pagination State
@@ -105,7 +105,11 @@ const AllCategories = () => {
                             placeholder={t('categories.search_placeholder')}
                             className="border-start-0 ps-0 shadow-none py-2"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val.startsWith(' ')) return;
+                                setSearchTerm(val);
+                            }}
                         />
                     </InputGroup>
                     <div className="d-flex flex-row gap-2 w-100 w-md-auto">

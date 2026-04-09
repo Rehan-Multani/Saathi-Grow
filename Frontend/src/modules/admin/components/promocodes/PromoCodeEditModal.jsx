@@ -125,6 +125,8 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                                     type="number"
                                     name="minOrderValue"
                                     value={formData.minOrderValue}
+                                    onFocus={(e) => { if (formData.minOrderValue === 0 || formData.minOrderValue === "0") setFormData(prev => ({ ...prev, minOrderValue: "" })) }}
+                                    onBlur={(e) => { if (formData.minOrderValue === "" || formData.minOrderValue === null) setFormData(prev => ({ ...prev, minOrderValue: "0" })) }}
                                     onChange={handleChange}
                                     className="py-2 border-gray-200 shadow-none"
                                 />
@@ -137,8 +139,10 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                                     type="number"
                                     name="maxDiscountAmount"
                                     value={formData.maxDiscountAmount}
-                                    onChange={handleChange}
                                     disabled={formData.discountType !== 'Percentage'}
+                                    onFocus={(e) => { if (formData.maxDiscountAmount === 0 || formData.maxDiscountAmount === "0") setFormData(prev => ({ ...prev, maxDiscountAmount: "" })) }}
+                                    onBlur={(e) => { if (formData.maxDiscountAmount === "" || formData.maxDiscountAmount === null) setFormData(prev => ({ ...prev, maxDiscountAmount: "0" })) }}
+                                    onChange={handleChange}
                                     className="py-2 border-gray-200 shadow-none"
                                 />
                                 <Form.Text className="text-muted small">Only for % discounts</Form.Text>
@@ -154,6 +158,8 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                                     type="number"
                                     name="usageLimitTotal"
                                     value={formData.usageLimitTotal}
+                                    onFocus={(e) => { if (formData.usageLimitTotal === 0 || formData.usageLimitTotal === "0") setFormData(prev => ({ ...prev, usageLimitTotal: "" })) }}
+                                    onBlur={(e) => { if (formData.usageLimitTotal === "" || formData.usageLimitTotal === null) setFormData(prev => ({ ...prev, usageLimitTotal: "0" })) }}
                                     onChange={handleChange}
                                     className="py-2 border-gray-200 shadow-none"
                                 />

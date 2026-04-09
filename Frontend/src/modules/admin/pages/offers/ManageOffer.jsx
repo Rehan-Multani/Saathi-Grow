@@ -145,7 +145,7 @@ const ManageOffer = () => {
 
   const handlePriceChange = (productId, price) => {
     setSelectedProducts(selectedProducts.map(p =>
-      p.productId === productId ? { ...p, basePrice: Number(price) } : p
+      p.productId === productId ? { ...p, basePrice: price === '' ? '' : Number(price) } : p
     ));
   };
 
@@ -190,6 +190,14 @@ const ManageOffer = () => {
 
     if (!id && !fileInputRef.current.files[0]) {
       return toast.error('A banner image is required for new offers');
+    }
+
+    if (formData.expiryDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(formData.expiryDate) <= today) {
+        return toast.error('Expiry date must be in the future');
+      }
     }
 
     setLoading(true);
@@ -318,8 +326,18 @@ const ManageOffer = () => {
                       <Form.Control
                         type="number"
                         name="discountPercentage"
-                        value={formData.discountPercentage}
+                        value={formData.discountPercentage === 0 && formData.discountPercentage !== "" ? "0" : formData.discountPercentage}
                         onChange={handleDiscountChange}
+                        onFocus={(e) => {
+                          if (formData.discountPercentage === 0 || formData.discountPercentage === "0") {
+                            setFormData(prev => ({ ...prev, discountPercentage: "" }));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (formData.discountPercentage === "" || formData.discountPercentage === null) {
+                            setFormData(prev => ({ ...prev, discountPercentage: 0 }));
+                          }
+                        }}
                         placeholder="Set global discount for collection..."
                         className="bg-transparent border-0 py-2"
                       />
@@ -369,7 +387,14 @@ const ManageOffer = () => {
                 <Row className="g-3">
                   <Col md={12}>
                     <Form.Label className="small fw-bold text-gray-500">Expiry Date</Form.Label>
-                    <Form.Control type="date" name="expiryDate" value={formData.expiryDate} onChange={handleChange} className="bg-light border-0 py-2" />
+                    <Form.Control 
+                      type="date" 
+                      name="expiryDate" 
+                      value={formData.expiryDate} 
+                      onChange={handleChange} 
+                      min={new Date().toISOString().split('T')[0]}
+                      className="bg-light border-0 py-2" 
+                    />
                   </Col>
                 </Row>
                 
@@ -503,6 +528,8 @@ const ManageOffer = () => {
                               type="number"
                               size="sm"
                               value={p.basePrice}
+                              onFocus={(e) => { if (p.basePrice === 0 || p.basePrice === "0") handlePriceChange(p.productId, '') }}
+                              onBlur={(e) => { if (p.basePrice === "" || p.basePrice === null) handlePriceChange(p.productId, 0) }}
                               onChange={(e) => handlePriceChange(p.productId, e.target.value)}
                               className="text-center fw-bold text-blue-600 bg-blue-50 border-0 rounded-lg py-1.5 shadow-none"
                             />

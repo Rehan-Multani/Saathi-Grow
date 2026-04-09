@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send, Plus, ChevronLeft, ChevronRight, Filter, X, Calendar } from 'lucide-react';
 import CustomerDetailsModal from '../../components/customers/CustomerDetailsModal';
 import SendMessageModal from '../../components/customers/SendMessageModal';
 import { showSuccessAlert } from '../../../../common/utils/alertUtils';
@@ -19,19 +19,48 @@ const AllCustomers = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showMessageModal, setShowMessageModal] = useState(false);
+    const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [messageType, setMessageType] = useState('Message');
+    
+    // Pagination & Filters State
     const [page, setPage] = useState(1);
     const limit = 10;
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
+    
+    const [statusFilter, setStatusFilter] = useState('');
+    const [cityFilter, setCityFilter] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
+    // For debounced searching
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
                 setLoading(true);
+                const params = { 
+                    page, 
+                    limit, 
+                    search: debouncedSearch,
+                    status: statusFilter,
+                    city: cityFilter,
+                    startDate,
+                    endDate,
+                    includeMeta: 'true'
+                };
                 const { customers: customerList, pagination: paginationData } = await customerApi.getAllCustomers(
                     adminUser.token,
-                    { page, limit, search: searchTerm },
+                    params,
                     { paginated: true }
                 );
                 setCustomers(Array.isArray(customerList) ? customerList : []);
@@ -46,16 +75,19 @@ const AllCustomers = () => {
         if (adminUser?.token) {
             fetchCustomers();
         }
-    }, [adminUser.token, page, searchTerm, t]);
+    }, [adminUser.token, page, debouncedSearch, statusFilter, cityFilter, startDate, endDate, t]);
 
-    const totalFiltered = pagination.total || 0;
-    const totalPages = pagination.totalPages || 1;
-    const paginatedCustomers = customers;
-
-    // Reset pagination when search changes
-    useEffect(() => {
+    const clearFilters = () => {
+        setStatusFilter('');
+        setCityFilter('');
+        setStartDate('');
+        setEndDate('');
+        setSearchTerm('');
         setPage(1);
-    }, [searchTerm]);
+        setShowFilterMenu(false);
+    };
+
+    const activeFiltersCount = [statusFilter, cityFilter, startDate, endDate].filter(Boolean).length;
 
     const handleViewProfile = async (customer) => {
         try {
@@ -91,7 +123,7 @@ const AllCustomers = () => {
         await showSuccessAlert(t('customers.all.alerts.sent_success', { type: messageType }), t('customers.all.alerts.delivered_success', { type: messageType.toLowerCase(), name: selectedCustomer?.name }));
     };
 
-    if (loading) {
+    if (loading && customers.length === 0) {
         return (
             <div className="d-flex justify-content-center align-items-center vh-100">
                 <Spinner animation="border" variant="primary" />
@@ -99,159 +131,246 @@ const AllCustomers = () => {
         );
     }
 
-    return (
-        <div className="p-3">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-3 text-nowrap">
-                        <h5 className="mb-0 fw-bold">{t('customers.all.title')}</h5>
-                        <PageInfoTooltip data={pageInfoData.allCustomers} />
-                        <Badge bg="primary" pill>{totalFiltered}</Badge>
-                    </div>
-                    <div className="d-flex gap-2 flex-grow-1 justify-content-md-end">
-                        <InputGroup style={{ maxWidth: '300px' }}>
-                            <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
-                            <Form.Control
-                                placeholder={t('customers.all.search_placeholder')}
-                                className="border-start-0 ps-0 shadow-none"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </InputGroup>
-                    </div>
-                </Card.Body>
-            </Card>
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
+    const paginatedCustomers = customers;
 
-            <Card className="border-0 shadow-sm">
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">{t('customers.all.table.customer')}</th>
-                                <th className="border-0 py-3">{t('customers.all.table.contact')}</th>
-                                <th className="border-0 py-3">{t('customers.all.table.location')}</th>
-                                <th className="border-0 py-3 text-center">{t('customers.all.table.wallet')}</th>
-                                <th className="border-0 py-3 text-center">{t('customers.all.table.status')}</th>
-                                <th className="border-0 py-3 text-center">{t('customers.all.table.actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedCustomers.length > 0 ? paginatedCustomers.map((c) => (
-                                <tr key={c._id}>
-                                    <td className="ps-4">
-                                        <div className="d-flex align-items-center gap-3">
-                                            {c.profileImage ? (
-                                                <img src={c.profileImage} alt={c.name} className="rounded-circle object-fit-cover" style={{ width: 40, height: 40 }} />
-                                            ) : (
-                                                <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: 40, height: 40 }}>
-                                                    {c.name ? c.name.charAt(0) : 'U'}
-                                                </div>
-                                            )}
-                                            <div>
-                                                <div className="fw-bold text-dark">{c.name || t('customers.all.anonymous')}</div>
-                                                <div className="small text-muted text-[10px]">{c._id}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="d-flex flex-column gap-1 small text-muted">
-                                            {c.email && (
-                                                <div className="d-flex align-items-center gap-2">
-                                                    <Mail size={14} /> {c.email}
-                                                </div>
-                                            )}
-                                            <div className="d-flex align-items-center gap-2">
-                                                <Phone size={14} /> +91 {c.phone}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="text-secondary">
-                                        <div className="d-flex align-items-center gap-2 small">
-                                            <MapPin size={14} /> {c.addresses?.[0]?.city || 'N/A'}
-                                        </div>
-                                    </td>
-                                    <td className="text-center font-bold">
-                                        <div className="fw-bold">₹{c.walletBalance || 0}</div>
-                                    </td>
-                                    <td className="text-center">
-                                        <Badge bg={c.isActive ? 'success' : 'danger'} className="rounded-pill fw-normal px-3">
-                                            {c.isActive ? t('customers.all.status.active') : t('customers.all.status.blocked')}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-center">
-                                        <Dropdown align="end">
-                                            <Dropdown.Toggle variant="link" className="text-muted p-0 shadow-none no-caret">
-                                                <MoreHorizontal size={20} />
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu
-                                                className="border-0 shadow-lg p-2 rounded-xl"
-                                                popperConfig={{
-                                                    placement: 'bottom-end',
-                                                    strategy: 'fixed',
-                                                    modifiers: [
-                                                        {
-                                                            name: 'flip',
-                                                            enabled: false,
-                                                        },
-                                                        {
-                                                            name: 'offset',
-                                                            options: {
-                                                                offset: [0, 8],
-                                                            },
-                                                        },
-                                                    ],
-                                                }}
+    return (
+        <div className="p-6 bg-[#FDFDFF] min-h-screen">
+            <div className="flex items-center gap-3 mb-6">
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">{t('customers.all.title')}</h1>
+                <PageInfoTooltip data={pageInfoData.allCustomers} />
+                <Badge bg="primary" className="rounded-2xl px-3 py-1.5 text-[10px] font-black uppercase tracking-widest">{totalFiltered}</Badge>
+            </div>
+
+            {/* Action Toolbar */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 p-4">
+                <div className="flex flex-col lg:flex-row justify-between gap-4">
+                    <div className="flex flex-col md:flex-row gap-3 w-full lg:flex-1 relative">
+                        <div className="w-full md:max-w-md">
+                            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
+                                <div className="pl-4 text-gray-400">
+                                    <Search size={18} />
+                                </div>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-2.5 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 font-medium"
+                                    placeholder={t('customers.all.search_placeholder')}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex w-full lg:w-auto gap-3">
+                        <div className="relative w-full sm:w-auto z-30">
+                            <button
+                                onClick={() => setShowFilterMenu(!showFilterMenu)}
+                                className={`w-full flex justify-center items-center gap-2 px-6 py-2.5 bg-white border ${showFilterMenu || activeFiltersCount > 0 ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-gray-200 text-gray-700'} rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm`}
+                            >
+                                <Filter size={16} />
+                                <span>{t('dashboard.filters')} {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
+                            </button>
+
+                            {showFilterMenu && (
+                                <div className="absolute top-14 right-0 z-50 w-full sm:w-80 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 p-6 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="flex justify-between items-center mb-5">
+                                        <h6 className="font-black text-gray-900 text-xs uppercase tracking-widest">{t('dashboard.advanced_filters')}</h6>
+                                        <button onClick={clearFilters} className="text-[10px] font-black text-rose-500 hover:scale-110 transition-transform uppercase tracking-widest">{t('dashboard.clear_all')}</button>
+                                    </div>
+
+                                    <div className="space-y-4 text-start">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">{t('dashboard.status')}</label>
+                                            <select 
+                                                className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-xs font-bold rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-blue-500" 
+                                                value={statusFilter} 
+                                                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
                                             >
-                                                <Dropdown.Item onClick={() => handleViewProfile(c)} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
-                                                    <Eye size={16} className="text-primary" />
-                                                    <span className="fw-medium">{t('customers.all.actions.view_profile')}</span>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => handleSendMessage(c, 'Email')} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
-                                                    <Mail size={16} className="text-info" />
-                                                    <span className="fw-medium">{t('customers.all.actions.send_email')}</span>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => handleSendMessage(c, 'Message')} className="rounded-lg py-2 d-flex align-items-center gap-2 small">
-                                                    <Send size={16} className="text-primary" />
-                                                    <span className="fw-medium">{t('customers.all.actions.send_message')}</span>
-                                                </Dropdown.Item>
-                                                <Dropdown.Divider className="my-1 opacity-50" />
-                                                <Dropdown.Item onClick={() => handleStatusToggle(c)} className={`rounded-lg py-2 d-flex align-items-center gap-2 small ${c.isActive ? 'text-danger' : 'text-success'}`}>
-                                                    {c.isActive ? (
-                                                        <><Ban size={16} /> <span className="fw-medium">{t('customers.all.actions.block_user')}</span></>
-                                                    ) : (
-                                                        <><CheckCircle size={16} /> <span className="fw-medium">{t('customers.all.actions.unblock_user')}</span></>
-                                                    )}
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    </td>
-                                </tr>
-                            )) : (
-                                <tr>
-                                    <td colSpan="6" className="text-center py-4 text-muted">{t('customers.all.no_customers')}</td>
-                                </tr>
+                                                <option value="">{t('dashboard.all_status')}</option>
+                                                <option value="active">{t('customers.all.status.active')}</option>
+                                                <option value="false">{t('customers.all.status.blocked')}</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">{t('customers.all.table.location')}</label>
+                                            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                                                <MapPin size={14} className="text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    className="bg-transparent border-none outline-none text-xs font-bold text-gray-700 w-full ml-2"
+                                                    placeholder="e.g. Noida"
+                                                    value={cityFilter}
+                                                    onChange={(e) => { setCityFilter(e.target.value); setPage(1); }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">{t('dashboard.start_date')}</label>
+                                                <input 
+                                                    type="date" 
+                                                    className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl p-2 outline-none focus:ring-2 focus:ring-blue-500" 
+                                                    value={startDate} 
+                                                    onChange={(e) => { setStartDate(e.target.value); setPage(1); }} 
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">{t('dashboard.end_date')}</label>
+                                                <input 
+                                                    type="date" 
+                                                    className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl p-2 outline-none focus:ring-2 focus:ring-blue-500" 
+                                                    value={endDate} 
+                                                    onChange={(e) => { setEndDate(e.target.value); setPage(1); }} 
+                                                    min={startDate} 
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => setShowFilterMenu(false)} 
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl text-xs uppercase tracking-widest mt-6 shadow-lg shadow-blue-100 transition-all active:scale-95"
+                                    >
+                                        {t('dashboard.apply_filters')}
+                                    </button>
+                                </div>
                             )}
-                        </tbody>
-                    </Table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <Card className="border-0 shadow-sm rounded-2xl min-h-[600px] flex flex-col">
+                <Card.Body className="p-0">
+                    <div className="overflow-x-auto">
+                        <Table hover responsive className="mb-0 align-middle border-collapse">
+                            <thead className="bg-gray-50/50 text-gray-400 text-[10px] uppercase font-black tracking-widest sticky top-0 z-10">
+                                <tr>
+                                    <th className="ps-6 border-0 py-4">{t('customers.all.table.customer')}</th>
+                                    <th className="border-0 py-4">{t('customers.all.table.contact')}</th>
+                                    <th className="border-0 py-4">{t('customers.all.table.location')}</th>
+                                    <th className="border-0 py-4 text-center">{t('customers.all.table.wallet')}</th>
+                                    <th className="border-0 py-4 text-center">{t('dashboard.status')}</th>
+                                    <th className="border-0 py-4 text-center">{t('dashboard.actions')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {loading && customers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="6" className="text-center py-24 text-muted">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <Spinner animation="border" variant="primary" size="sm" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">{t('dashboard.loading')}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : paginatedCustomers.length > 0 ? paginatedCustomers.map((c) => (
+                                    <tr key={c._id} className="hover:bg-gray-50/50 transition-colors group">
+                                        <td className="ps-6 py-4">
+                                            <div className="d-flex align-items-center gap-3">
+                                                {c.profileImage ? (
+                                                    <img src={c.profileImage} alt={c.name} className="rounded-circle object-fit-cover border-2 border-white shadow-sm" style={{ width: 44, height: 44 }} />
+                                                ) : (
+                                                    <div className="bg-blue-50 text-blue-600 rounded-circle d-flex align-items-center justify-content-center fw-bold border-2 border-white shadow-sm" style={{ width: 44, height: 44 }}>
+                                                        {c.name ? c.name.charAt(0) : 'U'}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="fw-black text-gray-900 text-sm tracking-tight">{c.name || t('customers.all.anonymous')}</div>
+                                                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">ID: {c._id.slice(-8)}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4">
+                                            <div className="d-flex flex-column gap-1">
+                                                {c.email && (
+                                                    <div className="d-flex align-items-center gap-2 text-xs font-bold text-gray-600">
+                                                        <Mail size={12} className="text-gray-300" /> {c.email}
+                                                    </div>
+                                                )}
+                                                <div className="d-flex align-items-center gap-2 text-xs font-bold text-gray-400">
+                                                    <Phone size={12} className="text-gray-300" /> {c.phone}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-secondary">
+                                            <div className="d-flex align-items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-tight">
+                                                <MapPin size={12} className="text-gray-300" /> {c.addresses?.[0]?.city || 'Global Site'}
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-center">
+                                            <div className="fw-black text-gray-900">₹{c.walletBalance || 0}</div>
+                                            <div className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">{t('dashboard.total_credits')}</div>
+                                        </td>
+                                        <td className="py-4 text-center">
+                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border
+                                                ${c.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+                                                {c.isActive ? t('customers.all.status.active') : t('customers.all.status.blocked')}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 text-center">
+                                            <Dropdown align="end">
+                                                <Dropdown.Toggle variant="link" className="text-gray-400 p-2 hover:bg-gray-100 rounded-xl shadow-none no-caret transition-all">
+                                                    <MoreHorizontal size={20} />
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="border-0 shadow-[0_10px_40px_rgba(0,0,0,0.1)] p-2 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <Dropdown.Item onClick={() => handleViewProfile(c)} className="rounded-xl py-2.5 d-flex align-items-center gap-3 text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                                                        <Eye size={16} className="text-blue-500" />
+                                                        {t('customers.all.actions.view_profile')}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => handleSendMessage(c, 'Email')} className="rounded-xl py-2.5 d-flex align-items-center gap-3 text-xs font-bold text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
+                                                        <Mail size={16} className="text-indigo-500" />
+                                                        {t('customers.all.actions.send_email')}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => handleSendMessage(c, 'Message')} className="rounded-xl py-2.5 d-flex align-items-center gap-3 text-xs font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600">
+                                                        <Send size={16} className="text-emerald-500" />
+                                                        {t('customers.all.actions.send_message')}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Divider className="my-2 opacity-50" />
+                                                    <Dropdown.Item onClick={() => handleStatusToggle(c)} className={`rounded-xl py-2.5 d-flex align-items-center gap-3 text-xs font-bold ${c.isActive ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-600 hover:bg-emerald-50'}`}>
+                                                        {c.isActive ? <Ban size={16} /> : <CheckCircle size={16} />}
+                                                        {c.isActive ? t('customers.all.actions.block_user') : t('customers.all.actions.unblock_user')}
+                                                    </Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="6" className="text-center py-24">
+                                            <div className="flex flex-col items-center gap-3 text-gray-300">
+                                                <Search size={48} strokeWidth={1} />
+                                                <span className="text-xs font-black uppercase tracking-widest">{t('customers.all.no_customers')}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </Table>
+                    </div>
                 </Card.Body>
 
                 {/* Pagination Controls */}
                 {!loading && totalFiltered > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('customers.all.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('customers.all.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('customers.all.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('customers.all.title')}
+                    <div className="bg-white border-top px-8 py-6 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-4">
+                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                            {t('customers.all.pagination.showing')} <span className="text-gray-900">{((page - 1) * limit) + 1}</span> {t('customers.all.pagination.to')} <span className="text-gray-900">{Math.min(page * limit, totalFiltered)}</span> {t('customers.all.pagination.of')} <span className="text-gray-900">{totalFiltered}</span> {t('customers.all.title')}
                         </div>
-                        <div className="d-flex align-items-center gap-2">
+                        <div className="d-flex align-items-center gap-3">
                             <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                variant="link"
+                                className={`p-2 rounded-xl border-2 transition-all ${page === 1 ? 'border-gray-50 text-gray-200 cursor-not-allowed' : 'border-gray-100 text-gray-600 hover:border-blue-200 hover:bg-blue-50'}`}
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
                             >
-                                <ChevronLeft size={16} />
+                                <ChevronLeft size={18} strokeWidth={2.5} />
                             </Button>
 
-                            <div className="d-flex align-items-center gap-1">
+                            <div className="d-flex align-items-center gap-2">
                                 {[...Array(totalPages)].map((_, i) => {
                                     const p = i + 1;
                                     const isFirstPage = p === 1;
@@ -260,30 +379,28 @@ const AllCustomers = () => {
 
                                     if (isFirstPage || isLastPage || isNearCurrent) {
                                         return (
-                                            <Button
+                                            <button
                                                 key={p}
-                                                variant={page === p ? 'primary' : 'light'}
-                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                style={{ width: '36px', height: '36px', padding: 0 }}
                                                 onClick={() => setPage(p)}
+                                                className={`w-10 h-10 flex items-center justify-center rounded-xl text-xs font-black transition-all ${page === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-gray-400 hover:bg-gray-50'}`}
                                             >
                                                 {p}
-                                            </Button>
+                                            </button>
                                         );
                                     } else if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-muted px-1">...</span>;
+                                        return <span key={p} className="text-gray-300 font-black">...</span>;
                                     }
                                     return null;
                                 })}
                             </div>
 
                             <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                variant="link"
+                                className={`p-2 rounded-xl border-2 transition-all ${page === totalPages ? 'border-gray-50 text-gray-200 cursor-not-allowed' : 'border-gray-100 text-gray-600 hover:border-blue-200 hover:bg-blue-50'}`}
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
                             >
-                                <ChevronRight size={16} />
+                                <ChevronRight size={18} strokeWidth={2.5} />
                             </Button>
                         </div>
                     </div>
@@ -307,7 +424,7 @@ const AllCustomers = () => {
                 type={messageType}
                 onSubmit={onMessageSent}
             />
-        </div >
+        </div>
     );
 };
 

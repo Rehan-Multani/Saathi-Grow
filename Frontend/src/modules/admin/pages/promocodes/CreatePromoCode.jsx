@@ -48,8 +48,23 @@ const CreatePromoCode = () => {
             setLoading(true);
 
             // Validation logic
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (new Date(formData.validFrom) < today) {
+                toast.error('Start date cannot be in the past');
+                setLoading(false);
+                return;
+            }
+
             if (new Date(formData.validFrom) >= new Date(formData.validUntil)) {
                 toast.error('Start date must be before expiry date');
+                setLoading(false);
+                return;
+            }
+
+            if (new Date(formData.validUntil) <= today) {
+                toast.error('Expiry date must be in the future');
                 setLoading(false);
                 return;
             }
@@ -139,6 +154,8 @@ const CreatePromoCode = () => {
                                                 name="discountValue"
                                                 required={formData.discountType !== 'FreeShipping'}
                                                 value={formData.discountValue}
+                                                onFocus={(e) => { if (formData.discountValue === 0 || formData.discountValue === "0") setFormData(prev => ({ ...prev, discountValue: "" })) }}
+                                                onBlur={(e) => { if (formData.discountValue === "" || formData.discountValue === null) setFormData(prev => ({ ...prev, discountValue: "0" })) }}
                                                 onChange={handleChange}
                                                 disabled={formData.discountType === 'FreeShipping'}
                                             />
@@ -155,6 +172,8 @@ const CreatePromoCode = () => {
                                                 placeholder="0.00"
                                                 name="minOrderValue"
                                                 value={formData.minOrderValue}
+                                                onFocus={(e) => { if (formData.minOrderValue === 0 || formData.minOrderValue === "0") setFormData(prev => ({ ...prev, minOrderValue: "" })) }}
+                                                onBlur={(e) => { if (formData.minOrderValue === "" || formData.minOrderValue === null) setFormData(prev => ({ ...prev, minOrderValue: "0" })) }}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
@@ -168,6 +187,8 @@ const CreatePromoCode = () => {
                                                 name="maxDiscountAmount"
                                                 disabled={formData.discountType === 'Fixed' || formData.discountType === 'FreeShipping'}
                                                 value={formData.maxDiscountAmount}
+                                                onFocus={(e) => { if (formData.maxDiscountAmount === 0 || formData.maxDiscountAmount === "0") setFormData(prev => ({ ...prev, maxDiscountAmount: "" })) }}
+                                                onBlur={(e) => { if (formData.maxDiscountAmount === "" || formData.maxDiscountAmount === null) setFormData(prev => ({ ...prev, maxDiscountAmount: "0" })) }}
                                                 onChange={handleChange}
                                             />
                                             <Form.Text className="text-muted small">Only for Percentage discounts</Form.Text>
@@ -184,6 +205,8 @@ const CreatePromoCode = () => {
                                                 placeholder="0 for unlimited"
                                                 name="usageLimitTotal"
                                                 value={formData.usageLimitTotal}
+                                                onFocus={(e) => { if (formData.usageLimitTotal === 0 || formData.usageLimitTotal === "0") setFormData(prev => ({ ...prev, usageLimitTotal: "" })) }}
+                                                onBlur={(e) => { if (formData.usageLimitTotal === "" || formData.usageLimitTotal === null) setFormData(prev => ({ ...prev, usageLimitTotal: "0" })) }}
                                                 onChange={handleChange}
                                             />
                                         </Form.Group>
@@ -211,6 +234,7 @@ const CreatePromoCode = () => {
                                                 type="date"
                                                 name="validFrom"
                                                 required
+                                                min={new Date().toISOString().split('T')[0]}
                                                 value={formData.validFrom}
                                                 onChange={handleChange}
                                             />
@@ -223,6 +247,7 @@ const CreatePromoCode = () => {
                                                 type="date"
                                                 name="validUntil"
                                                 required
+                                                min={formData.validFrom || new Date().toISOString().split('T')[0]}
                                                 value={formData.validUntil}
                                                 onChange={handleChange}
                                             />

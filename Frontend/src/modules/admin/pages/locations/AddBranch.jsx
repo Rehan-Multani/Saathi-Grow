@@ -181,26 +181,35 @@ const AddBranch = () => {
                                         <Form.Label className="small fw-bold text-muted">Branch Phone <span className="text-danger">*</span></Form.Label>
                                         <Form.Control
                                             type="tel"
-                                            placeholder="+91 00000 00000"
+                                            placeholder="9876543210"
                                             name="phone"
                                             value={formData.phone}
-                                            onChange={handleChange}
+                                            maxLength={10}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '');
+                                                setFormData(prev => ({ ...prev, phone: val }));
+                                            }}
+                                            pattern="^[6-9]\d{9}$"
                                             required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
+                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle font-monospace"
                                         />
+                                        <Form.Control.Feedback type="invalid">Enter a valid 10-digit mobile number.</Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Email</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted">Branch Email <span className="text-danger">*</span></Form.Label>
                                         <Form.Control
                                             type="email"
                                             placeholder="branch@sathigro.com"
                                             name="email"
                                             value={formData.email}
                                             onChange={handleChange}
+                                            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                                            required
                                             className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
                                         />
+                                        <Form.Control.Feedback type="invalid">Please provide a valid business email.</Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                             </Row>
@@ -229,44 +238,69 @@ const AddBranch = () => {
                                 </Col>
                                 <Col md={4}>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">City</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted">City <span className="text-danger">*</span></Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="address.city"
                                             value={formData.address.city}
-                                            onChange={handleChange}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    address: { ...prev.address, city: val }
+                                                }));
+                                            }}
+                                            pattern="^[a-zA-Z\s]+$"
                                             placeholder="City"
                                             required
                                             className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
                                         />
+                                        <Form.Control.Feedback type="invalid">City name should only contain alphabets.</Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                                 <Col md={4}>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">State</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted">State <span className="text-danger">*</span></Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="address.state"
                                             value={formData.address.state}
-                                            onChange={handleChange}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    address: { ...prev.address, state: val }
+                                                }));
+                                            }}
+                                            pattern="^[a-zA-Z\s]+$"
                                             placeholder="State"
                                             required
                                             className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
                                         />
+                                        <Form.Control.Feedback type="invalid">State name should only contain alphabets.</Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                                 <Col md={4}>
                                     <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Zip Code</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted">Zip Code <span className="text-danger">*</span></Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="address.zipCode"
                                             value={formData.address.zipCode}
-                                            onChange={handleChange}
+                                            maxLength={6}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '');
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    address: { ...prev.address, zipCode: val }
+                                                }));
+                                            }}
+                                            pattern="^\d{6}$"
                                             placeholder="000000"
                                             required
                                             className="py-2.5 shadow-none border-light-subtle bg-light-subtle font-monospace"
                                         />
+                                        <Form.Control.Feedback type="invalid">Enter a valid 6-digit zip code.</Form.Control.Feedback>
                                     </Form.Group>
                                 </Col>
                             </Row>

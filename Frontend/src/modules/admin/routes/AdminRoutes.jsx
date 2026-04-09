@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { AdminAuthProvider, useAdminAuth } from '../context/AdminAuthContext';
 import AdminLogin from '../pages/auth/AdminLogin';
 import AdminLayout from '../AdminLayout';
@@ -71,19 +71,33 @@ import AllCampaigns from '../pages/campaigns/AllCampaigns';
 import ManageCampaign from '../pages/campaigns/ManageCampaign';
 import AllOfferDeals from '../pages/offers/AllOffers';
 import ManageOfferDeal from '../pages/offers/ManageOffer';
-const PlaceholderPage = ({ title }) => (
-    <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
-        <div className="mb-3 bg-light rounded-circle p-4">
-            <span style={{ fontSize: '3rem' }}>🚧</span>
+
+const PlaceholderPage = ({ title }) => {
+    const navigate = useNavigate();
+    return (
+        <div className="p-4 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
+            <div className="mb-3 bg-light rounded-circle p-4">
+                <span style={{ fontSize: '3rem' }}>🚧</span>
+            </div>
+            <h2 className="fw-bold text-dark">{title}</h2>
+            <p className="text-muted lead mb-4">This module is currently under active development.</p>
+            <div className="d-flex gap-2">
+                <button 
+                    className="btn btn-primary" 
+                    onClick={() => navigate('/admin/dashboard')}
+                >
+                    Go to Dashboard
+                </button>
+                <button 
+                    className="btn btn-outline-secondary"
+                    onClick={() => navigate('/admin/support/tickets')}
+                >
+                    Contact Support
+                </button>
+            </div>
         </div>
-        <h2 className="fw-bold text-dark">{title}</h2>
-        <p className="text-muted lead mb-4">This module is currently under active development.</p>
-        <div className="d-flex gap-2">
-            <button className="btn btn-primary">Go to Dashboard</button>
-            <button className="btn btn-outline-secondary">Contact Support</button>
-        </div>
-    </div>
-);
+    );
+};
 
 const ProtectedAdminRoute = () => {
     const { adminUser } = useAdminAuth();

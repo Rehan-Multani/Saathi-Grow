@@ -160,7 +160,7 @@ const ReturnOrderPage = () => {
                     Order #{order?.orderId || id} · {req?.status || 'Pending Review'}
                 </p>
 
-                {(req?.status === 'Accepted' || req?.status === 'Scheduled') && req?.returnOTP && (
+                {(['Accepted', 'Approved', 'Scheduled'].includes(req?.status)) && req?.returnOTP && (
                     <div className="w-full max-w-sm bg-blue-600 rounded-3xl p-6 mb-8 text-white shadow-2xl relative overflow-hidden group">
                         <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-4 text-white/70">Secure Handover Code</p>
                         <h3 className="text-5xl font-black tracking-[0.2em] mb-4 drop-shadow-md">{req.returnOTP}</h3>
@@ -175,7 +175,7 @@ const ReturnOrderPage = () => {
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">Live Progress</p>
                     {[
                         { icon: '🔍', step: 'Request under review', sub: 'Admin is verifying your claim', active: req?.status === 'Pending' },
-                        { icon: '✅', step: 'Return approved', sub: 'OTP generated for pickup', active: req?.status === 'Accepted' },
+                        { icon: '✅', step: 'Return approved', sub: 'OTP generated for pickup', active: ['Accepted', 'Approved'].includes(req?.status) },
                         { icon: '🚚', step: 'Rider scheduled', sub: 'Pickup assigned to partner', active: req?.status === 'Scheduled' },
                         { icon: '📦', step: 'Item picked up', sub: 'Rider has collected the item', active: req?.status === 'PickedUp' },
                         { icon: '💰', step: 'Returned \u0026 Refunded', sub: 'Refund credited to your wallet', active: req?.status === 'Returned' },

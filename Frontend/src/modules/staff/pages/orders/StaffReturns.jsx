@@ -140,18 +140,22 @@ const StaffReturns = () => {
                 </div>
             </div>
 
-            {/* Tabs Section */}
-            <div className="flex flex-wrap gap-2 p-1.5 bg-white border border-emerald-50 rounded-[1.8rem] w-fit shadow-sm">
+            {/* Modern Tabs Section */}
+            <div className="staff-tab-container">
                 {['Pending', 'Accepted', 'Processing', 'History'].map(tab => (
                     <button
                         key={tab}
                         onClick={() => { setActiveTab(tab); setPage(1); }}
-                        className={`px-8 py-3 rounded-[1.2rem] text-[11px] font-black tracking-[0.1em] uppercase transition-all ${activeTab === tab ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100 scale-105' : 'text-gray-400 hover:bg-emerald-50 hover:text-emerald-600'}`}
+                        className={`staff-tab-pill ${activeTab === tab ? 'staff-tab-active' : 'staff-tab-inactive'}`}
                     >
-                        {tab}
-                        {tab === 'Pending' && returns.length > 0 && activeTab === 'Pending' && (
-                            <span className="ml-2 px-1.5 py-0.5 bg-white/20 rounded-full">{returns.length}</span>
-                        )}
+                        <div className="flex items-center justify-center gap-2">
+                            <span>{tab}</span>
+                            {tab === 'Pending' && returns.length > 0 && activeTab === 'Pending' && (
+                                <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === tab ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-600'}`}>
+                                    {returns.length}
+                                </span>
+                            )}
+                        </div>
                     </button>
                 ))}
             </div>

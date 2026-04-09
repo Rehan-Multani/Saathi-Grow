@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Row, Col, Spinner, Table, Badge } from 'react-bootstrap';
 import { Save, X, ArrowLeft, Search, Package, Layers, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getProducts, bulkAdjustInventory } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -12,6 +12,7 @@ import { Autocomplete, TextField, IconButton } from '@mui/material';
 const AddStockAdjustment = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -22,7 +23,7 @@ const AddStockAdjustment = () => {
     const [formData, setFormData] = useState({
         branchId: '',
         type: 'Addition',
-        reason: '',
+        reason: 'New Stock Arrival',
         notes: '',
         commonAmount: ''
     });
@@ -51,7 +52,31 @@ const AddStockAdjustment = () => {
                 // Exclude vendor products
                 const adminProducts = (productsData.products || []).filter(p => !p.vendor);
                 setProducts(adminProducts);
-                setBranches(branchesData.filter(b => b.isActive));
+                
+                const activeBranches = branchesData.filter(b => b.isActive);
+                setBranches(activeBranches);
+
+                // Handle Pre-selection from Location State
+                if (location.state) {
+                    if (location.state.productId) {
+                        const preSelected = adminProducts.find(p => p._id === location.state.productId);
+                        if (preSelected) {
+                            setSelectedProducts([preSelected]);
+                        }
+                    }
+                    if (location.state.branchId) {
+                        const targetBranchId = typeof location.state.branchId === 'object' 
+                            ? (location.state.branchId._id || location.state.branchId.id) 
+                            : location.state.branchId;
+                            
+                        setFormData(prev => ({ 
+                            ...prev, 
+                            branchId: String(targetBranchId), // Ensure string for select comparison
+                            type: location.state.type || 'Addition',
+                            reason: location.state.reason || 'New Stock Arrival'
+                        }));
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching data:', error);
                 toast.error(t('stock.add_adjustment.alerts.load_error'));
@@ -61,7 +86,7 @@ const AddStockAdjustment = () => {
         };
 
         if (adminUser?.token) fetchInitialData();
-    }, [adminUser, t]);
+    }, [adminUser, t, location.state]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

@@ -53,7 +53,8 @@
     "add": "Add",
     "update": "Update",
     "loading": "Loading...",
-    "actions": "Actions"
+    "actions": "Actions",
+    "global": "Global"
   },
   "sidebar": {
     "all_orders": "All Orders",
@@ -983,7 +984,8 @@
           "name": "Partner Name",
           "type": "Type",
           "contact": "Contact",
-          "capacity": "Capacity",
+          "duty": "Duty",
+          "assignment": "Assignment",
           "status": "Status",
           "actions": "Actions"
         },
@@ -1459,7 +1461,7 @@
       },
       "low_stock": {
         "scanning": "Scanning Grid...",
-        "critical_shortages": "{{count}} Critical Shortages Detected",
+        "critical_shortages": "{{count}} Inventory Alerts Detected",
         "high_priority": "High Priority Intervention Required",
         "sync_data": "Re-sync Grid",
         "search_placeholder": "Filter by item or SKU...",
@@ -1498,9 +1500,13 @@
         "filters": {
           "status_all": "All Statuses",
           "in_stock": "Stable",
-          "critically_low": "Low",
+          "low_stock": "Low",
           "out_of_stock": "Depleted",
-          "branch_global": "Global View"
+          "critically_low": "Low",
+          "branch_global": "Global View",
+          "LOW_STOCK": "Low",
+          "OUT_OF_STOCK": "Depleted",
+          "IN_STOCK": "Stable"
         },
         "table": {
           "item": "Class / SKU",
@@ -1521,43 +1527,16 @@
         },
         "error_load": "Failed to fetch node inventory"
       },
-      "adjustments": {
-        "title": "Inventory Audit Trail",
-        "new_adjustment": "Manual Adjustment",
-        "loading": "Retrieving logs...",
-        "error_load": "Failed to load audit trail",
-        "unknown_product": "Unknown Asset",
-        "system_user": "System Auto",
-        "no_logs": "No inventory adjustments found",
-        "table": {
-          "id": "Log ID",
-          "date": "Timestamp",
-          "product": "Product",
-          "branch": "Node",
-          "type": "Logic",
-          "changed": "Delta",
-          "quantity": "Final",
-          "reason": "Context",
-          "user": "Auth"
-        },
-        "types": {
-          "addition": "Restock",
-          "deduction": "Manual Out",
-          "damage": "Log Loss",
-          "return": "Return",
-          "audit": "Set Exact",
-          "adjustment": "Generic"
-        },
-        "pagination": {
-          "showing": "Listing",
-          "to": "thru",
-          "of": "from",
-          "adjustments": "logs"
-        }
-      },
       "add_adjustment": {
         "title": "Initialize Inventory Proxy",
         "subtitle": "Bulk re-allocation and state adjustment for physical assets.",
+        "types": {
+          "addition": "Stock Addition",
+          "deduction": "Manual Deduction",
+          "damage": "Damaged / Expired",
+          "return": "Customer Return",
+          "audit": "Inventory Audit"
+        },
         "preparing": "Building secure bridge...",
         "step1": "Asset Selection",
         "step2": "Logic Calibration",
@@ -1595,6 +1574,45 @@
           "qty_required": "Non-zero delta required for this logic",
           "success": "Inventory state committed",
           "error": "Fault in transmission"
+        }
+      },
+      "adjustments": {
+        "title": "Inventory Audit Trail",
+        "new_adjustment": "Manual Adjustment",
+        "loading": "Retrieving logs...",
+        "error_load": "Failed to load audit trail",
+        "unknown_product": "Unknown Asset",
+        "system_user": "System Auto",
+        "no_logs": "No inventory adjustments found",
+        "table": {
+          "id": "Log ID",
+          "date": "Timestamp",
+          "product": "Product",
+          "branch": "Node",
+          "type": "Logic",
+          "changed": "Delta",
+          "quantity": "Final",
+          "reason": "Context",
+          "user": "Auth"
+        },
+        "types": {
+          "addition": "Restock",
+          "deduction": "Manual Out",
+          "damage": "Log Loss",
+          "return": "Return",
+          "removal": "Removal",
+          "audit": "Set Exact",
+          "adjustment": "Generic",
+          "Addition": "Restock",
+          "Removal": "Removal",
+          "Return": "Return",
+          "Damage": "Log Loss"
+        },
+        "pagination": {
+          "showing": "Listing",
+          "to": "thru",
+          "of": "from",
+          "adjustments": "logs"
         }
       },
       "requests": {
@@ -1776,6 +1794,22 @@
     "amount": "Amount"
   },
   "orders": {
+    "0": "D",
+    "1": "e",
+    "2": "l",
+    "3": "i",
+    "4": "v",
+    "5": "e",
+    "6": "r",
+    "7": "e",
+    "8": "d",
+    "9": " ",
+    "10": "O",
+    "11": "r",
+    "12": "d",
+    "13": "e",
+    "14": "r",
+    "15": "s",
     "returns": {
       "title": "Reclamation Control",
       "logistics_control": "STRATEGIC LOGISTICS COMMAND",
@@ -2004,11 +2038,16 @@
       "refresh": "Sync Matrix",
       "search_placeholder": "Query SKU or label...",
       "filters": {
-        "status_all": "All Statuses",
         "in_stock": "Stable",
-        "critically_low": "Low",
+        "low_stock": "Low",
         "out_of_stock": "Depleted",
-        "branch_global": "Global View"
+        "critically_low": "Low",
+        "status_all": "All Statuses",
+        "branch_global": "Global View",
+        "IN_STOCK": "Stable",
+        "LOW_STOCK": "Low",
+        "OUT_OF_STOCK": "Depleted",
+        "CRITICALLY_LOW": "Critical"
       },
       "table": {
         "item": "Class / SKU",
@@ -2050,11 +2089,26 @@
       },
       "types": {
         "addition": "Restock",
+        "removal": "Removal",
         "deduction": "Manual Out",
         "damage": "Log Loss",
         "return": "Return",
         "audit": "Set Exact",
-        "adjustment": "Generic"
+        "adjustment": "Generic",
+        "Addition": "Restock",
+        "ADDITION": "Restock",
+        "Removal": "Removal",
+        "REMOVAL": "Removal",
+        "Deduction": "Manual Out",
+        "DEDUCTION": "Manual Out",
+        "Damage": "Log Loss",
+        "DAMAGE": "Log Loss",
+        "Return": "Return",
+        "RETURN": "Return",
+        "Audit": "Set Exact",
+        "AUDIT": "Set Exact",
+        "Adjustment": "Generic",
+        "ADJUSTMENT": "Generic"
       },
       "pagination": {
         "showing": "Listing",
@@ -2083,6 +2137,14 @@
       "processing": "Transmitting...",
       "submit_btn": "Commit {{count}} Adjustments",
       "cancel": "Abort",
+      "types": {
+        "addition": "Stock Addition",
+        "deduction": "Manual Deduction",
+        "damage": "Damaged / Expired",
+        "return": "Customer Return",
+        "audit": "Inventory Audit",
+        "removal": "Stock Removal"
+      },
       "reasons": {
         "arrival": "New Deployment",
         "damaged": "Physical Damage",
@@ -2092,6 +2154,11 @@
         "audit": "Scheduled Audit",
         "other": "Manual Override"
       },
+      "correction": "Grid Correction",
+      "return": "Recall / Return",
+      "loss": "Untracked Loss",
+      "audit": "Scheduled Audit",
+      "other": "Manual Override",
       "table": {
         "product": "Asset",
         "quantity": "Delta",
@@ -2104,6 +2171,33 @@
         "success": "Inventory state committed",
         "error": "Fault in transmission"
       }
+    },
+    "alerts": {
+      "remove_title": "Decommission Staff Member?",
+      "remove_text": "Are you sure you want to remove {{name}} from the operational matrix?",
+      "removed_title": "Asset Decommissioned",
+      "removed_text": "Staff member has been successfully removed.",
+      "update_success": "Inventory updated: {{name}}",
+      "permissions_updated": "Permissions updated",
+      "create_success": "Staff member created successfully!",
+      "select_branch": "Please select a branch",
+      "valid_amount": "Please enter a valid amount",
+      "provide_reason": "Please provide a reason for adjustment",
+      "update_failed": "Failed to adjust inventory",
+      "sync_error": "Failed to sync delivery data",
+      "batch_limit": "You can only batch orders from the same time slot.",
+      "no_select": "Please select at least one order to batch.",
+      "load_drivers_error": "Failed to load available drivers",
+      "batch_success": "Successfully batched {{count}} orders into a Delivery Run!",
+      "batch_error": "Failed to create Delivery Run",
+      "cancel_confirm_title": "Cancel Delivery Run?",
+      "cancel_confirm_text": "This will unassign all pending orders in this batch and free the driver.",
+      "cancel_btn": "Yes, Cancel Run",
+      "cancel_success": "Run cancelled successfully",
+      "cancel_error": "Failed to cancel run",
+      "close_success": "Ticket closed successfully",
+      "refund_success": "Ticket closed & Refund processed",
+      "action_failed": "Action failed"
     },
     "requests": {
       "title": "Internal Resource Requests",
@@ -2130,724 +2224,306 @@
         "reject_success": "Resource request denied",
         "reject_error": "Denial fault"
       }
-    },
-    "reports": {
-      "inventory": {
-        "title": "Inventory Reports",
-        "subtitle": "Unified cross-store stock monitoring and replenishment analytics.",
-        "out_of_stock_btn": "Out of Stock ({{count}})",
-        "low_stock_btn": "Low Stock ({{count}})",
-        "export_report": "Export Report",
-        "exporting": "Exporting...",
-        "table_title": "Current Stock Levels",
-        "search_placeholder": "Search by product name or SKU...",
-        "filter": "Filter",
-        "filter_menu": {
-          "title": "Filter Reports",
-          "category_label": "By Category",
-          "all_categories": "All Categories",
-          "source_label": "Source (Branch/Vendor)",
-          "all_sources": "All Sources (Global)",
-          "branches_group": "Branches",
-          "vendors_group": "Vendors",
-          "status_label": "Stock Status",
-          "all_items": "All Items",
-          "in_stock": "In Stock",
-          "low_stock_only": "Low Stock Only",
-          "out_of_stock": "Out of Stock",
-          "clear_filters": "Clear All Filters"
-        },
-        "statuses": {
-          "in_stock": "In Stock",
-          "low_stock": "Low Stock",
-          "out_of_stock": "Out of Stock"
-        },
-        "table": {
-          "product": "Product",
-          "vendor_source": "Vendor/Source",
-          "category": "Category",
-          "stock_level": "Stock Level",
-          "reorder_point": "Reorder Point",
-          "status": "Status",
-          "units": "units",
-          "no_data": "No inventory data found matching your criteria."
-        },
-        "pagination": {
-          "showing": "Showing",
-          "to": "to",
-          "of": "of",
-          "products": "products"
-        },
-        "alerts": {
-          "export_success": "Inventory report exported",
-          "export_error": "Failed to export report"
-        }
-      },
-      "sales": {
-        "title": "Sales Reports",
-        "period": {
-          "last_30_days": "Last 30 Days",
-          "this_month": "This Month",
-          "last_month": "Last Month",
-          "this_year": "This Year"
-        },
-        "export_csv": "Export CSV",
-        "exporting": "Exporting...",
-        "export_short": "Export",
-        "stats": {
-          "total_revenue": "Total Revenue",
-          "total_orders": "Total Orders",
-          "avg_order_value": "Avg Order Value",
-          "period_sales": "Period Sales",
-          "growth_suffix": "from last period",
-          "standard_avg": "Standard period avg",
-          "currently_viewing": "Currently viewing {{period}}"
-        },
-        "table": {
-          "title": "Recent Transactions",
-          "order_id": "Order ID",
-          "date": "Date",
-          "customer": "Customer",
-          "items": "Items",
-          "items_count": "{{count}} Items",
-          "payment": "Payment",
-          "status": "Status",
-          "amount": "Amount",
-          "no_transactions": "No transactions found for the selected period."
-        },
-        "pagination": {
-          "showing": "Showing",
-          "to": "to",
-          "of": "of",
-          "orders": "orders"
-        },
-        "alerts": {
-          "export_success": "Sales report exported successfully",
-          "export_error": "Failed to export sales report",
-          "load_error": "Failed to load sales reports"
-        }
-      },
-      "vendors": {
-        "title": "Vendor Performance Reports",
-        "subtitle": "Evaluate your vendor partners based on inventory and sales metrics.",
-        "export_report": "Export Report",
-        "exporting": "Exporting...",
-        "table": {
-          "title": "Vendor Performance Directory",
-          "search_placeholder": "Search by vendor store name...",
-          "vendor_store": "Vendor Store",
-          "contact_details": "Contact Details",
-          "products": "Products",
-          "total_sales": "Total Sales",
-          "member_since": "Member Since",
-          "status": "Status",
-          "actions": "Actions",
-          "items_count": "{{count}} Items",
-          "orders_count": "{{count}} Orders",
-          "view_stats": "View Stats",
-          "no_data": "No vendor performance data found."
-        },
-        "statuses": {
-          "active": "Active",
-          "pending": "Pending",
-          "inactive": "Inactive"
-        },
-        "performance_modal": {
-          "id": "ID",
-          "lifetime_sales": "Lifetime Sales",
-          "catalog_size": "Catalog Size",
-          "items": "Items",
-          "admin_details": "Administrative Details",
-          "store_owner": "Store Owner",
-          "onboarded_on": "Onboarded On",
-          "phone_number": "Phone Number",
-          "total_orders": "Total Orders",
-          "status_msg": "This vendor account is currently {{status}} in the SaathiGrow network.",
-          "close": "Close",
-          "refresh_stats": "Refresh Stats"
-        },
-        "pagination": {
-          "showing": "Showing",
-          "to": "to",
-          "of": "of",
-          "vendors": "vendors"
-        },
-        "alerts": {
-          "fetch_error": "Failed to fetch vendor reports",
-          "export_success": "Vendor report exported successfully",
-          "export_error": "Failed to export report"
-        }
-      }
     }
   },
-  "customers": {
-    "all": {
-      "title": "All Customers",
-      "search_placeholder": "Search Name, Email, Phone...",
-      "anonymous": "Anonymous",
-      "no_customers": "No customers found",
-      "table": {
-        "customer": "Customer",
-        "contact": "Contact Info",
-        "location": "Location",
-        "wallet": "Wallet",
-        "status": "Status",
-        "actions": "Actions"
-      },
-      "status": {
-        "active": "Active",
-        "blocked": "Blocked"
-      },
-      "actions": {
-        "view_profile": "View Profile",
-        "send_email": "Send Email",
-        "send_message": "Send Message",
-        "block_user": "Block User",
-        "unblock_user": "Unblock User"
-      },
-      "alerts": {
-        "sent_success": "{{type}} dispatched successfully",
-        "delivered_success": "{{type}} delivered to {{name}} junction",
-        "block_success": "Entity restricted successfully",
-        "unblock_success": "Entity restriction lifted"
-      },
-      "errors": {
-        "fetch_failed": "Entity stream error (Customer fetch failed)",
-        "fetch_profile": "Failed to retrieve entity profile",
-        "update_failed": "Entity state update failure"
-      },
-      "details_modal": {
-        "title": "Customer Profile",
-        "member_since": "Member since {{date}}",
-        "stats": {
-          "orders": "Orders",
-          "spent": "Spent",
-          "wallet": "Wallet"
-        },
-        "info_label": "Account Details",
-        "email_label": "Email Address",
-        "phone_label": "Phone Number",
-        "address_label": "Default Delivery Address",
-        "no_address": "No address saved",
-        "activity_label": "Recent Activity",
-        "no_orders": "No Active Orders",
-        "done_btn": "Done"
-      },
-      "message_modal": {
-        "title": "Send {{type}} to {{name}}",
-        "subject_label": "Subject",
-        "subject_placeholder": "Enter subject line...",
-        "message_label": "Message",
-        "message_placeholder": "Type your {{type}} message here...",
-        "cancel": "Cancel",
-        "send_btn": "Send {{type}}"
-      },
-      "pagination": {
-        "showing": "Showing",
-        "to": "to",
-        "of": "of"
-      }
+  "edit_modal": {
+    "title": "Update Category",
+    "name_label": "Category Name",
+    "name_placeholder": "e.g. Electronics",
+    "slug_label": "Slug",
+    "slug_placeholder": "electronics-item",
+    "slug_help": "Unique identifier for SEO.",
+    "status_label": "Status",
+    "description_label": "Description",
+    "description_placeholder": "Category description...",
+    "appearance_title": "Appearance",
+    "add_image": "Add Category Image",
+    "image_size_error": "Image size should be less than 2MB",
+    "bg_color_label": "Background Color",
+    "live_preview": "Live Preview Card",
+    "saving": "Saving...",
+    "update_btn": "Update Category",
+    "cancel": "Cancel"
+  },
+  "table": {
+    "brand": "Brand",
+    "category": "ISSUE CATEGORY",
+    "details": "Details",
+    "status": "STATUS",
+    "actions": "ACTIONS",
+    "name": "Partner Name",
+    "type": "Type",
+    "contact": "Contact",
+    "duty": "Duty",
+    "assignment": "Assignment",
+    "ref": "Ref",
+    "order_details": "Order Details",
+    "customer_info": "Customer Info",
+    "delivery_node": "Delivery Node",
+    "valuation": "Valuation",
+    "paid": "PAID",
+    "cod": "COD",
+    "ticket_id": "TICKET ID",
+    "order_id": "ORDER ID",
+    "user": "USER",
+    "priority": "PRIORITY",
+    "title": "Daily Breakdown",
+    "last_days": "Last {{count}} Active Days",
+    "date": "Date",
+    "gross": "Gross Sales",
+    "refunds": "Refunds",
+    "net": "Net Sales",
+    "no_records": "No financial records found for this period.",
+    "gross_sales": "Gross Sales",
+    "net_sales": "Net Sales"
+  },
+  "status": {
+    "active": "Operational",
+    "low_stock": "Low Stock",
+    "out_of_stock": "Out of Stock",
+    "draft": "Draft",
+    "pending_approval": "Pending Approval",
+    "open": "OPEN",
+    "escalated": "ESCALATED",
+    "responded": "RESPONDED",
+    "resolved": "RESOLVED",
+    "closed": "CLOSED",
+    "sla_breach": "SLA BREACH"
+  },
+  "actions": {
+    "manage_permissions": "Manage Permissions",
+    "edit_staff": "Edit Staff",
+    "remove_staff": "Remove Staff"
+  },
+  "permissions_modal": {
+    "title": "Staff Permissions",
+    "access_control": "Access Control"
+  },
+  "add_new": {
+    "0": "A",
+    "1": "d",
+    "2": "d",
+    "3": " ",
+    "4": "N",
+    "5": "e",
+    "6": "w",
+    "7": " ",
+    "8": "P",
+    "9": "a",
+    "10": "r",
+    "11": "t",
+    "12": "n",
+    "13": "e",
+    "14": "r",
+    "title": "Add New Staff Member",
+    "subtitle": "Create a new account for your team member.",
+    "back_to_list": "Back to List",
+    "personal_info": "Personal Information",
+    "first_name": "First Name",
+    "first_name_placeholder": "Enter first name",
+    "last_name": "Last Name",
+    "last_name_placeholder": "Enter last name",
+    "email": "Email Address",
+    "email_placeholder": "name@company.com",
+    "phone": "Phone Number",
+    "phone_placeholder": "10-digit mobile number",
+    "account_security": "Account Security",
+    "password": "Password",
+    "password_placeholder": "********",
+    "password_min_length": "Min. 8 characters",
+    "confirm_password": "Confirm Password",
+    "role_access": "Role & Access",
+    "assign_role": "Assign Role",
+    "assign_branch": "Assign Branch",
+    "global_no_branch": "Global / No Branch",
+    "assign_branch_help": "Select the branch this staff belongs to.",
+    "specific_permissions": "Specific Permissions",
+    "create_account": "Create Account",
+    "validation": {
+      "first_name_req": "First name is required.",
+      "last_name_req": "Last name is required.",
+      "email_invalid": "Please provide a valid email address (e.g., name@gmail.com).",
+      "phone_invalid": "Please enter a valid 10-digit Indian phone number.",
+      "password_req": "Password must be at least 8 characters long.",
+      "password_mismatch": "Passwords do not match!"
     }
   },
-  "staff": {
-    "title": "Marketplace Staff",
-    "loading_failed": "Failed to load staff list",
-    "search_placeholder": "Search by name or email...",
-    "add_staff": "Add Staff",
-    "add_short": "Add",
-    "loading": "Loading staff...",
-    "no_staff": "No staff found",
-    "global": "Global",
-    "edit_modal": {
-      "title": "Edit Staff Member",
-      "name_label": "Full Name",
-      "name_placeholder": "Enter full name",
-      "role_label": "Job Role",
-      "branch_label": "Assign Branch",
-      "global_branch": "Global / No Branch",
-      "email_label": "Email Address",
-      "email_placeholder": "name@sathigro.com",
-      "phone_label": "Phone Number",
-      "phone_placeholder": "+91 00000 00000",
-      "active_switch": "Account Active",
-      "cancel": "Cancel",
-      "update_btn": "Update Staff"
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "partners": "partners"
+  },
+  "errors": {
+    "fetch_failed": "Protocol link error (Staff fetch failed)",
+    "remove_failed": "Decommissioning protocol failure",
+    "update_failed": "Identity update synchronization failure",
+    "permissions_failed": "Failed to update permissions",
+    "create_failed": "Failed to create staff member"
+  },
+  "source": {
+    "vendor": "Vendor",
+    "branch": "Branch"
+  },
+  "sections": {
+    "general": "General Information",
+    "pricing": "Pricing & Units",
+    "inventory": "Inventory",
+    "branch_availability": "Branch Availability & Stock",
+    "vendor_inventory": "Vendor Inventory Control",
+    "organization": "Organization",
+    "image": "Product Display Image",
+    "gallery": "Visual Gallery"
+  },
+  "form": {
+    "ui_customization": "UI Customization",
+    "display_type": "Section Display Type",
+    "festive_type": "Festive Section",
+    "lowest_price_type": "Lowest Prices",
+    "pill_text": "Highlight Pill Text",
+    "placeholder": {
+      "title": "e.g. Valentine's Week Special",
+      "subtitle": "e.g. Gifts for your loved ones"
     },
-    "table": {
-      "profile": "Staff Profile",
-      "role": "Role",
-      "branch": "Branch",
-      "status": "Status",
-      "actions": "Actions"
+    "bg_color": "Background Color",
+    "text_color": "Text Color",
+    "accent_color": "Accent Color (Buttons)",
+    "visible_front": "Visible on App Front",
+    "publish": "Publish Section",
+    "update": "Update Campaign Section"
+  },
+  "loading": "Loading products...",
+  "no_products": "No products found",
+  "no_products_msg": "Try adjusting your search or filters.",
+  "qr": {
+    "title": "Product QR Code",
+    "download": "DOWNLOAD QR"
+  },
+  "dietary": {
+    "veg": "VEG",
+    "non_veg": "NON-VEG"
+  },
+  "restock_modal": {
+    "title": "Inventory Adjustment",
+    "target_product": "Target Product",
+    "target_storage": "Target Storage",
+    "select_placeholder": "Select...",
+    "vendor_stock": "📦 Vendor Direct Stock ({{name}})",
+    "branch_info": "🏢 Branch: {{name}} (Current: {{stock}})",
+    "current_stock": "Current Stock:",
+    "adjustment_type": "Adjustment Type",
+    "type_options": {
+      "addition": "📦 Stock Addition (Purchase/Restock)",
+      "return": "🔄 Customer Return",
+      "deduction": "📤 Manual Deduction",
+      "damage": "⚠️ Damaged / Expired",
+      "audit": "📋 Inventory Audit (Set Exact)"
     },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
-    },
-    "actions": {
-      "manage_permissions": "Manage Permissions",
-      "edit_staff": "Edit Staff",
-      "remove_staff": "Remove Staff"
-    },
-    "permissions_modal": {
-      "title": "Staff Permissions",
-      "access_control": "Access Control"
-    },
-    "add_new": {
-      "title": "Add New Staff Member",
-      "subtitle": "Create a new account for your team member.",
-      "back_to_list": "Back to List",
-      "personal_info": "Personal Information",
-      "first_name": "First Name",
-      "first_name_placeholder": "Enter first name",
-      "last_name": "Last Name",
-      "last_name_placeholder": "Enter last name",
-      "email": "Email Address",
-      "email_placeholder": "name@company.com",
-      "phone": "Phone Number",
-      "phone_placeholder": "10-digit mobile number",
-      "account_security": "Account Security",
-      "password": "Password",
-      "password_placeholder": "********",
-      "password_min_length": "Min. 8 characters",
-      "confirm_password": "Confirm Password",
-      "role_access": "Role & Access",
-      "assign_role": "Assign Role",
-      "assign_branch": "Assign Branch",
-      "global_no_branch": "Global / No Branch",
-      "assign_branch_help": "Select the branch this staff belongs to.",
-      "specific_permissions": "Specific Permissions",
-      "create_account": "Create Account",
-      "validation": {
-        "first_name_req": "First name is required.",
-        "last_name_req": "Last name is required.",
-        "email_invalid": "Please provide a valid email address (e.g., name@gmail.com).",
-        "phone_invalid": "Please enter a valid 10-digit Indian phone number.",
-        "password_req": "Password must be at least 8 characters long.",
-        "password_mismatch": "Passwords do not match!"
-      }
-    },
-    "pagination": {
-      "showing": "Showing",
-      "to": "to",
-      "of": "of",
-      "staff_members": "staff members"
-    },
-    "alerts": {
-      "remove_title": "Decommission Staff Member?",
-      "remove_text": "Are you sure you want to remove {{name}} from the operational matrix?",
-      "removed_title": "Asset Decommissioned",
-      "removed_text": "Staff member has been successfully removed.",
-      "update_success": "Node identity updated successfully",
-      "permissions_updated": "Permissions updated",
-      "create_success": "Staff member created successfully!"
-    },
-    "errors": {
-      "fetch_failed": "Protocol link error (Staff fetch failed)",
-      "remove_failed": "Decommissioning protocol failure",
-      "update_failed": "Identity update synchronization failure",
-      "permissions_failed": "Failed to update permissions",
-      "create_failed": "Failed to create staff member"
-    },
-    "permission_labels": {
-      "VIEW_DASHBOARD": "View Dashboard Analytics",
-      "VIEW_ORDERS": "View Orders List",
-      "MANAGE_ORDERS": "Manage/Change Order Status",
-      "MANAGE_REFUNDS_RETURNS": "Approve Refunds & Returns",
-      "VIEW_PRODUCTS": "View Products Catalog",
-      "MANAGE_PRODUCTS": "Add/Edit/Delete Products",
-      "MANAGE_CATEGORIES_BRANDS": "Add/Edit Categories & Brands",
-      "MANAGE_INVENTORY": "Update Stock/Inventory",
-      "MANAGE_DELIVERY": "Manage Delivery Partners",
-      "VIEW_CUSTOMERS": "View Customer Info",
-      "MANAGE_CUSTOMERS": "Block/Unblock/Wallet Edit",
-      "MANAGE_STAFF": "Create/Edit Staff",
-      "MANAGE_BRANCHES": "Manage Branch Locations",
-      "MANAGE_VENDORS": "Manage Vendors & Payouts",
-      "MANAGE_POS_BILLING": "Handle POS Billing & Terminal",
-      "MANAGE_SETTINGS": "App Global Settings (Taxes, Delivery)"
+    "exact_count": "Exact Current Count",
+    "qty_change": "Quantity Change",
+    "reason_label": "Reason / Note",
+    "reason_placeholder": "e.g. New stock from supplier XYZ",
+    "confirm_btn": "Confirm Adjustment"
+  },
+  "tickets": {
+    "title": "Ticket Intake Center",
+    "search_placeholder": "Search by ID or User...",
+    "refresh": "Refresh",
+    "modal": {
+      "title": "Ticket Details: {{id}}",
+      "context_label": "Complaint Context",
+      "order_user_info": "Order & User",
+      "order_id": "Order #{{id}}",
+      "amount": "Amount",
+      "resolution_progress": "Resolution Progress",
+      "store_recommendation_msg": "Store has recommended a refund for this ticket",
+      "admin_notes_label": "Internal Admin Notes",
+      "admin_notes_placeholder": "Add notes for the store or internal records...",
+      "escalate_btn": "Escalate to Store",
+      "resolution_action": "Resolution Action",
+      "process_refund": "Process Wallet Refund",
+      "refund_close_btn": "Refund & Close",
+      "close_btn": "Close Ticket",
+      "keep_pending": "Keep Pending"
     }
+  },
+  "revenue": {
+    "title": "Revenue Analytics",
+    "subtitle": "Track your financial performance and growth metrics.",
+    "export_data": "Export Data",
+    "export_short": "Export",
+    "periods": {
+      "this_week": "Current Week",
+      "this_month": "Current Month",
+      "last_month": "Last Month",
+      "year_to_date": "Year to Date"
+    },
+    "cards": {
+      "net_sales": "Total Net Sales",
+      "refunds": "Total Refunds",
+      "payouts": "Vendor Payouts",
+      "net_profit": "Net Profit",
+      "vs_prev": "vs prev period",
+      "growth": "growth",
+      "refund_desc": "Value of returned orders",
+      "payout_desc": "Settlements processed",
+      "vendor_payouts": "Vendor Payouts"
+    },
+    "chart": {
+      "title": "Revenue Growth Overview",
+      "subtitle": "Net sales performance based on delivered orders",
+      "live_update": "Live Update",
+      "no_data": "No data available for the selected period"
+    },
+    "period": {
+      "week": "Current Week",
+      "month": "Current Month",
+      "last_month": "Last Month",
+      "ytd": "Year to Date"
+    },
+    "export": "Export Data"
   },
   "vendors": {
-    "title": "All Vendors",
-    "loading_failed": "Partner registry unavailable",
-    "search_placeholder": "Search by name, ID or owner...",
-    "add_new": "Add New",
-    "loading": "Loading Vendors...",
-    "no_vendors": "No vendors found",
-    "view_info": "View Info",
-    "approve": "Approve",
-    "block": "Block",
-    "delete_confirm_title": "Sever Partner Connection?",
-    "delete_confirm_text": "Confirm disconnection of {{name}} from the supply chain.",
-    "status": {
-      "active": "Active",
-      "pending": "Pending",
-      "inactive": "Inactive"
+    "title": "Vendor Earnings",
+    "subtitle": "Manage vendor payouts, commissions, and settlement history.",
+    "stats": {
+      "paid_out": "Total Paid Out",
+      "pending": "Pending Due",
+      "commission": "Commission Earned"
     },
     "table": {
-      "name": "Vendor Name",
-      "contact": "Contact",
-      "products": "Products",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "pagination": {
-      "showing": "Showing",
-      "to": "to",
-      "of": "of"
-    },
-    "edit_modal": {
-      "title": "Edit Vendor Profile",
-      "store_name": "Store Name",
-      "owner_name": "Owner Name",
-      "email_address": "Email Address",
-      "phone_number": "Phone Number",
-      "store_logo": "Store Logo",
-      "update_logo": "Update Logo",
-      "store_address": "Store Address (Search on Map)",
-      "address_placeholder": "Search for new location...",
-      "street": "Street",
-      "city": "City",
-      "state": "State",
-      "zip_code": "Zip Code",
-      "status": "Status",
-      "discard": "Discard",
-      "updating": "Updating...",
-      "update_btn": "Update Vendor"
-    }
-  },
-  "products": {
-    "title": "Product Inventory",
-    "add_title": "Add New Product",
-    "count": "{{count}} products",
-    "loading_failed": "Failed to load products",
-    "search_placeholder": "Search name, SKU, vendor...",
-    "managed_by_vendor": "Managed by vendor",
-    "filter_btn": "Filter",
-    "filter_options": "Filter Options",
-    "all_categories": "All Categories",
-    "all_brands": "All Brands",
-    "clear_filters": "Clear Filters",
-    "add_product": "Add Product",
-    "all_products": "All Products",
-    "branch_products": "Branch Products",
-    "vendor_products": "Vendor Products",
-    "table": {
-      "product": "Product",
-      "brand": "Brand",
-      "category": "Category",
-      "source": "Source",
-      "branches_store": "Branches / Store",
-      "assigned_branch": "Assigned Branch",
-      "price": "Price",
-      "total_stock": "Total Stock",
-      "branch_stock": "Branch Stock",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "status": {
-      "active": "Operational",
-      "low_stock": "Low Stock",
-      "out_of_stock": "Out of Stock",
-      "draft": "Draft",
-      "pending_approval": "Pending Approval"
-    },
-    "source": {
+      "payout_id": "Payout ID",
+      "requested_date": "Requested Date",
+      "net_payout": "Net Payout",
       "vendor": "Vendor",
-      "branch": "Branch"
+      "method": "Settlement Path",
+      "recent_payouts": "Recent Payout Settlements"
     },
-    "sections": {
-      "general": "General Information",
-      "pricing": "Pricing & Units",
-      "inventory": "Inventory",
-      "branch_availability": "Branch Availability & Stock",
-      "vendor_inventory": "Vendor Inventory Control",
-      "organization": "Organization",
-      "image": "Product Display Image",
-      "gallery": "Visual Gallery"
-    },
-    "form": {
-      "name": "Product Name",
-      "description": "Technical Description",
-      "tags": "Search Metadata (Tags)",
-      "base_price": "Base Price (INR)",
-      "mrp": "Maximum Retail Price",
-      "unit_type": "Measurement Unit",
-      "food_type": "Dietary Classification",
-      "physical_location": "Storage Location",
-      "unit_amount": "Unit Volume/Weight",
-      "available_in": "Global Logic Matrix",
-      "initial_stock": "Initial Stock",
-      "initial_stock_node": "Initial Stock Concentration",
-      "low_stock_warning": "Critical Depletion Level",
-      "category": "Primary Classification",
-      "brand": "Production Brand",
-      "assign_vendor": "Managed Partner Assignee",
-      "vendor_help": "Assigning a vendor links this product to their inventory.",
-      "saathi_priority": "Saathi-Grow Prime Selection",
-      "saathi_priority_desc": "Prioritize this asset in global search and recommendation engines.",
-      "sku": "Unique Supply Key (SKU)",
-      "qr_preview": "Supply Protocol Visualization",
-      "gallery_help": "Add up to 10 visual perspectives for comprehensive analysis.",
-      "placeholder": {
-        "name": "Enter product label...",
-        "description": "Enter technical specifications...",
-        "tag_input": "Add logic tag",
-        "price": "0.00",
-        "location": "e.g. Aisle 4, Shelf B",
-        "unit": "1",
-        "category": "Select Category",
-        "brand": "Select Brand",
-        "brand_no_cat": "Please select a category first",
-        "stock": "0",
-        "low_stock": "10"
-      },
-      "initial_stock_concentration": "Initial Inventory Concentration"
-    },
-    "loading": "Loading products...",
-    "no_products": "No products found",
-    "no_products_msg": "Try adjusting your search or filters.",
-    "qr": {
-      "title": "Product QR Code",
-      "download": "DOWNLOAD QR"
-    },
-    "dietary": {
-      "veg": "VEG",
-      "non_veg": "NON-VEG"
-    },
-    "pagination": {
-      "showing": "Showing",
-      "of": "of",
-      "previous": "Previous",
-      "next": "Next"
-    },
-    "restock_modal": {
-      "title": "Inventory Adjustment",
-      "target_product": "Target Product",
-      "target_storage": "Target Storage",
-      "select_placeholder": "Select...",
-      "vendor_stock": "📦 Vendor Direct Stock ({{name}})",
-      "branch_info": "🏢 Branch: {{name}} (Current: {{stock}})",
-      "current_stock": "Current Stock:",
-      "adjustment_type": "Adjustment Type",
-      "type_options": {
-        "addition": "📦 Stock Addition (Purchase/Restock)",
-        "return": "🔄 Customer Return",
-        "deduction": "📤 Manual Deduction",
-        "damage": "⚠️ Damaged / Expired",
-        "audit": "📋 Inventory Audit (Set Exact)"
-      },
-      "exact_count": "Exact Current Count",
-      "qty_change": "Quantity Change",
-      "reason_label": "Reason / Note",
-      "reason_placeholder": "e.g. New stock from supplier XYZ",
-      "confirm_btn": "Confirm Adjustment",
-      "alerts": {
-        "select_branch": "Please select a branch",
-        "valid_amount": "Please enter a valid amount",
-        "provide_reason": "Please provide a reason for adjustment",
-        "update_success": "Inventory updated: {{name}}",
-        "update_failed": "Failed to adjust inventory"
-      }
-    },
-    "edit_modal": {
-      "title": "Edit Product",
-      "name_label": "Product Name",
-      "category_label": "Category",
-      "select_category": "Select Category",
-      "brand_label": "Brand",
-      "select_brand": "Select Brand",
-      "vendor_label": "Assign Vendor (Optional)",
-      "admin_inhouse": "Admin (In-House Inventory)",
-      "price_label": "Price (₹)",
-      "mrp_label": "MRP (₹)",
-      "food_type": "Food Type",
-      "veg": "VEG",
-      "non_veg": "NON-VEG",
-      "amount_label": "Amount",
-      "unit_type_label": "Unit Type",
-      "status_label": "Status",
-      "priority_label": "Saathi Grow Priority Product",
-      "priority_help": "Prioritize this product in user listings",
-      "location_label": "Physical Location",
-      "location_placeholder": "e.g. Aisle 4, Shelf B",
-      "inventory_mgmt": "Inventory Management",
-      "vendor_stock_title": "Vendor Direct Stock",
-      "total_stock": "Total Stock",
-      "low_stock_threshold": "Low Stock Threshold",
-      "available_in": "Available In:",
-      "no_branches": "No branches selected.",
-      "image_label": "Product Image",
-      "update_image": "Upload Protocol Matrix",
-      "sku_label": "SKU Code",
-      "qr_title": "Product QR",
-      "gallery_label": "Gallery Images",
-      "description_label": "Description",
-      "ai_write": "AI Context Synthesis",
-      "tags_label": "Tags",
-      "ai_tags": "AI Tag Analysis",
-      "add_tag_placeholder": "Add tag...",
-      "add_btn": "Add",
-      "cancel": "Cancel",
-      "update_btn": "Update Product",
-      "alerts": {
-        "branch_required": "Product must be available in at least one branch",
-        "name_required": "Please enter a product name first",
-        "description_gen": "Description generated!",
-        "tags_gen": "Tags generated!",
-        "status_updated": "Product updated successfully",
-        "status_failed": "Failed to update product",
-        "fill_required": "Please fill all required fields",
-        "select_branch": "Please select at least one branch",
-        "create_success": "Product created successfully!",
-        "create_failed": "Failed to create product"
-      }
-    },
-    "alerts": {
-      "name_required": "Product label is essential for synthesis.",
-      "description_gen": "Context synthesized successfully.",
-      "tags_gen": "Metadata tags analyzed and indexed.",
-      "fill_required": "Required operational parameters missing.",
-      "select_branch": "Strategic branch assignment required.",
-      "create_success": "Asset initialized into global registry."
+    "export_statement": "Export Statement",
+    "filters": {
+      "all": "All Vendors",
+      "pending": "Pending Payouts",
+      "completed": "Completed Payouts"
     }
   },
-  "categories": {
-    "title": "Categories",
-    "subtitle": "Manage your product organization and background styling.",
-    "search_placeholder": "Search categories...",
-    "add_new": "Add New",
-    "loading": "Loading categories...",
-    "no_categories": "No categories found. Start by adding one!",
-    "no_matches": "No categories found matching your search.",
-    "loading_failed": "Failed to load categories",
-    "edit_modal": {
-      "title": "Update Category",
-      "name_label": "Category Name",
-      "name_placeholder": "e.g. Electronics",
-      "slug_label": "Slug",
-      "slug_placeholder": "electronics-item",
-      "slug_help": "Unique identifier for SEO.",
-      "status_label": "Status",
-      "description_label": "Description",
-      "description_placeholder": "Category description...",
-      "appearance_title": "Appearance",
-      "add_image": "Add Category Image",
-      "image_size_error": "Image size should be less than 2MB",
-      "bg_color_label": "Background Color",
-      "live_preview": "Live Preview Card",
-      "saving": "Saving...",
-      "update_btn": "Update Category",
-      "cancel": "Cancel"
-    },
-    "table": {
-      "info": "Category info",
-      "slug": "Slug",
-      "background": "Background",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "pagination": {
-      "showing": "Showing",
-      "to": "to",
-      "of": "of"
-    }
-  },
-  "brands": {
-    "title": "Marketplace Brands",
-    "loading_failed": "Failed to load brands",
-    "search_placeholder": "Search by name or category...",
-    "add_brand": "Add Brand",
-    "add_short": "Add",
-    "loading": "Loading brands...",
-    "no_brands": "No Brands Found",
-    "start_adding": "Start by adding your first brand!",
-    "add_new_btn": "Add New Brand",
-    "website": "Website",
-    "no_description": "No description",
-    "table": {
-      "brand": "Brand",
-      "category": "Category",
-      "details": "Details",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "pagination": {
-      "showing": "Showing",
-      "to": "to",
-      "of": "of"
-    },
-    "edit_modal": {
-      "title": "Edit Brand Details",
-      "no_logo": "No Logo",
-      "update_logo": "Update Brand Logo",
-      "name_label": "Brand Name",
-      "category_label": "Category",
-      "select_category": "Select Category",
-      "website_label": "Website",
-      "description_label": "Description",
-      "status_label": "Status",
-      "cancel": "Cancel",
-      "save_changes": "Save Changes"
-    }
-  },
-  "locations": {
-    "branches": {
-      "title": "Operational Nodes",
-      "subtitle": "Monitor and manage physical infrastructure entry points.",
-      "search_placeholder": "Query node or code...",
-      "add_new": "Add Node",
-      "loading": "Synchronizing nodes...",
-      "no_branches": "No operational nodes detected.",
-      "view_details": "Inspect Node",
-      "edit": "Modify Config",
-      "delete": "Decommission Node",
-      "delete_confirm_title": "Delete Branch?",
-      "delete_confirm_text": "Are you sure you want to remove \"{{name}}\"?",
-      "table": {
-        "details": "Node Identity",
-        "code": "Protocol Code",
-        "phone": "Direct Link",
-        "status": "State",
-        "actions": "Commands"
-      },
-      "status": {
-        "active": "Stabilized",
-        "inactive": "Offline"
-      },
-      "pagination": {
-        "showing": "Showing",
-        "to": "to",
-        "of": "of"
-      }
-    }
+  "demand": {
+    "title": "Demand Analytics & Lost Sales",
+    "subtitle": "Understand what your users want that you don't have.",
+    "view_list": "List View",
+    "view_map": "Heatmap",
+    "top_products": "Highly Demanded Products",
+    "distribution": "Demand Distribution",
+    "lost_intent": "Recent Lost Intent Records"
   },
   "delivery": {
     "partners": {
       "title": "Delivery Partners",
       "search_placeholder": "Search by name or ID...",
-      "add_new": "Add New Partner",
-      "loading": "Loading partners...",
       "no_partners": "No partners found matching your search.",
       "delete_confirm_title": "Delete Partner?",
       "delete_confirm_text": "Are you sure you want to remove {{name}}?",
       "delete_success": "Partner has been removed.",
-      "update_success": "Partner permission status updated successfully.",
-      "table": {
-        "name": "Partner Name",
-        "type": "Type",
-        "contact": "Contact",
-        "capacity": "Capacity",
-        "status": "Status",
-        "actions": "Actions"
-      },
-      "pagination": {
-        "showing": "Showing",
-        "to": "to",
-        "of": "of",
-        "partners": "partners"
-      }
+      "update_success": "Partner permission status updated successfully."
     },
     "add_partner": {
       "title": "Register Delivery Driver",
@@ -2894,15 +2570,6 @@
         "deselect_all": "Deselect All",
         "batch_assign": "Batch Assign"
       },
-      "table": {
-        "ref": "Ref",
-        "order_details": "Order Details",
-        "customer_info": "Customer Info",
-        "delivery_node": "Delivery Node",
-        "valuation": "Valuation",
-        "paid": "PAID",
-        "cod": "COD"
-      },
       "empty_state": {
         "title": "Operation Excellence Achieved!",
         "text": "All orders for today have been successfully assigned to your riders.",
@@ -2935,19 +2602,6 @@
         "no_riders": "No elite riders currently online or free for this mission.",
         "dispatch": "Dispatch",
         "syncing": "Syncing..."
-      },
-      "alerts": {
-        "sync_error": "Failed to sync delivery data",
-        "batch_limit": "You can only batch orders from the same time slot.",
-        "no_select": "Please select at least one order to batch.",
-        "load_drivers_error": "Failed to load available drivers",
-        "batch_success": "Successfully batched {{count}} orders into a Delivery Run!",
-        "batch_error": "Failed to create Delivery Run",
-        "cancel_confirm_title": "Cancel Delivery Run?",
-        "cancel_confirm_text": "This will unassign all pending orders in this batch and free the driver.",
-        "cancel_btn": "Yes, Cancel Run",
-        "cancel_success": "Run cancelled successfully",
-        "cancel_error": "Failed to cancel run"
       }
     },
     "tracking": {
@@ -2963,283 +2617,6 @@
       "in_transit": "In Transit",
       "pickup": "Pickup",
       "auto_sync": "Auto-syncing every 30s"
-    },
-    "slots": {
-      "title": "Delivery Slots",
-      "subtitle": "Manage time windows for order deliveries",
-      "add_btn": "Add New Slot",
-      "table": {
-        "label": "Slot Label",
-        "window": "Time Window",
-        "status": "Status"
-      },
-      "fetching": "Fetching slots...",
-      "active": "Active",
-      "disabled": "Disabled",
-      "empty": "No delivery slots configured yet. Click \"Add New Slot\" to create one.",
-      "pagination": {
-        "showing": "Showing",
-        "to": "to",
-        "of": "of",
-        "items": "slots"
-      },
-      "modal": {
-        "edit_title": "Edit Delivery Slot",
-        "add_title": "Add New Delivery Slot",
-        "name_label": "Slot Name / Label",
-        "name_placeholder": "e.g., Morning Slot, Afternoon, Evening",
-        "start_time": "Start Time",
-        "end_time": "End Time",
-        "active_label": "Active and visible to customers",
-        "cancel": "Cancel",
-        "save": "Save Changes",
-        "create": "Create Slot"
-      },
-      "alerts": {
-        "load_error": "Failed to load delivery slots",
-        "update_success": "Slot updated successfully",
-        "create_success": "New slot added successfully",
-        "action_failed": "Action failed",
-        "delete_confirm_title": "Are you sure?",
-        "delete_confirm_text": "This slot will be permanently removed.",
-        "delete_btn": "Yes, delete it!",
-        "delete_success": "Slot has been removed.",
-        "delete_error": "Failed to delete slot"
-      }
-    }
-  },
-
-  "support": {
-    "tickets": {
-      "title": "Ticket Intake Center",
-      "search_placeholder": "Search by ID or User...",
-      "refresh": "Refresh",
-      "loading": "Loading tickets...",
-      "table": {
-        "ticket_id": "TICKET ID",
-        "order_id": "ORDER ID",
-        "user": "USER",
-        "category": "ISSUE CATEGORY",
-        "priority": "PRIORITY",
-        "status": "STATUS",
-        "actions": "ACTIONS"
-      },
-      "status": {
-        "open": "OPEN",
-        "escalated": "ESCALATED",
-        "responded": "RESPONDED",
-        "resolved": "RESOLVED",
-        "closed": "CLOSED",
-        "sla_breach": "SLA BREACH"
-      },
-      "modal": {
-        "title": "Ticket Details: {{id}}",
-        "context_label": "Complaint Context",
-        "order_user_info": "Order & User",
-        "order_id": "Order #{{id}}",
-        "amount": "Amount",
-        "resolution_progress": "Resolution Progress",
-        "store_recommendation_msg": "Store has recommended a refund for this ticket",
-        "admin_notes_label": "Internal Admin Notes",
-        "admin_notes_placeholder": "Add notes for the store or internal records...",
-        "escalate_btn": "Escalate to Store",
-        "resolution_action": "Resolution Action",
-        "process_refund": "Process Wallet Refund",
-        "refund_close_btn": "Refund & Close",
-        "close_btn": "Close Ticket",
-        "keep_pending": "Keep Pending",
-        "alerts": {
-          "close_success": "Ticket closed successfully",
-          "refund_success": "Ticket closed & Refund processed",
-          "action_failed": "Action failed"
-        }
-      }
-    },
-    "faqs": {
-      "title": "Help Center / FAQs",
-      "subtitle": "Common questions and platform mechanics.",
-      "search_placeholder": "Search Questions...",
-      "add_new": "Add New FAQ",
-      "delete_confirm_title": "Delete FAQ",
-      "delete_confirm_text": "Are you sure you want to delete this FAQ? It will be removed from the help center.",
-      "no_matching": "No matching mechanics found.",
-      "try_different": "Try a different search term or category.",
-      "edit": "Edit",
-      "delete": "Delete",
-      "modal": {
-        "title_add": "Add New FAQ",
-        "title_edit": "Edit FAQ",
-        "question_label": "Question",
-        "question_placeholder": "Enter the question",
-        "answer_label": "Answer",
-        "answer_placeholder": "Enter the answer",
-        "category_label": "Category",
-        "status_label": "Status",
-        "save_btn": "Save FAQ",
-        "update_btn": "Update FAQ",
-        "cancel": "Cancel",
-        "categories": {
-          "general": "General",
-          "orders": "Orders",
-          "shipping": "Shipping",
-          "account": "Account",
-          "payment": "Payment"
-        },
-        "statuses": {
-          "published": "Published",
-          "draft": "Draft"
-        }
-      }
-    }
-  },
-  "analytics": {
-    "revenue": {
-      "title": "Revenue Analytics",
-      "subtitle": "Track your financial performance and growth metrics.",
-      "export_data": "Export Data",
-      "export_short": "Export",
-      "periods": {
-        "this_week": "Current Week",
-        "this_month": "Current Month",
-        "last_month": "Last Month",
-        "year_to_date": "Year to Date"
-      },
-      "cards": {
-        "net_sales": "Total Net Sales",
-        "refunds": "Total Refunds",
-        "payouts": "Vendor Payouts",
-        "net_profit": "Net Profit",
-        "vs_prev": "vs prev period",
-        "growth": "growth",
-        "refund_desc": "Value of returned orders",
-        "payout_desc": "Settlements processed",
-        "vendor_payouts": "Vendor Payouts"
-      },
-      "chart": {
-        "title": "Revenue Growth Overview",
-        "subtitle": "Net sales performance based on delivered orders",
-        "live_update": "Live Update",
-        "no_data": "No data available for the selected period"
-      },
-      "table": {
-        "title": "Daily Breakdown",
-        "last_days": "Last {{count}} Active Days",
-        "date": "Date",
-        "orders": "Delivered Orders",
-        "gross": "Gross Sales",
-        "refunds": "Refunds",
-        "net": "Net Sales",
-        "no_records": "No financial records found for this period.",
-        "gross_sales": "Gross Sales",
-        "net_sales": "Net Sales"
-      },
-      "period": {
-        "week": "Current Week",
-        "month": "Current Month",
-        "last_month": "Last Month",
-        "ytd": "Year to Date"
-      },
-      "export": "Export Data"
-    },
-    "vendors": {
-      "title": "Vendor Earnings",
-      "subtitle": "Manage vendor payouts, commissions, and settlement history.",
-      "stats": {
-        "paid_out": "Total Paid Out",
-        "pending": "Pending Due",
-        "commission": "Commission Earned"
-      },
-      "table": {
-        "payout_id": "Payout ID",
-        "requested_date": "Requested Date",
-        "net_payout": "Net Payout",
-        "vendor": "Vendor",
-        "method": "Settlement Path",
-        "recent_payouts": "Recent Payout Settlements"
-      },
-      "export_statement": "Export Statement",
-      "filters": {
-        "all": "All Vendors",
-        "pending": "Pending Payouts",
-        "completed": "Completed Payouts"
-      }
-    },
-    "demand": {
-      "title": "Demand Analytics & Lost Sales",
-      "subtitle": "Understand what your users want that you don't have.",
-      "view_list": "List View",
-      "view_map": "Heatmap",
-      "top_products": "Highly Demanded Products",
-      "distribution": "Demand Distribution",
-      "lost_intent": "Recent Lost Intent Records"
-    },
-    "pos": {
-      "title": "POS Analytics",
-      "terminals": "Active Terminals",
-      "txns_today": "Today's Transactions",
-      "best_branch": "Best Performing Branch",
-      "live_feed": "Live Transaction Feed"
-    }
-  },
-  "campaigns": {
-    "title": "Festive Campaigns",
-    "add_new": "Create Special Festive Section",
-    "edit": "Edit Festive Section",
-    "form": {
-      "ui_customization": "UI Customization",
-      "display_type": "Section Display Type",
-      "festive_type": "Festive Section",
-      "lowest_price_type": "Lowest Prices",
-      "pill_text": "Highlight Pill Text",
-      "placeholder": {
-        "title": "e.g. Valentine's Week Special",
-        "subtitle": "e.g. Gifts for your loved ones"
-      },
-      "bg_color": "Background Color",
-      "text_color": "Text Color",
-      "accent_color": "Accent Color (Buttons)",
-      "visible_front": "Visible on App Front",
-      "publish": "Publish Section",
-      "update": "Update Campaign Section"
-    },
-    "table": {
-      "manage_selection": "Manage Selection & Deal Pricing",
-      "browse_add": "Browse & Add Products",
-      "browse_help": "Search, filter by category and pick multiple products at once",
-      "product_details": "Product Details",
-      "savings": "Savings"
-    }
-  },
-  "offers": {
-    "title": "Offers & Banners",
-    "add_new": "Add New Offer",
-    "manage_selection": "Manage Selection & Deal Pricing"
-  },
-  "promocodes": {
-    "title": "Promo Codes",
-    "add_new": "Create New Code",
-    "table": {
-      "code": "Logistics Code",
-      "usage": "Usage Logic",
-      "validity": "Validity Node"
-    }
-  },
-  "settings": {
-    "app": {
-      "title": "Application Control Center",
-      "general": "General Configuration",
-      "system": "System Logic Matrix",
-      "maintenance": "Maintenance Protocol",
-      "save_all": "Commit All Protocols",
-      "maintenance_desc": "Maintenance Mode (Close Store for public)",
-      "name": "App Name",
-      "slogan": "Store Slogan",
-      "support_email": "Support Email",
-      "contact": "Contact Number",
-      "address": "Physical Address",
-      "currency": "Default Currency",
-      "timezone": "Time Zone",
-      "feature_toggles": "Feature Toggles"
     }
   }
 }

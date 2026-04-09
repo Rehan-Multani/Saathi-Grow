@@ -69,7 +69,7 @@ const CustomerOrders = () => {
 
     return (
         <div className="p-4 space-y-4">
-            <Card className="border-0 shadow-sm overflow-hidden rounded-2xl">
+            <Card className="border-0 shadow-sm rounded-2xl">
                 <Card.Body className="p-4">
                     <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                         <div className="d-flex align-items-center gap-3">

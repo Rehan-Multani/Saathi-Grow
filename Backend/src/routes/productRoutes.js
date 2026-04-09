@@ -21,22 +21,24 @@ import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-// Public routes for products (Optional Auth for branch/vendor scoping)
-router.get('/', optionalProtectStoreManager, getProducts);
+// Static routes first (MUST BE ABOVE /:id)
 router.get('/brands', getUniqueBrands);
 router.get('/search/ai', optionalProtectStoreManager, searchProductsWithAI);
+
+// Admin Only Static Routes
+router.get('/inventory/stats', protectAdmin, requirePermission('VIEW_PRODUCTS'), getInventoryStats);
+router.get('/inventory/branch-wise', protectAdmin, requirePermission('VIEW_PRODUCTS'), getBranchWiseStock);
+router.get('/inventory/low-stock', protectAdmin, requirePermission('VIEW_PRODUCTS'), getLowStockAlerts);
+router.post('/inventory/bulk-adjust', protectAdmin, requirePermission('MANAGE_INVENTORY'), bulkAdjustInventory);
+router.post('/ai-suggestions', protectAdmin, requirePermission('VIEW_PRODUCTS'), getAISuggestions);
+router.get('/inventory-logs', protectAdmin, requirePermission('MANAGE_INVENTORY'), getAllInventoryLogs);
+
+// Public/General Routes
+router.get('/', optionalProtectStoreManager, getProducts);
 router.get('/:id', optionalProtectStoreManager, getProductById);
 
-// Admin Only Routes
+// Admin Only Dynamic Routes
 router.use(protectAdmin);
-
-// Static Admin Routes (MUST BE ABOVE /:id)
-router.get('/inventory/stats', requirePermission('VIEW_PRODUCTS'), getInventoryStats);
-router.get('/inventory/branch-wise', requirePermission('VIEW_PRODUCTS'), getBranchWiseStock);
-router.get('/inventory/low-stock', requirePermission('VIEW_PRODUCTS'), getLowStockAlerts);
-router.post('/inventory/bulk-adjust', requirePermission('MANAGE_INVENTORY'), bulkAdjustInventory);
-router.post('/ai-suggestions', requirePermission('VIEW_PRODUCTS'), getAISuggestions);
-router.get('/inventory-logs', requirePermission('MANAGE_INVENTORY'), getAllInventoryLogs);
 
 // Dynamic Routes Section
 router.get('/:id/inventory-logs', requirePermission('MANAGE_INVENTORY'), getInventoryLogs);

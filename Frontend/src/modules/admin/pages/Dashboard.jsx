@@ -131,38 +131,46 @@ const Dashboard = () => {
 
             {/* Main KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                <StatCard 
-                    title={t('dashboard.revenue_30d')} 
-                    value={`₹${apiStats?.totalRevenue?.toLocaleString() || 0}`} 
-                    icon={IndianRupee} 
-                    color="#3B82F6" 
-                    trend={apiStats?.revenueGrowth >= 0 ? 'up' : 'down'}
-                    trendValue={Math.abs(apiStats?.revenueGrowth)}
-                    subtitle={t('dashboard.gross_volume_after_discounts')}
-                />
-                <StatCard 
-                    title={t('dashboard.order_flow')} 
-                    value={apiStats?.totalOrders || 0} 
-                    icon={ShoppingCart} 
-                    color="#10B981" 
-                    trend={apiStats?.orderGrowth >= 0 ? 'up' : 'down'}
-                    trendValue={Math.abs(apiStats?.orderGrowth)}
-                    subtitle={t('dashboard.live_transaction_throughput')}
-                />
-                <StatCard 
-                    title={t('dashboard.processing')} 
-                    value={apiStats?.pendingOrders || 0} 
-                    icon={Package} 
-                    color="#F59E0B"
-                    subtitle={apiStats?.pendingOrders > 5 ? t('dashboard.high_workload') : t('dashboard.normal_volume')}
-                />
-                <StatCard 
-                    title={t('dashboard.active_market')} 
-                    value={adminUser?.role === 'Admin' ? apiStats?.totalUsers : apiStats?.totalProducts} 
-                    icon={adminUser?.role === 'Admin' ? Users : Target} 
-                    color="#8B5CF6"
-                    subtitle={adminUser?.role === 'Admin' ? t('dashboard.registered_customers') : t('dashboard.available_inventory')}
-                />
+                <Link to="/admin/reports/sales" className="block no-underline transform transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                    <StatCard 
+                        title={t('dashboard.revenue_30d')} 
+                        value={`₹${apiStats?.totalRevenue?.toLocaleString() || 0}`} 
+                        icon={IndianRupee} 
+                        color="#3B82F6" 
+                        trend={apiStats?.revenueGrowth >= 0 ? 'up' : 'down'}
+                        trendValue={Math.abs(apiStats?.revenueGrowth)}
+                        subtitle={t('dashboard.gross_volume_after_discounts')}
+                    />
+                </Link>
+                <Link to="/admin/orders" className="block no-underline transform transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                    <StatCard 
+                        title={t('dashboard.order_flow')} 
+                        value={apiStats?.totalOrders || 0} 
+                        icon={ShoppingCart} 
+                        color="#10B981" 
+                        trend={apiStats?.orderGrowth >= 0 ? 'up' : 'down'}
+                        trendValue={Math.abs(apiStats?.orderGrowth)}
+                        subtitle={t('dashboard.live_transaction_throughput')}
+                    />
+                </Link>
+                <Link to="/admin/orders" className="block no-underline transform transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                    <StatCard 
+                        title={t('dashboard.processing')} 
+                        value={apiStats?.pendingOrders || 0} 
+                        icon={Package} 
+                        color="#F59E0B"
+                        subtitle={apiStats?.pendingOrders > 5 ? t('dashboard.high_workload') : t('dashboard.normal_volume')}
+                    />
+                </Link>
+                <Link to={adminUser?.role === 'Admin' ? "/admin/customers" : "/admin/products"} className="block no-underline transform transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                    <StatCard 
+                        title={t('dashboard.active_market')} 
+                        value={adminUser?.role === 'Admin' ? apiStats?.totalUsers : apiStats?.totalProducts} 
+                        icon={adminUser?.role === 'Admin' ? Users : Target} 
+                        color="#8B5CF6"
+                        subtitle={adminUser?.role === 'Admin' ? t('dashboard.registered_customers') : t('dashboard.available_inventory')}
+                    />
+                </Link>
             </div>
 
             {/* Critical Operations Row */}
@@ -217,7 +225,7 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
                             <SectionHeader title={t('dashboard.channel_split')} subtitle={t('dashboard.source_of_orders')} icon={PieChartIcon} />
-                            <div className="h-[200px] flex items-center justify-center">
+                            <div className="h-[260px] flex items-center justify-center mt-2">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
@@ -246,10 +254,7 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4">
-                                <AlertTriangle className="text-rose-100" size={80} strokeWidth={1} />
-                            </div>
+                        <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden h-full">
                             <SectionHeader title={t('dashboard.inventory_health')} subtitle={t('dashboard.actionable_stock_intelligence')} icon={Zap} />
                             <div className="mt-4">
                                 <div className="text-4xl font-black text-gray-900 mb-2">{apiStats?.lowStockCount || 0}</div>
@@ -277,7 +282,7 @@ const Dashboard = () => {
                             <span className="bg-rose-500/20 text-rose-400 text-[10px] font-black px-2 py-1 rounded-full uppercase mb-2">{t('dashboard.urgent')}</span>
                         </div>
                         
-                        <Link to="/admin/support" className="flex items-center justify-between w-full p-4 bg-white/10 rounded-2xl hover:bg-white/15 transition-all text-xs font-bold group">
+                        <Link to="/admin/support/tickets" className="flex items-center justify-between w-full p-4 bg-white/10 rounded-2xl hover:bg-white/15 transition-all text-xs font-bold group">
                             {t('dashboard.resolve_tickets')} <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
@@ -297,7 +302,7 @@ const Dashboard = () => {
                             <div className="text-3xl font-black text-gray-900">{apiStats?.activeRiders || 0}</div>
                             <div className="text-xs text-gray-400 font-medium">{t('dashboard.partners_ready')} <br/> {t('dashboard.radius_msg')}</div>
                         </div>
-                        <Link to="/admin/delivery" className="block text-center py-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-xs font-bold text-gray-600 transition-all">
+                        <Link to="/admin/delivery/partners" className="block text-center py-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-xs font-bold text-gray-600 transition-all">
                             {t('dashboard.manage_fleet')}
                         </Link>
                     </div>

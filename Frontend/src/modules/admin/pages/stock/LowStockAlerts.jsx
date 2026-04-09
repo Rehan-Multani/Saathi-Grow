@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Form, InputGroup, Badge, Spinner, Button, ProgressBar, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Package, ChevronLeft, ChevronRight, AlertTriangle, RefreshCcw, Filter, ExternalLink } from 'lucide-react';
 import { getLowStockAlerts, getProductById } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
@@ -10,6 +11,7 @@ import RestockModal from '../../components/products/RestockModal';
 
 const LowStockAlerts = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [alerts, setAlerts] = useState([]);
     const [branches, setBranches] = useState([]);
@@ -81,23 +83,19 @@ const LowStockAlerts = () => {
         }
     }, [adminUser, fetchBranches]);
 
-    const handleRestockClick = async (alertItem) => {
+    const handleRestockClick = (alertItem) => {
         if (alertItem.isVendor) {
             toast.info(t('stock.low_stock.vendor_restriction'));
             return;
         }
 
-        try {
-            setFullProductLoading(true);
-            // We need the full product object for the RestockModal to work correctly
-            const data = await getProductById(adminUser.token, alertItem.productId);
-            setRestockingProduct(data);
-            setShowRestockModal(true);
-        } catch (error) {
-            toast.error(t('products.loading_failed', { defaultValue: 'Failed to load product details for restock' }));
-        } finally {
-            setFullProductLoading(false);
-        }
+        navigate('/admin/stock/adjustments/add', { 
+            state: { 
+                productId: alertItem.productId, 
+                sku: alertItem.sku,
+                branchId: alertItem.branchId
+            } 
+        });
     };
 
     return (

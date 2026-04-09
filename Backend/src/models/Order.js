@@ -154,7 +154,7 @@ const orderSchema = new mongoose.Schema({
         reason: { type: String, default: null },
         description: { type: String, default: null },
         images: { type: [String], default: [] },
-        status: { type: String, enum: ['Pending', 'Accepted', 'Rejected', 'Scheduled', 'PickedUp', 'Returned'], default: 'Pending' },
+        status: { type: String, enum: ['Pending', 'Accepted', 'Rejected', 'Approved', 'FinalRejected', 'Scheduled', 'PickedUp', 'Returned'], default: 'Pending' },
         requestDate: { type: Date, default: null },
         rejectionReason: { type: String, default: null },
         pickupScheduledAt: { type: Date, default: null },

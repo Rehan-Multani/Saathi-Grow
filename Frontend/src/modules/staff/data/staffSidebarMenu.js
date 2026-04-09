@@ -45,6 +45,12 @@ export const staffSidebarMenu = [
         permission: 'VIEW_CUSTOMERS'
     },
     {
+        title: 'Notifications',
+        path: '/staff/notifications',
+        icon: 'Bell',
+        permission: null
+    },
+    {
         title: 'Staff Management',
         path: '/staff/staff',
         icon: 'UserPlus',

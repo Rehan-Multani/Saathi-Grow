@@ -180,7 +180,7 @@ const AllStaff = () => {
                                         </td>
                                         <td>
                                             <Badge bg="light" className="text-dark border-0 fw-normal">
-                                                <Briefcase size={12} className="me-1" /> {s.role}
+                                                <Briefcase size={12} className="me-1" /> {s.role === 'Branch Manager' ? 'Store Manager' : s.role}
                                             </Badge>
                                         </td>
                                         <td>

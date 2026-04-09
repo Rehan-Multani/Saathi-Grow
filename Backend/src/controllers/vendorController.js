@@ -121,6 +121,13 @@ export const createVendor = async (req, res) => {
       return res.status(400).json({ message: 'Vendor with this email already exists' });
     }
 
+    // Cross-check with Admin/Staff model to ensure unique credentials across the platform
+    const Admin = (await import('../models/Admin.js')).default;
+    const adminExists = await Admin.findOne({ email });
+    if (adminExists) {
+      return res.status(400).json({ message: 'This email is already registered as a Staff or Store Manager' });
+    }
+
     let logo = '';
     if (req.file) {
       logo = req.file.path;

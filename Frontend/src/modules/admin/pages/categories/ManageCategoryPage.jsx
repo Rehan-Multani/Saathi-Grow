@@ -1031,7 +1031,13 @@ const ManageCategoryPage = () => {
                               <Col md={4}>
                                 <Form.Group>
                                   <Form.Label className="small fw-bold text-muted">Order</Form.Label>
-                                  <Form.Control type="number" value={section.order} onChange={(e) => updateSection(index, { order: e.target.value })} />
+                                  <Form.Control
+                                    type="number"
+                                    value={section.order}
+                                    onFocus={(e) => { if (section.order === 0 || section.order === "0") updateSection(index, { order: "" }) }}
+                                    onBlur={(e) => { if (section.order === "" || section.order === null) updateSection(index, { order: 0 }) }}
+                                    onChange={(e) => updateSection(index, { order: e.target.value })}
+                                  />
                                 </Form.Group>
                               </Col>
                               <Col md={12}>
@@ -1171,7 +1177,13 @@ const ManageCategoryPage = () => {
                                   <Col md={6}>
                                     <Form.Group>
                                       <Form.Label className="small fw-bold text-muted">Max Products</Form.Label>
-                                      <Form.Control type="number" value={section.maxProducts} onChange={(e) => updateSection(index, { maxProducts: e.target.value })} />
+                                      <Form.Control
+                                        type="number"
+                                        value={section.maxProducts}
+                                        onFocus={(e) => { if (section.maxProducts === 0 || section.maxProducts === "0") updateSection(index, { maxProducts: "" }) }}
+                                        onBlur={(e) => { if (section.maxProducts === "" || section.maxProducts === null) updateSection(index, { maxProducts: 0 }) }}
+                                        onChange={(e) => updateSection(index, { maxProducts: e.target.value })}
+                                      />
                                     </Form.Group>
                                   </Col>
                                   <Col md={6}>
@@ -1203,7 +1215,13 @@ const ManageCategoryPage = () => {
                                 <Col md={6}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold text-muted">Max Items</Form.Label>
-                                    <Form.Control type="number" value={section.maxItems} onChange={(e) => updateSection(index, { maxItems: e.target.value })} />
+                                    <Form.Control
+                                      type="number"
+                                      value={section.maxItems}
+                                      onFocus={(e) => { if (section.maxItems === 0 || section.maxItems === "0") updateSection(index, { maxItems: "" }) }}
+                                      onBlur={(e) => { if (section.maxItems === "" || section.maxItems === null) updateSection(index, { maxItems: 0 }) }}
+                                      onChange={(e) => updateSection(index, { maxItems: e.target.value })}
+                                    />
                                   </Form.Group>
                                 </Col>
                               )}

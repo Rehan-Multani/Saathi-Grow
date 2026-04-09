@@ -88,8 +88,7 @@ const StaffEditModal = ({ show, onHide, staff, onSave }) => {
                                 required
                             >
                                 <option value="Staff">{t('staff.permissions.staff', { defaultValue: 'Staff' })}</option>
-                                <option value="Branch Manager">{t('staff.permissions.branch_manager', { defaultValue: 'Branch Manager' })}</option>
-                                <option value="Admin">{t('staff.permissions.admin', { defaultValue: 'Admin' })}</option>
+                                <option value="Branch Manager">{t('staff.permissions.store_manager', { defaultValue: 'Store Manager' })}</option>
                             </Form.Select>
                         </Col>
                         <Col md={6}>
@@ -100,8 +99,9 @@ const StaffEditModal = ({ show, onHide, staff, onSave }) => {
                                 onChange={handleChange}
                                 disabled={adminUser.role === 'Branch Manager'}
                                 className="bg-light border-0 py-2 shadow-none"
+                                required
                             >
-                                {adminUser.role !== 'Branch Manager' && <option value="">{t('staff.edit_modal.global_branch')}</option>}
+                                {adminUser.role !== 'Branch Manager' && <option value="" disabled>{t('staff.edit_modal.select_branch_placeholder', { defaultValue: 'Select Branch' })}</option>}
                                 {branches.map(b => (
                                     <option key={b._id} value={b._id}>{b.name}</option>
                                 ))}

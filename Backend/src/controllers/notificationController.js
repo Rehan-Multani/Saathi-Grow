@@ -113,7 +113,18 @@ export const getMyNotifications = async (req, res) => {
 export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
-    await Notification.findByIdAndUpdate(id, { isRead: true });
+    
+    // Security: Only the recipient can mark as read
+    const recipientId = req.user?._id || req.admin?._id || req.vendor?._id || req.partner?._id;
+    
+    const notification = await Notification.findOne({ _id: id, recipient: recipientId });
+    if (!notification) {
+      return res.status(404).json({ success: false, message: 'Notification not found or access denied' });
+    }
+
+    notification.isRead = true;
+    await notification.save();
+
     res.status(200).json({ success: true, message: 'Marked as read' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -125,11 +136,11 @@ export const markAsRead = async (req, res) => {
  */
 export const markAllRead = async (req, res) => {
   try {
-    let recipientId;
-    if (req.user) recipientId = req.user._id;
-    else if (req.admin) recipientId = req.admin._id;
-    else if (req.vendor) recipientId = req.vendor._id;
-    else if (req.partner) recipientId = req.partner._id;
+    const recipientId = req.user?._id || req.admin?._id || req.vendor?._id || req.partner?._id;
+    
+    if (!recipientId) {
+      return res.status(401).json({ success: false, message: 'Unauthenticated' });
+    }
 
     await Notification.updateMany({ recipient: recipientId }, { isRead: true });
     res.status(200).json({ success: true, message: 'All marked as read' });
@@ -143,16 +154,14 @@ export const markAllRead = async (req, res) => {
  */
 export const getUnreadCount = async (req, res) => {
   try {
-    let recipientId;
-    let recipientModel;
-    if (req.user) { recipientId = req.user._id; recipientModel = 'User'; }
-    else if (req.admin) { recipientId = req.admin._id; recipientModel = 'Admin'; }
-    else if (req.vendor) { recipientId = req.vendor._id; recipientModel = 'Vendor'; }
-    else if (req.partner) { recipientId = req.partner._id; recipientModel = 'DeliveryPartner'; }
+    const recipientId = req.user?._id || req.admin?._id || req.vendor?._id || req.partner?._id;
+    
+    if (!recipientId) {
+      return res.status(401).json({ success: false, message: 'Unauthenticated' });
+    }
 
     const count = await Notification.countDocuments({
       recipient: recipientId,
-      recipientModel: recipientModel,
       isRead: false
     });
 
@@ -177,6 +186,12 @@ export const adminSendNotification = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Title and body are required' });
     }
 
+    // Standardize recipient model for Admin-based roles (Staff, Branch Manager)
+    let finalRecipientModel = recipientType;
+    if (['Staff', 'Branch Manager', 'Admin'].includes(recipientType)) {
+      finalRecipientModel = 'Admin';
+    }
+
     const notificationData = {
       title,
       body,
@@ -185,7 +200,7 @@ export const adminSendNotification = async (req, res) => {
       isBroadcast: targetType === 'broadcast',
       targetGroup: targetType === 'broadcast' ? (group || 'all') : undefined,
       recipient: targetType !== 'broadcast' ? recipientId : undefined,
-      recipientModel: targetType !== 'broadcast' ? recipientType : undefined
+      recipientModel: targetType !== 'broadcast' ? finalRecipientModel : undefined
     };
 
     const record = await Notification.create(notificationData);
@@ -243,20 +258,22 @@ export const deleteNotifications = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Notification IDs array is required' });
     }
 
-    // Logic: If it's a simple user, they can only delete notifications where they are the recipient.
-    // If it's an admin, they can delete anything (history or received).
-    
     let query = { _id: { $in: ids } };
     
-    if (!req.admin) {
-      // Non-admin can only delete their own notifications
-      const recipientId = req.user?._id || req.vendor?._id || req.partner?._id;
+    // Only superadmins ('Admin' role) can delete ANY notification
+    // Everyone else can only delete notifications addressed to them
+    if (!req.admin || req.admin.role !== 'Admin') {
+      const recipientId = req.user?._id || req.admin?._id || req.vendor?._id || req.partner?._id;
       query.recipient = recipientId;
     }
 
-    await Notification.deleteMany(query);
+    const result = await Notification.deleteMany(query);
 
-    res.status(200).json({ success: true, message: 'Notifications deleted successfully' });
+    res.status(200).json({ 
+      success: true, 
+      message: 'Notifications deleted successfully',
+      deletedCount: result.deletedCount 
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -133,9 +133,10 @@ const RestockModal = ({ show, onHide, product, onRestockSuccess }) => {
                             type="number"
                             placeholder="e.g. 50"
                             value={amount}
+                            onFocus={(e) => { if (amount === 0 || amount === "0") setAmount("") }}
+                            onBlur={(e) => { if (amount === "" || amount === null) setAmount(0) }}
                             onChange={(e) => setAmount(e.target.value)}
                             required
-                            min="0"
                         />
                     </Form.Group>
 

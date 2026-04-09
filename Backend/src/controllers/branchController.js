@@ -15,9 +15,22 @@ export const createBranch = async (req, res) => {
         try { address = JSON.parse(address); } catch(e) {}
     }
 
-    const branchExists = await Branch.findOne({ $or: [{ name }, { code }] });
+    const branchExists = await Branch.findOne({ $or: [{ name }, { code }, { email }] });
     if (branchExists) {
-      return res.status(400).json({ message: 'Branch with this name or code already exists' });
+      return res.status(400).json({ message: 'Branch with this name, code or email already exists' });
+    }
+
+    // Cross-check with Admin/Staff model to ensure unique credentials across the platform
+    const adminExists = await Admin.findOne({ email });
+    if (adminExists) {
+      return res.status(400).json({ message: 'This email is already registered as a Staff or Store Manager' });
+    }
+
+    // Cross-check with Vendor model
+    const Vendor = (await import('../models/Vendor.js')).default;
+    const vendorExists = await Vendor.findOne({ email });
+    if (vendorExists) {
+      return res.status(400).json({ message: 'This email is already registered as a Vendor' });
     }
 
     let finalAddress = { ...address };
