@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Form } from 'react-bootstrap';
-import { MapPin, Navigation as NavIcon } from 'lucide-react';
+import { MapPin, Navigation as NavIcon, Loader2 } from 'lucide-react';
 
 const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) => {
   const inputRef = useRef(null);
@@ -77,7 +76,6 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
     );
   };
 
-  // Stable callback ref to prevent useEffect loop
   const onLocationSelectRef = useRef(onLocationSelect);
   useEffect(() => {
     onLocationSelectRef.current = onLocationSelect;
@@ -88,7 +86,6 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
 
     const initialize = async () => {
       try {
-        // Prevent re-initialization if already loaded
         if (autocompleteRef.current) return;
 
         const { loadGoogleMaps } = await import('../../../utils/googleMapsLoader');
@@ -135,7 +132,7 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
           if (type === "street_number" || type === "route") {
             addressData.street += (addressData.street ? " " : "") + component.long_name;
           } else if (type === "locality") {
-            addressData.city = component.long_name;
+              addressData.city = component.long_name;
           } else if (type === "administrative_area_level_1") {
             addressData.state = component.long_name;
           } else if (type === "postal_code") {
@@ -149,35 +146,33 @@ const GoogleMapsInput = ({ onLocationSelect, placeholder, defaultValue = '' }) =
         }
       });
     }
-  }, []); // Only run once on mount
+  }, []);
 
   return (
-    <div className="position-relative">
-      <Form.Control
+    <div className="relative w-full group">
+      <input
         ref={inputRef}
         type="text"
         placeholder={placeholder || "Search location..."}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        className="py-2.5 shadow-none border-light-subtle bg-light-subtle rounded-xl font-bold"
-        style={{ paddingRight: '85px' }}
+        className="w-full pl-4 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
       />
-      <div className="position-absolute end-0 top-50 translate-middle-y me-2 d-flex gap-2 align-items-center">
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
         {isDetecting ? (
-          <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+          <Loader2 size={16} className="text-blue-500 animate-spin" />
         ) : (
           <button
             type="button"
             onClick={handleDetectLocation}
-            className="btn btn-link p-0 text-primary opacity-75 hover-opacity-100 border-0 shadow-none"
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent"
             title="Detect Location"
           >
-            <NavIcon size={18} fill="currentColor" />
+            <NavIcon size={16} />
           </button>
         )}
-        <div className="text-muted opacity-50 border-start ps-2">
-          <MapPin size={18} />
-        </div>
+        <div className="h-4 border-l border-slate-200" />
+        <MapPin size={16} className="text-slate-300" />
       </div>
     </div>
   );

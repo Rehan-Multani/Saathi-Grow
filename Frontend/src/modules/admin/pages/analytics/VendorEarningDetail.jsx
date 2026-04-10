@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Table, Button, Row, Col, Badge, ProgressBar, Spinner } from 'react-bootstrap';
 import {
-    Download,
-    ArrowLeft,
-    IndianRupee,
-    Calendar,
-    TrendingUp,
-    CreditCard,
-    FileText,
-    ArrowUpRight,
-    ShoppingBag
+    Download, ArrowLeft, IndianRupee, Calendar, TrendingUp,
+    CreditCard, FileText, ArrowUpRight, ShoppingBag, Store,
+    CheckCircle, Clock, Info, Loader2, Printer, Wallet, ChevronRight
 } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getAdminVendorPayoutDetail } from '../../api/reportApi';
@@ -57,17 +50,26 @@ const VendorEarningDetail = () => {
 
     if (loading) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
-                <Spinner animation="border" variant="primary" />
+            <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-none">Loading Statement...</p>
             </div>
         );
     }
 
     if (!data || !data.payout) {
         return (
-            <div className="p-4 text-center">
-                <h4 className="text-muted">No payout details found.</h4>
-                <Button variant="primary" onClick={() => navigate(-1)} className="mt-3">Go Back</Button>
+            <div className="flex flex-col items-center justify-center min-vh-100 gap-6">
+                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100 shadow-inner">
+                    <Info size={40} className="text-slate-200" />
+                </div>
+                <h4 className="text-slate-400 font-bold uppercase text-xs tracking-widest italic">No details found</h4>
+                <button 
+                    className="px-8 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95 border-none"
+                    onClick={() => navigate(-1)}
+                >
+                    Go Back
+                </button>
             </div>
         );
     }
@@ -77,183 +79,159 @@ const VendorEarningDetail = () => {
     const bank = vendor.bankAccount || {};
 
     return (
-        <div className="p-2 p-md-4">
-            <style>
-                {`
-                    @media print {
-                        .no-print, .btn, .breadcrumb, .sidebar, .navbar {
-                            display: none !important;
-                        }
-                        .card {
-                            border: 1px solid #eee !important;
-                            box-shadow: none !important;
-                        }
-                        body {
-                            background: white !important;
-                            padding: 0 !important;
-                        }
-                        .p-md-4 {
-                            padding: 0 !important;
-                        }
-                    }
-                `}
-            </style>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    .no-print { display: none !important; }
+                    body { background: white !important; font-size: 10pt; }
+                    .print-only { display: block !important; }
+                }
+            `}} />
             
             {/* Header */}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 no-print">
-                <div className="d-flex align-items-center gap-3">
-                    <Button
-                        variant="light"
-                        size="sm"
-                        className="rounded-circle p-2 shadow-sm border"
-                        onClick={() => navigate(-1)}
-                    >
-                        <ArrowLeft size={18} />
-                    </Button>
-                    <div>
-                        <h4 className="fw-bold mb-1 text-dark">{vendor.storeName || 'Vendor Detail'}</h4>
-                        <p className="text-muted small mb-0">Payout Statement - {payout.payoutId}</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 no-print">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-white rounded-xl transition-all border-none bg-transparent">
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-inner overflow-hidden shrink-0">
+                            {vendor.logo ? <img src={vendor.logo} className="w-full h-full object-cover" /> : <Store size={24} className="text-slate-200" />}
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase tracking-tight leading-none">{vendor.storeName || 'Vendor Profile'}</h1>
+                            <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest italic leading-none">Statement: {payout.payoutId}</p>
+                        </div>
                     </div>
                 </div>
-                <div className="d-flex gap-2 w-100 w-md-auto">
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 justify-content-center px-3 shadow-sm" onClick={handlePrint}>
-                        <FileText size={16} /> Print Receipt
-                    </Button>
-                </div>
+                <button
+                    onClick={handlePrint}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold tracking-tight hover:bg-black active:scale-95 transition-all shadow-lg border-none"
+                >
+                    <Printer size={16} /> Print Statement
+                </button>
             </div>
 
             {/* Stats Overview */}
-            <Row className="g-3 mb-4">
-                <Col xs={12} sm={6} lg={4}>
-                    <Card className="border-0 shadow-sm h-100">
-                        <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">Vendor Total Sales</div>
-                            <h3 className="fw-bold mb-0 text-dark">{formatCurrency(stats.totalSales)}</h3>
-                            <div className="small mt-2 text-success d-flex align-items-center gap-1">
-                                <ArrowUpRight size={14} /> {stats.totalItems || 0} items sold in total
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 mt-2">
+                {[
+                    { label: 'Total Earnings', value: formatCurrency(stats.totalSales), sub: `${stats.totalItems || 0} items sold`, icon: <TrendingUp size={20} />, color: 'blue' },
+                    { label: 'Settled Amount', value: formatCurrency(payout.amount), sub: payout.status, icon: <CheckCircle size={20} />, color: 'emerald', highlight: true },
+                    { label: 'Platform Commission', value: formatCurrency(stats.totalComm), sub: 'Service fees deducted', icon: <Info size={20} />, color: 'rose' }
+                ].map((stat, i) => (
+                    <div key={i} className={`bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 flex flex-col justify-between group hover:border-slate-300 transition-all ${stat.highlight ? 'bg-gradient-to-br from-white to-emerald-50/30' : ''}`}>
+                        <div className="flex justify-between items-start mb-6">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-70">{stat.label}</span>
+                            <div className={`w-10 h-10 rounded-xl bg-slate-50 text-${stat.color}-500 flex items-center justify-center border border-slate-100 shadow-inner group-hover:scale-110 transition-transform`}>
+                                {stat.icon}
                             </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} lg={4}>
-                    <Card className="border-0 shadow-sm h-100 text-white" style={{ background: 'linear-gradient(45deg, #10b981, #059669)' }}>
-                        <Card.Body>
-                            <div className="text-white-50 small text-uppercase fw-bold mb-2">Net Payout Amount</div>
-                            <h3 className="fw-bold mb-0">{formatCurrency(payout.amount)}</h3>
-                            <div className="small mt-2 d-flex align-items-center gap-1">
-                                <Badge bg="white" text="success" className="fw-normal">{payout.status}</Badge>
+                        </div>
+                        <div>
+                            <div className={`text-2xl font-bold tracking-tighter ${stat.highlight ? 'text-emerald-600' : 'text-slate-900'}`}>{stat.value}</div>
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-2 italic flex items-center gap-1">
+                                {stat.highlight ? <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> : null}
+                                {stat.sub}
                             </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={12} lg={4}>
-                    <Card className="border-0 shadow-sm h-100">
-                        <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">Platform Comm.</div>
-                            <h3 className="fw-bold mb-0 text-danger">{formatCurrency(stats.totalComm)}</h3>
-                            <div className="small mt-2 text-muted">Platform revenue from this vendor</div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                        </div>
+                    </div>
+                ))}
+            </div>
 
-            <Row className="g-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Transaction List */}
-                <Col lg={8}>
-                    <Card className="border-0 shadow-sm overflow-hidden h-100">
-                        <Card.Header className="bg-white py-3 border-0">
-                            <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                                <ShoppingBag size={18} className="text-primary" />
-                                Recent Delivered Orders
-                            </h6>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <Table hover responsive className="mb-0 align-middle">
-                                <thead className="bg-light text-muted small text-uppercase">
-                                    <tr>
-                                        <th className="ps-4 border-0 py-3">Order ID</th>
-                                        <th className="border-0 py-3">Date</th>
-                                        <th className="border-0 py-3">Items</th>
-                                        <th className="border-0 py-3">Order Type</th>
-                                        <th className="border-0 py-3 text-end pe-4">Vendor Share</th>
+                <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-700">
+                    <div className="p-8 border-b border-slate-50 bg-slate-50/10 flex justify-between items-center">
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                            <ShoppingBag size={20} className="text-blue-500" /> Recent Delivered Orders
+                        </h3>
+                    </div>
+                    <div className="overflow-x-auto scrollbar-thin">
+                        <table className="w-full text-left font-medium">
+                            <thead>
+                                <tr className="bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                    <th className="px-8 py-5">Order ID</th>
+                                    <th className="px-6 py-5">Completed Date</th>
+                                    <th className="px-6 py-5 text-center">Qty</th>
+                                    <th className="px-8 py-5 text-right">Vendor Share</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {recentOrders.length > 0 ? recentOrders.map((tr, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/20 transition-colors group">
+                                        <td className="px-8 py-5">
+                                            <span className="text-xs font-bold text-blue-600 uppercase tracking-tight">#{tr.orderId.slice(-8)}</span>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase italic opacity-70">{tr.createdAt.split('T')[0]}</span>
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <span className="text-[11px] font-bold text-slate-700">{tr.items?.length || 0}</span>
+                                        </td>
+                                        <td className="px-8 py-5 text-right font-bold text-slate-900 text-sm tracking-tight italic">
+                                            {formatCurrency(tr.vendorPayoutAmount)}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {recentOrders.length > 0 ? recentOrders.map((tr, idx) => (
-                                        <tr key={idx}>
-                                            <td className="ps-4 fw-bold text-primary">{tr.orderId}</td>
-                                            <td className="small text-muted">{tr.createdAt.split('T')[0]}</td>
-                                            <td>
-                                                <Badge bg="light" text="dark" className="border fw-normal">{tr.items?.length || 0}</Badge>
-                                            </td>
-                                            <td className="small">{tr.orderType || 'Standard'}</td>
-                                            <td className="text-end pe-4 fw-bold">{formatCurrency(tr.vendorPayoutAmount)}</td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan="5" className="text-center py-4 text-muted">No recent orders found.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="4" className="py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest italic opacity-60">No recent orders linked to this payout</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                {/* Settlement Info */}
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Header className="bg-white py-3 border-0">
-                            <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                                <CreditCard size={18} className="text-primary" />
-                                Settlement Details
-                            </h6>
-                        </Card.Header>
-                        <Card.Body>
-                            <div className="bg-light p-3 rounded-3 mb-3 border border-dashed text-center">
-                                <div className="text-muted small text-uppercase mb-1">Status</div>
-                                <Badge bg={payout.status === 'Paid' ? 'success' : 'warning'} className="px-3 py-2 rounded-pill shadow-sm">
-                                    {payout.status}
-                                </Badge>
-                                <div className="mt-2 small text-muted">Requested on {payout.createdAt.split('T')[0]}</div>
+                {/* Settlement Details Info */}
+                <div className="space-y-6">
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 overflow-hidden sticky top-6">
+                        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8 border-b border-slate-50 pb-4">Payment Recipient</h4>
+                        
+                        <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner flex items-center gap-4 mb-8">
+                             <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0">
+                                <Wallet size={24} className="text-blue-500" />
                             </div>
+                            <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block leading-none opacity-60 mb-1.5">Settlement Method</span>
+                                <span className="text-xs font-bold text-slate-800 uppercase tracking-tight block truncate">{payout.paymentMethod}</span>
+                            </div>
+                        </div>
 
-                            <div className="d-flex flex-column gap-3">
-                                <div className="d-flex justify-content-between align-items-center border-bottom pb-2">
-                                    <span className="text-muted small">Vendor Bank</span>
-                                    <span className="fw-bold small">{bank.bankName || 'Not Added'}</span>
+                        <div className="space-y-6 mb-10">
+                            {[
+                                { label: 'Bank Name', value: bank.bankName || 'Direct UPI', icon: <Store size={14} /> },
+                                { label: 'Account No', value: bank.accountNumber || payout.upiId || 'N/A', icon: <CreditCard size={14} /> },
+                                { label: 'Reference No', value: payout.referenceNumber || '-', icon: <Info size={14} />, isRef: true }
+                            ].map((item, i) => (
+                                <div key={i} className="flex justify-between items-center group">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-blue-500 transition-colors shadow-inner">
+                                            {item.icon}
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{item.label}</span>
+                                    </div>
+                                    <span className={`text-[11px] font-bold uppercase tracking-tight italic opacity-90 ${item.isRef ? 'text-blue-600' : 'text-slate-700'}`}>{item.value}</span>
                                 </div>
-                                <div className="d-flex justify-content-between align-items-center border-bottom pb-2">
-                                    <span className="text-muted small">Account No</span>
-                                    <span className="fw-bold small font-monospace">{bank.accountNumber || payout.upiId || 'N/A'}</span>
-                                </div>
-                                <div className="d-flex justify-content-between align-items-center border-bottom pb-2">
-                                    <span className="text-muted small">Payment Method</span>
-                                    <span className="fw-bold small">{payout.paymentMethod}</span>
-                                </div>
-                                <div className="d-flex justify-content-between align-items-center border-bottom pb-2">
-                                    <span className="text-muted small">Reference No</span>
-                                    <span className="fw-bold small font-monospace text-primary">{payout.referenceNumber || '-'}</span>
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
+                            ))}
+                        </div>
 
-                    <Card className="border-0 shadow-sm bg-light">
-                        <Card.Body>
-                            <div className="d-flex align-items-center gap-3 mb-3">
-                                <div className="bg-white p-2 rounded shadow-sm">
-                                    <TrendingUp size={20} className="text-primary" />
-                                </div>
-                                <h6 className="mb-0 fw-bold">Note / Instructions</h6>
+                        {payout.note && (
+                            <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100/30">
+                                <h5 className="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-3 leading-none italic">Admin Remarks</h5>
+                                <p className="text-[10px] font-bold text-blue-700 leading-relaxed italic opacity-80">"{payout.note}"</p>
                             </div>
-                            <p className="small text-muted mb-0">
-                                {payout.note || "No additional notes provided for this payout settlemet."}
-                            </p>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                        )}
+                        
+                        <button className="w-full mt-8 py-3.5 bg-slate-900 text-white rounded-[1.25rem] text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-xl shadow-slate-200 flex items-center justify-center gap-3 border-none">
+                            <Download size={16} /> Export Receipt
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { width: 4px; border-radius: 10px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

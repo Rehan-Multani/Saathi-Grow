@@ -1,0 +1,149 @@
+{
+  "partners": {
+    "title": "हमारे राइडर्स",
+    "subtitle": "अपनी डिलीवरी टीम और पार्टनर्स को मैनेज करें",
+    "search_placeholder": "नाम या फोन से खोजें...",
+    "add_new": "नया राइडर जोड़ें",
+    "loading": "लोड हो रहा है...",
+    "loading_failed": "राइडर्स लोड करने में एरर",
+    "delete_confirm_title": "राइडर को हटाएं?",
+    "delete_confirm_text": "क्या आप {{name}} को हटाना चाहते हैं?",
+    "delete_success": "राइडर हटा दिया गया",
+    "update_success": "जानकारी अपडेट हो गई",
+    "no_partners": "कोई राइडर नहीं मिला",
+    "table": {
+      "name": "राइडर का नाम",
+      "type": "वाहन",
+      "contact": "संपर्क",
+      "duty": "ड्यूटी स्थिति",
+      "assignment": "काम की स्थिति",
+      "status": "अकाउंट",
+      "actions": "एक्शन"
+    },
+    "pagination": {
+      "showing": "दिखा रहा है",
+      "to": "से",
+      "of": "का",
+      "partners": "राइडर्स"
+    }
+  },
+  "add_partner": {
+    "title": "राइडर जोड़ें",
+    "subtitle": "नया डिलीवरी पार्टनर रजिस्टर करें",
+    "full_name": "राइडर का नाम",
+    "full_name_placeholder": "पूरा नाम लिखें",
+    "mobile": "मोबाइल नंबर",
+    "mobile_placeholder": "10 अंकों का नंबर",
+    "email": "ईमेल पता",
+    "email_placeholder": "rider@saathigrow.com",
+    "credentials_info": "संपर्क जानकारी",
+    "login_credentials": "लॉगिन जानकारी",
+    "create_password": "पासवर्ड सेट करें",
+    "regenerate": "नया बनाएं",
+    "ready_for_login": "लॉगिन तैयार है",
+    "otp_help": "पासवर्ड नहीं होने पर राइडर ओटीपी से लॉगिन कर सकते हैं",
+    "profile_photo": "प्रोफाइल फोटो",
+    "profile_photo_help": "एक साफ फोटो अपलोड करें",
+    "logistics_profile": "वाहन की जानकारी",
+    "vehicle_type": "वाहन चुनें",
+    "license_plate": "गाड़ी का नंबर",
+    "license_plate_placeholder": "जैसे: MP09-1234",
+    "create_btn": "राइडर सेव करें",
+    "title_success": "सफलता!",
+    "login_enabled": "राइडर रजिस्टर हो गया",
+    "login_help": "राइडर अब डिलीवरी ऐप का इस्तेमाल शुरू कर सकते हैं।",
+    "vehicle_types": {
+      "bike": "बाइक",
+      "ev": "इलेक्ट्रिक वाहन",
+      "cycle": "साइकिल",
+      "other": "अन्य"
+    }
+  },
+  "edit_partner": {
+    "title": "प्रोफाइल अपडेट करें",
+    "name_label": "नाम",
+    "auth_status": "स्थिति",
+    "status_active": "सक्रिय",
+    "status_suspended": "निलंबित",
+    "status_unverified": "पेंडिंग",
+    "update_btn": "अपडेट करें"
+  },
+  "assign": {
+    "title": "ऑर्डर असाइन करें",
+    "subtitle": "पेंडिंग ऑर्डर्स को राइडर्स को दें",
+    "tabs": {
+      "pending": "पेंडिंग",
+      "assigned": "सक्रिय रन"
+    },
+    "search_orders": "ऑर्डर या नाम खोजें...",
+    "table": {
+      "order_id": "ऑर्डर आईडी",
+      "customer": "ग्राहक",
+      "amount": "कीमत",
+      "address": "लोकेशन",
+      "status": "स्थिति",
+      "action": "एक्शन"
+    },
+    "assign_btn": "अभी असाइन करें",
+    "reassign_btn": "राइडर बदलें",
+    "modal": {
+      "title": "राइडर चुनें",
+      "select_partner": "इन ऑर्डर्स के लिए राइडर चुनें",
+      "no_partners": "अभी कोई राइडर ऑनलाइन नहीं है",
+      "submit": "पुष्टि करें",
+      "payload_size": "कुल ऑर्डर्स",
+      "target_slot": "डिलीवरी का समय",
+      "config": "सेटिंग्स",
+      "route_opt": "रास्ता ऑप्टिमाइज़ करें",
+      "beta": "ट्रायल",
+      "availability": "ऑनलाइन राइडर्स",
+      "syncing": "असाइन हो रहा है...",
+      "dispatch": "भेजें"
+    },
+    "alerts": {
+      "success": "ऑर्डर सफलता से असाइन हो गए",
+      "error": "असाइन करने में विफलता"
+    }
+  },
+  "tracking": {
+    "title": "राइडर ट्रैक करें",
+    "subtitle": "अपनी टीम की लाइव लोकेशन देखें",
+    "search": "राइडर खोजें...",
+    "view_map": "मैप पर देखें",
+    "table": {
+      "rider": "राइडर",
+      "current_order": "अभी का काम",
+      "location": "आखिरी बार देखा",
+      "last_updated": "अपडेट का समय",
+      "battery": "सिग्नल"
+    }
+  },
+  "slots": {
+    "title": "डिलीवरी का समय",
+    "subtitle": "ग्राहक कब ऑर्डर ले सकते हैं यह मैनेज करें",
+    "add_new": "नया स्लॉट जोड़ें",
+    "table": {
+      "name": "स्लॉट का नाम",
+      "time": "समय",
+      "max_orders": "लिमिट",
+      "status": "स्थिति"
+    },
+    "modal": {
+      "title": "स्लॉट की जानकारी",
+      "name": "नाम",
+      "window": "समय सीमा",
+      "active": "सक्रिय है"
+    }
+  },
+  "settlement": {
+    "title": "कैश कलेक्शन",
+    "subtitle": "राइडर्स से कैश कलेक्ट करें",
+    "total_pending": "कुल जमा होने वाला कैश",
+    "collect_cash": "अभी कलेक्ट करें",
+    "table": {
+      "rider": "राइडर",
+      "amount": "राइडर के पास कैश",
+      "last_settled": "आखिरी बार लिया"
+    }
+  }
+}

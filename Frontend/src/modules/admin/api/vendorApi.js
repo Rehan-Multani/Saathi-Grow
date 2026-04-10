@@ -151,3 +151,7 @@ export const getPayoutById = async (token, id) => {
   if (!response.ok) throw new Error(data.message || 'Failed to fetch payout');
   return data;
 };
+
+// Aliases for better semantics and backward compatibility with refactored pages
+export const getVendorDetails = getVendorById;
+export const getVendorPayouts = getPayouts;

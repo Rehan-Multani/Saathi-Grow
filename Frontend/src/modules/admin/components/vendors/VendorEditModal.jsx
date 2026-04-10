@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Row, Col, Button, Spinner, Image } from 'react-bootstrap';
-import { Save, Store, User, Phone, Mail, MapPin, Camera, X } from 'lucide-react';
+import { Save, Store, User, Phone, Mail, MapPin, Camera, X, Loader2, Shield, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { updateVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
-import { useCallback } from 'react';
 
 const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_vendors');
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -67,15 +65,6 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         }
     }, [vendor, show]);
 
-    useEffect(() => {
-        if (show) {
-            const style = document.createElement('style');
-            style.innerHTML = `.pac-container { z-index: 10000 !important; }`;
-            document.head.appendChild(style);
-            return () => document.head.removeChild(style);
-        }
-    }, [show]);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -102,9 +91,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         if (file) {
             setLogoFile(file);
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setLogoPreview(reader.result);
-            };
+            reader.onloadend = () => setLogoPreview(reader.result);
             reader.readAsDataURL(file);
         }
     };
@@ -121,199 +108,166 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                     data.append(key, formData[key]);
                 }
             });
-            if (logoFile) {
-                data.append('logo', logoFile);
-            }
+            if (logoFile) data.append('logo', logoFile);
 
             await updateVendor(adminUser.token, vendor._id, data);
-            toast.success(t('dashboard.status_updated_success'));
+            toast.success('Vendor updated successfully');
             onSave();
             onHide();
         } catch (error) {
-            toast.error(error.message || t('dashboard.status_update_failed'));
+            toast.error(error.message || 'Failed to update vendor');
         } finally {
             setLoading(false);
         }
     };
 
+    if (!show) return null;
+
     return (
-        <Modal show={show} onHide={onHide} centered size="lg" className="vendor-edit-modal">
-            <Modal.Header closeButton className="border-0 pb-0 px-4">
-                <Modal.Title className="fw-bold d-flex align-items-center gap-2">
-                    <Store className="text-primary" size={24} /> {t('vendors.edit_modal.title')}
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body className="pt-4 px-4 pb-4">
-                <Form onSubmit={handleSubmit}>
-                    <Row>
-                        <Col md={8}>
-                            <Row className="g-3 mb-3">
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.store_name')}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="storeName"
-                                        value={formData.storeName}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.owner_name')}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="ownerName"
-                                        value={formData.ownerName}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                            </Row>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onHide} />
+            <form onSubmit={handleSubmit} className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh] border border-slate-100">
+                
+                {/* Header */}
+                <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30 shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm text-blue-600">
+                            <Store size={24} />
+                        </div>
+                        <div>
+                             <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Edit Vendor</h3>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Update store profile</p>
+                        </div>
+                    </div>
+                    <button type="button" onClick={onHide} className="p-3 text-slate-300 hover:text-slate-900 hover:bg-white rounded-2xl transition-all border-none bg-transparent">
+                        <X size={24} />
+                    </button>
+                </div>
 
-                            <Row className="g-3 mb-3">
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.email_address')}</Form.Label>
-                                    <Form.Control
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.phone_number')}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                            </Row>
-                        </Col>
-
-                        <Col md={4} className="border-start">
-                            <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.store_logo')}</Form.Label>
-                            <div className="text-center p-3 border border-dashed rounded bg-light position-relative">
-                                {logoPreview ? (
-                                    <div className="position-relative">
-                                        <Image src={logoPreview} fluid rounded style={{ maxHeight: '120px' }} />
-                                        <label className="position-absolute bottom-0 end-0 bg-primary text-white p-1 rounded-circle cursor-pointer shadow-sm translate-x-1/2 translate-y-1/2">
-                                            <Camera size={14} />
-                                            <input type="file" className="d-none" onChange={handleLogoChange} accept="image/*" />
-                                        </label>
-                                    </div>
-                                ) : (
-                                    <label className="cursor-pointer py-4 d-block">
-                                        <Camera size={30} className="text-muted mb-2" />
-                                        <div className="small text-muted">{t('vendors.edit_modal.update_logo')}</div>
-                                        <input type="file" className="d-none" onChange={handleLogoChange} accept="image/*" />
-                                    </label>
-                                )}
-                            </div>
-                        </Col>
-                    </Row>
-
-                    <Row className="g-3 mb-3">
-                        <Col md={12}>
-                            <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.store_address')}</Form.Label>
-                            <GoogleMapsInput
-                                onLocationSelect={handleLocationSelect}
-                                defaultValue={typeof formData.address === 'object' ? formData.address.street : formData.address}
-                                placeholder={t('vendors.edit_modal.address_placeholder')}
+                {/* Body */}
+                <div className="p-10 space-y-10 overflow-y-auto scrollbar-thin grow">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Store Name</label>
+                            <input
+                                type="text"
+                                name="storeName"
+                                value={formData.storeName}
+                                onChange={handleChange}
+                                className="w-full bg-slate-50/50 border border-slate-200 rounded-[1.25rem] py-3.5 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
+                                required
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Owner Name</label>
+                            <input
+                                type="text"
+                                name="ownerName"
+                                value={formData.ownerName}
+                                onChange={handleChange}
+                                className="w-full bg-slate-50/50 border border-slate-200 rounded-[1.25rem] py-3.5 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full bg-slate-50/50 border border-slate-200 rounded-[1.25rem] py-3.5 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                            <input
+                                type="text"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                className="w-full bg-slate-50/50 border border-slate-200 rounded-[1.25rem] py-3.5 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
+                                required
+                            />
+                        </div>
+                    </div>
 
-                            <Row className="g-3 mt-1">
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.street')}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.address.street}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            address: { ...formData.address, street: e.target.value }
-                                        })}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.city')}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.address.city}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            address: { ...formData.address, city: e.target.value }
-                                        })}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.state')}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.address.state}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            address: { ...formData.address, state: e.target.value }
-                                        })}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.zip_code')}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.address.zipCode}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            address: { ...formData.address, zipCode: e.target.value }
-                                        })}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Col>
-                            </Row>
-                        </Col>
-                    </Row>
+                    {/* Address Section */}
+                    <div className="space-y-5 pt-8 border-t border-slate-50">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                            <MapPin size={14} /> Shop Address
+                        </label>
+                        <GoogleMapsInput
+                            onLocationSelect={handleLocationSelect}
+                            defaultValue={formData.address.street}
+                        />
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input 
+                                type="text" 
+                                placeholder="Street" 
+                                value={formData.address.street} 
+                                onChange={(e) => setFormData({...formData, address: {...formData.address, street: e.target.value}})}
+                                className="w-full bg-white border border-slate-100 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all font-sans shadow-sm"
+                            />
+                            <input 
+                                type="text" 
+                                placeholder="City" 
+                                value={formData.address.city} 
+                                onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
+                                className="w-full bg-white border border-slate-100 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all font-sans shadow-sm"
+                            />
+                        </div>
+                    </div>
 
-                    <Row className="g-3">
-                        <Col md={6}>
-                            <Form.Label className="small fw-bold text-muted uppercase">{t('vendors.edit_modal.status')}</Form.Label>
-                            <Form.Select
+                    {/* Status & Logo */}
+                    <div className="flex flex-col md:flex-row gap-10 items-start pt-8 border-t border-slate-50">
+                        <div className="flex-1 space-y-2 w-full">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Status</label>
+                            <select
                                 name="status"
                                 value={formData.status}
                                 onChange={handleChange}
-                                className="bg-light border-0 py-2 shadow-none"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-[1.25rem] py-3.5 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner appearance-none cursor-pointer"
                             >
-                                <option value="Active">{t('vendors.status.active')}</option>
-                                <option value="Pending">{t('vendors.status.pending')}</option>
-                                <option value="Inactive">{t('vendors.status.inactive')}</option>
-                            </Form.Select>
-                        </Col>
-                    </Row>
-
-                    <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium border shadow-none" disabled={loading}>
-                            {t('vendors.edit_modal.discard')}
-                        </Button>
-                        <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm" disabled={loading}>
-                            {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                            {loading ? t('vendors.edit_modal.updating') : t('vendors.edit_modal.update_btn')}
-                        </Button>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div className="w-full md:w-36 shrink-0 relative group">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1 text-center">Store Image</label>
+                            <div className="relative aspect-square rounded-[1.5rem] border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300 shadow-inner">
+                                {logoPreview ? (
+                                    <img src={logoPreview} className="w-full h-full object-cover" />
+                                ) : (
+                                    <Camera size={24} className="text-slate-300 group-hover:scale-110 transition-all" />
+                                )}
+                                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer px-0 py-0" onChange={handleLogoChange} accept="image/*" title="" />
+                            </div>
+                        </div>
                     </div>
-                </Form>
-            </Modal.Body>
-        </Modal>
+                </div>
+
+                {/* Footer */}
+                <div className="p-8 border-t border-slate-50 bg-slate-50/10 flex justify-end gap-4 shrink-0">
+                    <button type="button" onClick={onHide} className="px-8 py-3.5 text-[10px] font-bold text-slate-500 bg-white border border-slate-200 rounded-[1.25rem] hover:bg-slate-50 transition-all active:scale-95 shadow-sm uppercase tracking-widest">Cancel</button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-10 py-3.5 bg-blue-600 text-white rounded-[1.25rem] text-[10px] font-bold tracking-widest hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-100 uppercase flex items-center gap-3 border-none"
+                    >
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
+        </div>
     );
 };
 

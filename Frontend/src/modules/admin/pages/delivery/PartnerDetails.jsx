@@ -1,369 +1,231 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Badge, Button, Table, Spinner } from 'react-bootstrap';
-import {
-    Truck, Phone, Mail, MapPin, Calendar,
-    ChevronLeft, Package, Clock, CheckCircle,
-    DollarSign, Activity, CreditCard
+import { 
+    User, Phone, MapPin, Truck, Calendar, Wallet, CheckCircle, 
+    XCircle, Clock, ArrowLeft, MoreHorizontal, Edit, 
+    ChevronRight, ExternalLink, Map as MapIcon, Package, 
+    Star, AlertTriangle, Smartphone, Mail, Shield, ShieldCheck, Activity, TrendingUp, RefreshCw, Loader2
 } from 'lucide-react';
-import axios from 'axios';
-import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
-import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
-import { getDeliveryPartnerById, updateDeliveryPartner } from '../../api/adminDeliveryApi';
-import { showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
-import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
-import { pageInfoData } from '../../../../common/data/pageInfoData';
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import * as api from '../../api/adminDeliveryApi';
+import Swal from 'sweetalert2';
 
 const PartnerDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { t } = useTranslation('admin_delivery');
     const [partner, setPartner] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
-    const [showOrderModal, setShowOrderModal] = useState(false);
-    const [locationName, setLocationName] = useState('Fetching address...');
+    const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        fetchPartnerDetails();
-    }, [id]);
-
-    useEffect(() => {
-        if (partner?.currentLocation?.coordinates) {
-            const [lng, lat] = partner.currentLocation.coordinates;
-            if (lat !== 0 || lng !== 0) {
-                reverseGeocode(lat, lng);
-            } else {
-                setLocationName('Location not tracked');
-            }
-        }
-    }, [partner]);
-
-    const reverseGeocode = async (lat, lng) => {
+    const fetchDetails = async (isRefresh = false) => {
         try {
-            const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
-            if (response.data.results && response.data.results[0]) {
-                setLocationName(response.data.results[0].formatted_address);
-            } else {
-                setLocationName(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-            }
-        } catch (error) {
-            console.error('Geocoding error:', error);
-            setLocationName(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-        }
-    };
-
-    const fetchPartnerDetails = async () => {
-        try {
-            setLoading(true);
-            const data = await getDeliveryPartnerById(id);
+            if (isRefresh) setRefreshing(true);
+            else setLoading(true);
+            const data = await api.getDeliveryPartnerById(id);
             setPartner(data);
         } catch (error) {
-            console.error('Error fetching partner details:', error);
-            showErrorAlert('Error', 'Failed to fetch partner details');
+            Swal.fire({ title: 'Error', text: 'Failed to find rider details', icon: 'error' });
+            navigate('/admin/delivery/partners');
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
-    const handleSave = async (updatedPartner) => {
-        try {
-            await updateDeliveryPartner(id, updatedPartner);
-            fetchPartnerDetails();
-            await showSuccessAlert('Profile Updated!', 'The partner profile has been successfully updated.');
-            setShowEditModal(false);
-        } catch (error) {
-            console.error('Error updating partner:', error);
-            showErrorAlert('Error', 'Failed to update partner profile');
-        }
-    };
+    useEffect(() => {
+        fetchDetails();
+    }, [id]);
 
-    const handleViewOrder = (order) => {
-        setSelectedOrder(order);
-        setShowOrderModal(true);
-    };
-
-    if (loading) {
+    if (loading && !refreshing) {
         return (
-            <div className="d-flex justify-content-center align-items-center min-vh-100 bg-light">
-                <Spinner animation="border" variant="primary" />
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-sm font-medium">Syncing profile...</p>
             </div>
         );
     }
 
-    if (!partner) {
-        return (
-            <div className="p-4 text-center bg-light min-vh-100">
-                <h3>Partner not found</h3>
-                <Button variant="primary" onClick={() => navigate(-1)} className="mt-3">
-                    Go Back
-                </Button>
-            </div>
-        );
-    }
+    if (!partner) return null;
 
     return (
-        <div className="p-2 p-md-4 bg-light min-vh-100">
-            {/* Header */}
-            <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
-                <div className="d-flex align-items-center gap-2 gap-md-3 flex-grow-1">
-                    <Button
-                        variant="white"
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header / Actions Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                    <button
                         onClick={() => navigate(-1)}
-                        className="rounded-circle shadow-sm p-2 border shrink-0"
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 hover:border-blue-500 hover:text-blue-600"
                     >
-                        <ChevronLeft size={20} />
-                    </Button>
-                    <div className="d-flex align-items-center gap-3 overflow-hidden">
-                        {partner.profileImage ? (
-                            <img 
-                                src={partner.profileImage} 
-                                alt={partner.name} 
-                                className="rounded-circle object-cover border shadow-sm shrink-0"
-                                style={{ width: 60, height: 60 }}
-                            />
-                        ) : (
-                            <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center border shrink-0" style={{ width: 60, height: 60 }}>
-                                <Truck size={30} />
+                        <ArrowLeft size={18} />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl font-bold tracking-tight uppercase tracking-widest">{partner.name}</h1>
+                            <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-tight ${
+                                partner.dutyStatus === 'Online' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'
+                            }`}>
+                                {partner.dutyStatus}
+                            </span>
+                        </div>
+                        <p className="text-slate-500 text-[11px] font-bold mt-1 uppercase tracking-tighter opacity-70">Rider ID: {partner.uniqueId}</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
+                        onClick={() => fetchDetails(true)}
+                        disabled={refreshing}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                    >
+                        <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100 border-none">
+                        <Edit size={16} /> Edit Profile
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left Column: Essential Profile Card */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center space-y-6">
+                        <div className="relative inline-block group">
+                            <div className="w-32 h-32 rounded-3xl bg-slate-50 border-2 border-slate-100 p-1.5 shadow-inner transition-all group-hover:border-blue-500/20 overflow-hidden">
+                                {partner.profileImage ? (
+                                    <img src={partner.profileImage} className="w-full h-full object-cover rounded-[1.25rem]" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-200 font-bold text-4xl italic">{partner.name.charAt(0)}</div>
+                                )}
                             </div>
-                        )}
-                        <div className="overflow-hidden">
-                            <div className="d-flex align-items-center gap-2">
-                                <h4 className="fw-bold mb-0 text-truncate">{partner.name}</h4>
-                                <PageInfoTooltip info={pageInfoData.allDeliveryPartners} />
+                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl shadow-lg border-2 border-slate-50 flex items-center justify-center text-blue-600">
+                                <ShieldCheck size={20} />
                             </div>
-                            <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
-                                <span className="badge bg-primary bg-opacity-10 text-primary px-2">{partner.vehicleType}</span>
-                                <span className="text-secondary opacity-50">|</span>
-                                <span className="text-truncate">ID: {partner.uniqueId}</span>
-                                <span className="text-secondary opacity-50">|</span>
-                                <span className={`fw-bold d-flex align-items-center gap-1 ${partner.authStatus === 'Active' ? 'text-success' : 'text-danger'}`}>
-                                    <CheckCircle size={14} /> {partner.authStatus}
-                                </span>
+                        </div>
+
+                        <div>
+                            <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase leading-none">{partner.name}</h2>
+                            <span className={`inline-block mt-3 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-sm ${
+                                partner.authStatus === 'Active' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                            }`}>
+                                {partner.authStatus}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 border-t border-slate-50 pt-8">
+                            <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Deliveries</span>
+                                <span className="text-lg font-black text-slate-800">{partner.totalDeliveries || 0}</span>
+                            </div>
+                            <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Rating</span>
+                                <div className="flex items-center justify-center gap-1.5 text-blue-600 font-black text-lg">
+                                    <Star size={16} fill="currentColor" />
+                                    <span>{partner.rating || '5.0'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 pt-4">
+                            <div className="flex items-center gap-4 text-left p-4 bg-white border border-slate-100 rounded-2xl">
+                                <div className="p-2 bg-blue-50 rounded-lg text-blue-600"><Smartphone size={18} /></div>
+                                <div>
+                                    <span className="block text-[9px] font-bold text-slate-400 uppercase">Contact No</span>
+                                    <span className="text-xs font-bold text-slate-700">+91 {partner.phone}</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 text-left p-4 bg-white border border-slate-100 rounded-2xl">
+                                <div className="p-2 bg-slate-50 rounded-lg text-slate-400"><Mail size={18} /></div>
+                                <div>
+                                    <span className="block text-[9px] font-bold text-slate-400 uppercase">Email ID</span>
+                                    <span className="text-xs font-bold text-slate-700 truncate block w-full">{partner.email || 'N/A'}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="d-flex gap-2 w-100 w-md-auto">
-                    <Button
-                        variant="outline-primary"
-                        className="shadow-sm flex-grow-1 flex-md-grow-0"
-                        onClick={() => setShowEditModal(true)}
-                    >
-                        Edit Profile
-                    </Button>
-                    <Button
-                        variant="primary"
-                        className="shadow-sm flex-grow-1 flex-md-grow-0"
-                        onClick={() => navigate('/admin/delivery/assign')}
-                    >
-                        Assign New Order
-                    </Button>
-                </div>
-            </div>
 
-            <Row className="g-3 g-md-4">
-                {/* Left Column - Stats & Info */}
-                <Col lg={8}>
-                    {/* Key Metrics */}
-                    <Row className="g-2 g-md-3 mb-4">
-                        {[
-                            { label: 'Total Deliveries', value: partner.totalDeliveries || 0, icon: <Package size={20} />, color: 'blue' },
-                            { label: 'Cash In Hand', value: `₹${partner.cashInHand || 0}`, icon: <DollarSign size={20} />, color: 'green' }
-                        ].map((stat, i) => (
-                            <Col xs={12} md={6} key={i}>
-                                <Card className="border-0 shadow-sm h-100">
-                                    <Card.Body className="p-3">
-                                        <div className={`p-2 rounded bg-${stat.color}-50 text-${stat.color}-600 mb-2 w-fit-content`}>
-                                            {stat.icon}
-                                        </div>
-                                        <div className="text-muted small mb-1">{stat.label}</div>
-                                        <div className="h5 fw-bold mb-0">{stat.value}</div>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
+                {/* Right Column: Dynamic Stats & History */}
+                <div className="lg:col-span-8 space-y-8">
+                    {/* Performance Dashboard */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm group hover:border-blue-200 transition-all">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    <Wallet size={20} />
+                                </div>
+                                <Activity size={20} className="text-slate-100" />
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Cash in Hand</span>
+                            <div className="text-3xl font-black text-slate-800 tracking-tighter">₹{(partner.cashInHand || 0).toLocaleString()}</div>
+                            <div className="mt-6 flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest italic leading-none flex items-center gap-1">
+                                    <Info size={12} /> Pending Settlement
+                                </span>
+                                <button className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase flex items-center gap-1 transition-colors">
+                                    Verify Cash <ArrowRight size={12} />
+                                </button>
+                            </div>
+                        </div>
 
-                    {/* Recent Delivery List */}
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Header className="bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
-                            <h6 className="fw-bold mb-0">Recent Deliveries</h6>
-                            <Button variant="link" className="text-decoration-none p-0 small">View All</Button>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <Table hover responsive className="mb-0">
-                                <thead className="bg-light text-muted small">
-                                    <tr>
-                                        <th className="ps-4">ORDER ID</th>
-                                        <th>CUSTOMER</th>
-                                        <th>DATE</th>
-                                        <th>AMOUNT</th>
-                                        <th>STATUS</th>
-                                        <th className="text-end pe-4">DETAILS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {partner.recentDeliveries && partner.recentDeliveries.length > 0 ? (
-                                        partner.recentDeliveries.map((delivery, i) => (
-                                            <tr key={i} className="align-middle">
-                                                <td className="ps-4 fw-bold">{delivery.orderId}</td>
-                                                <td className="text-muted">{delivery.user?.name || 'Walk-in'}</td>
-                                                <td className="text-muted small">
-                                                    {new Date(delivery.createdAt).toLocaleDateString()}
-                                                </td>
-                                                <td className="fw-bold">₹{delivery.totalAmount}</td>
-                                                <td>
-                                                    <Badge bg={delivery.status === 'delivered' ? 'success' : 'warning'} className="fw-normal">
-                                                        {delivery.status.charAt(0).toUpperCase() + delivery.status.slice(1).replace(/_/g, ' ')}
-                                                    </Badge>
-                                                </td>
-                                                 <td className="text-end pe-4">
-                                                    <Button variant="light" size="sm" onClick={() => handleViewOrder(delivery)}>View</Button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="6" className="text-center py-4 text-muted small">No recent deliveries found</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm group hover:border-indigo-200 transition-all">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                    <Truck size={20} />
+                                </div>
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Vehicle Info</span>
+                            <div className="text-xl font-bold text-slate-800 tracking-tight uppercase leading-none">{partner.vehicleType}</div>
+                            <div className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-tighter italic leading-none border-t border-slate-50 pt-4">
+                                Plate ID: {partner.vehicleNumber || 'NOT ASSIGNED'}
+                            </div>
+                        </div>
+                    </div>
 
-                    {/* Status Information */}
-                    <Card className="border-0 shadow-sm">
-                        <Card.Header className="bg-white border-bottom-0 py-3">
-                            <h6 className="fw-bold mb-0 text-muted small text-uppercase tracking-wider">Duty & Assignment Information</h6>
-                        </Card.Header>
-                        <Card.Body>
-                            <Row className="g-3">
-                                <Col md={6}>
-                                    <div className="p-3 border rounded-3 bg-light bg-opacity-50 h-100 d-flex flex-column align-items-center justify-content-center text-center">
-                                        <div className="text-muted small mb-1 uppercase font-bold tracking-tight">Duty Status</div>
-                                        <div className={`h5 fw-bold mb-0 d-flex align-items-center gap-2 ${partner.dutyStatus === 'Online' ? 'text-success' : 'text-danger'}`}>
-                                            <div className={`w-2 h-2 rounded-circle ${partner.dutyStatus === 'Online' ? 'bg-success animate-pulse' : 'bg-danger'}`}></div>
-                                            {partner.dutyStatus}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col md={6}>
-                                    <div className="p-3 border rounded-3 bg-light bg-opacity-50 h-100 d-flex flex-column align-items-center justify-content-center text-center">
-                                        <div className="text-muted small mb-1 uppercase font-bold tracking-tight">Assignment Status</div>
-                                        <div className={`h6 fw-bold mb-0 ${partner.assignmentStatus === 'Free' ? 'text-success' : 'text-warning'}`}>
-                                            {partner.assignmentStatus}
-                                        </div>
-                                    </div>
-                                </Col>
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                {/* Right Column - Contact & Duty */}
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-4">Contact Information</h6>
-                            <div className="d-flex flex-column gap-3">
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Mail size={18} />
-                                    </div>
-                                    <div className="overflow-hidden">
-                                        <div className="small text-muted mb-0">Email Address</div>
-                                        <div className="fw-medium text-truncate">{partner.email || 'N/A'}</div>
-                                    </div>
-                                </div>
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Phone size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Phone Number</div>
-                                        <div className="fw-medium">{partner.phone}</div>
-                                    </div>
-                                </div>
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Truck size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Vehicle Info</div>
-                                        <div className="fw-medium">{partner.vehicleNumber || 'N/A'} ({partner.vehicleType})</div>
-                                    </div>
-                                </div>
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Calendar size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Registered On</div>
-                                        <div className="fw-medium">{new Date(partner.createdAt).toLocaleDateString()}</div>
-                                    </div>
-                                </div>
-                                 <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <MapPin size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Last Known Location</div>
-                                        <div className="fw-medium">
-                                            {locationName}
-                                        </div>
+                    {/* Duty Log / Real-time Status */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-5 border-b border-slate-100 bg-slate-50/30 flex justify-between items-center">
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-blue-500 pb-1">Real-time Status</h3>
+                            <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-100 px-3 py-1.5 rounded-xl shadow-sm italic">
+                                <RefreshCw size={12} className="animate-spin-slow" /> Updating live location
+                            </div>
+                        </div>
+                        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div className="space-y-6">
+                                <div className="flex items-start gap-5">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 shadow-sm"><MapIcon size={20} /></div>
+                                    <div className="flex-1">
+                                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 italic">Tracking History</span>
+                                        <button 
+                                            onClick={() => navigate('/admin/delivery/tracking', { state: { riderId: partner._id }})}
+                                            className="w-full text-left bg-slate-50 border border-slate-200 p-4 rounded-2xl hover:border-blue-500 hover:bg-blue-50/30 transition-all group flex items-center justify-between"
+                                        >
+                                            <span className="text-xs font-bold text-slate-700">Open Map Tracker</span>
+                                            <ChevronRight size={16} className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </Card.Body>
-                    </Card>
-
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-4">Live Activity</h6>
-                            {partner.assignmentStatus === 'Busy' ? (
-                                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                                    <div className="d-flex align-items-center gap-2 text-blue-700 mb-2">
-                                        <Activity size={18} />
-                                        <h6 className="mb-0 small fw-bold">Currently On Delivery</h6>
-                                    </div>
-                                    <p className="small text-blue-600 mb-0">The partner is currently executing an assigned delivery run.</p>
-                                    <Button 
-                                        variant="outline-primary" 
-                                        size="sm" 
-                                        className="mt-3 w-100 bg-white"
-                                        onClick={() => navigate('/admin/delivery/tracking')}
-                                    >
-                                        Track Live Map
-                                    </Button>
+                            <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-center gap-4 text-center">
+                                <div className="text-sm font-bold text-slate-500 uppercase tracking-tight italic">Shift Availability</div>
+                                <div className="flex justify-center gap-3">
+                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => (
+                                        <div key={idx} className={`w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black border transition-colors ${idx < 6 ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' : 'bg-white text-slate-300 border-slate-100 shadow-sm'}`}>
+                                            {day[0]}
+                                        </div>
+                                    ))}
                                 </div>
-                            ) : (
-                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
-                                    <Clock size={32} className="text-muted mb-2 mx-auto" />
-                                    <p className="small text-muted mb-0">Currently Idle</p>
-                                    <p className="text-[10px] text-muted">No active orders or runs assigned.</p>
-                                </div>
-                            )}
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">{partner.dutyStatus === 'Online' ? 'Currently Receiving Orders' : 'Offline / Off-shift'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <DeliveryPartnerEditModal
-                show={showEditModal}
-                onHide={() => setShowEditModal(false)}
-                partner={partner}
-                onSave={handleSave}
-            />
-
-            <OrderDetailsModal
-                show={showOrderModal}
-                onHide={() => setShowOrderModal(false)}
-                order={selectedOrder}
-            />
+            <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes spin-slow { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+                .animate-spin-slow { animation: spin-slow 4s linear infinite; }
+            `}} />
         </div>
     );
 };

@@ -1,0 +1,99 @@
+{
+  "title": "Vendors",
+  "subtitle": "Manage all store partners",
+  "search": "Search vendor name, owner or email...",
+  "add_new": "Add Vendor",
+  "loading_msg": "Loading...",
+  "all_vendors": {
+    "title": "Vendor List",
+    "subtitle": "Overview of all vendors",
+    "add_btn": "Add Vendor",
+    "no_vendors": "No vendors found",
+    "table": {
+      "entity": "Store Details",
+      "contact": "Contact Person",
+      "portfolio": "Products",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "actions": {
+      "details": "View Details",
+      "edit": "Edit",
+      "delete": "Delete",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "alerts": {
+      "delete_title": "Delete Vendor?",
+      "delete_text": "This will remove the vendor from the list.",
+      "delete_confirm": "Yes, Delete",
+      "delete_success": "Vendor removed"
+    }
+  },
+  "add": {
+    "title": "Add New Vendor",
+    "subtitle": "Register a new vendor",
+    "section": {
+      "basic": "Store Info",
+      "contact": "Contact Info",
+      "account": "Account Info",
+      "documents": "Documents"
+    },
+    "form": {
+      "store_name": "Store Name",
+      "owner_name": "Owner Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "address": "Full Address",
+      "password": "Password",
+      "logo": "Store Logo",
+      "category": "Category",
+      "status": "Status",
+      "submit": "Save Vendor",
+      "cancel": "Cancel"
+    }
+  },
+  "edit": {
+    "title": "Edit Vendor",
+    "subtitle": "Update vendor details",
+    "form": {
+      "save": "Save Changes",
+      "cancel": "Cancel"
+    }
+  },
+  "details": {
+    "title": "Vendor Details",
+    "subtitle": "View vendor profile",
+    "stats": {
+      "total_products": "Products",
+      "active_orders": "Active Orders",
+      "total_earned": "Total Earnings",
+      "rating": "Rating"
+    }
+  },
+  "payouts": {
+    "title": "Vendor Payouts",
+    "subtitle": "Track and manage payments",
+    "search_placeholder": "Search by ID or Store...",
+    "table": {
+      "vendor": "Vendor",
+      "amount": "Amount",
+      "date": "Date",
+      "status": "Status"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "paid": "Paid",
+      "rejected": "Rejected"
+    }
+  },
+  "products": {
+    "title": "Vendor Products",
+    "subtitle": "View items listed by vendors",
+    "filter": {
+      "all": "All Vendors",
+      "select": "Select Vendor"
+    }
+  }
+}

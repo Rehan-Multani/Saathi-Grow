@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Form, Row, Col, Badge, Spinner } from 'react-bootstrap';
-import { Download, IndianRupee, Wallet, TrendingUp, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { Download, IndianRupee, Wallet, TrendingUp, ChevronLeft, ChevronRight, Hash, Search, RefreshCw, Filter, ArrowRight, Loader2, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useTranslation } from 'react-i18next';
@@ -11,19 +10,21 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const VendorEarnings = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_vendors');
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
 
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [data, setData] = useState(null);
     const [statusFilter, setStatusFilter] = useState('All Vendors');
     const [page, setPage] = useState(1);
     const limit = 10;
 
-    const fetchEarnings = useCallback(async () => {
+    const fetchEarnings = useCallback(async (isRefresh = false) => {
         if (!adminUser?.token) return;
-        setLoading(true);
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
         try {
             const res = await getAdminVendorEarnings(adminUser.token, {
                 page,
@@ -35,11 +36,12 @@ const VendorEarnings = () => {
             }
         } catch (error) {
             console.error('Fetch Vendor Earnings Error:', error);
-            toast.error(t('analytics.vendors.load_error', { defaultValue: 'Failed to load vendor earnings' }));
+            toast.error('Failed to load vendor earnings');
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
-    }, [adminUser, page, statusFilter, t]);
+    }, [adminUser, page, statusFilter]);
 
     useEffect(() => {
         fetchEarnings();
@@ -55,19 +57,11 @@ const VendorEarnings = () => {
 
     const handleExport = () => {
         if (!data?.payouts || data.payouts.length === 0) {
-            toast.info(t('common.no_data_export', { defaultValue: 'No data to export' }));
+            toast.info('No data to export');
             return;
         }
 
-        const headers = [
-            t('analytics.vendors.table.payout_id'), 
-            t('analytics.vendors.table.vendor'), 
-            t('analytics.vendors.table.requested_date'), 
-            t('analytics.vendors.table.net_payout'), 
-            t('analytics.vendors.table.method'), 
-            'Reference', 
-            t('dashboard.status')
-        ];
+        const headers = ['Payout ID', 'Vendor', 'Requested Date', 'Amount', 'Method', 'Reference', 'Status'];
         const csvRows = data.payouts.map(row => [
             row.payoutId,
             `"${row.vendor}"`,
@@ -81,8 +75,8 @@ const VendorEarnings = () => {
         const csvContent = [headers.join(','), ...csvRows].join('\n');
 
         Swal.fire({
-            title: t('common.generating_csv', { defaultValue: 'Generating CSV' }),
-            text: t('analytics.vendors.preparing_statement', { defaultValue: 'Preparing your vendor statement...' }),
+            title: 'Generating Report...',
+            text: 'Preparing your vendor earnings statement.',
             icon: 'info',
             timer: 1200,
             showConfirmButton: false,
@@ -93,25 +87,20 @@ const VendorEarnings = () => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.setAttribute('href', url);
-            link.setAttribute('download', `vendor_payouts_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `vendor_earnings_${new Date().toISOString().split('T')[0]}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
-            Swal.fire({
-                title: t('common.success', { defaultValue: 'Success!' }),
-                text: t('analytics.vendors.download_complete', { defaultValue: 'Vendor CSV statement has been downloaded.' }),
-                icon: 'success',
-                confirmButtonColor: '#0c831f'
-            });
+            toast.success('Download triggered successfully');
         });
     };
 
     if (loading && !data) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
-                <Spinner animation="border" variant="primary" />
+            <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-none">Loading Analytics...</p>
             </div>
         );
     }
@@ -123,211 +112,164 @@ const VendorEarnings = () => {
     };
 
     return (
-        <div className="p-2 p-md-4">
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <div className="bg-primary bg-opacity-10 p-3 rounded-3 text-primary d-none d-md-flex">
-                        <Wallet size={24} />
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">Vendor Earnings</h1>
+                        <PageInfoTooltip data={pageInfoData.vendorEarnings} />
                     </div>
-                    <div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="fw-bold mb-1 text-dark text-nowrap">{t('analytics.vendors.title')}</h4>
-                            <PageInfoTooltip data={pageInfoData.vendorEarnings} />
-                        </div>
-                        <p className="text-muted small mb-0 d-none d-sm-block">{t('analytics.vendors.subtitle')}</p>
-                    </div>
+                    <p className="text-slate-500 text-xs mt-1 font-medium italic">Monitor commissions and partner payouts</p>
                 </div>
 
-                <div className="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto align-items-stretch align-items-sm-center justify-content-md-end">
-                    <div className="flex-grow-1 flex-sm-grow-0" style={{ minWidth: '200px' }}>
-                        <Form.Select
-                            size="sm"
-                            className="shadow-sm border bg-white px-3 py-2 w-100 fw-medium text-dark"
-                            style={{ height: '40px', cursor: 'pointer' }}
-                            value={statusFilter}
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                setPage(1);
-                            }}
-                        >
-                            <option value="All Vendors">{t('analytics.vendors.filters.all')}</option>
-                            <option value="Pending Payouts">{t('analytics.vendors.filters.pending')}</option>
-                            <option value="Completed Payouts">{t('analytics.vendors.filters.completed')}</option>
-                        </Form.Select>
-                    </div>
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        className="d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm text-nowrap"
-                        style={{ height: '40px' }}
-                        onClick={handleExport}
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <select 
+                        value={statusFilter}
+                        onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer"
                     >
-                        <Download size={16} /> {t('analytics.vendors.export_statement')}
-                    </Button>
+                        <option value="All Vendors">All Status</option>
+                        <option value="Pending Payouts">Pending</option>
+                        <option value="Completed Payouts">Settled</option>
+                    </select>
+                    <button
+                        onClick={() => fetchEarnings(true)}
+                        disabled={refreshing}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                    >
+                        <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button
+                        onClick={handleExport}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold tracking-tight hover:bg-black active:scale-95 transition-all shadow-lg border-none"
+                    >
+                        <Download size={16} /> Export CSV
+                    </button>
                 </div>
             </div>
 
-            {/* Overall Stats */}
-            <Row className="g-3 mb-4">
-                <Col xs={12} sm={6} md={4}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-primary border-4">
-                        <Card.Body className="d-flex align-items-center gap-3">
-                            <div className="bg-primary bg-opacity-10 rounded-circle p-3 text-primary">
-                                <IndianRupee size={24} />
-                            </div>
-                            <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">{t('analytics.vendors.stats.paid_out')}</div>
-                                <h3 className="fw-bold mb-0">{formatCurrency(stats.totalPaidOut)}</h3>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} md={4}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-warning border-4">
-                        <Card.Body className="d-flex align-items-center gap-3">
-                            <div className="bg-warning bg-opacity-10 rounded-circle p-3 text-warning">
-                                <Wallet size={24} />
-                            </div>
-                            <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">{t('analytics.vendors.stats.pending')}</div>
-                                <h3 className="fw-bold mb-0 text-dark">{formatCurrency(stats.pendingDue)}</h3>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} md={4}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-success border-4">
-                        <Card.Body className="d-flex align-items-center gap-3">
-                            <div className="bg-success bg-opacity-10 rounded-circle p-3 text-success">
-                                <TrendingUp size={24} />
-                            </div>
-                            <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">{t('analytics.vendors.stats.commission')}</div>
-                                <h3 className="fw-bold mb-0">{formatCurrency(stats.commissionEarned)}</h3>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 mt-2">
+                {[
+                    { label: 'Paid to Vendors', value: formatCurrency(stats.totalPaidOut), icon: <IndianRupee size={20} />, color: 'blue' },
+                    { label: 'Pending Dues', value: formatCurrency(stats.pendingDue), icon: <Wallet size={20} />, color: 'amber' },
+                    { label: 'Commission Revenue', value: formatCurrency(stats.commissionEarned), icon: <TrendingUp size={20} />, color: 'emerald' }
+                ].map((stat, i) => (
+                    <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all border-b-4" style={{ borderColor: `var(--${stat.color}-500)` }}>
+                         <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block opacity-70">{stat.label}</span>
+                            <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{stat.value}</div>
+                        </div>
+                        <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-500 flex items-center justify-center border border-${stat.color}-100 shadow-inner group-hover:scale-110 transition-transform`}>
+                            {stat.icon}
+                        </div>
+                    </div>
+                ))}
+            </div>
 
-            {/* Payout Table */}
-            <Card className="border-0 shadow-sm overflow-hidden">
-                <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                    <h6 className="mb-0 fw-bold">{t('analytics.vendors.table.recent_payouts')}</h6>
-                    {loading && <Spinner animation="border" size="sm" variant="primary" />}
-                </Card.Header>
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase font-weight-bold">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">{t('analytics.vendors.table.payout_id')}</th>
-                                <th className="border-0 py-3">{t('analytics.vendors.table.vendor')}</th>
-                                <th className="border-0 py-3">{t('analytics.vendors.table.requested_date')}</th>
-                                <th className="border-0 py-3">{t('analytics.vendors.table.method')}</th>
-                                <th className="border-0 py-3">{t('analytics.vendors.table.net_payout')}</th>
-                                <th className="border-0 py-3">{t('dashboard.status')}</th>
-                                <th className="border-0 py-3 text-end pe-4">{t('locations.branches.table.actions')}</th>
+            {/* List Table */}
+            <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-700">
+                <div className="p-6 border-b border-slate-50 bg-slate-50/10 flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">Recent Transactions</h3>
+                    {refreshing && <Loader2 size={16} className="text-blue-500 animate-spin" />}
+                </div>
+                <div className="overflow-x-auto scrollbar-thin">
+                    <table className="w-full text-left font-medium">
+                        <thead>
+                            <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th className="px-8 py-5">Payout ID</th>
+                                <th className="px-6 py-5">Store/Vendor</th>
+                                <th className="px-6 py-5">Request Date</th>
+                                <th className="px-6 py-5">Amount</th>
+                                <th className="px-6 py-5 text-center">Status</th>
+                                <th className="px-8 py-5 text-right">Details</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {payouts.length > 0 ? payouts.map((p, idx) => (
-                                <tr key={idx} className="cursor-pointer">
-                                    <td className="ps-4 fw-bold font-monospace text-secondary">
-                                        <div className="d-flex align-items-center gap-1">
-                                            <Hash size={14} className="text-muted" />
-                                            {p.payoutId}
-                                        </div>
-                                    </td>
-                                    <td className="fw-medium text-dark">{p.vendor}</td>
-                                    <td>
-                                        <div className="bg-light border rounded px-2 py-1 small d-inline-block text-secondary">
-                                            {p.date}
-                                        </div>
-                                    </td>
-                                    <td className="small">{p.method}</td>
-                                    <td className="fw-bold text-success">{formatCurrency(p.amount)}</td>
-                                    <td>
-                                        <Badge
-                                            bg={p.status === 'Paid' ? 'success' : p.status === 'Pending' ? 'warning' : 'danger'}
-                                            className="rounded-pill fw-normal px-3 py-1 shadow-sm"
-                                        >
-                                            {p.status}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-end pe-4">
-                                        <Button
-                                            variant="light"
-                                            size="sm"
-                                            className="btn-icon-soft text-primary px-3 shadow-none overflow-hidden"
-                                            onClick={() => navigate(`/admin/analytics/earnings/${p.id}`)}
-                                        >
-                                            {t('common.details', { defaultValue: 'Details' })}
-                                        </Button>
-                                    </td>
-                                </tr>
-                            )) : (
+                        <tbody className="divide-y divide-slate-100">
+                            {payouts.length > 0 ? (
+                                payouts.map((p, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/30 transition-colors group">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-tighter italic">
+                                                <Hash size={14} className="text-slate-200" />
+                                                {p.payoutId}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6 font-bold text-slate-900 text-sm uppercase tracking-tight">
+                                            {p.vendor}
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            <span className="text-[11px] font-bold text-slate-400 uppercase italic opacity-70">
+                                                {p.date}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-6 font-bold text-emerald-600 text-sm tracking-tight">
+                                            {formatCurrency(p.amount)}
+                                        </td>
+                                        <td className="px-6 py-6 text-center">
+                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${
+                                                p.status === 'Paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                p.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
+                                            }`}>
+                                                {p.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <button 
+                                                onClick={() => navigate(`/admin/analytics/earnings/${p.id}`)}
+                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent"
+                                            >
+                                                <ArrowRight size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted">
-                                        {t('analytics.vendors.no_records', { defaultValue: 'No payout records found.' })}
+                                    <td colSpan="6" className="py-24 text-center">
+                                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">No earnings records found</p>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
+                {/* Pagination */}
                 {pagination.total > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('categories.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('categories.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> {t('categories.pagination.of')} <span className="fw-semibold text-dark">{pagination.total}</span> {t('analytics.vendors.stats.payouts', { defaultValue: 'payouts' })}
+                    <div className="px-8 py-5 bg-slate-50/40 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-6">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                            Showing <span className="text-slate-900 text-xs italic">{((page - 1) * limit) + 1} - {Math.min(page * limit, pagination.total)}</span> of <span className="text-slate-900">{pagination.total}</span> records
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                            >
-                                <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
-                                {(() => {
-                                    return [...Array(pagination.totalPages)].map((_, i) => {
-                                        const p = i + 1;
-                                        if (p === 1 || p === pagination.totalPages || Math.abs(page - p) <= 1) {
-                                            return (
-                                                <Button
-                                                    key={p}
-                                                    variant={page === p ? 'primary' : 'light'}
-                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                    style={{ width: '36px', height: '36px', padding: 0 }}
-                                                    onClick={() => setPage(p)}
-                                                >
-                                                    {p}
-                                                </Button>
-                                            );
-                                        } else if (p === page - 2 || p === page + 2) {
-                                            return <span key={p} className="text-muted px-1">...</span>;
-                                        }
-                                        return null;
-                                    });
-                                })()}
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white disabled:opacity-30 border-none bg-transparent">
+                                <ChevronLeft size={18} />
+                            </button>
+                            <div className="flex items-center gap-1">
+                                {[...Array(pagination.totalPages)].map((_, i) => (
+                                    <button 
+                                        key={i+1} 
+                                        onClick={() => setPage(i+1)} 
+                                        className={`w-8 h-8 rounded-xl text-[10px] font-bold transition-all border-none ${page === i+1 ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'text-slate-400 hover:bg-slate-100 bg-transparent'}`}
+                                    >
+                                        {i+1}
+                                    </button>
+                                ))}
                             </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                                disabled={page === pagination.totalPages}
-                            >
-                                <ChevronRight size={16} />
-                            </Button>
+                            <button onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))} disabled={page === pagination.totalPages} className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white disabled:opacity-30 border-none bg-transparent">
+                                <ChevronRight size={18} />
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { height: 4px; border-radius: 10px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+                :root { --blue-500: #3b82f6; --amber-500: #f59e0b; --emerald-500: #10b981; }
+            `}} />
         </div>
     );
 };

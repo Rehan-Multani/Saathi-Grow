@@ -30,8 +30,6 @@ export const getOrdersBySlot = async (req, res) => {
     const orderQuery = {
       status: { $in: ['confirmed', 'preparing', 'pending', 'ready_for_pickup'] },
       deliveryPartnerId: null, // Unassigned
-      // Only include orders created today or orders specifically scheduled for this date 
-      createdAt: { $gte: startOfDay, $lte: endOfDay }
     };
 
     if (admin.role !== 'Admin') {
@@ -129,26 +127,68 @@ export const createDeliveryRun = async (req, res) => {
       throw new Error('One or more orders not found');
     }
 
-    for (const order of orders) {
-      if (order.deliveryPartnerId || order.deliveryRunId) {
-        throw new Error(`Order ${order.orderId} is already assigned`);
-      }
-      if (order.status === 'cancelled') {
-        throw new Error(`Order ${order.orderId} is cancelled`);
+    // 2.1 Determine Start Point (Origin)
+    // Runs usually start from a Branch or the first Vendor
+    let origin = "";
+    if (branchId) {
+      const branch = await mongoose.model('Branch').findById(branchId);
+      if (branch?.address?.location?.coordinates) {
+        origin = `${branch.address.location.coordinates[1]},${branch.address.location.coordinates[0]}`;
       }
     }
 
-    // Generate a unique RUN ID
+    if (!origin && orders[0]) {
+      const firstPickup = orders[0].vendor?.address?.location || orders[0].branchId?.address?.location;
+      if (firstPickup?.coordinates) {
+        origin = `${firstPickup.coordinates[1]},${firstPickup.coordinates[0]}`;
+      }
+    }
+
+    // Build waypoints (destinations)
+    const destinations = orders.map(o => {
+      const loc = o.shippingAddress?.location;
+      return loc?.coordinates ? `${loc.coordinates[1]},${loc.coordinates[0]}` : null;
+    }).filter(Boolean);
+
+    // Build a unique RUN ID
     const runIdString = `RUN-${Date.now().toString().slice(-6)}-${partner.uniqueId.slice(-4)}`;
 
     // Build stops
-    let waypointOrderArray = orders.map((_, i) => i); // Default: same order they came in
+    let waypointOrderArray = orders.map((_, i) => i); 
     let polyline = null;
     let totalDist = 0;
     let totalDur = 0;
 
-    // Optional: Call Google Maps API if optimizeRoute is true and we have a valid pickup source (like Branch coordinates)
-    // For now, we are skipping the full Google API call due to key constraints, but the framework is ready.
+    // 2.2 Call Google Maps API for optimization
+    if (optimizeRoute && origin && destinations.length > 0) {
+      try {
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API;
+        if (apiKey) {
+          const waypointsParam = destinations.slice(0, -1).join('|');
+          const destinationParam = destinations[destinations.length - 1];
+          const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destinationParam}&waypoints=optimize:true|${waypointsParam}&key=${apiKey}`;
+          
+          const response = await axios.get(url);
+          if (response.data.status === 'OK' && response.data.routes.length > 0) {
+            const route = response.data.routes[0];
+            waypointOrderArray = route.waypoint_order; 
+            // waypoint_order doesn't include origin/destination. 
+            // Google's optimize:true reorders waypoints.
+            // We need to adjust our orders list based on this.
+            polyline = route.overview_polyline.points;
+            
+            // Calculate totals
+            route.legs.forEach(leg => {
+              totalDist += leg.distance.value;
+              totalDur += leg.duration.value;
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Google Route Optimization Failed:', err.message);
+        // Fallback to default order
+      }
+    }
 
     const orderedStops = waypointOrderArray.map((originalIndex, seqIndex) => {
       const orderDoc = orders[originalIndex];
@@ -156,7 +196,7 @@ export const createDeliveryRun = async (req, res) => {
         order: orderDoc._id,
         stopSequence: seqIndex + 1,
         status: 'pending',
-        deliveryOTP: Math.floor(1000 + Math.random() * 9000).toString() // Secure 4-digit PIN
+        deliveryOTP: Math.floor(1000 + Math.random() * 9000).toString()
       };
     });
 

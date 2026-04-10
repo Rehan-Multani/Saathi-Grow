@@ -1,0 +1,149 @@
+{
+  "partners": {
+    "title": "Our Riders",
+    "subtitle": "Manage your delivery team and partners",
+    "search_placeholder": "Search by name or phone...",
+    "add_new": "Add New Rider",
+    "loading": "Loading...",
+    "loading_failed": "Error loading riders",
+    "delete_confirm_title": "Remove Rider?",
+    "delete_confirm_text": "Do you want to remove {{name}} from the fleet?",
+    "delete_success": "Rider removed",
+    "update_success": "Details updated",
+    "no_partners": "No riders found",
+    "table": {
+      "name": "Rider Name",
+      "type": "Vehicle",
+      "contact": "Contact",
+      "duty": "Status",
+      "assignment": "Work Status",
+      "status": "Account",
+      "actions": "Actions"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "to": "to",
+      "of": "of",
+      "partners": "riders"
+    }
+  },
+  "add_partner": {
+    "title": "Add Rider",
+    "subtitle": "Register a new delivery partner",
+    "full_name": "Rider Name",
+    "full_name_placeholder": "Enter full name",
+    "mobile": "Mobile Number",
+    "mobile_placeholder": "10-digit mobile number",
+    "email": "Email Address",
+    "email_placeholder": "rider@saathigrow.com",
+    "credentials_info": "Contact Info",
+    "login_credentials": "Login Details",
+    "create_password": "Set Password",
+    "regenerate": "Generate",
+    "ready_for_login": "Login ready",
+    "otp_help": "Rider can login with OTP if no password is set",
+    "profile_photo": "Profile Photo",
+    "profile_photo_help": "Upload a clear face photo",
+    "logistics_profile": "Vehicle Details",
+    "vehicle_type": "Select Vehicle",
+    "license_plate": "Vehicle Number",
+    "license_plate_placeholder": "e.g. MP09-1234",
+    "create_btn": "Save Rider",
+    "title_success": "Success!",
+    "login_enabled": "Rider registered",
+    "login_help": "The rider can now start using the delivery app.",
+    "vehicle_types": {
+      "bike": "Bike",
+      "ev": "Electric Vehicle",
+      "cycle": "Bicycle",
+      "other": "Other"
+    }
+  },
+  "edit_partner": {
+    "title": "Update Profile",
+    "name_label": "Name",
+    "auth_status": "Status",
+    "status_active": "Active",
+    "status_suspended": "Suspended",
+    "status_unverified": "Pending",
+    "update_btn": "Update Profile"
+  },
+  "assign": {
+    "title": "Assign Orders",
+    "subtitle": "Assign pending orders to your riders",
+    "tabs": {
+      "pending": "Pending",
+      "assigned": "All Active Runs"
+    },
+    "search_orders": "Search order or name...",
+    "table": {
+      "order_id": "Order ID",
+      "customer": "Customer",
+      "amount": "Price",
+      "address": "Location",
+      "status": "Status",
+      "action": "Action"
+    },
+    "assign_btn": "Assign Now",
+    "reassign_btn": "Change Rider",
+    "modal": {
+      "title": "Choose Rider",
+      "select_partner": "Select a rider for these orders",
+      "no_partners": "No online riders available right now",
+      "submit": "Confirm Assignment",
+      "payload_size": "Total Orders",
+      "target_slot": "Delivery Time",
+      "config": "Optimization",
+      "route_opt": "Optimize Route",
+      "beta": "Experimental",
+      "availability": "Online Riders",
+      "syncing": "Assigning...",
+      "dispatch": "Dispatch"
+    },
+    "alerts": {
+      "success": "Orders assigned successfully",
+      "error": "Failed to assign"
+    }
+  },
+  "tracking": {
+    "title": "Track Riders",
+    "subtitle": "Live location of your delivery team",
+    "search": "Find rider...",
+    "view_map": "Map View",
+    "table": {
+      "rider": "Rider",
+      "current_order": "Current Task",
+      "location": "Last Seen",
+      "last_updated": "Update Time",
+      "battery": "Signal"
+    }
+  },
+  "slots": {
+    "title": "Delivery Times",
+    "subtitle": "Manage when customers can get order",
+    "add_new": "Add New Slot",
+    "table": {
+      "name": "Slot Name",
+      "time": "Time Window",
+      "max_orders": "Limit",
+      "status": "Status"
+    },
+    "modal": {
+      "title": "Slot Details",
+      "name": "Display Name",
+      "window": "Time Range",
+      "active": "Is Active"
+    }
+  },
+  "settlement": {
+    "title": "Cash Collection",
+    "subtitle": "Collect cash from your riders",
+    "total_pending": "Total Cash to Collect",
+    "collect_cash": "Collect Now",
+    "table": {
+      "rider": "Rider",
+      "amount": "Cash with Rider",
+      "last_settled": "Last Collected"
+    }
+  }
+}

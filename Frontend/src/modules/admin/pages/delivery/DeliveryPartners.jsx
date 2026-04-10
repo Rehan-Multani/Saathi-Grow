@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
-import { Search, Plus, Phone, Truck, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, Plus, Phone, Truck, Edit, Trash2, ChevronLeft, ChevronRight, Loader2, MoreHorizontal, Filter, RefreshCw } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
 import Swal from 'sweetalert2';
 import * as api from '../../api/adminDeliveryApi';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+
 const DeliveryPartners = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_delivery');
+    const navigate = useNavigate();
     const [partners, setPartners] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState(null);
@@ -21,9 +23,10 @@ const DeliveryPartners = () => {
     const limit = 10;
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
 
-    const fetchPartners = async () => {
+    const fetchPartners = async (isRefresh = false) => {
         try {
-            setLoading(true);
+            if (isRefresh) setRefreshing(true);
+            else setLoading(true);
             const { partners: partnerList, pagination: paginationData } = await api.getDeliveryPartners(
                 { page, limit, search: searchTerm },
                 { paginated: true }
@@ -31,9 +34,14 @@ const DeliveryPartners = () => {
             setPartners(Array.isArray(partnerList) ? partnerList : []);
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
-            Swal.fire(t('common.error'), t('delivery.partners.loading_failed', { defaultValue: 'Failed to load delivery partners' }), 'error');
+            Swal.fire({
+                title: t('partners.loading_failed'),
+                icon: 'error',
+                confirmButtonColor: '#3b82f6'
+            });
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -41,32 +49,36 @@ const DeliveryPartners = () => {
         fetchPartners();
     }, [page, searchTerm]);
 
-    const totalFiltered = pagination.total || 0;
-    const totalPages = pagination.totalPages || 1;
-    const paginatedPartners = partners;
-
-    // Reset pagination when search changes
     useEffect(() => {
         setPage(1);
     }, [searchTerm]);
 
     const handleDelete = (id, name) => {
         Swal.fire({
-            title: t('delivery.partners.delete_confirm_title'),
-            text: t('delivery.partners.delete_confirm_text', { name }),
+            title: t('partners.delete_confirm_title'),
+            text: t('partners.delete_confirm_text', { name }),
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: t('common.delete', { defaultValue: 'Delete' })
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Yes, Delete',
+            cancelButtonText: 'Cancel'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     await api.deleteDeliveryPartner(id);
                     fetchPartners();
-                    Swal.fire(t('common.deleted'), t('delivery.partners.delete_success'), 'success');
+                    Swal.fire({
+                        title: t('partners.delete_success'),
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
                 } catch (err) {
-                    Swal.fire(t('common.error'), err?.response?.data?.message || t('common.failed_to_delete'), 'error');
+                    Swal.fire({
+                        title: 'Failed to delete rider',
+                        icon: 'error'
+                    });
                 }
             }
         });
@@ -82,186 +94,225 @@ const DeliveryPartners = () => {
             await api.updateDeliveryPartnerStatus(updatedPartner._id, updatedPartner.authStatus);
             fetchPartners();
             Swal.fire({
-                title: t('common.updated'),
-                text: t('delivery.partners.update_success'),
+                title: t('partners.update_success'),
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
             });
         } catch (e) {
-            Swal.fire(t('common.error'), t('common.update_failed'), 'error');
+            Swal.fire({
+                title: 'Update failed',
+                icon: 'error'
+            });
         }
     };
 
     return (
-        <div className="p-3 p-md-4">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <div className="d-flex align-items-center gap-3">
-                        <div className="bg-primary bg-opacity-10 p-2 rounded text-primary d-none d-md-flex">
-                            <Truck size={20} />
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h5 className="mb-0 fw-bold text-nowrap">{t('delivery.partners.title')}</h5>
-                            <PageInfoTooltip data={pageInfoData.allDeliveryPartners} />
-                        </div>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight">{t('partners.title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.allDeliveryPartners} />
                     </div>
-                    <div className="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-md-end">
-                        <InputGroup className="w-100" style={{ maxWidth: '400px' }}>
-                            <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
-                            <Form.Control
-                                placeholder={t('delivery.partners.search_placeholder')}
-                                className="border-start-0 ps-0 shadow-none py-2"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </InputGroup>
-                        <Link to="/admin/delivery/partners/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2">
-                            <Plus size={18} /> <span>{t('delivery.partners.add_new')}</span>
-                        </Link>
-                    </div>
-                </Card.Body>
-            </Card>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('partners.subtitle')}</p>
+                </div>
 
-            <Card className="border-0 shadow-sm overflow-hidden mt-2">
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle text-center">
-                        <thead className="bg-light text-muted small text-uppercase font-weight-bold">
-                            <tr>
-                                <th className="ps-4 border-0 py-3 text-start">{t('delivery.partners.table.name')}</th>
-                                <th className="border-0 py-3">{t('delivery.partners.table.type')}</th>
-                                <th className="border-0 py-3">{t('delivery.partners.table.contact')}</th>
-                                <th className="border-0 py-3">{t('delivery.partners.table.duty')}</th>
-                                <th className="border-0 py-3">{t('delivery.partners.table.assignment')}</th>
-                                <th className="border-0 py-3">{t('delivery.partners.table.status')}</th>
-                                <th className="border-0 py-3 text-end pe-4">{t('delivery.partners.table.actions')}</th>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-80 group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder={t('partners.search_placeholder')}
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-xs font-bold text-slate-700 shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button
+                        onClick={() => fetchPartners(true)}
+                        disabled={refreshing}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                    >
+                        <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                    <Link
+                        to="/admin/delivery/partners/add"
+                        className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100"
+                    >
+                        <Plus size={16} />
+                        <span>{t('partners.add_new')}</span>
+                    </Link>
+                </div>
+            </div>
+
+            {/* List Container */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto scrollbar-thin">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('partners.table.name')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.type')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.contact')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.duty')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.assignment')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('partners.table.status')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-right">{t('partners.table.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted">
-                                        <Spinner animation="border" variant="primary" />
-                                        <div className="mt-2">{t('delivery.partners.loading')}</div>
-                                    </td>
-                                </tr>
-                            ) : paginatedPartners.length > 0 ? paginatedPartners.map((p) => (
-                                <tr key={p._id}>
-                                    <td className="ps-4 text-start">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div className="bg-light p-2 rounded text-primary">
-                                                <Truck size={20} />
+                        <tbody className="divide-y divide-slate-100 font-medium">
+                            {loading && !refreshing ? (
+                                [1, 2, 3, 4, 5].map(i => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="7" className="px-6 py-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-slate-50 rounded-lg"></div>
+                                                <div className="space-y-2 flex-grow">
+                                                    <div className="h-4 bg-slate-50 rounded w-1/4"></div>
+                                                    <div className="h-3 bg-slate-50 rounded w-1/3"></div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <Link
-                                                    to={`/admin/delivery/partners/${p._id}`}
-                                                    className="fw-bold text-dark text-decoration-none hover-primary transition-colors d-block"
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : partners.length > 0 ? (
+                                partners.map((p) => (
+                                    <tr key={p._id} className="hover:bg-slate-50/30 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-300 overflow-hidden">
+                                                    {p.profileImage ? (
+                                                        <img src={p.profileImage} className="w-full h-full object-cover" />
+                                                    ) : <Truck size={18} />}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <Link
+                                                        to={`/admin/delivery/partners/${p._id}`}
+                                                        className="text-xs font-bold text-slate-900 hover:text-blue-600 transition-colors block leading-tight uppercase tracking-tight"
+                                                    >
+                                                        {p.name}
+                                                    </Link>
+                                                    <div className="text-[10px] text-slate-400 font-bold mt-0.5">ID: {p.uniqueId}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="px-2 py-1 bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg whitespace-nowrap uppercase tracking-tight">
+                                                {p.vehicleType || 'Personal'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="flex items-center justify-center gap-1.5 text-slate-600 text-xs font-bold">
+                                                <Phone size={12} className="text-slate-300" />
+                                                {p.phone}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${
+                                                p.dutyStatus === 'Online' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'
+                                            }`}>
+                                                {p.dutyStatus}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${
+                                                p.assignmentStatus === 'Free' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                                            }`}>
+                                                {p.assignmentStatus}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${
+                                                p.authStatus === 'Active' ? 'bg-emerald-600 text-white border-emerald-600' : p.authStatus === 'Suspended' ? 'bg-rose-600 text-white border-rose-600' : 'bg-slate-400 text-white border-slate-400'
+                                            }`}>
+                                                {p.authStatus}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-1.5">
+                                                <button
+                                                    onClick={() => handleEdit(p)}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
+                                                    title="Edit Rider"
                                                 >
-                                                    {p.name}
-                                                </Link>
-                                                <div className="small text-muted">{p.uniqueId}</div>
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(p._id, p.name)}
+                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
+                                                    title="Delete Rider"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td><Badge bg="light" text="dark" className="border fw-normal px-3 py-1 shadow-none">{p.vehicleType || 'Individual'}</Badge></td>
-                                    <td>
-                                        <div className="d-flex align-items-center justify-content-center gap-2 text-muted small">
-                                            <Phone size={14} /> {p.phone}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <Badge bg={p.dutyStatus === 'Online' ? 'success' : 'secondary'} className="rounded-pill fw-normal px-2 py-1">
-                                            {p.dutyStatus}
-                                        </Badge>
-                                    </td>
-                                    <td>
-                                        <Badge bg={p.assignmentStatus === 'Free' ? 'info' : 'warning'} text={p.assignmentStatus === 'Free' ? 'white' : 'dark'} className="rounded-pill fw-normal px-2 py-1">
-                                            {p.assignmentStatus}
-                                        </Badge>
-                                    </td>
-                                    <td>
-                                        <Badge bg={p.authStatus === 'Active' ? 'success' : p.authStatus === 'Suspended' ? 'danger' : 'secondary'} className="rounded-pill fw-normal px-3 py-1 shadow-sm">
-                                            {p.authStatus}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-end pe-4">
-                                        <div className="d-flex justify-content-end gap-2">
-                                            <Button
-                                                variant="light" size="sm" className="btn-icon-soft text-warning border shadow-none"
-                                                onClick={() => handleEdit(p)}
-                                            >
-                                                <Edit size={16} />
-                                            </Button>
-                                            <Button
-                                                variant="light" size="sm" className="btn-icon-soft text-danger border shadow-none"
-                                                onClick={() => handleDelete(p._id, p.name)}
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )) : (
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted small">
-                                        {t('delivery.partners.no_partners')}
+                                    <td colSpan="7" className="py-20 text-center">
+                                        <div className="flex flex-col items-center justify-center gap-3">
+                                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
+                                                <Truck size={32} className="text-slate-200" />
+                                            </div>
+                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('partners.no_partners')}</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
-                {!loading && totalFiltered > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('delivery.partners.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('delivery.partners.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('delivery.partners.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('delivery.partners.pagination.partners')}
+                {/* Pagination */}
+                {!loading && pagination.total > 0 && (
+                    <div className="bg-slate-50/50 border-t border-slate-100 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                            {t('partners.pagination.showing')} <span className="text-slate-900 mx-0.5">{((page - 1) * limit) + 1}</span> — <span className="text-slate-900 mx-0.5">{Math.min(page * limit, pagination.total)}</span> of <span className="text-slate-900 mx-0.5">{pagination.total}</span> {t('partners.pagination.partners')}
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        
+                        <div className="flex items-center gap-2">
+                            <button
+                                className={`p-2 rounded-xl transition-all border shadow-sm ${page === 1 ? 'bg-slate-50 text-slate-200 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-500 hover:text-blue-600 active:scale-95'}`}
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
                             >
                                 <ChevronLeft size={16} />
-                            </Button>
+                            </button>
 
-                            <div className="d-flex align-items-center gap-1">
-                                {[...Array(totalPages)].map((_, i) => {
+                            <div className="flex items-center gap-1.5 hidden sm:flex">
+                                {[...Array(pagination.totalPages)].map((_, i) => {
                                     const p = i + 1;
-                                    if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                    if (p === 1 || p === pagination.totalPages || Math.abs(page - p) <= 1) {
                                         return (
-                                            <Button
+                                            <button
                                                 key={p}
-                                                variant={page === p ? 'primary' : 'light'}
-                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                style={{ width: '36px', height: '36px', padding: 0 }}
                                                 onClick={() => setPage(p)}
+                                                className={`w-8 h-8 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center shadow-sm ${page === p ? 'bg-blue-600 text-white shadow-blue-100 shadow-md ring-2 ring-blue-500/10' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-400 hover:text-blue-600'}`}
                                             >
                                                 {p}
-                                            </Button>
+                                            </button>
                                         );
                                     } else if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-muted px-1">...</span>;
+                                        return <span key={p} className="text-slate-300 px-0.5 font-bold">...</span>;
                                     }
                                     return null;
                                 })}
                             </div>
 
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
+                            <button
+                                className={`p-2 rounded-xl transition-all border shadow-sm ${page === pagination.totalPages ? 'bg-slate-50 text-slate-200 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-500 hover:text-blue-600 active:scale-95'}`}
+                                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                                disabled={page === pagination.totalPages}
                             >
                                 <ChevronRight size={16} />
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
             <DeliveryPartnerEditModal
                 show={showEditModal}
@@ -269,6 +320,11 @@ const DeliveryPartners = () => {
                 partner={selectedPartner}
                 onSave={handleSave}
             />
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { height: 4px; width: 4px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

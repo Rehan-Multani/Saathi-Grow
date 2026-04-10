@@ -1,324 +1,254 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Badge, Button, Table, ProgressBar } from 'react-bootstrap';
 import {
     Store, Phone, Mail, MapPin, Calendar, Package,
-    Star, ChevronLeft, DollarSign, Activity, FileText,
-    TrendingUp, ShoppingBag, Users, Clock
+    Star, ChevronLeft, IndianRupee, Activity, FileText,
+    TrendingUp, ShoppingBag, Users, Clock, Edit, MessageSquare,
+    ArrowLeft, ExternalLink, ShieldCheck, Download, MoreVertical,
+    CheckCircle2, AlertCircle, Loader2
 } from 'lucide-react';
-import { showSuccessAlert } from '../../../../common/utils/alertUtils';
+import { useTranslation } from 'react-i18next';
 import VendorEditModal from '../../components/vendors/VendorEditModal';
 import ContactVendorModal from '../../components/vendors/ContactVendorModal';
-
-const VENDOR_DATA = {
-    'VND-001': {
-        name: 'Fresh Farms Ltd',
-        owner: 'Robert Fox',
-        email: 'robert@freshfarms.com',
-        phone: '+1 555-0123',
-        address: '778 Maple Ave, Greenfield, NY',
-        joinedDate: 'Oct 12, 2023',
-        rating: 4.8,
-        totalProducts: 45,
-        totalOrders: 1240,
-        status: 'Active',
-        totalEarnings: 15400.00,
-        pendingPayout: 1250.00,
-        recentOrders: [
-            { id: 'ORD-9901', customer: 'Alice Johnson', date: '2026-02-03', status: 'Delivered', amount: 450.00 },
-            { id: 'ORD-9888', customer: 'Bob Smith', date: '2026-02-02', status: 'Processing', amount: 120.50 },
-            { id: 'ORD-9875', customer: 'Charlie Brown', date: '2026-02-01', status: 'Delivered', amount: 890.00 },
-        ],
-        topProducts: [
-            { name: 'Organic Bananas', sales: 450, stock: 120, price: '?40' },
-            { name: 'Fresh Milk 1L', sales: 320, stock: 45, price: '?65' },
-            { name: 'Farm Eggs (12pk)', sales: 280, stock: 15, price: '?120' },
-        ]
-    }
-};
+import { getVendorDetails } from '../../api/vendorApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const VendorDetails = () => {
     const { id } = useParams();
+    const { t } = useTranslation('admin_vendors');
+    const { adminUser } = useAdminAuth();
     const navigate = useNavigate();
-    const [vendor, setVendor] = useState(VENDOR_DATA[id] || VENDOR_DATA['VND-001']);
+    const [vendor, setVendor] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showContactModal, setShowContactModal] = useState(false);
 
-    if (!vendor) return <div className="p-4 text-center">Vendor not found</div>;
-
-    const handleSave = async (updatedVendor) => {
-        setVendor(prev => ({ ...prev, ...updatedVendor }));
-        await showSuccessAlert('Vendor Updated!', 'The vendor profile has been successfully updated.');
+    const fetchVendorDetails = async () => {
+        try {
+            setLoading(true);
+            const data = await getVendorDetails(adminUser.token, id);
+            setVendor(data);
+        } catch (error) {
+            toast.error('Failed to load vendor details');
+            navigate('/admin/vendors');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleContactSubmit = async () => {
-        await showSuccessAlert('Message Sent!', `Your message has been sent to ${vendor.owner}.`);
-    };
+    useEffect(() => {
+        if (adminUser?.token && id) fetchVendorDetails();
+    }, [adminUser?.token, id]);
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-none">Loading details...</p>
+            </div>
+        );
+    }
+
+    if (!vendor) return <div className="p-8 text-center font-bold text-slate-400 uppercase tracking-widest italic animate-pulse">Vendor Not Found</div>;
 
     return (
-        <div className="p-2 p-md-4 bg-light min-vh-100">
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
             {/* Header */}
-            <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
-                <div className="d-flex align-items-center gap-2 gap-md-3">
-                    <Button
-                        variant="white"
-                        onClick={() => navigate(-1)}
-                        className="rounded-circle shadow-sm p-2 border"
-                    >
-                        <ChevronLeft size={20} />
-                    </Button>
-                    <div>
-                        <h4 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '200px' }}>{vendor.name}</h4>
-                        <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
-                            <span className="badge bg-primary bg-opacity-10 text-primary px-2">Vendor</span>
-                            <span className="d-none d-sm-inline">?</span>
-                            <span>ID: {id}</span>
-                            <span className="d-none d-sm-inline">?</span>
-                            <span className={`fw-bold d-flex align-items-center gap-1 ${vendor.status === 'Active' ? 'text-success' : 'text-danger'}`}>
-                                <Activity size={14} /> {vendor.status}
-                            </span>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => navigate('/admin/vendors')} className="p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-white rounded-xl transition-all border-none bg-transparent">
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-inner overflow-hidden shrink-0">
+                            {vendor.logo ? <img src={vendor.logo} className="w-full h-full object-cover" /> : <Store size={24} className="text-slate-200" />}
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-900 leading-tight uppercase tracking-tight">{vendor.storeName}</h1>
+                            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest italic leading-none">
+                                <span>ID: #{vendor._id.slice(-8)}</span>
+                                <span className={`flex items-center gap-1 ${vendor.status === 'Active' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${vendor.status === 'Active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                    {vendor.status}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div className="d-flex gap-2 w-100 w-md-auto">
-                    <Button
-                        variant="outline-primary"
-                        className="shadow-sm flex-grow-1 flex-md-grow-0"
-                        onClick={() => setShowEditModal(true)}
-                    >
-                        Edit Vendor
-                    </Button>
-                    <Button
-                        variant="primary"
-                        className="shadow-sm flex-grow-1 flex-md-grow-0"
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
                         onClick={() => setShowContactModal(true)}
+                        className="flex-1 md:flex-none px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm flex items-center justify-center gap-2"
                     >
-                        Contact Owner
-                    </Button>
+                        <MessageSquare size={16} /> Contact
+                    </button>
+                    <button
+                        onClick={() => setShowEditModal(true)}
+                        className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold tracking-wider hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2 border-none"
+                    >
+                        <Edit size={16} /> Edit Vendor
+                    </button>
                 </div>
             </div>
 
-            <Row className="g-3 g-md-4">
-                {/* Left Column - Main Info */}
-                <Col lg={8}>
-                    {/* Stats Grid */}
-                    <Row className="g-2 g-md-3 mb-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-8 mt-2">
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {[
-                            { label: 'Total Sales', value: `?${vendor.totalEarnings.toLocaleString()}`, icon: <TrendingUp size={20} />, color: 'blue' },
-                            { label: 'Avg. Rating', value: vendor.rating, icon: <Star size={20} fill="currentColor" />, color: 'warning' },
-                            { label: 'Products', value: vendor.totalProducts, icon: <Package size={20} />, color: 'purple' },
-                            { label: 'Pending Payout', value: `?${vendor.pendingPayout}`, icon: <DollarSign size={20} />, color: 'green' }
+                            { label: 'Total Earnings', value: `₹0`, icon: <TrendingUp size={18} />, color: 'emerald' },
+                            { label: 'Rating', value: '4.8', icon: <Star size={18} fill="currentColor" />, color: 'amber' },
+                            { label: 'Total Products', value: vendor.products || 0, icon: <Package size={18} />, color: 'blue' },
+                            { label: 'Pending Payment', value: `₹0`, icon: <IndianRupee size={18} />, color: 'rose' }
                         ].map((stat, i) => (
-                            <Col xs={6} md={3} key={i}>
-                                <Card className="border-0 shadow-sm h-100">
-                                    <Card.Body className="p-2 p-md-3 text-center text-md-start">
-                                        <div className={`p-2 rounded bg-${stat.color === 'warning' ? 'amber' : stat.color}-50 text-${stat.color === 'warning' ? 'amber' : stat.color}-600 mb-2 w-fit-content mx-auto mx-md-0`}>
-                                            {stat.icon}
-                                        </div>
-                                        <div className="text-muted small mb-1" style={{ fontSize: '0.75rem' }}>{stat.label}</div>
-                                        <div className="h6 h5-md fw-bold mb-0">{stat.value}</div>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
+                            <div key={i} className={`bg-white p-5 rounded-2xl border border-slate-200 shadow-sm group hover:border-slate-300 transition-all`}>
+                                <div className={`w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
+                                    <span className={`text-${stat.color}-500`}>{stat.icon}</span>
+                                </div>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{stat.label}</span>
+                                <div className="text-lg font-bold text-slate-900 tracking-tight leading-none">{stat.value}</div>
+                            </div>
                         ))}
-                    </Row>
+                    </div>
 
-                    {/* Top Products */}
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Header className="bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
-                            <h6 className="fw-bold mb-0">Best Selling Products</h6>
-                            <Button variant="link" className="text-decoration-none p-0 small">See Inventory</Button>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <Table hover responsive className="mb-0">
-                                <thead className="bg-light text-muted small">
+                    {/* Products Table */}
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-500">
+                        <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center shrink-0">
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">Best Selling Products</h3>
+                            <button onClick={() => navigate('/admin/vendors/products')} className="text-[10px] font-bold text-blue-600 uppercase tracking-widest hover:underline flex items-center gap-1.5 border-none bg-transparent">
+                                View All <ExternalLink size={12} />
+                            </button>
+                        </div>
+                        <div className="overflow-x-auto scrollbar-thin">
+                            <table className="w-full text-left font-medium">
+                                <thead className="bg-slate-50/50 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                     <tr>
-                                        <th className="ps-4">PRODUCT</th>
-                                        <th>PRICE</th>
-                                        <th>SALES</th>
-                                        <th>STOCK</th>
-                                        <th className="text-end pe-4">STATUS</th>
+                                        <th className="px-8 py-5">Product Name</th>
+                                        <th className="px-6 py-5 text-center">Price</th>
+                                        <th className="px-6 py-5 text-center">Sales</th>
+                                        <th className="px-6 py-5 text-center">Stock</th>
+                                        <th className="px-8 py-5 text-right">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {vendor.topProducts.map((p, i) => (
-                                        <tr key={i} className="align-middle">
-                                            <td className="ps-4">
-                                                <div className="fw-bold">{p.name}</div>
+                                <tbody className="divide-y divide-slate-50">
+                                    {(vendor.topProducts || []).map((p, i) => (
+                                        <tr key={i} className="hover:bg-slate-50/20 transition-colors group">
+                                            <td className="px-8 py-5">
+                                                <div className="text-xs font-bold text-slate-800 uppercase tracking-tight group-hover:text-blue-600 transition-colors">{p.name}</div>
                                             </td>
-                                            <td className="text-muted">{p.price}</td>
-                                            <td className="fw-bold text-primary">{p.sales} Units</td>
-                                            <td>
-                                                <span className={`fw-medium ${p.stock < 20 ? 'text-danger' : 'text-muted'}`}>
-                                                    {p.stock} in Stock
+                                            <td className="px-6 py-5 text-center">
+                                                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tighter italic">{p.price}</span>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <span className="text-xs font-bold text-blue-600 tracking-tight">{p.sales} <span className="text-[9px] text-slate-400 uppercase tracking-tighter">Units</span></span>
+                                            </td>
+                                            <td className="px-6 py-5 text-center">
+                                                <span className={`text-xs font-bold tracking-tight ${p.stock < 20 ? 'text-rose-500 italic' : 'text-slate-500'}`}>{p.stock}</span>
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-tight ${p.stock > 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-500 border-rose-100'}`}>
+                                                    {p.stock > 0 ? 'In Stock' : 'Out of Stock'}
                                                 </span>
                                             </td>
-                                            <td className="text-end pe-4">
-                                                <Badge bg={p.stock > 0 ? 'success' : 'danger'} className="fw-normal">
-                                                    {p.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                                                </Badge>
-                                            </td>
                                         </tr>
                                     ))}
-                                </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-
-                    {/* Recent Orders */}
-                    <Card className="border-0 shadow-sm">
-                        <Card.Header className="bg-white border-bottom-0 py-3">
-                            <h6 className="fw-bold mb-0">Recent Sales Activity</h6>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <Table hover responsive className="mb-0">
-                                <thead className="bg-light text-muted small">
-                                    <tr>
-                                        <th className="ps-4">ORDER ID</th>
-                                        <th>CUSTOMER</th>
-                                        <th>DATE</th>
-                                        <th>AMOUNT</th>
-                                        <th className="text-end pe-4">STATUS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {vendor.recentOrders.map((order, i) => (
-                                        <tr key={i} className="align-middle">
-                                            <td className="ps-4 fw-bold">{order.id}</td>
-                                            <td className="text-muted">{order.customer}</td>
-                                            <td className="text-muted">{order.date}</td>
-                                            <td className="fw-bold">?{order.amount}</td>
-                                            <td className="text-end pe-4">
-                                                <Badge bg={order.status === 'Delivered' ? 'success' : 'warning'} className="fw-normal">
-                                                    {order.status}
-                                                </Badge>
-                                            </td>
+                                    {(!vendor.topProducts || vendor.topProducts.length === 0) && (
+                                        <tr>
+                                            <td colSpan="5" className="py-12 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest italic leading-none">No products listed by this vendor yet</td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-                {/* Right Column - Store Info */}
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-4">Store Overview</h6>
-                            <div className="d-flex flex-column gap-3">
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Store size={18} />
+                <div className="space-y-6">
+                    {/* Store Card */}
+                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-hidden sticky top-6">
+                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-50 pb-4">Store Profile</h3>
+                        <div className="space-y-6">
+                            {[
+                                { icon: <User size={16} />, label: 'Owner Name', value: vendor.ownerName },
+                                { icon: <Mail size={16} />, label: 'Email Address', value: vendor.email, lowercase: true },
+                                { icon: <Phone size={16} />, label: 'Phone Number', value: vendor.phone },
+                                { icon: <MapPin size={16} />, label: 'Address', value: vendor.address?.street || vendor.address },
+                                { icon: <Calendar size={16} />, label: 'Joined On', value: new Date(vendor.createdAt).toLocaleDateString() }
+                            ].map((item, i) => (
+                                <div key={i} className="flex gap-4">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 text-slate-400">
+                                        {item.icon}
                                     </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Owner Name</div>
-                                        <div className="fw-medium">{vendor.owner}</div>
-                                    </div>
-                                </div>
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Mail size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Email Address</div>
-                                        <div className="fw-medium">{vendor.email}</div>
+                                    <div className="min-w-0">
+                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">{item.label}</div>
+                                        <div className={`text-xs font-bold text-slate-800 tracking-tight uppercase ${item.lowercase ? 'lowercase' : ''} truncate`}>{item.value}</div>
                                     </div>
                                 </div>
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Phone size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Phone Number</div>
-                                        <div className="fw-medium">{vendor.phone}</div>
-                                    </div>
-                                </div>
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <MapPin size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Store Address</div>
-                                        <div className="fw-medium">{vendor.address}</div>
-                                    </div>
-                                </div>
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="p-2 bg-light rounded text-muted">
-                                        <Calendar size={18} />
-                                    </div>
-                                    <div>
-                                        <div className="small text-muted mb-0">Membership Date</div>
-                                        <div className="fw-medium">{vendor.joinedDate}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
+                            ))}
+                        </div>
 
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-4">Performance Insights</h6>
-                            <div className="mb-4">
-                                <div className="d-flex justify-content-between mb-2 small">
-                                    <span className="text-muted">Order Fulfillment</span>
-                                    <span className="text-success fw-bold">96%</span>
+                        {/* Status Section */}
+                        <div className="mt-10 space-y-6 border-t border-slate-50 pt-8">
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Operations Status</h4>
+                            <div className="space-y-5">
+                                <div>
+                                    <div className="flex justify-between items-end mb-2">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Success Rate</span>
+                                        <span className="text-emerald-600 text-xs font-bold tracking-tighter">96%</span>
+                                    </div>
+                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                        <div className="h-full bg-emerald-500 rounded-full w-[96%]" />
+                                    </div>
                                 </div>
-                                <ProgressBar now={96} variant="success" style={{ height: 6 }} />
-                            </div>
-                            <div className="mb-4">
-                                <div className="d-flex justify-content-between mb-2 small">
-                                    <span className="text-muted">Inventory Accuracy</span>
-                                    <span className="text-primary fw-bold">82%</span>
+                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-3">
+                                    <TrendingUp size={16} className="text-blue-500 shrink-0" />
+                                    <p className="text-[9px] text-blue-700 font-bold italic leading-relaxed opacity-80 uppercase tracking-tighter">Business is doing well. Growth expected this month.</p>
                                 </div>
-                                <ProgressBar now={82} variant="primary" style={{ height: 6 }} />
                             </div>
-                            <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                                <div className="d-flex align-items-center gap-2 text-indigo-700 mb-2">
-                                    <Activity size={18} />
-                                    <h6 className="mb-0 small fw-bold">Growth Trend</h6>
-                                </div>
-                                <p className="small text-indigo-600 mb-0">Sales are up by 12% compared to last month. Keep it up!</p>
-                            </div>
-                        </Card.Body>
-                    </Card>
+                        </div>
 
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-4">Verification Documents</h6>
-                            <div className="d-flex flex-column gap-2">
+                        {/* Documents */}
+                        <div className="mt-8 pt-8 border-t border-slate-50">
+                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Documents</h4>
+                            <div className="space-y-2">
                                 {[
                                     { name: 'Trade_License.pdf', size: '1.2 MB' },
-                                    { name: 'VAT_Registration.pdf', size: '2.4 MB' },
-                                    { name: 'Owner_ID.jpg', size: '800 KB' }
+                                    { name: 'VAT_Registration.pdf' },
                                 ].map((doc, i) => (
-                                    <div key={i} className="p-2 border rounded d-flex align-items-center justify-content-center justify-content-md-between hover:bg-light cursor-pointer transition-colors">
-                                        <div className="d-flex align-items-center gap-2 overflow-hidden">
-                                            <FileText size={16} className="text-muted flex-shrink-0" />
-                                            <span className="small text-truncate">{doc.name}</span>
+                                    <div key={i} className="group p-2.5 rounded-xl border border-dotted border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5 overflow-hidden">
+                                            <FileText size={14} className="text-slate-300 group-hover:text-blue-400 transition-colors shrink-0" />
+                                            <span className="text-[10px] font-bold text-slate-500 group-hover:text-blue-700 transition-colors truncate">{doc.name}</span>
                                         </div>
-                                        <span className="text-[10px] text-muted flex-shrink-0 d-none d-md-inline">{doc.size}</span>
+                                        <Download size={14} className="text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
                                 ))}
                             </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <VendorEditModal
                 show={showEditModal}
                 onHide={() => setShowEditModal(false)}
                 vendor={vendor}
-                onSave={handleSave}
+                onSave={fetchVendorDetails}
             />
 
             <ContactVendorModal
                 show={showContactModal}
                 onHide={() => setShowContactModal(false)}
                 vendor={vendor}
-                onSubmit={handleContactSubmit}
+                onSubmit={() => console.log('Message sent')}
             />
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { width: 4px; border-radius: 10px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

@@ -1,113 +1,143 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import { Save, User, Phone, Mail, MapPin } from 'lucide-react';
+import { 
+    X, Shield, User, Smartphone, BadgeCheck, AlertCircle, Save, Loader2, Info, RefreshCw
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const DeliveryPartnerEditModal = ({ show, onHide, partner, onSave }) => {
-    const [formData, setFormData] = useState({
-        name: '',
-        vehicleType: 'Bike',
-        phone: '',
-        authStatus: 'Active'
-    });
+    const { t } = useTranslation('admin_delivery');
+    const [authStatus, setAuthStatus] = useState('Active');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (partner) {
-            setFormData({
-                name: partner.name || '',
-                vehicleType: partner.vehicleType || 'Bike',
-                phone: partner.phone || '',
-                authStatus: partner.authStatus || 'Active'
-            });
+            setAuthStatus(partner.authStatus || 'Active');
         }
     }, [partner]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await onSave({ ...partner, authStatus });
+            onHide();
+        } catch (error) {
+            console.error("Update failed", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSave({ ...partner, ...formData });
-        onHide();
-    };
+    if (!show || !partner) return null;
 
     return (
-        <Modal show={show} onHide={onHide} centered className="delivery-partner-edit-modal border-0" contentClassName="rounded-3xl border-0 shadow-2xl overflow-hidden">
-            <Modal.Header closeButton className="border-0 pb-0 px-4 pt-4">
-                <Modal.Title className="fw-black d-flex align-items-center gap-3 uppercase tracking-tight text-primary">
-                    <User className="text-primary" size={28} /> Edit Partner Profile
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body className="pt-4 px-4 pb-4">
-                <Form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Partner Name / Full Legal Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm"
-                            placeholder="e.g. Rahul Sharma"
-                            required
-                        />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+                onClick={onHide}
+            />
+
+            {/* Modal Content */}
+            <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in duration-300">
+                {/* Header */}
+                <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm">
+                            <Shield size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">{t('edit_partner.title')}</h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 italic">Account Security & Status</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onHide} 
+                        className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all active:scale-95"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-8 space-y-8">
+                    {/* Rider Preview */}
+                    <div className="flex items-center gap-4 bg-slate-50/50 p-5 rounded-2xl border border-slate-100 ring-4 ring-white shadow-inner">
+                        <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 p-1 overflow-hidden shadow-sm">
+                            {partner.profileImage ? (
+                                <img src={partner.profileImage} className="w-full h-full object-cover rounded-xl" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-200 font-bold text-xl">{partner.name.charAt(0)}</div>
+                            )}
+                        </div>
+                        <div>
+                            <span className="text-sm font-bold text-slate-900 tracking-tight uppercase leading-none">{partner.name}</span>
+                            <div className="flex items-center gap-2 mt-1.5">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{partner.vehicleType}</span>
+                                <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                                <span className="text-[10px] text-slate-400 font-bold tracking-tight">{partner.phone}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <Row className="g-4 mb-4">
-                        <Col md={6}>
-                            <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Vehicle Type</Form.Label>
-                            <Form.Select
-                                name="vehicleType"
-                                value={formData.vehicleType}
-                                onChange={handleChange}
-                                className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm cursor-not-allowed opacity-75"
-                                disabled
-                            >
-                                <option value="Bike">Motorcycle</option>
-                                <option value="EV">Electric Vehicle</option>
-                                <option value="Cycle">Cycle</option>
-                            </Form.Select>
-                        </Col>
-                        <Col md={6}>
-                            <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Phone Number</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm"
-                                placeholder="+91 00000 00000"
-                                required
-                            />
-                        </Col>
-                    </Row>
+                    {/* Status Toggle Area */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-1">
+                            {t('edit_partner.auth_status')}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {[
+                                { status: 'Active', icon: <BadgeCheck size={16} />, color: 'emerald' },
+                                { status: 'Suspended', icon: <AlertCircle size={16} />, color: 'rose' },
+                                { status: 'Unverified', icon: <RefreshCw size={16} />, color: 'amber' }
+                            ].map((item) => (
+                                <button
+                                    key={item.status}
+                                    type="button"
+                                    onClick={() => setAuthStatus(item.status)}
+                                    className={`py-4 px-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all border flex flex-col items-center gap-2.5 ${
+                                        authStatus === item.status
+                                        ? `bg-${item.color}-600 text-white border-${item.color}-600 shadow-lg shadow-${item.color}-100`
+                                        : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300 shadow-sm'
+                                    }`}
+                                >
+                                    <div className={authStatus === item.status ? 'text-white' : `text-${item.color}-500`}>
+                                        {item.icon}
+                                    </div>
+                                    {t(`edit_partner.status_${item.status.toLowerCase()}`)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                    <Col md={12} className="mb-4">
-                        <Form.Label className="small fw-black text-muted uppercase tracking-widest mb-2 opacity-75">Authorization Status</Form.Label>
-                        <Form.Select
-                            name="authStatus"
-                            value={formData.authStatus}
-                            onChange={handleChange}
-                            className="bg-light-subtle border-light-subtle py-3 shadow-none rounded-2xl font-black text-sm cursor-pointer"
+                    <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-4">
+                        <Info className="text-blue-500 mt-0.5 shrink-0" size={16} />
+                        <p className="text-[10px] text-blue-700 font-medium leading-relaxed italic">
+                            Changing account status takes effect immediately. Suspended riders cannot login or receive assignments.
+                        </p>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex gap-4 pt-6 border-t border-slate-50">
+                        <button 
+                            type="button" 
+                            onClick={onHide} 
+                            disabled={loading}
+                            className="flex-1 py-4 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 rounded-2xl transition-all"
                         >
-                            <option value="Active">Active / Approved</option>
-                            <option value="Suspended">Suspended / Blocked</option>
-                            <option value="Unverified">Unverified (Waiting)</option>
-                        </Form.Select>
-                    </Col>
-
-                    <div className="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-bold uppercase tracking-wider text-xs border-0 bg-gray-100 rounded-xl">
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit" className="px-4 py-2 fw-black d-flex align-items-center gap-2 shadow-lg shadow-blue-500/20 rounded-xl uppercase tracking-wider text-xs border-0">
-                            <Save size={18} /> Update Data
-                        </Button>
+                            {t('edit_partner.discard', 'Cancel')}
+                        </button>
+                        <button 
+                            type="submit" 
+                            disabled={loading}
+                            className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 border-none"
+                        >
+                            {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                            {t('edit_partner.update_btn')}
+                        </button>
                     </div>
-                </Form>
-            </Modal.Body>
-        </Modal>
+                </form>
+            </div>
+        </div>
     );
 };
 

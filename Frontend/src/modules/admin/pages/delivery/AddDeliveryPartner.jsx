@@ -1,251 +1,299 @@
 import React, { useState } from 'react';
-import { Card, Form, Button, Row, Col, Spinner } from 'react-bootstrap';
-import { Save, X } from 'lucide-react';
+import { 
+    User, Mail, Phone, Lock, Eye, EyeOff, Save, ArrowLeft, 
+    Truck, Camera, Info, ShieldCheck, CreditCard, ChevronRight, Loader2, CheckCircle, Package, Store, MapPin
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 import * as api from '../../api/adminDeliveryApi';
 
 const AddDeliveryPartner = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_delivery');
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-
-    // Automatically generate a secure password string for the driver to login with
-    const generateRandomPassword = () => 'Rider@' + Math.floor(1000 + Math.random() * 9000);
-
+    const [showPassword, setShowPassword] = useState(false);
+    
+    // Form State
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
         email: '',
+        password: '',
         vehicleType: 'Bike',
-        vehicleNumber: ''
+        vehicleNumber: '',
+        profileImage: null
     });
-    const [profileImage, setProfileImage] = useState(null);
+
+    const [previewImage, setPreviewImage] = useState(null);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleGeneratePassword = () => {
-        setFormData({ ...formData, password: generateRandomPassword() });
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleImageChange = (e) => {
-        setProfileImage(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            setFormData(prev => ({ ...prev, profileImage: file }));
+            setPreviewImage(URL.createObjectURL(file));
+        }
+    };
+
+    const generatePassword = () => {
+        const pass = Math.random().toString(36).slice(-8).toUpperCase();
+        setFormData(prev => ({ ...prev, password: pass }));
+        toast.info("Password Generated: " + pass, { autoClose: 3000 });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!formData.name || !formData.phone) {
-            Swal.fire(t('common.error'), t('common.fill_required'), 'error');
+        
+        if (!formData.name || !formData.phone || (!formData.password && !formData.phone)) {
+            toast.warning("Essential rider data is missing");
             return;
         }
 
-        const data = new FormData();
-        Object.keys(formData).forEach(key => data.append(key, formData[key]));
-        if (profileImage) data.append('profileImage', profileImage);
-
+        setLoading(true);
         try {
-            setLoading(true);
-            const res = await api.addDeliveryPartner(data);
-
-            Swal.fire({
-                title: t('delivery.add_partner.title_success', { defaultValue: 'Driver Created!' }),
-                html: `
-                    <div class="text-start">
-                        <p><strong>${t('delivery.add_partner.full_name')}:</strong> ${formData.name}</p>
-                        <p><strong>${t('delivery.add_partner.mobile')}:</strong> ${formData.phone}</p>
-                        <p class="text-success fw-bold">${t('delivery.add_partner.login_otp', { defaultValue: 'Login enabled via OTP' })}</p>
-                        <p class="text-muted small mt-3">* ${t('delivery.add_partner.login_help', { defaultValue: 'The driver can now log into the Delivery App using their phone number and OTP.' })}</p>
-                    </div>
-                `,
-                icon: 'success',
-                confirmButtonText: t('delivery.partners.title')
-            }).then(() => {
-                navigate('/admin/delivery/partners');
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key]) data.append(key, formData[key]);
             });
 
-        } catch (err) {
-            Swal.fire(t('common.error'), err?.response?.data?.message || t('common.failed_to_create'), 'error');
+            await api.addDeliveryPartner(data);
+            toast.success("Rider Registered Successfully");
+            navigate('/admin/delivery/partners');
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Registration failed");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="p-3">
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <Button
-                        variant="light"
-                        size="sm"
-                        className="rounded-circle p-2 shadow-sm border bg-white"
-                        onClick={() => navigate(-1)}
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/admin/delivery/partners')}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 hover:border-blue-500 hover:text-blue-600"
                     >
-                        <X size={16} />
-                    </Button>
+                        <ArrowLeft size={18} />
+                    </button>
                     <div>
-                        <h4 className="fw-black mb-0 text-nowrap tracking-tight">{t('delivery.add_partner.title', { defaultValue: 'Add New Rider' })}</h4>
-                        <p className="text-muted small mb-0 uppercase tracking-widest opacity-60 font-bold">{t('delivery.add_partner.subtitle', { defaultValue: 'Logistics Onboarding' })}</p>
+                        <h1 className="text-xl font-bold tracking-tight">{t('add_partner.title')}</h1>
+                        <p className="text-slate-500 text-[11px] font-medium leading-tight uppercase tracking-widest opacity-60 mt-1">{t('add_partner.subtitle')}</p>
                     </div>
-                </div>
-                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto gap-2">
-                    <Button variant="light" onClick={() => navigate('/admin/delivery/partners')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4 rounded-xl font-bold text-xs uppercase tracking-wider">
-                        Cancel
-                    </Button>
-                    <Button 
-                        variant="primary" 
-                        onClick={(e) => handleSubmit(e)} 
-                        disabled={loading} 
-                        className="d-flex align-items-center gap-2 shadow-lg shadow-blue-500/20 justify-content-center px-4 rounded-xl font-black text-xs uppercase tracking-wider border-0"
-                    >
-                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                        {loading ? 'Saving...' : t('delivery.add_partner.create_btn', { defaultValue: 'Register Rider' })}
-                    </Button>
                 </div>
             </div>
 
-            <Row className="justify-content-center">
-                <Col lg={9}>
-                    <Card className="border-0 shadow-sm mb-4 rounded-3xl overflow-hidden">
-                        <Card.Body className="p-4 p-md-5">
-                            <h6 className="fw-black mb-4 text-primary border-bottom pb-2 uppercase tracking-widest text-xs opacity-75">{t('delivery.add_partner.credentials_info', { defaultValue: 'Authentication & Contact' })}</h6>
-                            <Form onSubmit={handleSubmit}>
-                                <Row className="g-4">
-                                    <Col md={12}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.full_name', { defaultValue: 'Full Legal Name' })} <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder={t('delivery.add_partner.full_name_placeholder', { defaultValue: 'e.g. Rahul Sharma' })}
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                required
-                                                pattern="^[a-zA-Z\s\.]{3,50}$"
-                                                title="Full name should be 3-50 characters long and contain only letters"
-                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.mobile', { defaultValue: 'Mobile Number' })} <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                {/* Left Side: Photo & Primary Info */}
+                <div className="lg:col-span-8 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-8">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-5">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-sm">
+                                <User size={20} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-blue-500 inline-block uppercase tracking-tight">Personal & Login Sync</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center bg-slate-50/30 p-8 rounded-3xl border border-slate-100">
+                            <div className="md:col-span-4 flex flex-col items-center gap-6">
+                                <div className="relative group">
+                                    <div className="w-36 h-36 rounded-3xl bg-white border-2 border-slate-100 border-dashed flex items-center justify-center overflow-hidden transition-all group-hover:border-blue-300 ring-4 ring-slate-50 shadow-inner">
+                                        {previewImage ? (
+                                            <img src={previewImage} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="flex flex-col items-center text-slate-300">
+                                                <Camera size={40} strokeWidth={1.5} />
+                                                <span className="text-[10px] font-bold mt-2 uppercase">No Photo</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input type="file" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+                                    <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2.5 rounded-xl shadow-lg border-2 border-white pointer-events-none group-hover:scale-110 transition-transform">
+                                        <Camera size={16} />
+                                    </div>
+                                </div>
+                                <div className="text-center space-y-1">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('add_partner.profile_photo')}</span>
+                                    <p className="text-[9px] text-slate-400 font-medium italic opacity-70 leading-relaxed px-4">{t('add_partner.profile_photo_help')}</p>
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-8 space-y-5">
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('add_partner.full_name')} <span className="text-rose-500">*</span></label>
+                                    <div className="relative group">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={14} />
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder={t('add_partner.full_name_placeholder')}
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('add_partner.mobile')} <span className="text-rose-500">*</span></label>
+                                        <div className="relative group">
+                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={14} />
+                                            <input
                                                 type="tel"
-                                                placeholder={t('delivery.add_partner.mobile_placeholder', { defaultValue: '10-digit number' })}
                                                 name="phone"
                                                 value={formData.phone}
-                                                onChange={(e) => {
-                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                                    setFormData({ ...formData, phone: val });
-                                                }}
+                                                onChange={handleChange}
                                                 required
-                                                pattern="^[6-9]\d{9}$"
-                                                title="Enter a valid 10-digit Indian mobile number starting with 6-9"
-                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
+                                                placeholder={t('add_partner.mobile_placeholder')}
+                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
                                             />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.email', { defaultValue: 'Email Address' })} <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('add_partner.email')}</label>
+                                        <div className="relative group">
+                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={14} />
+                                            <input
                                                 type="email"
-                                                placeholder={t('delivery.add_partner.email_placeholder', { defaultValue: 'rider@sathigro.com' })}
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleChange}
-                                                required
-                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
+                                                placeholder={t('add_partner.email_placeholder')}
+                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
                                             />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={12}>
-                                        <div className="p-4 bg-primary bg-opacity-5 rounded-3xl border border-primary border-opacity-10 mt-2">
-                                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                                <div>
-                                                    <h6 className="fw-black mb-1 text-primary small uppercase tracking-wider">Login Credentials</h6>
-                                                    <p className="text-muted x-small mb-0 italic">Generated for first-time profile creation</p>
-                                                </div>
-                                                <Button 
-                                                    variant="primary" 
-                                                    size="sm" 
-                                                    onClick={handleGeneratePassword}
-                                                    className="rounded-pill px-3 py-1.5 text-[10px] fw-black uppercase tracking-widest border-0"
-                                                >
-                                                    {formData.password ? 'Regenerate' : 'Create Password'}
-                                                </Button>
-                                            </div>
-                                            {formData.password && (
-                                                <div className="d-flex align-items-center justify-content-between bg-white p-3 rounded-2xl border shadow-sm">
-                                                    <code className="text-primary fw-black text-md tracking-wider">{formData.password}</code>
-                                                    <span className="text-success x-small fw-bold uppercase tracking-tight">Ready for login</span>
-                                                </div>
-                                            )}
-                                            {!formData.password && (
-                                                <p className="text-muted text-center py-2 x-small opacity-50 mb-0 font-bold">Standard OTP-only login will be enabled if no password is set</p>
-                                            )}
                                         </div>
-                                    </Col>
-                                    <Col md={12}>
-                                        <Form.Group className="mt-2">
-                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.profile_photo', { defaultValue: 'Verification Photo' })}</Form.Label>
-                                            <Form.Control
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleImageChange}
-                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-bold text-xs"
-                                            />
-                                            <Form.Text className="text-muted x-small italic mt-2 opacity-75">{t('delivery.add_partner.profile_photo_help', { defaultValue: 'Clear face photo for app profile.' })}</Form.Text>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                <h6 className="fw-black mt-5 mb-4 text-primary border-bottom pb-2 uppercase tracking-widest text-xs opacity-75">{t('delivery.add_partner.logistics_profile', { defaultValue: 'Resource Mapping' })}</h6>
-                                <Row className="g-4">
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.vehicle_type', { defaultValue: 'Vehicle Type' })}</Form.Label>
-                                            <Form.Select 
-                                                name="vehicleType" 
-                                                value={formData.vehicleType} 
+                        <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden group shadow-2xl shadow-indigo-100">
+                            <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500"><ShieldCheck size={120} /></div>
+                            <div className="relative space-y-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10"><Lock size={20} /></div>
+                                    <h4 className="text-sm font-bold uppercase tracking-widest">Authentication Key</h4>
+                                </div>
+                                
+                                <div className="flex flex-col md:flex-row gap-6 items-end">
+                                    <div className="flex-grow space-y-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Secure Password</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                name="password"
+                                                value={formData.password}
                                                 onChange={handleChange}
-                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm cursor-pointer"
-                                            >
-                                                <option value="Bike">{t('delivery.add_partner.vehicle_types.bike', { defaultValue: 'Motorcycle / Bike' })}</option>
-                                                <option value="EV">{t('delivery.add_partner.vehicle_types.ev', { defaultValue: 'Electric Vehicle (EV)' })}</option>
-                                                <option value="Cycle">{t('delivery.add_partner.vehicle_types.cycle', { defaultValue: 'Bicycle / Cycle' })}</option>
-                                                <option value="Other">{t('delivery.add_partner.vehicle_types.other', { defaultValue: 'Other Medium' })}</option>
-                                            </Form.Select>
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small fw-black text-muted mb-2 uppercase tracking-tight">{t('delivery.add_partner.license_plate', { defaultValue: 'Vehicle Registration No.' })}</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder={t('delivery.add_partner.license_plate_placeholder', { defaultValue: 'e.g. MP09AB1234' })}
-                                                name="vehicleNumber"
-                                                value={formData.vehicleNumber}
-                                                onChange={(e) => {
-                                                    const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                                                    setFormData({ ...formData, vehicleNumber: val });
-                                                }}
-                                                pattern="^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$"
-                                                title="Enter a valid vehicle number (e.g. MP09AB1234)"
-                                                className="py-3 shadow-none border-light-subtle bg-light-subtle rounded-2xl font-black text-sm"
+                                                placeholder="Set Rider Access Code"
+                                                className="w-full pl-6 pr-12 py-3 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-blue-500 focus:bg-white/10 transition-all text-xs font-bold tracking-widest"
                                             />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                            </Form>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setShowPassword(!showPassword)} 
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                            >
+                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={generatePassword}
+                                        className="h-12 px-6 bg-white text-slate-900 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 active:scale-95 transition-all shadow-lg border-none"
+                                    >
+                                        Auto Generate
+                                    </button>
+                                </div>
+                                <p className="text-[9px] text-slate-500 font-medium italic border-t border-white/5 pt-4">This will be the rider's primary password to access the delivery terminal mobile app.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Side: Vehicle & Duty Settings */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-8 sticky top-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-5">
+                            <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center border border-slate-100 shadow-sm">
+                                <Truck size={20} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-slate-500 inline-block uppercase tracking-tight">{t('add_partner.logistics_profile')}</h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('add_partner.vehicle_type')} <span className="text-rose-500">*</span></label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {['Bike', 'EV', 'Cycle', 'Other'].map(type => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => setFormData({...formData, vehicleType: type})}
+                                            className={`py-3 px-4 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${
+                                                formData.vehicleType === type 
+                                                ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100' 
+                                                : 'bg-slate-50 text-slate-500 border-slate-100 hover:bg-white hover:border-slate-300'
+                                            }`}
+                                        >
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('add_partner.license_plate')}</label>
+                                <div className="relative group">
+                                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={14} />
+                                    <input
+                                        type="text"
+                                        name="vehicleNumber"
+                                        value={formData.vehicleNumber}
+                                        onChange={handleChange}
+                                        placeholder={t('add_partner.license_plate_placeholder')}
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 shadow-sm"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 pt-6 border-t border-slate-50">
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-xl ${loading ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100'}`}
+                            >
+                                {loading ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+                                {loading ? 'Registering...' : t('add_partner.create_btn')}
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => navigate('/admin/delivery/partners')} 
+                                className="w-full py-3 text-slate-400 hover:text-slate-600 font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                            >
+                                Discard Registration
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex items-start gap-3">
+                        <Info className="text-indigo-500 mt-0.5" size={16} />
+                        <div>
+                            <p className="text-[11px] font-black text-indigo-900 border-b border-indigo-100 pb-1 mb-1 uppercase tracking-tighter">Security Note</p>
+                            <p className="text-[10px] text-indigo-700 font-medium leading-normal italic">Post registration, the rider must verify their device to start receiving assignments.</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     );
 };

@@ -1,501 +1,227 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Search, IndianRupee, Clock, CheckCircle, XCircle, Filter, Download, ArrowUpRight, TrendingUp, Wallet, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Row, Col, Card, Table, Button, Badge, Spinner, Modal, Form } from 'react-bootstrap';
-import {
-    Download, IndianRupee, CheckCircle, Clock, Wallet,
-    ChevronLeft, ChevronRight, XCircle, AlertCircle, Check, X, Filter
-} from 'lucide-react';
-import Swal from 'sweetalert2';
-import { getPayouts, approvePayoutRequest, rejectPayoutRequest } from '../../api/vendorApi';
+import { useTranslation } from 'react-i18next';
+import { getVendorPayouts, updatePayoutStatus } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
-import { pageInfoData } from '../../../../common/data/pageInfoData';
-
-const STATUS_BADGE = {
-    Pending:    { bg: 'warning',  label: 'Pending Review' },
-    Processing: { bg: 'info',     label: 'Processing' },
-    Paid:       { bg: 'success',  label: 'Paid' },
-    Rejected:   { bg: 'danger',   label: 'Rejected' },
-    Failed:     { bg: 'secondary',label: 'Failed' },
-};
+import Swal from 'sweetalert2';
 
 const VendorPayouts = () => {
+    const { t } = useTranslation('admin_vendors');
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
-    const [loading, setLoading] = useState(true);
+    
     const [payouts, setPayouts] = useState([]);
-    const [stats, setStats] = useState({ pending: 0, processing: 0, paid: 0, rejected: 0 });
-    const [page, setPage] = useState(1);
-    const [filterStatus, setFilterStatus] = useState('');
-    const limit = 15;
-    const [pagination, setPagination] = useState({ total: 0, totalPages: 1, page: 1, limit });
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('All');
 
-    // Action modal state
-    const [actionModal, setActionModal] = useState({ show: false, payout: null, type: null });
-    const [refNum, setRefNum] = useState('');
-    const [actionNote, setActionNote] = useState('');
-    const [actionLoading, setActionLoading] = useState(false);
-
-    const fetchPayouts = useCallback(async () => {
+    const fetchPayouts = async (isRefresh = false) => {
         try {
-            setLoading(true);
-            const params = { page, limit, includeMeta: true, includeStats: true };
-            if (filterStatus) params.status = filterStatus;
-
-            const res = await getPayouts(adminUser.token, params, { paginated: true });
-            setPayouts(Array.isArray(res.payouts) ? res.payouts : []);
-            setPagination(res.pagination || { total: 0, totalPages: 1, page, limit });
-
-            if (res.stats?.totals) {
-                setStats({
-                    pending:    res.stats.totals.pending    || 0,
-                    processing: res.stats.totals.processing || 0,
-                    paid:       res.stats.totals.paid       || 0,
-                    rejected:   res.stats.totals.rejected   || 0,
-                });
-            }
+            if (isRefresh) setRefreshing(true);
+            else setLoading(true);
+            const data = await getVendorPayouts(adminUser.token);
+            setPayouts(Array.isArray(data) ? data : (data.payouts || []));
         } catch (error) {
-            toast.error('Failed to load payout requests');
+            toast.error('Failed to load payouts');
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
-    }, [adminUser.token, page, filterStatus]);
+    };
 
     useEffect(() => {
         if (adminUser?.token) fetchPayouts();
-    }, [fetchPayouts]);
+    }, [adminUser.token]);
 
-    const openApproveModal = (payout) => {
-        setRefNum('');
-        setActionNote('');
-        setActionModal({ show: true, payout, type: 'approve' });
+    const handleStatusUpdate = async (id, status) => {
+        const actionText = status === 'Paid' ? 'Approve Payment' : 'Reject Request';
+        const color = status === 'Paid' ? '#2563eb' : '#ef4444';
+
+        Swal.fire({
+            title: actionText + '?',
+            text: `Are you sure you want to mark this as ${status.toLowerCase()}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: color,
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Yes, proceed'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await updatePayoutStatus(adminUser.token, id, { status });
+                    toast.success(`Payout marked as ${status}`);
+                    fetchPayouts();
+                } catch (error) {
+                    toast.error('Failed to update status');
+                }
+            }
+        });
     };
 
-    const openRejectModal = (payout) => {
-        setActionNote('');
-        setActionModal({ show: true, payout, type: 'reject' });
-    };
+    const filteredPayouts = payouts.filter(p => {
+        const matchesSearch = p.vendor?.storeName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             p.payoutId?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = filterStatus === 'All' || p.status === filterStatus;
+        return matchesSearch && matchesStatus;
+    });
 
-    const closeModal = () => setActionModal({ show: false, payout: null, type: null });
-
-    const handleApprove = async () => {
-        if (!refNum.trim()) {
-            toast.warning('Please enter a reference/transaction number');
-            return;
-        }
-        setActionLoading(true);
-        try {
-            await approvePayoutRequest(adminUser.token, actionModal.payout._id, refNum.trim(), actionNote.trim());
-            toast.success(`✅ Payout of ₹${actionModal.payout.amount} approved and processed!`);
-            closeModal();
-            fetchPayouts();
-        } catch (err) {
-            toast.error(err.message || 'Failed to approve payout');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleReject = async () => {
-        if (!actionNote.trim()) {
-            toast.warning('Please provide a reason for rejection');
-            return;
-        }
-        setActionLoading(true);
-        try {
-            await rejectPayoutRequest(adminUser.token, actionModal.payout._id, actionNote.trim());
-            toast.info(`Payout request rejected.`);
-            closeModal();
-            fetchPayouts();
-        } catch (err) {
-            toast.error(err.message || 'Failed to reject payout');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleExport = () => {
-        const headers = ['Payout ID', 'Vendor', 'Amount', 'UPI ID', 'Date', 'Status', 'Reference', 'Note'];
-        const csvRows = payouts.map(p => [
-            p._id,
-            `"${p.vendor?.storeName || 'Unknown'}"`,
-            p.amount,
-            `"${p.upiId || p.paymentMethod}"`,
-            new Date(p.payoutDate || p.createdAt).toLocaleDateString(),
-            p.status,
-            `"${p.referenceNumber}"`,
-            `"${p.note || ''}"`,
-        ].join(','));
-
-        const blob = new Blob([[headers.join(','), ...csvRows].join('\n')], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `vendor_payouts_${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success('Exported successfully');
-    };
-
-    const pendingCount = payouts.filter(p => p.status === 'Pending').length;
-
-    if (loading && payouts.length === 0) {
+    if (loading && !refreshing) {
         return (
-            <div className="d-flex justify-content-center align-items-center vh-100">
-                <Spinner animation="border" variant="success" />
+            <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-none">Loading Payments...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-2 p-md-4">
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
             {/* Header */}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <div className="bg-success bg-opacity-10 p-3 rounded-3 text-success d-none d-md-flex">
-                        <Wallet size={24} />
-                    </div>
-                    <div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                                Vendor Payouts
-                                {pendingCount > 0 && (
-                                    <Badge bg="warning" text="dark" className="ms-2 rounded-pill" style={{ fontSize: '0.7rem' }}>
-                                        {pendingCount} Pending
-                                    </Badge>
-                                )}
-                            </h4>
-                            <PageInfoTooltip info={pageInfoData.vendorPayouts} />
-                        </div>
-                        <p className="text-muted small mb-0">Review and process vendor withdrawal requests.</p>
-                    </div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div>
+                    <h1 className="text-xl font-bold tracking-tight text-slate-900">Withdrawals</h1>
+                    <p className="text-slate-500 text-xs mt-1 font-medium italic">Track and manage vendor payments</p>
                 </div>
-                <div className="d-flex gap-2">
-                    <Button variant="outline-secondary" size="sm" className="d-flex align-items-center gap-2"
-                        onClick={handleExport}>
-                        <Download size={16} /> Export CSV
-                    </Button>
+
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64 group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search by ID or Store..."
+                            className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 transition-all shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <select 
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer"
+                    >
+                        <option value="All">All Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Settled</option>
+                        <option value="Rejected">Cancelled</option>
+                    </select>
+                    <button
+                        onClick={() => fetchPayouts(true)}
+                        disabled={refreshing}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                    >
+                        <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
                 </div>
             </div>
 
-            {/* Quick Stats */}
-            <Row className="g-3 mb-4">
-                <Col xs={6} lg={3}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-warning border-4">
-                        <Card.Body className="d-flex align-items-center gap-3">
-                            <div className="bg-warning bg-opacity-10 rounded-circle p-3 text-warning">
-                                <Clock size={22} />
-                            </div>
-                            <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">Pending</div>
-                                <h4 className="fw-bold mb-0 text-warning">₹{stats.pending.toLocaleString()}</h4>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={6} lg={3}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-info border-4">
-                        <Card.Body className="d-flex align-items-center gap-3">
-                            <div className="bg-info bg-opacity-10 rounded-circle p-3 text-info">
-                                <IndianRupee size={22} />
-                            </div>
-                            <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">Processing</div>
-                                <h4 className="fw-bold mb-0 text-info">₹{stats.processing.toLocaleString()}</h4>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={6} lg={3}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-success border-4">
-                        <Card.Body className="d-flex align-items-center gap-3">
-                            <div className="bg-success bg-opacity-10 rounded-circle p-3 text-success">
-                                <CheckCircle size={22} />
-                            </div>
-                            <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">Total Paid</div>
-                                <h4 className="fw-bold mb-0">₹{stats.paid.toLocaleString()}</h4>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={6} lg={3}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-danger border-4">
-                        <Card.Body className="d-flex align-items-center gap-3">
-                            <div className="bg-danger bg-opacity-10 rounded-circle p-3 text-danger">
-                                <XCircle size={22} />
-                            </div>
-                            <div>
-                                <div className="text-uppercase small fw-bold text-muted mb-1">Rejected</div>
-                                <h4 className="fw-bold mb-0 text-danger">₹{stats.rejected.toLocaleString()}</h4>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            <Card className="border-0 shadow-sm overflow-hidden">
-                <Card.Header className="bg-white py-3 border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <h6 className="mb-0 fw-bold text-dark">Withdrawal Requests</h6>
-                    <div className="d-flex align-items-center gap-2">
-                        <Filter size={14} className="text-muted" />
-                        <Form.Select size="sm" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
-                            style={{ width: '160px' }}>
-                            <option value="">All Statuses</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Processing">Processing</option>
-                            <option value="Paid">Paid</option>
-                            <option value="Rejected">Rejected</option>
-                        </Form.Select>
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                {[
+                    { label: 'Pending Requests', value: payouts.filter(p => p.status === 'Pending').length, icon: <Clock size={20} />, color: 'amber' },
+                    { label: 'Settled Today', value: '₹0', icon: <CheckCircle size={20} />, color: 'emerald' },
+                    { label: 'Total Balance', value: '₹0', icon: <Wallet size={20} />, color: 'blue' }
+                ].map((stat, i) => (
+                    <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all">
+                        <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block opacity-70">{stat.label}</span>
+                            <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{stat.value}</div>
+                        </div>
+                        <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-500 flex items-center justify-center border border-${stat.color}-100 shadow-inner group-hover:scale-110 transition-transform`}>
+                            {stat.icon}
+                        </div>
                     </div>
-                </Card.Header>
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">Request ID</th>
-                                <th className="border-0 py-3">Vendor</th>
-                                <th className="border-0 py-3">Amount</th>
-                                <th className="border-0 py-3">Payout Destination</th>
-                                <th className="border-0 py-3">Status</th>
-                                <th className="border-0 py-3">Reference</th>
-                                <th className="border-0 py-3 text-end pe-4">Actions</th>
+                ))}
+            </div>
+
+            {/* Table */}
+            <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-700">
+                <div className="overflow-x-auto scrollbar-thin">
+                    <table className="w-full text-left font-medium">
+                        <thead>
+                            <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th className="px-8 py-5">Payout ID</th>
+                                <th className="px-6 py-5">Store Name</th>
+                                <th className="px-6 py-5">Amount</th>
+                                <th className="px-6 py-5">Request Date</th>
+                                <th className="px-6 py-5 text-center">Status</th>
+                                <th className="px-8 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan="7" className="text-center py-5"><Spinner size="sm" animation="border" variant="success" /></td></tr>
-                            ) : payouts.length === 0 ? (
-                                <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted">
-                                        <Download size={40} className="text-light mb-3 d-block mx-auto" />
-                                        <p className="mb-0">No payout records found.</p>
-                                    </td>
-                                </tr>
-                            ) : payouts.map((p) => {
-                                const badgeCfg = STATUS_BADGE[p.status] || STATUS_BADGE.Pending;
-                                const isPending = p.status === 'Pending';
-                                // Parse bank details from note if it's a Bank Transfer
-                                const isBankTransfer = p.paymentMethod === 'Bank Transfer';
-                                const displayDestination = p.upiId || p.paymentMethod || '—';
-                                return (
-                                    <tr key={p._id} className={isPending ? '' : ''} style={isPending ? { background: '#fffbeb' } : {}}>
-                                        <td className="ps-4">
-                                            <span className="fw-bold font-monospace text-primary" style={{ fontSize: '11px' }}>
-                                                #{p._id.substring(p._id.length - 8).toUpperCase()}
-                                            </span>
-                                            <div className="text-muted" style={{ fontSize: '10px' }}>{new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        <tbody className="divide-y divide-slate-100">
+                            {filteredPayouts.length > 0 ? (
+                                filteredPayouts.map((payout, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/30 transition-colors group">
+                                        <td className="px-8 py-6">
+                                            <span className="text-xs font-bold text-blue-600 uppercase tracking-tight">#{payout.payoutId || payout._id.slice(-6)}</span>
                                         </td>
-                                        <td>
-                                            <div className="fw-medium text-dark" style={{ fontSize: '13px' }}>{p.vendor?.storeName || 'Unknown'}</div>
-                                            <div className="text-muted" style={{ fontSize: '10px' }}>{p.vendor?.ownerName}</div>
+                                        <td className="px-6 py-6 font-bold text-slate-900 text-sm uppercase tracking-tight">
+                                            {payout.vendor?.storeName || 'Unknown Store'}
                                         </td>
-                                        <td className="fw-bold text-dark">₹{p.amount?.toLocaleString()}</td>
-                                        <td style={{ maxWidth: '180px' }}>
-                                            <div className="d-flex align-items-start gap-1">
-                                                <Badge bg={p.paymentMethod === 'UPI' ? 'info' : 'secondary'} className="fw-normal mt-1 flex-shrink-0" style={{ fontSize: '9px' }}>
-                                                    {p.paymentMethod || 'UPI'}
-                                                </Badge>
-                                                <div>
-                                                    <div className="font-monospace text-dark" style={{ fontSize: '11px', wordBreak: 'break-all' }}>{displayDestination}</div>
-                                                    {p.note && isBankTransfer && (
-                                                        <div className="text-muted" style={{ fontSize: '10px' }}>{p.note}</div>
-                                                    )}
-                                                </div>
+                                        <td className="px-6 py-6">
+                                            <div className="flex items-center gap-1 text-slate-900 font-bold text-sm tracking-tight">
+                                                <IndianRupee size={14} className="text-slate-400" />
+                                                {payout.amount}
                                             </div>
                                         </td>
-                                        <td>
-                                            <Badge bg={badgeCfg.bg} className="rounded-pill fw-normal px-2 py-1 shadow-sm" style={{ fontSize: '11px' }}>
-                                                {badgeCfg.label}
-                                            </Badge>
+                                        <td className="px-6 py-6">
+                                            <span className="text-[11px] font-bold text-slate-400 uppercase italic">
+                                                {new Date(payout.createdAt).toLocaleDateString()}
+                                            </span>
                                         </td>
-                                        <td>
-                                            {p.referenceNumber && p.referenceNumber !== '-' ? (
-                                                <span className="font-monospace text-success" style={{ fontSize: '11px' }}>{p.referenceNumber}</span>
-                                            ) : <span className="text-muted" style={{ fontSize: '11px' }}>—</span>}
+                                        <td className="px-6 py-6 text-center">
+                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${
+                                                payout.status === 'Paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                payout.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
+                                            }`}>
+                                                {payout.status === 'Paid' ? 'Settled' : payout.status}
+                                            </span>
                                         </td>
-                                        <td className="text-end pe-4">
-                                            {isPending ? (
-                                                <div className="d-flex gap-1 justify-content-end">
-                                                    <Button variant="success" size="sm" id={`approve-payout-${p._id}`}
-                                                        className="d-flex align-items-center gap-1 px-2"
-                                                        onClick={(e) => { e.stopPropagation(); openApproveModal(p); }}>
-                                                        <Check size={13} /> Approve
-                                                    </Button>
-                                                    <Button variant="outline-danger" size="sm" id={`reject-payout-${p._id}`}
-                                                        className="d-flex align-items-center gap-1 px-2"
-                                                        onClick={(e) => { e.stopPropagation(); openRejectModal(p); }}>
-                                                        <X size={13} /> Reject
-                                                    </Button>
+                                        <td className="px-8 py-6 text-right">
+                                            {payout.status === 'Pending' ? (
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button 
+                                                        onClick={() => handleStatusUpdate(payout._id, 'Paid')}
+                                                        className="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition-all active:scale-95 shadow-sm border-none"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleStatusUpdate(payout._id, 'Rejected')}
+                                                        className="px-4 py-1.5 bg-white border border-rose-200 text-rose-500 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-rose-50 transition-all active:scale-95"
+                                                    >
+                                                        Reject
+                                                    </button>
                                                 </div>
                                             ) : (
-                                                <Button variant="light" size="sm"
-                                                    className="text-primary px-2 border shadow-none"
-                                                    onClick={() => navigate(`${p._id}`)}>
-                                                    Details
-                                                </Button>
+                                                <button 
+                                                    onClick={() => navigate(`/admin/vendors/payouts/${payout._id}`)}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent"
+                                                >
+                                                    <ArrowRight size={18} />
+                                                </button>
                                             )}
                                         </td>
                                     </tr>
-                                );
-                            })}
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="6" className="py-24 text-center">
+                                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">No payment requests found</p>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
-                    </Table>
-                </Card.Body>
+                    </table>
+                </div>
+            </div>
 
-                {/* Pagination */}
-                {!loading && pagination.total > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> of <span className="fw-semibold text-dark">{pagination.total}</span> requests
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button variant="light" className="p-2 rounded border shadow-sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-                                <ChevronLeft size={16} />
-                            </Button>
-                            {[...Array(pagination.totalPages || 1)].map((_, i) => {
-                                const p = i + 1;
-                                if (p === 1 || p === pagination.totalPages || Math.abs(page - p) <= 1) {
-                                    return (
-                                        <Button key={p} variant={page === p ? 'primary' : 'light'}
-                                            className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                            style={{ width: '36px', height: '36px', padding: 0 }}
-                                            onClick={() => setPage(p)}>
-                                            {p}
-                                        </Button>
-                                    );
-                                } else if (p === page - 2 || p === page + 2) {
-                                    return <span key={p} className="text-muted px-1">...</span>;
-                                }
-                                return null;
-                            })}
-                            <Button variant="light" className="p-2 rounded border shadow-sm" onClick={() => setPage(p => Math.min(pagination.totalPages || 1, p + 1))} disabled={page === pagination.totalPages}>
-                                <ChevronRight size={16} />
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </Card>
-
-            {/* ── APPROVE MODAL ── */}
-            <Modal show={actionModal.show && actionModal.type === 'approve'} onHide={closeModal} centered>
-                <Modal.Header closeButton className="border-0 pb-0">
-                    <Modal.Title className="fw-bold d-flex align-items-center gap-2 text-success">
-                        <CheckCircle size={20} /> Approve Withdrawal
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="pt-2">
-                    {actionModal.payout && (
-                        <div className="bg-light rounded-3 p-3 mb-3">
-                            <div className="d-flex justify-content-between mb-1">
-                                <span className="text-muted small">Vendor</span>
-                                <span className="fw-medium small">{actionModal.payout.vendor?.storeName}</span>
-                            </div>
-                            <div className="d-flex justify-content-between mb-1">
-                                <span className="text-muted small">Amount</span>
-                                <span className="fw-bold text-success">₹{actionModal.payout.amount?.toLocaleString()}</span>
-                            </div>
-                            <div className="d-flex justify-content-between">
-                                <span className="text-muted small">UPI ID</span>
-                                <span className="font-monospace small">{actionModal.payout.upiId || 'N/A'}</span>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="alert alert-warning d-flex gap-2 py-2 small" style={{ fontSize: '12px' }}>
-                        <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
-                        <span>Approving will <strong>deduct ₹{actionModal.payout?.amount} from vendor's wallet balance</strong> and mark this request as Paid.</span>
-                    </div>
-
-                    <Form.Group className="mb-3">
-                        <Form.Label className="fw-semibold small">Transaction / Reference Number <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                            id="admin-payout-refnum"
-                            type="text"
-                            placeholder="Enter UTR / transaction ID"
-                            value={refNum}
-                            onChange={e => setRefNum(e.target.value)}
-                            required
-                        />
-                        <Form.Text className="text-muted">This will be shared with the vendor for tracking.</Form.Text>
-                    </Form.Group>
-
-                    <Form.Group>
-                        <Form.Label className="fw-semibold small">Note (optional)</Form.Label>
-                        <Form.Control
-                            as="textarea"
-                            rows={2}
-                            placeholder="Any additional note..."
-                            value={actionNote}
-                            onChange={e => setActionNote(e.target.value)}
-                        />
-                    </Form.Group>
-                </Modal.Body>
-                <Modal.Footer className="border-0 pt-0">
-                    <Button variant="light" onClick={closeModal} disabled={actionLoading}>Cancel</Button>
-                    <Button
-                        id="admin-payout-approve-confirm"
-                        variant="success"
-                        onClick={handleApprove}
-                        disabled={actionLoading || !refNum.trim()}
-                        className="d-flex align-items-center gap-2 px-4"
-                    >
-                        {actionLoading ? <Spinner size="sm" animation="border" /> : <Check size={16} />}
-                        Confirm &amp; Pay
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-
-            {/* ── REJECT MODAL ── */}
-            <Modal show={actionModal.show && actionModal.type === 'reject'} onHide={closeModal} centered>
-                <Modal.Header closeButton className="border-0 pb-0">
-                    <Modal.Title className="fw-bold d-flex align-items-center gap-2 text-danger">
-                        <XCircle size={20} /> Reject Request
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="pt-2">
-                    {actionModal.payout && (
-                        <div className="bg-light rounded-3 p-3 mb-3">
-                            <div className="d-flex justify-content-between mb-1">
-                                <span className="text-muted small">Vendor</span>
-                                <span className="fw-medium small">{actionModal.payout.vendor?.storeName}</span>
-                            </div>
-                            <div className="d-flex justify-content-between">
-                                <span className="text-muted small">Amount</span>
-                                <span className="fw-bold">₹{actionModal.payout.amount?.toLocaleString()}</span>
-                            </div>
-                        </div>
-                    )}
-
-                    <Form.Group>
-                        <Form.Label className="fw-semibold small">Rejection Reason <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                            id="admin-payout-reject-reason"
-                            as="textarea"
-                            rows={3}
-                            placeholder="Explain why this request is being rejected..."
-                            value={actionNote}
-                            onChange={e => setActionNote(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
-                </Modal.Body>
-                <Modal.Footer className="border-0 pt-0">
-                    <Button variant="light" onClick={closeModal} disabled={actionLoading}>Cancel</Button>
-                    <Button
-                        id="admin-payout-reject-confirm"
-                        variant="danger"
-                        onClick={handleReject}
-                        disabled={actionLoading || !actionNote.trim()}
-                        className="d-flex align-items-center gap-2 px-4"
-                    >
-                        {actionLoading ? <Spinner size="sm" animation="border" /> : <X size={16} />}
-                        Confirm Rejection
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { height: 4px; border-radius: 10px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

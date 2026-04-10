@@ -1,306 +1,187 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Spinner, Image } from 'react-bootstrap';
-import { Search, Filter, ExternalLink, X, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Package, Plus, Filter, LayoutGrid, List, ArrowUpRight, TrendingUp, Star, MoreVertical, RefreshCw, Store, Loader2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getProducts } from '../../api/productApi';
 import { getVendors } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
-import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const VendorProducts = () => {
+    const { t } = useTranslation('admin_vendors');
+    const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
-    const [loading, setLoading] = useState(true);
+    
     const [products, setProducts] = useState([]);
     const [vendors, setVendors] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showFilterMenu, setShowFilterMenu] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [selectedVendor, setSelectedVendor] = useState('');
+    const [selectedVendor, setSelectedVendor] = useState('All');
 
-    // Pagination State
-    const [page, setPage] = useState(1);
-    const limit = 10;
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [productsData, vendorsData] = await Promise.all([
-                    getProducts(adminUser.token),
-                    getVendors(adminUser.token)
-                ]);
-                // Filter to only show products linked to vendors
-                const vendorProds = (productsData.products || []).filter(p => p.vendor);
-                setProducts(vendorProds);
-                setVendors(vendorsData);
-            } catch (error) {
-                toast.error('Failed to fetch product data');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (adminUser?.token) {
-            fetchData();
+    const fetchData = async (isRefresh = false) => {
+        try {
+            if (isRefresh) setRefreshing(true);
+            else setLoading(true);
+            
+            const [pData, vData] = await Promise.all([
+                getProducts(adminUser.token),
+                getVendors(adminUser.token)
+            ]);
+            
+            setProducts(Array.isArray(pData) ? pData : (pData.products || []));
+            setVendors(Array.isArray(vData) ? vData : (vData.vendors || []));
+        } catch (error) {
+            toast.error('Failed to load product data');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
-    }, [adminUser.token]);
-
-    const uniqueCategories = [...new Set(products.map(p => p.category))];
-
-    const filtered = products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.vendor?.storeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.sku.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
-        const matchesVendor = selectedVendor ? p.vendor?._id === selectedVendor : true;
-
-        return matchesSearch && matchesCategory && matchesVendor;
-    });
-
-    const totalFiltered = filtered.length;
-    const totalPages = Math.ceil(totalFiltered / limit) || 1;
-    const paginatedProducts = filtered.slice((page - 1) * limit, page * limit);
-
-    // Reset pagination when filters change
-    useEffect(() => {
-        setPage(1);
-    }, [searchTerm, selectedCategory, selectedVendor]);
-
-    const clearFilters = () => {
-        setSelectedCategory('');
-        setSelectedVendor('');
-        setShowFilterMenu(false);
     };
 
-    if (loading) {
+    useEffect(() => {
+        if (adminUser?.token) fetchData();
+    }, [adminUser.token]);
+
+    const filteredProducts = products.filter(p => {
+        const matchesSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesVendor = selectedVendor === 'All' || p.vendor?._id === selectedVendor;
+        return matchesSearch && matchesVendor;
+    });
+
+    if (loading && !refreshing) {
         return (
-            <div className="d-flex justify-content-center align-items-center vh-100">
-                <Spinner animation="border" variant="primary" />
+            <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-none">Loading Products...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-2 p-md-4">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="py-3 py-md-4">
-                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
-                        <div className="d-flex align-items-center gap-3">
-                            <div className="bg-primary bg-opacity-10 p-3 rounded-3 text-primary d-none d-md-flex">
-                                <ShoppingBag size={24} />
-                            </div>
-                            <div>
-                                <h4 className="mb-1 fw-bold text-dark d-flex align-items-center gap-2">
-                                    Vendor Inventory
-                                    <PageInfoTooltip info={pageInfoData.vendorProducts} />
-                                    <Badge bg="primary" pill className="fs-xs fw-normal py-1 px-2">{filtered.length}</Badge>
-                                </h4>
-                                <p className="text-muted small mb-0 d-none d-sm-block">Manage and track inventory received from all verified vendors.</p>
-                            </div>
-                        </div>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div>
+                    <h1 className="text-xl font-bold tracking-tight text-slate-900">Product Catalog</h1>
+                    <p className="text-slate-500 text-xs mt-1 font-medium italic">Browse all items listed by store partners</p>
+                </div>
 
-                        <div className="d-flex flex-column flex-md-row gap-2 gap-md-3 w-100 w-lg-auto align-items-stretch align-items-md-center">
-                            <div className="flex-grow-1" style={{ maxWidth: '450px' }}>
-                                <InputGroup className="shadow-none border border-light overflow-hidden rounded-3">
-                                    <InputGroup.Text className="bg-light border-0 text-muted ps-3"><Search size={18} /></InputGroup.Text>
-                                    <Form.Control
-                                        placeholder="Search products, SKU or vendor..."
-                                        className="bg-light border-0 ps-1 py-2 shadow-none font-small"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </InputGroup>
-                            </div>
-
-                            <div className="position-relative">
-                                <Button
-                                    variant={selectedCategory || selectedVendor ? "primary" : "outline-secondary"}
-                                    className="d-flex align-items-center justify-content-center gap-2 h-100 w-100"
-                                    onClick={() => setShowFilterMenu(!showFilterMenu)}
-                                >
-                                    <Filter size={18} />
-                                    <span>Filter</span>
-                                    {(selectedCategory || selectedVendor) && (
-                                        <Badge bg="white" text="primary" pill className="ms-1">!</Badge>
-                                    )}
-                                </Button>
-
-                                {showFilterMenu && (
-                                    <div className="position-absolute end-0 mt-2 bg-white shadow-xl border rounded-lg p-3 z-3 animate-in fade-in slide-in-from-top-2 duration-200" style={{ width: '280px', zIndex: 1050 }}>
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                            <h6 className="mb-0 fw-bold">Filter Products</h6>
-                                            <Button variant="link" className="p-0 text-muted" onClick={() => setShowFilterMenu(false)}>
-                                                <X size={18} />
-                                            </Button>
-                                        </div>
-
-                                        <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase">By Category</Form.Label>
-                                            <Form.Select
-                                                size="sm"
-                                                className="bg-light border-0"
-                                                value={selectedCategory}
-                                                onChange={(e) => setSelectedCategory(e.target.value)}
-                                            >
-                                                <option value="">All Categories</option>
-                                                {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </Form.Select>
-                                        </div>
-
-                                        <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase">By Vendor</Form.Label>
-                                            <Form.Select
-                                                size="sm"
-                                                className="bg-light border-0"
-                                                value={selectedVendor}
-                                                onChange={(e) => setSelectedVendor(e.target.value)}
-                                            >
-                                                <option value="">All Vendors</option>
-                                                {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName}</option>)}
-                                            </Form.Select>
-                                        </div>
-
-                                        {(selectedCategory || selectedVendor) && (
-                                            <Button
-                                                variant="link"
-                                                className="w-100 p-0 text-danger small text-decoration-none"
-                                                onClick={clearFilters}
-                                            >
-                                                Clear All Filters
-                                            </Button>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64 group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 transition-all shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                </Card.Body>
-            </Card>
+                    <select 
+                        value={selectedVendor}
+                        onChange={(e) => setSelectedVendor(e.target.value)}
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer"
+                    >
+                        <option value="All">All Vendors</option>
+                        {vendors.map(v => (
+                            <option key={v._id} value={v._id}>{v.storeName}</option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={() => fetchData(true)}
+                        disabled={refreshing}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                    >
+                        <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
+            </div>
 
-            <Card className="border-0 shadow-sm overflow-hidden">
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">Product Info</th>
-                                <th className="border-0 py-3">Vendor</th>
-                                <th className="border-0 py-3">Category</th>
-                                <th className="border-0 py-3 text-center">Unit</th>
-                                <th className="border-0 py-3">Price</th>
-                                <th className="border-0 py-3">Stock</th>
-                                <th className="border-0 py-3">Status</th>
+            {/* Product Table */}
+            <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden animate-in fade-in duration-700">
+                <div className="overflow-x-auto scrollbar-thin">
+                    <table className="w-full text-left font-medium">
+                        <thead>
+                            <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th className="px-8 py-5">Product Info</th>
+                                <th className="px-6 py-5">Vendor Store</th>
+                                <th className="px-6 py-5 text-center">Category</th>
+                                <th className="px-6 py-5 text-center">Price</th>
+                                <th className="px-6 py-5 text-center">Availability</th>
+                                <th className="px-8 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {paginatedProducts.length > 0 ? paginatedProducts.map((p, idx) => {
-                                const totalStock = p.vendor ? (p.stock || 0) : (p.branchStocks?.reduce((acc, curr) => acc + curr.stock, 0) || 0);
-                                return (
-                                    <tr key={idx}>
-                                        <td className="ps-4 py-3">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div className="bg-light rounded p-1 text-primary d-none d-sm-block overflow-hidden" style={{ width: '40px', height: '40px' }}>
-                                                    {p.image ? (
-                                                        <Image src={p.image} fluid />
-                                                    ) : (
-                                                        <ShoppingBag size={20} className="m-2" />
-                                                    )}
+                        <tbody className="divide-y divide-slate-100">
+                            {filteredProducts.length > 0 ? (
+                                filteredProducts.map((p, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/30 transition-colors group">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform shadow-inner">
+                                                    {p.images?.[0] ? <img src={p.images[0]} className="w-full h-full object-cover" /> : <Package size={22} className="text-slate-200" />}
                                                 </div>
-                                                <div>
-                                                    <div className="fw-bold text-dark">{p.name}</div>
-                                                    <div className="small text-muted font-monospace" style={{ fontSize: '11px' }}>{p.sku}</div>
+                                                <div className="min-w-0">
+                                                    <div className="text-sm font-bold text-slate-900 leading-none uppercase tracking-tight truncate group-hover:text-blue-600 transition-colors">{p.name}</div>
+                                                    <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter leading-none opacity-60">ID: {p._id.slice(-6)}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div className="d-flex align-items-center gap-2">
-                                                {p.vendor?.logo && <Image src={p.vendor.logo} roundedCircle width={20} height={20} />}
-                                                <span className="fw-medium text-primary" style={{ fontSize: '13px' }}>{p.vendor?.storeName || 'Unknown'}</span>
+                                        <td className="px-6 py-6 font-bold text-slate-600 text-xs uppercase tracking-tight">
+                                            <div className="flex items-center gap-2">
+                                                <Store size={14} className="text-slate-300" />
+                                                {p.vendor?.storeName || 'General'}
                                             </div>
                                         </td>
-                                        <td><span className="text-secondary small fw-medium">{p.category}</span></td>
-                                        <td className="text-center"><Badge bg="light" text="dark" className="border fw-normal uppercase">{p.unitType}</Badge></td>
-                                        <td className="fw-bold text-dark">₹{p.basePrice}</td>
-                                        <td>
-                                            <div className="d-flex flex-column">
-                                                <span className={`fw-bold ${totalStock <= 10 ? 'text-danger' : 'text-dark'}`}>{totalStock}</span>
-                                                <span className="text-muted" style={{ fontSize: '10px' }}>Total Items</span>
+                                        <td className="px-6 py-6 text-center">
+                                            <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-slate-200">
+                                                {p.category || 'Uncategorized'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-6 text-center">
+                                            <div className="text-sm font-bold text-slate-900 tracking-tight leading-none italic">
+                                                ₹{p.price}
                                             </div>
                                         </td>
-                                        <td>
-                                            <Badge bg={
-                                                p.status === 'Active' ? 'success' :
-                                                    p.status === 'Low Stock' ? 'warning' : 'danger'
-                                            } className="rounded-pill fw-normal px-3 py-1">
-                                                {p.status}
-                                            </Badge>
+                                        <td className="px-6 py-6 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <span className={`text-xs font-bold leading-none tracking-tight ${p.countInStock < 10 ? 'text-rose-500' : 'text-slate-800'}`}>
+                                                    {p.countInStock || 0}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60 italic">In Stock</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <button 
+                                                onClick={() => navigate('/admin/products')}
+                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent"
+                                            >
+                                                <ArrowRight size={18} />
+                                            </button>
                                         </td>
                                     </tr>
-                                );
-                            }) : (
+                                ))
+                            ) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-5 text-muted">
-                                        <div className="mb-2"><ShoppingBag size={48} className="text-light" /></div>
-                                        No products found matching your filters.
+                                    <td colSpan="6" className="py-24 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 shadow-inner">
+                                                <Package size={32} className="text-slate-200" />
+                                            </div>
+                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic leading-none">No products found</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
+                    </table>
+                </div>
+            </div>
 
-                {/* Pagination Controls */}
-                {!loading && totalFiltered > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> products
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                            >
-                                <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
-                                {(() => {
-                                    return [...Array(totalPages)].map((_, i) => {
-                                        const p = i + 1;
-                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
-                                            return (
-                                                <Button
-                                                    key={p}
-                                                    variant={page === p ? 'primary' : 'light'}
-                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                    style={{ width: '36px', height: '36px', padding: 0 }}
-                                                    onClick={() => setPage(p)}
-                                                >
-                                                    {p}
-                                                </Button>
-                                            );
-                                        } else if (p === page - 2 || p === page + 2) {
-                                            return <span key={p} className="text-muted px-1">...</span>;
-                                        }
-                                        return null;
-                                    });
-                                })()}
-                            </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                            >
-                                <ChevronRight size={16} />
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </Card>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { height: 4px; border-radius: 10px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

@@ -602,11 +602,12 @@ export const getActiveDeliveries = async (req, res) => {
     }
 
     const listQuery = Order.find(query)
-      .select('orderId status shippingAddress totalAmount createdAt updatedAt deliveryPartnerId vendor branchId user')
-      .populate('deliveryPartnerId', 'name phone currentLocation vehicleType vehicleNumber')
+      .select('orderId status shippingAddress totalAmount createdAt updatedAt deliveryPartnerId deliveryRunId vendor branchId user')
+      .populate('deliveryPartnerId', 'name phone currentLocation vehicleType vehicleNumber profileImage')
       .populate('vendor', 'storeName address')
       .populate('branchId', 'name address')
       .populate('user', 'name phone')
+      .populate('deliveryRunId', 'optimizedRoute status runId')
       .sort({ updatedAt: -1 })
       .lean();
 

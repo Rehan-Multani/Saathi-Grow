@@ -16,6 +16,8 @@ import enAdminCategories from './locales/en/admin/categories.json';
 import enAdminCustomers from './locales/en/admin/customers.json';
 import enAdminStaff from './locales/en/admin/staff.json';
 import enAdminStock from './locales/en/admin/stock.json';
+import enAdminDelivery from './locales/en/admin/delivery.json';
+import enAdminVendors from './locales/en/admin/vendors.json';
 
 // Admin Modules (Hindi)
 import hiAdminLogin from './locales/hi/admin/login.json';
@@ -27,6 +29,8 @@ import hiAdminCategories from './locales/hi/admin/categories.json';
 import hiAdminCustomers from './locales/hi/admin/customers.json';
 import hiAdminStaff from './locales/hi/admin/staff.json';
 import hiAdminStock from './locales/hi/admin/stock.json';
+import hiAdminDelivery from './locales/hi/admin/delivery.json';
+import hiAdminVendors from './locales/hi/admin/vendors.json';
 
 const resources = {
   en: {
@@ -39,7 +43,9 @@ const resources = {
     admin_categories: enAdminCategories,
     admin_customers: enAdminCustomers,
     admin_staff: enAdminStaff,
-    admin_stock: enAdminStock
+    admin_stock: enAdminStock,
+    admin_delivery: enAdminDelivery,
+    admin_vendors: enAdminVendors
   },
   hi: {
     common: hiCommon,
@@ -51,7 +57,9 @@ const resources = {
     admin_categories: hiAdminCategories,
     admin_customers: hiAdminCustomers,
     admin_staff: hiAdminStaff,
-    admin_stock: hiAdminStock
+    admin_stock: hiAdminStock,
+    admin_delivery: hiAdminDelivery,
+    admin_vendors: hiAdminVendors
   },
 };
 
@@ -61,7 +69,7 @@ i18n
     resources,
     lng: 'en',
     fallbackLng: 'en',
-    ns: ['common', 'admin_login', 'admin_dashboard', 'admin_orders', 'admin_sidebar', 'admin_products', 'admin_categories', 'admin_customers', 'admin_staff', 'admin_stock'],
+    ns: ['common', 'admin_login', 'admin_dashboard', 'admin_orders', 'admin_sidebar', 'admin_products', 'admin_categories', 'admin_customers', 'admin_staff', 'admin_stock', 'admin_delivery', 'admin_vendors'],
     defaultNS: 'common',
     interpolation: {
       escapeValue: false,
