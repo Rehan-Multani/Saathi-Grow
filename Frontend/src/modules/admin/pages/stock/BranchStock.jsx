@@ -87,7 +87,7 @@ const BranchStock = () => {
                 <div>
                     <div className="flex items-center gap-2">
                         <h1 className="text-xl font-bold tracking-tight">{t('branch.title')}</h1>
-                        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100">{pagination.total} Records</span>
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100">{pagination.total} {t('adjustments.logged')}</span>
                     </div>
                     <p className="text-slate-500 text-xs mt-1 font-medium">{t('branch.subtitle')}</p>
                 </div>

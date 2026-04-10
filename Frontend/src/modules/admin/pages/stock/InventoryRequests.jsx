@@ -73,7 +73,7 @@ const InventoryRequests = () => {
                 <div>
                     <div className="flex items-center gap-2">
                         <h1 className="text-xl font-bold tracking-tight">{t('requests.title')}</h1>
-                        <span className="px-2.5 py-1 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-lg border border-amber-100 uppercase">{t('requests.queue_msg')}</span>
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 uppercase">{totalFiltered} {t('adjustments.logged')}</span>
                     </div>
                     <p className="text-slate-500 text-xs mt-1 font-medium">{t('requests.subtitle')}</p>
                 </div>
@@ -212,7 +212,7 @@ const InventoryRequests = () => {
                 {!loading && totalFiltered > 0 && (
                     <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-xs font-medium text-slate-500 italic">
-                            Tracking {((page - 1) * limit) + 1}-{Math.min(page * limit, totalFiltered)} of {totalFiltered} entries
+                            {t('branch.pagination_showing', { start: ((page - 1) * limit) + 1, end: Math.min(page * limit, totalFiltered), total: totalFiltered })}
                         </div>
 
                         <div className="flex items-center gap-2">

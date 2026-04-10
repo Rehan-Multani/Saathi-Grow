@@ -482,7 +482,7 @@ export const getProducts = async (req, res) => {
             const bId = bs.branchId?._id || bs.branchId;
             return bId && bId.toString() === enrichmentStoreId.toString();
           });
-          
+
           if (branchStock) {
             inStore = true;
             availableStock = branchStock.stock || 0;
@@ -867,7 +867,7 @@ export const updateProduct = async (req, res) => {
       if (req.body.tags) {
         product.tags = typeof req.body.tags === 'string' ? req.body.tags.split(',') : req.body.tags;
       }
-      
+
       const oldPrice = product.basePrice;
       product.basePrice = req.body.basePrice || product.basePrice;
 
@@ -889,7 +889,7 @@ export const updateProduct = async (req, res) => {
       product.subCategory = req.body.subCategory !== undefined ? req.body.subCategory : product.subCategory;
       product.brandName = req.body.brandName || product.brandName;
       product.vendor = req.body.vendor !== undefined ? (req.body.vendor || null) : product.vendor;
-      
+
       // Update vendor stock/threshold if it's a vendor product
       if (product.vendor) {
         if (req.body.stock !== undefined) product.stock = Number(req.body.stock);
@@ -1214,9 +1214,9 @@ export const bulkAdjustInventory = async (req, res) => {
     for (const adj of adjustments) {
       const { productId, branchId, amount } = adj;
       const product = await Product.findById(productId);
-      
+
       if (!product) continue;
-      
+
       // Skip vendor products
       if (product.vendor) continue;
 
@@ -1347,7 +1347,7 @@ export const getInventoryLogs = async (req, res) => {
     const skip = (page - 1) * limit;
 
     let query = { product: req.params.id };
-    
+
     if (req.admin && req.admin.role !== 'Admin') {
       if (req.admin.branchId) {
         query.branchId = req.admin.branchId;
@@ -1428,278 +1428,199 @@ export const getInventoryStats = async (req, res) => {
 
     const isBranchProductMatch = { 
       status: { $ne: 'Draft' },
-      vendor: null 
+      $or: [
+        { vendor: null },
+        { vendor: { $exists: false } }
+      ]
     };
 
-    let matchQuery = { ...isBranchProductMatch };
-    if (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId)) {
-      matchQuery['branchStocks.branchId'] = new mongoose.Types.ObjectId(targetBranchId);
-    }
-
-    // 1. Basic KPI Stats
+    // 1. Holistic Aggregate for KPIs
     const statsResult = await Product.aggregate([
-      { $match: { status: { $ne: 'Draft' } } }, // Overall pool (can be branch or vendor)
       {
-        $facet: {
-          branchMetrics: [
-            { $unwind: "$branchStocks" },
-            { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
-            { $match: matchQuery },
-            {
-              $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
-                ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
-                : {}
-            },
-            {
-              $group: {
-                _id: null,
-                totalStock: { $sum: "$branchStocks.stock" },
-                inventoryValue: { $sum: { $multiply: ["$branchStocks.stock", "$basePrice"] } },
-                lowStockCount: {
-                  $sum: {
-                    $cond: [
-                      { $and: [
-                        { $gt: ["$branchStocks.stock", 0] },
-                        { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }
-                      ]}, 1, 0]
-                  }
-                },
-                outOfStockCount: {
-                  $sum: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, 1, 0] }
-                }
+        $match: (targetBranchId && targetBranchId !== 'all' && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
+          ? {
+            ...isBranchProductMatch,
+            branchStocks: { $elemMatch: { branchId: new mongoose.Types.ObjectId(targetBranchId) } }
+          }
+          : isBranchProductMatch
+      },
+      {
+        $project: {
+          basePrice: 1,
+          focusedStock: (targetBranchId && targetBranchId !== 'all' && targetBranchId !== 'vendor')
+            ? {
+              $filter: {
+                input: "$branchStocks",
+                as: "bs",
+                cond: { $eq: [{ $toObjectId: "$$bs.branchId" }, new mongoose.Types.ObjectId(targetBranchId)] }
               }
             }
-          ],
-          vendorMetrics: [
-            { 
-              $match: (targetBranchId && targetBranchId !== 'all') 
-                ? { _id: null } // Skip if filtering by a specific branch
-                : { vendor: { $exists: true, $ne: null } } 
-            },
-            {
-              $group: {
-                _id: null,
-                totalStock: { $sum: "$stock" },
-                inventoryValue: { $sum: { $multiply: ["$stock", "$basePrice"] } },
-                lowStockCount: {
-                  $sum: {
-                    $cond: [
-                      { $and: [
-                        { $gt: ["$stock", 0] },
-                        { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] }
-                      ]}, 1, 0]
-                  }
-                },
-                outOfStockCount: {
-                  $sum: { $cond: [{ $lte: ["$stock", 0] }, 1, 0] }
-                }
-              }
-            }
-          ]
+            : "$branchStocks"
         }
       },
       {
         $project: {
-          totalStock: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.totalStock", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.totalStock", 0] }, 0] }] },
-          inventoryValue: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.inventoryValue", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.inventoryValue", 0] }, 0] }] },
-          lowStockCount: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.lowStockCount", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.lowStockCount", 0] }, 0] }] },
-          outOfStockCount: { $add: [{ $ifNull: [{ $arrayElemAt: ["$branchMetrics.outOfStockCount", 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ["$vendorMetrics.outOfStockCount", 0] }, 0] }] }
+          itemStock: { $sum: "$focusedStock.stock" },
+          itemValue: { $multiply: [{ $sum: "$focusedStock.stock" }, "$basePrice"] },
+          isLow: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$focusedStock",
+                    as: "s",
+                    cond: {
+                      $and: [
+                        { $gt: ["$$s.stock", 0] },
+                        { $lte: ["$$s.stock", { $ifNull: ["$$s.lowStockThreshold", 10] }] }
+                      ]
+                    }
+                  }
+                }
+              },
+              0
+            ]
+          },
+          isOut: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$focusedStock",
+                    as: "s",
+                    cond: { $lte: ["$$s.stock", 0] }
+                  }
+                }
+              },
+              0
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalProducts: { $sum: 1 },
+          totalStock: { $sum: "$itemStock" },
+          inventoryValue: { $sum: "$itemValue" },
+          lowStockCount: { $sum: { $cond: ["$isLow", 1, 0] } },
+          outOfStockCount: { $sum: { $cond: ["$isOut", 1, 0] } }
         }
       }
     ]);
 
-    const stats = statsResult[0] || { totalStock: 0, inventoryValue: 0, lowStockCount: 0, outOfStockCount: 0 };
+    const stats = statsResult[0] || {
+      totalProducts: 0, totalStock: 0, inventoryValue: 0, lowStockCount: 0, outOfStockCount: 0
+    };
 
-    // 2. Category Distribution (Branch + Vendor)
-    const categoryDistribution = await Product.aggregate([
-      { $match: { status: { $ne: 'Draft' } } },
+    // 2. Facets for Distribution and Urgent Items
+    const facets = await Product.aggregate([
+      { $match: isBranchProductMatch },
       {
-          $facet: {
-              branchDist: [
-                  { $unwind: "$branchStocks" },
-                  { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
-                  { $match: matchQuery },
-                  {
-                      $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
-                          ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
-                          : {}
-                  },
-                  { $group: { _id: "$category", stock: { $sum: "$branchStocks.stock" } } }
-              ],
-              vendorDist: [
-                  { 
-                    $match: (targetBranchId && targetBranchId !== 'all') 
-                      ? { _id: null } 
-                      : { vendor: { $exists: true, $ne: null } } 
-                  },
-                  { $group: { _id: "$category", stock: { $sum: "$stock" } } }
-              ]
-          }
-      },
-      {
-          $project: {
-              combined: { $concatArrays: ["$branchDist", "$vendorDist"] }
-          }
-      },
-      { $unwind: "$combined" },
-      { $group: { _id: "$combined._id", stock: { $sum: "$combined.stock" } } },
-      { $sort: { stock: -1 } },
-      { $limit: 10 }
+        $facet: {
+          categoryDist: [
+            { $unwind: "$branchStocks" },
+            { $addFields: { bId: { $toObjectId: "$branchStocks.branchId" } } },
+            { $match: (targetBranchId && targetBranchId !== 'all') ? { bId: new mongoose.Types.ObjectId(targetBranchId) } : {} },
+            { $group: { _id: "$category", stock: { $sum: "$branchStocks.stock" } } },
+            { $sort: { stock: -1 } },
+            { $limit: 10 }
+          ],
+          lowStockItems: [
+            { $unwind: "$branchStocks" },
+            { $addFields: { bId: { $toObjectId: "$branchStocks.branchId" } } },
+            { $match: (targetBranchId && targetBranchId !== 'all') ? { bId: new mongoose.Types.ObjectId(targetBranchId) } : {} },
+            { $match: { "branchStocks.stock": { $lte: 0 } } },
+            { $limit: 5 },
+            {
+              $lookup: {
+                from: 'branches',
+                localField: 'bId',
+                foreignField: '_id',
+                as: 'bInfo'
+              }
+            },
+            {
+              $project: {
+                name: 1, sku: 1, image: 1, stock: "$branchStocks.stock",
+                branchName: { $arrayElemAt: ["$bInfo.name", 0] }
+              }
+            }
+          ]
+        }
+      }
     ]);
 
-    // 3. Branch Health (If Super Admin)
+    const categoryDistribution = facets[0]?.categoryDist || [];
+    const restockItems = facets[0]?.lowStockItems || [];
+
+    // 3. Branch Health (Detailed Super-Admin Grid)
     let branchHealth = [];
     if (!targetBranchId || targetBranchId === 'all') {
       const allBranches = await Branch.find({ isActive: true }).select('name code branchCode');
-      const branchStats = await Product.aggregate([
+      const bStats = await Product.aggregate([
         { $match: isBranchProductMatch },
         { $unwind: "$branchStocks" },
-        { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
+        { $addFields: { bId: { $toObjectId: "$branchStocks.branchId" } } },
         {
           $group: {
-            _id: "$branchStocks.branchId",
+            _id: "$bId",
             totalProducts: { $sum: 1 },
-            lowStock: {
-              $sum: { 
-                $cond: [
-                  { $and: [
-                    { $gt: ["$branchStocks.stock", 0] },
-                    { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }
-                  ]}, 1, 0] 
-              }
-            },
-            outOfStock: {
-              $sum: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, 1, 0] }
-            },
-            totalStock: { $sum: "$branchStocks.stock" }
+            low: { $sum: { $cond: [{ $and: [{ $gt: ["$branchStocks.stock", 0] }, { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }] }, 1, 0] } },
+            outNum: { $sum: { $cond: [{ $lte: ["$branchStocks.stock", 0] }, 1, 0] } },
+            sumStock: { $sum: "$branchStocks.stock" }
           }
         }
       ]);
 
       branchHealth = allBranches.map(branch => {
-        const stats = branchStats.find(s => s._id?.toString() === branch._id.toString()) || {
-          totalProducts: 0,
-          lowStock: 0,
-          outOfStock: 0,
-          totalStock: 0
-        };
-
-        const totalIssues = stats.lowStock + stats.outOfStock;
-        // If there are no products, health is technically 100% or we can designate a value.
-        // If there are products but all are out of stock/low, health goes down.
-        const healthScore = stats.totalProducts > 0 
-          ? Math.max(0, 100 - ((totalIssues / stats.totalProducts) * 100))
-          : 100;
-
+        const s = bStats.find(st => st._id?.toString() === branch._id.toString()) || { totalProducts: 0, low: 0, outNum: 0, sumStock: 0 };
+        const issues = s.low + s.outNum;
         return {
-          _id: branch._id,
-          name: branch.name,
-          code: branch.code || branch.branchCode || 'N/A',
-          totalProducts: stats.totalProducts,
-          lowStock: stats.lowStock,
-          outOfStock: stats.outOfStock,
-          totalStock: stats.totalStock,
-          healthScore
+          _id: branch._id, name: branch.name, code: branch.code || branch.branchCode || 'N/A',
+          totalProducts: s.totalProducts, lowStock: s.low, outOfStock: s.outNum, totalStock: s.sumStock,
+          healthScore: s.totalProducts > 0 ? Math.max(0, 100 - ((issues / s.totalProducts) * 100)) : 100
         };
       });
     }
 
-    // 4. Critical Items (Top 10 Low Stock - Branch + Vendor)
+    // 4. Critical Items Unified
     const criticalItems = await Product.aggregate([
-        { $match: { status: { $ne: 'Draft' } } },
+        { $match: isBranchProductMatch },
+        { $unwind: "$branchStocks" },
+        { $addFields: { bId: { $toObjectId: "$branchStocks.branchId" } } },
+        { $match: (targetBranchId && targetBranchId !== 'all') ? { bId: new mongoose.Types.ObjectId(targetBranchId) } : {} },
+        { $match: { $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] } } },
+        { $sort: { "branchStocks.stock": 1 } },
+        { $limit: 10 },
         {
-            $facet: {
-                branchCritical: [
-                    { $unwind: "$branchStocks" },
-                    { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
-                    { $match: matchQuery },
-                    {
-                        $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
-                            ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
-                            : {}
-                    },
-                    {
-                        $match: {
-                            $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: 'branches',
-                            localField: 'branchStocks.branchId',
-                            foreignField: '_id',
-                            as: 'branch'
-                        }
-                    },
-                    { $unwind: "$branch" },
-                    {
-                        $project: {
-                            name: 1,
-                            sku: 1,
-                            image: 1,
-                            stock: "$branchStocks.stock",
-                            threshold: { $ifNull: ["$branchStocks.lowStockThreshold", 10] },
-                            branchName: "$branch.name",
-                            isVendor: { $literal: false }
-                        }
-                    }
-                ],
-                vendorCritical: [
-                    { 
-                      $match: (targetBranchId && targetBranchId !== 'all' && targetBranchId) 
-                        ? { _id: null } 
-                        : { vendor: { $exists: true, $ne: null } } 
-                    },
-                    {
-                        $match: {
-                            $expr: { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] }
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: 'vendors',
-                            localField: 'vendor',
-                            foreignField: '_id',
-                            as: 'vendorInfo'
-                        }
-                    },
-                    { $unwind: "$vendorInfo" },
-                    {
-                        $project: {
-                            name: 1,
-                            sku: 1,
-                            image: 1,
-                            stock: "$stock",
-                            threshold: { $ifNull: ["$lowStockThreshold", 10] },
-                            branchName: "$vendorInfo.storeName",
-                            isVendor: { $literal: true }
-                        }
-                    }
-                ]
-            }
+          $lookup: {
+            from: 'branches',
+            localField: 'bId',
+            foreignField: '_id',
+            as: 'bInfo'
+          }
         },
         {
-            $project: {
-                combined: { $concatArrays: ["$branchCritical", "$vendorCritical"] }
-            }
-        },
-        { $unwind: "$combined" },
-        { $replaceRoot: { newRoot: "$combined" } },
-        { $sort: { stock: 1, name: 1 } },
-        { $limit: 10 }
+          $project: {
+            _id: "$_id",
+            name: 1, image: 1, stock: "$branchStocks.stock", threshold: "$branchStocks.lowStockThreshold",
+            branchName: { $arrayElemAt: ["$bInfo.name", 0] }
+          }
+        }
     ]);
 
-    res.json({
-      success: true,
-      stats,
-      categoryDistribution: categoryDistribution.map(c => ({ name: c._id, stock: c.stock })),
-      branchHealth,
-      criticalItems
-    });
+res.json({
+  success: true,
+  stats,
+  categoryDistribution: categoryDistribution.map(c => ({ name: c._id, stock: c.stock })),
+  branchHealth,
+  criticalItems
+});
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+  res.status(500).json({ success: false, message: error.message });
+}
 };
 
 // @desc    Get branch-wise stock with filtering and pagination
@@ -1707,20 +1628,23 @@ export const getInventoryStats = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getBranchWiseStock = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      search = '', 
-      branchId, 
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      branchId,
       status, // 'Low Stock', 'Out of Stock', 'In Stock'
-      category 
+      category
     } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const limitNum = parseInt(limit);
 
-    let initialMatch = { 
-      vendor: null,
+    let initialMatch = {
+      $or: [
+        { vendor: null },
+        { vendor: { $exists: false } }
+      ],
       status: { $ne: 'Draft' }
     };
 
@@ -1744,20 +1668,20 @@ export const getBranchWiseStock = async (req, res) => {
         pipeline.push({ $match: { "branchStocks.stock": { $lte: 0 } } });
       } else if (status === 'Low Stock') {
         pipeline.push({
-            $match: {
-                $expr: {
-                    $and: [
-                        { $gt: ["$branchStocks.stock", 0] },
-                        { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
-                    ]
-                }
+          $match: {
+            $expr: {
+              $and: [
+                { $gt: ["$branchStocks.stock", 0] },
+                { $lte: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
+              ]
             }
+          }
         });
       } else if (status === 'In Stock') {
         pipeline.push({
-            $match: {
-                $expr: { $gt: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
-            }
+          $match: {
+            $expr: { $gt: ["$branchStocks.stock", "$branchStocks.lowStockThreshold"] }
+          }
         });
       }
     }
@@ -1857,11 +1781,11 @@ export const getBranchWiseStock = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getLowStockAlerts = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      search = '', 
-      branchId, 
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      branchId,
       category,
       severity // 'Critical', 'Warning'
     } = req.query;
@@ -1876,23 +1800,23 @@ export const getLowStockAlerts = async (req, res) => {
       {
         $facet: {
           internalStock: [
-            { 
-              $match: { 
-                ...baseMatch, 
+            {
+              $match: {
+                ...baseMatch,
                 $or: [
                   { vendor: { $exists: false } },
                   { vendor: null }
                 ]
-              } 
+              }
             },
             { $unwind: "$branchStocks" },
             { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
-            { 
-              $match: { 
-                $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] } 
-              } 
+            {
+              $match: {
+                $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] }
+              }
             },
-            { 
+            {
               $lookup: {
                 from: 'branches',
                 localField: 'branchStocks.branchId',
@@ -1918,18 +1842,18 @@ export const getLowStockAlerts = async (req, res) => {
             }
           ],
           vendorStock: [
-            { 
-              $match: { 
-                ...baseMatch, 
-                vendor: { $exists: true } 
-              } 
+            {
+              $match: {
+                ...baseMatch,
+                vendor: { $exists: true }
+              }
             },
-            { 
-              $match: { 
-                $expr: { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] } 
-              } 
+            {
+              $match: {
+                $expr: { $lte: ["$stock", { $ifNull: ["$lowStockThreshold", 10] }] }
+              }
             },
-            { 
+            {
               $lookup: {
                 from: 'vendors',
                 localField: 'vendor',
@@ -1967,22 +1891,22 @@ export const getLowStockAlerts = async (req, res) => {
 
     // Branch Scoping (Staff only see their own branch, omit vendor products for staff)
     if (req.admin.role !== 'Admin' && req.admin.branchId) {
-      pipeline.push({ 
-        $match: { 
-            isVendor: false,
-            branchId: new mongoose.Types.ObjectId(req.admin.branchId) 
-        } 
+      pipeline.push({
+        $match: {
+          isVendor: false,
+          branchId: new mongoose.Types.ObjectId(req.admin.branchId)
+        }
       });
     } else if (branchId) {
-        if (branchId === 'vendor') {
-            pipeline.push({ $match: { isVendor: true } });
-        } else if (mongoose.Types.ObjectId.isValid(branchId)) {
-            pipeline.push({ 
-                $match: { 
-                    branchId: new mongoose.Types.ObjectId(branchId) 
-                } 
-            });
-        }
+      if (branchId === 'vendor') {
+        pipeline.push({ $match: { isVendor: true } });
+      } else if (mongoose.Types.ObjectId.isValid(branchId)) {
+        pipeline.push({
+          $match: {
+            branchId: new mongoose.Types.ObjectId(branchId)
+          }
+        });
+      }
     }
 
     // Category Filter
