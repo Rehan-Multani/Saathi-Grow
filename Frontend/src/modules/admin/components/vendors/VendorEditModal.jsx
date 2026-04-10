@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { updateVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import GoogleMapsInput from '../common/GoogleMapsInput';
+import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
 import { useCallback } from 'react';
 
 const VendorEditModal = ({ show, onHide, vendor, onSave }) => {

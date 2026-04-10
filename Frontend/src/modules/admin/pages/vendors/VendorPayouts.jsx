@@ -9,8 +9,8 @@ import Swal from 'sweetalert2';
 import { getPayouts, approvePayoutRequest, rejectPayoutRequest } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const STATUS_BADGE = {
     Pending:    { bg: 'warning',  label: 'Pending Review' },

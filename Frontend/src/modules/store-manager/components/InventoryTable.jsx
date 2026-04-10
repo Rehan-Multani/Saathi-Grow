@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Edit3, Trash2, RefreshCw, AlertTriangle, ChevronRight, Package } from 'lucide-react';
 
 const InventoryTable = ({ products, onUpdateStock, branchId }) => {
@@ -83,7 +83,7 @@ const InventoryTable = ({ products, onUpdateStock, branchId }) => {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <div className="text-sm font-black text-slate-800">₹{product.basePrice.toLocaleString()}</div>
+                                            <div className="text-sm font-black text-slate-800">?{product.basePrice.toLocaleString()}</div>
                                             <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Unit Price</div>
                                         </td>
                                         <td className="px-8 py-5 text-center">

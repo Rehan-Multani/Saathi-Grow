@@ -4,7 +4,7 @@ import InventoryTable from '../../../store-manager/components/InventoryTable';
 import SearchFilterBar from '../../../store-manager/components/SearchFilterBar';
 import StockUpdateModal from '../../../store-manager/components/StockUpdateModal';
 import { useStaffAuth } from '../../context/StaffAuthContext';
-import * as productApi from '../../../admin/api/productApi';
+import * as productApi from '../../../../common/api/productApi';
 import { createInventoryRequest } from '../../../store-manager/api/inventoryRequestApi';
 import { toast } from 'react-toastify';
 

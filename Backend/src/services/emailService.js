@@ -190,3 +190,56 @@ export const sendSystemNotificationEmail = async (toEmail, subject, title, body)
     return false;
   }
 };
+
+/**
+ * Send Reset Password Email
+ * @param {string} toEmail 
+ * @param {string} name 
+ * @param {string} resetUrl 
+ */
+export const sendResetPasswordEmail = async (toEmail, name, resetUrl) => {
+  try {
+    if (!toEmail) return false;
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || 'gmail',
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
+
+    const mailOptions = {
+      from: `"SaathiGro Security" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: 'Password Reset Request',
+      html: `
+        <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f0f0f0; padding: 40px; border-radius: 16px; background-color: #ffffff; color: #1a1a1a;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #6366f1; margin: 0; font-size: 28px; letter-spacing: -0.5px;">SaathiGro</h1>
+            <p style="color: #64748b; font-size: 14px; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">Security Protocol</p>
+          </div>
+
+          <h2 style="color: #1e293b; font-size: 22px; margin-bottom: 20px; font-weight: 700;">Password Reset Request</h2>
+          <p style="font-size: 16px; line-height: 1.6; color: #475569;">Hello ${name},</p>
+          <p style="font-size: 16px; line-height: 1.6; color: #475569;">A request has been received to reset the password for your account. If you did not make this request, you can safely ignore this email.</p>
+          
+          <div style="margin-top: 40px; text-align: center;">
+            <a href="${resetUrl}" style="background-color: #6366f1; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);">Reset My Password</a>
+          </div>
+
+          <p style="font-size: 14px; line-height: 1.6; color: #64748b; margin-top: 30px;">
+            For security reasons, this link will expire in 1 hour.
+          </p>
+          
+          <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; text-align: center;">
+            <p style="font-size: 12px; color: #94a3b8; margin: 0;">&copy; ${new Date().getFullYear()} SaathiGro Systems. All rights reserved.</p>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 5px;">This is a system-generated security communication.</p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('[EMAIL-ERROR] Reset password email failed:', error.message);
+    return false;
+  }
+};

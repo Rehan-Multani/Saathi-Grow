@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Table, Badge, Spinner, Button } from 'react-bootstrap';
-import { History, ArrowUpRight, ArrowDownRight, User, Package, ChevronLeft, ChevronRight, Store, ArrowLeft } from 'lucide-react';
+import { History, ArrowLeft, User, Package, ChevronLeft, ChevronRight, Store } from 'lucide-react';
 import { getInventoryLogs, getProductById } from '../../api/productApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useStaffAuth } from '../../../staff/context/StaffAuthContext';
 import { useStoreManagerAuth } from '../../../store-manager/context/StoreManagerAuthContext';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const ProductInventoryLogs = () => {
+    const { t } = useTranslation('admin_products');
     const { id } = useParams();
     const adminContext = useAdminAuth();
     const staffContext = useStaffAuth();
@@ -31,269 +32,175 @@ const ProductInventoryLogs = () => {
         try {
             const data = await getProductById(adminUser.token, id);
             setProduct(data);
-        } catch (error) {
-            console.error('Error fetching product:', error);
-            toast.error('Failed to load product details');
-        }
-    }, [adminUser.token, id]);
+        } catch (error) { toast.error(t('messages.load_failed')); }
+    }, [adminUser.token, id, t]);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getInventoryLogs(adminUser.token, id, { page, limit });
-            // API now returns { logs, total, page, pages }
             if (data.logs) {
                 setLogs(data.logs);
                 setTotalLogs(data.total);
                 setTotalPages(data.pages);
-            } else {
-                // Fallback if API hasn't been updated or returns plain array
-                setLogs(Array.isArray(data) ? data : []);
-            }
-        } catch (error) {
-            console.error('Error fetching logs:', error);
-            toast.error('Failed to load inventory history');
-        } finally {
-            setLoading(false);
-        }
-    }, [adminUser.token, id, page]);
+            } else { setLogs(Array.isArray(data) ? data : []); }
+        } catch (error) { toast.error(t('messages.load_failed')); }
+        finally { setLoading(false); }
+    }, [adminUser.token, id, page, t]);
 
     useEffect(() => {
-        if (adminUser?.token && id) {
-            fetchProduct();
-            fetchLogs();
-        }
+        if (adminUser?.token && id) { fetchProduct(); fetchLogs(); }
     }, [adminUser.token, id, page, fetchProduct, fetchLogs]);
 
     const getBadgeVariant = (type) => {
         switch (type) {
-            case 'Addition': return 'success';
-            case 'Sale': return 'primary';
-            case 'Deduction': return 'danger';
-            case 'Damage': return 'warning';
-            case 'Return': return 'info';
-            case 'Audit': return 'secondary';
-            default: return 'light';
+            case 'Addition': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            case 'Sale': return 'bg-blue-50 text-blue-600 border-blue-100';
+            case 'Deduction': return 'bg-rose-50 text-rose-600 border-rose-100';
+            case 'Damage': return 'bg-amber-50 text-amber-600 border-amber-100';
+            case 'Return': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
+            case 'Audit': return 'bg-slate-50 text-slate-600 border-slate-100';
+            default: return 'bg-slate-50 text-slate-400 border-slate-100';
         }
     };
 
+    const getTypeLabel = (type) => {
+        const key = type?.toLowerCase();
+        return t(`logs.types.${key}`, { defaultValue: type });
+    };
+
+    if (loading && page === 1 && !product) return <div className="flex h-screen items-center justify-center bg-white"><div className="saathi-spinner"></div></div>;
+
     return (
-        <div className="p-4">
-            {/* Header section */}
-            <div className="mb-4">
-                <Link to="/admin/products" className="text-decoration-none text-muted mb-3 d-inline-flex align-items-center gap-1 hover:text-primary transition-colors">
-                    <ArrowLeft size={16} /> Back to Products
-                </Link>
-                <div className="d-flex justify-content-between align-items-center mt-2">
-                    <div className="d-flex align-items-center gap-3">
-                        <div className="p-3 bg-primary bg-opacity-10 rounded-3 text-primary">
-                            <History size={28} />
-                        </div>
-                        <div>
-                            <div className="d-flex align-items-center gap-2">
-                                <h3 className="fw-bold text-dark mb-1">Inventory History</h3>
-                                <PageInfoTooltip info={pageInfoData.productInventoryLogs} />
+        <div className="min-h-screen bg-slate-50/50 p-4 md:p-8">
+            <div className="max-w-6xl mx-auto">
+                <header className="mb-8">
+                    <Link to="/admin/products" className="flex items-center gap-2 text-slate-400 hover:text-slate-600 text-sm font-medium mb-6 transition-all">
+                        <ArrowLeft size={16} /> {t('logs.back')}
+                    </Link>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 shadow-sm">
+                                <History size={24} />
                             </div>
-                            <div className="d-flex align-items-center gap-2">
-                                <span className="text-muted small">Tracking movements for</span>
-                                {product ? (
-                                    <Badge bg="light" text="dark" className="border shadow-sm">
-                                        {product.name} ({product.sku})
-                                    </Badge>
-                                ) : (
-                                    <Spinner animation="border" size="sm" variant="secondary" />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Stats Overview */}
-            {product && (
-                <div className="row g-4 mb-4">
-                    <div className="col-md-3">
-                        <Card className="border-0 shadow-sm rounded-4">
-                            <Card.Body className="p-4">
-                                <div className="text-muted small text-uppercase fw-bold mb-2">Current Total Stock</div>
-                                <div className="h2 fw-black text-primary mb-0">
-                                    {product.vendor ? (product.stock || 0) : (product.branchStocks?.reduce((acc, curr) => acc + curr.stock, 0) || 0)}
-                                    <span className="fs-6 text-muted fw-normal ms-2">{product.unitType || 'Units'}</span>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h1 className="text-2xl font-bold text-slate-900">{t('logs.title')}</h1>
+                                    <PageInfoTooltip info={pageInfoData.productInventoryLogs} />
                                 </div>
-                            </Card.Body>
-                        </Card>
+                                {product && <p className="text-slate-500 text-sm mt-1">{t('logs.subtitle', { name: product.name })}</p>}
+                            </div>
+                        </div>
+                        {product && (
+                            <div className="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{t('logs.current_balance')}</span>
+                                <div className="text-xl font-bold text-slate-900 flex items-baseline gap-2">
+                                    {product.vendor ? (product.stock || 0) : (product.branchStocks?.reduce((acc, curr) => acc + curr.stock, 0) || 0)}
+                                    <span className="text-xs font-medium text-slate-400 uppercase">{product.unitType || 'Units'}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                </div>
-            )}
+                </header>
 
-            {/* History Table */}
-            <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
-                <div className="bg-white px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0 fw-bold">Stock Movement Log</h5>
-                    <Badge bg="blue-50" text="primary" className="border border-blue-100 rounded-pill px-3 py-2">
-                        Total Records: {totalLogs}
-                    </Badge>
-                </div>
-                
-                <Card.Body className="p-0">
-                    <div className="table-responsive">
-                        <Table hover className="mb-0 align-middle">
-                            <thead className="bg-light">
-                                <tr className="text-muted small text-uppercase tracking-wider">
-                                    <th className="px-4 py-3 border-0">Date & Time</th>
-                                    <th className="border-0">Location</th>
-                                    <th className="border-0 text-center">Type</th>
-                                    <th className="border-0">Movement</th>
-                                    <th className="border-0">Stock Balance</th>
-                                    <th className="border-0">Performed By</th>
-                                    <th className="border-0 pe-4">Reference/Reason</th>
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                    <div className="p-5 border-b border-slate-50 flex justify-between items-center text-sm font-bold text-slate-800">
+                        <span>Movement History</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('logs.records', { count: totalLogs })}</span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-100">
+                                    <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('logs.table.time')}</th>
+                                    <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('logs.table.location')}</th>
+                                    <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('logs.table.event')}</th>
+                                    <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('logs.table.change')}</th>
+                                    <th className="px-6 py-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('logs.table.balance')}</th>
+                                    <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('logs.table.operator')}</th>
+                                    <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('logs.table.reason')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan="7" className="text-center py-5">
-                                            <Spinner animation="border" variant="primary" />
-                                            <p className="mt-3 text-muted">Retrieving inventory logs...</p>
-                                        </td>
-                                    </tr>
+                            <tbody className="divide-y divide-slate-50">
+                                {loading && page === 1 ? (
+                                    <tr><td colSpan="7" className="py-20 text-center"><div className="saathi-spinner mx-auto"></div></td></tr>
                                 ) : logs.length > 0 ? (
                                     logs.map((log) => (
-                                        <tr key={log._id} className="hover-bg-blue-50 transition-colors">
-                                            <td className="px-4 py-3">
-                                                <div className="small fw-bold text-dark">{format(new Date(log.createdAt), 'MMM dd, yyyy')}</div>
-                                                <div className="text-xs text-muted font-monospace">{format(new Date(log.createdAt), 'HH:mm:ss')}</div>
+                                        <tr key={log._id} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm font-semibold text-slate-900">{format(new Date(log.createdAt), 'MMM dd, yyyy')}</div>
+                                                <div className="text-[10px] text-slate-400 mt-0.5">{format(new Date(log.createdAt), 'hh:mm a')}</div>
                                             </td>
-                                            <td>
-                                                <div className="d-flex align-items-center gap-2">
-                                                    {log.vendorId ? (
-                                                        <div className="d-flex flex-column">
-                                                            <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] fw-bold uppercase">
-                                                                <Store size={9} className="me-1" /> Vendor Store
-                                                            </span>
-                                                            <span className="small fw-medium mt-1">{log.vendorId.storeName}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="d-flex flex-column">
-                                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] fw-bold uppercase">
-                                                                <Package size={9} className="me-1" /> Branch
-                                                            </span>
-                                                            <span className="small fw-medium mt-1">{log.branchId?.name || 'Main Office'}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="text-center">
-                                                <Badge bg={getBadgeVariant(log.type)} className="text-uppercase py-1.5 px-3 rounded-pill" style={{ fontSize: '10px', minWidth: '80px' }}>
-                                                    {log.type}
-                                                </Badge>
-                                            </td>
-                                            <td>
-                                                <div className={`d-flex align-items-center gap-1 fw-bold ${log.changeAmount >= 0 ? 'text-success' : 'text-danger'}`}>
-                                                    {log.changeAmount >= 0 ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-                                                    {Math.abs(log.changeAmount)}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="d-flex align-items-center gap-2">
-                                                    <span className="text-muted small">{log.previousStock}</span>
-                                                    <span className="text-gray-300">→</span>
-                                                    <span className="fw-bold text-dark">{log.newStock}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="d-flex align-items-center gap-2 small text-truncate">
-                                                    <div className="w-6 h-6 rounded-circle bg-light d-flex align-items-center justify-content-center text-primary border border-primary border-opacity-10">
-                                                        <User size={12} />
+                                            <td className="px-6 py-4">
+                                                {log.vendorId ? (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-bold text-purple-500 uppercase flex items-center gap-1"><Store size={10} /> Vendor</span>
+                                                        <span className="text-xs font-semibold text-slate-700 truncate max-w-[120px]">{log.vendorId.storeName}</span>
                                                     </div>
-                                                    <div className="d-flex flex-column">
-                                                        <span className="fw-medium">
-                                                            {log.admin?.name || (log.vendorId ? log.vendorId.storeName : 'System Auto')}
-                                                        </span>
-                                                        {log.admin?.email ? (
-                                                            <span className="text-xs text-muted truncate max-w-[120px]">{log.admin.email}</span>
-                                                        ) : log.vendorId ? (
-                                                            <span className="text-xs text-purple-600 fw-bold uppercase" style={{ fontSize: '9px' }}>Vendor Partner</span>
-                                                        ) : null}
+                                                ) : (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-bold text-blue-500 uppercase flex items-center gap-1"><Package size={10} /> Branch</span>
+                                                        <span className="text-xs font-semibold text-slate-700 truncate max-w-[120px]">{log.branchId?.name || 'Main Office'}</span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border ${getBadgeVariant(log.type)}`}>
+                                                    {getTypeLabel(log.type)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`text-sm font-bold ${log.changeAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {log.changeAmount >= 0 ? '+' : ''}{log.changeAmount}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex items-center justify-center gap-2 text-xs font-medium">
+                                                    <span className="text-slate-300">{log.previousStock}</span>
+                                                    <span className="text-slate-200">→</span>
+                                                    <span className="font-bold text-slate-900">{log.newStock}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400"><User size={14} /></div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-slate-700">{log.admin?.name || (log.vendorId ? log.vendorId.storeName : 'System')}</span>
+                                                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter">{log.admin?.role || (log.vendorId ? 'Vendor' : 'System')}</span>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="pe-4">
-                                                <div className="small text-muted py-1 bg-light px-2 rounded border border-light" style={{ fontSize: '11px', lineHeight: '1.4' }}>
-                                                    {log.reason || 'No detailed reason provided.'}
-                                                </div>
+                                            <td className="px-6 py-4">
+                                                <p className="text-xs text-slate-500 max-w-[200px] line-clamp-1 italic">{log.reason || 'No remark'}</p>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
-                                    <tr>
-                                        <td colSpan="7" className="text-center py-5">
-                                            <div className="p-4 bg-light rounded-circle d-inline-flex mb-3">
-                                                <History size={40} className="text-gray-300" />
-                                            </div>
-                                            <h5 className="text-muted mb-1">No transaction history found</h5>
-                                            <p className="text-secondary small">Inventary movements will appear here.</p>
-                                        </td>
-                                    </tr>
+                                    <tr><td colSpan="7" className="py-20 text-center text-slate-400 text-sm font-medium">{t('logs.no_logs')}</td></tr>
                                 )}
                             </tbody>
-                        </Table>
+                        </table>
                     </div>
-                </Card.Body>
 
-                {/* Pagination footer */}
-                {!loading && totalLogs > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalLogs)}</span> of <span className="fw-semibold text-dark">{totalLogs}</span> entries
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button 
-                                variant="light" 
-                                size="sm"
-                                disabled={page === 1}
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                            >
-                                <ChevronLeft size={16} />
-                            </Button>
-                            <div className="d-flex align-items-center gap-1">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                    .filter(p => p === 1 || p === totalPages || Math.abs(page - p) <= 1)
-                                    .map((p, idx, arr) => (
-                                        <React.Fragment key={p}>
-                                            {idx > 0 && arr[idx-1] !== p - 1 && <span className="text-muted">...</span>}
-                                            <Button 
-                                                variant={page === p ? "primary" : "light"}
-                                                size="sm"
-                                                onClick={() => setPage(p)}
-                                            >
-                                                {p}
-                                            </Button>
-                                        </React.Fragment>
-                                    ))
-                                }
+                    {!loading && totalPages > 1 && (
+                        <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-xs text-slate-500 font-medium">{t('logs.records', { count: totalLogs })} Found</span>
+                            <div className="flex gap-2">
+                                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 border border-slate-200 rounded-lg text-slate-400 disabled:opacity-30"><ChevronLeft size={18} /></button>
+                                <span className="text-xs font-bold text-slate-900 flex items-center px-4">Page {page} of {totalPages}</span>
+                                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-1.5 border border-slate-200 rounded-lg text-slate-400 disabled:opacity-30"><ChevronRight size={18} /></button>
                             </div>
-                            <Button 
-                                variant="light" 
-                                size="sm"
-                                disabled={page === totalPages}
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                            >
-                                <ChevronRight size={16} />
-                            </Button>
                         </div>
-                    </div>
-                )}
-            </Card>
-
+                    )}
+                </div>
+            </div>
             <style dangerouslySetInnerHTML={{ __html: `
-                .hover-bg-blue-50:hover {
-                    background-color: #f8fbff !important;
-                }
-                .fw-black { font-weight: 900; }
+                .saathi-spinner { width: 32px; height: 32px; border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             `}} />
         </div>
     );
-};
+}
 
 export default ProductInventoryLogs;

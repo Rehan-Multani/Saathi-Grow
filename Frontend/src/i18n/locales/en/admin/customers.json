@@ -1,0 +1,96 @@
+{
+  "all": {
+    "title": "Customers",
+    "subtitle": "View and manage your registered customers",
+    "search_placeholder": "Search by name, email or phone...",
+    "no_customers": "No customers found",
+    "anonymous": "Anonymous",
+    "table": {
+      "customer": "Customer",
+      "contact": "Contact",
+      "location": "City",
+      "wallet": "Wallet",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "blocked": "Blocked",
+      "verified": "Verified",
+      "unverified": "Unverified"
+    },
+    "actions": {
+      "view_profile": "View Profile",
+      "send_email": "Send Email",
+      "send_message": "Send Message",
+      "block_user": "Block User",
+      "unblock_user": "Unblock User"
+    },
+    "alerts": {
+      "block_success": "Customer blocked successfully",
+      "unblock_success": "Customer unblocked successfully",
+      "sent_success": "{{type}} sent successfully!",
+      "delivered_success": "{{type}} delivered to {{name}}"
+    },
+    "errors": {
+      "fetch_failed": "Failed to load customers",
+      "fetch_profile": "Failed to load profile",
+      "update_failed": "Failed to update profile"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "to": "to",
+      "of": "of"
+    }
+  },
+  "orders": {
+    "title": "Customer Orders",
+    "subtitle": "Track and manage historical customer orders",
+    "table": {
+      "order": "Order ID",
+      "reference": "Order ID",
+      "customer": "Customer",
+      "manifest": "Products",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "filters": {
+      "all": "All Status",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "preparing": "Preparing",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "status": {
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "preparing": "Preparing"
+    }
+  },
+  "modals": {
+    "profile": {
+      "title": "Customer Details",
+      "info": "Contact Information",
+      "wallet_info": "Wallet Balance",
+      "history": "Recent Orders",
+      "joined": "Joined",
+      "last_login": "Last Login",
+      "addresses": "Saved Addresses",
+      "no_addresses": "No addresses found",
+      "stats": {
+        "orders": "Total Orders",
+        "spend": "Total Spend"
+      }
+    },
+    "message": {
+      "title": "Send {{type}}",
+      "subject": "Subject",
+      "body": "Message",
+      "placeholder": "Type your message here...",
+      "send": "Send Now",
+      "sending": "Sending..."
+    }
+  }
+}

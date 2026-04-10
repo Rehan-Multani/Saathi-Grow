@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { createPromoCode } from '../../api/promoCodeApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const CreatePromoCode = () => {
     const navigate = useNavigate();

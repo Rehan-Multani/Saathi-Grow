@@ -1,8 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, MapPin, Phone, Mail, Clock, CheckCircle2, Truck, User, CreditCard, Calendar, Hash } from 'lucide-react';
 import { useVendor } from '../../contexts/VendorContext';
-import { formatCurrency, formatDate } from '../../utils/formatDate';
+import { formatCurrency, formatDate } from '../../../../common/utils/formatUtils';
 
 const OrderDetail = () => {
     const { orderId } = useParams();
@@ -125,7 +125,7 @@ const OrderDetail = () => {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-bold text-gray-900">{item.product?.name || 'Unknown Product'}</p>
-                                        <p className="text-xs text-gray-500">Qty: {item.quantity} × {formatCurrency(item.price)}</p>
+                                        <p className="text-xs text-gray-500">Qty: {item.quantity} � {formatCurrency(item.price)}</p>
                                     </div>
                                     <p className="text-sm font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
                                 </div>

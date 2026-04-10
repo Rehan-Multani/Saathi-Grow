@@ -9,9 +9,9 @@ import StaffReturns from '../pages/orders/StaffReturns';
 import StaffInventory from '../pages/inventory/StaffInventory';
 import StaffTickets from '../pages/support/StaffTickets';
 import StaffCustomers from '../pages/customers/StaffCustomers';
-import StaffManagement from '../../store-manager/StaffManagement';
-import AllProducts from '../../admin/pages/products/AllProducts';
-import { StaffProfile } from '../../../components/ProfileSettings';
+import StaffManagement from '../pages/StaffManagement';
+import StaffProducts from '../pages/products/StaffProducts';
+import StaffProfile from '../pages/StaffProfile';
 import LegalSupport from '../pages/LegalSupport';
 import StaffPOS from '../pages/StaffPOS';
 import Notifications from '../pages/Notifications';
@@ -66,7 +66,7 @@ const StaffRoutes = () => {
                         <Route path="orders/active" element={<StaffOrders />} />
                         <Route path="orders/returns" element={<StaffReturns />} />
                         <Route path="inventory" element={<StaffInventory />} />
-                        <Route path="products" element={<AllProducts />} />
+                        <Route path="products" element={<StaffProducts />} />
                         <Route path="customers" element={<StaffCustomers />} />
                         <Route path="staff" element={<StaffManagement />} />
                         <Route path="support" element={<StaffTickets />} />

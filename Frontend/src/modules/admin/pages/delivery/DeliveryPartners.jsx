@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
 import Swal from 'sweetalert2';
 import * as api from '../../api/adminDeliveryApi';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 const DeliveryPartners = () => {
     const { t } = useTranslation();
     const [partners, setPartners] = useState([]);

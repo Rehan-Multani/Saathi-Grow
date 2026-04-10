@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import { Save, X, Tag, Code, Calendar, Percent } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -81,7 +81,7 @@ const EditOfferModal = ({ show, onHide, offer, onSave }) => {
                                         value={formData.discount}
                                         onChange={handleChange}
                                         required
-                                        placeholder="e.g. 20% OFF or ₹50 Flat"
+                                        placeholder="e.g. 20% OFF or ?50 Flat"
                                         className="border-0 bg-transparent shadow-none py-2"
                                     />
                                 </InputGroup>

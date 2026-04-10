@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Search, Eye, CheckCircle, XCircle, RotateCcw, Package,
-    User, Loader2, Truck, ChevronLeft, ChevronRight, Filter,
-    Plus, MapPin, Store, Check, Layers, Image, ShieldCheck, Clock
+    Search, Eye, RotateCcw, Package,
+    ChevronLeft, ChevronRight, Filter,
+    Truck, MapPin, Store, Check, Layers, X, Clock
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 import { getReturnRequests, handleReturnRequest, createReturnBatch } from '../../api/orderApi';
 import { getDeliveryPartners } from '../../api/adminDeliveryApi';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const statusColors = {
-    Pending: 'bg-amber-100 text-amber-700 border-amber-200',
-    Accepted: 'bg-green-100 text-green-700 border-green-200',
-    Approved: 'bg-green-100 text-green-700 border-green-200',
-    Rejected: 'bg-orange-100 text-orange-700 border-orange-200',
-    FinalRejected: 'bg-red-100 text-red-700 border-red-200',
-    Scheduled: 'bg-blue-100 text-blue-700 border-blue-200',
-    PickedUp: 'bg-purple-100 text-purple-700 border-purple-200',
-    Returned: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    Pending: 'bg-amber-50 text-amber-600 border-amber-100',
+    Accepted: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    Approved: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    Rejected: 'bg-rose-50 text-rose-600 border-rose-100',
+    FinalRejected: 'bg-red-50 text-red-700 border-red-100',
+    Scheduled: 'bg-blue-50 text-blue-600 border-blue-100',
+    PickedUp: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    Returned: 'bg-slate-50 text-slate-600 border-slate-100',
 };
 
 const ReturnRequests = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation(['admin_orders', 'common']);
     const [returnRequests, setReturnRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +50,7 @@ const ReturnRequests = () => {
     const fetchReturns = async () => {
         try {
             setLoading(true);
-            const { returns, pagination: paginationData } = await getReturnRequests(
+            const data = await getReturnRequests(
                 {
                     page,
                     limit,
@@ -59,10 +59,10 @@ const ReturnRequests = () => {
                 },
                 { paginated: true }
             );
-            setReturnRequests(Array.isArray(returns) ? returns : []);
-            setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
+            setReturnRequests(Array.isArray(data.returns) ? data.returns : []);
+            setPagination(data.pagination || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
-            toast.error(t('orders.returns.alerts.load_failed'));
+            toast.error(t('common:error_occurred'));
         } finally {
             setLoading(false);
         }
@@ -77,45 +77,33 @@ const ReturnRequests = () => {
         }
     };
 
-    useEffect(() => {
-        fetchPartners();
-    }, []);
+    useEffect(() => { fetchPartners(); }, []);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
-            setPage(1);
-        }, 400);
+        const timer = setTimeout(() => { setDebouncedSearch(searchTerm); setPage(1); }, 400);
         return () => clearTimeout(timer);
     }, [searchTerm]);
 
-    useEffect(() => {
-        fetchReturns();
-    }, [page, activeTab, debouncedSearch]);
+    useEffect(() => { fetchReturns(); }, [page, activeTab, debouncedSearch]);
 
-    useEffect(() => {
-        setSelectedForBatch([]);
-    }, [page, activeTab, debouncedSearch]);
+    useEffect(() => { setSelectedForBatch([]); }, [page, activeTab, debouncedSearch]);
 
     const handleApproval = async (id, action) => {
         let reason = null;
         if (action === 'Rejected') {
             const { value } = await Swal.fire({
-                title: t('orders.returns.swal.reject_title'),
+                title: t('actions.reject_title', 'Reject Request?'),
                 input: 'textarea',
-                inputLabel: t('orders.returns.swal.reason_label'),
+                inputPlaceholder: t('actions.reason_placeholder', 'Enter reason...'),
                 showCancelButton: true,
-                inputValidator: (v) => !v && t('orders.returns.swal.reason_required')
             });
             if (!value) return;
             reason = value;
         } else {
             const confirm = await Swal.fire({
-                title: t('orders.returns.swal.approve_title'),
-                text: t('orders.returns.swal.approve_text'),
+                title: t('actions.approve_title', 'Approve Request?'),
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#7c3aed'
             });
             if (!confirm.isConfirmed) return;
         }
@@ -123,11 +111,11 @@ const ReturnRequests = () => {
         try {
             setProcessing(true);
             await handleReturnRequest(id, action, reason);
-            toast.success(t('orders.returns.alerts.record_success', { action: t(`orders.returns.tabs.${action.toLowerCase()}`, { defaultValue: action }) }));
+            toast.success(t('actions.update_success'));
             fetchReturns();
             setSelectedRequest(null);
         } catch (err) {
-            toast.error(err.response?.data?.message || t('orders.returns.alerts.update_failed'));
+            toast.error(err.response?.data?.message || t('common:error_occurred'));
         } finally {
             setProcessing(false);
         }
@@ -138,381 +126,211 @@ const ReturnRequests = () => {
     };
 
     const handleBatchSchedule = async () => {
-        if (!selectedPartner) return toast.error(t('orders.returns.batch.select_rider', { defaultValue: 'Select a rider' }));
-        if (selectedForBatch.length === 0) return toast.error(t('orders.returns.batch.no_selections', { defaultValue: 'No selections' }));
-
-        const firstOrder = returnRequests.find(r => r._id === selectedForBatch[0]);
-        if (!firstOrder) return toast.error(t('orders.returns.batch.session_mismatch', { defaultValue: 'Session mismatch. Refresh.' }));
-
-        const destType = firstOrder.vendor ? 'vendor' : 'branch';
-        const destId = firstOrder.vendor?._id || firstOrder.vendor || firstOrder.branchId?._id || firstOrder.branchId;
-        const destIdStr = String(destId);
-
-        const allSame = selectedForBatch.every(id => {
-            const o = returnRequests.find(r => r._id === id);
-            if (!o) return false;
-            const myVendorId = o.vendor?._id || o.vendor;
-            const myBranchId = o.branchId?._id || o.branchId;
-            const myDestId = myVendorId || myBranchId;
-            return myDestId && String(myDestId) === destIdStr;
-        });
-
-        if (!allSame) {
-            const confirmed = await Swal.fire({
-                title: t('orders.returns.swal.mixed_dest_title'),
-                text: t('orders.returns.swal.mixed_dest_text'),
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#7c3aed'
-            });
-            if (!confirmed.isConfirmed) return;
-        }
-
+        if (!selectedPartner) return toast.error(t('actions.select_partner_error', 'Select a partner'));
+        
         try {
             setProcessing(true);
+            const firstOrder = returnRequests.find(r => r._id === selectedForBatch[0]);
+            const destType = firstOrder?.vendor ? 'vendor' : 'branch';
+            const destId = firstOrder?.vendor?._id || firstOrder?.branchId?._id;
+
             await createReturnBatch({
                 partnerId: selectedPartner,
                 orderIds: selectedForBatch,
                 destinationType: destType,
                 destinationId: destId
             });
-            toast.success(t('orders.returns.alerts.batch_success'));
+            toast.success(t('actions.batch_success', 'Batch scheduled successfully'));
             setShowBatchModal(false);
             setSelectedForBatch([]);
             fetchReturns();
-            fetchPartners();
         } catch (err) {
-            toast.error(err.response?.data?.message || t('orders.returns.alerts.update_failed'));
+            toast.error(err.response?.data?.message || t('common:error_occurred'));
         } finally {
             setProcessing(false);
         }
     };
 
     return (
-        <div className="p-4 space-y-4 max-w-[1600px] mx-auto">
-            {/* Header: Compact & Premium */}
-            <div className="bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-100 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center text-white shadow-lg shadow-purple-100">
-                        <RotateCcw size={18} />
+        <div className="container-fluid px-0">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h1 className="text-2xl font-bold text-slate-900">{t('return_requests_title', 'Return Requests')}</h1>
+                        <PageInfoTooltip data={pageInfoData.returnRequests} />
                     </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h2 className="font-bold text-gray-800 text-lg leading-tight">{t('orders.returns.title')}</h2>
-                            <PageInfoTooltip info={pageInfoData.returnRequests} />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('orders.returns.logistics_control')}</span>
-                            <span className="w-1 h-1 rounded-full bg-gray-200"></span>
-                            <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">{t('orders.returns.active_requests', { count: pagination.total })}</span>
-                        </div>
-                    </div>
+                    <p className="text-slate-500 text-sm">{t('return_requests_subtitle', 'Manage customer return claims and logistics.')}</p>
                 </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="flex items-center bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 w-full md:w-72 focus-within:bg-white focus-within:ring-2 focus-within:ring-purple-100 transition-all">
-                        <Search className="text-gray-400 mr-2" size={14} />
-                        <input 
-                            type="text" 
-                            placeholder={t('orders.returns.search_placeholder')}
-                            className="bg-transparent border-none outline-none text-xs w-full font-medium placeholder:text-gray-300"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                <div className="w-full md:w-72 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                        type="text" 
+                        placeholder={t('search_placeholder')}
+                        className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-10 pr-4 text-sm font-medium outline-none focus:border-blue-500 transition-all"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
                 </div>
             </div>
 
-            {/* Tabs: Sleek & Compact */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex p-1 bg-white border border-gray-100 rounded-lg shadow-sm">
-                    {['Pending', 'Accepted', 'Scheduled', 'History'].map(tab => {
-                        const count = tab === 'Accepted' 
-                            ? returnRequests.filter(r => ['Accepted', 'Approved'].includes(r.returnRequest.status)).length 
-                            : tab === 'Pending' 
-                                ? returnRequests.filter(r => r.returnRequest.status === 'Rejected').length 
-                                : 0;
-
-                        return (
-                            <button
-                                key={tab}
-                                onClick={() => { setActiveTab(tab); setPage(1); }}
-                                className={`px-5 py-1.5 rounded-md text-[11px] font-bold transition-all uppercase tracking-wider flex items-center gap-2 ${activeTab === tab ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-                            >
-                                {t(`orders.returns.tabs.${tab.toLowerCase()}`)}
-                                {count > 0 && (
-                                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === tab ? 'bg-white text-purple-600' : 'bg-gray-100 text-gray-500'}`}>
-                                        {count}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    {['Pending', 'Accepted', 'Scheduled', 'History'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => { setActiveTab(tab); setPage(1); }}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            {t(`tabs.${tab.toLowerCase()}`, tab)}
+                        </button>
+                    ))}
                 </div>
 
                 {activeTab === 'Accepted' && selectedForBatch.length > 0 && (
-                    <div className="animate-in fade-in zoom-in-95 duration-200">
-                        <button 
-                            onClick={() => setShowBatchModal(true)}
-                            className="flex items-center gap-2 px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider shadow-md shadow-purple-100 transition-all active:scale-95"
-                        >
-                            <Layers size={14} />
-                            {t('orders.returns.dispatch_picks', { count: selectedForBatch.length })}
-                        </button>
-                    </div>
+                    <button 
+                        onClick={() => setShowBatchModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-xs hover:bg-blue-700 transition-all shadow-sm"
+                    >
+                        <Layers size={14} /> {t('actions.schedule_pickup', 'Schedule Pickup')} ({selectedForBatch.length})
+                    </button>
                 )}
             </div>
 
-            {/* Table: Dense & Professional */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                {loading ? (
-                    <div className="py-16 text-center">
-                        <Loader2 className="animate-spin text-purple-600 mx-auto mb-3" size={24} />
-                        <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">{t('orders.returns.syncing')}</p>
-                    </div>
-                ) : returnRequests.length === 0 ? (
-                    <div className="py-20 text-center">
-                        <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 border border-gray-100">
-                            <RotateCcw className="text-gray-200" size={20} />
-                        </div>
-                        <h4 className="font-bold text-gray-800 text-sm">{t('orders.returns.quiet_moment')}</h4>
-                        <p className="text-[11px] text-gray-400 italic">{t('orders.returns.no_returns')}</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-xs border-collapse">
-                            <thead>
-                                <tr className="bg-gray-50 border-b border-gray-100">
-                                    {activeTab === 'Accepted' && (
-                                        <th className="px-4 py-3 w-10 text-center">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={selectedForBatch.length === returnRequests.length && returnRequests.length > 0}
-                                                onChange={() => {
-                                                    if (selectedForBatch.length === returnRequests.length) setSelectedForBatch([]);
-                                                    else setSelectedForBatch(returnRequests.map(r => r._id));
-                                                }}
-                                                className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600 focus:ring-transparent"
-                                            />
-                                        </th>
-                                    )}
-                                    <th className="px-4 py-3 text-left">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.return_id')}</span>
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+                <div className="overflow-x-auto text-sm">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                {activeTab === 'Accepted' && <th className="px-6 py-4 w-10"></th>}
+                                <th className="px-6 py-4">{t('table.id')}</th>
+                                <th className="px-6 py-4">{t('table.customer')}</th>
+                                <th className="px-6 py-4">{t('table.reason')}</th>
+                                <th className="px-6 py-4 text-center">{t('table.status')}</th>
+                                <th className="px-6 py-4 text-right">{t('table.amount')}</th>
+                                <th className="px-6 py-4 text-center">{t('table.actions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                Array(5).fill(0).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="8" className="px-6 py-4"><div className="h-10 bg-slate-50 rounded w-full"></div></td>
+                                    </tr>
+                                ))
+                            ) : returnRequests.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="px-6 py-24 text-center">
+                                        <div className="flex flex-col items-center justify-center text-slate-300">
+                                            <RotateCcw size={48} strokeWidth={1.5} className="animate-spin-slow opacity-20 mb-4" />
+                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t('empty.no_returns', 'No return claims found')}</p>
                                         </div>
-                                    </th>
-                                    <th className="px-4 py-3 text-left">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.source_client')}</span>
-                                    </th>
-                                    <th className="px-4 py-3 text-left">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.context')}</span>
-                                    </th>
-                                    <th className="px-4 py-3 text-left">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.value')}</span>
-                                    </th>
-                                    <th className="px-4 py-3 text-center">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.condition')}</span>
-                                    </th>
-                                    <th className="px-4 py-3 text-right">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.table.action')}</span>
-                                    </th>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {returnRequests.map(r => (
-                                    <tr key={r._id} className={`hover:bg-gray-50/50 transition-colors group ${selectedForBatch.includes(r._id) ? 'bg-purple-50/20' : ''}`}>
+                            ) : (
+                                returnRequests.map(r => (
+                                    <tr key={r._id} className="hover:bg-slate-50/50 transition-colors">
                                         {activeTab === 'Accepted' && (
-                                            <td className="px-4 py-2.5 text-center">
+                                            <td className="px-6 py-4">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={selectedForBatch.includes(r._id)}
                                                     onChange={() => toggleSelection(r._id)}
-                                                    className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600 focus:ring-transparent cursor-pointer"
+                                                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                                 />
                                             </td>
                                         )}
-                                        <td className="px-4 py-2.5">
-                                            <div className="flex flex-col">
-                                                <span className="font-mono font-bold text-purple-600">#{r.orderId?.slice(-8)}</span>
-                                                <span className="text-[9px] text-gray-400 font-bold uppercase">{new Date(r.createdAt).toLocaleDateString()}</span>
+                                        <td className="px-6 py-4">
+                                            <span className="font-medium text-blue-600 font-mono text-sm">#{r.orderId?.slice(-8).toUpperCase()}</span>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-slate-900">{r.user?.name}</div>
+                                            <div className="text-xs text-slate-400 flex items-center gap-1">
+                                                {r.vendor ? <Store size={12} /> : <MapPin size={12} />}
+                                                {r.vendor?.storeName || r.branchId?.name || 'Main Branch'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2.5">
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex flex-col min-w-0">
-                                                    <span className="font-bold text-gray-800 truncate">{r.user?.name}</span>
-                                                    <div className="flex items-center gap-1">
-                                                        {r.vendor ? <Store size={8} className="text-purple-400" /> : <MapPin size={8} className="text-blue-400" />}
-                                                        <span className="text-[9px] font-bold text-gray-400 uppercase truncate">
-                                                            {r.vendor ? `${t('common.vendors')}: ${r.vendor.storeName}` : `${t('sidebar.branches')}: ${r.branchId?.name || 'Main'}`}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <td className="px-6 py-4 max-w-[200px] truncate">
+                                            <div className="font-medium text-slate-700">{r.returnRequest.reason}</div>
+                                            <div className="text-[11px] text-slate-400 truncate">{r.returnRequest.description}</div>
                                         </td>
-                                        <td className="px-4 py-2.5 max-w-[200px]">
-                                            <p className="font-bold text-gray-700 leading-tight truncate">{r.returnRequest.reason}</p>
-                                            <p className="text-[10px] text-gray-400 truncate italic">{r.returnRequest.description}</p>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${statusColors[r.returnRequest.status]}`}>
+                                                {r.returnRequest.status}
+                                            </span>
                                         </td>
-                                        <td className="px-4 py-2.5">
-                                            <span className="font-bold text-gray-800">₹{r.totalAmount?.toLocaleString()}</span>
-                                        </td>
-                                        <td className="px-4 py-2.5">
-                                            <div className="flex flex-col items-center gap-0.5">
-                                                <span className={`px-2 py-0.5 rounded text-[9px] font-black border uppercase tracking-tighter ${statusColors[r.returnRequest.status]}`}>
-                                                    {t(`orders.returns.tabs.${r.returnRequest.status.toLowerCase()}`, { defaultValue: r.returnRequest.status })}
-                                                </span>
-                                                {r.returnRequest.status === 'Rejected' && (
-                                                    <span className="text-[8px] text-red-500 font-bold uppercase">{t('orders.returns.store_denied')}</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2.5 text-right">
-                                            <button 
-                                                onClick={() => setSelectedRequest(r)}
-                                                className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all border border-transparent hover:border-purple-100"
-                                            >
-                                                <Eye size={14} />
-                                            </button>
+                                        <td className="px-6 py-4 text-right font-bold text-slate-900">₹{r.totalAmount?.toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button onClick={() => setSelectedRequest(r)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {!loading && pagination.total > 0 && (
+                    <div className="bg-slate-50 border-t border-slate-100 px-6 py-3 flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-400 uppercase">{t('total_count', { count: pagination.total })}</span>
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1 text-slate-400 hover:text-slate-900 disabled:opacity-30"><ChevronLeft size={20} /></button>
+                            <span className="text-sm font-bold text-slate-600">{page} / {pagination.totalPages}</span>
+                            <button onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))} disabled={page >= pagination.totalPages} className="p-1 text-slate-400 hover:text-slate-900 disabled:opacity-30"><ChevronRight size={20} /></button>
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* Pagination: Compact */}
-            {!loading && pagination.total > 0 && (
-                <div className="bg-white border border-gray-100 rounded-xl px-4 py-2 flex items-center justify-between shadow-sm">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <span className="text-gray-700">{((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)}</span> {t('orders.returns.pagination.of')} {pagination.total}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                        <button
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            className="p-1.5 rounded-md border border-gray-100 text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
-                        >
-                            <ChevronLeft size={14} />
-                        </button>
-                        <span className="text-[10px] font-bold text-gray-600 px-2 uppercase">{t('orders.returns.pagination.page_of', { current: page, total: pagination.totalPages, defaultValue: `Page ${page} / ${pagination.totalPages}` })}</span>
-                        <button
-                            onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                            disabled={page >= pagination.totalPages}
-                            className="p-1.5 rounded-md border border-gray-100 text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
-                        >
-                            <ChevronRight size={14} />
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Insight Modal: Rebuilt Compact */}
             {selectedRequest && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100">
-                        <div className="p-5 space-y-5">
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                                        <RotateCcw size={18} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-800 text-base leading-none">{t('orders.returns.details.title')}</h3>
-                                        <p className="text-[10px] font-mono font-bold text-gray-400 mt-1 uppercase tracking-wider">#{selectedRequest.orderId}</p>
-                                    </div>
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">{t('return_details', 'Return Details')}</h3>
+                                    <p className="text-xs text-slate-400 mt-1 uppercase font-bold tracking-wider">#{selectedRequest.orderId}</p>
                                 </div>
-                                <button onClick={() => setSelectedRequest(null)} className="p-1 text-gray-300 hover:text-gray-800 transition-colors"><XCircle size={20} /></button>
+                                <button onClick={() => setSelectedRequest(null)} className="p-1 text-slate-400 hover:text-slate-900 transition-colors"><X size={20} /></button>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[9px] font-black text-gray-400 uppercase mb-1">{t('dashboard.customer')}</p>
-                                    <p className="font-bold text-gray-800 text-[11px] truncate">{selectedRequest.user?.name}</p>
-                                    <p className="text-[10px] text-gray-500 mt-0.5">{selectedRequest.user?.phone}</p>
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">{t('table.customer')}</p>
+                                    <p className="font-bold text-slate-900">{selectedRequest.user?.name}</p>
+                                    <p className="text-xs text-slate-500">{selectedRequest.user?.phone}</p>
                                 </div>
-                                <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
-                                    <p className="text-[9px] font-black text-purple-400 uppercase mb-1">{t('orders.returns.table.value')}</p>
-                                    <p className="font-bold text-purple-600 text-sm">₹{selectedRequest.totalAmount?.toLocaleString()}</p>
-                                    <p className="text-[10px] text-purple-400 mt-0.5 font-bold uppercase">{t('dashboard.order_details_modal.price_label', { defaultValue: 'Price' })}</p>
+                                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                    <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">{t('table.amount')}</p>
+                                    <p className="font-bold text-blue-600">₹{selectedRequest.totalAmount?.toLocaleString()}</p>
                                 </div>
                             </div>
 
-                            {selectedRequest.returnRequest.images?.length > 0 && (
-                                <div className="space-y-2">
-                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{t('orders.returns.details.visual_evidence')}</p>
-                                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                                        {selectedRequest.returnRequest.images.map((img, i) => (
-                                            <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:scale-105 transition-transform active:scale-95">
-                                                <img src={img} alt="" className="w-full h-full object-cover" />
-                                            </a>
-                                        ))}
-                                    </div>
+                            <div className="mb-6">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">{t('return_reason', 'Issue Claimed')}</p>
+                                <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                    <p className="text-sm font-bold text-slate-800">"{selectedRequest.returnRequest.reason}"</p>
+                                    <p className="text-xs text-slate-500 mt-1">{selectedRequest.returnRequest.description}</p>
                                 </div>
-                            )}
-
-                            <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1">
-                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">{t('orders.returns.details.line_items')}</p>
-                                {selectedRequest.items?.map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                        <div className="w-8 h-8 bg-white rounded border border-gray-100 overflow-hidden shrink-0">
-                                            {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <Package size={12} className="m-auto text-gray-200" />}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-gray-800 text-[10px] truncate leading-tight">{item.name}</p>
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase">{t('dashboard.order_details_modal.qty_label')}: {item.quantity} · ₹{item.price}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl shadow-inner-sm">
-                                <p className="text-[9px] font-black text-amber-600 uppercase mb-1">{t('orders.returns.details.issue_claimed')}</p>
-                                <p className="text-[11px] font-bold text-gray-700 italic leading-snug">"{selectedRequest.returnRequest.reason}"</p>
                             </div>
 
                             {['Pending', 'Rejected'].includes(selectedRequest.returnRequest.status) && (
-                                <div className="space-y-3 pt-2">
-                                    {selectedRequest.returnRequest.status === 'Rejected' && (
-                                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
-                                            <p className="text-[9px] font-black text-red-600 uppercase mb-0.5 tracking-tight">{t('orders.returns.details.system_notice')}</p>
-                                            <p className="text-[10px] font-bold text-gray-700 italic truncate">"{selectedRequest.returnRequest.rejectionReason || 'No context'}"</p>
-                                        </div>
-                                    )}
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => handleApproval(selectedRequest._id, 'Accepted')}
-                                            disabled={processing}
-                                            className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-sm transition-all active:scale-95 disabled:opacity-50"
-                                        >
-                                            {selectedRequest.returnRequest.status === 'Rejected' ? t('orders.returns.details.overrule_yes') : t('orders.returns.details.approve')}
-                                        </button>
-                                        <button 
-                                            onClick={() => handleApproval(selectedRequest._id, 'Rejected')}
-                                            disabled={processing}
-                                            className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-sm transition-all active:scale-95 disabled:opacity-50"
-                                        >
-                                            {selectedRequest.returnRequest.status === 'Rejected' ? t('orders.returns.details.final_deny') : t('orders.returns.details.reject')}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {selectedRequest.returnRequest.status === 'Accepted' && (
-                                <div className="p-3 bg-blue-50 text-blue-700 rounded-xl text-center text-[9px] font-black uppercase tracking-widest border border-blue-100 flex items-center justify-center gap-2">
-                                    <Clock size={12} /> {t('orders.returns.details.pending_logistics')}
-                                </div>
-                            )}
-
-                            {['Scheduled', 'PickedUp', 'Returned'].includes(selectedRequest.returnRequest.status) && selectedRequest.returnRequest.returnOTP && (
-                                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex justify-between items-center">
-                                    <div>
-                                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-wider mb-0.5">{t('orders.returns.details.verification_key')}</p>
-                                        <p className="font-bold text-emerald-700 text-base tracking-[0.3em]">{selectedRequest.returnRequest.returnOTP}</p>
-                                    </div>
-                                    <ShieldCheck className="text-emerald-200" size={24} />
+                                <div className="flex gap-3 pt-2">
+                                    <button 
+                                        onClick={() => handleApproval(selectedRequest._id, 'Accepted')}
+                                        disabled={processing}
+                                        className="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg font-bold text-xs uppercase hover:bg-emerald-700 transition-all"
+                                    >
+                                        {t('buttons.approve', 'Approve')}
+                                    </button>
+                                    <button 
+                                        onClick={() => handleApproval(selectedRequest._id, 'Rejected')}
+                                        disabled={processing}
+                                        className="flex-1 py-2.5 bg-rose-600 text-white rounded-lg font-bold text-xs uppercase hover:bg-rose-700 transition-all"
+                                    >
+                                        {t('buttons.reject', 'Reject')}
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -520,55 +338,47 @@ const ReturnRequests = () => {
                 </div>
             )}
 
-            {/* Batch Modal: Rebuilt Compact */}
             {showBatchModal && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[60] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 relative animate-in slide-in-from-bottom-4 duration-300 border border-gray-100">
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="font-bold text-gray-800 text-lg">{t('orders.returns.batch.title')}</h3>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase">{t('orders.returns.batch.items_for_pickup', { count: selectedForBatch.length })}</p>
-                                </div>
-                                <button onClick={() => setShowBatchModal(false)} className="text-gray-300 hover:text-gray-800 transition-colors"><XCircle size={20} /></button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('orders.returns.batch.available_fleet')}</label>
-                                <div className="grid grid-cols-1 gap-2 max-h-[240px] overflow-y-auto pr-1">
-                                    {partners.length === 0 ? (
-                                        <div className="p-4 bg-amber-50 rounded-xl text-amber-600 text-[11px] font-bold text-center border border-amber-100 italic">
-                                            {t('orders.returns.batch.no_riders')}
-                                        </div>
-                                    ) : partners.map(p => (
-                                        <button
-                                            key={p._id}
-                                            onClick={() => setSelectedPartner(p._id)}
-                                            className={`p-3 rounded-xl border transition-all flex items-center justify-between group ${selectedPartner === p._id ? 'border-purple-600 bg-purple-50/30' : 'border-gray-100 hover:border-purple-200 bg-gray-50/50'}`}
-                                        >
-                                            <div className="flex items-center gap-3 text-left min-w-0">
-                                                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-gray-100 shadow-sm">
-                                                    <Truck size={14} className={selectedPartner === p._id ? 'text-purple-600' : 'text-gray-400'} />
-                                                </div>
-                                                <div className="truncate">
-                                                    <p className="font-bold text-xs text-gray-800 leading-tight truncate">{p.user?.name}</p>
-                                                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{p.vehicleType} · {p.vehicleNumber?.slice(-4)}</p>
-                                                </div>
-                                            </div>
-                                            {selectedPartner === p._id && <Check size={14} className="text-purple-600 shrink-0" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleBatchSchedule}
-                                disabled={processing || !selectedPartner}
-                                className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-purple-100 transition-all active:scale-95 disabled:opacity-40"
-                            >
-                                {processing ? t('orders.returns.batch.initializing') : t('orders.returns.batch.confirm_btn')}
-                            </button>
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl max-w-sm w-full shadow-2xl p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-bold text-lg text-slate-900">{t('actions.schedule_pickup', 'Schedule Pickup')}</h3>
+                            <button onClick={() => setShowBatchModal(false)} className="text-slate-400 hover:text-slate-900"><X size={20} /></button>
                         </div>
+
+                        <div className="space-y-4 mb-6">
+                            <label className="text-xs font-bold text-slate-400 uppercase">{t('select_rider', 'Select Rider')}</label>
+                            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                                {partners.length === 0 ? (
+                                    <div className="p-4 bg-slate-50 rounded-lg text-center text-slate-400 text-sm font-medium">No available riders online</div>
+                                ) : partners.map(p => (
+                                    <button
+                                        key={p._id}
+                                        onClick={() => setSelectedPartner(p._id)}
+                                        className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all ${selectedPartner === p._id ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-slate-200 bg-slate-50'}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-100">
+                                                <Truck size={16} className={selectedPartner === p._id ? 'text-blue-600' : 'text-slate-400'} />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-bold text-sm text-slate-900">{p.user?.name}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase">{p.vehicleType}</p>
+                                            </div>
+                                        </div>
+                                        {selectedPartner === p._id && <Check size={16} className="text-blue-600" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleBatchSchedule}
+                            disabled={processing || !selectedPartner}
+                            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
+                        >
+                            {processing ? t('common:processing') : t('buttons.confirm', 'Confirm Schedule')}
+                        </button>
                     </div>
                 </div>
             )}

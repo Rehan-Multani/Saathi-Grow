@@ -1,0 +1,12 @@
+{
+  "operational_command_center": "परिचालन केंद्र",
+  "monitoring_global_operations": "वास्तविक समय के प्रदर्शन मेट्रिक्स और संचालन निगरानी।",
+  "revenue": "कुल राजस्व",
+  "order_flow": "ऑर्डर प्रवाह",
+  "processing": "प्रसंस्करण ऑर्डर",
+  "active_market": "सक्रिय ग्राहक",
+  "performance_trajectory": "प्रदर्शन प्रक्षेपवक्र",
+  "channel_split": "चैनल वितरण",
+  "live_order_stream": "लाइव ऑर्डर स्ट्रीम",
+  "view_all_history": "पूर्ण भंडार"
+}

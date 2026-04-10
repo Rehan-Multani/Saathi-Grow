@@ -5,7 +5,7 @@ import AdminLayout from '../AdminLayout';
 import Dashboard from '../pages/Dashboard';
 import AllOrders from '../pages/orders/AllOrders';
 import OnlineOrders from '../pages/orders/OnlineOrders';
-import POSBillingPage from '../pages/orders/POSBillingPage';
+import POSHistory from '../pages/orders/POSHistory';
 import ReturnRequests from '../pages/orders/ReturnRequests';
 import AllProducts from '../pages/products/AllProducts';
 import AddProduct from '../pages/products/AddProduct';
@@ -101,20 +101,28 @@ const PlaceholderPage = ({ title }) => {
 
 const ProtectedAdminRoute = () => {
     const { adminUser } = useAdminAuth();
+    
     if (!adminUser) {
         return <Navigate to="/admin/login" replace />;
     }
-    // Only 'Admin' role can access the /admin portal
+    
     if (adminUser.role !== 'Admin') {
         return <Navigate to="/admin/login" replace />;
     }
+    
     return <Outlet />;
 };
+
+import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
 
 const PublicAdminRoute = () => {
     const { adminUser } = useAdminAuth();
     if (adminUser) {
-        return <Navigate to="/admin/dashboard" replace />;
+        // Only redirect to dashboard if they are actually an Admin
+        if (adminUser.role === 'Admin') {
+            return <Navigate to="/admin/dashboard" replace />;
+        }
     }
     return <Outlet />;
 };
@@ -126,6 +134,8 @@ const AdminRoutes = () => {
                 {/* Public Admin Routes */}
                 <Route element={<PublicAdminRoute />}>
                     <Route path="login" element={<AdminLogin />} />
+                    <Route path="forgot-password" element={<ForgotPassword />} />
+                    <Route path="reset-password/:token" element={<ResetPassword />} />
                 </Route>
 
                 {/* Protected Admin Routes */}
@@ -137,6 +147,7 @@ const AdminRoutes = () => {
                         {/* Orders */}
                         <Route path="orders" element={<AllOrders />} />
                         <Route path="orders/online" element={<OnlineOrders />} />
+                        <Route path="orders/pos" element={<POSHistory />} />
                         <Route path="orders/returns" element={<ReturnRequests />} />
 
                         <Route path="products" element={<AllProducts />} />

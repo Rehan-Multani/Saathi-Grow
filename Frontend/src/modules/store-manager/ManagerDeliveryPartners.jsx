@@ -1,10 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
 import { Search, Plus, Phone, Star, Truck, Edit, Trash2, RefreshCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import DeliveryPartnerEditModal from '../admin/components/delivery/DeliveryPartnerEditModal';
+import DeliveryPartnerEditModal from '../../common/components/delivery/DeliveryPartnerEditModal';
 import Swal from 'sweetalert2';
-import * as api from '../admin/api/adminDeliveryApi';
+import * as api from '../../common/api/adminDeliveryApi';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 
 const ManagerDeliveryPartners = () => {
@@ -111,7 +111,7 @@ const ManagerDeliveryPartners = () => {
                         <div>
                           <div className="fw-bold text-slate-700">{p.name}</div>
                           <div className="text-slate-400 small flex align-items-center gap-1">
-                            <Phone size={10} /> {p.phone} ₹ {p.uniqueId}
+                            <Phone size={10} /> {p.phone} ? {p.uniqueId}
                           </div>
                         </div>
                       </div>

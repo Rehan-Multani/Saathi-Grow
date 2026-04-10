@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import SummaryCards from './components/SummaryCards';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
-import { getStrategicAnalytics } from '../admin/api/reportApi';
+import { getStrategicAnalytics } from '../../common/api/reportApi';
 import Swal from 'sweetalert2';
 
 const ReportsAnalytics = () => {

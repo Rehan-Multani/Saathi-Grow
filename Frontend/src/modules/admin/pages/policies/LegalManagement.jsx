@@ -4,8 +4,8 @@ import { Search, Plus, Edit, Trash2, Shield, Eye, FileText, CheckCircle, XCircle
 import { toast } from 'react-toastify';
 import { fetchAllLegalPages, createLegalPage, updateLegalPage, deleteLegalPage } from '../../api/legalApi';
 import { showDeleteConfirmation } from '../../../../common/utils/alertUtils';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 const LegalManagement = () => {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);

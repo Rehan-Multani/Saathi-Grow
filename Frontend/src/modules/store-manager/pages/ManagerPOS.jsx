@@ -19,8 +19,8 @@ import { Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { useStoreManagerAuth } from '../context/StoreManagerAuthContext';
-import { createPOSOrder, searchProductsPOS } from '../../admin/api/posApi';
-import { getPublicSettings } from '../../admin/api/settingApi';
+import { createPOSOrder, searchProductsPOS } from '../../../common/api/posApi';
+import { getPublicSettings } from '../../../common/api/settingApi';
 
 const ManagerPOS = () => {
   const { managerUser } = useStoreManagerAuth();

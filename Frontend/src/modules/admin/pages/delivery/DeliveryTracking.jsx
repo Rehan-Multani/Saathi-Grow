@@ -6,8 +6,8 @@ import { getActiveTracking } from '../../api/adminDeliveryApi';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 // Fix for default marker icon missing in React Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';

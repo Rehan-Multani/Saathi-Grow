@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Row, Col, Spinner } from 'react-bootstrap';
-import { useTranslation } from 'react-i18next';
-import { Search, Plus, MapPin, Store, Edit, Trash2, Info, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, MapPin, Store, Edit, Trash2, Info, ChevronLeft, ChevronRight, Hash, PhoneCall, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BranchDetailsModal from '../../components/locations/BranchDetailsModal';
 import EditBranchModal from '../../components/locations/EditBranchModal';
@@ -9,11 +7,10 @@ import { getBranches, deleteBranch, updateBranch } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const Branches = () => {
-    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -40,21 +37,16 @@ const Branches = () => {
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
             console.error('Error fetching branches:', error);
-            toast.error(t('locations.branches.loading_failed', { defaultValue: 'Failed to load branches' }));
+            toast.error('Failed up load branch network registry');
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, searchTerm, t]);
+    }, [adminUser.token, page, searchTerm]);
 
     useEffect(() => {
         fetchBranchesData();
     }, [fetchBranchesData]);
 
-    const totalFiltered = pagination.total || 0;
-    const totalPages = pagination.totalPages || 1;
-    const paginatedBranches = branches;
-
-    // Reset pagination when search changes
     useEffect(() => {
         setPage(1);
     }, [searchTerm]);
@@ -72,214 +64,210 @@ const Branches = () => {
     const handleSaveBranch = async (updatedData) => {
         try {
             await updateBranch(adminUser.token, selectedBranch._id, updatedData);
-            toast.success(t('dashboard.update_success', { defaultValue: 'Branch updated successfully' }));
+            toast.success('Branch network synchronized successfully');
             fetchBranchesData();
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || t('dashboard.update_failed', { defaultValue: 'Failed to update branch' }));
+            toast.error(error.response?.data?.message || 'Failed to update network node');
         }
     };
 
     const handleDelete = async (id, name) => {
-        const result = await showDeleteConfirmation(t('locations.branches.delete_confirm_title'), t('locations.branches.delete_confirm_text', { name }));
+        const result = await showDeleteConfirmation('Decommission Branch?', `Are you sure you want to shut down ${name}? This will affect all local logistics.`);
         if (result.isConfirmed) {
             try {
                 await deleteBranch(adminUser.token, id);
                 fetchBranchesData();
-                showSuccessAlert(t('dashboard.deleted_title'), t('dashboard.deleted_text'));
+                showSuccessAlert('Decommissioned!', 'Branch node removed from active network.');
             } catch (error) {
-                showErrorAlert(t('dashboard.error_title'), error.message || t('dashboard.failed_to_delete'));
+                showErrorAlert('Operation Failed', error.response?.data?.message || 'Failed to decommission node');
             }
         }
     };
 
-    const handleExport = () => {
-        toast.info('Export functionality coming soon');
-    };
-
-    const handleImport = () => {
-        toast.info('Import functionality coming soon');
-    };
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
 
     return (
-        <div className="p-2 p-md-4">
-            <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 gap-lg-4 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <div className="bg-primary bg-opacity-10 p-3 rounded-3 text-primary d-none d-md-flex">
-                        <Store size={24} />
+        <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Enterprise Network</span>
                     </div>
-                    <div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="fw-bold mb-1 text-dark">{t('locations.branches.title')}</h4>
-                            <PageInfoTooltip data={pageInfoData.allBranches} />
-                        </div>
-                        <p className="text-muted small mb-0 d-none d-sm-block">{t('locations.branches.subtitle')}</p>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Branch Registry</h1>
+                        <PageInfoTooltip data={pageInfoData.allBranches} />
                     </div>
+                    <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Global distribution nodes & local logistics hubs</p>
                 </div>
 
-                <div className="d-flex flex-column flex-md-row gap-2 w-100 w-lg-auto align-items-stretch">
-                    <InputGroup className="shadow-sm flex-grow-1" style={{ minWidth: 'min(100%, 250px)' }}>
-                        <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
-                        <Form.Control
-                            placeholder={t('locations.branches.search_placeholder')}
-                            className="border-start-0 ps-0 shadow-none py-2"
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-80 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search by name, city or branch code..."
+                            className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all shadow-sm shadow-slate-200/50"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                    </InputGroup>
-                    <div className="d-flex flex-row gap-2 w-100 w-md-auto">
-                        <Link to="/admin/locations/branches/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-1 gap-sm-2 px-2 px-lg-4 shadow-sm py-2 text-nowrap">
-                            <Plus size={18} /> <span className="small fw-bold">{t('locations.branches.add_new')}</span>
-                        </Link>
                     </div>
+                    <Link
+                        to="/admin/locations/branches/add"
+                        className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-200 active:scale-95"
+                    >
+                        <Plus size={18} /> New Node
+                    </Link>
                 </div>
             </div>
 
-            <Card className="border-0 shadow-sm overflow-hidden mt-2">
-                <Card.Body className="p-0">
-                    {loading ? (
-                        <div className="text-center py-5">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">{t('locations.branches.loading')}</p>
-                        </div>
-                    ) : (
-                        <Table hover responsive className="mb-0 align-middle">
-                            <thead className="bg-light text-muted small text-uppercase font-weight-bold">
-                                <tr>
-                                    <th className="ps-4 border-0 py-3">{t('locations.branches.table.details')}</th>
-                                    <th className="border-0 py-3">{t('locations.branches.table.code')}</th>
-                                    <th className="border-0 py-3">{t('locations.branches.table.phone')}</th>
-                                    <th className="border-0 py-3">{t('locations.branches.table.status')}</th>
-                                    <th className="border-0 py-3 text-end pe-4">{t('locations.branches.table.actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginatedBranches.length > 0 ? paginatedBranches.map((b) => (
-                                    <tr key={b._id}>
-                                        <td className="ps-4">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div className="bg-primary bg-opacity-10 p-2 rounded text-primary">
-                                                    <Store size={20} />
+            {/* Main Content Card */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-slate-50/50 text-[10px] uppercase font-black tracking-widest text-slate-400 border-b border-slate-100">
+                            <tr>
+                                <th className="px-8 py-5">Network Entity</th>
+                                <th className="px-8 py-5">Node Identity</th>
+                                <th className="px-8 py-5">Communication</th>
+                                <th className="px-8 py-5 text-center">Protocol State</th>
+                                <th className="px-8 py-5 text-right">Operational Port</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                Array(5).fill(0).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="5" className="px-8 py-6">
+                                            <div className="h-12 bg-slate-100 rounded-2xl w-full" />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : branches.length > 0 ? (
+                                branches.map((b) => (
+                                    <tr key={b._id} className="group hover:bg-slate-50/50 transition-colors duration-300">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner group-hover:rotate-3 transition-transform">
+                                                    <Store size={22} />
                                                 </div>
                                                 <div>
-                                                    <div className="fw-bold text-dark">{b.name}</div>
-                                                    <div className="text-muted small d-flex align-items-center gap-1">
-                                                        <MapPin size={12} /> {b.address?.city}, {b.address?.state}
+                                                    <div className="text-sm font-black text-slate-900 mb-0.5">{b.name}</div>
+                                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                                                        <MapPin size={10} className="text-emerald-500" /> {b.address?.city}, {b.address?.state}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            <Badge bg="light" className="text-dark border font-monospace small">
-                                                {b.code}
-                                            </Badge>
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl w-fit group-hover:bg-white border border-transparent group-hover:border-slate-100 transition-all">
+                                                <Hash size={12} className="text-slate-400" />
+                                                <span className="text-[11px] font-black text-slate-800 font-mono tracking-wider">{b.code || 'SYS-NODE'}</span>
+                                            </div>
                                         </td>
-                                        <td className="text-muted font-monospace small">{b.phone}</td>
-                                        <td>
-                                            <Badge
-                                                bg={b.isActive ? 'success' : 'secondary'}
-                                                className="rounded-pill fw-normal px-3 py-1 shadow-sm"
-                                            >
-                                                {b.isActive ? t('locations.branches.status.active') : t('locations.branches.status.inactive')}
-                                            </Badge>
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 font-mono">
+                                                <PhoneCall size={14} className="text-slate-300" /> {b.phone || '+91-XXXXXXXXXX'}
+                                            </div>
                                         </td>
-                                        <td className="text-end pe-4">
-                                            <div className="d-flex justify-content-end gap-2">
-                                                <Button
-                                                    variant="light"
-                                                    size="sm"
-                                                    className="btn-icon-soft text-primary border shadow-none"
+                                        <td className="px-8 py-5 text-center">
+                                            <span className={`inline-flex px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+                                                b.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm shadow-emerald-900/5' : 
+                                                'bg-slate-100 text-slate-400 border-slate-200'
+                                            }`}>
+                                                {b.isActive ? 'Operational' : 'Restricted'}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 text-right">
+                                            <div className="flex justify-end gap-2.5">
+                                                <button
                                                     onClick={() => handleShowDetails(b)}
-                                                    title={t('locations.branches.view_details')}
+                                                    className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center justify-center border border-blue-100 group-hover:scale-110 active:scale-95"
+                                                    title="Network Intelligence"
                                                 >
-                                                    <Info size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="light"
-                                                    size="sm"
-                                                    className="btn-icon-soft text-warning border shadow-none"
+                                                    <Activity size={18} />
+                                                </button>
+                                                <button
                                                     onClick={() => handleEdit(b)}
-                                                    title={t('locations.branches.edit')}
+                                                    className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all duration-300 flex items-center justify-center border border-amber-100 group-hover:scale-110 active:scale-95"
+                                                    title="Modify Node"
                                                 >
-                                                    <Edit size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="light"
-                                                    size="sm"
-                                                    className="btn-icon-soft text-danger border shadow-none"
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button
                                                     onClick={() => handleDelete(b._id, b.name)}
-                                                    title={t('locations.branches.delete')}
+                                                    className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all duration-300 flex items-center justify-center border border-rose-100 group-hover:scale-110 active:scale-95"
+                                                    title="Shut Down Node"
                                                 >
-                                                    <Trash2 size={16} />
-                                                </Button>
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="6" className="text-center py-5">
-                                            <div className="text-muted">{t('locations.branches.no_branches')}</div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    )}
-                </Card.Body>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="px-8 py-20 text-center">
+                                        <div className="flex flex-col items-center opacity-30 grayscale">
+                                            <Store size={80} strokeWidth={1} />
+                                            <p className="mt-4 text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Global Network Empty</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
+                {/* Pagination Footer */}
                 {!loading && totalFiltered > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('locations.branches.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('locations.branches.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('locations.branches.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('locations.branches.title')}
+                    <div className="bg-slate-50/50 border-t border-slate-100 px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Showing <span className="text-slate-900">{branches.length}</span> of <span className="text-slate-900">{totalFiltered}</span> active distribution nodes
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        <div className="flex items-center gap-3">
+                            <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                             >
-                                <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
-                                {(() => {
-                                    return [...Array(totalPages)].map((_, i) => {
-                                        const p = i + 1;
-                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
-                                            return (
-                                                <Button
-                                                    key={p}
-                                                    variant={page === p ? 'primary' : 'light'}
-                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                    style={{ width: '36px', height: '36px', padding: 0 }}
-                                                    onClick={() => setPage(p)}
-                                                >
-                                                    {p}
-                                                </Button>
-                                            );
-                                        } else if (p === page - 2 || p === page + 2) {
-                                            return <span key={p} className="text-muted px-1">...</span>;
-                                        }
-                                        return null;
-                                    });
-                                })()}
+                                <ChevronLeft size={16} /> Previous
+                            </button>
+                            <div className="flex items-center gap-1.5">
+                                {[...Array(totalPages)].map((_, i) => {
+                                    const p = i + 1;
+                                    if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                        return (
+                                            <button
+                                                key={p}
+                                                onClick={() => setPage(p)}
+                                                className={`w-10 h-10 rounded-2xl text-xs font-black transition-all ${page === p ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-slate-400 hover:bg-slate-100'}`}
+                                            >
+                                                {p}
+                                            </button>
+                                        );
+                                    } else if (p === page - 2 || p === page + 2) {
+                                        return <span key={p} className="text-slate-300 font-bold px-1">...</span>;
+                                    }
+                                    return null;
+                                })}
                             </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                             >
-                                <ChevronRight size={16} />
-                            </Button>
+                                Next <ChevronRight size={16} />
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
+            {/* Modals */}
             <BranchDetailsModal
                 show={showDetailsModal}
                 onHide={() => setShowDetailsModal(false)}
@@ -293,6 +281,12 @@ const Branches = () => {
                 branch={selectedBranch}
                 onSave={handleSaveBranch}
             />
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 20px; }
+            `}} />
         </div>
     );
 };

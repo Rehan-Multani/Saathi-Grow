@@ -1,374 +1,289 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, Spinner, Form, Badge, Table, Button, Dropdown } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import {
-    Package,
-    AlertTriangle,
-    Home,
-    Activity,
-    BarChart3,
-    LayoutGrid,
-    MoreVertical,
-    ArrowRight,
-    Search,
-    RefreshCw,
-    MapPin,
-    AlertCircle
+    Package, AlertTriangle, Activity, RefreshCw, MapPin, AlertCircle, ChevronRight, LayoutGrid, Loader2, ArrowRight, Wallet, Store, TrendingUp, CheckCircle
 } from 'lucide-react';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    CartesianGrid,
-    Cell
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getInventoryStats } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useTranslation } from 'react-i18next';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const StockOverview = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_stock');
     const { adminUser } = useAdminAuth();
     const navigate = useNavigate();
-const [loading, setLoading] = useState(true);
-const [refreshing, setRefreshing] = useState(false);
-const [branches, setBranches] = useState([]);
-const [selectedBranch, setSelectedBranch] = useState('all');
-const [data, setData] = useState({
-    stats: { totalStock: 0, inventoryValue: 0, lowStockCount: 0, outOfStockCount: 0 },
-    categoryDistribution: [],
-    branchHealth: [],
-    criticalItems: []
-});
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [branches, setBranches] = useState([]);
+    const [selectedBranch, setSelectedBranch] = useState('all');
+    const [data, setData] = useState({
+        stats: { totalStock: 0, inventoryValue: 0, lowStockCount: 0, outOfStockCount: 0 },
+        categoryDistribution: [],
+        branchHealth: [],
+        criticalItems: []
+    });
 
-const isAdmin = adminUser.role === 'Admin';
+    const isAdmin = adminUser.role === 'Admin';
 
-const fetchOverviewData = useCallback(async (isRefresh = false) => {
-    if (!adminUser?.token) return;
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    const fetchOverviewData = useCallback(async (isRefresh = false) => {
+        if (!adminUser?.token) return;
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
 
-    try {
-        const [statsData, branchData] = await Promise.all([
-            getInventoryStats(adminUser.token, selectedBranch === 'all' ? null : selectedBranch),
-            isAdmin ? getBranches(adminUser.token) : Promise.resolve([])
-        ]);
+        try {
+            const [statsData, branchData] = await Promise.all([
+                getInventoryStats(adminUser.token, selectedBranch === 'all' ? null : selectedBranch),
+                isAdmin ? getBranches(adminUser.token) : Promise.resolve([])
+            ]);
 
-        setData(statsData);
-        if (isAdmin) setBranches(branchData);
-    } catch (error) {
-        console.error('Inventory Stats Error:', error);
-        toast.error(t('stock.overview.error_sync'));
-    } finally {
-        setLoading(false);
-        setRefreshing(false);
-    }
-}, [adminUser.token, selectedBranch, isAdmin]);
+            setData(statsData);
+            if (isAdmin) setBranches(branchData);
+        } catch (error) {
+            toast.error(t('overview.error_sync'));
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, [adminUser.token, selectedBranch, isAdmin, t]);
 
-useEffect(() => {
-    fetchOverviewData();
-}, [fetchOverviewData]);
+    useEffect(() => {
+        fetchOverviewData();
+    }, [fetchOverviewData]);
 
-const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        maximumFractionDigits: 0
-    }).format(val);
-};
+    const formatCurrency = (val) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency', currency: 'INR', maximumFractionDigits: 0
+        }).format(val);
+    };
 
     if (loading) {
         return (
-            <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
-                <Spinner animation="border" variant="primary" />
-                <p className="mt-3 text-muted fw-medium animate-pulse">{t('stock.overview.syncing')}</p>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-sm font-medium">{t('overview.loading_msg')}</p>
             </div>
         );
     }
 
-return (
-    <div className="p-3">
-        {/* Command Header */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-            <div>
-                <div className="d-flex align-items-center gap-2">
-                    <h4 className="fw-bold text-dark mb-1">{t('stock.overview.title')}</h4>
-                    <PageInfoTooltip data={pageInfoData.stockOverview} />
+    return (
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight">{t('overview.title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.stockOverview} />
+                    </div>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('overview.subtitle')}</p>
                 </div>
-                <p className="text-muted small mb-0 d-flex align-items-center gap-2">
-                    <Activity size={14} className="text-success" />
-                    {isAdmin ? t('stock.overview.live_status_all') : t('stock.overview.live_status_branch')}
-                </p>
-            </div>
 
-            <div className="d-flex align-items-center gap-2">
-                {isAdmin && (
-                    <Form.Select
-                        className="shadow-sm border-0 font-small fw-bold bg-white"
-                        style={{ width: '220px' }}
-                        value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    {isAdmin && (
+                        <div className="relative flex-1 md:w-60 group">
+                            <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <select
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-xs font-bold text-slate-700 shadow-sm appearance-none cursor-pointer"
+                                value={selectedBranch}
+                                onChange={(e) => setSelectedBranch(e.target.value)}
+                            >
+                                <option value="all">{t('branch.all_branches')}</option>
+                                {branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
+                            </select>
+                        </div>
+                    )}
+                    <button
+                        onClick={() => fetchOverviewData(true)}
+                        disabled={refreshing}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
                     >
-                        <option value="all">🌐 {t('stock.overview.global_all_branches')}</option>
-                        {branches.map(b => (
-                            <option key={b._id} value={b._id}>📍 {b.name}</option>
+                        <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-200 transition-all group cursor-pointer" onClick={() => navigate('/admin/stock/branches')}>
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <Package size={20} />
+                        </div>
+                        <TrendingUp size={20} className="text-slate-200" />
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('overview.stats.total')}</div>
+                    <div className="text-2xl font-bold text-slate-900">{data.stats.totalStock?.toLocaleString()}</div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all group">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
+                            <Wallet size={20} />
+                        </div>
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('overview.stats.inventory_value')}</div>
+                    <div className="text-2xl font-bold text-slate-900">{formatCurrency(data.stats.inventoryValue || 0)}</div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-amber-200 transition-all group cursor-pointer" onClick={() => navigate('/admin/stock/alerts')}>
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-100 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <AlertTriangle size={20} />
+                        </div>
+                        <div className="px-2 py-0.5 bg-amber-100 text-amber-600 text-[10px] font-bold rounded-lg uppercase">{t('overview.stats.urgent')}</div>
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('overview.stats.low')}</div>
+                    <div className="text-2xl font-bold text-amber-600">{data.stats.lowStockCount}</div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-rose-200 transition-all group cursor-pointer" onClick={() => navigate('/admin/stock/alerts')}>
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                            <AlertCircle size={20} />
+                        </div>
+                        <div className="px-2 py-0.5 bg-rose-100 text-rose-600 text-[10px] font-bold rounded-lg uppercase">{t('overview.stats.critical')}</div>
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('overview.stats.out')}</div>
+                    <div className="text-2xl font-bold text-rose-600">{data.stats.outOfStockCount}</div>
+                </div>
+            </div>
+
+            {/* Branch Health Grid */}
+            {isAdmin && selectedBranch === 'all' && (
+                <div className="mb-8 space-y-4">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 ml-1">
+                        <LayoutGrid size={18} className="text-blue-500" />
+                        {t('overview.branch_health.title')}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {data.branchHealth.map((branch, idx) => (
+                            <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer" onClick={() => navigate('/admin/stock/branches')}>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors uppercase tracking-tight">{branch.name}</div>
+                                        <div className="text-[10px] text-slate-400 font-bold mt-0.5">{branch.code}</div>
+                                    </div>
+                                    <div className={`px-2 py-1 rounded-lg text-[10px] font-bold ${branch.healthScore > 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                                        {Math.round(branch.healthScore)}%
+                                    </div>
+                                </div>
+                                <div className="space-y-3 mt-6">
+                                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                        <span>{t('overview.branch_health.items')}</span>
+                                        <span className="text-slate-900 text-xs">{branch.totalProducts}</span>
+                                    </div>
+                                    <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100/50">
+                                        <div className={`h-full transition-all duration-1000 ${branch.healthScore > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${branch.healthScore}%` }} />
+                                    </div>
+                                </div>
+                            </div>
                         ))}
-                    </Form.Select>
-                )}
-                <Button
-                    variant="light"
-                    size="sm"
-                    className="btn-icon-soft shadow-sm bg-white border-0"
-                    onClick={() => fetchOverviewData(true)}
-                    disabled={refreshing}
-                >
-                    <RefreshCw size={18} className={refreshing ? 'spin' : ''} />
-                </Button>
-            </div>
-        </div>
+                    </div>
+                </div>
+            )}
 
-        {/* KPI Section */}
-        <Row className="g-3 mb-4">
-            <Col lg={3} md={6}>
-                <Card
-                    className="border-0 shadow-sm h-100 overflow-hidden cursor-pointer hover-shadow-lg transition-all"
-                    onClick={() => navigate('/admin/stock/branches')}
-                >
-                    <div className="p-3 d-flex align-items-center gap-3">
-                        <div className="rounded-circle bg-primary-soft p-2 text-primary">
-                            <Package size={24} />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Urgent Restock Table */}
+                <div className="lg:col-span-12 xl:col-span-8 space-y-4">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-5 border-b border-slate-100 flex justify-between items-center">
+                            <h3 className="text-sm font-bold text-slate-900">{t('overview.urgent_restock.title')}</h3>
+                            <button onClick={() => navigate('/admin/stock/alerts')} className="text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 group">
+                                {t('overview.urgent_restock.view_full_log')} <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                            </button>
                         </div>
-                        <div>
-                            <div className="text-muted small fw-bold text-uppercase">{t('stock.overview.total_stock_units')}</div>
-                            <h3 className="fw-bold mb-0">{data.stats.totalStock?.toLocaleString()}</h3>
-                        </div>
-                    </div>
-                    <div className="bg-primary bg-opacity-10 px-3 py-1 small text-primary fw-medium">
-                        {t('stock.overview.global_assets')}
-                    </div>
-                </Card>
-            </Col>
-            <Col lg={3} md={6}>
-                <Card className="border-0 shadow-sm h-100 overflow-hidden text-white" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-                    <div className="p-3 d-flex align-items-center gap-3">
-                        <div className="rounded-circle bg-white bg-opacity-20 p-2">
-                            <RefreshCw size={24} />
-                        </div>
-                        <div>
-                            <div className="small fw-bold text-uppercase opacity-75">{t('stock.overview.inventory_worth')}</div>
-                            <h3 className="fw-bold mb-0">{formatCurrency(data.stats.inventoryValue || 0)}</h3>
-                        </div>
-                    </div>
-                    <div className="bg-black bg-opacity-10 px-3 py-1 small fw-medium">
-                        {t('stock.overview.market_value')}
-                    </div>
-                </Card>
-            </Col>
-            <Col lg={3} md={6}>
-                <Card
-                    className="border-0 shadow-sm h-100 overflow-hidden cursor-pointer hover-shadow-lg transition-all"
-                    onClick={() => navigate('/admin/stock/alerts')}
-                >
-                    <div className="p-3 d-flex align-items-center gap-3">
-                        <div className="rounded-circle bg-warning-soft p-2 text-warning">
-                            <AlertTriangle size={24} />
-                        </div>
-                        <div>
-                            <div className="text-muted small fw-bold text-uppercase">{t('stock.overview.under_threshold')}</div>
-                            <h3 className="fw-bold mb-0 text-warning">{data.stats.lowStockCount}</h3>
-                        </div>
-                    </div>
-                    <div className="bg-warning bg-opacity-10 px-3 py-1 small text-warning fw-medium">
-                        {t('stock.overview.needs_fast_restock')}
-                    </div>
-                </Card>
-            </Col>
-            <Col lg={3} md={6}>
-                <Card
-                    className="border-0 shadow-sm h-100 overflow-hidden cursor-pointer hover-shadow-lg transition-all"
-                    onClick={() => navigate('/admin/stock/alerts')}
-                >
-                    <div className="p-3 d-flex align-items-center gap-3">
-                        <div className="rounded-circle bg-danger-soft p-2 text-danger">
-                            <AlertCircle size={24} />
-                        </div>
-                        <div>
-                            <div className="text-muted small fw-bold text-uppercase">{t('stock.overview.zero_stock')}</div>
-                            <h3 className="fw-bold mb-0 text-danger">{data.stats.outOfStockCount}</h3>
-                        </div>
-                    </div>
-                    <div className="bg-danger bg-opacity-10 px-3 py-1 small text-danger fw-medium">
-                        {t('stock.overview.unavailable_items')}
-                    </div>
-                </Card>
-            </Col>
-        </Row>
-
-        {/* Branch Health Heatmap (Admin Only) */}
-        {isAdmin && selectedBranch === 'all' && (
-            <div className="mb-4">
-                <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-                    <LayoutGrid size={18} className="text-primary" />
-                    {t('stock.overview.regional_health_heatmap')}
-                </h6>
-                <Row className="g-3">
-                    {data.branchHealth.map((branch, idx) => (
-                        <Col key={idx} lg={3} md={4} sm={6}>
-                            <Card className="border-0 shadow-sm hover-up transition-3d h-100">
-                                <Card.Body className="p-3">
-                                    <div className="d-flex justify-content-between mb-2">
-                                        <div className="fw-bold text-dark">{branch.name}</div>
-                                        <Badge bg={branch.healthScore > 80 ? 'success' : branch.healthScore > 50 ? 'warning' : 'danger'} className="rounded-pill px-2">
-                                            {Math.round(branch.healthScore)}%
-                                        </Badge>
-                                    </div>
-                                    <div className="small text-muted mb-3 italic">{branch.code}</div>
-
-                                    <div className="d-flex flex-column gap-2">
-                                        <div className="d-flex justify-content-between small">
-                                            <span>{t('stock.overview.total_items')}</span>
-                                            <span className="fw-bold">{branch.totalProducts}</span>
-                                        </div>
-                                        <div className="d-flex justify-content-between small">
-                                            <span>{t('stock.overview.low_out_of_stock')}</span>
-                                            <span className={`fw-bold ${branch.lowStock > 0 ? 'text-danger' : 'text-success'}`}>
-                                                {branch.lowStock + branch.outOfStock}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </Card.Body>
-                                <Card.Footer className="bg-light border-0 py-2 text-center clickable shadow-none cursor-pointer" onClick={() => navigate('/admin/stock/branches')}>
-                                    <span className="small fw-bold text-primary d-flex align-items-center justify-content-center gap-1">
-                                        {t('stock.overview.manage_branch')} <ArrowRight size={14} />
-                                    </span>
-                                </Card.Footer>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-            </div>
-        )}
-
-        <Row className="g-4">
-            {/* Critical restock list */}
-            <Col lg={7}>
-                <Card className="border-0 shadow-sm h-100">
-                    <Card.Header className="bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                        <h6 className="fw-bold mb-0">{t('stock.overview.urgent_restock_list')}</h6>
-                        <Button variant="link" size="sm" className="p-0 text-decoration-none small" onClick={() => navigate('/admin/stock/alerts')}>
-                            {t('stock.overview.view_all_alerts')}
-                        </Button>
-                    </Card.Header>
-                    <Card.Body className="p-0">
-                        <Table responsive borderless hover className="align-middle mb-0">
-                            <thead className="bg-light text-muted small text-uppercase">
-                                <tr>
-                                    <th className="ps-4">{t('stock.overview.table.product')}</th>
-                                    {selectedBranch === 'all' && <th>{t('stock.overview.table.branch')}</th>}
-                                    <th className="text-center">{t('stock.overview.table.current')}</th>
-                                    <th>{t('stock.overview.table.status')}</th>
-                                    <th className="pe-4 text-end">{t('stock.overview.table.action')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.criticalItems.length > 0 ? data.criticalItems.map((item, idx) => (
-                                    <tr key={idx} className="border-bottom border-light">
-                                        <td className="ps-4">
-                                            <div className="d-flex align-items-center gap-2">
-                                                <div className="w-10 h-10 bg-light rounded overflow-hidden border">
-                                                    {item.image ? <img src={item.image} alt="" className="w-100 h-100 object-fit-contain" /> : <Package size={16} className="text-muted m-2" />}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="bg-slate-50/50 border-b border-slate-100">
+                                        <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('overview.table.product')}</th>
+                                        <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('alerts.table.current')}</th>
+                                        <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('overview.table.status')}</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {data.criticalItems.length > 0 ? data.criticalItems.map((item, idx) => (
+                                        <tr key={idx} className="hover:bg-slate-50/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                 <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center text-slate-300">
+                                                        {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover rounded-lg" /> : <Package size={18} />}
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <div className="text-xs font-bold text-slate-900 leading-tight uppercase tracking-tight">{item.name}</div>
+                                                        <div className="text-[10px] text-slate-400 font-semibold">{item.sku}</div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <div className="fw-medium small text-dark">{item.name}</div>
-                                                    <div className="text-muted extra-small">{item.sku}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        {selectedBranch === 'all' && (
-                                            <td className="small text-muted">
-                                                <MapPin size={12} className="me-1" /> {item.branchName}
                                             </td>
-                                        )}
-                                        <td className="text-center">
-                                            <span className={`fw-bold ${item.stock <= 0 ? 'text-danger' : 'text-warning'}`}>{item.stock}</span>
-                                        </td>
-                                        <td>
-                                            <Badge bg={item.stock <= 0 ? 'danger-soft' : 'warning-soft'} className={item.stock <= 0 ? 'text-danger px-2' : 'text-warning px-2'}>
-                                                {item.stock <= 0 ? t('stock.overview.status.empty') : t('stock.overview.status.low')}
-                                            </Badge>
-                                        </td>
-                                        <td className="pe-4 text-end">
-                                            <Button
-                                                variant="primary"
-                                                size="sm"
-                                                className="btn-icon-soft"
-                                                onClick={() => navigate('/admin/stock/adjustments/add', { state: { productId: item._id, sku: item.sku, branchId: item.branchId } })}
-                                                disabled={item.isVendor}
-                                            >
-                                                <RefreshCw size={14} />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-5 text-muted small">
-                                            🎉 {t('stock.overview.all_systems_clear')}
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    </Card.Body>
-                </Card>
-            </Col>
+                                            <td className="px-4 py-4 text-center">
+                                                <div className={`text-xs font-bold ${item.stock <= 0 ? 'text-rose-600' : 'text-amber-600'}`}>{item.stock}</div>
+                                            </td>
+                                            <td className="px-4 py-4 text-center">
+                                                <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${item.stock <= 0 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                                                    {item.stock <= 0 ? t('overview.urgent_restock.out_of_stock') : t('overview.urgent_restock.low_stock')}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button
+                                                    onClick={() => navigate('/admin/stock/adjustments/add', { state: { productId: item._id, sku: item.sku, branchId: item.branchId } })}
+                                                    disabled={item.isVendor}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
+                                                    title={t('overview.urgent_restock.quick_adjust')}
+                                                >
+                                                    <RefreshCw size={16} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan="4" className="py-20 text-center">
+                                                <div className="flex flex-col items-center gap-2 text-slate-300">
+                                                    <CheckCircle size={32} />
+                                                    <p className="text-xs font-semibold">{t('overview.urgent_restock.well_stocked')}</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-            {/* Categories distribution */}
-            <Col lg={5}>
-                <Card className="border-0 shadow-sm h-100">
-                    <Card.Header className="bg-white border-0 py-3">
-                        <h6 className="fw-bold mb-0">{t('stock.overview.stock_density_category')}</h6>
-                    </Card.Header>
-                    <Card.Body>
-                        <div style={{ height: '350px' }}>
+                {/* Category Distribution Chart */}
+                <div className="lg:col-span-12 xl:col-span-4 space-y-4">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-full">
+                        <div className="flex items-center gap-2 mb-6 ml-1">
+                            <LayoutGrid size={18} className="text-blue-500" />
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">{t('overview.distribution.title')}</h3>
+                        </div>
+                        <div className="h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={data.categoryDistribution}
-                                    layout="vertical"
-                                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
-                                >
+                                <BarChart data={data.categoryDistribution} layout="vertical" margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
                                     <XAxis type="number" hide />
-                                    <YAxis
-                                        dataKey="name"
-                                        type="category"
-                                        width={100}
-                                        tick={{ fontSize: 10, fontWeight: 'bold' }}
-                                        axisLine={false}
-                                        tickLine={false}
-                                    />
-                                    <Tooltip
-                                        cursor={{ fill: '#f8f9fa' }}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Bar dataKey="stock" radius={[0, 4, 4, 0]} barSize={20}>
+                                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 9, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                                    <Bar dataKey="stock" radius={[0, 4, 4, 0]} barSize={14}>
                                         {data.categoryDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#60a5fa'} />
+                                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#94a3b8'} />
                                         ))}
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
-                    </Card.Body>
-                </Card>
-            </Col>
-        </Row>
-    </div>
+                    </div>
+                </div>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
+        </div>
     );
 };
 

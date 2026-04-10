@@ -1,6 +1,6 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Tag, Plus, X, Calendar, TrendingUp, Eye, Edit2, Trash2 } from 'lucide-react';
-import { formatCurrency } from '../utils/formatDate';
+import { formatCurrency } from '../../../common/utils/formatUtils';
 
 const Promotions = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -9,7 +9,7 @@ const Promotions = () => {
     // Mock promotion data
     const promotions = [
         { id: 1, name: 'Summer Sale', type: 'percentage', value: 20, code: 'SUMMER20', startDate: '2024-02-01', endDate: '2024-02-29', used: 45, limit: 100, status: 'active', revenue: 12500 },
-        { id: 2, name: 'Flat ₹100 Off', type: 'flat', value: 100, code: 'FLAT100', startDate: '2024-02-05', endDate: '2024-02-15', used: 28, limit: 50, status: 'active', revenue: 8900 },
+        { id: 2, name: 'Flat ?100 Off', type: 'flat', value: 100, code: 'FLAT100', startDate: '2024-02-05', endDate: '2024-02-15', used: 28, limit: 50, status: 'active', revenue: 8900 },
         { id: 3, name: 'Buy 2 Get 1', type: 'bogo', value: 1, code: 'BOGO1', startDate: '2024-01-15', endDate: '2024-01-31', used: 62, limit: 100, status: 'expired', revenue: 15200 },
         { id: 4, name: 'New User Offer', type: 'percentage', value: 15, code: 'NEW15', startDate: '2024-02-01', endDate: '2024-03-31', used: 18, limit: 200, status: 'active', revenue: 5400 },
     ];
@@ -107,7 +107,7 @@ const Promotions = () => {
                                     <h3 className="text-base font-bold text-gray-900">{promo.name}</h3>
                                     <p className="text-xs text-gray-500 mt-1">
                                         {promo.type === 'percentage' ? `${promo.value}% Off` :
-                                            promo.type === 'flat' ? `₹${promo.value} Off` :
+                                            promo.type === 'flat' ? `?${promo.value} Off` :
                                                 `Buy ${promo.value} Get 1 Free`}
                                     </p>
                                 </div>

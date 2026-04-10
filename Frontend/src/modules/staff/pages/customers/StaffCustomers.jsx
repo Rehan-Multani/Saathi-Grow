@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStaffAuth } from '../../context/StaffAuthContext';
-import * as customerApi from '../../../admin/api/customerManagementApi';
+import * as customerApi from '../../../../common/api/customerManagementApi';
 import { toast } from 'react-toastify';
 
 // Reuse modals from admin
-import CustomerDetailsModal from '../../../admin/components/customers/CustomerDetailsModal';
-import SendMessageModal from '../../../admin/components/customers/SendMessageModal';
+import CustomerDetailsModal from '../../../../common/components/customers/CustomerDetailsModal';
+import SendMessageModal from '../../../../common/components/customers/SendMessageModal';
 
 const StaffCustomers = () => {
   const { staffUser } = useStaffAuth();

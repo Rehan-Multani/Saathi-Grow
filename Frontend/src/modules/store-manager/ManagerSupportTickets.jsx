@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Headphones, Search, Filter, Clock, CheckCircle, AlertCircle, MessageCircle, Send, User, X, Package, Loader2 } from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
-import * as complaintApi from '../admin/api/complaintApi';
+import * as complaintApi from '../../common/api/complaintApi';
 import { toast } from 'react-toastify';
 
 const ManagerSupportTickets = () => {

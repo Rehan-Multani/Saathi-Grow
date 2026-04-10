@@ -1,0 +1,219 @@
+{
+  "overview": {
+    "title": "स्टॉक अवलोकन",
+    "subtitle": "सभी शाखाओं में स्टॉक के स्तर की निगरानी करें",
+    "loading_msg": "स्टॉक डेटा लोड हो रहा है...",
+    "error_sync": "डेटा सिंक करने में विफल",
+    "stats": {
+      "total": "कुल आइटम",
+      "inventory_value": "स्टॉक वैल्यू",
+      "low": "कम स्टॉक",
+      "out": "स्टॉक खत्म",
+      "urgent": "तत्काल",
+      "critical": "गंभीर"
+    },
+    "branch_health": {
+      "title": "शाखा हेल्थ अवलोकन",
+      "health_score": "हेल्थ स्कोर",
+      "items": "आइटम"
+    },
+    "urgent_restock": {
+      "title": "जरूरी रिस्टॉक आइटम",
+      "view_full_log": "सभी अलर्ट देखें",
+      "out_of_stock": "स्टॉक खत्म",
+      "low_stock": "कम स्टॉक",
+      "well_stocked": "स्टॉक पर्याप्त मात्रा में है",
+      "quick_adjust": "त्वरित सुधार"
+    },
+    "distribution": {
+      "title": "कैटेगरी वितरण"
+    },
+    "table": {
+      "product": "आइटम",
+      "category": "कैटेगरी",
+      "total_stock": "कुल स्टॉक",
+      "status": "स्थिति"
+    }
+  },
+  "branch": {
+    "title": "शाखा-वार स्टॉक",
+    "subtitle": "शाखा के अनुसार स्टॉक का विवरण",
+    "all_branches": "सभी शाखाएं",
+    "select_branch": "स्टॉक देखने के लिए शाखा चुनें",
+    "global_overview": "कुल विवरण",
+    "search_placeholder": "नाम या SKU से खोजें...",
+    "loading_msg": "शाखा स्टॉक लोड हो रहा है...",
+    "no_data": "कोई डेटा नहीं मिला",
+    "pagination_showing": "{{start}}-{{end}} (कुल {{total}}) रिकॉर्ड",
+    "pagination_page": "पेज {{current}} / {{total}}",
+    "status_filter": {
+      "all": "सभी",
+      "in_stock": "स्टॉक में",
+      "low_stock": "कम स्टॉक",
+      "out_of_stock": "स्टॉक खत्म"
+    },
+    "table": {
+      "branch": "शाखा",
+      "product": "आइटम",
+      "quantity": "मात्रा",
+      "last_updated": "अंतिम अपडेट",
+      "units": "यूनिट",
+      "action": "कार्रवाई"
+    }
+  },
+  "adjustments": {
+    "title": "स्टॉक सुधार (Adjustments)",
+    "subtitle": "स्टॉक में किए गए मैनुअल बदलाव देखें",
+    "add_btn": "नया सुधार जोड़ें",
+    "search_placeholder": "खोजें...",
+    "loading_msg": "इतिहास लोड हो रहा है...",
+    "no_data": "कोई रिकॉर्ड नहीं मिला",
+    "table": {
+      "date": "तारीख",
+      "product": "आइटम",
+      "type": "प्रकार",
+      "quantity": "मात्रा",
+      "reason": "कारण",
+      "id": "लॉग आईडी",
+      "change": "बदलाव",
+      "by": "स्टाफ"
+    },
+    "types": {
+      "addition": "जोड़ें (Add)",
+      "subtraction": "घटाएं (Subtract)",
+      "correction": "सुधार (Correction)",
+      "damage": "नुकसान (Damage)",
+      "return": "वापसी (Return)",
+      "theft": "चोरी/नुकसान",
+      "audit": "फिजिकल ऑडिट",
+      "adjustment": "समायोजन",
+      "deduction": "मैनुअल कटौती",
+      "removal": "कटौती (Removal)",
+      "logged": "रिकॉर्ड दर्ज"
+    }
+  },
+  "add_adjustment": {
+    "title": "स्टॉक सुधार दर्ज करें",
+    "subtitle": "किसी आइटम का स्टॉक मैनुअल रूप से अपडेट करें",
+    "preparing_msg": "फॉर्म लोड हो रहा है...",
+    "step_items": "1. आइटम चुनें",
+    "step_logic": "2. सुधार का विवरण",
+    "search_products": "आइटम का नाम या SKU खोजें",
+    "items_selected": "{{count}} आइटम चुने गए",
+    "bulk_qty": "एकसमान मात्रा",
+    "table": {
+      "description": "आइटम का विवरण",
+      "quantity": "सुधार मात्रा",
+      "action": "कार्रवाई"
+    },
+    "form": {
+      "label_product": "आइटम चुनें",
+      "label_branch": "शाखा चुनें",
+      "label_type": "सुधार का प्रकार",
+      "label_quantity": "मात्रा",
+      "label_reason": "सुधार का कारण",
+      "label_notes": "नोट्स",
+      "label_target_branch": "शाखा",
+      "label_action_type": "कार्रवाई का प्रकार",
+      "label_primary_reason": "मुख्य कारण",
+      "choose_branch": "शाखा चुनें",
+      "placeholder_reason": "यह सुधार क्यों किया जा रहा है?",
+      "placeholder_notes": "कोई अतिरिक्त जानकारी यहाँ लिखें...",
+      "submit_btn": "सुधार सेव करें",
+      "submit_multi_btn": "{{count}} सुधार सेव करें",
+      "loading": "प्रोसेस हो रहा है...",
+      "cancel": "रद्द करें",
+      "discard": "बदलाव रद्द करें"
+    },
+    "audit_warning": {
+      "title": "ऑडिट सूचना",
+      "msg": "फिजिकल ऑडिट वर्तमान स्टॉक को बदल देगा। कृपया गिनती सही रखें।"
+    },
+    "reasons": {
+      "new_stock": "नया स्टॉक आया",
+      "damaged": "नुकसान हुआ",
+      "correction": "स्टॉक सुधार",
+      "return": "वापसी",
+      "loss": "चोरी/नुकसान",
+      "audit": "ऑडिट",
+      "other": "अन्य"
+    },
+    "alerts": {
+      "success": "स्टॉक सफलतापूर्वक सुधारा गया",
+      "error": "सुधार करने में विफल",
+      "error_load": "डेटा लोड करने में विफल",
+      "select_items": "कृपया आइटम और शाखा चुनें",
+      "qty_required": "सभी चुने गए आइटम के लिए मात्रा जरूरी है"
+    }
+  },
+  "alerts": {
+    "title": "कम स्टॉक अलर्ट",
+    "subtitle": "रीऑर्डर स्तर से नीचे वाले आइटम की सूचना",
+    "restock_btn": "अभी भरें (Restock)",
+    "no_alerts": "सभी आइटम पर्याप्त मात्रा में हैं",
+    "loading_msg": "स्टॉक की जांच हो रही है...",
+    "analyzing_msg": "विश्लेषण हो रहा है...",
+    "critical_shortages": "{{count}} गंभीर कमी",
+    "high_priority": "उच्च प्राथमिकता",
+    "priority_msg": "कार्रवाई की आवश्यकता है",
+    "refresh": "रिफ्रेश",
+    "search_placeholder": "आइटम खोजें...",
+    "pagination_msg": "{{start}}-{{end}} (कुल {{total}}) अलर्ट",
+    "managed_externally": "बाहरी स्रोत",
+    "external_partner": "पार्टनर",
+    "branch_store": "शाखा स्टोर",
+    "severity_filter": {
+      "all": "सभी स्तर",
+      "critical": "सिर्फ गंभीर",
+      "warning": "सिर्फ चेतावनी"
+    },
+    "table": {
+      "item": "कम स्टॉक आइटम",
+      "source": "शाखा / स्रोत",
+      "status": "स्थिति",
+      "action": "कार्रवाई",
+      "current": "वर्तमान",
+      "minimum": "सीमा (Limit)",
+      "urgency": "जरूरत"
+    },
+    "proactive": {
+      "title": "स्टॉक प्रबंधन",
+      "msg": "ये आइटम न्यूनतम सीमा से नीचे हैं। कृपया इन्हें रिस्टॉक करें।"
+    }
+  },
+  "requests": {
+    "title": "स्टॉक अनुरोध (Requests)",
+    "subtitle": "स्टॉक ट्रांसफर अनुरोधों का प्रबंधन करें",
+    "loading_msg": "लोड हो रहा है...",
+    "no_requests": "कोई अनुरोध नहीं मिला",
+    "queue_msg": "लंबित अनुरोध (Pending)",
+    "search_placeholder": "आइटम या शाखा से खोजें...",
+    "alerts": {
+      "approve_success": "अनुरोध स्वीकृत हो गया",
+      "approve_error": "स्वीकृत करने में विफल",
+      "reject_confirm": "क्या आप वाकई इसे अस्वीकार करना चाहते हैं?",
+      "reject_success": "अनुरोध अस्वीकार कर दिया गया",
+      "reject_error": "अस्वीकार करने में विफल"
+    },
+    "table": {
+      "id": "आईडी",
+      "from": "कहाँ से",
+      "to": "कहाँ को",
+      "items": "आइटम",
+      "status": "स्थिति",
+      "resource": "विवरण",
+      "source": "स्रोत",
+      "operation": "प्रकार",
+      "approval": "अनुमोदन",
+      "action": "कार्रवाई",
+      "decision_by": "निर्णय लिया:",
+      "lead_admin": "एडमिन"
+    },
+    "status": {
+      "pending": "लंबित",
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "completed": "पूरा हुआ"
+    }
+  }
+}

@@ -7,9 +7,9 @@ import { getCategories } from '../../api/categoryApi';
 import { createOfferDeal, updateOfferDeal, getOfferDealById } from '../../api/offerDealApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import ProductPickerModal from '../../components/common/ProductPickerModal';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import ProductPickerModal from '../../../../common/components/forms/ProductPickerModal';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const ManageOffer = () => {
   const { id } = useParams();

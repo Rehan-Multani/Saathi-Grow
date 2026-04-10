@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Row, Col, Spinner, Image } from 'react-bootstrap';
-import { Save, X, ArrowLeft, Upload, Store } from 'lucide-react';
+import { Save, X, ArrowLeft, Upload, Store, User, Mail, Phone, MapPin, Shield, CheckCircle2, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createBranch } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import GoogleMapsInput from '../../components/common/GoogleMapsInput';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AddBranch = () => {
     const navigate = useNavigate();
@@ -35,7 +34,7 @@ const AddBranch = () => {
 
     useEffect(() => {
         const style = document.createElement('style');
-        style.innerHTML = `.pac-container { z-index: 10000 !important; }`;
+        style.innerHTML = `.pac-container { z-index: 10000 !important; border-radius: 1.5rem; border: none; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); padding: 10px; }`;
         document.head.appendChild(style);
         return () => document.head.removeChild(style);
     }, []);
@@ -84,6 +83,10 @@ const AddBranch = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.name || !formData.code || !formData.email || !formData.phone || !formData.address.street) {
+            return toast.warning('Mandatory network parameters missing');
+        }
+
         setLoading(true);
         try {
             const data = new FormData();
@@ -99,269 +102,283 @@ const AddBranch = () => {
             }
 
             await createBranch(adminUser.token, data);
-            toast.success('Branch created successfully');
+            toast.success('New distribution node established');
             navigate('/admin/locations/branches');
         } catch (error) {
-            toast.error(error.message || 'Failed to create branch');
+            toast.error(error.response?.data?.message || 'Failed to establish branch node');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <Form onSubmit={handleSubmit} className="p-3">
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <Button
-                        variant="light"
-                        size="sm"
-                        className="rounded-circle p-2 shadow-sm border bg-white"
-                        onClick={() => navigate(-1)}
-                    >
-                        <ArrowLeft size={16} />
-                    </Button>
-                    <div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="fw-bold mb-0 text-nowrap">Add New Branch</h4>
-                            <PageInfoTooltip info={pageInfoData.addBranch} />
-                        </div>
-                        <p className="text-muted small mb-0 uppercase tracking-widest opacity-60">Register Locations</p>
+        <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Infrastructure Expansion</span>
                     </div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Initialize New Branch</h1>
+                        <PageInfoTooltip data={pageInfoData.addBranch} />
+                    </div>
+                    <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Register a new distribution hub in the global network</p>
                 </div>
-                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto gap-2">
-                    <Button variant="light" onClick={() => navigate('/admin/locations/branches')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4">
-                        <X size={18} /> Cancel
-                    </Button>
-                    <Button variant="primary" type="submit" disabled={loading} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4">
-                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                        {loading ? 'Saving...' : 'Save Branch'}
-                    </Button>
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
+                        onClick={() => navigate('/admin/locations/branches')}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+                    >
+                        <X size={16} /> Discard Node
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all active:scale-95 shadow-xl ${loading ? 'bg-slate-800 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-200'}`}
+                    >
+                        {loading ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save size={16} />} 
+                        {loading ? 'Establishiing...' : 'Deploy Hub'}
+                    </button>
                 </div>
             </div>
 
-            <Row>
-                <Col lg={8}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body className="p-4 p-md-5">
-                            <h6 className="fw-bold mb-4 text-primary border-bottom pb-2">Branch Information</h6>
-                            <Row>
-                                <Col md={8}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Name <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="e.g. Main Store - Downtown"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Code <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="BNH001"
-                                            name="code"
-                                            value={formData.code}
-                                            onChange={handleChange}
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle text-uppercase font-monospace"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-8 space-y-8">
+                    {/* Primary Branch Data */}
+                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-8 space-y-8">
+                        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+                                <Store size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900 tracking-tight">Hub Identification</h3>
+                                <p className="text-xs text-slate-400 font-medium">Core branch nomenclature and network coding</p>
+                            </div>
+                        </div>
 
-                            <Row>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Phone <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="tel"
-                                            placeholder="9876543210"
-                                            name="phone"
-                                            value={formData.phone}
-                                            maxLength={10}
-                                            onChange={(e) => {
-                                                const val = e.target.value.replace(/\D/g, '');
-                                                setFormData(prev => ({ ...prev, phone: val }));
-                                            }}
-                                            pattern="^[6-9]\d{9}$"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle font-monospace"
-                                        />
-                                        <Form.Control.Feedback type="invalid">Enter a valid 10-digit mobile number.</Form.Control.Feedback>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Email <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="email"
-                                            placeholder="branch@sathigro.com"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                        <Form.Control.Feedback type="invalid">Please provide a valid business email.</Form.Control.Feedback>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-
-                            <h6 className="fw-bold mb-3 mt-4 text-primary border-bottom pb-2">Location Details</h6>
-                            <Row>
-                                <Col md={12}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Street Address (Search on Map) <span className="text-danger">*</span></Form.Label>
-                                        <GoogleMapsInput
-                                            onLocationSelect={handleLocationSelect}
-                                            placeholder="Search for branch location..."
-                                        />
-                                        <div className="mt-3">
-                                            <Form.Control
-                                                type="text"
-                                                name="address.street"
-                                                value={formData.address.street}
-                                                onChange={handleChange}
-                                                placeholder="123 Market St"
-                                                required
-                                                className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                            />
-                                        </div>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">City <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="address.city"
-                                            value={formData.address.city}
-                                            onChange={(e) => {
-                                                const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    address: { ...prev.address, city: val }
-                                                }));
-                                            }}
-                                            pattern="^[a-zA-Z\s]+$"
-                                            placeholder="City"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                        <Form.Control.Feedback type="invalid">City name should only contain alphabets.</Form.Control.Feedback>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">State <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="address.state"
-                                            value={formData.address.state}
-                                            onChange={(e) => {
-                                                const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    address: { ...prev.address, state: val }
-                                                }));
-                                            }}
-                                            pattern="^[a-zA-Z\s]+$"
-                                            placeholder="State"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                        <Form.Control.Feedback type="invalid">State name should only contain alphabets.</Form.Control.Feedback>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Zip Code <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="address.zipCode"
-                                            value={formData.address.zipCode}
-                                            maxLength={6}
-                                            onChange={(e) => {
-                                                const val = e.target.value.replace(/\D/g, '');
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    address: { ...prev.address, zipCode: val }
-                                                }));
-                                            }}
-                                            pattern="^\d{6}$"
-                                            placeholder="000000"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle font-monospace"
-                                        />
-                                        <Form.Control.Feedback type="invalid">Enter a valid 6-digit zip code.</Form.Control.Feedback>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body className="p-4">
-                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">Branch Logo</h6>
-                            <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative" style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {logoPreview ? (
-                                    <div className="position-relative w-100">
-                                        <Image src={logoPreview} fluid rounded style={{ maxHeight: '150px' }} />
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            className="position-absolute top-0 end-0 m-2 rounded-circle p-1"
-                                            onClick={() => { setLogoPreview(null); setLogoFile(null); }}
-                                        >
-                                            <X size={16} />
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="text-muted py-4">
-                                        <Store className="mb-2 opacity-25" size={48} />
-                                        <p className="small mb-0">Drag and drop or click to upload logo</p>
-                                    </div>
-                                )}
-                                <Form.Control
-                                    type="file"
-                                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
-                                    onChange={handleLogoChange}
-                                    accept="image/*"
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                            <div className="md:col-span-8 space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Official Hub Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="e.g. Neo-Logistics Central"
+                                    className="w-full bg-slate-50 border border-slate-100 focus:border-emerald-500 rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-inner"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
                                 />
                             </div>
-                            <Form.Text className="text-muted small">Recommended size: 500x500px. Max: 2MB</Form.Text>
-                        </Card.Body>
-                    </Card>
+                            <div className="md:col-span-4 space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Network Code</label>
+                                <div className="relative">
+                                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                    <input
+                                        type="text"
+                                        name="code"
+                                        placeholder="BNH001"
+                                        className="w-full bg-slate-50 border border-slate-100 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs font-black uppercase tracking-widest text-slate-700 outline-none transition-all shadow-inner font-mono"
+                                        value={formData.code}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="md:col-span-6 space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Node Liaison Email</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        placeholder="hub-ops@distribution.net"
+                                        className="w-full bg-slate-50 border border-slate-100 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-inner text-lowercase"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="md:col-span-6 space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Emergency Frequency (Phone)</label>
+                                <div className="relative">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        placeholder="10-digit link"
+                                        maxLength={10}
+                                        className="w-full bg-slate-50 border border-slate-100 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold text-slate-700 outline-none transition-all shadow-inner"
+                                        value={formData.phone}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '');
+                                            setFormData({ ...formData, phone: val });
+                                        }}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body className="p-4">
-                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">Branch Settings</h6>
-                            <Form.Group className="mb-3 d-flex align-items-center justify-content-between">
-                                <Form.Label className="small fw-bold mb-0">Branch Status</Form.Label>
-                                <Form.Check
-                                    type="switch"
-                                    id="branch-status-switch"
-                                    label={formData.isActive ? "Active" : "Inactive"}
-                                    name="isActive"
-                                    checked={formData.isActive}
-                                    onChange={handleChange}
+                        {/* Location Intelligence */}
+                        <div className="space-y-6 pt-8">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
+                                    <MapPin size={20} />
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black text-slate-900 tracking-tight">Geospatial Coordinates</h4>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Physical deployment locus</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <GoogleMapsInput
+                                    onLocationSelect={handleLocationSelect}
+                                    placeholder="Synthesize address or drop map pin..."
                                 />
-                            </Form.Group>
-                            <p className="small text-muted mb-0">Inactive branches won't be visible in the user app and can't process orders.</p>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Form>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="md:col-span-4 space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Operational Street Address</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Physical Sector"
+                                            className="w-full bg-white border border-slate-100 focus:border-slate-900 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-600 outline-none shadow-sm"
+                                            value={formData.address.street}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, street: e.target.value }
+                                            })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1 space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Settlement (City)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="City"
+                                            className="w-full bg-white border border-slate-100 focus:border-slate-900 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-600 outline-none shadow-sm"
+                                            value={formData.address.city}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, city: e.target.value.replace(/[^a-zA-Z\s]/g, '') }
+                                            })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1 space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Zone (State)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="State"
+                                            className="w-full bg-white border border-slate-100 focus:border-slate-900 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-600 outline-none shadow-sm"
+                                            value={formData.address.state}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, state: e.target.value.replace(/[^a-zA-Z\s]/g, '') }
+                                            })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2 space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Postal Hash (ZIP)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="XXXXXX"
+                                            maxLength={6}
+                                            className="w-full bg-white border border-slate-100 focus:border-slate-900 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-600 outline-none shadow-sm"
+                                            value={formData.address.zipCode}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                address: { ...formData.address, zipCode: e.target.value.replace(/\D/g, '') }
+                                            })}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="lg:col-span-4 space-y-8">
+                    {/* Visual Branding */}
+                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-8 space-y-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <Upload size={18} />
+                            </div>
+                            <h3 className="text-sm font-black text-slate-900 tracking-tight">Node Branding</h3>
+                        </div>
+
+                        <div className="relative group text-center aspect-square flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/50 hover:bg-slate-50 hover:border-slate-200 transition-all cursor-pointer overflow-hidden">
+                            {logoPreview ? (
+                                <div className="relative w-full h-full animate-in zoom-in-95">
+                                    <img src={logoPreview} alt="" className="w-full h-full object-contain filter drop-shadow-md" />
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setLogoPreview(null); setLogoFile(null); }}
+                                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center shadow-md mb-4 group-hover:-translate-y-1 transition-transform duration-300">
+                                        <Store size={32} className="text-slate-200" />
+                                    </div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Initialize Visual ID</p>
+                                    <p className="text-[8px] text-slate-400 mt-1">Aspect Ratio 1:1 Recommended</p>
+                                </>
+                            )}
+                            <input
+                                type="file"
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                onChange={handleLogoChange}
+                                accept="image/*"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Operational Protocols */}
+                    <div className="bg-slate-900 rounded-[2.5rem] shadow-2xl p-8 space-y-8 text-white">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-lg">
+                                <Shield className="text-emerald-400" size={20} />
+                            </div>
+                            <h3 className="text-sm font-black tracking-tight">System Protocol</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 transition-all">
+                                <div className="space-y-0.5">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-white">Operational State</p>
+                                    <p className="text-[9px] text-slate-500 font-medium">Toggle active network visibility</p>
+                                </div>
+                                <div 
+                                    onClick={() => setFormData({...formData, isActive: !formData.isActive})}
+                                    className={`w-12 h-6 rounded-full relative transition-all cursor-pointer ${formData.isActive ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-white/10'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full transition-all duration-300 ${formData.isActive ? 'right-1 bg-white shadow-sm' : 'left-1 bg-slate-500'}`} />
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 flex gap-4">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                    <CheckCircle2 className="text-emerald-400" size={16} />
+                                </div>
+                                <p className="text-[9px] text-emerald-200/60 leading-relaxed">Establishing an active node will allow personnel registration and immediate order processing for the specified geographic locus.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
     );
 };
 

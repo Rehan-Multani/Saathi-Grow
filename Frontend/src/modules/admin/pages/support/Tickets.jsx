@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as complaintApi from '../../api/complaintApi';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 import TicketEditModal from '../../components/support/TicketEditModal';
 

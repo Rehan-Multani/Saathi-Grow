@@ -5,9 +5,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getBranchById, updateBranch } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import GoogleMapsInput from '../../components/common/GoogleMapsInput';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const EditBranch = () => {
     const navigate = useNavigate();

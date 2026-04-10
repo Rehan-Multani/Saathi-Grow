@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import BrandEditModal from '../../components/Brands/BrandEditModal'; // Using vendor specific modal
 import { useVendor } from '../../contexts/VendorContext';
-import { getBrands, deleteBrand, updateBrand } from '../../../admin/api/brandApi'; // Using admin API
+import { getBrands, deleteBrand, updateBrand } from '../../../../common/api/brandApi'; // Using admin API
 import { toast } from 'react-toastify';
 
 const AllBrands = () => {

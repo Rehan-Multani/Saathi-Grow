@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
-import { RefreshCw, Save, Upload, X, Sparkles, Plus } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { RefreshCw, Save, Upload, X, Sparkles, Plus, Camera, Search, ArrowLeft, Package, Trash2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
@@ -13,51 +12,35 @@ import { getVendors } from '../../api/vendorApi';
 import { createProduct, getAISuggestions } from '../../api/productApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AddProduct = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_products');
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
 
+    // Master Data
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
     const [filteredSubCategories, setFilteredSubCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
-
     const [branches, setBranches] = useState([]);
     const [vendors, setVendors] = useState([]);
 
+    // Form State
     const [formData, setFormData] = useState({
-        name: '',
-        category: '',
-        subCategory: '',
-        brandName: '',
-        basePrice: '',
-        mrp: '',
-        isVeg: true,
-        unitType: 'pcs',
-        unitValue: 1,
-        physicalLocation: '',
-        description: '',
-        isAllBranches: true,
-        specificBranches: [],
-        sku: '',
-        tags: [],
-        status: 'Active',
-        vendor: '',
-        isSaathiGrow: false,
-        stock: '',
-        lowStockThreshold: 10
+        name: '', category: '', subCategory: '', brandName: '', basePrice: '', mrp: '',
+        isVeg: true, unitType: 'pcs', unitValue: 1, physicalLocation: '', description: '',
+        isAllBranches: true, specificBranches: [], sku: '', tags: [], status: 'Active',
+        vendor: '', isSaathiGrow: false, stock: '', lowStockThreshold: 10
     });
 
-    const [branchStocks, setBranchStocks] = useState([]); // Array of { branchId, name, stock, lowStockThreshold }
-
+    const [branchStocks, setBranchStocks] = useState([]);
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [galleryPreviews, setGalleryPreviews] = useState([]);
@@ -67,765 +50,448 @@ const AddProduct = () => {
     const [tagInput, setTagInput] = useState('');
     const isVendorProduct = Boolean(formData.vendor);
 
-    // Fetch Initial Data
+    // Initialization
     useEffect(() => {
         const fetchData = async () => {
+            if (!adminUser?.token) return;
             try {
                 const [categoriesData, subCategoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
-                    getCategories(adminUser.token),
-                    getSubCategories(adminUser.token),
-                    getBrands(adminUser.token),
-                    getBranches(adminUser.token),
-                    getVendors(adminUser.token)
+                    getCategories(adminUser.token), getSubCategories(adminUser.token),
+                    getBrands(adminUser.token), getBranches(adminUser.token), getVendors(adminUser.token)
                 ]);
                 setCategories(categoriesData.filter(c => c.status === 'Active'));
                 setSubCategories(subCategoriesData.filter(sc => sc.status === 'Active'));
                 setBrands(brandsData.filter(b => b.status === 'Active'));
                 setBranches(branchesData.filter(b => b.isActive));
                 setVendors(vendorsData.filter(v => v.status === 'Active'));
-
-                // We don't initialize branchStocks here anymore, let user select
             } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error(t('common.error'));
+                toast.error(t('messages.load_failed'));
             } finally {
                 setInitialLoading(false);
             }
         };
+        fetchData();
+    }, [adminUser?.token, t]);
 
-        if (adminUser?.token) {
-            fetchData();
-        }
-    }, [adminUser.token, t]);
-
-    useEffect(() => {
-        if (formData.vendor) {
-            setBranchStocks([]);
-            setFormData(prev => ({
-                ...prev,
-                specificBranches: []
-            }));
-        }
-    }, [formData.vendor]);
-
-    const handleBranchToggle = (branch) => {
-        const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
-        if (isSelected) {
-            setBranchStocks(prev => prev.filter(bs => bs.branchId !== branch._id));
-            setFormData(prev => ({
-                ...prev,
-                specificBranches: prev.specificBranches.filter(id => id !== branch._id)
-            }));
-        } else {
-            setBranchStocks(prev => [...prev, {
-                branchId: branch._id,
-                name: branch.name,
-                stock: 0,
-                lowStockThreshold: 10
-            }]);
-            setFormData(prev => ({
-                ...prev,
-                specificBranches: [...prev.specificBranches, branch._id]
-            }));
-        }
-    };
-
-    // Handle Branch Stock change
-    const handleBranchStockChange = (branchId, field, value) => {
-        setBranchStocks(prev => prev.map(bs =>
-            bs.branchId === branchId ? { ...bs, [field]: value === '' ? '' : Number(value) } : bs
-        ));
-    };
-
-    // Filter Brands & SubCategories when category changes
+    // Filtering Logic
     useEffect(() => {
         if (formData.category) {
-            // Filter Brands
-            const brandMatches = brands.filter(b => b.category === formData.category);
-            setFilteredBrands(brandMatches);
-            if (!brandMatches.find(m => m.name === formData.brandName)) {
-                setFormData(prev => ({ ...prev, brandName: '' }));
-            }
-
-            // Filter SubCategories
-            const subCatMatches = subCategories.filter(sc => sc.categoryName === formData.category || sc.category?.name === formData.category);
-            setFilteredSubCategories(subCatMatches);
-            if (!subCatMatches.find(m => m.name === formData.subCategory)) {
-                setFormData(prev => ({ ...prev, subCategory: '' }));
-            }
+            setFilteredBrands(brands.filter(b => b.category === formData.category));
+            setFilteredSubCategories(subCategories.filter(sc => sc.categoryName === formData.category || sc.category?.name === formData.category));
         } else {
             setFilteredBrands([]);
             setFilteredSubCategories([]);
-            setFormData(prev => ({ ...prev, brandName: '', subCategory: '' }));
         }
-    }, [formData.category, brands, subCategories, formData.brandName, formData.subCategory]);
+    }, [formData.category, brands, subCategories]);
 
-    // SKU Generation Logic
-    const generateSKU = () => {
-        const prefix = formData.category
-            ? formData.category.substring(0, 3).toUpperCase()
-            : 'PROD';
-        const namePart = formData.name
-            ? formData.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')
-            : 'XXX';
+    // SKU Helpers
+    const generateSKU = useCallback(() => {
+        const prefix = formData.category ? formData.category.substring(0, 3).toUpperCase() : 'PROD';
+        const namePart = formData.name ? formData.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X') : 'XXX';
         const uid = Math.random().toString(36).substring(2, 7).toUpperCase();
         return `${prefix}-${namePart}-${uid}`;
-    };
+    }, [formData.category, formData.name]);
 
-    // Auto-update SKU
+    const handleRefreshSKU = useCallback(() => {
+        setFormData(prev => ({ ...prev, sku: generateSKU() }));
+    }, [generateSKU]);
+
     useEffect(() => {
         if (formData.name && formData.category && !formData.sku) {
-            setFormData(prev => ({ ...prev, sku: generateSKU() }));
+            handleRefreshSKU();
         }
-    }, [formData.name, formData.category, formData.sku]);
+    }, [formData.name, formData.category, formData.sku, handleRefreshSKU]);
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setTempImage(reader.result);
-                setShowCropper(true);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleCropComplete = async (croppedImage) => {
-        setImagePreview(croppedImage);
-        setShowCropper(false);
-        setTempImage(null);
-
-        // Convert to file for submission
-        const res = await fetch(croppedImage);
-        const blob = await res.blob();
-        setImageFile(new File([blob], 'product.jpg', { type: 'image/jpeg' }));
-    };
-
-    const handleGalleryChange = (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length + galleryFiles.length > 10) {
-            return toast.warning(t('products.gallery_limit_warning', { defaultValue: 'Maximum 10 gallery images allowed' }));
-        }
-
-        const newPreviews = files.map(file => URL.createObjectURL(file));
-        setGalleryPreviews(prev => [...prev, ...newPreviews]);
-        setGalleryFiles(prev => [...prev, ...files]);
-    };
-
-    const removeGalleryImage = (index) => {
-        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
-        setGalleryFiles(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const handleChange = (e) => {
+    // Handlers
+    const handleChange = useCallback((e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox'
-                ? checked
-                : (['basePrice', 'mrp', 'unitValue', 'stock', 'lowStockThreshold'].includes(name)
-                    ? (value === '' ? '' : Number(value))
-                    : value)
+            [name]: type === 'checkbox' ? checked : (['basePrice', 'mrp', 'unitValue', 'stock', 'lowStockThreshold'].includes(name) ? (value === '' ? '' : Number(value)) : value)
         }));
-    };
+    }, []);
 
-    const handleRefreshSKU = () => {
-        setFormData({ ...formData, sku: generateSKU() });
-    };
+    const handleBranchToggle = useCallback((branch) => {
+        setBranchStocks(prev => {
+            const isSelected = prev.some(bs => bs.branchId === branch._id);
+            if (isSelected) return prev.filter(bs => bs.branchId !== branch._id);
+            return [...prev, { branchId: branch._id, name: branch.name, stock: 0, lowStockThreshold: 10 }];
+        });
+        setFormData(prev => {
+             const isSelected = prev.specificBranches.includes(branch._id);
+             if (isSelected) return { ...prev, specificBranches: prev.specificBranches.filter(id => id !== branch._id) };
+             return { ...prev, specificBranches: [...prev.specificBranches, branch._id] };
+        });
+    }, []);
 
-    const addTag = (newTag) => {
-        const trimmedTag = (newTag || tagInput).trim();
-        if (trimmedTag && !formData.tags.includes(trimmedTag)) {
-            setFormData(prev => ({
-                ...prev,
-                tags: [...prev.tags, trimmedTag]
-            }));
-            if (!newTag) setTagInput('');
+    const handleBranchStockChange = useCallback((branchId, field, value) => {
+        setBranchStocks(prev => prev.map(bs => bs.branchId === branchId ? { ...bs, [field]: value === '' ? '' : Number(value) } : bs));
+    }, []);
+
+    const handleImageChange = useCallback((e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => { setTempImage(reader.result); setShowCropper(true); };
+            reader.readAsDataURL(file);
         }
-    };
+    }, []);
 
-    const handleAISuggestion = async (type) => {
-        if (!formData.name) {
-            return toast.warning(t('products.alerts.name_required'));
+    const handleCropComplete = useCallback(async (croppedImage) => {
+        setImagePreview(croppedImage);
+        setShowCropper(false);
+        setTempImage(null);
+        const res = await fetch(croppedImage);
+        const blob = await res.blob();
+        setImageFile(new File([blob], 'product.jpg', { type: 'image/jpeg' }));
+    }, []);
+
+    const handleGalleryChange = useCallback((e) => {
+        const files = Array.from(e.target.files);
+        setGalleryFiles(prev => {
+            if (prev.length + files.length > 10) {
+                toast.warning('Max 10 images');
+                return prev;
+            }
+            setGalleryPreviews(old => [...old, ...files.map(f => URL.createObjectURL(f))]);
+            return [...prev, ...files];
+        });
+    }, []);
+
+    const removeGalleryImage = useCallback((index) => {
+        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+        setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    }, []);
+
+    const addTag = useCallback(() => {
+        const tag = tagInput.trim();
+        if (tag && !formData.tags.includes(tag)) {
+            setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+            setTagInput('');
         }
+    }, [tagInput, formData.tags]);
 
+    const handleAISuggestion = useCallback(async (type) => {
+        if (!formData.name) return toast.warning('Name required');
         setAiLoading(prev => ({ ...prev, [type]: true }));
         try {
             const data = await getAISuggestions(adminUser.token, formData.name, type);
-            if (type === 'description') {
-                setFormData(prev => ({ ...prev, description: data.suggestion }));
-                toast.success(t('products.alerts.description_gen'));
-            } else if (type === 'tags') {
+            if (type === 'description') setFormData(prev => ({ ...prev, description: data.suggestion }));
+            else {
                 const newTags = data.suggestion.split(',').map(t => t.trim()).filter(t => t);
-                setFormData(prev => ({
-                    ...prev,
-                    tags: [...new Set([...prev.tags, ...newTags])]
-                }));
-                toast.success(t('products.alerts.tags_gen'));
+                setFormData(prev => ({ ...prev, tags: [...new Set([...prev.tags, ...newTags])] }));
             }
-        } catch (error) {
-            toast.error(error.message || `Failed to generate ${type}`);
-        } finally {
-            setAiLoading(prev => ({ ...prev, [type]: false }));
-        }
-    };
+        } catch (error) { toast.error('AI Error'); }
+        finally { setAiLoading(prev => ({ ...prev, [type]: false })); }
+    }, [adminUser.token, formData.name]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.category || !formData.brandName || !formData.basePrice || !formData.sku) {
-            return toast.error(t('products.alerts.fill_required'));
-        }
-
-        if (!isVendorProduct && branchStocks.length === 0) {
-            return toast.error(t('products.alerts.select_branch'));
-        }
-
         setLoading(true);
         try {
             const data = new FormData();
-
-            // Fixed handling of isAllBranches based on user request
             const isAll = !isVendorProduct && formData.specificBranches.length === branches.length;
-
+            
             Object.keys(formData).forEach(key => {
-                if (key === 'tags') {
-                    data.append(key, formData.tags.join(','));
-                } else if (key === 'specificBranches') {
-                    data.append(key, formData.specificBranches.join(','));
-                } else if (key === 'isAllBranches') {
-                    data.append(key, isAll);
-                } else {
-                    data.append(key, formData[key]);
-                }
+                if (key === 'tags') data.append(key, formData.tags.join(','));
+                else if (key === 'specificBranches') data.append(key, formData.specificBranches.join(','));
+                else if (key === 'isAllBranches') data.append(key, isAll);
+                else data.append(key, formData[key]);
             });
 
-            // Append branch stocks as stringified JSON (only for branch products)
-            if (!isVendorProduct) {
-                data.append('branchStocks', JSON.stringify(branchStocks));
-            } else {
-                data.append('branchStocks', JSON.stringify([]));
-                data.append('specificBranches', '');
-                data.append('isAllBranches', false);
+            if (!isVendorProduct) data.append('branchStocks', JSON.stringify(branchStocks));
+            else { 
+                data.append('branchStocks', JSON.stringify([])); 
+                data.append('specificBranches', ''); 
+                data.append('isAllBranches', false); 
             }
-
-            if (imageFile) {
-                data.append('image', imageFile);
-            }
-
-            if (galleryFiles.length > 0) {
-                galleryFiles.forEach(file => {
-                    data.append('gallery', file);
-                });
-            }
-
+            
+            if (imageFile) data.append('image', imageFile);
+            galleryFiles.forEach(f => data.append('gallery', f));
+            
             await createProduct(adminUser.token, data);
-            toast.success(t('products.alerts.create_success'));
+            toast.success(t('messages.save_success'));
             navigate('/admin/products');
-        } catch (error) {
-            toast.error(error.message || t('products.alerts.create_failed'));
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { toast.error(error.message); }
+        finally { setLoading(false); }
     };
 
-    if (initialLoading) {
-        return (
-            <div className="d-flex justify-content-center align-items-center vh-100">
-                <Spinner animation="border" variant="primary" />
-            </div>
-        );
-    }
+    if (initialLoading) return <div className="flex h-screen items-center justify-center bg-white"><div className="saathi-spinner"></div></div>;
 
     return (
-        <div className="p-3">
-            <div className="d-flex align-items-center gap-2 mb-4">
-                <h4 className="mb-0 fw-bold">{t('products.add_title')}</h4>
-                <PageInfoTooltip info={pageInfoData.addProduct} />
-            </div>
+        <div className="min-h-screen bg-slate-50/50 p-4 md:p-8">
+            <div className="max-w-6xl mx-auto">
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => navigate('/admin/products')} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all">
+                            <ArrowLeft size={20} />
+                        </button>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl font-bold text-slate-900">{t('add_product')}</h1>
+                                <PageInfoTooltip data={pageInfoData.addProduct} />
+                            </div>
+                            <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => navigate('/admin/products')} className="px-6 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+                            {t('form.cancel')}
+                        </button>
+                        <button onClick={handleSubmit} disabled={loading} className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-2">
+                            {loading ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                            {t('form.save')}
+                        </button>
+                    </div>
+                </header>
 
-            <Form onSubmit={handleSubmit}>
-                <Row className="g-4">
-                    <Col lg={8}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="mb-3 fw-bold">{t('products.sections.general')}</h6>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>{t('products.form.name')} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder={t('products.form.placeholder.name')}
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <Form.Label className="mb-0">{t('products.form.description')} <span className="text-danger">*</span></Form.Label>
-                                        <OverlayTrigger overlay={<Tooltip>{t('products.alerts.ai_suggest_title', { defaultValue: 'Generate with AI' })}</Tooltip>}>
-                                            <Button
-                                                variant="link"
-                                                className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
-                                                onClick={() => handleAISuggestion('description')}
-                                                disabled={aiLoading.description}
-                                            >
-                                                {aiLoading.description ? <Spinner animation="border" size="sm" /> : <Sparkles size={16} />}
-                                                <small>{t('products.edit_modal.ai_write')}</small>
-                                            </Button>
-                                        </OverlayTrigger>
-                                    </div>
-                                    <Form.Control
-                                        as="textarea" rows={4}
-                                        placeholder={t('products.form.placeholder.description')}
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <Form.Label className="mb-0">{t('products.form.tags')}</Form.Label>
-                                        <OverlayTrigger overlay={<Tooltip>{t('products.alerts.ai_suggest_tags', { defaultValue: 'Suggest tags with AI' })}</Tooltip>}>
-                                            <Button
-                                                variant="link"
-                                                className="p-0 text-primary d-flex align-items-center gap-1 text-decoration-none"
-                                                onClick={() => handleAISuggestion('tags')}
-                                                disabled={aiLoading.tags}
-                                            >
-                                                {aiLoading.tags ? <Spinner animation="border" size="sm" /> : <Sparkles size={16} />}
-                                                <small>{t('products.edit_modal.ai_tags')}</small>
-                                            </Button>
-                                        </OverlayTrigger>
-                                    </div>
-                                    <div className="d-flex flex-wrap gap-2 mb-2">
-                                        {formData.tags.map((tag, index) => (
-                                            <span key={index} className="badge rounded-pill bg-light text-dark border d-flex align-items-center gap-2 px-3 py-2">
-                                                {tag}
-                                                <X size={14} className="cursor-pointer text-muted hover-danger" onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))} />
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <InputGroup>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder={t('products.form.placeholder.tag_input')}
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-                                        />
-                                        <Button variant="outline-secondary" onClick={(e) => { e.preventDefault(); addTag(); }}>{t('common.add')}</Button>
-                                    </InputGroup>
-                                </Form.Group>
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Section 1: Core Information */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
+                                {t('form.basic_info')}
+                            </h3>
 
-                                <h6 className="mb-3 fw-bold mt-4">{t('products.sections.pricing')}</h6>
-                                <Row className="align-items-end">
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('products.form.base_price')} <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder={t('products.form.placeholder.price')}
-                                                name="basePrice"
-                                                value={formData.basePrice}
-                                                onFocus={(e) => { if (formData.basePrice === 0 || formData.basePrice === "0" || formData.basePrice === "") setFormData(prev => ({ ...prev, basePrice: "" })) }}
-                                                onBlur={(e) => { if (formData.basePrice === "" || formData.basePrice === null) setFormData(prev => ({ ...prev, basePrice: "" })) }}
-                                                onChange={handleChange}
-                                                required
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('products.form.mrp')}</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder={t('products.form.placeholder.price')}
-                                                name="mrp"
-                                                value={formData.mrp}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('products.form.unit_type')}</Form.Label>
-                                            <Form.Select name="unitType" value={formData.unitType} onChange={handleChange}>
-                                                <option value="pcs">Pcs</option>
-                                                <option value="kg">Kg</option>
-                                                <option value="gm">Gm</option>
-                                                <option value="ml">Ml</option>
-                                                <option value="ltr">Ltr</option>
-                                                <option value="pkt">Pkt</option>
-                                                <option value="box">Box</option>
-                                                <option value="100g">100g</option>
-                                                <option value="250g">250g</option>
-                                                <option value="500g">500g</option>
-                                            </Form.Select>
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <div className="d-flex justify-content-between align-items-center mb-1">
-                                                <Form.Label className="mb-0">{t('products.form.food_type')}</Form.Label>
-                                            </div>
-                                            <div className="d-flex gap-2">
-                                                <Button
-                                                    variant={formData.isVeg ? "success" : "outline-success"}
-                                                    size="sm"
-                                                    className="flex-fill py-2 fw-bold text-[10px]"
-                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
-                                                >
-                                                    {t('products.dietary.veg')}
-                                                </Button>
-                                                <Button
-                                                    variant={!formData.isVeg ? "danger" : "outline-danger"}
-                                                    size="sm"
-                                                    className="flex-fill py-2 fw-bold text-[10px]"
-                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
-                                                >
-                                                    {t('products.dietary.non_veg')}
-                                                </Button>
-                                            </div>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">{t('fields.name')}</label>
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder={t('fields.name_placeholder')} className="form-input-simple" />
+                            </div>
 
-                                <Row>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('products.form.physical_location')}</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                placeholder={t('products.form.placeholder.location')}
-                                                name="physicalLocation"
-                                                value={formData.physicalLocation}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>{t('products.form.unit_amount')}</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder={t('products.form.placeholder.unit')}
-                                                name="unitValue"
-                                                value={formData.unitValue}
-                                                onFocus={(e) => { if (formData.unitValue === 0 || formData.unitValue === "0") setFormData(prev => ({ ...prev, unitValue: "" })) }}
-                                                onBlur={(e) => { if (formData.unitValue === "" || formData.unitValue === null) setFormData(prev => ({ ...prev, unitValue: 1 })) }}
-                                                onChange={handleChange}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.category')}</label>
+                                    <select name="category" value={formData.category} onChange={handleChange} required className="form-input-simple">
+                                        <option value="">Select Category</option>
+                                        {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.sub_category')}</label>
+                                    <select name="subCategory" value={formData.subCategory} onChange={handleChange} className="form-input-simple" disabled={!formData.category}>
+                                        <option value="">Select {t('fields.sub_category')}</option>
+                                        {filteredSubCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.brand')}</label>
+                                    <select name="brandName" value={formData.brandName} onChange={handleChange} required className="form-input-simple" disabled={!formData.category}>
+                                        <option value="">Select Brand</option>
+                                        {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
 
-                                {!isVendorProduct ? (
-                                    <>
-                                        <h6 className="mb-3 fw-bold mt-4 text-primary">{t('products.sections.branch_availability')}</h6>
-                                        <p className="text-muted small mb-3">{t('products.sections.branch_availability_help', { defaultValue: 'Select branches where this product will be available and set initial stock.' })}</p>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.description')}</label>
+                                    <button type="button" onClick={() => handleAISuggestion('description')} disabled={aiLoading.description} className="text-xs font-bold text-blue-600 flex items-center gap-1.5">
+                                        {aiLoading.description ? '...' : <><Sparkles size={14} /> {t('form.ai_write')}</>}
+                                    </button>
+                                </div>
+                                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="form-input-simple" required />
+                            </div>
 
-                                        <div className="p-3 bg-light rounded border mb-4">
-                                            <Form.Label className="fw-bold mb-3">{t('products.form.available_in')}</Form.Label>
-                                            <div className="d-flex flex-wrap gap-3">
-                                                {branches.map(branch => {
-                                                    const isSelected = branchStocks.some(bs => bs.branchId === branch._id);
-                                                    return (
-                                                        <Form.Check
-                                                            key={branch._id}
-                                                            type="checkbox"
-                                                            id={`branch-${branch._id}`}
-                                                            label={branch.name}
-                                                            checked={isSelected}
-                                                            onChange={() => handleBranchToggle(branch)}
-                                                            className="fw-medium custom-checkbox"
-                                                        />
-                                                    );
-                                                })}
-                                            </div>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.tags')}</label>
+                                    <button type="button" onClick={() => handleAISuggestion('tags')} disabled={aiLoading.tags} className="text-xs font-bold text-blue-600 flex items-center gap-1.5">
+                                        <Sparkles size={14} /> AI Suggested
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-2xl min-h-[46px]">
+                                    {formData.tags.map(tag => (
+                                        <span key={tag} className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600">
+                                            {tag} <X size={14} className="cursor-pointer text-slate-400 hover:text-red-500" onClick={() => setFormData(p => ({...p, tags: p.tags.filter(t => t !== tag)}))} />
+                                        </span>
+                                    ))}
+                                    <input type="text" placeholder="Add custom tag..." value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} className="bg-transparent border-none outline-none text-xs flex-1 min-w-[150px]" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 2: Pricing & Measurements */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
+                                {t('form.pricing_stock')}
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.base_price')}</label>
+                                    <input type="number" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="form-input-simple font-bold text-lg" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.mrp')}</label>
+                                    <input type="number" name="mrp" value={formData.mrp} onChange={handleChange} required className="form-input-simple font-bold text-slate-500" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-50 pt-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.unit_type')}</label>
+                                    <select name="unitType" value={formData.unitType} onChange={handleChange} className="form-input-simple">
+                                        <option value="pcs">Pieces (pcs)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="ltr">Liters (ltr)</option>
+                                        <option value="ml">Milliliters (ml)</option>
+                                        <option value="pkt">Packets (pkt)</option>
+                                        <option value="box">Box</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.unit_value')}</label>
+                                    <input type="number" name="unitValue" value={formData.unitValue} onChange={handleChange} step="0.01" className="form-input-simple" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.physical_location')}</label>
+                                    <input type="text" name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} placeholder="Shelf A-10" className="form-input-simple" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 3: Distribution Allocation */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+                                Branch & Vendor Access
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.direct_vendor')}</label>
+                                    <select name="vendor" value={formData.vendor} onChange={handleChange} className="form-input-simple">
+                                        <option value="">Internal / Branch Managed</option>
+                                        {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName} ({v.businessName})</option>)}
+                                    </select>
+                                    <p className="text-[10px] text-slate-400 font-medium italic">Selecting a vendor will bypass internal branch stock allocation.</p>
+                                </div>
+
+                                {!isVendorProduct && (
+                                    <div className="space-y-4 pt-4 border-t border-slate-50">
+                                        <label className="text-sm font-semibold text-slate-700 block">{t('fields.allocate_branches')}</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {branches.map(b => {
+                                                const isSelected = branchStocks.some(bs => bs.branchId === b._id);
+                                                return (
+                                                    <button key={b._id} type="button" onClick={() => handleBranchToggle(b)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}>
+                                                        {b.name}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
 
-                                        {branchStocks.length > 0 ? (
-                                            branchStocks.map((branch, index) => (
-                                                <div key={branch.branchId} className="p-3 rounded mb-3 bg-white border shadow-sm border-start border-4 border-primary">
-                                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                                        <span className="fw-bold text-dark">{branch.name}</span>
-                                                        <Badge bg="primary" className="fw-normal">{t('products.status.active')}</Badge>
+                                        {branchStocks.length > 0 && (
+                                            <div className="space-y-3 mt-6">
+                                                {branchStocks.map(bs => (
+                                                    <div key={bs.branchId} className="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
+                                                        <div className="flex-1 font-bold text-xs text-slate-700 uppercase tracking-tight">{bs.name}</div>
+                                                        <div className="flex gap-4">
+                                                            <div className="space-y-1">
+                                                                <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock</span>
+                                                                <input type="number" value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</span>
+                                                                <input type="number" value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none text-rose-500" />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <Row>
-                                                        <Col md={6}>
-                                                            <Form.Group className="mb-2">
-                                                                <Form.Label className="small fw-bold">{t('products.form.initial_stock_concentration')}</Form.Label>
-                                                                <Form.Control
-                                                                    type="number"
-                                                                    placeholder="0"
-                                                                    value={branch.stock}
-                                                                    min="0"
-                                                                    onFocus={(e) => { if (branch.stock === 0 || branch.stock === "0") handleBranchStockChange(branch.branchId, 'stock', '') }}
-                                                                    onBlur={(e) => { if (branch.stock === "" || branch.stock === null) handleBranchStockChange(branch.branchId, 'stock', 0) }}
-                                                                    onChange={(e) => handleBranchStockChange(branch.branchId, 'stock', e.target.value)}
-                                                                />
-                                                            </Form.Group>
-                                                        </Col>
-                                                        <Col md={6}>
-                                                            <Form.Group className="mb-2">
-                                                                <Form.Label className="small fw-bold">{t('products.form.low_stock_warning')}</Form.Label>
-                                                                <Form.Control
-                                                                    type="number"
-                                                                    placeholder={t('products.form.placeholder.low_stock')}
-                                                                    value={branch.lowStockThreshold}
-                                                                    min="0"
-                                                                    onFocus={(e) => { if (branch.lowStockThreshold === 0 || branch.lowStockThreshold === "0") handleBranchStockChange(branch.branchId, 'lowStockThreshold', '') }}
-                                                                    onBlur={(e) => { if (branch.lowStockThreshold === "" || branch.lowStockThreshold === null) handleBranchStockChange(branch.branchId, 'lowStockThreshold', 10) }}
-                                                                    onChange={(e) => handleBranchStockChange(branch.branchId, 'lowStockThreshold', e.target.value)}
-                                                                />
-                                                            </Form.Group>
-                                                        </Col>
-                                                    </Row>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-4 border border-dashed rounded bg-light">
-                                                <p className="text-muted mb-0 small">{t('products.alerts.no_branches_selected', { defaultValue: 'No branches selected. Please select at least one branch to set stock.' })}</p>
+                                                ))}
                                             </div>
                                         )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <h6 className="mb-3 fw-bold mt-4 text-primary">{t('products.sections.vendor_inventory')}</h6>
-                                        <p className="text-muted small mb-3">{t('products.sections.vendor_inventory_help', { defaultValue: 'Set initial stock for the vendor-managed product.' })}</p>
-                                        <div className="p-3 rounded mb-3 bg-white border shadow-sm border-start border-4 border-purple-500">
-                                            <Row>
-                                                <Col md={6}>
-                                                    <Form.Group className="mb-2">
-                                                        <Form.Label className="small fw-bold">{t('products.form.initial_stock')}</Form.Label>
-                                                        <Form.Control
-                                                            type="number"
-                                                            placeholder="0"
-                                                            name="stock"
-                                                            value={formData.stock}
-                                                            min="0"
-                                                            onFocus={(e) => { if (formData.stock === 0 || formData.stock === "0") setFormData(prev => ({ ...prev, stock: "" })) }}
-                                                            onBlur={(e) => { if (formData.stock === "" || formData.stock === null) setFormData(prev => ({ ...prev, stock: 0 })) }}
-                                                            onChange={handleChange}
-                                                        />
-                                                    </Form.Group>
-                                                </Col>
-                                                <Col md={6}>
-                                                    <Form.Group className="mb-2">
-                                                        <Form.Label className="small fw-bold">{t('products.form.low_stock_warning')}</Form.Label>
-                                                        <Form.Control
-                                                            type="number"
-                                                            placeholder={t('products.form.placeholder.low_stock')}
-                                                            name="lowStockThreshold"
-                                                            value={formData.lowStockThreshold}
-                                                            min="0"
-                                                            onFocus={(e) => { if (formData.lowStockThreshold === 0 || formData.lowStockThreshold === "0") setFormData(prev => ({ ...prev, lowStockThreshold: "" })) }}
-                                                            onBlur={(e) => { if (formData.lowStockThreshold === "" || formData.lowStockThreshold === null) setFormData(prev => ({ ...prev, lowStockThreshold: 10 })) }}
-                                                            onChange={handleChange}
-                                                        />
-                                                    </Form.Group>
-                                                </Col>
-                                            </Row>
-                                        </div>
-                                    </>
-                                )}
-                            </Card.Body>
-                        </Card>
-                    </Col>
-
-                    <Col lg={4}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="mb-3 fw-bold">{t('products.sections.organization')}</h6>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>{t('products.form.category')} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select name="category" value={formData.category} onChange={handleChange} required>
-                                        <option value="">{t('products.form.placeholder.category')}</option>
-                                        {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
-                                    </Form.Select>
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>{t('products.form.subcategory', { defaultValue: 'Subcategory' })}</Form.Label>
-                                    <Form.Select 
-                                        name="subCategory" 
-                                        value={formData.subCategory} 
-                                        onChange={handleChange} 
-                                        disabled={!formData.category}
-                                    >
-                                        <option value="">{t('products.form.placeholder.subcategory', { defaultValue: 'Select Subcategory' })}</option>
-                                        {filteredSubCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}
-                                    </Form.Select>
-                                    {!formData.category && <Form.Text className="text-muted">{t('products.form.placeholder.subcat_no_cat', { defaultValue: 'Select a category first' })}</Form.Text>}
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>{t('products.form.brand')} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select name="brandName" value={formData.brandName} onChange={handleChange} required disabled={!formData.category}>
-                                        <option value="">{t('products.form.placeholder.brand')}</option>
-                                        {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
-                                    </Form.Select>
-                                    {!formData.category && <Form.Text className="text-muted">{t('products.form.placeholder.brand_no_cat')}</Form.Text>}
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>{t('products.form.assign_vendor')}</Form.Label>
-                                    <Form.Select name="vendor" value={formData.vendor} onChange={handleChange}>
-                                        <option value="">{t('products.edit_modal.admin_inhouse')}</option>
-                                        {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName}</option>)}
-                                    </Form.Select>
-                                    <Form.Text className="text-muted small italic">{t('products.form.vendor_help')}</Form.Text>
-                                </Form.Group>
-
-                                <Form.Group className="mb-4 p-3 bg-blue-50/30 border border-blue-100 rounded-xl">
-                                    <Form.Check
-                                        type="checkbox"
-                                        id="isSaathiGrow"
-                                        name="isSaathiGrow"
-                                        label={
-                                            <div className="ms-3">
-                                                <div className="text-xs font-black text-blue-800 uppercase tracking-wider d-flex align-items-center gap-2">
-                                                    <Sparkles size={12} className="text-blue-600" />
-                                                    {t('products.form.saathi_priority')}
-                                                </div>
-                                                <div className="text-[10px] text-blue-600/70 font-medium">{t('products.form.saathi_priority_desc')}</div>
-                                            </div>
-                                        }
-                                        checked={formData.isSaathiGrow}
-                                        onChange={handleChange}
-                                        className="d-flex align-items-start"
-                                    />
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label>{t('products.form.sku')} <span className="text-danger">*</span></Form.Label>
-                                    <InputGroup>
-                                        <Form.Control
-                                            readOnly
-                                            value={formData.sku}
-                                            className="bg-light"
-                                            required
-                                        />
-                                        <Button variant="outline-secondary" onClick={handleRefreshSKU} title={t('products.alerts.regenerate_sku', { defaultValue: 'Regenerate SKU' })}>
-                                            <RefreshCw size={18} />
-                                        </Button>
-                                    </InputGroup>
-                                </Form.Group>
-
-                                {formData.sku && (
-                                    <div className="text-center mt-3 p-3 bg-white border rounded shadow-sm">
-                                        <div className="small fw-bold text-muted mb-2 uppercase">{t('products.form.qr_preview')}</div>
-                                        <div className="d-inline-block p-2 border rounded bg-white">
-                                            <QRCodeSVG
-                                                value={formData.sku}
-                                                size={150}
-                                                level="H"
-                                                includeMargin={true}
-                                                imageSettings={{
-                                                    src: "/favicon.ico",
-                                                    x: undefined,
-                                                    y: undefined,
-                                                    height: 24,
-                                                    width: 24,
-                                                    excavate: true,
-                                                }}
-                                            />
-                                        </div>
-                                        <div className="text-xs mt-2 text-muted font-monospace">{formData.sku}</div>
                                     </div>
                                 )}
-                            </Card.Body>
-                        </Card>
+                            </div>
+                        </div>
+                    </div>
 
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="mb-3 fw-bold">{t('products.sections.image')}</h6>
-                                <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative">
-                                    {imagePreview ? (
-                                        <div className="position-relative">
-                                            <Image src={imagePreview} alt="Preview" fluid rounded style={{ maxHeight: '200px' }} />
-                                            <Button variant="danger" size="sm" className="position-absolute top-0 end-0 m-2 rounded-circle p-1" onClick={() => { setImagePreview(null); setImageFile(null); }}>
-                                                <X size={16} />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className="text-muted">
-                                            <Upload className="mb-2" size={32} />
-                                            <p className="small mb-0">{t('products.edit_modal.update_image')}</p>
-                                        </div>
-                                    )}
-                                    <Form.Control
-                                        type="file"
-                                        className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
-                                        onChange={handleImageChange}
-                                        accept="image/*"
-                                        disabled={!!imagePreview}
-                                    />
+                    <div className="space-y-8">
+                        {/* Featured Image */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm text-center space-y-4">
+                            <label className="text-sm font-semibold text-slate-700 block text-left">Featured Image</label>
+                            <div className="relative group w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all">
+                                {imagePreview ? <img src={imagePreview} className="w-full h-full object-cover" /> : <Camera size={40} className="text-slate-300" />}
+                                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} accept="image/*" />
+                                {imagePreview && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold">Replace Main Photo</div>}
+                            </div>
+                        </div>
+
+                        {/* Gallery Section */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-4">
+                            <label className="text-sm font-semibold text-slate-700 block">Product Gallery (Max 10)</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {galleryPreviews.map((src, i) => (
+                                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-slate-100 group">
+                                        <img src={src} className="w-full h-full object-cover" />
+                                        <button onClick={() => removeGalleryImage(i)} className="absolute top-1 right-1 p-1 bg-white/80 rounded-md text-red-500 opacity-0 group-hover:opacity-100 transition-all shadow-sm">
+                                            <Trash2 size={12} />
+                                        </button>
+                                    </div>
+                                ))}
+                                {galleryFiles.length < 10 && (
+                                    <button type="button" onClick={() => document.getElementById('gallery-input').click()} className="aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-400">
+                                        <Plus size={20} />
+                                        <input id="gallery-input" type="file" multiple className="hidden" onChange={handleGalleryChange} accept="image/*" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Registry Info */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-4">
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-semibold text-slate-700">{t('fields.registry_sku')}</label>
+                                <button type="button" onClick={handleRefreshSKU} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><RefreshCw size={16} /></button>
+                            </div>
+                            <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl font-mono text-xs text-slate-600 text-center uppercase font-bold tracking-wider">{formData.sku || '-----------'}</div>
+                            <div className="flex justify-center p-4 bg-slate-50 rounded-2xl shadow-inner border border-slate-100">
+                                <QRCodeSVG value={formData.sku || 'PENDING'} size={140} />
+                            </div>
+                        </div>
+
+                        {/* More Configurations */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
+                            <div className="space-y-3">
+                                <label className="text-sm font-semibold text-slate-700">{t('fields.attributes')}</label>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => setFormData(p => ({...p, isVeg: true}))} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border ${formData.isVeg ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>Veg</button>
+                                    <button type="button" onClick={() => setFormData(p => ({...p, isVeg: false}))} className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border ${!formData.isVeg ? 'bg-rose-50 border-rose-500 text-rose-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>Non-Veg</button>
                                 </div>
-                                <ImageCropperModal
-                                    show={showCropper}
-                                    imageSrc={tempImage}
-                                    onCancel={() => { setShowCropper(false); setTempImage(null); }}
-                                    onCropComplete={handleCropComplete}
-                                    aspect={1}
-                                />
-                            </Card.Body>
-                        </Card>
+                            </div>
 
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="mb-3 fw-bold">{t('products.sections.gallery')}</h6>
-                                <div className="d-flex flex-wrap gap-2 mb-3">
-                                    {galleryPreviews.map((preview, index) => (
-                                        <div key={index} className="position-relative" style={{ width: '80px', height: '80px' }}>
-                                            <Image src={preview} alt={`Gallery ${index}`} thumbnail className="w-100 h-100 object-fit-cover" />
-                                            <Button
-                                                variant="danger"
-                                                size="sm"
-                                                className="position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-center shadow-sm"
-                                                style={{ width: '20px', height: '20px', marginTop: '-8px', marginRight: '-8px' }}
-                                                onClick={() => removeGalleryImage(index)}
-                                            >
-                                                <X size={12} />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    {galleryFiles.length < 10 && (
-                                        <div
-                                            className="border border-dashed rounded d-flex flex-column align-items-center justify-center cursor-pointer hover-bg-light transition-all text-muted"
-                                            style={{ width: '80px', height: '80px' }}
-                                            onClick={() => document.getElementById('gallery-input').click()}
-                                        >
-                                            <Plus size={24} />
-                                            <span style={{ fontSize: '10px' }}>{t('common.add')}</span>
-                                        </div>
-                                    )}
+                            <div 
+                                className={`p-4 rounded-2xl border flex items-center gap-4 cursor-pointer transition-all ${formData.isSaathiGrow ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-slate-50 border-slate-100 grayscale opacity-60'}`}
+                                onClick={() => setFormData(p => ({...p, isSaathiGrow: !p.isSaathiGrow}))}
+                            >
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.isSaathiGrow ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-400'}`}>
+                                    <Sparkles size={20} />
                                 </div>
-                                <Form.Control
-                                    id="gallery-input"
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    className="d-none"
-                                    onChange={handleGalleryChange}
-                                />
-                                <p className="text-muted small mb-0 mt-2">{t('products.form.gallery_help')}</p>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
+                                <div className="flex-1">
+                                    <span className="text-sm font-bold text-slate-900 block">Premium Listing</span>
+                                    <span className="text-[10px] text-slate-500 font-medium">Extra marketing visibility</span>
+                                </div>
+                                {formData.isSaathiGrow && <Check size={18} className="text-blue-600" />}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
-                <div className="d-flex justify-content-end gap-3 mb-5">
-                    <Button variant="light" className="px-4 fw-bold" onClick={() => navigate('/admin/products')}>{t('common.cancel')}</Button>
-                    <Button variant="primary" type="submit" className="px-4 fw-bold d-flex align-items-center justify-content-center gap-2" disabled={loading}>
-                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                        <span>{t('common.save')}</span>
-                    </Button>
-                </div>
-            </Form>
+            <ImageCropperModal show={showCropper} imageSrc={tempImage} onCancel={() => { setShowCropper(false); setTempImage(null); }} onCropComplete={handleCropComplete} aspect={1} />
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                .form-input-simple { 
+                    width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; 
+                    padding: 0.75rem 1rem; outline: none; transition: all 0.2s; font-size: 14px;
+                }
+                .form-input-simple:focus { border-color: #3b82f6; background-color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+                .saathi-spinner { width: 40px; height: 40px; border: 4px solid #f8fafc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+            `}} />
         </div>
     );
 };

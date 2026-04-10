@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SummaryCards from './components/SummaryCards';
 import * as Icons from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
-import { getDashboardStats } from '../admin/api/adminApi';
+import { getDashboardStats } from '../../common/api/adminApi';
 
 const StoreManagerDashboard = () => {
     const { managerUser } = useStoreManagerAuth();

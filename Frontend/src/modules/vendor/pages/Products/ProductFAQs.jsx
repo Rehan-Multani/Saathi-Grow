@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Search, Send, Clock, X, CheckCircle2, Trash2, MoreHorizontal, MessageCircle, Edit, Archive } from 'lucide-react';
 
 const ProductFAQs = () => {

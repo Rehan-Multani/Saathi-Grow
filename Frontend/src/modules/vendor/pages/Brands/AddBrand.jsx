@@ -4,8 +4,8 @@ import { Save, X, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { useVendor } from '../../contexts/VendorContext';
-import { createBrand } from '../../../admin/api/brandApi';
-import { getCategories } from '../../../admin/api/categoryApi';
+import { createBrand } from '../../../../common/api/brandApi';
+import { getCategories } from '../../../../common/api/categoryApi';
 import { toast } from 'react-toastify';
 
 const AddBrand = () => {

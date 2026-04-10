@@ -59,7 +59,7 @@ const StoreManagerSidebar = ({ showMobile, onClose }) => {
                 </div>
 
                 {/* Navigation */}
-                <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-hide">
                     <p className="px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-2">Main Menu</p>
                     <nav className="space-y-1">
                         {managerSidebarMenu.map((item, index) => {

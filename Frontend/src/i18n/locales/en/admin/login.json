@@ -1,0 +1,11 @@
+{
+  "title": "Admin Login",
+  "subtitle": "Strategic Gateway",
+  "email": "Access ID / Email",
+  "password": "Secure Key",
+  "remember_me": "Preserve Session",
+  "forgot_password": "Recovery",
+  "sign_in": "Authenticate",
+  "error_password_length": "Password must be at least 6 characters",
+  "error_invalid": "Invalid email or password"
+}

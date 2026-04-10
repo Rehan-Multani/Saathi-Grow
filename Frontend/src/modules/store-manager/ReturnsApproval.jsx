@@ -5,7 +5,7 @@ import {
     ChevronLeft, ListFilter, ClipboardCheck, History
 } from 'lucide-react';
 import ReturnApprovalModal from './components/ReturnApprovalModal';
-import { getReturnRequests, handleReturnRequest } from '../admin/api/orderApi';
+import { getReturnRequests, handleReturnRequest } from '../../common/api/orderApi';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 

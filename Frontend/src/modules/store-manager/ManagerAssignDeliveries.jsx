@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Badge, Dropdown, Spinner, Row, Col, InputGroup } from 'react-bootstrap';
 import { Clock, MapPin, UserCheck, RefreshCw, Search, UserX, Zap, Truck } from 'lucide-react';
 import {
@@ -8,7 +8,7 @@ import {
   unassignOrder,
   autoAssignOrder,
   getActiveTracking
-} from '../admin/api/adminDeliveryApi';
+} from '../../common/api/adminDeliveryApi';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -168,7 +168,7 @@ const ManagerAssignDeliveries = () => {
                     <td className="ps-4">
                       <div className="fw-bold text-slate-700">{item.orderId}</div>
                       <div className="d-flex align-items-center gap-1 text-primary small fw-medium">
-                        <Badge bg="primary-subtle" className="text-primary font-bold">₹{item.totalAmount}</Badge>
+                        <Badge bg="primary-subtle" className="text-primary font-bold">?{item.totalAmount}</Badge>
                       </div>
                     </td>
                     <td>
@@ -225,7 +225,7 @@ const ManagerAssignDeliveries = () => {
                                 >
                                   <div className="fw-bold text-slate-700">{d.name}</div>
                                   <div className="small text-slate-500 d-flex align-items-center gap-1">
-                                    <Truck size={12} /> {d.vehicleType} ₹ {d.phone}
+                                    <Truck size={12} /> {d.vehicleType} ? {d.phone}
                                   </div>
                                 </Dropdown.Item>
                               )) : <Dropdown.Item disabled className="small text-muted text-center py-3">No online riders found</Dropdown.Item>}

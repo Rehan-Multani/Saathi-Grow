@@ -72,7 +72,7 @@ const StaffLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900">
+        <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900 staff-portal-root animate-page-entry">
             <FirebaseNotificationHandler token={staffToken} role="staff" />
             <StaffSidebar
                 showMobile={showMobileSidebar}

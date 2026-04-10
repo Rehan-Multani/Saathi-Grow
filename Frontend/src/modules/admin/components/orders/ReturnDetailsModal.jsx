@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Download, User, MapPin, Package, AlertCircle, X } from 'lucide-react';
 
 const ReturnDetailsModal = ({ show, onHide, request }) => {

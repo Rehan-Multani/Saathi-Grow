@@ -1,9 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, DollarSign } from 'lucide-react';
 import Swal from 'sweetalert2';
-import OrderDetailsModal from '../admin/components/orders/OrderDetailsModal';
-import { getAllOrdersAdmin, updateOrderStatus } from '../admin/api/orderApi';
+import OrderDetailsModal from '../../common/components/orders/OrderDetailsModal';
+import { getAllOrdersAdmin, updateOrderStatus } from '../../common/api/orderApi';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 
 const ManagerOrders = () => {
@@ -140,7 +140,7 @@ const ManagerOrders = () => {
                       <div className="text-muted x-small">{new Date(order.createdAt).toLocaleDateString()}</div>
                     </td>
                     <td>{order.items?.length || 0}</td>
-                    <td className="fw-bold">₹{order.totalAmount}</td>
+                    <td className="fw-bold">?{order.totalAmount}</td>
                     <td>
                       <Badge bg={getStatusBadge(order.status)} className="rounded-pill px-3">
                         {order.status.replace(/_/g, ' ')}

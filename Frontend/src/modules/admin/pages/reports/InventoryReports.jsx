@@ -8,8 +8,8 @@ import { getVendors } from '../../api/vendorApi';
 import { getCategories } from '../../api/categoryApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const InventoryReports = () => {
     const { t } = useTranslation();

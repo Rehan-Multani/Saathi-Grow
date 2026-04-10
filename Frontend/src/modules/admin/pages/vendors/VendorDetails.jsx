@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Badge, Button, Table, ProgressBar } from 'react-bootstrap';
 import {
@@ -30,9 +30,9 @@ const VENDOR_DATA = {
             { id: 'ORD-9875', customer: 'Charlie Brown', date: '2026-02-01', status: 'Delivered', amount: 890.00 },
         ],
         topProducts: [
-            { name: 'Organic Bananas', sales: 450, stock: 120, price: '₹40' },
-            { name: 'Fresh Milk 1L', sales: 320, stock: 45, price: '₹65' },
-            { name: 'Farm Eggs (12pk)', sales: 280, stock: 15, price: '₹120' },
+            { name: 'Organic Bananas', sales: 450, stock: 120, price: '?40' },
+            { name: 'Fresh Milk 1L', sales: 320, stock: 45, price: '?65' },
+            { name: 'Farm Eggs (12pk)', sales: 280, stock: 15, price: '?120' },
         ]
     }
 };
@@ -71,9 +71,9 @@ const VendorDetails = () => {
                         <h4 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '200px' }}>{vendor.name}</h4>
                         <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
                             <span className="badge bg-primary bg-opacity-10 text-primary px-2">Vendor</span>
-                            <span className="d-none d-sm-inline">₹</span>
+                            <span className="d-none d-sm-inline">?</span>
                             <span>ID: {id}</span>
-                            <span className="d-none d-sm-inline">₹</span>
+                            <span className="d-none d-sm-inline">?</span>
                             <span className={`fw-bold d-flex align-items-center gap-1 ${vendor.status === 'Active' ? 'text-success' : 'text-danger'}`}>
                                 <Activity size={14} /> {vendor.status}
                             </span>
@@ -104,10 +104,10 @@ const VendorDetails = () => {
                     {/* Stats Grid */}
                     <Row className="g-2 g-md-3 mb-4">
                         {[
-                            { label: 'Total Sales', value: `₹${vendor.totalEarnings.toLocaleString()}`, icon: <TrendingUp size={20} />, color: 'blue' },
+                            { label: 'Total Sales', value: `?${vendor.totalEarnings.toLocaleString()}`, icon: <TrendingUp size={20} />, color: 'blue' },
                             { label: 'Avg. Rating', value: vendor.rating, icon: <Star size={20} fill="currentColor" />, color: 'warning' },
                             { label: 'Products', value: vendor.totalProducts, icon: <Package size={20} />, color: 'purple' },
-                            { label: 'Pending Payout', value: `₹${vendor.pendingPayout}`, icon: <DollarSign size={20} />, color: 'green' }
+                            { label: 'Pending Payout', value: `?${vendor.pendingPayout}`, icon: <DollarSign size={20} />, color: 'green' }
                         ].map((stat, i) => (
                             <Col xs={6} md={3} key={i}>
                                 <Card className="border-0 shadow-sm h-100">
@@ -187,7 +187,7 @@ const VendorDetails = () => {
                                             <td className="ps-4 fw-bold">{order.id}</td>
                                             <td className="text-muted">{order.customer}</td>
                                             <td className="text-muted">{order.date}</td>
-                                            <td className="fw-bold">₹{order.amount}</td>
+                                            <td className="fw-bold">?{order.amount}</td>
                                             <td className="text-end pe-4">
                                                 <Badge bg={order.status === 'Delivered' ? 'success' : 'warning'} className="fw-normal">
                                                     {order.status}

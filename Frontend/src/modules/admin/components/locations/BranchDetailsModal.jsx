@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { X, MapPin, Phone, Store, User, Mail, Globe } from 'lucide-react';
 
 const BranchDetailsModal = ({ show, onHide, branch, onEdit }) => {
@@ -40,7 +40,7 @@ const BranchDetailsModal = ({ show, onHide, branch, onEdit }) => {
                             <h5 className="text-xl font-bold text-gray-800 mb-0">{branch.name}</h5>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <span className="font-mono">{branch.code}</span>
-                                <span>₹</span>
+                                <span>?</span>
                                 <span className={`flex items-center gap-1 ${branch.isActive ? 'text-green-600' : 'text-gray-500'}`}>
                                     {branch.isActive ? 'Active' : 'Inactive'}
                                 </span>

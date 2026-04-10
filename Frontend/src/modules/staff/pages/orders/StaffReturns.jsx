@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
-import { getReturnRequests, handleReturnRequest } from '../../../admin/api/orderApi';
+import { getReturnRequests, handleReturnRequest } from '../../../../common/api/orderApi';
 
 const statusColors = {
     Pending: 'bg-amber-100 text-amber-700 border-amber-200',

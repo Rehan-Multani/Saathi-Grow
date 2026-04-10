@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Modal, Spinner } from 'react-bootstrap';
-import { Search, Plus, Briefcase, Edit, Trash2, Key, X, Store, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, Plus, Briefcase, Edit, Trash2, Key, X, Store, ChevronLeft, ChevronRight, Shield, Mail, Phone, Loader2, UserCircle2, Ban, CheckCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import StaffEditModal from '../../components/staff/StaffEditModal';
 import { getAllStaff, updateStaff, deleteStaff } from '../../api/adminApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
 import { toast } from 'react-toastify';
-import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllStaff = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_staff');
     const { adminUser } = useAdminAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [staffList, setStaffList] = useState([]);
@@ -37,10 +36,9 @@ const AllStaff = () => {
                 { paginated: true }
             );
             setStaffList(Array.isArray(staff) ? staff : []);
-            setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
+            setPagination(paginationData || { total: 0, totalPages: 1, page, limit: 10 });
         } catch (error) {
-            console.error('Error fetching staff:', error);
-            toast.error(t('staff.errors.fetch_failed', { defaultValue: 'Failed to fetch staff list' }));
+            toast.error(t('all.alerts.error'));
         } finally {
             setLoading(false);
         }
@@ -58,19 +56,16 @@ const AllStaff = () => {
 
     const handleDelete = async (id, name) => {
         const result = await showDeleteConfirmation(
-            t('staff.alerts.remove_title', { defaultValue: 'Delete Staff Member?' }),
-            t('staff.alerts.remove_text', { name, defaultValue: `Are you sure you want to remove ${name}?` })
+            t('all.alerts.delete_confirm'),
+            `${name} will be removed from the system.`
         );
         if (result.isConfirmed) {
             try {
                 await deleteStaff(adminUser.token, id);
                 fetchStaffData();
-                showSuccessAlert(
-                    t('staff.alerts.removed_title', { defaultValue: 'Removed!' }),
-                    t('staff.alerts.removed_text', { defaultValue: 'Staff member has been removed successfully.' })
-                );
+                showSuccessAlert(t('all.alerts.delete_success'));
             } catch (error) {
-                showErrorAlert(t('common.error'), error.message || t('staff.errors.remove_failed'));
+                showErrorAlert(error.response?.data?.message || 'Failed to remove staff');
             }
         }
     };
@@ -83,11 +78,11 @@ const AllStaff = () => {
     const handleSaveStaff = async (updatedData) => {
         try {
             await updateStaff(adminUser.token, selectedStaff._id, updatedData);
-            toast.success(t('staff.alerts.update_success', { defaultValue: 'Staff updated successfully' }));
+            toast.success(t('edit.alerts.success'));
             fetchStaffData();
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || t('staff.errors.update_failed'));
+            toast.error(error.response?.data?.message || t('edit.alerts.error'));
         }
     };
 
@@ -103,250 +98,264 @@ const AllStaff = () => {
         if (!selectedStaff) return;
         try {
             await updateStaff(adminUser.token, selectedStaff._id, { permissions: tempPermissions });
-            toast.success(t('staff.alerts.permissions_updated', { defaultValue: 'Permissions updated successfully' }));
+            toast.success(t('all.alerts.status_success'));
             fetchStaffData();
             setShowPermissionModal(false);
         } catch (error) {
-            toast.error(error.message || t('staff.errors.permissions_failed'));
+            toast.error(error.response?.data?.message || 'Failed to update permissions');
         }
     };
 
     const totalFiltered = pagination.total || 0;
     const totalPages = pagination.totalPages || 1;
-    const paginatedStaff = staffList;
 
     useEffect(() => {
         setPage(1);
     }, [searchTerm]);
 
+    const PERMISSIONS_DEF = [
+        { id: 'VIEW_DASHBOARD', label: t('permissions.VIEW_DASHBOARD') },
+        { id: 'VIEW_ORDERS', label: t('permissions.VIEW_ORDERS') },
+        { id: 'MANAGE_PRODUCTS', label: t('permissions.MANAGE_PRODUCTS') },
+        { id: 'VIEW_CUSTOMERS', label: t('permissions.VIEW_CUSTOMERS') },
+        { id: 'MANAGE_INVENTORY', label: t('permissions.MANAGE_INVENTORY') },
+        { id: 'MANAGE_STAFF', label: t('permissions.MANAGE_STAFF') },
+        { id: 'VIEW_REPORTS', label: t('permissions.VIEW_REPORTS') }
+    ];
+
     return (
-        <div className="p-3">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <div className="d-flex align-items-center gap-2">
-                        <h5 className="mb-0 fw-bold text-nowrap">{t('staff.title')}</h5>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight">{t('all.title')}</h1>
                         <PageInfoTooltip data={pageInfoData.manageStaff} />
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100">{totalFiltered} Members</span>
                     </div>
-                    <div className="d-flex flex-column flex-sm-row gap-2 flex-grow-1 justify-content-sm-end">
-                        <InputGroup className="w-100" style={{ maxWidth: '300px' }}>
-                            <InputGroup.Text className="bg-white border-end-0"><Search size={18} /></InputGroup.Text>
-                            <Form.Control
-                                placeholder={t('staff.search_placeholder')}
-                                className="border-start-0 ps-0 shadow-none font-small"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </InputGroup>
-                        <Link to="/admin/staff/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn shadow-sm">
-                            <Plus size={18} />
-                            <span className="d-none d-sm-inline">{t('staff.add_staff')}</span>
-                            <span className="d-inline d-sm-none">{t('staff.add_short')}</span>
-                        </Link>
-                    </div>
-                </Card.Body>
-            </Card>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('all.subtitle')}</p>
+                </div>
 
-            <Card className="border-0 shadow-sm">
-                <Card.Body className="p-0">
-                    {loading ? (
-                        <div className="text-center py-5">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">{t('common.loading')}</p>
-                        </div>
-                    ) : (
-                        <Table hover responsive className="mb-0 align-middle">
-                            <thead className="bg-light text-muted small text-uppercase font-weight-bold">
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder={t('all.search_placeholder')}
+                            className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-sm font-medium shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Link
+                        to="/admin/staff/add"
+                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 text-xs font-bold transition-all shadow-md shadow-blue-50 active:scale-95 whitespace-nowrap"
+                    >
+                        <Plus size={18} /> {t('all.add_btn')}
+                    </Link>
+                </div>
+            </div>
+
+            {/* List Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('all.table.name')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('all.table.role')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">Branch</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-center">{t('all.table.status')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-right">{t('all.table.actions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading && staffList.length === 0 ? (
                                 <tr>
-                                    <th className="ps-4 border-0 py-3">{t('staff.table.profile')}</th>
-                                    <th className="border-0 py-3">{t('staff.table.role')}</th>
-                                    <th className="border-0 py-3">{t('staff.table.branch')}</th>
-                                    <th className="border-0 py-3">{t('staff.table.status')}</th>
-                                    <th className="border-0 py-3 text-end pe-4">{t('staff.table.actions')}</th>
+                                    <td colSpan="5" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Loader2 size={32} className="text-blue-500 animate-spin" />
+                                            <span className="text-xs font-medium text-slate-400">Loading team members...</span>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {paginatedStaff.length > 0 ? paginatedStaff.map((s) => (
-                                    <tr key={s._id}>
-                                        <td className="ps-4">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-light d-flex align-items-center justify-content-center text-primary font-bold border shadow-sm" style={{ width: '40px', height: '40px' }}>
-                                                    {s.name.charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <div className="fw-bold text-dark">{s.name}</div>
-                                                    <div className="small text-muted">{s.email}</div>
+                            ) : staffList.length > 0 ? staffList.map((s) => (
+                                <tr key={s._id} className="hover:bg-slate-50/20 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-sm border border-slate-200 uppercase">
+                                                {s.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-slate-900 leading-tight">{s.name}</div>
+                                                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium mt-1">
+                                                    <Mail size={12} className="opacity-60" /> {s.email}
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td>
-                                            <Badge bg="light" className="text-dark border-0 fw-normal">
-                                                <Briefcase size={12} className="me-1" /> {s.role === 'Branch Manager' ? 'Store Manager' : s.role}
-                                            </Badge>
-                                        </td>
-                                        <td>
-                                            {s.branchId ? (
-                                                <div className="d-flex align-items-center gap-2 text-primary small fw-medium">
-                                                    <Store size={14} /> {s.branchId.name}
-                                                </div>
-                                            ) : (
-                                                <span className="text-muted small italic">{t('staff.global')}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 w-fit">
+                                                {s.role === 'Branch Manager' ? 'Store Manager' : s.role}
+                                            </span>
+                                            {s.permissions?.length > 0 && (
+                                                <span className="text-[9px] text-slate-400 font-semibold uppercase">{s.permissions.length} Permissions</span>
                                             )}
-                                        </td>
-                                        <td>
-                                            <Badge bg={s.isActive ? 'success' : 'secondary'} className="rounded-pill fw-normal px-3">
-                                                {s.isActive ? t('staff.status.active') : t('staff.status.inactive')}
-                                            </Badge>
-                                        </td>
-                                        <td className="text-end pe-4">
-                                            <div className="d-flex justify-content-end gap-2">
-                                                <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-warning" title={t('staff.actions.manage_permissions')}
-                                                    onClick={() => handleOpenPermissionModal(s)}
-                                                >
-                                                    <Key size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-primary" title={t('staff.actions.edit_staff')}
-                                                    onClick={() => handleEdit(s)}
-                                                >
-                                                    <Edit size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-danger" title={t('staff.actions.remove_staff')}
-                                                    onClick={() => handleDelete(s._id, s.name)}
-                                                    disabled={s.role === 'Admin'}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </Button>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        {s.branchId ? (
+                                            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+                                                <Store size={14} className="text-slate-400" /> {s.branchId.name}
                                             </div>
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-5 text-muted small">
-                                            {t('staff.no_staff')}
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    )}
-                </Card.Body>
+                                        ) : (
+                                            <span className="text-[10px] font-bold text-slate-300 uppercase italic">Global Access</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-4 text-center">
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${s.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                            {s.isActive ? t('all.status.active') : t('all.status.inactive')}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex justify-end gap-1">
+                                            <button
+                                                onClick={() => handleOpenPermissionModal(s)}
+                                                className="p-2.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all"
+                                                title="Permissions"
+                                            >
+                                                <Key size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(s)}
+                                                className="p-2.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                                                title="Edit"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(s._id, s.name)}
+                                                className={`p-2.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all ${s.role === 'Admin' ? 'invisible' : ''}`}
+                                                disabled={s.role === 'Admin'}
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan="5" className="py-20 text-center text-slate-400">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Briefcase size={40} className="text-slate-200" />
+                                            <p className="text-xs font-semibold">{t('all.no_staff')}</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
+                {/* Pagination */}
                 {!loading && totalFiltered > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('staff.pagination.showing')} <span className="fw-semibold text-dark text-xs">{((page - 1) * limit) + 1}</span> {t('staff.pagination.to')} <span className="fw-semibold text-dark text-xs">{Math.min(page * limit, totalFiltered)}</span> {t('staff.pagination.of')} <span className="fw-semibold text-dark text-xs">{totalFiltered}</span> {t('staff.pagination.staff_members')}
+                    <div className="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="text-xs font-medium text-slate-500 italic">
+                            Showing {staffList.length} of {totalFiltered} team members
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        <div className="flex items-center gap-2">
+                            <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
                             >
                                 <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
+                            </button>
+                            <div className="flex items-center gap-1">
                                 {[...Array(totalPages)].map((_, i) => {
                                     const p = i + 1;
                                     if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
                                         return (
-                                            <Button
+                                            <button
                                                 key={p}
-                                                variant={page === p ? 'primary' : 'light'}
-                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border text-xs'}`}
-                                                style={{ width: '32px', height: '32px', padding: 0 }}
                                                 onClick={() => setPage(p)}
+                                                className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${page === p ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
                                             >
                                                 {p}
-                                            </Button>
+                                            </button>
                                         );
                                     } else if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-muted px-1">...</span>;
+                                        return <span key={p} className="text-slate-300 px-0.5 font-bold">...</span>;
                                     }
                                     return null;
                                 })}
                             </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
+                                className={`p-2 rounded-lg border transition-all ${page === totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
                             >
                                 <ChevronRight size={16} />
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
-            {/* Permission Modal */}
-            <Modal show={showPermissionModal} onHide={() => setShowPermissionModal(false)} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title className="h5 fw-bold">{t('staff.permissions_modal.title')}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedStaff && (
-                        <div>
-                            <div className="mb-4 p-3 bg-light rounded d-flex align-items-center gap-3">
-                                <div className="rounded-circle bg-white d-flex align-items-center justify-content-center text-primary fw-bold border shadow-sm" style={{ width: '40px', height: '40px' }}>
-                                    {selectedStaff.name.charAt(0)}
-                                </div>
-                                <div>
-                                    <div className="fw-bold">{selectedStaff.name}</div>
-                                    <div className="small text-muted">{selectedStaff.role}</div>
-                                </div>
+            {/* Permissions Modal */}
+            {showPermissionModal && selectedStaff && (
+                <div className="fixed inset-0 z-[1070] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setShowPermissionModal(false)} />
+                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+                        <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">{t('add.form.label_permissions')}</h3>
+                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{selectedStaff.name}</p>
                             </div>
-
-                            <h6 className="fw-bold mb-3 text-muted small text-uppercase">{t('staff.permissions_modal.access_control')}</h6>
-                            <div className="d-flex flex-column gap-2 overflow-auto" style={{ maxHeight: '350px' }}>
-                                 {[
-                                     'VIEW_ORDERS',
-                                     'MANAGE_ORDERS',
-                                     'MANAGE_REFUNDS_RETURNS',
-                                     'VIEW_PRODUCTS',
-                                     'MANAGE_INVENTORY',
-                                     'VIEW_CUSTOMERS',
-                                     'MANAGE_POS_BILLING'
-                                 ].map((permId) => (
-                                    <div key={permId} className="d-flex align-items-center justify-content-between p-2 border rounded hover-bg-light transition-all">
-                                        <div className="d-flex align-items-center gap-2">
-                                            {permId.includes('MANAGE') ? <Shield size={16} className="text-primary" /> : <div style={{ width: 16 }} />}
-                                            <span className={permId.includes('MANAGE') ? 'fw-medium text-primary small' : 'text-dark small'}>{t(`staff.permission_labels.${permId}`)}</span>
-                                        </div>
-                                        <Form.Check
-                                            type="switch"
-                                            id={`perm-switch-${permId}`}
-                                            checked={tempPermissions.includes(permId)}
-                                            onChange={() => handlePermissionToggle(permId)}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
+                            <button onClick={() => setShowPermissionModal(false)} className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all shadow-sm"><X size={18} strokeWidth={2.5} /></button>
                         </div>
-                    )}
-                </Modal.Body>
-                <Modal.Footer className="border-0 pt-0 gap-2">
-                    <Button variant="light" onClick={() => setShowPermissionModal(false)} className="d-flex align-items-center gap-2">
-                        <X size={18} /> {t('common.cancel')}
-                    </Button>
-                    <Button variant="primary" onClick={handleSavePermissions} className="d-flex align-items-center gap-2 shadow-sm px-4">
-                        <Shield size={18} /> {t('common.save')}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
 
-            {/* Edit Staff Modal */}
+                        <div className="p-6 space-y-4 max-h-[440px] overflow-y-auto custom-scrollbar">
+                            {PERMISSIONS_DEF.map((perm) => (
+                                <div
+                                    key={perm.id}
+                                    onClick={() => handlePermissionToggle(perm.id)}
+                                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer group ${tempPermissions.includes(perm.id) ? 'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-50' : 'bg-slate-50/50 border-slate-100 hover:border-blue-200 text-slate-600'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg ${tempPermissions.includes(perm.id) ? 'bg-white/20' : 'bg-white border border-slate-100 shadow-sm'}`}>
+                                            <Shield size={14} className={tempPermissions.includes(perm.id) ? 'text-white' : 'text-slate-400'} />
+                                        </div>
+                                        <span className={`text-xs font-bold`}>{perm.label}</span>
+                                    </div>
+                                    <div className={`w-8 h-4 rounded-full relative transition-colors ${tempPermissions.includes(perm.id) ? 'bg-white/30' : 'bg-slate-200'}`}>
+                                        <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all duration-300 ${tempPermissions.includes(perm.id) ? 'right-0.5' : 'left-0.5'}`} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="p-6 border-t border-slate-50 flex gap-3 bg-slate-50/10">
+                            <button onClick={() => setShowPermissionModal(false)} className="flex-1 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all shadow-sm">Cancel</button>
+                            <button onClick={handleSavePermissions} className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-lg shadow-blue-50 transition-all">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <StaffEditModal
                 show={showEditModal}
                 onHide={() => setShowEditModal(false)}
                 staff={selectedStaff}
                 onSave={handleSaveStaff}
             />
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

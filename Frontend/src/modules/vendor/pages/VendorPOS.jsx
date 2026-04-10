@@ -13,14 +13,20 @@ import {
   Store,
   Printer,
   Package,
-  IndianRupee
+  IndianRupee,
+  Terminal,
+  Activity,
+  CreditCard,
+  Zap,
+  ArrowRight,
+  ShieldCheck,
+  RotateCcw
 } from 'lucide-react';
-import { Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { useVendor } from '../contexts/VendorContext';
-import { createPOSOrder, searchProductsPOS } from '../../admin/api/posApi';
-import { getPublicSettings } from '../../admin/api/settingApi';
+import { createPOSOrder, searchProductsPOS } from '../../../common/api/posApi';
+import { getPublicSettings } from '../../../common/api/settingApi';
 
 const VendorPOS = () => {
   const { vendor } = useVendor();
@@ -41,9 +47,7 @@ const VendorPOS = () => {
   }, []);
 
   useEffect(() => {
-    if (storeId) {
-      fetchProducts();
-    }
+    if (storeId) fetchProducts();
   }, [storeId]);
 
   const fetchSettings = async () => {
@@ -66,17 +70,17 @@ const VendorPOS = () => {
         stock: p.availableStock !== undefined ? p.availableStock : (p.stock || 0)
       })));
     } catch (error) {
-      toast.error('Product fetch failed');
+      toast.error('Registry Sync Failed');
     } finally {
       setLoading(false);
     }
   };
 
   const addToCart = (product) => {
-    if (product.stock <= 0) return toast.error('Out of stock');
+    if (product.stock <= 0) return toast.error('Asset Exhausted');
     const existing = cart.find(item => item.product === product._id);
     if (existing) {
-      if (existing.quantity >= product.stock) return toast.warning('Max stock limit');
+      if (existing.quantity >= product.stock) return toast.warning('Stock ceiling reached');
       setCart(cart.map(item => item.product === product._id ? { ...item, quantity: item.quantity + 1 } : item));
     } else {
       setCart([...cart, {
@@ -94,10 +98,7 @@ const VendorPOS = () => {
     setCart(prevCart => prevCart.map(item => {
       if (item.product === productId) {
         const newQty = item.quantity + delta;
-        if (newQty > item.stock && delta > 0) {
-          toast.warning('Max stock reached');
-          return item;
-        }
+        if (newQty > item.stock && delta > 0) return item;
         return { ...item, quantity: Math.max(0, newQty) };
       }
       return item;
@@ -112,233 +113,235 @@ const VendorPOS = () => {
   const handleCompleteOrder = async () => {
     if (cart.length === 0) return;
     const result = await Swal.fire({
-      title: 'Complete Vendor Billing?',
-      confirmButtonColor: '#0c831f', // Vendor Green
-      confirmButtonText: 'Yes, Finalize'
+      title: 'Finalize Checkout?',
+      text: 'This will authorize the transaction and sync inventory stocks.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      confirmButtonText: 'Authorize Transaction',
+      customClass: { popup: 'premium-popup' }
     });
     if (!result.isConfirmed) return;
 
     setIsProcessing(true);
     try {
       await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, vendor?.token);
-      Swal.fire('Success', 'Inventory updated and bill sent.', 'success');
+      toast.success('Transaction Synchronized');
       setCart([]); setCustomerDetails({ name: '', email: '', phone: '' }); fetchProducts();
     } catch (error) {
-      toast.error('Billing failed');
+      toast.error('Transmission Failure');
     } finally { setIsProcessing(false); }
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] bg-[#f8fafc] -m-4 overflow-hidden">
-      {/* Top Header Bar - Updated to Specific Green Shade #85FF7A */}
-      <div className="bg-[#85FF7A] border-b border-[#6de064] px-6 py-3 flex items-center justify-between shrink-0 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-gray-400">
-            <Store size={16} />
-            <span className="text-[10px]">&gt;</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600">POS TERMINAL</span>
-            <span className="text-[10px]">&gt;</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-900">NEW SALE</span>
+    <div className="pos-terminal-container">
+      {/* Top Header Bar */}
+      <header className="terminal-header">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+             <div className="terminal-logo bg-slate-900"><Terminal size={18} className="text-white" /></div>
+             <div>
+                <h1 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-0.5">Terminal POS v4</h1>
+                <h2 className="text-lg font-black text-slate-900 tracking-tighter leading-none">New Sale Transmission</h2>
+             </div>
           </div>
-          <div className="h-4 w-px bg-[#d1e1d4] mx-2"></div>
-          <div className="flex items-center gap-2 bg-white text-[#15b031] px-3 py-1 rounded-full border border-[#dcfce7] shadow-sm">
-            <div className="w-1.5 h-1.5 bg-[#15b031] rounded-full animate-pulse"></div>
-            <span className="text-[10px] font-black uppercase tracking-widest">System Online</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 flex-1 max-w-xl mx-8 font-jakarta">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search items by name or category..."
-              className="w-full bg-white border border-[#d1e1d4] rounded-lg py-2 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-[#0c831f]/20 focus:border-[#0c831f] transition-all outline-none shadow-sm"
-              value={searchTerm}
-              onChange={e => { setSearchTerm(e.target.value); fetchProducts(e.target.value); }}
-            />
-          </div>
-          <button
-            className="p-2 text-gray-500 hover:text-[#0c831f] hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-[#d1e1d4]"
-            onClick={() => fetchProducts()}
-            title="Refresh Catalog"
-          >
-            <Printer size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Product Catalog - Left Side */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {loading && products.length === 0 ? (
-              Array(10).fill(0).map((_, i) => (
-                <div key={i} className="bg-white rounded-lg border border-gray-100 aspect-square animate-pulse"></div>
-              ))
-            ) : products.length === 0 ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-20 opacity-30">
-                <Package size={64} />
-                <p className="mt-4 font-black uppercase tracking-tighter">No items found</p>
-              </div>
-            ) : products.map(product => (
-              <div
-                key={product._id}
-                onClick={() => addToCart(product)}
-                className={`bg-white border-2 border-transparent hover:border-[#0c831f] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-full ${product.stock <= 0 ? 'opacity-60 grayscale cursor-not-allowed' : ''}`}
-              >
-                <div className="relative aspect-square bg-white p-2 flex items-center justify-center overflow-hidden">
-                  {/* Category Badge */}
-                  <div className="absolute top-0 left-0 bg-gray-100 text-gray-500 px-2 py-0.5 text-[9px] font-black uppercase rounded-br-lg z-10 transition-colors group-hover:bg-[#0c831f] group-hover:text-white">
-                    {product.category || 'General'}
-                  </div>
-                  <img
-                    src={product.image}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                    alt={product.name}
-                    onError={(e) => {
-                      e.target.src = 'https://placehold.co/400x400/f8fafc/0c831f?text=' + encodeURIComponent(product.name.substring(0, 1));
-                    }}
-                  />
-                  {product.stock <= 0 && (
-                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                      <span className="bg-rose-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase">Out of Stock</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-2 flex flex-col gap-1 flex-1 border-t border-gray-50">
-                  <p className="text-[10px] font-black text-gray-900 uppercase tracking-tight line-clamp-2 leading-tight group-hover:text-[#0c831f] transition-colors">
-                    {product.name}
-                  </p>
-
-                  <div className="mt-0.5">
-                    <div className="flex items-baseline gap-1 mb-1">
-                      <span className="text-base font-black text-gray-900">₹{product.price}</span>
-                      <span className="text-[8px] text-gray-400 font-bold">/ {product.unitType?.substring(0, 3) || 'PC'}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1">
-                        <div className={`w-1 h-1 rounded-full ${product.stock > 10 ? 'bg-[#15b031]' : 'bg-rose-500'}`}></div>
-                        <span className={`text-[8px] font-black uppercase tracking-wider ${product.stock > 10 ? 'text-[#15b031]' : 'text-rose-500'}`}>
-                          {product.stock} {product.unitType?.substring(0, 2) || 'PC'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 text-[#0c831f] text-[7px] font-black uppercase tracking-tighter">
-                        <CheckCircle size={8} strokeWidth={3} />
-                        SCALABLE
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="status-indicator">
+             <div className="dot animate-pulse"></div>
+             <span>System Integrated</span>
           </div>
         </div>
 
-        {/* Cart Sidebar - Right Side */}
-        <div className="w-[380px] bg-white border-l border-gray-200 flex flex-col shrink-0">
-          <div className="p-6 flex items-center justify-between border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <ShoppingCart size={20} className="text-[#0c831f]" />
-              <h4 className="text-sm font-black uppercase tracking-widest text-gray-900">Cart</h4>
-            </div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{cart.length} Items</span>
-          </div>
+        <div className="flex-1 max-w-2xl mx-12">
+           <div className="relative group">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-all" size={20} />
+              <input 
+                type="text" 
+                placeholder="Scan SKU or Search Registry..."
+                className="search-input"
+                value={searchTerm}
+                onChange={e => { setSearchTerm(e.target.value); fetchProducts(e.target.value); }}
+              />
+           </div>
+        </div>
 
-          {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-20 text-center px-10">
-                <ShoppingCart size={48} strokeWidth={1} />
-                <p className="mt-4 text-xs font-black uppercase tracking-[0.2em]">Cart is empty</p>
-                <p className="mt-2 text-[10px] leading-relaxed">Add items to start a sale</p>
-              </div>
-            ) : (
-              cart.map(item => (
-                <div key={item.product} className="bg-gray-50 rounded-xl p-3 flex gap-3 group relative hover:bg-white border border-transparent hover:border-gray-100 transition-all hover:shadow-sm">
-                  <div className="w-14 h-14 bg-white rounded-lg border border-gray-100 flex-shrink-0 p-1 overflow-hidden">
-                    <img
-                      src={item.image}
-                      className="w-full h-full object-contain"
-                      alt={item.name}
-                      onError={(e) => {
-                        e.target.src = 'https://placehold.co/100x100/f8fafc/0c831f?text=' + encodeURIComponent(item.name.substring(0, 1));
-                      }}
+        <div className="flex items-center gap-3">
+           <button onClick={() => fetchProducts()} className="utility-btn"><RotateCcw size={18} /></button>
+           <button className="utility-btn"><Printer size={18} /></button>
+        </div>
+      </header>
+
+      <main className="terminal-main flex-1 flex overflow-hidden">
+        {/* Registry Catalog */}
+        <section className="catalog-panel flex-1 overflow-y-auto custom-scrollbar p-8">
+           <div className="catalog-grid">
+             {loading && products.length === 0 ? (
+               Array(12).fill(0).map((_, i) => <div key={i} className="skeleton-card"></div>)
+             ) : products.length === 0 ? (
+               <div className="col-span-full py-32 opacity-20 text-center uppercase tracking-widest font-black">Registry Empty</div>
+             ) : products.map(product => (
+               <div 
+                 key={product._id} 
+                 onClick={() => addToCart(product)} 
+                 className={`asset-card ${product.stock <= 0 ? 'exhausted' : ''}`}
+               >
+                 <div className="asset-media relative aspect-square">
+                    <div className="category-tag">{product.category || 'General SKU'}</div>
+                    <img 
+                      src={product.image} 
+                      className="asset-img" 
+                      alt={product.name}
+                      onError={(e) => e.target.src = 'https://placehold.co/400x400/f8fafc/3b82f6?text='+product.name.charAt(0)}
                     />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <h5 className="text-[11px] font-black text-gray-800 uppercase tracking-tight line-clamp-1 mb-1">{item.name}</h5>
-                      <button
-                        onClick={() => setCart(cart.filter(c => c.product !== item.product))}
-                        className="text-gray-300 hover:text-rose-500 transition-colors ml-2"
-                      >
-                        <Trash2 size={12} />
-                      </button>
+                    {product.stock <= 0 && <div className="exhaust-overlay"><span>EXHAUSTED</span></div>}
+                 </div>
+                 <div className="asset-details">
+                    <h3 className="asset-name">{product.name}</h3>
+                    <div className="flex justify-between items-end mt-2">
+                       <div className="price-node">
+                          <span className="currency">₹</span>
+                          <span className="value">{product.price}</span>
+                       </div>
+                       <div className="stock-node">
+                          <div className={`stock-indicator ${product.stock > 5 ? 'high' : 'low'}`}></div>
+                          <span>{product.stock} {product.unitType?.substring(0,2).toUpperCase() || 'UNITS'}</span>
+                       </div>
                     </div>
-                    <p className="text-[10px] text-gray-400 font-bold mb-2">1 PCS x ₹{item.price}</p>
+                 </div>
+               </div>
+             ))}
+           </div>
+        </section>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden h-7">
-                        <button onClick={() => updateQuantity(item.product, -1)} className="px-2 hover:bg-gray-100 text-gray-500 transition-colors"><Minus size={10} /></button>
-                        <span className="px-3 text-[11px] font-black text-gray-700 bg-white min-w-[30px] text-center">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product, 1)} className="px-2 hover:bg-gray-100 text-gray-500 transition-colors"><Plus size={10} /></button>
+        {/* Console Sidebar */}
+        <aside className="console-sidebar w-[420px] bg-white border-l border-slate-100 flex flex-col">
+           <div className="console-header p-8 border-b border-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                 <ShoppingCart size={20} className="text-blue-500" />
+                 <h4 className="text-sm font-black uppercase tracking-widest">Active Batch</h4>
+              </div>
+              <span className="batch-count">{cart.length} SKU Nodes</span>
+           </div>
+
+           <div className="batch-listing flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+              {cart.map(item => (
+                <div key={item.product} className="batch-item">
+                   <div className="item-thumb">
+                      <img src={item.image} alt="" onError={(e) => e.target.src='https://placehold.co/100x100/f8fafc/3b82f6?text='+item.name.charAt(0)} />
+                   </div>
+                   <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                         <h5 className="item-name">{item.name}</h5>
+                         <button onClick={() => setCart(cart.filter(c => c.product !== item.product))} className="text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={12} /></button>
                       </div>
-                      <span className="text-xs font-black text-gray-900">₹{item.price * item.quantity}</span>
-                    </div>
-                  </div>
+                      <p className="item-meta">₹{item.price} / UNIT</p>
+                      <div className="flex justify-between items-center mt-3">
+                         <div className="qty-control">
+                            <button onClick={() => updateQuantity(item.product, -1)}><Minus size={10} /></button>
+                            <span>{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.product, 1)}><Plus size={10} /></button>
+                         </div>
+                         <span className="item-total">₹{item.price * item.quantity}</span>
+                      </div>
+                   </div>
                 </div>
-              ))
-            )}
-          </div>
-
-          {/* Billing Summary - Fixed Bottom */}
-          <div className="bg-[#15b031] text-white p-6 shadow-[0_-20px_40px_rgba(0,0,0,0.1)]">
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-[11px] font-bold text-white/80 uppercase tracking-widest">
-                <span>Subtotal</span>
-                <span>₹{subTotal}</span>
-              </div>
-              <div className="flex justify-between text-[11px] font-bold text-white/80 uppercase tracking-widest">
-                <span>Tax</span>
-                <span>₹{taxAmount.toFixed(2)}</span>
-              </div>
-              <div className="pt-3 border-t border-white/20 flex justify-between items-end">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-1">Total Amount</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black">₹{totalAmount.toFixed(0)}</span>
-                  </div>
+              ))}
+              {cart.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center py-20 opacity-20 text-center grayscale scale-75">
+                   <Zap size={64} strokeWidth={1} />
+                   <p className="mt-8 font-black uppercase tracking-[0.2em]">Batch Pending Initialization</p>
                 </div>
-                <div className="text-white/50">
-                  <IndianRupee size={24} strokeWidth={1.5} />
-                </div>
-              </div>
-            </div>
-
-            <button
-              disabled={isProcessing || cart.length === 0}
-              onClick={handleCompleteOrder}
-              className={`w-full py-4 rounded-lg font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all ${cart.length === 0
-                ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                : 'bg-white text-gray-900 hover:bg-[#15b031] hover:text-white active:scale-[0.98]'}`}
-            >
-              {isProcessing ? 'Processing...' : (
-                <>Pay Now <Trash2 size={16} className="rotate-180 transform" /></>
               )}
-            </button>
-          </div>
-        </div>
-      </div>
+           </div>
 
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-          .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        `}} />
+           <div className="billing-footer p-8 bg-slate-900">
+              <div className="billing-rows space-y-3 mb-8">
+                 <div className="billing-row">
+                    <span>Registry Value</span>
+                    <span>₹{subTotal}</span>
+                 </div>
+                 <div className="billing-row">
+                    <span>Regulatory Tax</span>
+                    <span>₹{taxAmount.toFixed(2)}</span>
+                 </div>
+                 <div className="total-block pt-6 border-t border-white/5 flex justify-between items-end">
+                    <div>
+                       <p className="label">Total Authorized Value</p>
+                       <p className="amount">₹{totalAmount.toFixed(0)}</p>
+                    </div>
+                    <CreditCard size={28} className="text-blue-500/50" />
+                 </div>
+              </div>
+              <button 
+                disabled={isProcessing || cart.length === 0}
+                onClick={handleCompleteOrder}
+                className="authorize-btn"
+              >
+                {isProcessing ? 'SYNCHRONIZING...' : 'AUTHORIZE TRANSACTION'}
+              </button>
+           </div>
+        </aside>
+      </main>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .pos-terminal-container { height: 100vh; display: flex; flex-direction: column; background: #fdfdff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        .terminal-header { height: 90px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); z-index: 50; }
+        .terminal-logo { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .status-indicator { display: flex; align-items: center; gap: 8px; padding: 4px 12px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10rem; color: #16a34a; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-left: 24px; }
+        .status-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 8px #16a34a; }
+        
+        .search-input { width: 100%; height: 50px; background: #f1f5f9; border: none; border-radius: 1.25rem; padding: 0 24px 0 60px; font-size: 14px; font-weight: 700; color: #1e293b; outline: none; transition: all 0.2s; border: 1px solid transparent; }
+        .search-input:focus { background: #fff; border-color: #3b82f6; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1); }
+        .utility-btn { width: 50px; height: 50px; border-radius: 1.25rem; background: #fff; border: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8; transition: all 0.2s; }
+        .utility-btn:hover { background: #f8fafc; color: #3b82f6; border-color: #3b82f6; }
+        
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+        .asset-card { background: #fff; border: 1px solid #f1f5f9; border-radius: 2rem; overflow: hidden; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
+        .asset-card:hover { transform: translateY(-8px); box-shadow: 0 30px 40px -20px rgba(0,0,0,0.1); border-color: #3b82f6; }
+        .asset-media { padding: 24px; display: flex; items-center; justify-center; background: #fff; }
+        .asset-img { width: 100%; height: 100%; object-contain; transition: transform 0.4s ease; }
+        .asset-card:hover .asset-img { transform: scale(1.1); }
+        .category-tag { position: absolute; top: 12px; left: 12px; font-size: 8px; font-weight: 900; background: #f8fafc; color: #64748b; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; border: 1px solid #f1f5f9; z-index: 5; }
+        .asset-details { padding: 20px; border-top: 1px solid #f8fafc; }
+        .asset-name { font-size: 13px; font-weight: 900; color: #0f172a; text-transform: uppercase; tracking: -0.01em; line-height: 1.2; }
+        .price-node { font-family: 'Inter', sans-serif; }
+        .price-node .currency { font-size: 12px; font-weight: 900; color: #3b82f6; margin-right: 2px; }
+        .price-node .value { font-size: 18px; font-weight: 900; color: #0f172a; }
+        .stock-node { display: flex; align-items: center; gap: 6px; font-size: 9px; font-weight: 900; color: #94a3b8; }
+        .stock-indicator { width: 6px; height: 6px; border-radius: 50%; }
+        .stock-indicator.high { background: #16a34a; }
+        .stock-indicator.low { background: #f59e0b; }
+        .exhausted { opacity: 0.6; grayscale(1); }
+        .exhaust-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .exhaust-overlay span { background: #0f172a; color: #fff; font-size: 10px; font-weight: 900; padding: 6px 14px; border-radius: 8px; }
+
+        .console-header { background: #fff; }
+        .batch-count { font-size: 10px; font-weight: 900; color: #64748b; text-transform: uppercase; background: #f8fafc; padding: 6px 14px; border-radius: 10rem; }
+        .batch-item { display: flex; gap: 16px; padding: 16px; background: #f8fafc; border: 1px solid transparent; border-radius: 1.5rem; transition: all 0.2s; }
+        .batch-item:hover { background: #fff; border-color: #f1f5f9; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        .item-thumb { width: 56px; height: 56px; background: #fff; border-radius: 12px; border: 1px solid #f1f5f9; padding: 6px; flex-shrink: 0; }
+        .item-thumb img { width: 100%; height: 100%; object-contain; }
+        .item-name { font-size: 12px; font-weight: 900; color: #1e293b; text-transform: uppercase; }
+        .item-meta { font-size: 10px; font-weight: 700; color: #94a3b8; }
+        .qty-control { display: flex; align-items: center; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; height: 32px; overflow: hidden; }
+        .qty-control button { width: 32px; height: 100%; display: flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s; }
+        .qty-control button:hover { background: #f8fafc; color: #3b82f6; }
+        .qty-control span { min-width: 32px; text-align: center; font-size: 12px; font-weight: 900; color: #1e293b; }
+        .item-total { font-size: 14px; font-weight: 900; color: #0f172a; }
+
+        .billing-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; tracking: 0.1em; }
+        .total-block .label { font-size: 10px; font-weight: 900; color: #64748b; text-transform: uppercase; tracking: 0.2em; margin-bottom: 4px; }
+        .total-block .amount { font-size: 32px; font-weight: 900; color: #fff; line-height: 1; }
+        .authorize-btn { width: 100%; height: 60px; background: #fff; color: #0f172a; border-radius: 1.25rem; font-size: 12px; font-weight: 900; text-transform: uppercase; tracking: 0.2em; margin-top: 24px; transition: all 0.3s; }
+        .authorize-btn:hover:not(:disabled) { background: #3b82f6; color: #fff; transform: translateY(-4px); box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4); }
+        .authorize-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10rem; }
+        .skeleton-card { aspect-ratio: 1; background: #fff; border-radius: 2rem; border: 1px solid #f1f5f9; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .premium-popup { border-radius: 3rem !important; padding: 40px !important; }
+      `}} />
     </div>
   );
 };

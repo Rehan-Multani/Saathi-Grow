@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Row, Col, Button, Spinner, Image } from 'react-bootstrap';
 import { Save, Store, User, Phone, Mail, MapPin, Camera, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import GoogleMapsInput from '../common/GoogleMapsInput';
+import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
 import { useCallback } from 'react';
 
 const EditBranchModal = ({ show, onHide, branch, onSave }) => {

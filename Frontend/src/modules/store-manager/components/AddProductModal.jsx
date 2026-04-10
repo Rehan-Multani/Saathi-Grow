@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Save, PlusCircle, Package, Fingerprint, Layers, IndianRupee, Database } from 'lucide-react';
 
 const AddProductModal = ({ isOpen, onClose, onSave, editingProduct = null }) => {

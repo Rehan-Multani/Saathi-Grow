@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStaffAuth } from '../context/StaffAuthContext';
-import { getDashboardStats } from '../../admin/api/adminApi';
+import { getDashboardStats } from '../../../common/api/adminApi';
 import {
     ShoppingCart,
     Package,

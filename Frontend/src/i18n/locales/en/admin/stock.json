@@ -1,0 +1,219 @@
+{
+  "overview": {
+    "title": "Stock Overview",
+    "subtitle": "Monitor real-time inventory levels across all branches",
+    "loading_msg": "Loading stock data...",
+    "error_sync": "Failed to sync stock data",
+    "stats": {
+      "total": "Total Items",
+      "inventory_value": "Inventory Value",
+      "low": "Low Stock",
+      "out": "Out of Stock",
+      "urgent": "Urgent",
+      "critical": "Critical"
+    },
+    "branch_health": {
+      "title": "Branch Health Overview",
+      "health_score": "Health Score",
+      "items": "Items"
+    },
+    "urgent_restock": {
+      "title": "Urgent Restock Items",
+      "view_full_log": "View All Alerts",
+      "out_of_stock": "Out of Stock",
+      "low_stock": "Low Stock",
+      "well_stocked": "Inventory is well-stocked",
+      "quick_adjust": "Quick Adjust"
+    },
+    "distribution": {
+      "title": "Category Distribution"
+    },
+    "table": {
+      "product": "Product",
+      "category": "Category",
+      "total_stock": "Total Stock",
+      "status": "Status"
+    }
+  },
+  "branch": {
+    "title": "Branch-wise Stock",
+    "subtitle": "Detailed inventory breakdown by branch location",
+    "all_branches": "All Branches",
+    "select_branch": "Select a branch to view stock",
+    "global_overview": "Global Overview",
+    "search_placeholder": "Search product or SKU...",
+    "loading_msg": "Loading branch inventory...",
+    "no_data": "No stock data found for these filters",
+    "pagination_showing": "Showing {{start}}-{{end}} of {{total}} records",
+    "pagination_page": "Page {{current}} of {{total}}",
+    "status_filter": {
+      "all": "All Status",
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_of_stock": "Out of Stock"
+    },
+    "table": {
+      "branch": "Branch",
+      "product": "Product",
+      "quantity": "Quantity",
+      "last_updated": "Last Sync",
+      "units": "Units",
+      "action": "Action"
+    }
+  },
+  "adjustments": {
+    "title": "Stock Adjustments",
+    "subtitle": "Track and record manual inventory changes",
+    "add_btn": "Add Adjustment",
+    "search_placeholder": "Search adjustments...",
+    "loading_msg": "Loading adjustment history...",
+    "no_data": "No adjustment records found",
+    "table": {
+      "date": "Date",
+      "product": "Product",
+      "type": "Type",
+      "quantity": "Amount",
+      "reason": "Reason",
+      "id": "Log ID",
+      "change": "Change",
+      "by": "Staff"
+    },
+    "types": {
+      "addition": "Addition",
+      "subtraction": "Subtraction",
+      "correction": "Correction",
+      "damage": "Damage",
+      "return": "Return",
+      "theft": "Theft/Loss",
+      "audit": "Physical Audit",
+      "adjustment": "Adjustment",
+      "deduction": "Manual Deduction",
+      "removal": "Removal",
+      "logged": "Records Logged"
+    }
+  },
+  "add_adjustment": {
+    "title": "Add Stock Adjustment",
+    "subtitle": "Manually update stock levels for a product",
+    "preparing_msg": "Loading adjustment form...",
+    "step_items": "1. Select Products",
+    "step_logic": "2. Adjustment Details",
+    "search_products": "Search product name or SKU",
+    "items_selected": "{{count}} products selected",
+    "bulk_qty": "Common Quantity",
+    "table": {
+      "description": "Product Details",
+      "quantity": "Adjusted Qty",
+      "action": "Action"
+    },
+    "form": {
+      "label_product": "Select Product",
+      "label_branch": "Select Branch",
+      "label_type": "Adjustment Type",
+      "label_quantity": "Quantity",
+      "label_reason": "Reason for Adjustment",
+      "label_notes": "Notes",
+      "label_target_branch": "Target Branch",
+      "label_action_type": "Action Type",
+      "label_primary_reason": "Primary Reason",
+      "choose_branch": "Choose Branch",
+      "placeholder_reason": "Why is this adjustment being made?",
+      "placeholder_notes": "Add any extra details here...",
+      "submit_btn": "Save Adjustment",
+      "submit_multi_btn": "Save {{count}} Adjustments",
+      "loading": "Processing...",
+      "cancel": "Cancel",
+      "discard": "Discard Changes"
+    },
+    "audit_warning": {
+      "title": "Audit Notice",
+      "msg": "A physical audit will replace the current stock levels. Please ensure the count is accurate."
+    },
+    "reasons": {
+      "new_stock": "New Stock Arrival",
+      "damaged": "Damaged Goods",
+      "correction": "Inventory Correction",
+      "return": "Return",
+      "loss": "Theft/Loss",
+      "audit": "Audit",
+      "other": "Other"
+    },
+    "alerts": {
+      "success": "Stock adjusted successfully",
+      "error": "Failed to adjust stock",
+      "error_load": "Failed to load data",
+      "select_items": "Please select products and a branch",
+      "qty_required": "Quantity is required for all selected items"
+    }
+  },
+  "alerts": {
+    "title": "Low Stock Alerts",
+    "subtitle": "Notifications for items reaching reorder limits",
+    "restock_btn": "Restock Now",
+    "no_alerts": "All items are well-stocked",
+    "loading_msg": "Checking stock levels...",
+    "analyzing_msg": "Analyzing Stock...",
+    "critical_shortages": "{{count}} Critical Shortages",
+    "high_priority": "High Priority",
+    "priority_msg": "Action Required",
+    "refresh": "Refresh",
+    "search_placeholder": "Search items...",
+    "pagination_msg": "Showing {{start}}-{{end}} of {{total}} alerts",
+    "managed_externally": "Outside Source",
+    "external_partner": "Partner",
+    "branch_store": "Branch Store",
+    "severity_filter": {
+      "all": "All Levels",
+      "critical": "Critical Only",
+      "warning": "Warning Only"
+    },
+    "table": {
+      "item": "Low Stock Item",
+      "source": "Branch/Source",
+      "status": "Status",
+      "action": "Action",
+      "current": "Current",
+      "minimum": "Threshold",
+      "urgency": "Urgency"
+    },
+    "proactive": {
+      "title": "Stock Management",
+      "msg": "Items listed here are below their minimum threshold. Please restock as needed."
+    }
+  },
+  "requests": {
+    "title": "Stock Requests",
+    "subtitle": "Manage incoming and outgoing stock transfers",
+    "loading_msg": "Loading requests...",
+    "no_requests": "No requests found",
+    "queue_msg": "Pending Requests",
+    "search_placeholder": "Search by product or branch...",
+    "alerts": {
+      "approve_success": "Request approved successfully",
+      "approve_error": "Failed to approve request",
+      "reject_confirm": "Are you sure you want to reject this request?",
+      "reject_success": "Request rejected",
+      "reject_error": "Failed to reject request"
+    },
+    "table": {
+      "id": "Request ID",
+      "from": "From",
+      "to": "To",
+      "items": "Items",
+      "status": "Status",
+      "resource": "Details",
+      "source": "Source",
+      "operation": "Type",
+      "approval": "Approval Status",
+      "action": "Action",
+      "decision_by": "Decided By",
+      "lead_admin": "Admin"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "completed": "Completed"
+    }
+  }
+}

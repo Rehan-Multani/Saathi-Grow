@@ -7,8 +7,8 @@ import PromoCodeEditModal from '../../components/promocodes/PromoCodeEditModal';
 import { getPromoCodes, deletePromoCode, updatePromoCode } from '../../api/promoCodeApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllPromoCodes = () => {
     const { adminUser } = useAdminAuth();

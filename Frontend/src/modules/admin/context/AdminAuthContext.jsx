@@ -37,12 +37,11 @@ export const AdminAuthProvider = ({ children }) => {
         }
     }, [adminLogout]);
 
-    // Refresh profile on mount if token exists
     useEffect(() => {
         refreshAdminProfile();
     }, [refreshAdminProfile]);
 
-    const adminLogin = async (email, password) => {
+    const adminLogin = useCallback(async (email, password) => {
         setLoading(true);
         try {
             const data = await loginAdmin(email, password);
@@ -58,9 +57,9 @@ export const AdminAuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const adminUpdateProfile = async (profileData) => {
+    const adminUpdateProfile = useCallback(async (profileData) => {
         const saved = localStorage.getItem('sathiGro_admin');
         const user = saved ? JSON.parse(saved) : null;
 
@@ -78,7 +77,7 @@ export const AdminAuthProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     return (
         <AdminAuthContext.Provider value={{
@@ -93,4 +92,3 @@ export const AdminAuthProvider = ({ children }) => {
         </AdminAuthContext.Provider>
     );
 };
-

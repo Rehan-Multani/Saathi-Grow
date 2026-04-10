@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, X, Upload, Palette, Image as ImageIcon, Camera } from 'lucide-react';
-import { Modal, Form, Row, Col, Button, Spinner, Image as BSImage } from 'react-bootstrap';
+import { Save, X, Upload, Palette, Image as ImageIcon, Camera, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-
 
 const PRESET_COLORS = [
     '#FEE2E2', '#FEF3C7', '#D1FAE5', '#DBEAFE',
@@ -13,7 +11,7 @@ const PRESET_COLORS = [
 ];
 
 const CategoryEditModal = ({ show, onHide, category, onSave }) => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_categories');
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
     const [formData, setFormData] = useState({
@@ -28,7 +26,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
     const [imageFile, setImageFile] = useState(null);
 
     useEffect(() => {
-        if (category) {
+        if (category && show) {
             setFormData({
                 name: category.name || '',
                 slug: category.slug || '',
@@ -39,7 +37,7 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
             setImagePreview(category.image || null);
             setImageFile(null);
         }
-    }, [category]);
+    }, [category, show]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -50,25 +48,18 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) {
-                return toast.error(t('categories.edit_modal.image_size_error'));
+                return toast.error(t('messages.image_size_error'));
             }
             setImageFile(file);
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
+            reader.onloadend = () => setImagePreview(reader.result);
             reader.readAsDataURL(file);
         }
-    };
-
-    const handleColorSelect = (color) => {
-        setFormData(prev => ({ ...prev, bgColor: color }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         try {
             const data = new FormData();
             data.append('name', formData.name);
@@ -76,205 +67,139 @@ const CategoryEditModal = ({ show, onHide, category, onSave }) => {
             data.append('status', formData.status);
             data.append('description', formData.description);
             data.append('bgColor', formData.bgColor);
-
-            if (imageFile) {
-                data.append('image', imageFile);
-            }
-
+            if (imageFile) data.append('image', imageFile);
             await onSave(data);
         } catch (error) {
-            // Error handling is usually done in the parent component's handleSave
+            // Error managed by parent
         } finally {
             setLoading(false);
         }
     };
 
+    if (!show) return null;
+
     return (
-        <Modal show={show} onHide={onHide} centered size="lg" className="category-edit-modal">
-            <Modal.Header closeButton className="border-0 pb-0">
-                <Modal.Title className="fw-bold px-2 text-dark">{t('categories.edit_modal.title')}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body className="pt-4 px-4 pb-4">
-                <Form onSubmit={handleSubmit}>
-                    <Row>
-                        <Col md={7}>
-                            <div className="mb-3">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.name_label')}</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    className="bg-light border-0 py-2 shadow-none"
-                                    placeholder={t('categories.edit_modal.name_placeholder')}
-                                    required
-                                    disabled={loading}
-                                />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-4xl rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white px-8">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900">{t('form.title_edit')}</h2>
+                        <p className="text-xs text-slate-500 mt-0.5">{category?.name}</p>
+                    </div>
+                    <button onClick={onHide} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-all"><X size={20} /></button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 md:px-10 space-y-8 custom-scrollbar">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">{t('form.name_label')}</label>
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="form-input-simple" placeholder={t('form.name_placeholder')} />
                             </div>
 
-                            <div className="mb-3">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.slug_label')}</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="slug"
-                                    value={formData.slug}
-                                    onChange={handleChange}
-                                    className="bg-light border-0 py-2 font-monospace shadow-none"
-                                    placeholder={t('categories.edit_modal.slug_placeholder')}
-                                    disabled={loading}
-                                />
-                                <Form.Text className="text-muted small">{t('categories.edit_modal.slug_help')}</Form.Text>
-                            </div>
-
-                            <div className="mb-3">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.status_label')}</Form.Label>
-                                <Form.Select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    className="bg-light border-0 py-2 shadow-none"
-                                    disabled={loading}
-                                >
-                                    <option value="Active">{t('products.status.active')}</option>
-                                    <option value="Inactive">{t('vendors.status.inactive')}</option>
-                                </Form.Select>
-                            </div>
-
-                            <div className="mb-0">
-                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider">{t('categories.edit_modal.description_label')}</Form.Label>
-                                <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    className="bg-light border-0 py-2 shadow-none"
-                                    placeholder={t('categories.edit_modal.description_placeholder')}
-                                    disabled={loading}
-                                />
-                            </div>
-                        </Col>
-
-                        <Col md={5} className="border-start">
-                            <h6 className="small fw-bold text-muted uppercase tracking-wider mb-3">{t('categories.edit_modal.appearance_title')}</h6>
-
-                            <div
-                                className="text-center mb-3 p-3 border border-dashed rounded-xl bg-light position-relative overflow-hidden shadow-inner"
-                                style={{ minHeight: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                {imagePreview ? (
-                                    <div className="position-relative">
-                                        <div
-                                            className="rounded-xl overflow-hidden mx-auto d-flex align-items-center justify-content-center border-white border-2 shadow-sm"
-                                            style={{
-                                                width: '120px',
-                                                height: '120px',
-                                                backgroundColor: formData.bgColor,
-                                                padding: '12px',
-                                                transition: 'background-color 0.3s ease'
-                                            }}
-                                        >
-                                            <BSImage
-                                                src={imagePreview}
-                                                fluid
-                                                style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                                            />
-                                        </div>
-                                        <Button
-                                            variant="primary"
-                                            size="sm"
-                                            className="position-absolute bottom-0 end-0 rounded-circle shadow p-2"
-                                            onClick={() => fileInputRef.current.click()}
-                                            disabled={loading}
-                                            style={{ transform: 'translate(5px, 5px)' }}
-                                        >
-                                            <Camera size={14} />
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="text-muted py-2 cursor-pointer" onClick={() => fileInputRef.current.click()}>
-                                        <Upload className="text-primary opacity-50 mb-2 mx-auto" size={28} />
-                                        <p className="small mb-0 fw-bold">{t('categories.edit_modal.add_image')}</p>
-                                    </div>
-                                )}
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    className="d-none"
-                                    onChange={handleImageChange}
-                                    accept="image/*"
-                                />
-                            </div>
-
-                            <Form.Label className="small fw-bold text-muted d-block mb-2">{t('categories.edit_modal.bg_color_label')}</Form.Label>
-                            <div className="d-flex flex-wrap gap-2 mb-3">
-                                {PRESET_COLORS.map((color) => (
-                                    <div
-                                        key={color}
-                                        onClick={() => handleColorSelect(color)}
-                                        className="rounded-circle cursor-pointer border"
-                                        style={{
-                                            width: '24px',
-                                            height: '24px',
-                                            backgroundColor: color,
-                                            boxShadow: formData.bgColor === color ? `0 0 0 1px white, 0 0 0 3px ${color}` : 'none',
-                                            transition: 'transform 0.2s ease',
-                                        }}
-                                        title={color}
-                                    />
-                                ))}
-                                <Form.Control
-                                    type="color"
-                                    name="bgColor"
-                                    value={formData.bgColor}
-                                    onChange={handleChange}
-                                    disabled={loading}
-                                    className="p-0 border-0 ms-1"
-                                    style={{ width: '24px', height: '24px', cursor: 'pointer', background: 'transparent' }}
-                                />
-                            </div>
-
-                            <div className="p-3 rounded-xl border bg-light shadow-inner">
-                                <p className="text-[10px] text-muted fw-bold uppercase mb-2 tracking-widest text-center">{t('categories.edit_modal.live_preview')}</p>
-                                <div className="d-flex align-items-center gap-3 justify-content-center">
-                                    <div
-                                        className="rounded-xl shadow-sm border-white border-2"
-                                        style={{
-                                            width: '48px',
-                                            height: '48px',
-                                            backgroundColor: formData.bgColor,
-                                            padding: '8px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}
-                                    >
-                                        {imagePreview ? (
-                                            <BSImage src={imagePreview} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
-                                        ) : (
-                                            <ImageIcon size={20} className="text-muted opacity-30" />
-                                        )}
-                                    </div>
-                                    <div className="text-truncate fw-bold small" style={{ maxWidth: '100px' }}>
-                                        {formData.name || t('categories.title').slice(0, -1)}
-                                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('form.slug_label')}</label>
+                                    <input type="text" name="slug" value={formData.slug} onChange={handleChange} className="form-input-simple" placeholder={t('form.slug_placeholder')} />
+                                    <p className="text-[10px] text-slate-400 italic">{t('form.slug_hint')}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">{t('form.visibility')}</label>
+                                    <select name="status" value={formData.status} onChange={handleChange} className="form-input-simple">
+                                        <option value="Active">{t('status.active')}</option>
+                                        <option value="Inactive">{t('status.inactive')}</option>
+                                    </select>
                                 </div>
                             </div>
-                        </Col>
-                    </Row>
 
-                    <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary fw-medium shadow-none border" disabled={loading}>
-                            {t('categories.edit_modal.cancel')}
-                        </Button>
-                        <Button variant="primary" type="submit" className="px-4 py-2 fw-medium d-flex align-items-center gap-2 shadow-sm" disabled={loading}>
-                            {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                            {loading ? t('categories.edit_modal.saving') : t('categories.edit_modal.update_btn')}
-                        </Button>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">{t('form.desc_label')}</label>
+                                <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="form-input-simple" placeholder={t('form.desc_placeholder')} />
+                            </div>
+                        </div>
+
+                        <div className="space-y-8">
+                            <div className="space-y-4">
+                                <label className="text-sm font-semibold text-slate-700 block text-center">{t('form.image')}</label>
+                                <div 
+                                    className="relative group aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all"
+                                    onClick={() => fileInputRef.current.click()}
+                                    style={{ backgroundColor: formData.bgColor }}
+                                >
+                                    {imagePreview ? (
+                                        <img src={imagePreview} className="w-4/5 h-4/5 object-contain" />
+                                    ) : (
+                                        <div className="text-center p-4">
+                                            <Upload size={32} className="text-slate-300 mx-auto mb-2" />
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase">{t('form.upload_hint')}</p>
+                                        </div>
+                                    )}
+                                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleImageChange} accept="image/*" />
+                                    {imagePreview && (
+                                        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                                            <div className="p-2 bg-white rounded-full shadow-lg text-blue-600"><Camera size={16} /></div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block text-center">{t('form.styling')}</label>
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                    {PRESET_COLORS.map((color) => (
+                                        <button
+                                            key={color}
+                                            type="button"
+                                            onClick={() => setFormData(p => ({ ...p, bgColor: color }))}
+                                            className="w-6 h-6 rounded-full border border-white shadow-sm ring-1 ring-slate-100 transition-transform active:scale-90"
+                                            style={{ 
+                                                backgroundColor: color,
+                                                ringColor: formData.bgColor === color ? color : 'transparent',
+                                                ringWidth: formData.bgColor === color ? '2px' : '0px'
+                                            }}
+                                        />
+                                    ))}
+                                    <input 
+                                        type="color" 
+                                        name="bgColor" 
+                                        value={formData.bgColor} 
+                                        onChange={handleChange} 
+                                        className="w-6 h-6 rounded-full border-none p-0 bg-transparent cursor-pointer" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100 space-y-3">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('form.preview')}</p>
+                                <div className="flex items-center gap-4 justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center p-2" style={{ backgroundColor: formData.bgColor }}>
+                                        {imagePreview ? <img src={imagePreview} className="max-h-full max-w-full object-contain" /> : <ImageIcon size={20} className="text-slate-200" />}
+                                    </div>
+                                    <div className="font-bold text-sm text-slate-900 truncate max-w-[120px]">{formData.name || '---'}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </Form>
-            </Modal.Body>
-        </Modal>
+                </form>
+
+                <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 px-10">
+                    <button onClick={onHide} className="px-6 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-all" disabled={loading}>{t('form.cancel')}</button>
+                    <button onClick={handleSubmit} disabled={loading} className="px-10 py-2.5 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-100 flex items-center gap-2 hover:bg-blue-700 active:scale-95 transition-all">
+                        {loading ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                        {loading ? t('form.saving') : t('form.save_publish')}
+                    </button>
+                </div>
+            </div>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .form-input-simple { 
+                    width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.85rem; 
+                    padding: 0.75rem 1rem; outline: none; transition: all 0.2s; font-size: 14px; font-weight: 500;
+                }
+                .form-input-simple:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
+        </div>
     );
 };
 

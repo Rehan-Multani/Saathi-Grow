@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { Minus, Plus, ArrowRight } from 'lucide-react';
@@ -23,7 +23,7 @@ const CartPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] pb-20 flex flex-col items-center justify-center p-4">
         <div className="w-24 h-24 bg-white/50 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
-          <span className="text-4xl">🛒</span>
+          <span className="text-4xl">??</span>
         </div>
         <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Your Cart is Empty</h2>
         <p className="text-gray-500 mb-6 text-center">Looks like you haven't added anything to your cart yet.</p>
@@ -64,7 +64,7 @@ const CartPage = () => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-semibold text-gray-800 dark:text-white text-sm">{item.name}</h3>
-                      <span className="font-semibold text-gray-900 dark:text-white">₹{item.price * item.quantity}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">?{item.price * item.quantity}</span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{item.weight}</p>
                     <div className="flex items-center justify-between">
@@ -89,19 +89,19 @@ const CartPage = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-600 dark:text-gray-300">
                 <span>Item Total</span>
-                <span>₹{cartTotal}</span>
+                <span>?{cartTotal}</span>
               </div>
               <div className="flex justify-between text-gray-600 dark:text-gray-300">
                 <span>Delivery Fee</span>
-                <span>₹{deliveryFee}</span>
+                <span>?{deliveryFee}</span>
               </div>
               <div className="flex justify-between text-gray-600 dark:text-gray-300">
                 <span>Handling Fee</span>
-                <span>₹{handlingFee}</span>
+                <span>?{handlingFee}</span>
               </div>
               <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between font-bold text-lg text-gray-900 dark:text-white">
                 <span>To Pay</span>
-                <span>₹{finalTotal}</span>
+                <span>?{finalTotal}</span>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ const CartPage = () => {
           >
             <div className="flex flex-col items-start leading-none gap-0.5">
               <span className="text-xs font-medium opacity-90">{finalTotal} items</span>
-              <span className="text-lg font-bold">₹{finalTotal}</span>
+              <span className="text-lg font-bold">?{finalTotal}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold uppercase tracking-wide">Proceed</span>

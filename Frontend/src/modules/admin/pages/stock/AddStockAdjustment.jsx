@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Row, Col, Spinner, Table, Badge } from 'react-bootstrap';
-import { Save, X, ArrowLeft, Search, Package, Layers, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, Package, Trash2, Loader2, Store, ListChecks, Info } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getProducts, bulkAdjustInventory } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { Autocomplete, TextField, IconButton } from '@mui/material';
+import { Autocomplete, TextField } from '@mui/material';
 
 const AddStockAdjustment = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_stock');
     const navigate = useNavigate();
     const location = useLocation();
     const { adminUser } = useAdminAuth();
@@ -43,26 +42,21 @@ const AddStockAdjustment = () => {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                // Fetch ALL products for search (filter vendor products server-side or here)
                 const [productsData, branchesData] = await Promise.all([
                     getProducts(adminUser.token, { limit: 1000 }), 
                     getBranches(adminUser.token)
                 ]);
                 
-                // Exclude vendor products
                 const adminProducts = (productsData.products || []).filter(p => !p.vendor);
                 setProducts(adminProducts);
                 
                 const activeBranches = branchesData.filter(b => b.isActive);
                 setBranches(activeBranches);
 
-                // Handle Pre-selection from Location State
                 if (location.state) {
                     if (location.state.productId) {
                         const preSelected = adminProducts.find(p => p._id === location.state.productId);
-                        if (preSelected) {
-                            setSelectedProducts([preSelected]);
-                        }
+                        if (preSelected) setSelectedProducts([preSelected]);
                     }
                     if (location.state.branchId) {
                         const targetBranchId = typeof location.state.branchId === 'object' 
@@ -71,15 +65,14 @@ const AddStockAdjustment = () => {
                             
                         setFormData(prev => ({ 
                             ...prev, 
-                            branchId: String(targetBranchId), // Ensure string for select comparison
+                            branchId: String(targetBranchId),
                             type: location.state.type || 'Addition',
                             reason: location.state.reason || 'New Stock Arrival'
                         }));
                     }
                 }
             } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error(t('stock.add_adjustment.alerts.load_error'));
+                toast.error(t('add_adjustment.alerts.error_load'));
             } finally {
                 setInitialLoading(false);
             }
@@ -108,7 +101,7 @@ const AddStockAdjustment = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (selectedProducts.length === 0 || !formData.branchId || !formData.reason) {
-            toast.warning(t('stock.add_adjustment.alerts.validation'));
+            toast.warning(t('add_adjustment.alerts.select_items'));
             return;
         }
 
@@ -120,9 +113,8 @@ const AddStockAdjustment = () => {
                 amount: Number(individualAmounts[p._id] || formData.commonAmount || 0)
             }));
 
-            // Validate amounts
             if (adjustments.some(a => a.amount === 0 && formData.type !== 'Audit')) {
-                toast.warning(t('stock.add_adjustment.alerts.qty_required'));
+                toast.warning(t('add_adjustment.alerts.qty_required'));
                 setLoading(false);
                 return;
             }
@@ -136,10 +128,10 @@ const AddStockAdjustment = () => {
                 }
             });
 
-            toast.success(t('stock.add_adjustment.alerts.success'));
+            toast.success(t('add_adjustment.alerts.success'));
             navigate('/admin/stock/adjustments');
         } catch (error) {
-            toast.error(error.message || t('stock.add_adjustment.alerts.error'));
+            toast.error(error.message || t('add_adjustment.alerts.error'));
         } finally {
             setLoading(false);
         }
@@ -147,221 +139,244 @@ const AddStockAdjustment = () => {
 
     if (initialLoading) {
         return (
-            <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
-                <Spinner animation="border" variant="primary" />
-                <p className="mt-3 text-muted">{t('stock.add_adjustment.preparing')}</p>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 size={40} className="text-blue-500 animate-spin" />
+                <p className="text-slate-400 text-sm font-medium">{t('add_adjustment.preparing_msg')}</p>
             </div>
         );
     }
 
     return (
-        <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="d-flex align-items-center gap-2">
-                    <Button variant="light" size="sm" onClick={() => navigate('/admin/stock/adjustments')} className="rounded-circle p-2 shadow-sm">
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/admin/stock/adjustments')}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 hover:border-blue-500 hover:text-blue-600"
+                    >
                         <ArrowLeft size={18} />
-                    </Button>
+                    </button>
                     <div>
-                        <h4 className="fw-bold mb-0">{t('stock.add_adjustment.title')}</h4>
-                        <p className="text-muted small mb-0">{t('stock.add_adjustment.subtitle')}</p>
+                        <h1 className="text-xl font-bold tracking-tight">{t('add_adjustment.title')}</h1>
+                        <p className="text-slate-500 text-[11px] font-medium leading-tight">{t('add_adjustment.subtitle')}</p>
                     </div>
                 </div>
             </div>
 
-            <Form onSubmit={handleSubmit}>
-                <Row className="g-4">
-                    <Col lg={8}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body className="p-4">
-                                <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-primary">
-                                    <Package size={18} /> {t('stock.add_adjustment.step1')}
-                                </h6>
-                                
-                                <Autocomplete
-                                    multiple
-                                    options={products}
-                                    getOptionLabel={(option) => `${option.name} (${option.sku})`}
-                                    value={selectedProducts}
-                                    onChange={handleProductSelect}
-                                    isOptionEqualToValue={(option, value) => option._id === value._id}
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            variant="outlined"
-                                            label={t('stock.add_adjustment.search_placeholder')}
-                                            placeholder={t('stock.add_adjustment.table.product')}
-                                            fullWidth
-                                        />
-                                    )}
-                                    className="mb-4"
-                                />
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left: Product Selection */}
+                <div className="lg:col-span-8 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                <Package size={20} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-blue-500 inline-block">{t('add_adjustment.step_items')}</h3>
+                        </div>
 
-                                {selectedProducts.length > 0 && (
-                                    <div className="mt-4">
-                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <span className="small fw-bold text-muted">{t('stock.add_adjustment.selected_items', { count: selectedProducts.length })}</span>
-                                            {selectedProducts.length > 1 && (
-                                                <Form.Group className="d-flex align-items-center gap-2">
-                                                    <Form.Label className="mb-0 small text-nowrap">{t('stock.add_adjustment.set_common_qty')}</Form.Label>
-                                                    <Form.Control 
-                                                        type="number" 
-                                                        size="sm" 
-                                                        style={{ width: '80px' }} 
-                                                        value={formData.commonAmount}
-                                                        placeholder={t('stock.add_adjustment.qty_placeholder')}
-                                                        onChange={(e) => setFormData({...formData, commonAmount: e.target.value})}
-                                                    />
-                                                </Form.Group>
-                                            )}
-                                        </div>
-                                        <div className="table-responsive rounded border">
-                                            <Table hover className="align-middle mb-0">
-                                                <thead className="bg-light">
-                                                    <tr className="small text-muted">
-                                                        <th className="ps-3">{t('stock.add_adjustment.table.product')}</th>
-                                                        <th className="text-center">{t('stock.add_adjustment.table.quantity')}</th>
-                                                        <th className="text-end pe-3">{t('stock.add_adjustment.table.remove')}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {selectedProducts.map(p => (
-                                                        <tr key={p._id}>
-                                                            <td className="ps-3">
-                                                                 <div className="d-flex align-items-center gap-2">
-                                                                     <div className="rounded bg-light border p-1">
-                                                                          <img src={p.image || '/placeholder.png'} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-                                                                     </div>
-                                                                     <div>
-                                                                         <div className="fw-bold small">{p.name}</div>
-                                                                         <div className="extra-small text-muted">{p.sku}</div>
-                                                                     </div>
-                                                                 </div>
-                                                            </td>
-                                                            <td className="text-center" style={{ width: '120px' }}>
-                                                                <Form.Control 
-                                                                    type="number" 
-                                                                    size="sm" 
-                                                                    className="text-center fw-bold"
-                                                                    placeholder={formData.commonAmount || "0"}
-                                                                    value={individualAmounts[p._id] || ''}
-                                                                    onChange={(e) => handleAmountChange(p._id, e.target.value)}
-                                                                />
-                                                            </td>
-                                                            <td className="text-end pe-3">
-                                                                <IconButton size="small" color="error" onClick={() => removeProduct(p._id)}>
-                                                                    <Trash2 size={16} />
-                                                                </IconButton>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        </div>
-                                    </div>
+                        <div className="space-y-4">
+                            <Autocomplete
+                                multiple
+                                options={products}
+                                getOptionLabel={(option) => `${option.name} (${option.sku})`}
+                                value={selectedProducts}
+                                onChange={handleProductSelect}
+                                isOptionEqualToValue={(option, value) => option._id === value._id}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        variant="outlined"
+                                        label={t('add_adjustment.search_products')}
+                                        className="bg-slate-50/50 rounded-xl"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            style: { borderRadius: '12px' }
+                                        }}
+                                    />
                                 )}
-                            </Card.Body>
-                        </Card>
-                    </Col>
+                            />
 
-                    <Col lg={4}>
-                        <Card className="border-0 shadow-sm sticky-top" style={{ top: '20px' }}>
-                            <Card.Body className="p-4">
-                                <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-primary">
-                                    <Layers size={18} /> {t('stock.add_adjustment.step2')}
-                                </h6>
+                            {selectedProducts.length > 0 && (
+                                <div className="space-y-4 pt-2">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
+                                            {t('add_adjustment.items_selected', { count: selectedProducts.length })}
+                                        </div>
+                                        {selectedProducts.length > 1 && (
+                                            <div className="flex items-center gap-3 bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100">
+                                                <span className="text-[10px] font-bold text-blue-600 uppercase">{t('add_adjustment.bulk_qty')}</span>
+                                                <input 
+                                                    type="number" 
+                                                    className="w-20 bg-white border border-blue-200 rounded-lg py-1 px-2 text-xs font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-100"
+                                                    value={formData.commonAmount}
+                                                    onChange={(e) => setFormData({...formData, commonAmount: e.target.value})}
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.target_branch')} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select 
+                                    <div className="border border-slate-100 rounded-2xl overflow-hidden bg-slate-50/30">
+                                        <table className="w-full text-sm text-left">
+                                            <thead>
+                                                <tr className="bg-slate-50/80 border-b border-slate-100">
+                                                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase">{t('add_adjustment.table.description')}</th>
+                                                    <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-center">{t('add_adjustment.table.quantity')}</th>
+                                                    <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">{t('add_adjustment.table.action')}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100">
+                                                {selectedProducts.map(p => (
+                                                    <tr key={p._id} className="hover:bg-white transition-colors">
+                                                        <td className="px-6 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-9 h-9 rounded-lg bg-white border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                                                                    {p.image ? <img src={p.image} className="w-full h-full object-cover" alt="" /> : <Package size={14} className="text-slate-200" />}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="text-xs font-bold text-slate-700 truncate uppercase tracking-tight">{p.name}</div>
+                                                                    <div className="text-[9px] text-slate-400 font-bold uppercase">{p.sku}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <input 
+                                                                type="number" 
+                                                                className="w-20 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-xs font-bold text-slate-900 outline-none focus:border-blue-500 transition-all text-center"
+                                                                placeholder={formData.commonAmount || "0"}
+                                                                value={individualAmounts[p._id] || ''}
+                                                                onChange={(e) => handleAmountChange(p._id, e.target.value)}
+                                                            />
+                                                        </td>
+                                                        <td className="px-6 py-3 text-right">
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => removeProduct(p._id)}
+                                                                className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Meta Details */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 sticky top-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center border border-slate-100">
+                                <ListChecks size={20} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-slate-500 inline-block">{t('add_adjustment.step_logic')}</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add_adjustment.form.label_target_branch')} <span className="text-rose-500">*</span></label>
+                                <div className="relative group">
+                                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors pointer-events-none" size={14} />
+                                    <select 
                                         name="branchId" 
                                         value={formData.branchId} 
                                         onChange={handleChange} 
                                         required 
-                                        className="shadow-none border-secondary-subtle"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
                                     >
-                                        <option value="">{t('stock.add_adjustment.select_branch')}</option>
+                                        <option value="">{t('add_adjustment.form.choose_branch')}</option>
                                         {branches.map(b => (
-                                            <option key={b._id} value={b._id}>{b.name} ({b.code})</option>
+                                            <option key={b._id} value={b._id}>{b.name}</option>
                                         ))}
-                                    </Form.Select>
-                                </Form.Group>
+                                    </select>
+                                </div>
+                            </div>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.adjustment_type')} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select 
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add_adjustment.form.label_action_type')} <span className="text-rose-500">*</span></label>
+                                    <select 
                                         name="type" 
                                         value={formData.type} 
                                         onChange={handleChange}
-                                        className="shadow-none border-secondary-subtle"
+                                        className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
                                     >
-                                        <option value="Addition">{t('stock.add_adjustment.types.addition')}</option>
-                                        <option value="Deduction">{t('stock.add_adjustment.types.deduction')}</option>
-                                        <option value="Damage">{t('stock.add_adjustment.types.damage')}</option>
-                                        <option value="Return">{t('stock.add_adjustment.types.return')}</option>
-                                        <option value="Audit">{t('stock.add_adjustment.types.audit')}</option>
-                                    </Form.Select>
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.reason')} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select 
+                                        <option value="Addition">{t('branch.status_filter.in_stock')}</option>
+                                        <option value="Deduction">{t('adjustments.types.deduction')}</option>
+                                        <option value="Damage">{t('adjustments.types.damage')}</option>
+                                        <option value="Return">{t('adjustments.types.return')}</option>
+                                        <option value="Audit">{t('adjustments.types.audit')}</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add_adjustment.form.label_primary_reason')} <span className="text-rose-500">*</span></label>
+                                    <select 
                                         name="reason" 
                                         value={formData.reason} 
                                         onChange={handleChange} 
                                         required
-                                        className="shadow-none border-secondary-subtle"
+                                        className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
                                     >
-                                        <option value="">{t('stock.add_adjustment.select_reason')}</option>
-                                        {REASONS.map((r, idx) => {
-                                            const map = {
-                                                'new stock arrival': 'arrival',
-                                                'damaged goods': 'damaged',
-                                                'inventory correction': 'correction',
-                                                'return': 'return',
-                                                'theft/loss': 'loss',
-                                                'audit': 'audit',
-                                                'other': 'other'
-                                            };
-                                            return (
-                                                <option key={idx} value={r}>{t(`stock.add_adjustment.reasons.${map[r.toLowerCase()] || 'other'}`)}</option>
-                                            );
-                                        })}
-                                    </Form.Select>
-                                </Form.Group>
-
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="small fw-bold">{t('stock.add_adjustment.notes')}</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={2}
-                                        placeholder={t('stock.add_adjustment.notes_placeholder')}
-                                        name="notes"
-                                        value={formData.notes}
-                                        onChange={handleChange}
-                                        className="shadow-none border-secondary-subtle"
-                                    />
-                                </Form.Group>
-
-                                <div className="d-grid gap-2">
-                                    <Button 
-                                        variant="primary" 
-                                        size="lg" 
-                                        type="submit" 
-                                        className="d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-3 py-3"
-                                        disabled={loading || selectedProducts.length === 0}
-                                    >
-                                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={20} />}
-                                        {loading ? t('stock.add_adjustment.processing') : t('stock.add_adjustment.submit_btn', { count: selectedProducts.length })}
-                                    </Button>
-                                    <Button variant="light" onClick={() => navigate('/admin/stock/adjustments')} disabled={loading}>
-                                        {t('stock.add_adjustment.cancel')}
-                                    </Button>
+                                        {REASONS.map((r, idx) => (
+                                            <option key={idx} value={r}>{r}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            </Form>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1">{t('add_adjustment.form.label_notes')}</label>
+                                <textarea
+                                    rows={3}
+                                    placeholder={t('add_adjustment.form.placeholder_notes')}
+                                    name="notes"
+                                    value={formData.notes}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-medium resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 pt-4">
+                            <button 
+                                type="submit" 
+                                disabled={loading || selectedProducts.length === 0}
+                                className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 shadow-lg ${loading || selectedProducts.length === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100'}`}
+                            >
+                                {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                                {loading ? t('add_adjustment.form.loading') : (selectedProducts.length > 1 ? t('add_adjustment.form.submit_multi_btn', { count: selectedProducts.length }) : t('add_adjustment.form.submit_btn'))}
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => navigate('/admin/stock/adjustments')} 
+                                className="w-full py-3 text-slate-400 hover:text-slate-600 font-bold text-xs transition-colors"
+                            >
+                                {t('add_adjustment.form.discard')}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 shadow-sm flex items-start gap-3">
+                        <Info className="text-blue-500 mt-0.5" size={16} />
+                        <div>
+                            <p className="text-[11px] font-bold text-blue-900 border-b border-blue-100 pb-1 mb-1 uppercase tracking-tighter">{t('add_adjustment.audit_warning.title')}</p>
+                            <p className="text-[10px] text-blue-700 font-medium leading-normal italic">{t('add_adjustment.audit_warning.msg')}</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

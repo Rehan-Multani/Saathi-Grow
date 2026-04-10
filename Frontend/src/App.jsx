@@ -8,7 +8,6 @@ import { SearchProvider } from './modules/user/context/SearchContext';
 import { ThemeProvider } from './modules/user/context/ThemeContext';
 import { ReturnRequestsProvider } from './common/contexts/ReturnRequestsContext';
 import { WishlistProvider } from './modules/user/context/WishlistContext';
-import "./App.css";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';

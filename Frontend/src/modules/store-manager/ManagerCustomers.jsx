@@ -1,14 +1,14 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
 import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send } from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
-import * as customerApi from '../admin/api/customerManagementApi';
+import * as customerApi from '../../common/api/customerManagementApi';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
 // We reuse modals from admin but they might need prop adaptation if they use context
-import CustomerDetailsModal from '../admin/components/customers/CustomerDetailsModal';
-import SendMessageModal from '../admin/components/customers/SendMessageModal';
+import CustomerDetailsModal from '../../common/components/customers/CustomerDetailsModal';
+import SendMessageModal from '../../common/components/customers/SendMessageModal';
 
 const ManagerCustomers = () => {
   const { managerUser } = useStoreManagerAuth();

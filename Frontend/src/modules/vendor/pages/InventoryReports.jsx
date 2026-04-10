@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { BarChart3, Package, TrendingDown, AlertTriangle, Download, Calendar, Filter } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
-import { formatCurrency } from '../utils/formatDate';
+import { formatCurrency } from '../../../common/utils/formatUtils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 
 const InventoryReports = () => {

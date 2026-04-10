@@ -25,8 +25,8 @@ import {
 import { fetchDemandAnalytics } from '../../api/demandAnalyticsApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const COLORS = ['#0c831f', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
 const GOOGLE_MAPS_LIBRARIES = ['places', 'visualization'];

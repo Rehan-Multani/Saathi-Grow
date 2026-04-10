@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone, User, Check, Home, Briefcase, Heart, Navigation as NavIcon, Search, Loader2 } from 'lucide-react';
 import { useLocation as useAppLocation } from '../../context/LocationContext';

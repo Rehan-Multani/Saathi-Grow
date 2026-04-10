@@ -1,12 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, InputGroup, Row, Col, Badge, Dropdown, Spinner } from 'react-bootstrap';
-import { Search, Filter, Calendar, ChevronLeft, ChevronRight, XCircle, Clock, Loader2, Package } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Search, Filter, Calendar, ChevronLeft, ChevronRight, XCircle, Clock, Loader2, Package, User as UserIcon } from 'lucide-react';
 import { getAllOrdersAdmin } from '../../api/orderApi';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
+
+const OrderStatusBadge = ({ status }) => {
+    const { t } = useTranslation('admin_customers');
+    const s = status?.toLowerCase();
+    
+    const styles = {
+        delivered: 'bg-emerald-50 border-emerald-100 text-emerald-600',
+        cancelled: 'bg-rose-50 border-rose-100 text-rose-600',
+        pending: 'bg-amber-50 border-amber-100 text-amber-600',
+        confirmed: 'bg-blue-50 border-blue-100 text-blue-600',
+        preparing: 'bg-indigo-50 border-indigo-100 text-indigo-600',
+        default: 'bg-slate-50 border-slate-100 text-slate-500'
+    };
+
+    const style = styles[s] || styles.default;
+
+    return (
+        <span className={`px-2.5 py-1 rounded text-[10px] font-bold border ${style}`}>
+            {t(`orders.status.${s}`, { defaultValue: status })}
+        </span>
+    );
+};
 
 const CustomerOrders = () => {
+    const { t } = useTranslation('admin_customers');
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,7 +38,7 @@ const CustomerOrders = () => {
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
     const limit = 10;
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             setLoading(true);
             const params = {
@@ -35,19 +58,18 @@ const CustomerOrders = () => {
                 setPagination({ total: 0, totalPages: 1 });
             }
         } catch (error) {
-            console.error('Fetch error:', error);
-            toast.error('Failed to load order history');
+            toast.error('Failed to load orders');
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, statusFilter, searchTerm, limit]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchOrders();
         }, 400);
         return () => clearTimeout(timer);
-    }, [page, statusFilter, searchTerm]);
+    }, [fetchOrders]);
 
     const clearFilters = () => {
         setSearchTerm('');
@@ -55,193 +77,167 @@ const CustomerOrders = () => {
         setPage(1);
     };
 
-    const getStatusBadge = (status) => {
-        const s = status?.toLowerCase();
-        switch (s) {
-            case 'delivered': return <Badge bg="success" className="rounded-pill fw-bold text-[9px] uppercase tracking-wider px-3">Delivered</Badge>;
-            case 'cancelled': return <Badge bg="danger" className="rounded-pill fw-bold text-[9px] uppercase tracking-wider px-3">Cancelled</Badge>;
-            case 'pending': return <Badge bg="warning" className="text-dark rounded-pill fw-bold text-[9px] uppercase tracking-wider px-3">Pending</Badge>;
-            case 'confirmed': return <Badge bg="primary" className="rounded-pill fw-bold text-[9px] uppercase tracking-wider px-3">Confirmed</Badge>;
-            case 'preparing': return <Badge bg="info" className="rounded-pill fw-bold text-[9px] uppercase tracking-wider px-3 text-white">Preparing</Badge>;
-            default: return <Badge bg="secondary" className="rounded-pill fw-bold text-[9px] uppercase tracking-wider px-3">{status}</Badge>;
-        }
-    };
-
     return (
-        <div className="p-4 space-y-4">
-            <Card className="border-0 shadow-sm rounded-2xl">
-                <Card.Body className="p-4">
-                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                        <div className="d-flex align-items-center gap-3">
-                            <div className="bg-primary/10 p-2.5 rounded-xl text-primary shadow-sm shadow-primary/5">
-                                <Clock size={20} />
-                            </div>
-                            <div>
-                                <div className="d-flex align-items-center gap-2">
-                                    <h5 className="mb-0 font-black text-gray-800">Order Audit</h5>
-                                    <PageInfoTooltip info={pageInfoData.customerOrders} />
-                                </div>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Global Customer Transactions</p>
-                            </div>
-                        </div>
-
-                        <div className="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                            <InputGroup className="bg-gray-50 border-0 rounded-xl overflow-hidden" style={{ maxWidth: '300px' }}>
-                                <InputGroup.Text className="bg-transparent border-0 text-muted ps-3"><Search size={16} /></InputGroup.Text>
-                                <Form.Control
-                                    placeholder="Order ID, Customer..."
-                                    className="bg-transparent border-0 shadow-none py-2.5 text-xs font-bold"
-                                    value={searchTerm}
-                                    onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-                                />
-                            </InputGroup>
-
-                            <Dropdown align="end">
-                                <Dropdown.Toggle variant="light" className="d-flex align-items-center gap-2 border-0 bg-gray-50 rounded-xl px-4 py-2.5 shadow-none hover:bg-gray-100 font-bold text-xs transition-all">
-                                    <Filter size={16} className="text-muted" />
-                                    <span>{statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}</span>
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="border-0 shadow-xl p-2 rounded-2xl mt-2 animate-in slide-in-from-top-2 duration-200">
-                                    <div className="px-3 py-2 border-b border-gray-50 mb-1">
-                                        <span className="text-gray-400 text-[9px] font-black uppercase tracking-widest">Transaction Status</span>
-                                    </div>
-                                    {['all', 'Pending', 'Confirmed', 'Preparing', 'Delivered', 'Cancelled'].map(s => (
-                                        <Dropdown.Item
-                                            key={s}
-                                            onClick={() => { setStatusFilter(s); setPage(1); }}
-                                            className={`rounded-xl py-2 text-xs font-bold mb-0.5 ${statusFilter === s ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-50'}`}
-                                        >
-                                            {s}
-                                        </Dropdown.Item>
-                                    ))}
-
-                                    {(searchTerm || statusFilter !== 'all') && (
-                                        <>
-                                            <Dropdown.Divider className="my-1 opacity-50" />
-                                            <Dropdown.Item
-                                                onClick={clearFilters}
-                                                className="rounded-xl py-2 text-[10px] font-black text-rose-500 hover:bg-rose-50 d-flex align-items-center gap-2 uppercase tracking-wider"
-                                            >
-                                                <XCircle size={14} /> Clear Scan
-                                            </Dropdown.Item>
-                                        </>
-                                    )}
-                                </Dropdown.Menu>
-                            </Dropdown>
-                        </div>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight">{t('orders.title')}</h1>
+                        <PageInfoTooltip info={pageInfoData.customerOrders} />
                     </div>
-                </Card.Body>
-            </Card>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('orders.subtitle')}</p>
+                </div>
+                <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm font-semibold text-xs text-slate-600">
+                    {pagination.total} Orders
+                </div>
+            </div>
 
-            <Card className="border-0 shadow-sm rounded-3xl overflow-hidden">
-                <Card.Body className="p-0">
-                    <div className="table-responsive">
-                        <Table hover className="mb-0 align-middle">
-                            <thead className="bg-gray-50/50">
+            {/* Sub Header / Filters */}
+            <div className="bg-white rounded-xl border border-slate-200 p-3 mb-6 shadow-sm">
+                <div className="flex flex-col lg:flex-row gap-3 items-center">
+                    <div className="relative flex-1 w-full group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-sm font-medium"
+                            placeholder="Search Order ID, Customer name..."
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full lg:w-auto p-1 bg-slate-100/50 rounded-xl border border-slate-100">
+                        {['all', 'Pending', 'Confirmed', 'Preparing', 'Delivered', 'Cancelled'].map(s => (
+                            <button
+                                key={s}
+                                onClick={() => { setStatusFilter(s); setPage(1); }}
+                                className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${statusFilter === s ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
+                            >
+                                {s === 'all' ? 'All' : s}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    {(searchTerm || statusFilter !== 'all') && (
+                        <button onClick={clearFilters} className="p-2.5 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-100 transition-all border border-rose-100 self-stretch flex items-center justify-center">
+                            <XCircle size={18} />
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('orders.table.order')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('orders.table.customer')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('orders.table.manifest')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('orders.table.amount')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('orders.table.status')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading && orders.length === 0 ? (
                                 <tr>
-                                    <th className="ps-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-0">Reference</th>
-                                    <th className="py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-0">Customer</th>
-                                    <th className="py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-0">Cargo Manifest</th>
-                                    <th className="py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-0 text-center">Amount</th>
-                                    <th className="py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-0 text-center">Status</th>
+                                    <td colSpan="5" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Loader2 size={32} className="text-blue-500 animate-spin" />
+                                            <span className="text-xs font-medium text-slate-400 font-sans tracking-normal">Loading orders...</span>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan="5" className="py-24 text-center">
-                                            <div className="d-flex flex-column align-items-center gap-3">
-                                                <div className="relative">
-                                                    <Loader2 size={32} className="text-primary animate-spin" />
-                                                    <div className="absolute inset-0 d-flex align-items-center justify-center opacity-20">
-                                                        <Clock size={12} />
-                                                    </div>
-                                                </div>
-                                                <span className="text-[10px] font-black text-primary/50 uppercase tracking-[0.2em]">Synchronizing Stream...</span>
+                            ) : orders.length > 0 ? orders.map((o) => (
+                                <tr key={o._id} className="group hover:bg-slate-50/30 transition-all">
+                                    <td className="px-6 py-5">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold text-blue-600 mb-1">#{o.orderId}</span>
+                                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                                                <Calendar size={12} className="opacity-50" /> 
+                                                {new Date(o.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </div>
-                                        </td>
-                                    </tr>
-                                ) : orders.length > 0 ? orders.map((o) => (
-                                    <tr key={o._id} className="group hover:bg-gray-50/40 transition-all duration-300">
-                                        <td className="ps-6 py-4">
-                                            <div className="d-flex flex-column">
-                                                <span className="text-[11px] font-black text-primary tracking-widest mb-0.5">#{o.orderId}</span>
-                                                <span className="text-[9px] text-gray-400 font-bold flex align-items-center gap-1">
-                                                    <Calendar size={10} /> {new Date(o.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                                                <UserIcon size={16} />
                                             </div>
-                                        </td>
-                                        <td className="py-4">
-                                            <div className="d-flex flex-column">
-                                                <span className="text-xs font-black text-gray-800">{o.user?.name || 'Guest User'}</span>
-                                                <span className="text-[10px] text-gray-400 font-medium italic">{o.user?.phone || 'No phone'}</span>
+                                            <div>
+                                                <div className="text-xs font-bold text-slate-800 mb-0.5">{o.user?.name || 'Guest'}</div>
+                                                <div className="text-[10px] text-slate-400 font-medium">{o.user?.phone || 'No phone'}</div>
                                             </div>
-                                        </td>
-                                        <td className="py-4">
-                                            <div className="d-flex align-items-center gap-2">
-                                                <div className="p-1.5 bg-gray-50 rounded text-gray-400 group-hover:text-primary transition-colors">
-                                                    <Package size={14} />
-                                                </div>
-                                                <div className="text-[11px] font-bold text-gray-600 text-truncate" style={{ maxWidth: '200px' }}>
-                                                    {o.items?.map(i => i.name || 'Product').join(', ')}
-                                                </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-5">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-slate-50 rounded text-slate-400">
+                                                <Package size={14} />
                                             </div>
-                                        </td>
-                                        <td className="py-4 text-center">
-                                            <span className="text-sm font-black text-gray-800">₹{o.totalAmount.toLocaleString()}</span>
-                                        </td>
-                                        <td className="py-4 text-center">
-                                            {getStatusBadge(o.status)}
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="5" className="py-24 text-center">
-                                            <div className="d-flex flex-column align-items-center gap-3 opacity-30">
-                                                <XCircle size={40} className="text-gray-300" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">No matching logs in archive</span>
+                                            <div className="text-[11px] font-medium text-slate-600 text-truncate max-w-[280px]">
+                                                {o.items?.map(i => i.name || 'Product').join(', ')}
                                             </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    </div>
-                </Card.Body>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-5 text-center">
+                                        <div className="text-xs font-bold text-slate-900">₹{o.totalAmount.toLocaleString()}</div>
+                                    </td>
+                                    <td className="px-6 py-5 text-center">
+                                        <OrderStatusBadge status={o.status} />
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan="5" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-2 text-slate-400 opacity-60">
+                                            <XCircle size={40} className="text-slate-300" strokeWidth={1.5} />
+                                            <span className="text-xs font-semibold">No orders found</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
                 {/* Pagination */}
                 {!loading && pagination.total > 0 && (
-                    <div className="bg-gray-50/30 border-top px-6 py-4 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-4">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                            Scan Log: <span className="text-primary">{((page - 1) * limit) + 1}</span> - <span className="text-primary">{Math.min(page * limit, pagination.total)}</span> / <span className="text-primary">{pagination.total}</span> entries
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <span className="text-xs font-medium text-slate-500">
+                            Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, pagination.total)} of {pagination.total} orders
                         </span>
                         
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center w-8 h-8 rounded-lg border-0 bg-white shadow-sm transition-all hover:scale-110 ${page === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-primary hover:text-white'}`}
+                        <div className="flex items-center gap-2">
+                            <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
                             >
-                                <ChevronLeft size={14} />
-                            </Button>
-
-                            <div className="px-4 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm">
-                                <span className="text-xs font-black text-primary">{page} <span className="text-gray-300 mx-1">/</span> {pagination.totalPages}</span>
+                                <ChevronLeft size={16} strokeWidth={2.5} />
+                            </button>
+                            
+                            <div className="px-4 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm text-xs font-bold text-slate-700">
+                                Page {page} <span className="mx-1 text-slate-300">/</span> {pagination.totalPages}
                             </div>
 
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center w-8 h-8 rounded-lg border-0 bg-white shadow-sm transition-all hover:scale-110 ${page === pagination.totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-primary hover:text-white'}`}
+                            <button
                                 onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
                                 disabled={page === pagination.totalPages}
+                                className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${page === pagination.totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600 shadow-sm'}`}
                             >
-                                <ChevronRight size={14} />
-                            </Button>
+                                <ChevronRight size={16} strokeWidth={2.5} />
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+            `}} />
         </div>
     );
 };

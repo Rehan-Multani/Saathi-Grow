@@ -6,8 +6,8 @@ import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getOfferDeals, deleteOfferDeal } from '../../api/offerDealApi';
 import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllOffers = () => {
   const navigate = useNavigate();

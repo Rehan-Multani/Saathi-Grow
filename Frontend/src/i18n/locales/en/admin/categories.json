@@ -1,0 +1,138 @@
+{
+  "title": "All Categories",
+  "subtitle": "Manage and organize your product catalog collections",
+  "add_new": "Add Category",
+  "search_placeholder": "Search categories by name...",
+  "loading": "Fetching categories...",
+  "loading_failed": "Failed to load categories",
+  "no_categories": "No categories found. Start by adding one!",
+  "no_matches": "No categories match your search.",
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "draft": "Draft",
+    "published": "Published",
+    "unnamed": "Unnamed",
+    "no_category": "No Category"
+  },
+  "table": {
+    "info": "Category Title",
+    "slug": "Handle / slug",
+    "background": "Styling",
+    "status": "Availability",
+    "actions": "Actions"
+  },
+  "form": {
+    "title_add": "Create Category",
+    "title_edit": "Modify Category",
+    "general_info": "General Information",
+    "styling": "Background Styling",
+    "image": "Category Image",
+    "publishing": "Publishing",
+    "name_label": "Category Name",
+    "name_placeholder": "e.g. Fresh Vegetables",
+    "slug_label": "Slug (URL)",
+    "slug_placeholder": "e.g. fresh-vegetables",
+    "slug_hint": "Leave empty to auto-generate from name",
+    "desc_label": "Description / Short Text",
+    "desc_placeholder": "Brief summary about this category...",
+    "color_label": "Card Background Color",
+    "color_hint": "Choose a light color for better visibility",
+    "upload_hint": "Upload professional category icon",
+    "upload_types": "PNG, JPG or WebP (Max 2MB)",
+    "preview": "Live App Preview",
+    "visibility": "Visibility Status",
+    "save_publish": "Save & Publish",
+    "saving": "Processing...",
+    "cancel": "Cancel Changes",
+    "remove_image": "Remove Image"
+  },
+  "messages": {
+    "create_success": "Record created successfully!",
+    "update_success": "Record updated successfully!",
+    "delete_success": "Record removed from catalog",
+    "delete_confirm_title": "Are you sure?",
+    "delete_confirm_text": "Do you want to delete '{{name}}'? This cannot be undone.",
+    "name_required": "Please provide a valid name",
+    "image_size_error": "Image size should be less than 2MB",
+    "load_failed": "Failed to load records from server"
+  },
+  "pagination": {
+    "showing": "Displaying",
+    "to": "to",
+    "of": "of"
+  },
+  "subcategories": {
+    "title": "Subcategories",
+    "subtitle": "Manage secondary groupings within your categories",
+    "add_new": "Add Subcategory",
+    "label": "Subcategory",
+    "table": {
+      "parent": "Parent Category"
+    },
+    "form": {
+      "parent_label": "Select Parent Category",
+      "parent_placeholder": "Choose a main category"
+    }
+  },
+  "brands": {
+    "title": "Partner Brands",
+    "subtitle": "Manage manufacturer and brand profiles",
+    "add_new": "Add Brand",
+    "label": "Brand",
+    "no_brands": "No brands found in catalog",
+    "no_description": "No description provided",
+    "website": "Official Website",
+    "table": {
+      "brand": "Brand Identity",
+      "category": "Classification",
+      "details": "Profile Details",
+      "logo": "Brand Logo"
+    },
+    "form": {
+      "logo_label": "Brand Mark / Logo",
+      "website_label": "Official Website",
+      "website_placeholder": "https://www.brand.com",
+      "website_hint": "Linking an official website enhances brand credibility.",
+      "desc_placeholder": "Craft a brief narrative for this manufacturer...",
+      "brand_profile": "Brand Profile",
+      "identity_management": "Brand Identity Management"
+    }
+  },
+  "landing_pages": {
+    "title": "Category Landing Pages",
+    "subtitle": "Curate the major category experience with banners, brand rows, and product rails.",
+    "add_new": "Create Landing Page",
+    "edit_title": "Modify Landing Page",
+    "create_title": "Setup New Landing Page",
+    "load_demo": "Load Default Layout",
+    "preview_live": "Preview Live Page",
+    "no_pages": "No landing pages configured yet.",
+    "loading": "Loading configurations...",
+    "table": {
+      "category": "Category Reference",
+      "sections": "Components",
+      "updated": "Last Revised"
+    },
+    "form": {
+      "select_category": "Select Target Category",
+      "theme_config": "Visual Theme Configuration",
+      "hero_section": "Hero Interaction Section",
+      "seo_settings": "SEO & Metatags",
+      "page_sections": "Active Visual Components",
+      "add_section": "Add New Component",
+      "section_types": {
+        "subcategory_grid": "Subcategory Grid",
+        "brand_strip": "Brand Showcase Strip",
+        "promo_banner": "Promotional Banner",
+        "product_rail": "Dynamic Product Rail",
+        "view_more_cta": "Call-to-Action Block"
+      }
+    },
+    "messages": {
+      "create_success": "Landing page configuration created!",
+      "update_success": "Landing page updated successfully!",
+      "delete_confirm_text": "This will remove the curated experience for '{{name}}'. Continue?"
+    }
+  }
+}

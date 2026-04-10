@@ -3,8 +3,8 @@ import { Card, Form, Button, Row, Col, Badge, Table, Spinner, InputGroup, Pagina
 import { Send, Bell, Smartphone, User, Clock, CheckCircle, Search, Users, Shield, Truck, Store, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 import { sendNotification, getNotificationHistory, searchRecipients, deleteNotifications } from '../../api/notificationApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 

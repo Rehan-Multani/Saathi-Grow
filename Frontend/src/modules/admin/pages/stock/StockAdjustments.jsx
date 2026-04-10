@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Badge, Spinner } from 'react-bootstrap';
-import { Plus, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Loader2, Calendar, User, Package, Store, Activity, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAllInventoryLogs } from '../../api/productApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -8,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 
 const StockAdjustments = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_stock');
     const { adminUser } = useAdminAuth();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -29,8 +28,7 @@ const StockAdjustments = () => {
                     setLogs(data);
                 }
             } catch (error) {
-                console.error('Error fetching logs:', error);
-                toast.error(t('stock.adjustments.error_load'));
+                toast.error(t('adjustments.error_load', { defaultValue: 'Failed to load stock history' }));
             } finally {
                 setLoading(false);
             }
@@ -40,141 +38,161 @@ const StockAdjustments = () => {
     }, [adminUser, page, t]);
 
     return (
-        <div className="p-3">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                    <h5 className="mb-0 fw-bold">{t('stock.adjustments.title')}</h5>
-                    <Link to="/admin/stock/adjustments/add" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 responsive-btn">
-                        <Plus size={18} /> {t('stock.adjustments.new_adjustment')}
-                    </Link>
-                </Card.Body>
-            </Card>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight">{t('adjustments.title')}</h1>
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100">{pagination.total} {t('adjustments.logged')}</span>
+                    </div>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('adjustments.subtitle')}</p>
+                </div>
 
-            <Card className="border-0 shadow-sm">
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">{t('stock.adjustments.table.id')}</th>
-                                <th className="border-0 py-3">{t('stock.adjustments.table.date')}</th>
-                                <th className="border-0 py-3">{t('stock.adjustments.table.product')}</th>
-                                <th className="border-0 py-3">{t('stock.adjustments.table.branch')}</th>
-                                <th className="border-0 py-3">{t('stock.adjustments.table.type')}</th>
-                                <th className="border-0 py-3">{t('stock.adjustments.table.changed')}</th>
-                                <th className="border-0 py-3">{t('stock.adjustments.table.quantity')}</th>
-                                <th className="border-0 py-3">{t('stock.adjustments.table.reason')}</th>
-                                <th className="border-0 py-3 text-end pe-4">{t('stock.adjustments.table.user')}</th>
+                <Link
+                    to="/admin/stock/adjustments/add"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 text-xs font-bold transition-all shadow-md shadow-blue-50 active:scale-95 whitespace-nowrap uppercase tracking-wider"
+                >
+                    <Plus size={18} /> {t('adjustments.add_btn')}
+                </Link>
+            </div>
+
+            {/* List Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('adjustments.table.id')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('adjustments.table.product')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-center">{t('adjustments.table.type')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-center">{t('adjustments.table.change')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-right">{t('adjustments.table.by')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="9" className="text-center py-5">
-                                        <Spinner animation="border" variant="primary" size="sm" />
-                                        <span className="ms-2">{t('stock.adjustments.loading')}</span>
+                                    <td colSpan="5" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Loader2 size={32} className="text-blue-500 animate-spin" />
+                                            <span className="text-xs font-medium text-slate-400">{t('adjustments.loading_msg')}</span>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : logs.length > 0 ? (
-                                logs.map((log, idx) => (
-                                    <tr key={log._id}>
-                                        <td className="ps-4">
-                                            <span className="text-muted small">#{log._id.slice(-6).toUpperCase()}</span>
-                                        </td>
-                                        <td className="text-muted small">
-                                            {new Date(log.createdAt).toLocaleDateString('en-GB')}
-                                        </td>
-                                        <td>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <div className="w-8 h-8 rounded bg-light overflow-hidden border">
-                                                    {log.product?.image ? <img src={log.product.image} className="w-full h-full object-contain p-0.5" alt="" /> : <span className="flex items-center justify-center h-full text-[10px]">{log.product?.name?.charAt(0)}</span>}
+                                logs.map((log) => (
+                                    <tr key={log._id} className="hover:bg-slate-50/20 transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg ${ (log.type === 'Addition' || log.type === 'Return') ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
+                                                    {(log.type === 'Addition' || log.type === 'Return') ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                                                 </div>
-                                                <div className="fw-bold text-dark">{log.product?.name || t('stock.adjustments.unknown_product')}</div>
+                                                <div>
+                                                    <div className="text-xs font-bold text-slate-900 leading-tight uppercase tracking-tight">#{log._id.slice(-6).toUpperCase()}</div>
+                                                    <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold mt-0.5">
+                                                        <Calendar size={12} strokeWidth={2.5} /> {new Date(log.createdAt).toLocaleDateString('en-GB')}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            <Badge bg="light" className="text-secondary fw-normal border">
-                                                {log.vendorId ? (
-                                                    <span className="text-purple-600">📦 {log.vendorId.storeName}</span>
-                                                ) : (
-                                                    log.branchId?.name || t('common.global')
-                                                )}
-                                            </Badge>
+                                        <td className="px-4 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-9 h-9 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                                                    {log.product?.image ? <img src={log.product.image} className="w-full h-full object-cover" alt="" /> : <Package size={14} className="text-slate-200" />}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="text-[11px] font-bold text-slate-700 truncate uppercase tracking-tight">{log.product?.name || 'Unknown Product'}</div>
+                                                    <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase tracking-tight">
+                                                        <Store size={10} strokeWidth={3} /> {log.branchId?.name || 'Global'}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td>
-                                            <Badge bg={(log.type === 'Addition' || log.type === 'Return') ? 'success' : 'danger'} className="rounded-pill px-3 fw-normal bg-opacity-10 text-reset border">
-                                                {(log.type === 'Addition' || log.type === 'Return') ? <ArrowUpRight size={14} className="text-success me-1" /> : <ArrowDownRight size={14} className="text-danger me-1" />}
-                                                {t(`stock.adjustments.types.${log.type?.toLowerCase() || 'adjustment'}`)}
-                                            </Badge>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${ (log.type === 'Addition' || log.type === 'Return') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
+                                                {t(`adjustments.types.${log.type?.toLowerCase() || 'adjustment'}`)}
+                                            </span>
                                         </td>
-                                        <td className={`fw-bold ${(log.type === 'Addition' || log.type === 'Return') ? 'text-success' : 'text-danger'}`}>
-                                            {(log.type === 'Addition' || log.type === 'Return') ? '+' : ''}{log.changeAmount}
+                                        <td className="px-4 py-4 text-center">
+                                            <div className={`text-xs font-bold ${ (log.type === 'Addition' || log.type === 'Return') ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                {(log.type === 'Addition' || log.type === 'Return') ? '+' : '-'}{log.changeAmount}
+                                            </div>
+                                            <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tight mt-0.5">Stock: {log.newStock}</div>
                                         </td>
-                                        <td className="fw-bold">{log.newStock}</td>
-                                        <td className="small text-muted">{log.reason}</td>
-                                        <td className="text-end pe-4">
-                                            <div className="small fw-medium text-dark">{log.admin?.name || t('stock.adjustments.system_user')}</div>
-                                            <div className="small text-muted" style={{ fontSize: '10px' }}>{log.admin?.email}</div>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex flex-col items-end">
+                                                <div className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1.5">
+                                                    {log.admin?.name || 'System'} <User size={12} className="text-slate-300" />
+                                                </div>
+                                                <div className="text-[10px] text-slate-400 font-semibold max-w-[140px] truncate">{log.reason || 'No reason provided'}</div>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="9" className="text-center py-5 text-muted">{t('stock.adjustments.no_logs')}</td>
+                                    <td colSpan="5" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-2 text-slate-300">
+                                            <Activity className="opacity-20" size={32} />
+                                            <p className="text-xs font-semibold">{t('adjustments.no_data')}</p>
+                                        </div>
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
+                    </table>
+                </div>
 
+                {/* Pagination */}
                 {!loading && pagination.total > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('stock.adjustments.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('stock.adjustments.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, pagination.total)}</span> {t('stock.adjustments.pagination.of')} <span className="fw-semibold text-dark">{pagination.total}</span> {t('stock.adjustments.pagination.adjustments')}
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="text-xs font-medium text-slate-500 italic">
+                            {t('branch.pagination_showing', { start: ((page - 1) * limit) + 1, end: Math.min(page * limit, pagination.total), total: pagination.total })}
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        <div className="flex items-center gap-2">
+                            <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
                             >
                                 <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
+                            </button>
+                            <div className="flex items-center gap-1">
                                 {[...Array(pagination.totalPages)].map((_, i) => {
                                     const p = i + 1;
                                     if (p === 1 || p === pagination.totalPages || Math.abs(page - p) <= 1) {
                                         return (
-                                            <Button
+                                            <button
                                                 key={p}
-                                                variant={page === p ? 'primary' : 'light'}
-                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                style={{ width: '36px', height: '36px', padding: 0 }}
                                                 onClick={() => setPage(p)}
+                                                className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${page === p ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 border border-slate-100'}`}
                                             >
                                                 {p}
-                                            </Button>
+                                            </button>
                                         );
                                     } else if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-muted px-1">...</span>;
+                                        return <span key={p} className="text-slate-300 px-0.5 font-bold">...</span>;
                                     }
                                     return null;
                                 })}
                             </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            <button
                                 onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
                                 disabled={page === pagination.totalPages}
+                                className={`p-2 rounded-lg border transition-all ${page === pagination.totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
                             >
                                 <ChevronRight size={16} />
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

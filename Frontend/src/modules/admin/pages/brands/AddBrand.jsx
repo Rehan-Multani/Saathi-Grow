@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Row, Col, Image, Spinner } from 'react-bootstrap';
-import { Save, X, Upload } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Save, X, Upload, Globe, FileText, Check, RefreshCw, Plus, Camera, Tag, ArrowLeft, Sparkles, Search, ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { createBrand } from '../../api/brandApi';
 import { getCategories } from '../../api/categoryApi';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AddBrand = () => {
+    const { t } = useTranslation('admin_categories');
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    const fileInputRef = useRef(null);
+
     const [formData, setFormData] = useState({
         name: '',
         category: '',
@@ -23,22 +27,24 @@ const AddBrand = () => {
         description: ''
     });
 
-    React.useEffect(() => {
+    const [logoPreview, setLogoPreview] = useState(null);
+    const [logoFile, setLogoFile] = useState(null);
+    const [showCropper, setShowCropper] = useState(false);
+    const [tempLogo, setTempLogo] = useState(null);
+
+    useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const data = await getCategories(adminUser.token);
                 setCategories(data.filter(c => c.status === 'Active'));
             } catch (error) {
                 console.error('Error fetching categories:', error);
+            } finally {
+                setCategoriesLoading(false);
             }
         };
         if (adminUser?.token) fetchCategories();
     }, [adminUser]);
-
-    const [logoPreview, setLogoPreview] = useState(null);
-    const [logoFile, setLogoFile] = useState(null);
-    const [showCropper, setShowCropper] = useState(false);
-    const [tempLogo, setTempLogo] = useState(null);
 
     const handleLogoChange = (e) => {
         const file = e.target.files[0];
@@ -52,22 +58,19 @@ const AddBrand = () => {
         }
     };
 
-    // Helper to convert base64 to file
     const dataURLtoFile = (dataurl, filename) => {
         let arr = dataurl.split(','),
             mime = arr[0].match(/:(.*?);/)[1],
             bstr = atob(arr[1]),
             n = bstr.length,
             u8arr = new Uint8Array(n);
-        while (n--) {
-            u8arr[n] = bstr.charCodeAt(n);
-        }
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
         return new File([u8arr], filename, { type: mime });
     };
 
     const handleCropComplete = (croppedImageBase64) => {
         setLogoPreview(croppedImageBase64);
-        const file = dataURLtoFile(croppedImageBase64, 'brand-logo.jpg');
+        const file = dataURLtoFile(croppedImageBase64, `brand-logo-${Date.now()}.jpg`);
         setLogoFile(file);
         setShowCropper(false);
         setTempLogo(null);
@@ -79,9 +82,7 @@ const AddBrand = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.category) {
-            return toast.error('Name and Category are required');
-        }
+        if (!formData.name || !formData.category) return toast.error(t('messages.name_required'));
 
         setLoading(true);
         try {
@@ -91,12 +92,10 @@ const AddBrand = () => {
             brandData.append('status', formData.status);
             brandData.append('website', formData.website);
             brandData.append('description', formData.description);
-            if (logoFile) {
-                brandData.append('logo', logoFile);
-            }
+            if (logoFile) brandData.append('logo', logoFile);
 
             await createBrand(adminUser.token, brandData);
-            toast.success('Brand created successfully!');
+            toast.success(t('messages.create_success'));
             navigate('/admin/brands');
         } catch (error) {
             toast.error(error.message || 'Failed to create brand');
@@ -106,151 +105,176 @@ const AddBrand = () => {
     };
 
     return (
-        <Form onSubmit={handleSubmit}>
-            <Row className="g-0">
-                <Col xs={12}>
-                    <Card className="border-0 shadow-sm overflow-hidden mb-4">
-                        <Card.Header className="bg-gradient-to-r from-blue-50 to-white py-4 px-4 border-b border-gray-100 d-flex justify-content-between align-items-center">
-                            <div>
-                                <div className="d-flex align-items-center gap-2">
-                                    <h6 className="mb-0 fw-black text-gray-900 uppercase tracking-tight">Add New Brand</h6>
-                                    <PageInfoTooltip info={pageInfoData.addBrand} />
+        <div className="container-fluid py-8 bg-slate-50/30 min-h-screen px-4 md:px-8 max-w-7xl mx-auto font-sans text-slate-900">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => navigate('/admin/brands')} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm active:scale-95">
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-black tracking-tight">{t('brands.add_new')}</h1>
+                            <PageInfoTooltip info={pageInfoData.addBrand} />
+                        </div>
+                        <p className="text-slate-500 text-sm mt-1 font-medium">{t('brands.subtitle')}</p>
+                    </div>
+                </div>
+                <button onClick={() => navigate('/admin/brands')} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[13px] font-black tracking-widest uppercase text-slate-500 hover:bg-slate-50 transition-all shadow-sm active:scale-95">
+                    <X size={18} /> {t('form.cancel')}
+                </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Brand Identity Section */}
+                    <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 space-y-8 shadow-sm">
+                        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl shadow-sm"><Tag size={22} strokeWidth={2.5} /></div>
+                            <h2 className="text-lg font-black tracking-tight uppercase tracking-wider">{t('form.general_info')}</h2>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2.5">
+                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('form.name_label')} <span className="text-rose-500">*</span></label>
+                                    <div className="relative group">
+                                        <FileText className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={17} />
+                                        <input type="text" name="name" value={formData.name} onChange={handleChange} required className="brand-add-input pl-12 text-base font-bold" placeholder={t('form.name_placeholder')} />
+                                    </div>
                                 </div>
-                                <p className="text-gray-400 text-[10px] fw-bold uppercase tracking-widest mt-1 opacity-60">Register and Configure Marketplace Brands</p>
+                                <div className="space-y-2.5">
+                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('brands.table.category')} <span className="text-rose-500">*</span></label>
+                                    <div className="relative group">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={17} />
+                                        <select 
+                                            name="category" 
+                                            value={formData.category} 
+                                            onChange={handleChange} 
+                                            required 
+                                            className="brand-add-input pl-12 font-bold appearance-none pr-10"
+                                            disabled={categoriesLoading}
+                                        >
+                                            <option value="">{t('subcategories.form.parent_placeholder')}</option>
+                                            {categories.map(cat => <option key={cat._id} value={cat.name}>{cat.name}</option>)}
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40"><RefreshCw size={12} className={categoriesLoading ? 'animate-spin' : ''} /></div>
+                                    </div>
+                                </div>
                             </div>
-                            <Button variant="light" onClick={() => navigate('/admin/brands')} className="d-flex align-items-center gap-2 shadow-sm px-4 fw-bold" disabled={loading}>
-                                <X size={18} /> Cancel
-                            </Button>
-                        </Card.Header>
-                        <Card.Body className="p-4 p-md-5">
-                            <Row>
-                                <Col lg={8}>
-                                    <Card className="border-0 shadow-sm mb-4">
-                                        <Card.Body>
-                                            <h6 className="fw-bold mb-3">Brand Details</h6>
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>Brand Name <span className="text-danger">*</span></Form.Label>
-                                                <Form.Control
-                                                    type="text"
-                                                    placeholder="e.g. Nike"
-                                                    name="name"
-                                                    value={formData.name}
-                                                    onChange={handleChange}
-                                                    required
-                                                />
-                                            </Form.Group>
 
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>Category <span className="text-danger">*</span></Form.Label>
-                                                <Form.Select name="category" value={formData.category} onChange={handleChange} required>
-                                                    <option value="">Select Category</option>
-                                                    {categories.map((cat) => (
-                                                        <option key={cat._id} value={cat.name}>
-                                                            {cat.name}
-                                                        </option>
-                                                    ))}
-                                                </Form.Select>
-                                            </Form.Group>
+                            <div className="space-y-2.5">
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('brands.form.website_label')}</label>
+                                <div className="relative group">
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={17} />
+                                    <input type="url" name="website" value={formData.website} onChange={handleChange} className="brand-add-input pl-12 text-sm font-medium text-blue-600" placeholder={t('brands.form.website_placeholder')} />
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-medium italic px-1">{t('brands.form.website_hint')}</p>
+                            </div>
 
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>Website (Optional)</Form.Label>
-                                                <Form.Control
-                                                    type="url"
-                                                    placeholder="https://example.com"
-                                                    name="website"
-                                                    value={formData.website}
-                                                    onChange={handleChange}
-                                                />
-                                            </Form.Group>
+                            <div className="space-y-2.5">
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('form.desc_label')}</label>
+                                <textarea name="description" value={formData.description} onChange={handleChange} rows={6} className="brand-add-input !rounded-[1.5rem] py-4" placeholder={t('brands.form.desc_placeholder')} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>Description</Form.Label>
-                                                <Form.Control
-                                                    as="textarea"
-                                                    rows={4}
-                                                    name="description"
-                                                    value={formData.description}
-                                                    onChange={handleChange}
-                                                    placeholder="Tell us about the brand..."
-                                                />
-                                            </Form.Group>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
+                <div className="space-y-8">
+                    {/* Media Card */}
+                    <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm text-center space-y-8">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-6 text-left">
+                            <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl"><ImageIcon size={20} /></div>
+                            <h2 className="text-lg font-bold">{t('brands.form.logo_label')}</h2>
+                        </div>
 
-                                <Col lg={4}>
-                                    <Card className="border-0 shadow-sm mb-4">
-                                        <Card.Body>
-                                            <h6 className="fw-bold mb-3">Brand Logo</h6>
-                                            <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative">
-                                                {logoPreview ? (
-                                                    <div className="position-relative">
-                                                        <Image src={logoPreview} fluid rounded style={{ maxHeight: '150px' }} />
-                                                        <Button
-                                                            variant="danger"
-                                                            size="sm"
-                                                            className="position-absolute top-0 end-0 m-2 rounded-circle p-1"
-                                                            onClick={() => { setLogoPreview(null); setLogoFile(null); }}
-                                                        >
-                                                            <X size={16} />
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-muted">
-                                                        <Upload className="mb-2" size={32} />
-                                                        <p className="small mb-0">Upload Logo</p>
-                                                    </div>
-                                                )}
-                                                <Form.Control
-                                                    type="file"
-                                                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
-                                                    onChange={handleLogoChange}
-                                                    accept="image/*"
-                                                    disabled={!!logoPreview || loading}
-                                                />
-                                                <ImageCropperModal
-                                                    show={showCropper}
-                                                    imageSrc={tempLogo}
-                                                    onCancel={() => { setShowCropper(false); setTempLogo(null); }}
-                                                    onCropComplete={handleCropComplete}
-                                                    aspect={1}
-                                                />
-                                            </div>
-                                            <p className="text-center text-muted small">Square logo recommended (e.g. 512x512)</p>
-                                        </Card.Body>
-                                    </Card>
+                        <div 
+                            className="relative group w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2.5rem] overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all shadow-inner"
+                            onClick={() => fileInputRef.current.click()}
+                        >
+                            {logoPreview ? (
+                                <img src={logoPreview} className="w-full h-full object-contain p-8" />
+                            ) : (
+                                <div className="space-y-5">
+                                    <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center mx-auto shadow-sm border border-slate-100 text-blue-600">
+                                        <Upload size={30} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-800">{t('form.upload_hint')}</p>
+                                        <p className="text-[10px] text-slate-400 font-black uppercase mt-1 tracking-widest">{t('form.upload_types')}</p>
+                                    </div>
+                                </div>
+                            )}
+                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleLogoChange} accept="image/*" disabled={loading} />
+                        </div>
+                        
+                        <div className="p-6 rounded-[2.5rem] bg-slate-50 border border-slate-100 flex flex-col items-center gap-4">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">{t('form.preview')}</span>
+                            <div className="flex items-center gap-4 w-full">
+                                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center p-2 border border-slate-100">
+                                    {logoPreview ? <img src={logoPreview} className="max-h-full max-w-full object-contain" /> : <Tag size={20} className="text-slate-100" />}
+                                </div>
+                                <div className="flex-1 text-left min-w-0">
+                                    <div className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight">{formData.name || '---'}</div>
+                                    <div className="text-[9px] font-bold text-blue-500 uppercase tracking-wider opacity-60">{t('brands.form.brand_profile')}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                    <Card className="border-0 shadow-sm">
-                                        <Card.Body>
-                                            <h6 className="fw-bold mb-3">Status</h6>
-                                            <Form.Select name="status" value={formData.status} onChange={handleChange} disabled={loading}>
-                                                <option value="Active">Active</option>
-                                                <option value="Inactive">Inactive</option>
-                                            </Form.Select>
-                                            <div className="d-flex justify-content-center mt-4">
-                                                <Button
-                                                    type="submit"
-                                                    variant="primary"
-                                                    className="px-5 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold shadow-sm"
-                                                    disabled={loading}
-                                                >
-                                                    {loading ? (
-                                                        <Spinner animation="border" size="sm" />
-                                                    ) : (
-                                                        <Save size={18} />
-                                                    )}
-                                                    {loading ? 'Saving...' : 'Save Brand'}
-                                                </Button>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Form>
+                    {/* Publishing Card */}
+                    <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm space-y-6">
+                        <div className="flex items-center gap-4 border-b border-slate-50 pb-6 text-left">
+                            <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 active:scale-95"><Sparkles size={22} strokeWidth={2.5} /></div>
+                            <h2 className="text-lg font-bold uppercase tracking-tight">{t('form.publishing')}</h2>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <div className="space-y-2.5">
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('form.visibility')}</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {['Active', 'Inactive'].map(s => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            onClick={() => setFormData(p => ({ ...p, status: s }))}
+                                            className={`p-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${formData.status === s ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+                                        >
+                                            {t(`status.${s.toLowerCase()}`)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-5 bg-blue-600 text-white rounded-[1.75rem] text-[13px] font-black shadow-xl shadow-blue-100 flex items-center justify-center gap-3 hover:bg-blue-700 active:scale-[0.98] transition-all uppercase tracking-widest disabled:opacity-50"
+                            >
+                                {loading ? <RefreshCw size={24} className="animate-spin" /> : <Save size={24} strokeWidth={2.5} />}
+                                {loading ? t('form.saving') : t('form.save_publish')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <ImageCropperModal
+                show={showCropper}
+                imageSrc={tempLogo}
+                onCancel={() => { setShowCropper(false); setTempLogo(null); }}
+                onCropComplete={handleCropComplete}
+                aspect={1}
+            />
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .brand-add-input { 
+                    width: 100%; background: #f8fafc; border: 1.5px solid #f1f5f9; border-radius: 1.25rem; 
+                    padding: 0.9rem 1.25rem; outline: none; transition: all 0.25s; font-size: 14px;
+                }
+                .brand-add-input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.08); }
+            `}} />
+        </div>
     );
 };
 

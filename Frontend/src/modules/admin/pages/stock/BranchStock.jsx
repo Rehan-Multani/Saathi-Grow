@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Form, InputGroup, Badge, Spinner, Button, Row, Col } from 'react-bootstrap';
-import { Search, MapPin, Package, ChevronLeft, ChevronRight, Filter, RefreshCcw } from 'lucide-react';
+import { Search, Package, ChevronLeft, ChevronRight, Filter, RefreshCcw, Loader2, Store, Box } from 'lucide-react';
 import { getBranchWiseStock } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -8,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 
 const BranchStock = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_stock');
     const { adminUser } = useAdminAuth();
     const [stockData, setStockData] = useState([]);
     const [branches, setBranches] = useState([]);
@@ -57,8 +56,7 @@ const BranchStock = () => {
                 setPagination(response.pagination);
             }
         } catch (error) {
-            console.error('Error fetching stock:', error);
-            toast.error(t('stock.branch_stock.error_load'));
+            toast.error(t('branch.error_load', { defaultValue: 'Failed to load branch stock' }));
         } finally {
             setLoading(false);
         }
@@ -74,224 +72,192 @@ const BranchStock = () => {
         }
     }, [adminUser, fetchBranches]);
 
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'In Stock': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            case 'Low Stock': return 'bg-amber-50 text-amber-600 border-amber-100';
+            default: return 'bg-rose-50 text-rose-600 border-rose-100';
+        }
+    };
+
     return (
-        <div className="p-4 space-y-4">
-            {/* Header section with Context */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
-                    <h4 className="font-bold text-gray-800 mb-1 flex items-center gap-2">
-                        <Package className="text-purple-600" size={24} />
-                        {t('stock.branch_stock.title')}
-                    </h4>
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('stock.branch_stock.logistics_control')}</span>
-                        <span className="w-1 h-1 rounded-full bg-gray-200"></span>
-                        <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">{t('stock.branch_stock.active_records', { count: pagination.total })}</span>
+                        <h1 className="text-xl font-bold tracking-tight">{t('branch.title')}</h1>
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100">{pagination.total} Records</span>
                     </div>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('branch.subtitle')}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button 
-                        variant="light" 
-                        size="sm" 
-                        className="bg-white border border-gray-100 text-gray-500 hover:text-purple-600 shadow-sm flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all"
-                        onClick={() => fetchStock()}
-                        disabled={loading}
-                    >
-                        <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider">{t('stock.branch_stock.refresh')}</span>
-                    </Button>
+
+                <button
+                    onClick={() => fetchStock()}
+                    disabled={loading}
+                    className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${loading ? 'opacity-50' : 'hover:border-blue-500'}`}
+                >
+                    <RefreshCcw size={18} className={`${loading ? 'animate-spin' : ''}`} />
+                </button>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
+                    <div className="lg:col-span-5 relative group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder={t('branch.search_placeholder')}
+                            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-sm font-medium"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="lg:col-span-3 relative group">
+                        <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <select 
+                            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
+                            value={statusFilter}
+                            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                        >
+                            <option value="">{t('branch.status_filter.all')}</option>
+                            <option value="In Stock">{t('branch.status_filter.in_stock')}</option>
+                            <option value="Low Stock">{t('branch.status_filter.low_stock')}</option>
+                            <option value="Out of Stock">{t('branch.status_filter.out_of_stock')}</option>
+                        </select>
+                    </div>
+
+                    {adminUser.role === 'Admin' && (
+                        <div className="lg:col-span-4 relative group">
+                            <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <select 
+                                className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
+                                value={branchFilter}
+                                onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
+                            >
+                                <option value="">{t('branch.global_overview')}</option>
+                                {branches.map(b => (
+                                    <option key={b._id} value={b._id}>{b.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Filters Section: Sleek & Modern */}
-            <Card className="border-0 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] mb-4 bg-white rounded-xl">
-                <Card.Body className="p-3">
-                    <Row className="g-3">
-                        <Col lg={5} md={6}>
-                            <InputGroup className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-0.5 focus-within:bg-white focus-within:ring-2 focus-within:ring-purple-100 transition-all">
-                                <Search className="text-gray-400 mt-2" size={16} />
-                                <Form.Control
-                                    placeholder={t('stock.branch_stock.search_placeholder')}
-                                    className="bg-transparent border-none shadow-none text-xs font-medium placeholder:text-gray-300 py-2 ms-1"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </InputGroup>
-                        </Col>
-                        
-                        <Col lg={3} md={3}>
-                            <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-2 py-0.5 transition-all">
-                                <Filter size={14} className="text-gray-400 shrink-0" />
-                                <Form.Select 
-                                    className="bg-transparent border-none shadow-none text-[11px] font-bold uppercase tracking-wider text-gray-600 py-2"
-                                    value={statusFilter}
-                                    onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                                >
-                                    <option value="">{t('stock.branch_stock.filters.status_all')}</option>
-                                    <option value="In Stock">{t('stock.branch_stock.filters.in_stock')}</option>
-                                    <option value="Low Stock">{t('stock.branch_stock.filters.low_stock')}</option>
-                                    <option value="Out of Stock">{t('stock.branch_stock.filters.out_of_stock')}</option>
-                                </Form.Select>
-                            </div>
-                        </Col>
-
-                        {adminUser.role === 'Admin' && (
-                            <Col lg={4} md={3}>
-                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-2 py-0.5 transition-all">
-                                    <MapPin size={14} className="text-gray-400 shrink-0" />
-                                    <Form.Select 
-                                        className="bg-transparent border-none shadow-none text-[11px] font-bold uppercase tracking-wider text-gray-600 py-2"
-                                        value={branchFilter}
-                                        onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
-                                    >
-                                        <option value="">{t('stock.branch_stock.filters.branch_global')}</option>
-                                        {branches.map(b => (
-                                            <option key={b._id} value={b._id}>{b.name}</option>
-                                        ))}
-                                    </Form.Select>
-                                </div>
-                            </Col>
-                        )}
-                    </Row>
-                </Card.Body>
-            </Card>
-
-            {/* Main Data Table: Dense & Professional */}
-            <Card className="border-0 shadow-sm rounded-xl overflow-hidden">
-                <Card.Body className="p-0">
-                    <div className="overflow-x-auto">
-                        <Table hover className="mb-0 text-xs">
-                            <thead>
-                                <tr className="bg-gray-50 border-b border-gray-100">
-                                    <th className="ps-4 py-3">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.item')}</span>
-                                    </th>
-                                    <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.deployment')}</span>
-                                    </th>
-                                    <th className="py-3 text-center">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.level')}</span>
-                                    </th>
-                                    <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.status')}</span>
-                                    </th>
-                                    <th className="pe-4 py-3 text-right">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-loose">{t('stock.branch_stock.table.command')}</span>
-                                    </th>
+            {/* List Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('branch.table.product')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('branch.table.branch')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-center">{t('branch.table.quantity')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-right">{t('branch.table.action')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="4" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Loader2 size={32} className="text-blue-500 animate-spin" />
+                                            <span className="text-xs font-medium text-slate-400">{t('branch.loading_msg')}</span>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {loading ? (
-                                    Array(limit).fill(0).map((_, i) => (
-                                        <tr key={i}>
-                                            <td colSpan="5" className="py-4 px-4 text-center">
-                                                <div className="flex items-center justify-center gap-2 text-gray-200">
-                                                    <Spinner animation="border" size="sm" className="opacity-20" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-30">{t('stock.branch_stock.table.decrypting')}</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : stockData.length > 0 ? stockData.map((item, idx) => (
-                                    <tr key={`${item.productId}-${idx}`} className="hover:bg-gray-50/50 transition-colors group">
-                                        <td className="ps-4 py-2.5">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 bg-white rounded-lg border border-gray-100 shadow-sm flex items-center justify-center overflow-hidden shrink-0 group-hover:border-purple-200 transition-colors">
-                                                    {item.image ? (
-                                                        <img src={item.image} alt="" className="w-full h-full object-contain p-1" />
-                                                    ) : (
-                                                        <Package size={14} className="text-gray-200" />
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <div className="font-bold text-gray-800 text-[11px] truncate leading-tight uppercase">{item.productName}</div>
-                                                    <div className="text-[9px] text-gray-400 font-mono font-bold tracking-tight mt-0.5">{item.sku}</div>
-                                                </div>
+                            ) : stockData.length > 0 ? stockData.map((item, idx) => (
+                                <tr key={`${item.productId}-${idx}`} className="hover:bg-slate-50/20 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center text-slate-300 overflow-hidden">
+                                                {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <Box size={18} />}
                                             </div>
-                                        </td>
-                                        <td className="py-2.5">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]"></div>
-                                                <div className="min-w-0">
-                                                    <div className="text-[11px] font-bold text-gray-700 truncate">{item.branchName}</div>
-                                                    <div className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">{item.branchCode}</div>
-                                                </div>
+                                            <div className="text-left">
+                                                <div className="text-xs font-bold text-slate-900 leading-tight uppercase tracking-tight">{item.productName}</div>
+                                                <div className="text-[10px] text-slate-400 font-semibold">{item.sku}</div>
                                             </div>
-                                        </td>
-                                        <td className="py-2.5 text-center">
-                                            <div className={`text-xs font-black ${item.stock <= item.lowStockThreshold ? 'text-red-600' : 'text-gray-800'}`}>
-                                                {item.stock}
-                                                <span className="text-[8px] text-gray-400 font-normal ml-0.5 uppercase tracking-tighter">{t('stock.branch_stock.table.units')}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold text-slate-700 truncate">{item.branchName}</div>
+                                                <div className="text-[9px] font-bold text-slate-300 uppercase tracking-tight">{item.branchCode}</div>
                                             </div>
-                                            <div className="text-[8px] text-gray-300 font-bold uppercase mt-0.5">{t('stock.branch_stock.table.alert_at')} {item.lowStockThreshold}</div>
-                                        </td>
-                                        <td className="py-2.5">
-                                            <Badge className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest border border-transparent shadow-sm ${
-                                                item.status === 'In Stock' 
-                                                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
-                                                    : item.status === 'Low Stock' 
-                                                        ? 'bg-amber-100 text-amber-700 border-amber-200' 
-                                                        : 'bg-rose-100 text-rose-700 border-rose-200'
-                                            }`}>
-                                                {t(`stock.branch_stock.filters.${(item.status || 'in_stock').toLowerCase().replace(/\s/g, '_')}`)}
-                                            </Badge>
-                                        </td>
-                                        <td className="pe-4 py-2.5 text-right">
-                                            <Button 
-                                                variant="light" 
-                                                size="sm" 
-                                                className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all border border-transparent hover:border-purple-100"
-                                                onClick={() => window.location.href = `/admin/stock/adjustments?productId=${item.productId}&branchId=${item.branchId}`}
-                                                title="Adjust Inventory"
-                                            >
-                                                <RefreshCcw size={14} />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="5" className="py-20 text-center">
-                                            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 border border-gray-100">
-                                                <Package className="text-gray-200" size={20} />
-                                            </div>
-                                            <h4 className="font-bold text-gray-800 text-sm">{t('stock.branch_stock.quiet_moment')}</h4>
-                                            <p className="text-[11px] text-gray-400 italic">{t('stock.branch_stock.no_data')}</p>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    </div>
-                </Card.Body>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-4 text-center">
+                                        <div className="flex flex-col items-center">
+                                            <span className={`text-xs font-bold ${item.stock <= item.lowStockThreshold ? 'text-rose-600' : 'text-slate-900'}`}>
+                                                {item.stock} <span className="text-[8px] opacity-40">{t('branch.table.units')}</span>
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border mt-1 ${getStatusStyle(item.status)}`}>
+                                                {item.status}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button 
+                                            onClick={() => window.location.href = `/admin/stock/adjustments/add?productId=${item.productId}&branchId=${item.branchId}`}
+                                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
+                                            title={t('overview.urgent_restock.quick_adjust')}
+                                        >
+                                            <RefreshCcw size={16} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan="4" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-2 text-slate-300">
+                                            <Package size={32} />
+                                            <p className="text-xs font-semibold">{t('branch.no_data')}</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                {/* Pagination: Compact & Modern */}
+                {/* Pagination */}
                 {!loading && pagination.total > 0 && (
-                    <div className="bg-white border-t border-gray-50 px-4 py-2.5 flex items-center justify-between shadow-sm">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            {t('stock.branch_stock.pagination.showing')} <span className="text-gray-700">{((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.total)}</span> {t('stock.branch_stock.pagination.of')} {pagination.total}
-                        </span>
-                        <div className="flex items-center gap-1.5">
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="text-xs font-medium text-slate-500 italic">
+                            {t('branch.pagination_showing', { start: ((page - 1) * limit) + 1, end: Math.min(page * limit, pagination.total), total: pagination.total })}
+                        </div>
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="p-1.5 rounded-md border border-gray-100 text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all shadow-sm"
+                                className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
                             >
-                                <ChevronLeft size={14} />
+                                <ChevronLeft size={16} />
                             </button>
                             <div className="px-3">
-                                <span className="text-[10px] font-black text-gray-600 uppercase tracking-tighter">{t('stock.branch_stock.pagination.page')} {page} / {pagination.totalPages}</span>
+                                <span className="text-[10px] font-bold text-slate-600">{t('branch.pagination_page', { current: page, total: pagination.totalPages })}</span>
                             </div>
                             <button
                                 onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                                disabled={page >= pagination.totalPages}
-                                className="p-1.5 rounded-md border border-gray-100 text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all shadow-sm"
+                                disabled={page === pagination.totalPages}
+                                className={`p-2 rounded-lg border transition-all ${page === pagination.totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-500 hover:text-blue-600 shadow-sm'}`}
                             >
-                                <ChevronRight size={14} />
+                                <ChevronRight size={16} />
                             </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

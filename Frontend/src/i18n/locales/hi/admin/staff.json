@@ -1,0 +1,69 @@
+{
+  "all": {
+    "title": "स्टाफ सदस्य",
+    "subtitle": "अपनी टीम के सदस्यों और उनकी भूमिकाओं को प्रबंधित करें",
+    "add_btn": "नया सदस्य जोड़ें",
+    "search_placeholder": "नाम, ईमेल या फोन से खोजें...",
+    "no_staff": "कोई स्टाफ सदस्य नहीं मिला",
+    "table": {
+      "name": "सदस्य",
+      "contact": "संपर्क",
+      "role": "भूमिका",
+      "status": "स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "alerts": {
+      "delete_confirm": "क्या आप वाकई इस सदस्य को हटाना चाहते हैं?",
+      "delete_success": "स्टाफ सदस्य सफलतापूर्वक हटा दिया गया",
+      "status_success": "स्थिति सफलतापूर्वक अपडेट की गई"
+    }
+  },
+  "add": {
+    "title": "स्टाफ सदस्य जोड़ें",
+    "subtitle": "अपने स्टाफ सदस्य के लिए एक नया खाता बनाएं",
+    "form": {
+      "info_title": "व्यक्तिगत जानकारी",
+      "security_title": "सुरक्षा क्रेडेंशियल",
+      "access_title": "भूमिका और पहुंच",
+      "info_note_title": "सिस्टम एक्सेस",
+      "label_name": "पूरा नाम",
+      "label_email": "ईमेल पता",
+      "label_phone": "फोन नंबर",
+      "label_password": "पासवर्ड",
+      "label_role": "भूमिका चुनें",
+      "label_branch": "शाखा (Branch) चुनें",
+      "label_permissions": "अनुमतियां",
+      "placeholder_name": "पूरा नाम दर्ज करें",
+      "placeholder_email": "ईमेल पता दर्ज करें",
+      "placeholder_phone": "फोन नंबर दर्ज करें",
+      "placeholder_password": "एक मजबूत पासवर्ड बनाएं",
+      "submit_btn": "खाता बनाएं",
+      "updating_btn": "अपडेट किया जा रहा है..."
+    },
+    "alerts": {
+      "success": "स्टाफ सदस्य सफलतापूर्वक जोड़ा गया",
+      "error": "स्टाफ सदस्य जोड़ने में विफल"
+    }
+  },
+  "edit": {
+    "title": "स्टाफ विवरण संपादित करें",
+    "submit_btn": "परिवर्तन सहेजें",
+    "alerts": {
+      "success": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई",
+      "error": "प्रोफ़ाइल अपडेट करने में विफल"
+    }
+  },
+  "permissions": {
+    "VIEW_DASHBOARD": "डैशबोर्ड देखें",
+    "VIEW_ORDERS": "ऑर्डर प्रबंधित करें",
+    "MANAGE_PRODUCTS": "उत्पाद प्रबंधित करें",
+    "VIEW_CUSTOMERS": "ग्राहक प्रबंधित करें",
+    "MANAGE_INVENTORY": "इन्वेंट्री प्रबंधित करें",
+    "MANAGE_STAFF": "स्टाफ नियंत्रण",
+    "VIEW_REPORTS": "रिपोर्ट देखें"
+  }
+}

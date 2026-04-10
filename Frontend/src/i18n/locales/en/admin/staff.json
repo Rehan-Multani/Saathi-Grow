@@ -1,0 +1,69 @@
+{
+  "all": {
+    "title": "Staff Members",
+    "subtitle": "Manage your team members and their roles",
+    "add_btn": "Add New Member",
+    "search_placeholder": "Search by name, email or phone...",
+    "no_staff": "No staff members found",
+    "table": {
+      "name": "Member",
+      "contact": "Contact",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "alerts": {
+      "delete_confirm": "Are you sure you want to remove this member?",
+      "delete_success": "Staff member removed successfully",
+      "status_success": "Status updated successfully"
+    }
+  },
+  "add": {
+    "title": "Add Staff Member",
+    "subtitle": "Create a new account for your staff member",
+    "form": {
+      "info_title": "Personal Information",
+      "security_title": "Security Credentials",
+      "access_title": "Role & Access",
+      "info_note_title": "System Access",
+      "label_name": "Full Name",
+      "label_email": "Email Address",
+      "label_phone": "Phone Number",
+      "label_password": "Password",
+      "label_role": "Assign Role",
+      "label_branch": "Assigned Branch",
+      "label_permissions": "Permissions",
+      "placeholder_name": "Enter full name",
+      "placeholder_email": "Enter email address",
+      "placeholder_phone": "Enter phone number",
+      "placeholder_password": "Create a strong password",
+      "submit_btn": "Create Account",
+      "updating_btn": "Updating..."
+    },
+    "alerts": {
+      "success": "Staff member added successfully",
+      "error": "Failed to add staff member"
+    }
+  },
+  "edit": {
+    "title": "Edit Staff Member",
+    "submit_btn": "Save Changes",
+    "alerts": {
+      "success": "Profile updated successfully",
+      "error": "Failed to update profile"
+    }
+  },
+  "permissions": {
+    "VIEW_DASHBOARD": "View Dashboard",
+    "VIEW_ORDERS": "Manage Orders",
+    "MANAGE_PRODUCTS": "Manage Products",
+    "VIEW_CUSTOMERS": "Manage Customers",
+    "MANAGE_INVENTORY": "Manage Inventory",
+    "MANAGE_STAFF": "Staff Control",
+    "VIEW_REPORTS": "View Reports"
+  }
+}

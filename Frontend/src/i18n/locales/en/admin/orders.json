@@ -1,0 +1,105 @@
+{
+  "title": "Orders",
+  "subtitle": "Manage all customer orders and transactions",
+  "online_orders_title": "Online Orders",
+  "online_orders_subtitle": "Manage digital transactions and online deliveries",
+  "pos_history_title": "POS History",
+  "pos_history_subtitle": "History of all Point-of-Sale (Direct Billing) transactions",
+  "return_requests_title": "Return Requests",
+  "return_requests_subtitle": "Manage customer return claims and logistics",
+  "total_count": "{{count}} Total",
+  "search_placeholder": "Search...",
+  "export": "Export",
+  "batch": "Batch",
+  "table": {
+    "id": "Order ID",
+    "customer": "Customer",
+    "source": "Source",
+    "store": "Branch / Vendor",
+    "date": "Date",
+    "payment": "Payment",
+    "status": "Status",
+    "amount": "Amount",
+    "actions": "Actions",
+    "reason": "Reason"
+  },
+  "filters": {
+    "title": "Filters",
+    "clear_all": "Clear All",
+    "apply": "Apply",
+    "status": {
+      "label": "Status",
+      "all": "All Status",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "preparing": "Processing",
+      "out_for_delivery": "Out for Delivery",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "ready_for_pickup": "Ready for Pickup"
+    },
+    "payment": {
+      "label": "Payment Method",
+      "all": "All",
+      "cod": "COD",
+      "online": "Online",
+      "wallet": "Wallet",
+      "cash": "Cash"
+    },
+    "p_status": {
+      "label": "Payment Status",
+      "all": "All Status",
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed"
+    }
+  },
+  "status": {
+    "delivered": "Delivered",
+    "pending": "Pending",
+    "preparing": "Processing",
+    "confirmed": "Confirmed",
+    "out_for_delivery": "Out for Delivery",
+    "cancelled": "Cancelled",
+    "return_requested": "Return Requested",
+    "returned": "Returned",
+    "accepted": "Accepted",
+    "scheduled": "Scheduled",
+    "rejected": "Rejected",
+    "pickedup": "Picked Up"
+  },
+  "tabs": {
+    "pending": "Pending",
+    "accepted": "Approved",
+    "scheduled": "Logistics",
+    "history": "Archives"
+  },
+  "stats": {
+    "total_online": "Total Online",
+    "paid_orders": "Paid Transactions",
+    "pending_payment": "Pending Billing",
+    "revenue": "Total Sales"
+  },
+  "actions": {
+    "view": "View",
+    "update": "Update",
+    "delete": "Delete",
+    "delete_confirm_title": "Remove Record?",
+    "delete_confirm_text": "Are you sure you want to remove this record?",
+    "delete_success": "Removed successfully",
+    "update_status_title": "Update Status",
+    "update_status_placeholder": "Select status...",
+    "update_success": "Status updated",
+    "approve_title": "Approve Claim?",
+    "reject_title": "Reject Claim?",
+    "reason_placeholder": "Enter reason...",
+    "schedule_pickup": "Schedule Logistics"
+  },
+  "empty": {
+    "title": "No Records",
+    "text": "Everything is clear here.",
+    "no_orders": "No orders found",
+    "no_returns": "No return claims found",
+    "no_pos_orders": "No POS history found"
+  }
+}

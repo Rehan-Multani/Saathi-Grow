@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Button, Form, Row, Col, Image } from 'react-bootstrap';
 import { Save, Camera, X } from 'lucide-react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
-import { getCategories } from '../../../admin/api/categoryApi';
+import { getCategories } from '../../../../common/api/categoryApi';
 import { useVendor } from '../../contexts/VendorContext';
 
 const BrandEditModal = ({ show, onHide, brand, onSave }) => {

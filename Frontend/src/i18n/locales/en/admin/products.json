@@ -1,0 +1,126 @@
+{
+  "title": "All Products",
+  "subtitle": "Manage your store inventory and products",
+  "add_product": "Add New Product",
+  "search_placeholder": "Search by name or SKU...",
+  "filter_btn": "Filters",
+  "all_products": "All Products",
+  "branch_products": "Branch Products",
+  "vendor_products": "Vendor Products",
+  "table": {
+    "product": "Product",
+    "brand": "Brand",
+    "category": "Category",
+    "source": "Source",
+    "branches": "Branches",
+    "price": "Price",
+    "stock": "Stock",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "low_stock": "Low Stock",
+    "out_of_stock": "Out of Stock",
+    "draft": "Draft"
+  },
+  "fields": {
+    "name": "Product Name",
+    "name_placeholder": "Enter product name",
+    "category": "Category",
+    "brand": "Brand",
+    "base_price": "Price (₹)",
+    "mrp": "MRP (₹)",
+    "sku": "SKU",
+    "unit_type": "Unit",
+    "unit_value": "Unit Value",
+    "description": "Description",
+    "tags": "Tags / Keywords",
+    "is_veg": "Food Type",
+    "veg": "Veg",
+    "non_veg": "Non-Veg",
+    "total_stock": "Total Stock",
+    "saathi_premium": "Saathi Premium",
+    "sub_category": "Sub-Category",
+    "physical_location": "Physical Shelf Info",
+    "direct_vendor": "Direct Vendor Supply?",
+    "allocate_branches": "Allocate to Branches",
+    "registry_sku": "Registry SKU Identifier",
+    "attributes": "Product Attributes"
+  },
+  "form": {
+    "basic_info": "Product Information",
+    "pricing_stock": "Pricing & Stock",
+    "save": "Save Product",
+    "cancel": "Cancel",
+    "update": "Update Product",
+    "ai_write": "Write with AI",
+    "processing": "Saving...",
+    "images": "Product Images"
+  },
+  "messages": {
+    "load_failed": "Error loading product data",
+    "delete_success": "Product deleted successfully",
+    "save_success": "Product saved successfully",
+    "update_success": "Product updated successfully",
+    "managed_by_vendor": "This product is managed by vendor",
+    "delete_confirm_title": "Delete product?",
+    "delete_confirm_text": "Are you sure you want to delete {{name}}?"
+  },
+  "filters": {
+    "options": "Filter Options",
+    "all_categories": "All Categories",
+    "all_brands": "All Brands",
+    "clear": "Clear"
+  },
+  "meta": {
+    "sku_count": "{{count}} Products Found",
+    "syncing": "Syncing...",
+    "no_products": "No products found",
+    "page_of": "Page {{current}} of {{total}}"
+  },
+  "restock": {
+    "title": "Update Stock",
+    "label": "Current Stock",
+    "storage_info": "Storage Info",
+    "select_branch": "Select Branch",
+    "vendor_warehouse": "Vendor Warehouse",
+    "adj_type": "Adjustment Type",
+    "qty": "Quantity",
+    "remark": "Reason / Remark",
+    "remark_placeholder": "Reason for adjustment",
+    "confirm": "Update Stock",
+    "types": {
+      "addition": "Add Stock (+)",
+      "return": "Return (+)",
+      "deduction": "Deduct Stock (-)",
+      "damage": "Damage (-)",
+      "audit": "Update (Fix)"
+    }
+  },
+  "logs": {
+    "title": "Stock History",
+    "back": "Back to Products",
+    "subtitle": "Inventory movement for {{name}}",
+    "current_balance": "Current Stock",
+    "records": "{{count}} Records",
+    "table": {
+      "time": "Date & Time",
+      "location": "Location",
+      "event": "Type",
+      "change": "Change",
+      "balance": "Balance",
+      "operator": "Staff",
+      "reason": "Reason"
+    },
+    "no_logs": "No history found for this product",
+    "types": {
+      "addition": "Stock Added",
+      "sale": "Sold",
+      "deduction": "Removed",
+      "damage": "Damage",
+      "return": "Returned",
+      "audit": "Product Fix"
+    }
+  }
+}

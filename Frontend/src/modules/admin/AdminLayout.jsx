@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AdminSidebar from './components/AdminSidebar';
-import { Bell, Menu, User, Settings, LogOut, Languages, ChevronDown } from 'lucide-react';
+import { Bell, Menu, User, Settings, LogOut, ChevronDown, Languages, Check } from 'lucide-react';
 import { adminSidebarMenu } from './data/sidebarMenu';
 import { useAdminAuth } from './context/AdminAuthContext';
 import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
@@ -10,17 +10,14 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../config/apiConfig';
 
 const AdminLayout = () => {
-    const { t, i18n } = useTranslation();
+    const { t, i18n: i18nInstance } = useTranslation(['admin_sidebar', 'common']);
     const { adminLogout, adminUser } = useAdminAuth();
     const adminToken = adminUser?.token;
     const navigate = useNavigate();
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const [showLangMenu, setShowLangMenu] = useState(false);
+    const [showLanguageMenu, setShowLanguageMenu] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
-    const [showNotificationMenu, setShowNotificationMenu] = useState(false);
-    const [notifications, setNotifications] = useState([]);
-    const [loadingNotifications, setLoadingNotifications] = useState(false);
     const location = useLocation();
 
     const handleLogout = () => {
@@ -29,8 +26,8 @@ const AdminLayout = () => {
     };
 
     const changeLanguage = (lng) => {
-        i18n.changeLanguage(lng);
-        setShowLangMenu(false);
+        i18nInstance.changeLanguage(lng);
+        setShowLanguageMenu(false);
     };
 
     const fetchUnreadCount = async () => {
@@ -47,177 +44,109 @@ const AdminLayout = () => {
         }
     };
 
-    const fetchNotifications = async () => {
-        try {
-            setLoadingNotifications(true);
-            const res = await axios.get(`${API_BASE_URL}/notifications/my?limit=5`, {
-                headers: { Authorization: `Bearer ${adminToken}` }
-            });
-            setNotifications(res.data.notifications || []);
-        } catch (error) {
-            console.error('Error fetching notifications:', error);
-        } finally {
-            setLoadingNotifications(false);
-        }
-    };
-
-    const handleMarkAsRead = async (id) => {
-        try {
-            await axios.put(`${API_BASE_URL}/notifications/read/${id}`, {}, {
-                headers: { Authorization: `Bearer ${adminToken}` }
-            });
-            fetchUnreadCount();
-            fetchNotifications();
-        } catch (error) {
-            console.error('Error marking as read:', error);
-        }
-    };
-
-    useEffect(() => {
-        if (showNotificationMenu) {
-            fetchNotifications();
-        }
-    }, [showNotificationMenu]);
-
     useEffect(() => {
         fetchUnreadCount();
-        const interval = setInterval(fetchUnreadCount, 30000); // Polling every 30s
+        const interval = setInterval(fetchUnreadCount, 30000);
         return () => clearInterval(interval);
     }, [adminToken]);
 
-    // Helper to find current page title
-    const getCurrentTitle = () => {
-        for (const item of adminSidebarMenu) {
-            if (item.path === location.pathname) {
-                return t(`common.${item.key}`) || item.title;
-            }
-            if (item.submenu) {
-                const subItem = item.submenu.find(sub => sub.path === location.pathname);
-                if (subItem) return t(`sidebar.${subItem.key}`) || subItem.title;
-            }
-        }
-        return t('common.dashboard'); // Default fallback
-    };
-
-    const currentLang = i18n.language || 'en';
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-slate-50 font-sans">
             <FirebaseNotificationHandler token={adminToken} role="admin" />
             <AdminSidebar
                 showMobile={showMobileSidebar}
                 onClose={() => setShowMobileSidebar(false)}
             />
 
-            <div className={`flex flex-col min-h-screen transition-all duration-300 lg:ml-[260px]`}>
-                <header className="h-[60px] bg-white border-b border-gray-200 sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+            <div className="lg:ml-[270px] min-h-screen flex flex-col">
+                <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-4">
                         <button
-                            className="lg:hidden p-1 rounded-md text-gray-600 hover:bg-gray-100"
+                            className="lg:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-lg border border-slate-200"
                             onClick={() => setShowMobileSidebar(true)}
                         >
-                            <Menu size={24} />
+                            <Menu size={20} />
                         </button>
-                        <h5 className="mb-0 font-bold text-gray-800 hidden sm:block text-lg">{getCurrentTitle()}</h5>
                     </div>
 
-                    <div className="flex items-center gap-4">
-
-                        {/* Language Switcher */}
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* Language Selection */}
                         <div className="relative">
                             <button
-                                onClick={() => setShowLangMenu(!showLangMenu)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
+                                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                                className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100"
                             >
-                                <Languages size={18} className="text-blue-600" />
-                                <span className="hidden md:block">
-                                    {currentLang === 'hi' ? 'Hindi' : 'English'}
-                                </span>
-                                <ChevronDown size={14} className={`transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} />
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <Languages size={18} />
+                                </div>
+                                <div className="hidden sm:block text-left">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Locale</p>
+                                    <p className="text-xs font-black text-slate-900 uppercase">{i18nInstance.language === 'en' ? 'English' : 'Hindi'}</p>
+                                </div>
+                                <ChevronDown size={14} className={`text-slate-300 transition-transform ${showLanguageMenu ? 'rotate-180' : ''}`} />
                             </button>
-
-                            {showLangMenu && (
+                            {showLanguageMenu && (
                                 <>
-                                    <div className="fixed inset-0 z-40" onClick={() => setShowLangMenu(false)}></div>
-                                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                                        <button
-                                            onClick={() => changeLanguage('en')}
-                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors ${currentLang === 'en' ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-700'}`}
-                                        >
-                                            English
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowLanguageMenu(false)}></div>
+                                    <div className="absolute right-0 mt-3 w-40 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <button onClick={() => changeLanguage('en')} className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest ${i18nInstance.language === 'en' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}>
+                                            English {i18nInstance.language === 'en' && <Check size={14} />}
                                         </button>
-                                        <button
-                                            onClick={() => changeLanguage('hi')}
-                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors ${currentLang === 'hi' ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-700'}`}
-                                        >
-                                            हिन्दी
+                                        <button onClick={() => changeLanguage('hi')} className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest ${i18nInstance.language === 'hi' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-slate-50'}`}>
+                                            Hindi {i18nInstance.language === 'hi' && <Check size={14} />}
                                         </button>
                                     </div>
                                 </>
                             )}
                         </div>
 
-                        <div className="relative">
-                            <button 
-                                onClick={() => navigate('/admin/notifications/inbox')}
-                                className="relative p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                <Bell size={20} className="text-gray-600" />
-                                {unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full flex items-center justify-center text-[10px] text-white font-black shadow-sm animate-pulse cursor-pointer">
-                                        {unreadCount > 9 ? '9+' : unreadCount}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
+                        {/* Notifications */}
+                        <button 
+                            onClick={() => navigate('/admin/notifications/inbox')}
+                            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-blue-600 rounded-xl transition-all border border-transparent hover:border-slate-100 relative"
+                        >
+                            <Bell size={20} />
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                            )}
+                        </button>
 
-                        <div className="h-6 w-px bg-gray-200 mx-1"></div>
+                        <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
+                        {/* User Profile */}
                         <div className="relative">
                             <button
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                className="flex items-center gap-2 hover:bg-gray-50 rounded-full pr-2 transition-colors focus:outline-none"
+                                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 transition-colors"
                             >
-                                <div className="text-right hidden sm:block">
-                                    <div className="font-bold text-sm text-gray-800 leading-none">
-                                        {adminUser?.name || t('common.admin_user')}
-                                    </div>
-                                    <div className="text-[11px] text-gray-500 leading-none mt-1">
-                                        {adminUser?.role || t('common.staff')}
-                                    </div>
+                                <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                                    {(adminUser?.name?.charAt(0) || 'A').toUpperCase()}
                                 </div>
-                                <div className="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow-sm overflow-hidden">
-                                    {adminUser?.profileImage ? (
-                                        <img src={adminUser.profileImage} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        (adminUser?.name?.charAt(0) || 'A')
-                                    )}
+                                <div className="text-left hidden md:block">
+                                    <p className="text-xs font-bold text-slate-900 leading-none">{adminUser?.name || 'Admin'}</p>
+                                    <p className="text-[10px] text-slate-400 font-medium">{adminUser?.role || 'Manager'}</p>
                                 </div>
+                                <ChevronDown size={12} className={`text-slate-400 hidden md:block ${showProfileMenu ? 'rotate-180 transition-transform' : 'transition-transform'}`} />
                             </button>
 
-                            {/* Dropdown Menu */}
                             {showProfileMenu && (
                                 <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowProfileMenu(false)}
-                                    ></div>
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                                        <div className="px-4 py-2 border-b border-gray-50 mb-1">
-                                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('common.account')}</p>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
+                                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-50">
+                                        <div className="px-3 py-2 border-b border-slate-50 mb-2">
+                                            <p className="text-xs font-bold text-slate-900 truncate">{adminUser?.name}</p>
+                                            <p className="text-[10px] text-slate-500 truncate">{adminUser?.email}</p>
                                         </div>
-                                        <a href="/admin/settings/profile" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                            <User size={16} className="mr-2" /> {t('common.profile')}
-                                        </a>
-                                        <a href="/admin/settings/app" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                            <Settings size={16} className="mr-2" /> {t('common.settings')}
-                                        </a>
-                                        <div className="my-1 border-t border-gray-50"></div>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                        >
-                                            <LogOut size={16} className="mr-2" /> {t('common.logout')}
+                                        <button onClick={() => { navigate('/admin/settings/profile'); setShowProfileMenu(false); }} className="profile-menu-item">
+                                            <User size={16} /> <span>Profile Settings</span>
+                                        </button>
+                                        <button onClick={() => { navigate('/admin/settings/app'); setShowProfileMenu(false); }} className="profile-menu-item">
+                                            <Settings size={16} /> <span>App Preferences</span>
+                                        </button>
+                                        <div className="h-px bg-slate-100 my-1"></div>
+                                        <button onClick={handleLogout} className="profile-menu-item text-red-600 hover:bg-red-50">
+                                            <LogOut size={16} /> <span>Sign Out</span>
                                         </button>
                                     </div>
                                 </>
@@ -226,10 +155,17 @@ const AdminLayout = () => {
                     </div>
                 </header>
 
-                <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+                <main className="flex-1 p-6 md:p-8">
                     <Outlet />
                 </main>
             </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .profile-menu-item { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #475569; transition: all 0.2s; text-align: left; }
+                .profile-menu-item:hover { background: #f8fafc; color: #0f172a; }
+                
+                @media (max-width: 1023px) { .hidden-mobile { display: none !important; } }
+            `}} />
         </div>
     );
 };

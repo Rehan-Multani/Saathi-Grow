@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Form, InputGroup, Badge, Spinner, Button, ProgressBar, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Package, ChevronLeft, ChevronRight, AlertTriangle, RefreshCcw, Filter, ExternalLink } from 'lucide-react';
-import { getLowStockAlerts, getProductById } from '../../api/productApi';
+import { Search, MapPin, Package, ChevronLeft, ChevronRight, AlertTriangle, RefreshCcw, Filter, Loader2, Store, Activity, Box, Info, CheckCircle } from 'lucide-react';
+import { getLowStockAlerts } from '../../api/productApi';
 import { getBranches } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import RestockModal from '../../components/products/RestockModal';
 
 const LowStockAlerts = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_stock');
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [alerts, setAlerts] = useState([]);
@@ -23,11 +21,6 @@ const LowStockAlerts = () => {
     const [branchFilter, setBranchFilter] = useState('');
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1, limit: 10 });
     
-    // Restock Modal State
-    const [showRestockModal, setShowRestockModal] = useState(false);
-    const [restockingProduct, setRestockingProduct] = useState(null);
-    const [fullProductLoading, setFullProductLoading] = useState(false);
-
     const limit = 10;
 
     // Debounce search
@@ -66,8 +59,7 @@ const LowStockAlerts = () => {
                 setPagination(response.pagination);
             }
         } catch (error) {
-            console.error('Error fetching low stock:', error);
-            toast.error(t('stock.low_stock.loading_failed', { defaultValue: 'Failed to load inventory alerts' }));
+            toast.error(t('alerts.error_load'));
         } finally {
             setLoading(false);
         }
@@ -85,7 +77,7 @@ const LowStockAlerts = () => {
 
     const handleRestockClick = (alertItem) => {
         if (alertItem.isVendor) {
-            toast.info(t('stock.low_stock.vendor_restriction'));
+            toast.info(t('alerts.managed_externally'));
             return;
         }
 
@@ -99,248 +91,201 @@ const LowStockAlerts = () => {
     };
 
     return (
-        <div className="p-4 space-y-4">
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
             {/* Action Header */}
-            <Card className="border-0 shadow-sm mb-4 overflow-hidden rounded-xl">
-                <div className="bg-rose-50 border-b border-rose-100 p-4 flex flex-col md:flex-row align-items-center justify-content-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="bg-rose-500 text-white p-3 rounded-2xl shadow-lg shadow-rose-200">
-                            <AlertTriangle size={28} />
-                        </div>
-                        <div>
-                            <h4 className="fw-bold text-rose-900 mb-0">
-                                {loading ? t('stock.low_stock.scanning') : t('stock.low_stock.critical_shortages', { count: pagination.total })}
-                            </h4>
-                            <p className="text-rose-600/70 text-xs fw-bold uppercase tracking-wider mb-0 mt-1">{t('stock.low_stock.high_priority')}</p>
-                        </div>
+            <div className="bg-rose-50 border border-rose-100 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-rose-500 text-white rounded-xl shadow-lg flex items-center justify-center">
+                        <AlertTriangle size={24} />
                     </div>
-                    <Button 
-                        variant="white" 
-                        size="sm" 
-                        className="shadow-sm border-0 text-rose-600 fw-black uppercase tracking-tighter px-4 py-2 flex items-center gap-2 hover:bg-rose-100 transition-all rounded-lg"
-                        onClick={() => fetchAlerts()}
-                        disabled={loading}
-                    >
-                        <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
-                        {t('stock.low_stock.sync_data')}
-                    </Button>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                            {loading ? t('alerts.analyzing_msg') : t('alerts.critical_shortages', { count: pagination.total })}
+                        </h2>
+                        <p className="text-rose-600 text-xs font-bold uppercase tracking-wide mt-1">{t('alerts.priority_msg')}</p>
+                    </div>
                 </div>
-            </Card>
+                <button 
+                    onClick={() => fetchAlerts()}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-50 transition-all shadow-sm shadow-rose-100 uppercase tracking-tight"
+                >
+                    <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} />
+                    {t('alerts.refresh')}
+                </button>
+            </div>
 
             {/* Smart Filters */}
-            <Card className="border-0 shadow-sm mb-4 bg-white rounded-xl">
-                <Card.Body className="p-3">
-                    <Row className="g-3">
-                        <Col lg={5} md={6}>
-                            <InputGroup className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-1 focus-within:bg-white focus-within:ring-2 focus-within:ring-rose-100 transition-all shadow-sm">
-                                <Search className="text-gray-400 mt-2" size={16} />
-                                <Form.Control
-                                    placeholder={t('stock.low_stock.search_placeholder')}
-                                    className="bg-transparent border-none shadow-none text-xs font-bold py-2 ms-2"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </InputGroup>
-                        </Col>
-                        
-                        <Col lg={3} md={3}>
-                            <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1 transition-all">
-                                <Filter size={14} className="text-gray-400 shrink-0" />
-                                <Form.Select 
-                                    className="bg-transparent border-none shadow-none text-[10px] font-black uppercase tracking-widest text-gray-600 py-2"
-                                    value={severityFilter}
-                                    onChange={(e) => { setSeverityFilter(e.target.value); setPage(1); }}
-                                >
-                                    <option value="">{t('stock.low_stock.severity_all')}</option>
-                                    <option value="Critical" className="text-rose-600">{t('stock.low_stock.severity_critical')}</option>
-                                    <option value="Warning" className="text-amber-600">{t('stock.low_stock.severity_warning')}</option>
-                                </Form.Select>
-                            </div>
-                        </Col>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
+                    <div className="lg:col-span-5 relative group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder={t('alerts.search_placeholder')}
+                            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-sm font-medium"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="lg:col-span-3 relative group">
+                        <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <select 
+                            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
+                            value={severityFilter}
+                            onChange={(e) => { setSeverityFilter(e.target.value); setPage(1); }}
+                        >
+                            <option value="">{t('alerts.severity_filter.all')}</option>
+                            <option value="Critical">{t('alerts.severity_filter.critical')}</option>
+                            <option value="Warning">{t('alerts.severity_filter.warning')}</option>
+                        </select>
+                    </div>
 
-                        {adminUser.role === 'Admin' && (
-                            <Col lg={4} md={3}>
-                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1 transition-all">
-                                    <MapPin size={14} className="text-gray-400 shrink-0" />
-                                    <Form.Select 
-                                        className="bg-transparent border-none shadow-none text-[10px] font-black uppercase tracking-widest text-gray-600 py-2"
-                                        value={branchFilter}
-                                        onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
-                                    >
-                                        <option value="">{t('stock.low_stock.infrastructure_global')}</option>
-                                        {branches.map(b => (
-                                            <option key={b._id} value={b._id}>{b.name}</option>
-                                        ))}
-                                        <option value="vendor">{t('stock.low_stock.vendor_managed_only')}</option>
-                                    </Form.Select>
-                                </div>
-                            </Col>
-                        )}
-                    </Row>
-                </Card.Body>
-            </Card>
+                    {adminUser.role === 'Admin' && (
+                        <div className="lg:col-span-4 relative group">
+                            <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <select 
+                                className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 focus:bg-white transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer"
+                                value={branchFilter}
+                                onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
+                            >
+                                <option value="">{t('branch.global_overview')}</option>
+                                {branches.map(b => (
+                                    <option key={b._id} value={b._id}>{b.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* Analysis Table */}
-            <Card className="border-0 shadow-sm rounded-xl overflow-hidden">
-                <Card.Body className="p-0">
-                    <div className="overflow-x-auto">
-                        <Table hover className="mb-0 text-xs">
-                            <thead className="bg-gray-50/80 border-b border-gray-100">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('alerts.table.item')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('alerts.table.source')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-center">{t('alerts.table.status')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-tight text-right">{t('alerts.table.action')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
                                 <tr>
-                                    <th className="ps-4 py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.item')}</span>
-                                    </th>
-                                    <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.deployment')}</span>
-                                    </th>
-                                    <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.health')}</span>
-                                    </th>
-                                    <th className="py-3">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.severity')}</span>
-                                    </th>
-                                    <th className="pe-4 py-3 text-right">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('stock.low_stock.table.command')}</span>
-                                    </th>
+                                    <td colSpan="4" className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Loader2 size={32} className="text-rose-500 animate-spin" />
+                                            <span className="text-xs font-medium text-slate-400">{t('alerts.loading_msg')}</span>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {loading ? (
-                                    Array(limit).fill(0).map((_, i) => (
-                                        <tr key={i}>
-                                            <td colSpan="5" className="py-10 text-center">
-                                                <Spinner animation="border" size="sm" className="text-rose-200" />
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : alerts.length > 0 ? alerts.map((item, idx) => (
-                                    <tr key={`${item.productId}-${idx}`} className="hover:bg-rose-50/30 transition-colors group">
-                                        <td className="ps-4 py-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-white rounded-lg border border-gray-100 shadow-sm flex items-center justify-center overflow-hidden shrink-0 group-hover:border-rose-200 transition-colors">
-                                                    {item.image ? (
-                                                        <img src={item.image} alt="" className="w-full h-full object-contain p-1" />
-                                                    ) : (
-                                                        <Package size={16} className="text-gray-200" />
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <div className="font-black text-gray-900 text-[11px] truncate leading-tight uppercase">{item.productName}</div>
-                                                    <div className="text-[10px] text-gray-600 font-mono font-bold tracking-tight mt-0.5">{item.sku}</div>
+                            ) : alerts.length > 0 ? alerts.map((item, idx) => (
+                                <tr key={`${item.productId}-${idx}`} className="hover:bg-rose-50/10 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-rose-200">
+                                                {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <Box size={18} className="text-slate-200" />}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold text-slate-900 leading-tight uppercase tracking-tight">{item.productName}</div>
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase">{item.sku}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-rose-500" />
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold text-slate-700 truncate">{item.isVendor ? item.storeName : item.branchName}</div>
+                                                <div className="text-[9px] font-bold text-slate-300 uppercase tracking-tight">
+                                                    {item.isVendor ? t('alerts.managed_externally') : t('alerts.branch_store')}
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td className="py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Badge className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isVendor ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                                                    {item.isVendor ? t('stock.low_stock.external_partner') : t('stock.low_stock.branch_store')}
-                                                </Badge>
-                                                <div className="text-[11px] font-bold text-gray-700 truncate">{item.isVendor ? item.storeName : item.branchName}</div>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-4 text-center">
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${item.severity === 'Critical' ? 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-100' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>
+                                                {item.severity === 'Critical' ? t('alerts.high_priority') : item.severity}
                                             </div>
-                                        </td>
-                                        <td className="py-3" style={{ minWidth: '180px' }}>
-                                            <div className="flex justify-between mb-1.5 px-0.5">
-                                                <span className={`text-[10px] font-black uppercase ${item.stock <= 0 ? 'text-rose-700' : 'text-amber-700'}`}>
-                                                    {t('stock.low_stock.units_left', { count: item.stock })}
-                                                </span>
-                                                <span className="text-[9px] text-gray-600 font-black">{t('stock.low_stock.threshold')}: {item.threshold}</span>
+                                            <div className="text-[10px] font-bold text-slate-900">
+                                                {item.stock} <span className="text-slate-400">/</span> {item.threshold} <span className="text-[8px] opacity-40 uppercase tracking-tighter">{t('alerts.table.minimum')}</span>
                                             </div>
-                                            <ProgressBar
-                                                now={item.threshold > 0 ? Math.min(100, (item.stock / (item.threshold * 2)) * 100) : 100}
-                                                variant={item.stock <= 0 ? 'danger' : 'warning'}
-                                                className="h-1 bg-gray-100 border-none rounded-full"
-                                            />
-                                        </td>
-                                        <td className="py-3">
-                                            <Badge className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest shadow-sm ${
-                                                item.severity === 'Critical' 
-                                                    ? 'bg-rose-600 text-white' 
-                                                    : 'bg-amber-400 text-white'
-                                            }`}>
-                                                {item.severity === 'Critical' ? t('stock.low_stock.severity_critical') : t('stock.low_stock.severity_warning')}
-                                            </Badge>
-                                        </td>
-                                        <td className="pe-4 py-3 text-right">
-                                            {item.isVendor ? (
-                                                <Badge bg="light" className="text-gray-600 border border-gray-300 py-1.5 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm">
-                                                    {t('stock.low_stock.vendor_managed')}
-                                                </Badge>
-                                            ) : (
-                                                <Button 
-                                                    variant="dark" 
-                                                    size="sm" 
-                                                    className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-gray-200 hover:scale-105 transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
-                                                    onClick={() => handleRestockClick(item)}
-                                                    disabled={fullProductLoading}
-                                                >
-                                                    {fullProductLoading ? <Spinner animation="border" size="sm" /> : <RefreshCcw size={12} />}
-                                                    {t('stock.low_stock.restock')}
-                                                </Button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="5" className="py-24 text-center">
-                                            <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-xl shadow-emerald-50">
-                                                <Package className="text-emerald-500" size={32} />
-                                            </div>
-                                            <h4 className="font-black text-gray-800 text-lg uppercase tracking-tight">{t('stock.low_stock.system_healthy')}</h4>
-                                            <p className="text-[12px] text-gray-400 font-medium px-10">{t('stock.low_stock.no_alerts')}</p>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    </div>
-                </Card.Body>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        {item.isVendor ? (
+                                            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest italic">{t('alerts.managed_externally')}</span>
+                                        ) : (
+                                            <button 
+                                                onClick={() => handleRestockClick(item)}
+                                                className="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-slate-100"
+                                            >
+                                                {t('alerts.restock_btn')}
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan="4" className="py-24 text-center text-slate-400">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <CheckCircle size={40} className="text-emerald-500 opacity-20" />
+                                            <h4 className="text-lg font-bold text-slate-900">{t('alerts.no_alerts')}</h4>
+                                            <p className="text-xs font-medium max-w-sm mx-auto opacity-60">All items are currently above their minimum stock levels.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                {/* Intelligent Pagination */}
+                {/* Pagination */}
                 {!loading && pagination.total > 0 && (
-                    <div className="bg-white border-t border-gray-50 px-6 py-4 flex items-center justify-between">
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                            {t('stock.low_stock.analyzed_records', { range: `${((page - 1) * limit) + 1}-${Math.min(page * limit, pagination.total)}`, total: pagination.total })}
-                        </span>
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="text-xs font-medium text-slate-500 italic">
+                            {t('alerts.pagination_msg', { start: ((page - 1) * limit) + 1, end: Math.min(page * limit, pagination.total), total: pagination.total })}
+                        </div>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="p-2 rounded-xl border border-gray-100 text-gray-400 hover:bg-rose-50 hover:text-rose-500 disabled:opacity-20 transition-all"
+                                className={`p-2 rounded-lg border transition-all ${page === 1 ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-500 hover:text-rose-600 shadow-sm'}`}
                             >
-                                <ChevronLeft size={18} />
+                                <ChevronLeft size={16} />
                             </button>
-                            <div className="px-4">
-                                <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase">{t('stock.low_stock.page_of', { current: page, total: pagination.totalPages })}</span>
+                            <div className="px-3">
+                                <span className="text-[10px] font-bold text-slate-600">{t('branch.pagination_page', { current: page, total: pagination.totalPages })}</span>
                             </div>
                             <button
                                 onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                                disabled={page >= pagination.totalPages}
-                                className="p-2 rounded-xl border border-gray-100 text-gray-400 hover:bg-rose-50 hover:text-rose-500 disabled:opacity-20 transition-all"
+                                disabled={page === pagination.totalPages}
+                                className={`p-2 rounded-lg border transition-all ${page === pagination.totalPages ? 'text-slate-200 border-slate-100' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-500 hover:text-rose-600 shadow-sm'}`}
                             >
-                                <ChevronRight size={18} />
+                                <ChevronRight size={16} />
                             </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
-            {/* Restock Modal Integration */}
-            {restockingProduct && (
-                <RestockModal
-                    show={showRestockModal}
-                    onHide={() => {
-                        setShowRestockModal(false);
-                        setRestockingProduct(null);
-                    }}
-                    product={restockingProduct}
-                    onRestockSuccess={() => {
-                        setShowRestockModal(false);
-                        setRestockingProduct(null);
-                        fetchAlerts(); // Refresh list
-                        toast.success(t('stock.low_stock.restock_success'));
-                    }}
-                />
-            )}
+            {/* Footer Tip */}
+            <div className="mt-8 p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-3 shadow-sm">
+                <Info className="text-blue-500 mt-0.5 shrink-0" size={16} />
+                <div>
+                    <p className="text-[11px] font-bold text-blue-900 uppercase tracking-tighter">{t('alerts.proactive.title')}</p>
+                    <p className="text-[10px] text-blue-700 font-medium leading-normal italic">{t('alerts.proactive.msg')}</p>
+                </div>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

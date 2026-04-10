@@ -1,0 +1,126 @@
+{
+  "title": "सभी उत्पाद",
+  "subtitle": "अपनी दुकान का स्टॉक और उत्पाद प्रबंधित करें",
+  "add_product": "नया उत्पाद जोड़ें",
+  "search_placeholder": "नाम या SKU से खोजें...",
+  "filter_btn": "फ़िल्टर",
+  "all_products": "सभी उत्पाद",
+  "branch_products": "शाखा उत्पाद",
+  "vendor_products": "विक्रेता उत्पाद",
+  "table": {
+    "product": "उत्पाद",
+    "brand": "ब्रांड",
+    "category": "श्रेणी",
+    "source": "स्रोत",
+    "branches": "शाखाएं",
+    "price": "कीमत",
+    "stock": "स्टॉक",
+    "status": "स्थिति",
+    "actions": "कार्रवाई"
+  },
+  "status": {
+    "active": "सक्रिय",
+    "low_stock": "कम स्टॉक",
+    "out_of_stock": "स्टॉक में नहीं",
+    "draft": "ड्राफ्ट"
+  },
+  "fields": {
+    "name": "उत्पाद का नाम",
+    "name_placeholder": "उत्पाद का नाम लिखें",
+    "category": "श्रेणी",
+    "brand": "ब्रांड",
+    "base_price": "कीमत (₹)",
+    "mrp": "अधिकतम मूल्य (₹)",
+    "sku": "SKU कोड",
+    "unit_type": "यूनिट",
+    "unit_value": "यूनिट वैल्यू",
+    "description": "विवरण",
+    "tags": "टैग / कीवर्ड",
+    "is_veg": "भोजन का प्रकार",
+    "veg": "शाकाहारी",
+    "non_veg": "मांसाहारी",
+    "total_stock": "कुल स्टॉक",
+    "saathi_premium": "साथी प्रीमियम",
+    "sub_category": "उप-श्रेणी",
+    "physical_location": "भौतिक शेल्फ जानकारी",
+    "direct_vendor": "सीधी विक्रेता आपूर्ति?",
+    "allocate_branches": "शाखाओं में आवंटन",
+    "registry_sku": "रजिस्ट्री SKU पहचानकर्ता",
+    "attributes": "उत्पाद विशेषताएँ"
+  },
+  "form": {
+    "basic_info": "उत्पाद की जानकारी",
+    "pricing_stock": "कीमत और स्टॉक",
+    "save": "उत्पाद सहेजें",
+    "cancel": "रद्द करें",
+    "update": "उत्पाद अपडेट करें",
+    "ai_write": "AI से लिखें",
+    "processing": "सहेजा जा रहा है...",
+    "images": "उत्पाद की फोटो"
+  },
+  "messages": {
+    "load_failed": "डेटा लोड करने में त्रुटि",
+    "delete_success": "उत्पाद सफलतापूर्वक हटा दिया गया",
+    "save_success": "उत्पाद सफलतापूर्वक सहेजा गया",
+    "update_success": "उत्पाद सफलतापूर्वक अपडेट किया गया",
+    "managed_by_vendor": "यह उत्पाद विक्रेता द्वारा प्रबंधित है",
+    "delete_confirm_title": "उत्पाद हटाएं?",
+    "delete_confirm_text": "क्या आप वाकई {{name}} को हटाना चाहते हैं?"
+  },
+  "filters": {
+    "options": "फ़िल्टर विकल्प",
+    "all_categories": "सभी श्रेणियां",
+    "all_brands": "सभी ब्रांड",
+    "clear": "साफ करें"
+  },
+  "meta": {
+    "sku_count": "{{count}} उत्पाद मिले",
+    "syncing": "सिंक हो रहा है...",
+    "no_products": "कोई उत्पाद नहीं मिला",
+    "page_of": "पेज {{current}} / {{total}}"
+  },
+  "restock": {
+    "title": "स्टॉक अपडेट करें",
+    "label": "वर्तमान स्टॉक",
+    "storage_info": "भंडारण जानकारी",
+    "select_branch": "शाखा चुनें",
+    "vendor_warehouse": "विक्रेता गोदाम",
+    "adj_type": "समायोजन प्रकार",
+    "qty": "मात्रा",
+    "remark": "कारण / टिप्पणी",
+    "remark_placeholder": "समायोजन का कारण",
+    "confirm": "स्टॉक अपडेट करें",
+    "types": {
+      "addition": "स्टॉक जोड़ें (+)",
+      "return": "वापसी (+)",
+      "deduction": "स्टॉक घटाएं (-)",
+      "damage": "नुकसान (-)",
+      "audit": "अपडेट (सही करें)"
+    }
+  },
+  "logs": {
+    "title": "स्टॉक इतिहास",
+    "back": "उत्पादों पर वापस जाएं",
+    "subtitle": "{{name}} के लिए स्टॉक मूवमेंट",
+    "current_balance": "वर्तमान स्टॉक",
+    "records": "{{count}} रिकॉर्ड",
+    "table": {
+      "time": "तारीख और समय",
+      "location": "स्थान",
+      "event": "प्रकार",
+      "change": "परिवर्तन",
+      "balance": "शेष राशि",
+      "operator": "कर्मचारी",
+      "reason": "कारण"
+    },
+    "no_logs": "इस उत्पाद के लिए कोई इतिहास नहीं मिला",
+    "types": {
+      "addition": "स्टॉक जोड़ा गया",
+      "sale": "बेचा गया",
+      "deduction": "हटाया गया",
+      "damage": "नुकसान",
+      "return": "वापस आया",
+      "audit": "प्रोडक्ट फिक्स"
+    }
+  }
+}

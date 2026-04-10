@@ -13,7 +13,7 @@ export const adminSidebarMenu = [
         permission: 'VIEW_ORDERS',
         submenu: [
             { title: 'All Orders', key: 'all_orders', path: '/admin/orders' },
-            { title: 'POS History', key: 'pos_history', path: '/admin/orders?source=pos' },
+            { title: 'POS History', key: 'pos_history', path: '/admin/orders/pos' },
             { title: 'Online Orders', key: 'online_orders', path: '/admin/orders/online' },
             { title: 'Return Requests', key: 'return_requests', path: '/admin/orders/returns' },
         ],
@@ -148,7 +148,6 @@ export const adminSidebarMenu = [
         permission: 'VIEW_CUSTOMERS',
         submenu: [
             { title: 'Tickets', key: 'tickets', path: '/admin/support/tickets' },
-
             { title: 'FAQs', key: 'faqs', path: '/admin/support/faqs' },
         ],
     },
@@ -171,9 +170,7 @@ export const adminSidebarMenu = [
         submenu: [
             { title: 'Revenue Analytics', key: 'revenue_analytics', path: '/admin/analytics/revenue' },
             { title: 'Demand Analytics', key: 'demand_analytics', path: '/admin/analytics/demand' },
-
             { title: 'Vendor Earnings', key: 'vendor_earnings', path: '/admin/analytics/earnings' },
-
         ],
     },
     {
@@ -190,7 +187,6 @@ export const adminSidebarMenu = [
         permission: null,
         submenu: [
             { title: 'Admin Profile', key: 'admin_profile', path: '/admin/settings/profile' },
-
             { title: 'Tax & Billing Settings', key: 'tax_billing_settings', path: '/admin/settings/billing' },
             { title: 'App Settings', key: 'app_settings', path: '/admin/settings/app' },
             { title: 'Social Profile', key: 'social_profile', path: '/admin/settings/social' },

@@ -1,8 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Trash2, AlertTriangle, ArrowLeft, Package } from 'lucide-react';
 import { useVendor } from '../../contexts/VendorContext';
-import { formatCurrency } from '../../utils/formatDate';
+import { formatCurrency } from '../../../../common/utils/formatUtils';
 
 const DeleteProductPage = () => {
     const { productId } = useParams();

@@ -1,39 +1,48 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Badge, Button, Card, Spinner, Table } from 'react-bootstrap';
-import { Edit, ExternalLink, FileText, Plus, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Edit, ExternalLink, FileText, Plus, Trash2, Layers, Search, ChevronLeft, ChevronRight, Package, Clock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { useTranslation } from 'react-i18next';
 import { deleteCategoryPage, getCategoryPages } from '../../api/categoryPageApi';
 import { showDeleteConfirmation, showErrorAlert, showSuccessAlert } from '../../../../common/utils/alertUtils';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllCategoryPages = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('admin_categories');
   const { adminUser } = useAdminAuth();
+  const navigate = useNavigate();
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchPages = useCallback(async () => {
+    if (!adminUser?.token) return;
     setLoading(true);
     try {
       const data = await getCategoryPages(adminUser.token);
       setPages(Array.isArray(data) ? data : []);
     } catch (error) {
-      toast.error(error.message || t('category_pages.loading_failed', { defaultValue: 'Failed to load category pages' }));
+      toast.error(error.message || t('messages.load_failed'));
     } finally {
       setLoading(false);
     }
-  }, [adminUser.token]);
+  }, [adminUser.token, t]);
 
   useEffect(() => {
     fetchPages();
   }, [fetchPages]);
 
+  const filtered = pages.filter(p => 
+    p.category?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category?.slug?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleDelete = async (id, name) => {
     const result = await showDeleteConfirmation(
-      t('category_pages.delete_confirm_title', { defaultValue: 'Delete category page?' }),
-      t('category_pages.delete_confirm_text', { name, defaultValue: `This will remove the curated landing page for ${name}.` })
+      t('messages.delete_confirm_title'),
+      t('landing_pages.messages.delete_confirm_text', { name })
     );
     if (!result.isConfirmed) return;
 
@@ -41,116 +50,150 @@ const AllCategoryPages = () => {
       await deleteCategoryPage(adminUser.token, id);
       setPages((prev) => prev.filter((item) => item._id !== id));
       await showSuccessAlert(
-        t('category_pages.deleted_title', { defaultValue: 'Deleted' }),
-        t('category_pages.deleted_text', { defaultValue: 'Category page removed successfully.' })
+        t('messages.delete_success'),
+        t('landing_pages.messages.delete_success', { defaultValue: 'Removed successfully' })
       );
     } catch (error) {
-      showErrorAlert(
-        t('dashboard.error_title', { defaultValue: 'Error' }),
-        error.message || t('category_pages.delete_failed', { defaultValue: 'Failed to remove category page' })
-      );
+      showErrorAlert('Error', error.message);
     }
   };
 
   return (
-    <div className="p-2 p-md-4">
-      <div className="mb-4 d-flex flex-column flex-md-row justify-content-between gap-3">
-        <div className="d-flex align-items-center gap-3">
-          <div className="d-none d-md-flex rounded-3 bg-primary bg-opacity-10 p-3 text-primary">
-            <FileText size={22} />
+    <div className="container-fluid py-8 bg-slate-50/30 min-h-screen px-4 md:px-8 max-w-7xl mx-auto font-sans">
+      {/* Header Section */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 mb-8 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="flex items-center gap-6">
+            <div className="bg-blue-600 p-4 rounded-3xl text-white shadow-xl shadow-blue-100 hidden md:block">
+              <FileText size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('landing_pages.title')}</h1>
+                <PageInfoTooltip data={pageInfoData.allCategoryPages} />
+              </div>
+              <p className="text-slate-500 text-sm mt-1 font-medium">{t('landing_pages.subtitle')}</p>
+            </div>
           </div>
-          <div>
-            <h4 className="mb-1 fw-bold text-dark">{t('category_pages.title', { defaultValue: 'Category Landing Pages' })}</h4>
-            <p className="mb-0 small text-muted">{t('category_pages.subtitle', { defaultValue: 'Curate the big category experience with banners, brand rows, tiles, and product rails.' })}</p>
-          </div>
-        </div>
 
-        <div className="d-flex gap-2">
-          <Link to="/admin/category-pages/add" className="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-            <Plus size={18} />
-            <span className="fw-bold">{t('category_pages.create_page', { defaultValue: 'Create Page' })}</span>
-          </Link>
+          <div className="flex flex-wrap gap-4 w-full md:w-auto">
+             <div className="relative flex-1 md:w-72 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
+                <input
+                    type="text"
+                    placeholder={t('search_placeholder')}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-slate-700 placeholder:text-slate-400"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Link to="/admin/category-pages/add" className="px-8 py-3.5 bg-blue-600 text-white rounded-2xl text-[13px] font-black tracking-widest uppercase flex items-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95">
+              <Plus size={20} strokeWidth={3} /> {t('landing_pages.add_new')}
+            </Link>
+          </div>
         </div>
       </div>
 
-      <Card className="border-0 shadow-sm overflow-hidden">
-        <Card.Body className="p-0">
-          {loading ? (
-            <div className="py-5 text-center">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-3 mb-0 text-muted">{t('category_pages.loading', { defaultValue: 'Loading category pages...' })}</p>
-            </div>
-          ) : (
-            <Table hover responsive className="mb-0 align-middle">
-              <thead className="bg-light text-muted small text-uppercase">
+      {/* Table Section */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden text-slate-900">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-slate-50/80 border-b border-slate-100">
+              <tr>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('landing_pages.table.category')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">{t('table.status')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">{t('landing_pages.table.sections')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">{t('landing_pages.table.updated')}</th>
+                <th className="px-10 py-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right underline decoration-dotted">{t('table.actions')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {loading ? (
                 <tr>
-                  <th className="border-0 ps-4 py-3">{t('category_pages.table.category', { defaultValue: 'Category' })}</th>
-                  <th className="border-0 py-3 text-center">{t('category_pages.table.status', { defaultValue: 'Status' })}</th>
-                  <th className="border-0 py-3 text-center">{t('category_pages.table.sections', { defaultValue: 'Sections' })}</th>
-                  <th className="border-0 py-3 text-center">{t('category_pages.table.updated', { defaultValue: 'Updated' })}</th>
-                  <th className="border-0 py-3 text-end pe-4">{t('category_pages.table.actions', { defaultValue: 'Actions' })}</th>
+                  <td colSpan="5" className="py-24 text-center">
+                    <div className="saathi-spinner mx-auto mb-4"></div>
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{t('landing_pages.loading')}</p>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {pages.length > 0 ? pages.map((page) => (
-                  <tr key={page._id}>
-                    <td className="ps-4">
-                      <div className="fw-bold text-dark">{page.category?.name || 'Unknown category'}</div>
-                      <div className="small text-muted font-monospace">/{page.category?.slug || 'missing-slug'}</div>
+              ) : filtered.length > 0 ? (
+                filtered.map((page) => (
+                  <tr key={page._id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-10 py-6">
+                        <div className="flex items-center gap-5">
+                            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center p-2 shadow-sm">
+                                {page.category?.image ? <img src={page.category.image} className="max-h-full max-w-full object-contain" /> : <Package size={22} className="text-slate-200" />}
+                            </div>
+                            <div className="min-w-0">
+                                <div className="text-[15px] font-bold text-slate-900 tracking-tight">{page.category?.name || '---'}</div>
+                                <div className="text-[11px] font-bold text-blue-500 bg-blue-50/50 px-2 rounded-lg inline-block mt-1 tracking-tight border border-blue-100/50">/{page.category?.slug || '---'}</div>
+                            </div>
+                        </div>
                     </td>
-                    <td className="text-center">
-                      <Badge bg={page.status === 'published' ? 'success' : 'secondary'} className="rounded-pill px-3 py-2 text-uppercase">
-                        {page.status}
-                      </Badge>
+                    <td className="px-10 py-6 text-center">
+                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${page.status === 'published' ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+                        {t(`status.${page.status}`)}
+                      </span>
                     </td>
-                    <td className="text-center fw-bold">{page.sections?.length || 0}</td>
-                    <td className="text-center text-muted small">
-                      {page.updatedAt ? new Date(page.updatedAt).toLocaleDateString() : 'N/A'}
+                    <td className="px-10 py-6 text-center">
+                      <div className="flex items-center justify-center gap-2 font-black text-slate-700">
+                          <Layers size={14} className="text-slate-300" />
+                          <span className="text-sm">{page.sections?.length || 0}</span>
+                      </div>
                     </td>
-                    <td className="pe-4">
-                      <div className="d-flex justify-content-end gap-2">
-                        <Button
-                          as={Link}
-                          to={`/category/${page.category?.slug}`}
-                          variant="light"
-                          size="sm"
-                          className="border text-info shadow-none"
-                          target="_blank"
+                    <td className="px-10 py-6 text-center">
+                       <div className="flex flex-col items-center">
+                            <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-bold">
+                                <Clock size={12} className="text-slate-300" />
+                                {page.updatedAt ? new Date(page.updatedAt).toLocaleDateString() : 'N/A'}
+                            </div>
+                       </div>
+                    </td>
+                    <td className="px-10 py-6">
+                      <div className="flex justify-end gap-2 pr-2">
+                        <button
+                          onClick={() => window.open(`/category/${page.category?.slug}`, '_blank')}
+                          className="p-3 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-[1.25rem] transition-all active:scale-90"
+                          title={t('landing_pages.preview_live')}
                         >
-                          <ExternalLink size={16} />
-                        </Button>
-                        <Button
-                          as={Link}
-                          to={`/admin/category-pages/edit/${page._id}`}
-                          variant="light"
-                          size="sm"
-                          className="border text-warning shadow-none"
+                          <ExternalLink size={20} />
+                        </button>
+                        <button
+                          onClick={() => navigate(`/admin/category-pages/edit/${page._id}`)}
+                          className="p-3 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-[1.25rem] transition-all active:scale-90"
+                          title={t('form.title_edit')}
                         >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="light"
-                          size="sm"
-                          className="border text-danger shadow-none"
+                          <Edit size={20} />
+                        </button>
+                        <button
                           onClick={() => handleDelete(page._id, page.category?.name || 'this category')}
+                          className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-[1.25rem] transition-all active:scale-90"
+                          title={t('messages.delete_confirm_title')}
                         >
-                          <Trash2 size={16} />
-                        </Button>
+                          <Trash2 size={20} />
+                        </button>
                       </div>
                     </td>
                   </tr>
-                )) : (
-                  <tr>
-                    <td colSpan="5" className="py-5 text-center text-muted">
-                      {t('category_pages.no_pages', { defaultValue: 'No category landing pages created yet.' })}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-          )}
-        </Card.Body>
-      </Card>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="py-32 text-center text-slate-400">
+                    <div className="bg-slate-50 w-20 h-20 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 shadow-inner">
+                        <FileText size={32} className="text-slate-200" />
+                    </div>
+                    <p className="text-xs font-black uppercase tracking-[0.25em]">{searchTerm ? t('no_matches') : t('landing_pages.no_pages')}</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .saathi-spinner { width: 32px; height: 32px; border: 3px solid #f8fafc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}} />
     </div>
   );
 };

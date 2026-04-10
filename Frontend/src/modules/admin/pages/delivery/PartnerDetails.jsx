@@ -8,11 +8,11 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import DeliveryPartnerEditModal from '../../components/delivery/DeliveryPartnerEditModal';
-import OrderDetailsModal from '../../components/orders/OrderDetailsModal';
+import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
 import { getDeliveryPartnerById, updateDeliveryPartner } from '../../api/adminDeliveryApi';
 import { showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 

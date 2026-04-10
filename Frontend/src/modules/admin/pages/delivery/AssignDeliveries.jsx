@@ -30,8 +30,8 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AssignDeliveries = () => {
     const { t } = useTranslation();

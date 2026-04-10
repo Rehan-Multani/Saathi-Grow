@@ -1,23 +1,17 @@
-﻿import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight, Package, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
-import { formatCurrency } from '../../utils/formatDate';
-import { Badge, OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
+import { formatCurrency } from '../../../../common/utils/formatUtils';
 
 const ProductList = () => {
     const { products } = useVendor();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState('all');
-    const [stockFilter, setStockFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
-
-    // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-
 
     const categories = ['all', ...new Set(products.map(p => typeof p.category === 'object' ? p.category.name : p.category))];
 
@@ -31,18 +25,11 @@ const ProductList = () => {
             (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
 
         const matchesCategory = categoryFilter === 'all' || categoryName === categoryFilter;
-
-        const matchesStock = stockFilter === 'all' ? true :
-            stockFilter === 'low' ? product.totalStock < (product.lowStockThreshold || 10) :
-                stockFilter === 'instock' ? product.totalStock >= (product.lowStockThreshold || 10) :
-                    stockFilter === 'outofstock' ? product.totalStock === 0 : true;
-
         const matchesStatus = statusFilter === 'all' ? true : (product.status || 'Active') === statusFilter;
 
-        return matchesSearch && matchesCategory && matchesStock && matchesStatus;
+        return matchesSearch && matchesCategory && matchesStatus;
     });
 
-    // Pagination Logic
     const totalItems = filteredProducts.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -64,233 +51,216 @@ const ProductList = () => {
         window.scrollTo(0, 0);
     };
 
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'Pending Approval':
-                return <Badge bg="warning" className="text-dark d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><Clock size={10} /> PENDING</Badge>;
-            case 'Active':
-                return <Badge bg="success" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><CheckCircle size={10} /> ACTIVE</Badge>;
-            case 'Rejected':
-                return <Badge bg="danger" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><XCircle size={10} /> REJECTED</Badge>;
-            case 'Inactive':
-                return <Badge bg="secondary" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]"><AlertCircle size={10} /> INACTIVE</Badge>;
-            default:
-                return <Badge bg="info" className="d-flex align-items-center gap-1 py-1.5 px-2.5 font-bold text-[9px]">ACTIVE</Badge>;
-        }
+    const StatusBadge = ({ status }) => {
+        const variants = {
+            'Pending Approval': 'bg-amber-50 text-amber-600 border-amber-100',
+            'Active': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+            'Rejected': 'bg-rose-50 text-rose-600 border-rose-100',
+            'Inactive': 'bg-slate-100 text-slate-400 border-slate-200'
+        };
+        const config = {
+            'Pending Approval': { icon: <Clock size={10} />, label: 'PENDING' },
+            'Active': { icon: <CheckCircle size={10} />, label: 'ACTIVE' },
+            'Rejected': { icon: <XCircle size={10} />, label: 'REJECTED' },
+            'Inactive': { icon: <AlertCircle size={10} />, label: 'INACTIVE' }
+        };
+        const current = config[status] || { icon: <CheckCircle size={10} />, label: 'ACTIVE' };
+        
+        return (
+            <span className={`flex items-center gap-1.5 py-1 px-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest border transition-all ${variants[status] || 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                {current.icon} {current.label}
+            </span>
+        );
     };
 
     const PaginationUI = () => (
         totalItems > 0 && (
-            <div className="px-4 py-3 border-t bg-gray-50 flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
-                <div className="text-[11px] text-gray-500 font-medium">
-                    Showing <span className="text-dark font-bold">{indexOfFirstItem + 1}</span> to <span className="text-dark font-bold">{Math.min(indexOfLastItem, totalItems)}</span> of <span className="text-dark font-bold">{totalItems}</span> results
-                </div>
-                <div className="d-flex align-items-center gap-1">
-                    <Button
-                        variant="white" size="sm"
-                        className="p-1 border shadow-xs hover:bg-white disabled:opacity-50"
-                        disabled={currentPage === 1}
+            <div className="border-t border-slate-100 px-8 py-5 flex flex-col sm:flex-row items-center justify-between bg-slate-50/50 gap-4">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Catalog Exposure: <strong className="text-slate-900">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, totalItems)}</strong> / <strong className="text-slate-900">{totalItems}</strong> SKU's
+                </span>
+
+                <div className="flex items-center gap-3">
+                    <button
                         onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95"
                     >
-                        <ChevronLeft size={16} />
-                    </Button>
+                        <ChevronLeft size={16} /> Previous
+                    </button>
 
-                    {[...Array(totalPages)].map((_, i) => {
-                        const p = i + 1;
-                        if (totalPages > 7) {
-                            if (p !== 1 && p !== totalPages && Math.abs(currentPage - p) > 1) {
-                                if (p === 2 && currentPage > 3) return <span key="dots1" className="text-muted px-1 text-xs">...</span>;
-                                if (p === totalPages - 1 && currentPage < totalPages - 2) return <span key="dots2" className="text-muted px-1 text-xs">...</span>;
-                                return null;
+                    <div className="flex items-center gap-1.5">
+                        {Array.from({ length: totalPages }, (_, i) => {
+                            const p = i + 1;
+                            if (totalPages > 5) {
+                                if (p !== 1 && p !== totalPages && Math.abs(currentPage - p) > 1) {
+                                    if (p === 2 && currentPage > 3) return <span key="dots1" className="text-slate-300">...</span>;
+                                    if (p === totalPages - 1 && currentPage < totalPages - 2) return <span key="dots2" className="text-slate-300">...</span>;
+                                    return null;
+                                }
                             }
-                        }
+                            return (
+                                <button
+                                    key={p}
+                                    onClick={() => handlePageChange(p)}
+                                    className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all ${currentPage === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400 hover:bg-slate-100'}`}
+                                >
+                                    {p}
+                                </button>
+                            );
+                        })}
+                    </div>
 
-                        return (
-                            <Button
-                                key={p}
-                                variant={currentPage === p ? "success" : "white"}
-                                size="sm"
-                                className={`w-8 h-8 p-0 border shadow-xs font-bold text-[11px] ${currentPage === p ? 'bg-[#0c831f] border-[#0c831f] text-white' : 'bg-white hover:bg-gray-50'}`}
-                                onClick={() => handlePageChange(p)}
-                            >
-                                {p}
-                            </Button>
-                        );
-                    })}
-
-                    <Button
-                        variant="white" size="sm"
-                        className="p-1 border shadow-xs hover:bg-white disabled:opacity-50"
-                        disabled={currentPage === totalPages}
+                    <button
                         onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95"
                     >
-                        <ChevronRight size={16} />
-                    </Button>
+                        Next <ChevronRight size={16} />
+                    </button>
                 </div>
             </div>
         )
     );
 
     return (
-        <div className="space-y-4 lg:space-y-6 relative pb-20 md:pb-0 p-3 bg-white min-vh-100">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                    <h4 className="fw-bold mb-1">My Products</h4>
-                    <p className="text-xs text-muted mb-0">Total listing: <strong>{products.length}</strong> products</p>
+        <div className="space-y-6">
+            {/* Header Toolbar */}
+            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6">
+                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
+                            <Package size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-1.5 uppercase tracking-widest">Inventory Catalog</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Global Deployment Index: <span className="text-slate-900 font-black">{products.length} Units</span></p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto flex-1">
+                        <div className="flex-1 max-w-md relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Query resource SKU/Identity..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:bg-white focus:border-blue-500/50 transition-all outline-none shadow-sm"
+                            />
+                        </div>
+                        
+                        <div className="flex gap-3">
+                            <select
+                                value={categoryFilter}
+                                onChange={(e) => handleFilterChange(setCategoryFilter, e.target.value)}
+                                className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:border-blue-500/50 transition-all shadow-sm"
+                            >
+                                <option value="all">System Categories</option>
+                                {categories.filter(c => c !== 'all').map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                            
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
+                                className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:border-blue-500/50 transition-all shadow-sm"
+                            >
+                                <option value="all">Audit Status</option>
+                                <option value="Active">Operational</option>
+                                <option value="Pending Approval">Buffering</option>
+                                <option value="Rejected">Flagged</option>
+                                <option value="Inactive">Offline</option>
+                            </select>
+                        </div>
+
+                        <button
+                            onClick={() => navigate('/vendor/products/add')}
+                            className="bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 active:scale-95"
+                        >
+                            <Plus size={16} strokeWidth={3} /> Propose SKU
+                        </button>
+                    </div>
                 </div>
-                <button
-                    onClick={() => navigate('/vendor/products/add')}
-                    className="px-6 py-2 bg-[#0c831f] text-white text-xs font-bold rounded-lg hover:bg-[#0a6b19] flex items-center gap-2 shadow-sm transition-all"
-                >
-                    <Plus size={16} /> Add New Product
-                </button>
             </div>
 
-            {/* Toolbar */}
-            <div className="bg-light p-3 rounded-xl border border-gray-100 sticky top-0 z-20">
-                <div className="flex flex-col md:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Search by name, category or SKU..."
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:border-[#0c831f] focus:outline-none text-xs shadow-sm"
-                        />
-                    </div>
-                    <div className="flex gap-2">
-                        <select
-                            value={categoryFilter}
-                            onChange={(e) => handleFilterChange(setCategoryFilter, e.target.value)}
-                            className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-bold bg-white outline-none focus:border-[#0c831f]"
-                        >
-                            <option value="all">All Categories</option>
-                            {categories.filter(c => c !== 'all').map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
-                            className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-bold bg-white outline-none focus:border-[#0c831f]"
-                        >
-                            <option value="all">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Pending Approval">Pending</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {/* Desktop Table */}
-            <div className="hidden md:block bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-[#f8f9fa] border-b">
-                        <tr>
-                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider">Product Info</th>
-                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider">Pricing</th>
-                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider text-center">Stock</th>
-                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider text-center">Status</th>
-                            <th className="px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-wider text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                        {paginatedProducts.map((product) => (
-                            <tr key={product._id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="px-4 py-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-lg bg-white border border-gray-100 p-1 shadow-sm flex-shrink-0">
-                                            <img src={product.image} alt="" className="w-full h-full object-contain" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="text-xs font-bold text-dark truncate max-w-[200px] mb-0.5">{product.name}</div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge bg="light" className="text-muted border font-semibold text-[8px] uppercase">{typeof product.category === 'object' ? product.category.name : product.category}</Badge>
-                                                <span className="text-[9px] text-gray-400 font-mono italic">{product.sku}</span>
+            {/* Catalog Table */}
+            <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <div className="overflow-x-auto overflow-y-hidden">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Resource Identity</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Unit Valuation</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Inventory Depth</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Protocol Status</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Terminal Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {paginatedProducts.map((product) => (
+                                <tr key={product._id} className="hover:bg-slate-50/50 transition-all group">
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 p-2 shadow-sm transition-transform group-hover:scale-110 duration-500">
+                                                <img src={product.image} alt="" className="w-full h-full object-contain" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-black text-slate-900 uppercase tracking-tight mb-1 truncate max-w-[240px]">{product.name}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="px-2 py-0.5 bg-slate-50 text-slate-500 border border-slate-100 rounded text-[9px] font-black uppercase tracking-widest">{typeof product.category === 'object' ? product.category.name : product.category}</span>
+                                                    <span className="text-[9px] text-slate-300 font-mono font-bold uppercase tracking-widest">{product.sku}</span>
+                                                    {product.isSaathiGrow && <Sparkles size={10} className="text-blue-500" />}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <div className="text-xs font-bold text-dark">{formatCurrency(product.basePrice)}</div>
-                                    {product.mrp > product.basePrice && <div className="text-[10px] text-muted line-through">{formatCurrency(product.mrp)}</div>}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                    <div className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${product.totalStock < (product.lowStockThreshold || 10) ? 'bg-red-50 text-red-600' : 'bg-[#e7f6ec] text-[#0c831f]'}`}>
-                                        {product.totalStock} {product.unitType || 'pcs'}
-                                    </div>
-                                    <div className="text-[8px] text-muted mt-0.5 font-bold uppercase tracking-tight">Current Inventory</div>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <div className="flex justify-center">
-                                        {getStatusBadge(product.status || 'Active')}
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3 text-end">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <OverlayTrigger overlay={<Tooltip>Edit Details</Tooltip>}>
-                                            <button onClick={() => navigate(`edit/${product._id}`)} className="p-2 text-gray-400 hover:text-success hover:bg-success-light rounded-lg transition-colors border border-gray-100">
-                                                <Edit2 size={14} />
+                                    </td>
+                                    <td className="px-6 py-5 text-center">
+                                        <div className="text-sm font-black text-slate-900 tracking-tighter">₹{product.basePrice?.toLocaleString()}</div>
+                                        {product.mrp > product.basePrice && <div className="text-[10px] text-slate-300 line-through font-bold">₹{product.mrp?.toLocaleString()}</div>}
+                                    </td>
+                                    <td className="px-6 py-5 text-center">
+                                        <div className={`inline-block px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${product.totalStock < (product.lowStockThreshold || 10) ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+                                            {product.totalStock} {product.unitType || 'PCS'}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex justify-center">
+                                            <StatusBadge status={product.status || 'Active'} />
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5 text-right">
+                                        <div className="flex items-center justify-end gap-2.5">
+                                            <button 
+                                                onClick={() => navigate(`edit/${product._id}`)} 
+                                                className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100 rounded-xl transition-all border border-slate-100 shadow-sm active:scale-90"
+                                            >
+                                                <Edit2 size={16} />
                                             </button>
-                                        </OverlayTrigger>
-                                        <OverlayTrigger overlay={<Tooltip>Delete Product</Tooltip>}>
-                                            <button onClick={() => { if (window.confirm('Delete this product permanently?')) navigate(`delete/${product._id}`) }} className="p-2 text-gray-400 hover:text-danger hover:bg-danger-light rounded-lg transition-colors border border-gray-100">
-                                                <Trash2 size={14} />
+                                            <button 
+                                                onClick={() => { if (window.confirm('Initiate permanent resource deletion?')) navigate(`delete/${product._id}`) }} 
+                                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl transition-all border border-slate-100 shadow-sm active:scale-90"
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
-                                        </OverlayTrigger>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                <PaginationUI />
-            </div>
-
-            {/* Mobile View */}
-            <div className="md:hidden space-y-3">
-                {paginatedProducts.map((product) => (
-                    <div key={product._id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-3">
-                        <div className="w-20 h-20 bg-white rounded-lg border border-gray-100 p-1 flex-shrink-0">
-                            <img src={product.image} alt="" className="w-full h-full object-contain" />
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between">
-                            <div>
-                                <div className="flex justify-between items-start gap-2">
-                                    <h6 className="text-xs font-bold text-dark truncate mb-0 tracking-tight">{product.name}</h6>
-                                    {getStatusBadge(product.status || 'Active')}
-                                </div>
-                                <span className="text-[10px] text-muted font-bold uppercase">{typeof product.category === 'object' ? product.category.name : product.category}</span>
-                            </div>
-                            <div className="flex items-center justify-between mt-2">
-                                <div className="text-sm font-bold text-[#0c831f]">{formatCurrency(product.basePrice)}</div>
-                                <div className={`text-[10px] font-bold ${product.totalStock < (product.lowStockThreshold || 10) ? 'text-red-500' : 'text-gray-400'}`}>
-                                    Stock: {product.totalStock}
-                                </div>
-                            </div>
-                            <div className="flex gap-2 mt-2">
-                                <button onClick={() => navigate(`edit/${product._id}`)} className="flex-1 py-1.5 bg-light border text-dark text-[10px] font-bold rounded-lg flex items-center justify-center gap-1">
-                                    <Edit2 size={12} /> EDIT
-                                </button>
-                                <button onClick={() => navigate(`delete/${product._id}`)} className="flex-1 py-1.5 bg-red-50 border border-red-100 text-red-600 text-[10px] font-bold rounded-lg flex items-center justify-center gap-1">
-                                    <Trash2 size={12} /> DELETE
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
                 <PaginationUI />
             </div>
 
             {totalItems === 0 && (
-                <div className="text-center py-20 bg-light rounded-3xl border border-dashed border-gray-300 mx-3">
-                    <Search size={40} className="mx-auto text-gray-300 mb-3" />
-                    <h6 className="text-muted fw-bold">No Products Found</h6>
-                    <p className="text-xs text-gray-400">Try adjusting your search or filters</p>
+                <div className="flex flex-col items-center justify-center py-24 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                    <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-slate-200 shadow-xl border border-slate-100 mb-6">
+                        <Package size={32} strokeWidth={1} />
+                    </div>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">No Resources Identified</h3>
+                    <p className="text-[10px] text-slate-400 mt-2 uppercase font-bold tracking-widest opacity-60">Adjust query parameters to expand scan range</p>
                 </div>
             )}
         </div>

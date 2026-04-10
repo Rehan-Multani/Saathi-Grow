@@ -1,5 +1,5 @@
-﻿import { createContext, useContext, useState, useEffect } from 'react';
-import { loginAdmin } from '../../admin/api/adminApi';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { loginAdmin } from '../../../common/api/adminApi';
 
 const StoreManagerAuthContext = createContext();
 
@@ -11,18 +11,16 @@ export const StoreManagerAuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Auto-refresh profile on mount to sync permissions/status
-  useEffect(() => {
-    if (managerUser?.token) {
-      refreshProfile();
-    }
+  const managerLogout = useCallback(() => {
+    setManagerUser(null);
+    localStorage.removeItem('sathiGro_manager');
   }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
+    if (!managerUser?.token) return;
     try {
-      const { getProfile } = await import('../../admin/api/adminApi');
+      const { getProfile } = await import('../../../common/api/adminApi');
       const data = await getProfile(managerUser.token);
-      // Sync user data keeping token
       const updatedUser = { ...data, token: managerUser.token };
       setManagerUser(updatedUser);
       localStorage.setItem('sathiGro_manager', JSON.stringify(updatedUser));
@@ -32,9 +30,15 @@ export const StoreManagerAuthProvider = ({ children }) => {
         managerLogout();
       }
     }
-  };
+  }, [managerUser?.token, managerLogout]);
 
-  const managerLogin = async (email, password) => {
+  useEffect(() => {
+    if (managerUser?.token) {
+      refreshProfile();
+    }
+  }, [refreshProfile]);
+
+  const managerLogin = useCallback(async (email, password) => {
     try {
       const data = await loginAdmin(email, password);
       if (data.role !== 'Branch Manager') {
@@ -46,22 +50,17 @@ export const StoreManagerAuthProvider = ({ children }) => {
     } catch (error) {
       throw error;
     }
-  };
+  }, []);
 
-  const managerLogout = () => {
-    setManagerUser(null);
-    localStorage.removeItem('sathiGro_manager');
-  };
-
-  const managerUpdateProfile = async (profileData) => {
+  const managerUpdateProfile = useCallback(async (profileData) => {
     if (!managerUser?.token) throw new Error('Not authenticated');
-    const { updateProfile: updateApi } = await import('../../admin/api/adminApi');
+    const { updateProfile: updateApi } = await import('../../../common/api/adminApi');
     const data = await updateApi(managerUser.token, profileData);
     const updatedUser = { ...data, token: managerUser.token };
     setManagerUser(updatedUser);
     localStorage.setItem('sathiGro_manager', JSON.stringify(updatedUser));
     return updatedUser;
-  };
+  }, [managerUser?.token]);
 
   return (
     <StoreManagerAuthContext.Provider value={{ managerUser, managerLogin, managerLogout, managerUpdateProfile }}>

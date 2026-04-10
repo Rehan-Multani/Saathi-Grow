@@ -3,8 +3,8 @@ import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 
 import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import OrderDetailsModal from '../../../admin/components/orders/OrderDetailsModal';
-import { getAllOrdersAdmin, updateOrderStatus } from '../../../admin/api/orderApi';
+import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
+import { getAllOrdersAdmin, updateOrderStatus } from '../../../../common/api/orderApi';
 import { useStaffAuth } from '../../context/StaffAuthContext';
 
 const StaffOrders = () => {

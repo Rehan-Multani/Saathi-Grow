@@ -3,26 +3,17 @@ import { Card, Table, Badge, Button, Form, Modal, InputGroup, Spinner, ListGroup
 import { Search, UserPlus, Mail, Phone, Edit, Trash2, Key, Shield, Eye, CheckCircle, XCircle, Calendar, MapPin } from 'lucide-react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
-import { useAdminAuth } from '../admin/context/AdminAuthContext';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
-import { useStaffAuth } from '../staff/context/StaffAuthContext';
 import { API_BASE_URL } from '../../config/apiConfig';
 
 const StaffManagement = () => {
-  const adminAuth = useAdminAuth && useAdminAuth();
-  const managerAuth = useStoreManagerAuth && useStoreManagerAuth();
-  const staffAuth = useStaffAuth && useStaffAuth();
-
-  // Pick the active user context
-  const currentUser = adminAuth?.adminUser || managerAuth?.managerUser || staffAuth?.staffUser;
+  const { managerUser } = useStoreManagerAuth();
+  const currentUser = managerUser;
 
   // Permissions and View logic
-  const isSuperAdmin = currentUser?.role === 'Admin';
   const isBranchManager = currentUser?.role === 'Branch Manager';
-  const isStaff = currentUser?.role === 'Staff';
-
-  const hasPermission = isSuperAdmin || isBranchManager;
-  const canPerformActions = isSuperAdmin || isBranchManager; // Only Admin/Manager can Edit/Delete/Add
+  const hasPermission = isBranchManager;
+  const canPerformActions = isBranchManager; // Only Manager can Edit/Delete/Add
 
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);

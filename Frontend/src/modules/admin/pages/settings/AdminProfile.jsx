@@ -3,8 +3,8 @@ import { Card, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import { Save, User, Mail, Phone, Lock, Camera, Loader2 } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AdminProfile = () => {
     const { adminUser, adminUpdateProfile } = useAdminAuth();

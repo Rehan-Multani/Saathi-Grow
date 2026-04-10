@@ -1,6 +1,8 @@
 import express from 'express';
 import {
     adminLogin,
+    forgotPassword,
+    resetPassword,
     getAllAdmins,
     createAdmin,
     updateAdmin,
@@ -15,8 +17,10 @@ import { adminLoginLimiter, adminWriteLimiter, sensitiveAdminActionLimiter, audi
 
 const router = express.Router();
 
-// Public route
+// Public routes
 router.post('/login', adminLoginLimiter, adminLogin);
+router.post('/forgot-password', sensitiveAdminActionLimiter, forgotPassword);
+router.post('/reset-password/:token', sensitiveAdminActionLimiter, resetPassword);
 
 // Protected routes (Any authenticated admin/staff)
 router.get('/profile', protectAdmin, getAdminProfile);

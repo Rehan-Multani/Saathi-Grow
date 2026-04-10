@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
-import { useTranslation } from 'react-i18next';
-import { Search, Plus, MoreHorizontal, Store, Mail, Phone, CheckCircle, Ban, Upload, Download, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Store, Mail, Phone, CheckCircle, Ban, Edit, Trash2, ChevronLeft, ChevronRight, Package, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VendorDetailsModal from '../../components/vendors/VendorDetailsModal';
 import VendorEditModal from '../../components/vendors/VendorEditModal';
@@ -9,11 +7,10 @@ import { getVendors, deleteVendor } from '../../api/vendorApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllVendors = () => {
-    const { t } = useTranslation();
     const { adminUser } = useAdminAuth();
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,6 +18,7 @@ const AllVendors = () => {
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedVendor, setSelectedVendor] = useState(null);
+    const [showActionDropdown, setShowActionDropdown] = useState(null);
 
     // Pagination State
     const [page, setPage] = useState(1);
@@ -38,7 +36,7 @@ const AllVendors = () => {
             setVendors(Array.isArray(vendorList) ? vendorList : []);
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit });
         } catch (error) {
-            toast.error(error.message || t('vendors.loading_failed', { defaultValue: 'Failed to fetch vendors' }));
+            toast.error(error.response?.data?.message || 'Failed to fetch vendors');
         } finally {
             setLoading(false);
         }
@@ -48,11 +46,6 @@ const AllVendors = () => {
         if (adminUser?.token) fetchVendors();
     }, [adminUser?.token, page, searchTerm]);
 
-    const totalFiltered = pagination.total || 0;
-    const totalPages = pagination.totalPages || 1;
-    const paginatedVendors = vendors;
-
-    // Reset pagination when search changes
     useEffect(() => {
         setPage(1);
     }, [searchTerm]);
@@ -60,11 +53,13 @@ const AllVendors = () => {
     const handleViewDetails = (vendor) => {
         setSelectedVendor(vendor);
         setShowDetailsModal(true);
+        setShowActionDropdown(null);
     };
 
     const handleEdit = (vendor) => {
         setSelectedVendor(vendor);
         setShowEditModal(true);
+        setShowActionDropdown(null);
     };
 
     const handleSave = () => {
@@ -73,239 +68,251 @@ const AllVendors = () => {
     };
 
     const handleDelete = (id, name) => {
+        setShowActionDropdown(null);
         Swal.fire({
-            title: t('vendors.delete_confirm_title'),
-            text: t('vendors.delete_confirm_text', { name }),
+            title: 'Terminate Partnership?',
+            text: `Are you sure you want to remove ${name}? All associated product listings will be archived.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: t('dashboard.yes_delete', { defaultValue: 'Yes, Delete' })
+            confirmButtonColor: '#f43f5e',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, Terminate'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     await deleteVendor(adminUser.token, id);
-                    toast.success(t('dashboard.deleted_title'));
+                    toast.success('Vendor de-registered successfully');
                     fetchVendors();
                 } catch (error) {
-                    toast.error(error.message || t('dashboard.failed_to_delete'));
+                    toast.error(error.response?.data?.message || 'Failed to terminate partnership');
                 }
             }
         });
     };
 
-    return (
-        <div className="p-3 p-md-4">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                    <div className="d-flex align-items-center gap-3">
-                        <div className="bg-primary bg-opacity-10 p-2 rounded text-primary d-none d-md-flex">
-                            <Store size={20} />
-                        </div>
-                        <div className="d-flex align-items-center gap-3 text-nowrap">
-                            <div className="d-flex align-items-center gap-2">
-                                <h5 className="mb-0 fw-bold">{t('vendors.title')}</h5>
-                                <PageInfoTooltip data={pageInfoData.allVendors} />
-                            </div>
-                            <Badge bg="primary" pill>{totalFiltered}</Badge>
-                        </div>
-                    </div>
-                    <div className="d-flex flex-column flex-md-row gap-2 flex-grow-1 justify-content-lg-end">
-                        <InputGroup className="w-100" style={{ maxWidth: '400px' }}>
-                            <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
-                            <Form.Control
-                                placeholder={t('vendors.search_placeholder')}
-                                className="border-start-0 ps-0 shadow-none"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </InputGroup>
-                        <div className="d-flex gap-2 w-100 w-md-auto">
-                            <Link to="/admin/vendors/add" className="btn btn-primary flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm">
-                                <Plus size={18} /> <span>{t('vendors.add_new')}</span>
-                            </Link>
-                        </div>
-                    </div>
-                </Card.Body>
-            </Card>
+    const totalFiltered = pagination.total || 0;
+    const totalPages = pagination.totalPages || 1;
 
-            <Card className="border-0 shadow-sm mt-2">
-                <Card.Body className="p-0">
-                    {loading ? (
-                        <div className="text-center py-5">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">{t('vendors.loading')}</p>
-                        </div>
-                    ) : (
-                        <Table hover responsive className="mb-0 align-middle">
-                            <thead className="bg-light text-muted small text-uppercase font-weight-bold">
-                                <tr>
-                                    <th className="ps-4 border-0 py-3">{t('vendors.table.name')}</th>
-                                    <th className="border-0 py-3">{t('vendors.table.contact')}</th>
-                                    <th className="border-0 py-3 text-center">{t('vendors.table.products')}</th>
-                                    <th className="border-0 py-3 text-center">{t('vendors.table.status')}</th>
-                                    <th className="border-0 py-3 text-end pe-4">{t('vendors.table.actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginatedVendors.length > 0 ? paginatedVendors.map((v) => (
-                                    <tr key={v._id}>
-                                        <td className="ps-4">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div className="bg-light p-2 rounded text-primary">
+    return (
+        <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-600">Merchant Network</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Vendor Registry</h1>
+                        <PageInfoTooltip data={pageInfoData.allVendors} />
+                    </div>
+                    <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Managing third-party supply chain partners</p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-80 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder="Search store name, owner or email..."
+                            className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all shadow-sm shadow-slate-200/50"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Link
+                        to="/admin/vendors/add"
+                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-purple-200 active:scale-95"
+                    >
+                        <Plus size={18} /> Add Merchant
+                    </Link>
+                </div>
+            </div>
+
+            {/* Main Content Card */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-slate-50/50 text-[10px] uppercase font-black tracking-widest text-slate-400 border-b border-slate-100">
+                            <tr>
+                                <th className="px-8 py-5">Merchant Entity</th>
+                                <th className="px-8 py-5">Principal Contact</th>
+                                <th className="px-8 py-5 text-center">SKU Portfolio</th>
+                                <th className="px-8 py-5 text-center">Protocol Status</th>
+                                <th className="px-8 py-5 text-right">Strategic Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                Array(5).fill(0).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="5" className="px-8 py-6">
+                                            <div className="h-12 bg-slate-100 rounded-2xl w-full" />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : vendors.length > 0 ? (
+                                vendors.map((v) => (
+                                    <tr key={v._id} className="group hover:bg-slate-50/50 transition-colors duration-300">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm overflow-hidden p-1 relative group-hover:rotate-2 transition-transform">
                                                     {v.logo ? (
-                                                        <img src={v.logo} alt="" style={{ width: '20px', height: '20px', objectFit: 'cover' }} className="rounded" />
+                                                        <img src={v.logo} alt="" className="w-full h-full object-contain mix-blend-multiply" />
                                                     ) : (
-                                                        <Store size={20} />
+                                                        <Store size={24} className="text-slate-300" />
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <Link
-                                                        to={`/admin/vendors/${v._id}`}
-                                                        className="fw-bold text-dark text-decoration-none hover-primary transition-colors d-block"
-                                                    >
-                                                        {v.storeName}
-                                                    </Link>
-                                                    <div className="small text-muted">{v._id}</div>
+                                                    <div className="text-sm font-black text-slate-900 leading-tight mb-1">{v.storeName}</div>
+                                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter bg-slate-100 px-2 py-0.5 rounded-lg w-fit">
+                                                        ID: {v._id.slice(-8).toUpperCase()}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div className="d-flex flex-column gap-1 small text-muted">
-                                                <div className="fw-medium text-dark">{v.ownerName}</div>
-                                                <div className="d-flex align-items-center gap-2">
-                                                    <Mail size={12} /> {v.email}
+                                        <td className="px-8 py-5">
+                                            <div className="space-y-1">
+                                                <div className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{v.ownerName}</div>
+                                                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold tracking-tight">
+                                                    <Mail size={12} className="text-slate-300" /> {v.email}
                                                 </div>
-                                                <div className="d-flex align-items-center gap-2">
-                                                    <Phone size={12} /> {v.phone}
+                                                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold tracking-tight">
+                                                    <Phone size={12} className="text-slate-300" /> {v.phone}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="fw-bold text-center">{v.products || 0}</td>
-                                        <td className="text-center">
-                                            <Badge bg={
-                                                v.status === 'Active' ? 'success' :
-                                                    v.status === 'Pending' ? 'warning' : 'danger'
-                                            } className="rounded-pill fw-normal px-3 py-1 shadow-sm">
-                                                {v.status === 'Active' ? t('vendors.status.active') : v.status === 'Pending' ? t('vendors.status.pending') : t('vendors.status.inactive')}
-                                            </Badge>
+                                        <td className="px-8 py-5 text-center">
+                                            <div className="inline-flex flex-col items-center">
+                                                <span className="text-sm font-black text-slate-900">{v.products || 0}</span>
+                                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em]">Listing SKUS</span>
+                                            </div>
                                         </td>
-                                        <td className="text-end pe-4">
-                                            <div className="d-flex justify-content-end gap-2">
-                                                <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-warning border shadow-none"
+                                        <td className="px-8 py-5 text-center">
+                                            <span className={`inline-flex px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+                                                v.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm shadow-emerald-900/5' :
+                                                v.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100 animate-pulse' : 
+                                                'bg-rose-50 text-rose-500 border-rose-100'
+                                            }`}>
+                                                {v.status || 'Offline'}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 text-right relative">
+                                            <div className="flex justify-end gap-2.5">
+                                                <button
                                                     onClick={() => handleEdit(v)}
+                                                    className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center justify-center border border-blue-100 group-hover:scale-110 active:scale-95"
+                                                    title="Modify Profile"
                                                 >
-                                                    <Edit size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="light" size="sm" className="btn-icon-soft text-danger border shadow-none"
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button
                                                     onClick={() => handleDelete(v._id, v.storeName)}
+                                                    className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all duration-300 flex items-center justify-center border border-rose-100 group-hover:scale-110 active:scale-95"
+                                                    title="Terminate Access"
                                                 >
-                                                    <Trash2 size={16} />
-                                                </Button>
-                                                <Dropdown align="end" drop="down">
-                                                    <Dropdown.Toggle variant="light" size="sm" className="text-muted border shadow-none p-1 no-caret btn-icon-soft">
-                                                        <MoreHorizontal size={18} />
-                                                    </Dropdown.Toggle>
-                                                    <Dropdown.Menu
-                                                        className="border-0 shadow-lg p-2 rounded-xl"
-                                                        popperConfig={{
-                                                            strategy: 'fixed',
-                                                            modifiers: [
-                                                                {
-                                                                    name: 'offset',
-                                                                    options: {
-                                                                        offset: [0, 8],
-                                                                    },
-                                                                },
-                                                            ],
-                                                        }}
+                                                    <Trash2 size={18} />
+                                                </button>
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setShowActionDropdown(showActionDropdown === v._id ? null : v._id)}
+                                                        className={`w-10 h-10 rounded-2xl transition-all duration-300 flex items-center justify-center border group-hover:scale-110 active:scale-95 ${showActionDropdown === v._id ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/20' : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-900 hover:text-white'}`}
                                                     >
-                                                        <Dropdown.Item onClick={() => handleViewDetails(v)} className="rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
-                                                            {t('vendors.view_info')}
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Divider className="my-1 opacity-50" />
-                                                        {v.status !== 'Active' && (
-                                                            <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Approval')} className="text-success rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
-                                                                <CheckCircle size={16} /> {t('vendors.approve')}
-                                                            </Dropdown.Item>
-                                                        )}
-                                                        {v.status !== 'Inactive' && (
-                                                            <Dropdown.Item onClick={() => toast.info('Feature coming soon: Manual Block')} className="text-danger rounded-lg py-2 d-flex align-items-center gap-2 small fw-medium">
-                                                                <Ban size={16} /> {t('vendors.block')}
-                                                            </Dropdown.Item>
-                                                        )}
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
+                                                        <MoreHorizontal size={18} />
+                                                    </button>
+                                                    
+                                                    {showActionDropdown === v._id && (
+                                                        <div className="absolute right-0 top-12 w-48 bg-white rounded-3xl shadow-2xl border border-slate-100 p-2 z-[50] animate-in fade-in zoom-in-95 duration-200">
+                                                            <button 
+                                                                onClick={() => handleViewDetails(v)}
+                                                                className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase text-slate-600 hover:bg-slate-50 rounded-2xl transition-all"
+                                                            >
+                                                                <Activity size={16} className="text-blue-500" /> Intelligence
+                                                            </button>
+                                                            <div className="h-px bg-slate-50 my-1 mx-2" />
+                                                            {v.status !== 'Active' && (
+                                                                <button 
+                                                                    onClick={() => toast.info('Protocol: Finalizing Verification...')}
+                                                                    className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all"
+                                                                >
+                                                                    <CheckCircle size={16} /> Approve Access
+                                                                </button>
+                                                            )}
+                                                            {v.status !== 'Inactive' && (
+                                                                <button 
+                                                                    onClick={() => toast.info('Protocol: Initiating Lockdown...')}
+                                                                    className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase text-rose-500 hover:bg-rose-50 rounded-2xl transition-all"
+                                                                >
+                                                                    <Ban size={16} /> Lock Identity
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="6" className="text-center py-5 text-muted small">
-                                            {t('vendors.no_vendors')}
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    )}
-                </Card.Body>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="px-8 py-24 text-center">
+                                        <div className="flex flex-col items-center justify-center text-slate-300">
+                                            <Store size={64} strokeWidth={1.5} className="animate-spin-slow opacity-20 mb-4" />
+                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No Merchants Registered In Network</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
+                {/* Pagination Footer */}
                 {!loading && totalFiltered > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('vendors.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('vendors.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> {t('vendors.pagination.of')} <span className="fw-semibold text-dark">{totalFiltered}</span> {t('vendors.title')}
+                    <div className="bg-slate-50/50 border-t border-slate-100 px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Showing <span className="text-slate-900">{vendors.length}</span> of <span className="text-slate-900">{totalFiltered}</span> active merchants
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        <div className="flex items-center gap-3">
+                            <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                             >
-                                <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
-                                {(() => {
-                                    return [...Array(totalPages)].map((_, i) => {
-                                        const p = i + 1;
-                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
-                                            return (
-                                                <Button
-                                                    key={p}
-                                                    variant={page === p ? 'primary' : 'light'}
-                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                    style={{ width: '36px', height: '36px', padding: 0 }}
-                                                    onClick={() => setPage(p)}
-                                                >
-                                                    {p}
-                                                </Button>
-                                            );
-                                        } else if (p === page - 2 || p === page + 2) {
-                                            return <span key={p} className="text-muted px-1">...</span>;
-                                        }
-                                        return null;
-                                    });
-                                })()}
+                                <ChevronLeft size={16} /> Previous
+                            </button>
+                            <div className="flex items-center gap-1.5">
+                                {[...Array(totalPages)].map((_, i) => {
+                                    const p = i + 1;
+                                    if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                        return (
+                                            <button
+                                                key={p}
+                                                onClick={() => setPage(p)}
+                                                className={`w-10 h-10 rounded-2xl text-xs font-black transition-all ${page === p ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'text-slate-400 hover:bg-slate-100'}`}
+                                            >
+                                                {p}
+                                            </button>
+                                        );
+                                    } else if (p === page - 2 || p === page + 2) {
+                                        return <span key={p} className="text-slate-300 font-bold px-1">...</span>;
+                                    }
+                                    return null;
+                                })}
                             </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                             >
-                                <ChevronRight size={16} />
-                            </Button>
+                                Next <ChevronRight size={16} />
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
+            {/* Modals */}
             <VendorDetailsModal
                 show={showDetailsModal}
                 onHide={() => setShowDetailsModal(false)}
@@ -318,6 +325,12 @@ const AllVendors = () => {
                 vendor={selectedVendor}
                 onSave={handleSave}
             />
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 20px; }
+            `}} />
         </div>
     );
 };

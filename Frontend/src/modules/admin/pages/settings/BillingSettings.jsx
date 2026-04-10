@@ -3,8 +3,8 @@ import { IndianRupee, Info, Plus, CreditCard, Receipt, Loader, Settings2, Shield
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import * as settingApi from '../../api/settingApi';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const BillingSettings = () => {
     const { adminUser } = useAdminAuth();

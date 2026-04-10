@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Row, Col, Image as BSImage, Spinner, Badge } from 'react-bootstrap';
-import { Save, X, Upload, Image as ImageIcon, Layers } from 'lucide-react';
+import { Save, X, Upload, Image as ImageIcon, Layers, ArrowLeft, RefreshCw, Sparkles, Package, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { createSubCategory } from '../../api/subcategoryApi';
 import { getCategories } from '../../api/categoryApi';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AddSubCategory = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_categories');
     const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [loading, setLoading] = useState(false);
@@ -35,26 +34,21 @@ const AddSubCategory = () => {
                 const data = await getCategories(adminUser.token);
                 setCategories(data.filter(c => c.status === 'Active'));
             } catch (error) {
-                console.error('Error fetching categories:', error);
-                toast.error(t('subcategories.loading_failed', { defaultValue: 'Failed to load parent categories' }));
+                toast.error(t('loading_failed'));
             } finally {
                 setCategoriesLoading(false);
             }
         };
         if (adminUser?.token) fetchCategories();
-    }, [adminUser.token]);
+    }, [adminUser.token, t]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                return toast.error('Image size should be less than 2MB');
-            }
+            if (file.size > 2 * 1024 * 1024) return toast.error(t('messages.image_size_error'));
             setImageFile(file);
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
+            reader.onloadend = () => setImagePreview(reader.result);
             reader.readAsDataURL(file);
         }
     };
@@ -66,7 +60,7 @@ const AddSubCategory = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name || !formData.category) {
-            return toast.error(t('subcategories.form.required_fields', { defaultValue: 'Subcategory name and parent category are required' }));
+            return toast.error(t('messages.name_required'));
         }
 
         setLoading(true);
@@ -77,190 +71,190 @@ const AddSubCategory = () => {
             data.append('category', formData.category);
             data.append('status', formData.status);
             data.append('description', formData.description);
-
-            if (imageFile) {
-                data.append('image', imageFile);
-            }
+            if (imageFile) data.append('image', imageFile);
 
             await createSubCategory(adminUser.token, data);
-            toast.success(t('subcategories.form.create_success', { defaultValue: 'Subcategory created successfully!' }));
+            toast.success(t('messages.create_success'));
             navigate('/admin/subcategories');
         } catch (error) {
-            toast.error(error.response?.data?.message || error.message || t('subcategories.form.create_failed', { defaultValue: 'Failed to create subcategory' }));
+            toast.error(error.message || 'Failed to create subcategory');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="d-flex align-items-center gap-2">
-                    <h4 className="fw-bold mb-0">{t('subcategories.create_title', { defaultValue: 'Add New Subcategory' })}</h4>
-                    <PageInfoTooltip data={pageInfoData.addSubCategory || { title: 'Add Subcategory', description: 'Create a new nested subcategory.' }} />
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/admin/subcategories')}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 hover:border-blue-500 hover:text-blue-600"
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
+                    <div>
+                        <h1 className="text-xl font-bold tracking-tight">{t('subcategories.add_new')}</h1>
+                        <p className="text-slate-500 text-[11px] font-medium leading-tight">{t('subcategories.subtitle')}</p>
+                    </div>
                 </div>
-                <Button variant="light" onClick={() => navigate('/admin/subcategories')} className="shadow-sm border d-flex align-items-center gap-1 px-3 py-2" disabled={loading}>
-                    <X size={16} /> <span className="fw-medium text-sm">{t('common.cancel', { defaultValue: 'Cancel' })}</span>
-                </Button>
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <button 
+                        onClick={() => navigate('/admin/subcategories')} 
+                        className="flex-1 md:flex-none px-5 py-2.5 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+                    >
+                        {t('form.cancel')}
+                    </button>
+                </div>
             </div>
 
-            <Form onSubmit={handleSubmit}>
-                <Row>
-                    <Col lg={8}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="fw-bold mb-4 d-flex align-items-center gap-2">
-                                    <span className="p-2 bg-primary bg-opacity-10 rounded text-primary"><Layers size={18} /></span>
-                                    {t('subcategories.form.hierarchy', { defaultValue: 'Hierarchy Selection' })}
-                                </h6>
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="small fw-bold text-muted">{t('subcategories.form.parent_category', { defaultValue: 'Parent Category' })} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                        disabled={categoriesLoading || loading}
-                                    >
-                                        <option value="">{t('subcategories.form.select_parent', { defaultValue: 'Select Parent Category' })}</option>
-                                        {categories.map(cat => (
-                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
-                                        ))}
-                                    </Form.Select>
-                                    {categoriesLoading && <Form.Text className="text-primary small">{t('common.loading', { defaultValue: 'Loading...' })}</Form.Text>}
-                                </Form.Group>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left: General Info */}
+                <div className="lg:col-span-8 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                                <Layers size={20} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-emerald-500 inline-block">1. {t('form.general_info')}</h3>
+                        </div>
 
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="small fw-bold text-muted">{t('subcategories.form.name', { defaultValue: 'Subcategory Name' })} <span className="text-danger">*</span></Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder={t('subcategories.form.name_placeholder', { defaultValue: 'e.g. Fresh Vegetables' })}
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                        required
-                                    />
-                                </Form.Group>
-
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="small fw-bold text-muted">{t('subcategories.form.slug', { defaultValue: 'Slug (URL)' })} - {t('common.optional', { defaultValue: 'Optional' })}</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder={t('subcategories.form.slug_placeholder', { defaultValue: 'e.g. fresh-vegetables' })}
-                                        name="slug"
-                                        value={formData.slug}
-                                        onChange={handleChange}
-                                        className="bg-light border-0 py-2 shadow-none font-monospace"
-                                    />
-                                    <Form.Text className="text-muted small">{t('subcategories.form.slug_help', { defaultValue: 'Auto-generated from name if left empty.' })}</Form.Text>
-                                </Form.Group>
-
-                                <Form.Group className="mb-0">
-                                    <Form.Label className="small fw-bold text-muted">{t('subcategories.form.description', { defaultValue: 'Description' })}</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={4}
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        placeholder={t('subcategories.form.description_placeholder', { defaultValue: 'Brief description of the subcategory...' })}
-                                        className="bg-light border-0 py-2 shadow-none"
-                                    />
-                                </Form.Group>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-
-                    <Col lg={4}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
-                                    <span className="p-2 bg-green-50 rounded text-green-600"><ImageIcon size={18} /></span>
-                                    {t('subcategories.form.image', { defaultValue: 'Subcategory Image' })}
-                                </h6>
-
-                                <div
-                                    className="text-center mb-4 p-4 border border-dashed rounded-xl bg-light position-relative overflow-hidden shadow-inner"
-                                    style={{ minHeight: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        <div className="space-y-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('subcategories.form.parent_label')} <span className="text-rose-500">*</span></label>
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-bold text-slate-700"
+                                    required
+                                    disabled={categoriesLoading || loading}
                                 >
-                                    {imagePreview ? (
-                                        <div className="position-relative w-100">
-                                            <div
-                                                className="rounded-xl overflow-hidden shadow-sm mx-auto d-flex align-items-center justify-content-center bg-white"
-                                                style={{
-                                                    width: '180px',
-                                                    height: '180px',
-                                                    padding: '15px'
-                                                }}
-                                            >
-                                                <BSImage
-                                                    src={imagePreview}
-                                                    fluid
-                                                    style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                                                />
-                                            </div>
-                                            <Button
-                                                variant="danger"
-                                                size="sm"
-                                                className="position-absolute top-0 end-0 m-0 rounded-circle shadow p-1"
-                                                onClick={() => { setImagePreview(null); setImageFile(null); }}
-                                                style={{ transform: 'translate(10px, -10px)', zIndex: 5 }}
-                                            >
-                                                <X size={14} />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className="text-muted py-4">
-                                            <div className="bg-white rounded-circle shadow-sm p-3 mx-auto mb-3" style={{ width: 'fit-content' }}>
-                                                <Upload className="text-primary" size={32} />
-                                            </div>
-                                            <p className="small mb-1 fw-bold">{t('subcategories.form.upload_image', { defaultValue: 'Upload Subcategory Image' })}</p>
-                                            <p className="text-[10px] text-uppercase tracking-wider">PNG, JPG or WebP</p>
-                                        </div>
-                                    )}
-                                    <Form.Control
-                                        type="file"
-                                        className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
-                                        onChange={handleImageChange}
-                                        accept="image/*"
-                                        disabled={!!imagePreview || loading}
+                                    <option value="">{t('subcategories.form.parent_placeholder')}</option>
+                                    {categories.map(cat => <option key={cat._id} value={cat._id}>{cat.name}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.name_label')} <span className="text-rose-500">*</span></label>
+                                <input 
+                                    type="text" 
+                                    name="name" 
+                                    value={formData.name} 
+                                    onChange={handleChange} 
+                                    required 
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-bold text-slate-700" 
+                                    placeholder={t('form.name_placeholder')} 
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.slug_label')}</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-xs">/</span>
+                                    <input 
+                                        type="text" 
+                                        name="slug" 
+                                        value={formData.slug} 
+                                        onChange={handleChange} 
+                                        className="w-full pl-8 pr-4 py-2 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-400"
+                                        placeholder={t('form.slug_placeholder')}
                                     />
                                 </div>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase italic px-1">{t('form.slug_hint')}</p>
+                            </div>
 
-                                <Card className="bg-light border-0 shadow-none overflow-hidden mt-4">
-                                    <Card.Body className="p-3">
-                                        <div className="p-3 border-bottom bg-white rounded-3 shadow-sm mb-3">
-                                            <h6 className="fw-bold mb-0 small uppercase tracking-wider text-muted font-mono mb-3">{t('subcategories.form.publishing', { defaultValue: 'Publishing' })}</h6>
-                                            <Form.Label className="small fw-bold text-muted">{t('subcategories.form.status', { defaultValue: 'Visibility Status' })}</Form.Label>
-                                            <Form.Select
-                                                name="status"
-                                                value={formData.status}
-                                                onChange={handleChange}
-                                                className="bg-light border-0 py-2 shadow-none mb-4"
-                                                disabled={loading}
-                                            >
-                                                <option value="Active">{t('products.status.active', { defaultValue: 'Active' })}</option>
-                                                <option value="Inactive">{t('products.status.inactive', { defaultValue: 'Inactive' })}</option>
-                                            </Form.Select>
-                                            <Button
-                                                type="submit"
-                                                variant="primary"
-                                                className="w-100 py-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
-                                                disabled={loading || categoriesLoading}
-                                            >
-                                                {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                                                {loading ? t('subcategories.form.creating', { defaultValue: 'Creating...' }) : t('subcategories.form.save_btn', { defaultValue: 'Save Subcategory' })}
-                                            </Button>
-                                        </div>
-                                    </Card.Body>
-                                </Card>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            </Form>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.desc_label')}</label>
+                                <textarea 
+                                    name="description" 
+                                    value={formData.description} 
+                                    onChange={handleChange} 
+                                    rows={5} 
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-xs font-medium resize-none"
+                                    placeholder={t('form.desc_placeholder')} 
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Media & Publish */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                <ImageIcon size={20} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-blue-500 inline-block">2. {t('form.image')}</h3>
+                        </div>
+
+                        <div className="relative group w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all shadow-inner">
+                            {imagePreview ? (
+                                <img src={imagePreview} className="w-4/5 h-4/5 object-contain p-4 transition-transform group-hover:scale-105" alt="Preview" />
+                            ) : (
+                                <div className="space-y-3 text-center">
+                                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto shadow-sm border border-slate-100 text-blue-500">
+                                        <Upload size={24} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] font-bold text-slate-900">{t('form.upload_hint')}</p>
+                                        <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{t('form.upload_types')}</p>
+                                    </div>
+                                </div>
+                            )}
+                            <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} accept="image/*" disabled={loading} />
+                        </div>
+
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center gap-2">
+                             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{t('form.preview')}</span>
+                             <div className="flex items-center gap-3 w-full bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+                                 <div className="w-10 h-10 rounded-lg bg-slate-50 shadow-sm flex items-center justify-center p-2 border border-slate-100">
+                                     {imagePreview ? <img src={imagePreview} className="max-h-full max-w-full object-contain" alt="" /> : <Package size={16} className="text-slate-200" />}
+                                 </div>
+                                 <div className="min-w-0">
+                                     <div className="text-[11px] font-bold text-slate-900 truncate uppercase tracking-tight">{formData.name || 'Title...'}</div>
+                                     <div className="text-[9px] font-bold text-blue-500 uppercase mt-0.5 tracking-tighter opacity-60">Subcategory</div>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-100 border border-blue-700">
+                                <Sparkles size={18} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-900 border-b-2 border-slate-800 inline-block">3. {t('form.publishing')}</h3>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1 uppercase">{t('form.visibility')}</label>
+                                <select name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700" disabled={loading}>
+                                    <option value="Active">{t('status.active')}</option>
+                                    <option value="Inactive">{t('status.inactive')}</option>
+                                </select>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading || categoriesLoading}
+                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {loading ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                                {loading ? t('form.saving') : t('form.save_publish')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

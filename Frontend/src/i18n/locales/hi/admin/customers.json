@@ -1,0 +1,96 @@
+{
+  "all": {
+    "title": "ग्राहक",
+    "subtitle": "अपने पंजीकृत ग्राहकों को देखें और प्रबंधित करें",
+    "search_placeholder": "नाम, ईमेल या फोन से खोजें...",
+    "no_customers": "कोई ग्राहक नहीं मिला",
+    "anonymous": "अज्ञात",
+    "table": {
+      "customer": "ग्राहक",
+      "contact": "संपर्क",
+      "location": "शहर",
+      "wallet": "वॉलेट",
+      "status": "स्थिति"
+    },
+    "status": {
+      "active": "सक्रिय",
+      "blocked": "ब्लॉक",
+      "verified": "सत्यापित",
+      "unverified": "असत्यापित"
+    },
+    "actions": {
+      "view_profile": "प्रोफ़ाइल देखें",
+      "send_email": "ईमेल भेजें",
+      "send_message": "संदेश भेजें",
+      "block_user": "ब्लॉक करें",
+      "unblock_user": "अनब्लॉक करें"
+    },
+    "alerts": {
+      "block_success": "ग्राहक को सफलतापूर्वक ब्लॉक किया गया",
+      "unblock_success": "ग्राहक को सफलतापूर्वक अनब्लॉक किया गया",
+      "sent_success": "{{type}} सफलतापूर्वक भेजा गया!",
+      "delivered_success": "{{type}} {{name}} को भेज दिया गया"
+    },
+    "errors": {
+      "fetch_failed": "ग्राहक लोड करने में विफल",
+      "fetch_profile": "प्रोफ़ाइल लोड करने में विफल",
+      "update_failed": "अपडेट करने में विफल"
+    },
+    "pagination": {
+      "showing": "दिखा रहा है",
+      "to": "से",
+      "of": "कुल"
+    }
+  },
+  "orders": {
+    "title": "ग्राहक के ऑर्डर",
+    "subtitle": "ग्राहक के पिछले ऑर्डर देखें",
+    "table": {
+      "order": "ऑर्डर आईडी",
+      "reference": "ऑर्डर आईडी",
+      "customer": "ग्राहक",
+      "manifest": "उत्पाद (Products)",
+      "amount": "राशि",
+      "status": "स्थिति"
+    },
+    "filters": {
+      "all": "सभी स्थिति",
+      "pending": "लंबित",
+      "confirmed": "पुष्टि",
+      "preparing": "तैयारी",
+      "delivered": "वितरित",
+      "cancelled": "रद्द"
+    },
+    "status": {
+      "delivered": "वितरित",
+      "cancelled": "रद्द",
+      "pending": "लंबित",
+      "confirmed": "पुष्टि",
+      "preparing": "तैयारी"
+    }
+  },
+  "modals": {
+    "profile": {
+      "title": "ग्राहक विवरण",
+      "info": "संपर्क जानकारी",
+      "wallet_info": "वॉलेट बैलेंस",
+      "history": "हाल के ऑर्डर",
+      "joined": "जुड़े:",
+      "last_login": "अंतिम लॉग-इन",
+      "addresses": "सहेजे गए पते",
+      "no_addresses": "कोई पता नहीं मिला",
+      "stats": {
+        "orders": "कुल ऑर्डर",
+        "spend": "कुल खर्च"
+      }
+    },
+    "message": {
+      "title": "{{type}} भेजें",
+      "subject": "विषय (Subject)",
+      "body": "संदेश",
+      "placeholder": "अपना संदेश यहाँ लिखें...",
+      "send": "अभी भेजें",
+      "sending": "भेजा जा रहा है..."
+    }
+  }
+}

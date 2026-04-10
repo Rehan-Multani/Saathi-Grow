@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { X, MapPin, Package, Archive, Truck, Users, Activity, BarChart3 } from 'lucide-react';
 
 const WarehouseDetailsModal = ({ show, onHide, warehouse, onEdit }) => {
@@ -36,7 +36,7 @@ const WarehouseDetailsModal = ({ show, onHide, warehouse, onEdit }) => {
                             <h5 className="text-xl font-bold text-gray-800">{warehouse.name}</h5>
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <span>ID: WH-{warehouse.id}</span>
-                                <span>₹</span>
+                                <span>?</span>
                                 <span className={`flex items-center gap-1 ${warehouse.status === 'Active' ? 'text-green-600' : 'text-amber-600'}`}>
                                     {warehouse.status}
                                 </span>

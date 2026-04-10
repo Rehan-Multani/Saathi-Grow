@@ -1,0 +1,13 @@
+{
+  "operational_command_center": "Dashboard",
+  "monitoring_global_operations": "Overview of your business performance",
+  "revenue": "Revenue",
+  "order_flow": "Total Orders",
+  "processing": "Pending Orders",
+  "active_market": "Customers",
+  "performance_trajectory": "Sales Overview",
+  "channel_split": "Order Sources",
+  "live_order_stream": "Recent Orders",
+  "view_all_history": "View All Orders",
+  "real_time_activity": "Latest orders from customers"
+}

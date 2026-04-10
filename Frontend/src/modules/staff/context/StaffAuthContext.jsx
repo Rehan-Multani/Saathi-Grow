@@ -1,5 +1,5 @@
-﻿import { createContext, useContext, useState, useEffect } from 'react';
-import { loginAdmin } from '../../admin/api/adminApi';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { loginAdmin } from '../../../common/api/adminApi';
 
 const StaffAuthContext = createContext();
 
@@ -11,18 +11,16 @@ export const StaffAuthProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : null;
     });
 
-    // Auto-refresh profile on mount to sync permissions/status
-    useEffect(() => {
-        if (staffUser?.token) {
-            refreshProfile();
-        }
+    const staffLogout = useCallback(() => {
+        setStaffUser(null);
+        localStorage.removeItem('saathigro_staff');
     }, []);
 
-    const refreshProfile = async () => {
+    const refreshProfile = useCallback(async () => {
+        if (!staffUser?.token) return;
         try {
-            const { getProfile } = await import('../../admin/api/adminApi');
+            const { getProfile } = await import('../../../common/api/adminApi');
             const data = await getProfile(staffUser.token);
-            // Sync user data keeping token
             const updatedUser = { ...data, token: staffUser.token };
             setStaffUser(updatedUser);
             localStorage.setItem('saathigro_staff', JSON.stringify(updatedUser));
@@ -32,9 +30,15 @@ export const StaffAuthProvider = ({ children }) => {
                 staffLogout();
             }
         }
-    };
+    }, [staffUser?.token, staffLogout]);
 
-    const staffLogin = async (email, password) => {
+    useEffect(() => {
+        if (staffUser?.token) {
+            refreshProfile();
+        }
+    }, [refreshProfile]);
+
+    const staffLogin = useCallback(async (email, password) => {
         try {
             const data = await loginAdmin(email, password);
             if (data.role !== 'Staff') {
@@ -46,22 +50,17 @@ export const StaffAuthProvider = ({ children }) => {
         } catch (error) {
             throw error;
         }
-    };
+    }, []);
 
-    const staffLogout = () => {
-        setStaffUser(null);
-        localStorage.removeItem('saathigro_staff');
-    };
-
-    const updateProfile = async (profileData) => {
+    const updateProfile = useCallback(async (profileData) => {
         if (!staffUser?.token) throw new Error('Not authenticated');
-        const { updateProfile: updateApi } = await import('../../admin/api/adminApi');
+        const { updateProfile: updateApi } = await import('../../../common/api/adminApi');
         const data = await updateApi(staffUser.token, profileData);
         const updatedUser = { ...data, token: staffUser.token };
         setStaffUser(updatedUser);
         localStorage.setItem('saathigro_staff', JSON.stringify(updatedUser));
         return updatedUser;
-    };
+    }, [staffUser?.token]);
 
     return (
         <StaffAuthContext.Provider value={{ staffUser, staffLogin, staffLogout, staffUpdateProfile: updateProfile }}>
@@ -69,4 +68,3 @@ export const StaffAuthProvider = ({ children }) => {
         </StaffAuthContext.Provider>
     );
 };
-

@@ -4,8 +4,8 @@ import { Plus, Edit, Trash2, Clock, ChevronLeft, ChevronRight } from 'lucide-rea
 import Swal from 'sweetalert2';
 import * as api from '../../api/deliverySlotApi';
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const DeliverySlots = () => {
     const { t } = useTranslation();

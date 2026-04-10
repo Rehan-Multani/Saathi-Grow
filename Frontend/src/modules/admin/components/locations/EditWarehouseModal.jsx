@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import { Save, X, Archive, MapPin, Maximize2 } from 'lucide-react';
 import Swal from 'sweetalert2';

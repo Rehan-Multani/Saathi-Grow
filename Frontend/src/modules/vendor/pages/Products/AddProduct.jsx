@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { useVendor } from '../../contexts/VendorContext';
-import { getCategories } from '../../../admin/api/categoryApi';
-import { getSubCategories } from '../../../admin/api/subcategoryApi';
-import { getBrands } from '../../../admin/api/brandApi';
+import { getCategories } from '../../../../common/api/categoryApi';
+import { getSubCategories } from '../../../../common/api/subcategoryApi';
+import { getBrands } from '../../../../common/api/brandApi';
 import { addVendorProduct, getVendorAISuggestions } from '../../api/vendorProductApi';
 import { toast } from 'react-toastify';
 

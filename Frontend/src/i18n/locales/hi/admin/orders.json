@@ -1,0 +1,104 @@
+{
+  "title": "ऑर्डर",
+  "subtitle": "सभी ग्राहक ऑर्डर्स और लेनदेन का प्रबंधन करें",
+  "online_orders_title": "ऑनलाइन ऑर्डर्स",
+  "online_orders_subtitle": "डिजिटल लेनदेन और ऑनलाइन डिलीवरी का प्रबंधन करें",
+  "pos_history_title": "पीओएस इतिहास",
+  "pos_history_subtitle": "सभी प्वाइंट-ऑफ-सेल (डायरेक्ट बिलिंग) लेनदेन का इतिहास",
+  "return_requests_title": "वापसी अनुरोध",
+  "return_requests_subtitle": "ग्राहक वापसी दावों और लॉजिस्टिक्स का प्रबंधन करें",
+  "total_count": "{{count}} कुल",
+  "search_placeholder": "खोजें...",
+  "export": "निर्यात",
+  "batch": "बैच",
+  "table": {
+    "id": "ऑर्डर आईडी",
+    "customer": "ग्राहक",
+    "source": "स्रोत",
+    "store": "शाखा / विक्रेता",
+    "date": "दिनांक",
+    "payment": "भुगतान",
+    "status": "स्थिति",
+    "amount": "राशि",
+    "actions": "कार्रवाई",
+    "reason": "कारण"
+  },
+  "filters": {
+    "title": "फिल्टर्स",
+    "clear_all": "सब साफ करें",
+    "apply": "लागू करें",
+    "status": {
+      "label": "स्थिति",
+      "all": "सभी स्थिति",
+      "pending": "लंबित",
+      "confirmed": "पुष्टि की गई",
+      "preparing": "प्रोसेसिंग",
+      "out_for_delivery": "डिलीवरी के लिए बाहर",
+      "delivered": "डिलीवर हो गया",
+      "cancelled": "रद्द"
+    },
+    "payment": {
+      "label": "भुगतान विधि",
+      "all": "सभी",
+      "cod": "सीओडी",
+      "online": "ऑनलाइन",
+      "wallet": "वॉलेट",
+      "cash": "नकद"
+    },
+    "p_status": {
+      "label": "भुगतान स्थिति",
+      "all": "सभी स्थिति",
+      "pending": "लंबित",
+      "paid": "भुगतान हो गया",
+      "failed": "विफल"
+    }
+  },
+  "status": {
+    "delivered": "डिलीवर हो गया",
+    "pending": "लंबित",
+    "preparing": "प्रोसेसिंग",
+    "confirmed": "पुष्टि की गई",
+    "out_for_delivery": "डिलीवरी के लिए बाहर",
+    "cancelled": "रद्द",
+    "return_requested": "वापसी का अनुरोध किया",
+    "returned": "वापस हो गया",
+    "accepted": "स्वीकार किया",
+    "scheduled": "निर्धारित",
+    "rejected": "अस्वीकार",
+    "pickedup": "पिक अप हो गया"
+  },
+  "tabs": {
+    "pending": "लंबित",
+    "accepted": "स्वीकृत",
+    "scheduled": "लॉजिस्टिक्स",
+    "history": "पुरालेख"
+  },
+  "stats": {
+    "total_online": "कुल ऑनलाइन",
+    "paid_orders": "भुगतान किया गया",
+    "pending_payment": "लंबित भुगतान",
+    "revenue": "कुल बिक्री"
+  },
+  "actions": {
+    "view": "देखें",
+    "update": "अपडेट",
+    "delete": "हटाएं",
+    "delete_confirm_title": "रिकॉर्ड हटाएं?",
+    "delete_confirm_text": "क्या आप वाकई इस रिकॉर्ड को हटाना चाहते हैं?",
+    "delete_success": "सफलतापूर्वक हटा दिया गया",
+    "update_status_title": "स्थिति अपडेट करें",
+    "update_status_placeholder": "स्थिति चुनें...",
+    "update_success": "स्थिति अपडेट हो गई",
+    "approve_title": "दावा मंजूर करें?",
+    "reject_title": "दावा अस्वीकार करें?",
+    "reason_placeholder": "कारण दर्ज करें...",
+    "schedule_pickup": "पिकअप निर्धारित करें"
+  },
+  "empty": {
+    "title": "कोई रिकॉर्ड नहीं",
+    "text": "यहाँ सब साफ है।",
+    "no_orders": "कोई ऑर्डर नहीं मिला",
+    "no_returns": "कोई वापसी दावा नहीं मिला",
+    "no_pos_orders": "कोई पीओएस इतिहास नहीं मिला"
+  }
+}

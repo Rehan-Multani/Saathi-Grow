@@ -51,7 +51,7 @@ const StoreManagerLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900">
+        <div className="min-h-screen bg-[#f8fafc] flex font-sans selection:bg-blue-100 selection:text-blue-900 manager-portal-root animate-page-entry">
             <FirebaseNotificationHandler token={managerToken} role="store-manager" />
             <StoreManagerSidebar
                 showMobile={showMobileSidebar}
@@ -59,80 +59,98 @@ const StoreManagerLayout = () => {
             />
 
             <div className="flex-1 flex flex-col min-h-screen lg:ml-[240px] w-full transition-all duration-300">
-                {/* Professional Compact Header */}
-                <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between">
+                {/* Professional Fixed Glass Header */}
+                <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-4">
                         <button
-                            className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all"
+                            className="lg:hidden p-2.5 rounded-xl text-slate-600 hover:bg-slate-100/80 transition-all active:scale-95"
                             onClick={() => setShowMobileSidebar(true)}
                         >
                             <Menu size={20} />
                         </button>
-                        <div>
-                            <h1 className="text-lg font-bold text-slate-900 tracking-tight">{getPageTitle()}</h1>
-                            <p className="text-[10px] text-slate-500 font-medium">Store Management Portal</p>
+                        <div className="flex flex-col">
+                            <h1 className="text-sm lg:text-base font-extrabold text-slate-900 tracking-tight leading-none mb-0.5">{getPageTitle()}</h1>
+                            <div className="flex items-center gap-1.5">
+                                <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.05em] leading-none">Store Management Portal</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-
+                    <div className="flex items-center gap-2 lg:gap-5">
                         {/* Notifications */}
                         <button 
                             onClick={() => navigate('/store-manager/notifications')}
-                            className="relative p-2 rounded-lg text-slate-500 hover:bg-slate-50 transition-all"
+                            className="relative p-2.5 rounded-xl text-slate-500 hover:bg-slate-100/80 hover:text-blue-600 transition-all active:scale-95 group"
                         >
-                            <Bell size={20} />
+                            <Bell size={20} className="group-hover:animate-bounce" />
                             {unreadCount > 0 && (
-                                <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 border border-white rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
+                                <span className="absolute top-2 right-2 w-4 h-4 bg-rose-500 border-2 border-white rounded-full flex items-center justify-center text-[8px] text-white font-black animate-pulse">
                                     {unreadCount > 9 ? '9+' : unreadCount}
                                 </span>
                             )}
                         </button>
 
-                        <div className="h-6 w-px bg-slate-200"></div>
+                        <div className="h-6 w-px bg-slate-200 mx-1"></div>
 
                         {/* Profile Dropdown */}
                         <div className="relative">
                             <button
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                className="flex items-center gap-3 p-1 rounded-lg hover:bg-slate-50 transition-all"
+                                className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-100/80 transition-all active:scale-95 border border-transparent hover:border-slate-200"
                             >
-                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xs uppercase overflow-hidden">
+                                <div className="w-8 h-8 lg:w-9 lg:h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center font-black text-white text-xs uppercase shadow-md shadow-blue-200 overflow-hidden ring-2 ring-white">
                                     {managerUser?.profileImage ? (
                                         <img src={managerUser.profileImage} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
                                         (managerUser?.name || 'M').charAt(0)
                                     )}
                                 </div>
-                                <div className="text-left hidden lg:block">
+                                <div className="text-left hidden md:block">
                                     <div className="flex items-center gap-1">
-                                        <span className="text-sm font-semibold text-slate-800">{managerUser?.name || 'Manager'}</span>
-                                        <ChevronDown size={14} className={`text-slate-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+                                        <span className="text-xs font-extrabold text-slate-800">{managerUser?.name || 'Manager'}</span>
+                                        <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${showProfileMenu ? 'rotate-180' : ''}`} />
                                     </div>
+                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-0.5">Admin Access</p>
                                 </div>
                             </button>
 
                             {showProfileMenu && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
-                                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="px-4 py-3 border-b border-slate-100 mb-1">
-                                            <p className="text-xs font-medium text-slate-500">Logged in as</p>
-                                            <p className="text-sm font-semibold text-slate-800 truncate">{managerUser?.email || 'manager@saathigro.corp'}</p>
+                                    <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-slate-200/60 z-50 py-2.5 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                        <div className="px-4 py-3 border-b border-slate-50 mb-1.5">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Connected Session</p>
+                                            <p className="text-xs font-bold text-slate-900 truncate">{managerUser?.email || 'manager@saathigro.corp'}</p>
                                         </div>
-                                        <div className="px-1">
+                                        <div className="px-1.5 space-y-0.5">
                                             <button
                                                 onClick={() => { navigate('/store-manager/profile'); setShowProfileMenu(false); }}
-                                                className="w-full flex items-center px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-all"
+                                                className="w-full flex items-center px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-all group"
                                             >
-                                                <User size={16} className="mr-2 text-slate-400" /> Profile Settings
+                                                <div className="p-1.5 bg-slate-50 rounded-lg mr-3 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                                    <User size={14} />
+                                                </div>
+                                                Profile Command Center
                                             </button>
-                                            <div className="my-1 border-t border-slate-100"></div>
+                                            <button
+                                                onClick={() => { navigate('/store-manager/settings'); setShowProfileMenu(false); }}
+                                                className="w-full flex items-center px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-xl transition-all group"
+                                            >
+                                                <div className="p-1.5 bg-slate-50 rounded-lg mr-3 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                                    <Settings size={14} />
+                                                </div>
+                                                System Preferences
+                                            </button>
+                                            <div className="my-1.5 border-t border-slate-50 mx-2"></div>
                                             <button
                                                 onClick={handleLogout}
-                                                className="w-full flex items-center px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                className="w-full flex items-center px-3 py-2.5 text-xs font-black text-rose-600 hover:bg-rose-50 rounded-xl transition-all group"
                                             >
-                                                <LogOut size={16} className="mr-2" /> Logout
+                                                <div className="p-1.5 bg-rose-50 rounded-lg mr-3 text-rose-500 transition-colors">
+                                                    <LogOut size={14} />
+                                                </div>
+                                                Terminate Session
                                             </button>
                                         </div>
                                     </div>

@@ -5,8 +5,8 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getSalesReports, exportSalesCSV } from '../../api/reportApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../components/common/PageInfoTooltip';
-import { pageInfoData } from '../../data/pageInfoData';
+import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const SalesReports = () => {
     const { t } = useTranslation();

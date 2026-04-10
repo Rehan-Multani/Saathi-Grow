@@ -1426,19 +1426,25 @@ export const getInventoryStats = async (req, res) => {
     const { branchId, role } = req.admin;
     const targetBranchId = (role !== 'Admin') ? branchId : req.query.branchId;
 
-    let matchQuery = {};
+    const isBranchProductMatch = { 
+      status: { $ne: 'Draft' },
+      vendor: null 
+    };
+
+    let matchQuery = { ...isBranchProductMatch };
     if (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId)) {
       matchQuery['branchStocks.branchId'] = new mongoose.Types.ObjectId(targetBranchId);
     }
 
     // 1. Basic KPI Stats
     const statsResult = await Product.aggregate([
-      { $match: { status: { $ne: 'Draft' } } },
+      { $match: { status: { $ne: 'Draft' } } }, // Overall pool (can be branch or vendor)
       {
         $facet: {
           branchMetrics: [
-            { $match: matchQuery },
             { $unwind: "$branchStocks" },
+            { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
+            { $match: matchQuery },
             {
               $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
                 ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
@@ -1510,8 +1516,9 @@ export const getInventoryStats = async (req, res) => {
       {
           $facet: {
               branchDist: [
-                  { $match: matchQuery },
                   { $unwind: "$branchStocks" },
+                  { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
+                  { $match: matchQuery },
                   {
                       $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
                           ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
@@ -1543,9 +1550,11 @@ export const getInventoryStats = async (req, res) => {
     // 3. Branch Health (If Super Admin)
     let branchHealth = [];
     if (!targetBranchId || targetBranchId === 'all') {
-      branchHealth = await Product.aggregate([
-        { $match: { status: { $ne: 'Draft' } } },
+      const allBranches = await Branch.find({ isActive: true }).select('name code branchCode');
+      const branchStats = await Product.aggregate([
+        { $match: isBranchProductMatch },
         { $unwind: "$branchStocks" },
+        { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
         {
           $group: {
             _id: "$branchStocks.branchId",
@@ -1564,38 +1573,35 @@ export const getInventoryStats = async (req, res) => {
             },
             totalStock: { $sum: "$branchStocks.stock" }
           }
-        },
-        {
-          $lookup: {
-            from: 'branches',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'branchInfo'
-          }
-        },
-        { $unwind: "$branchInfo" },
-        {
-          $project: {
-            name: "$branchInfo.name",
-            code: "$branchInfo.branchCode",
-            totalProducts: 1,
-            lowStock: 1,
-            outOfStock: 1,
-            totalStock: 1,
-            healthScore: {
-              $subtract: [
-                100, 
-                { 
-                  $multiply: [
-                    { $divide: [{ $add: ["$lowStock", "$outOfStock"] }, "$totalProducts"] }, 
-                    100
-                  ] 
-                }
-              ]
-            }
-          }
         }
       ]);
+
+      branchHealth = allBranches.map(branch => {
+        const stats = branchStats.find(s => s._id?.toString() === branch._id.toString()) || {
+          totalProducts: 0,
+          lowStock: 0,
+          outOfStock: 0,
+          totalStock: 0
+        };
+
+        const totalIssues = stats.lowStock + stats.outOfStock;
+        // If there are no products, health is technically 100% or we can designate a value.
+        // If there are products but all are out of stock/low, health goes down.
+        const healthScore = stats.totalProducts > 0 
+          ? Math.max(0, 100 - ((totalIssues / stats.totalProducts) * 100))
+          : 100;
+
+        return {
+          _id: branch._id,
+          name: branch.name,
+          code: branch.code || branch.branchCode || 'N/A',
+          totalProducts: stats.totalProducts,
+          lowStock: stats.lowStock,
+          outOfStock: stats.outOfStock,
+          totalStock: stats.totalStock,
+          healthScore
+        };
+      });
     }
 
     // 4. Critical Items (Top 10 Low Stock - Branch + Vendor)
@@ -1604,8 +1610,9 @@ export const getInventoryStats = async (req, res) => {
         {
             $facet: {
                 branchCritical: [
-                    { $match: matchQuery },
                     { $unwind: "$branchStocks" },
+                    { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
+                    { $match: matchQuery },
                     {
                         $match: (targetBranchId && targetBranchId !== 'vendor' && mongoose.Types.ObjectId.isValid(targetBranchId))
                             ? { "branchStocks.branchId": new mongoose.Types.ObjectId(targetBranchId) }
@@ -1712,12 +1719,16 @@ export const getBranchWiseStock = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const limitNum = parseInt(limit);
 
-    let initialMatch = { vendor: { $exists: false } }; // Exclude vendor products as they don't have branchStocks
+    let initialMatch = { 
+      vendor: null,
+      status: { $ne: 'Draft' }
+    };
 
     // Aggregation Pipeline
     const pipeline = [
       { $match: initialMatch },
-      { $unwind: "$branchStocks" }
+      { $unwind: "$branchStocks" },
+      { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } }
     ];
 
     // Branch Scoping
@@ -1875,6 +1886,7 @@ export const getLowStockAlerts = async (req, res) => {
               } 
             },
             { $unwind: "$branchStocks" },
+            { $addFields: { "branchStocks.branchId": { $toObjectId: "$branchStocks.branchId" } } },
             { 
               $match: { 
                 $expr: { $lte: ["$branchStocks.stock", { $ifNull: ["$branchStocks.lowStockThreshold", 10] }] } 

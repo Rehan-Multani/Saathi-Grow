@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Modal, Form, Spinner } from 'react-bootstrap';
 import { MessageSquare, Send, ArrowUpRight, CheckCircle, Search, Filter, Loader2, Package, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStaffAuth } from '../../context/StaffAuthContext';
-import * as complaintApi from '../../../admin/api/complaintApi';
+import * as complaintApi from '../../../../common/api/complaintApi';
 import { toast } from 'react-toastify';
 
 const StaffTickets = () => {

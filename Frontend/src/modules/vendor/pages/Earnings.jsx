@@ -5,7 +5,7 @@ import {
     Building2, Pencil, Trash2, Plus, CreditCard, ShieldCheck
 } from 'lucide-react';
 import { useVendor } from '../contexts/VendorContext';
-import { formatCurrency } from '../utils/formatDate';
+import { formatCurrency } from '../../../common/utils/formatUtils';
 import * as vendorWalletApi from '../api/vendorWalletApi';
 import { toast } from 'react-toastify';
 
