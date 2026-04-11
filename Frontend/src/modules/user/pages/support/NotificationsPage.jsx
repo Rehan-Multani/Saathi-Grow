@@ -60,16 +60,16 @@ const NotificationsPage = () => {
                     >
                         <ArrowLeft size={16} />
                     </button>
-                    <h1 className="!text-[13px] font-black text-gray-900 dark:text-gray-100 tracking-tight">Notifications</h1>
+                    <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Notifications</h1>
                 </div>
 
                 {/* Notifications List */}
                 <div className="px-0 md:px-4 pt-20 border-t border-transparent md:pt-0">
-                    <div className="flex justify-between items-center mb-2 px-4 md:px-2">
-                        <p className="!text-[8px] font-bold text-gray-400 tracking-widest uppercase">RECENTLY RECEIVED</p>
+                    <div className="flex justify-between items-center mb-4 px-4 md:px-2">
+                        <p className="text-sm font-semibold text-slate-500">Recently Received</p>
                         {notifications.length > 0 && (
-                            <button onClick={markAllAsRead} className="!text-[8px] text-saathi-green font-bold tracking-widest uppercase">
-                                MARK ALL READ
+                            <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                                Mark all as read
                             </button>
                         )}
                     </div>
@@ -83,21 +83,21 @@ const NotificationsPage = () => {
                             {notifications.map((item) => (
                                 <div
                                     key={item._id}
-                                    className={`w-full py-3 px-4 md:px-4 flex items-start gap-4 transition-all border-b border-gray-100 dark:border-white/5 md:border md:rounded-2xl md:shadow-sm ${item.isRead ? 'opacity-60 bg-transparent' : 'bg-white dark:bg-[#141414]'}`}
+                                    className={`w-full py-4 px-4 flex items-start gap-4 transition-all border-b border-slate-100 dark:border-white/5 md:border md:rounded-2xl md:shadow-sm ${item.isRead ? 'bg-transparent opacity-75' : 'bg-white dark:bg-slate-900'}`}
                                 >
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100 dark:border-white/10 ${!item.isRead ? 'bg-green-50' : 'bg-gray-50'}`}>
-                                        <Bell size={18} className={!item.isRead ? 'text-[#0c831f]' : 'text-gray-400'} />
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm border ${!item.isRead ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                        <Bell size={20} />
                                     </div>
-                                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                        <div className="flex justify-between items-center mb-0.5">
-                                            <h4 className={`!text-[11px] font-black leading-none ${item.isRead ? 'text-gray-500' : 'text-gray-800 dark:text-gray-100'}`}>
+                                    <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+                                        <div className="flex justify-between items-start">
+                                            <h4 className={`text-base font-semibold leading-tight ${item.isRead ? 'text-slate-600' : 'text-slate-800 dark:text-slate-100'}`}>
                                                 {item.title}
                                             </h4>
-                                            <span className="!text-[7px] text-gray-400 font-bold uppercase tracking-widest">
+                                            <span className="text-xs text-slate-400 font-medium whitespace-nowrap ml-2">
                                                 {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                                             </span>
                                         </div>
-                                        <p className={`!text-[8.5px] font-medium leading-relaxed line-clamp-2 ${item.isRead ? 'text-gray-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                        <p className={`text-sm leading-relaxed ${item.isRead ? 'text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
                                             {item.body}
                                         </p>
                                     </div>
@@ -110,10 +110,10 @@ const NotificationsPage = () => {
                 {notifications.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-24 text-center px-6">
                         <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                            <Bell size={32} className="text-gray-300" />
+                            <Bell size={32} className="text-slate-300" />
                         </div>
-                        <h2 className="!text-[14px] font-black text-gray-900 dark:text-gray-100 mb-2 tracking-tight">All caught up!</h2>
-                        <p className="!text-[10px] text-gray-400 font-medium max-w-[200px]">No new notifications to show right now.</p>
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">All caught up!</h2>
+                        <p className="text-sm text-slate-500 font-medium">No new notifications to show right now.</p>
                     </div>
                 )}
             </div>

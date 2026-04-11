@@ -171,7 +171,9 @@ import promoCodeRoutes from './routes/promoCodeRoutes.js';
 import userProfileRoutes from './routes/userProfileRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import adminCategoryPageRoutes from './routes/adminCategoryPageRoutes.js';
+import physicalLocationRoutes from './routes/physicalLocationRoutes.js';
 import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './middleware/authMiddleware.js';
+
 
 
 // Use Routes
@@ -181,6 +183,7 @@ app.use('/api/user', userProfileRoutes);
 app.use('/api/admin/users', userRoutes);
 app.use('/api/admin/branches', branchRoutes);
 app.use('/api/admin/vendors', vendorRoutes);
+app.use('/api/admin/locations', physicalLocationRoutes);
 app.use('/api/vendors', vendorPortalRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/brands', brandRoutes);

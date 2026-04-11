@@ -9,6 +9,7 @@ import Brand from '../models/Brand.js';
 import { generateProductDescription, generateProductTags, analyzeSearchQuery } from '../utils/aiService.js';
 import QRCode from 'qrcode';
 import { sendPushNotification } from '../services/notificationService.js';
+import { syncLocationAssignment } from './physicalLocationController.js';
 
 // Helper to determine status based on total stock
 const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshold = null) => {
@@ -221,6 +222,18 @@ export const createProduct = async (req, res) => {
         newStock: normalizedVendorStock,
         type: 'Addition',
         reason: 'Initial Product Creation'
+      });
+    }
+
+    // Sync physical location assignment
+    if (physicalLocation) {
+      // For admin products, scope to first branch if multiple
+      const firstBranchId = parsedBranchStocks?.[0]?.branchId || null;
+      await syncLocationAssignment({
+        newLabel: physicalLocation,
+        productId: product._id.toString(),
+        branchId: firstBranchId,
+        vendorId: vendor || null
       });
     }
 
@@ -1039,6 +1052,15 @@ export const updateProduct = async (req, res) => {
       }
 
       const updatedProduct = await product.save();
+
+      // Sync physical location assignment
+      await syncLocationAssignment({
+        newLabel: updatedProduct.physicalLocation || null,
+        productId: updatedProduct._id.toString(),
+        branchId: updatedProduct.branchStocks?.[0]?.branchId?.toString() || null,
+        vendorId: updatedProduct.vendor ? updatedProduct.vendor.toString() : null
+      });
+
       res.json(updatedProduct);
     } else {
       res.status(404).json({ message: 'Product not found' });

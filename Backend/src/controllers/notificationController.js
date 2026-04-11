@@ -3,6 +3,7 @@ import Admin from '../models/Admin.js';
 import Vendor from '../models/Vendor.js';
 import DeliveryPartner from '../models/DeliveryPartner.js';
 import Notification from '../models/Notification.js';
+import { sendPushNotification, notifyAllUsers, notifyAdmins, notifyUsers } from '../services/notificationService.js';
 
 export const updateFCMToken = async (req, res) => {
   try {
@@ -59,18 +60,26 @@ export const getMyNotifications = async (req, res) => {
     let recipientId;
     let recipientModel;
 
+    let broadcastGroups = ['all'];
+
     if (req.user) {
       recipientId = req.user._id;
       recipientModel = 'User';
+      broadcastGroups.push('users');
     } else if (req.admin) {
       recipientId = req.admin._id;
-      recipientModel = 'Admin'; // Fixed recipientModel for Admin
+      recipientModel = 'Admin'; 
+      if (req.admin.role === 'Staff') broadcastGroups.push('staff');
+      else if (req.admin.role === 'Branch Manager') broadcastGroups.push('branch_managers', 'staff');
+      else broadcastGroups.push('staff', 'branch_managers');
     } else if (req.vendor) {
       recipientId = req.vendor._id;
       recipientModel = 'Vendor';
+      broadcastGroups.push('vendors');
     } else if (req.partner) {
       recipientId = req.partner._id;
       recipientModel = 'DeliveryPartner';
+      broadcastGroups.push('delivery_partners');
     }
 
     if (!recipientId) {
@@ -82,8 +91,10 @@ export const getMyNotifications = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const query = {
-      recipient: recipientId,
-      recipientModel: recipientModel
+      $or: [
+        { recipient: recipientId, recipientModel: { $in: [recipientModel, 'Staff'] } },
+        { isBroadcast: true, targetGroup: { $in: broadcastGroups } }
+      ]
     };
 
     const total = await Notification.countDocuments(query);
@@ -142,7 +153,10 @@ export const markAllRead = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthenticated' });
     }
 
-    await Notification.updateMany({ recipient: recipientId }, { isRead: true });
+    await Notification.updateMany(
+      { recipient: recipientId, isRead: false }, 
+      { isRead: true }
+    );
     res.status(200).json({ success: true, message: 'All marked as read' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -160,6 +174,7 @@ export const getUnreadCount = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthenticated' });
     }
 
+    // Only count individual unread, broadcasts are tricky to track without individual marks
     const count = await Notification.countDocuments({
       recipient: recipientId,
       isRead: false
@@ -204,6 +219,19 @@ export const adminSendNotification = async (req, res) => {
     };
 
     const record = await Notification.create(notificationData);
+
+    // Trigger FCM Push dispatch (without re-saving since skipSave=true is used internally or passed below)
+    if (targetType === 'broadcast') {
+       if (group === 'users' || group === 'all') {
+         notifyAllUsers({ title, body }, { type: 'admin_broadcast' });
+       }
+       if (group === 'staff' || group === 'branch_managers' || group === 'all') {
+         notifyAdmins({ title, body }, { type: 'admin_broadcast' });
+       }
+    } else {
+       sendPushNotification(recipientId, finalRecipientModel, { title, body }, { type: 'individual' }, true);
+    }
+
     res.status(200).json({ success: true, message: 'Notification processed', record });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

@@ -20,6 +20,13 @@ import {
 } from '../controllers/vendorProductController.js';
 import { getBranches } from '../controllers/branchController.js';
 import {
+  getVendorLocations,
+  getAvailableVendorLocations,
+  createVendorLocation,
+  updateVendorLocation,
+  deleteVendorLocation
+} from '../controllers/physicalLocationController.js';
+import {
   getVendorReturnRequests,
   handleStoreReturnAction,
   getVendorOrders,
@@ -71,6 +78,14 @@ router.route('/products/:id/stock')
 
 router.post('/products/ai-suggestions', protectVendor, getVendorAISuggestions);
 router.get('/branches', protectVendor, getBranches);
+
+// Vendor Physical Location Management (their own store)
+router.get('/locations', protectVendor, getVendorLocations);
+router.get('/locations/available', protectVendor, getAvailableVendorLocations);
+router.post('/locations', protectVendor, createVendorLocation);
+router.put('/locations/:id', protectVendor, updateVendorLocation);
+router.delete('/locations/:id', protectVendor, deleteVendorLocation);
+
 router.get('/orders', protectVendor, getVendorOrders);
 router.put('/orders/:id/status', protectVendor, updateVendorOrderStatus);
 

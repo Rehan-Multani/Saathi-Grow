@@ -9,6 +9,7 @@ import { getCategories } from '../../../../common/api/categoryApi';
 import { getSubCategories } from '../../../../common/api/subcategoryApi';
 import { getBrands } from '../../../../common/api/brandApi';
 import { updateVendorProduct, getVendorAISuggestions } from '../../api/vendorProductApi';
+import { getAvailableVendorLocations } from '../../api/vendorLocationApi';
 import { toast } from 'react-toastify';
 
 const EditProduct = () => {
@@ -25,6 +26,7 @@ const EditProduct = () => {
     const [filteredSubCategories, setFilteredSubCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
+    const [availableLocations, setAvailableLocations] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -108,6 +110,14 @@ const EditProduct = () => {
             fetchData();
         }
     }, [vendor.token]);
+
+    // Fetch available locations for this product (includes currently assigned)
+    useEffect(() => {
+        if (!vendor?.token || !productId) return;
+        getAvailableVendorLocations(vendor.token, productId)
+            .then(data => setAvailableLocations(Array.isArray(data) ? data : []))
+            .catch(() => setAvailableLocations([]));
+    }, [vendor?.token, productId]);
 
 
 
@@ -305,6 +315,28 @@ const EditProduct = () => {
                                         <Form.Group className="mb-3">
                                             <Form.Label className="small">Alert At</Form.Label>
                                             <Form.Control type="number" name="lowStockThreshold" value={formData.lowStockThreshold} onChange={handleChange} className="text-xs" />
+                                        </Form.Group>
+                                    </Col>
+                                     <Col md={3}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="small">Physical Location</Form.Label>
+                                            {availableLocations.length > 0 ? (
+                                                <Form.Select name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} className="text-xs">
+                                                    <option value="">— Not Assigned —</option>
+                                                    {availableLocations.map(loc => (
+                                                        <option key={loc._id} value={loc.label}>{loc.label}{loc.description ? ` (${loc.description})` : ''}</option>
+                                                    ))}
+                                                </Form.Select>
+                                            ) : (
+                                                <Form.Control
+                                                    type="text"
+                                                    placeholder="No locations — type manually"
+                                                    name="physicalLocation"
+                                                    value={formData.physicalLocation}
+                                                    onChange={handleChange}
+                                                    className="text-xs"
+                                                />
+                                            )}
                                         </Form.Group>
                                     </Col>
                                     <Col md={3}>

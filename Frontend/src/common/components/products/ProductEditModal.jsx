@@ -11,6 +11,7 @@ import { useAdminAuth } from '../../../modules/admin/context/AdminAuthContext';
 import { useStaffAuth } from '../../../modules/staff/context/StaffAuthContext';
 import { useStoreManagerAuth } from '../../../modules/store-manager/context/StoreManagerAuthContext';
 import { getAISuggestions } from '../../api/productApi';
+import { getAvailableAdminLocations } from '../../../modules/admin/api/physicalLocationApi';
 import { toast } from 'react-toastify';
 
 const ProductEditModal = ({ show, onHide, product, onSave }) => {
@@ -31,6 +32,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [branches, setBranches] = useState([]);
     const [branchStocks, setBranchStocks] = useState([]);
     const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
+    const [availableLocations, setAvailableLocations] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '', brandName: '', category: '', subCategory: '', basePrice: 0, mrp: 0,
@@ -81,6 +83,16 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             });
             setBranchStocks(activeStocks);
             setImagePreview(product.image || null);
+
+            // Fetch available locations for the first branch of this product
+            if (adminUser?.token && !product.vendor) {
+                const firstBranchId = (product.branchStocks || [])[0]?.branchId?._id || (product.branchStocks || [])[0]?.branchId;
+                if (firstBranchId) {
+                    getAvailableAdminLocations(adminUser.token, firstBranchId.toString(), product._id)
+                        .then(data => setAvailableLocations(Array.isArray(data) ? data : []))
+                        .catch(() => setAvailableLocations([]));
+                }
+            }
         }
     }, [product, show, branches]);
 
@@ -238,6 +250,22 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         <label className="text-sm font-semibold text-slate-700">{t('fields.unit_value')}</label>
                                         <input type="number" name="unitValue" value={formData.unitValue} onChange={handleChange} step="0.01" className="form-input-simple" />
                                     </div>
+                                    {!isVendorProduct && (
+                                        <div className="space-y-2 col-span-2 lg:col-span-4">
+                                            <label className="text-sm font-semibold text-slate-700">Physical Location</label>
+                                            {availableLocations.length > 0 ? (
+                                                <select name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} className="form-input-simple">
+                                                    <option value="">— Not Assigned —</option>
+                                                    {availableLocations.map(loc => (
+                                                        <option key={loc._id} value={loc.label}>{loc.label}{loc.description ? ` (${loc.description})` : ''}</option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <input type="text" name="physicalLocation" value={formData.physicalLocation} onChange={handleChange}
+                                                    placeholder="No locations set up — type manually" className="form-input-simple" />
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

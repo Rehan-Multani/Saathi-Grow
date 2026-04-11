@@ -17,7 +17,7 @@ const CACHE_TTL = 10000; // 10 seconds
  * @param {object} notification - { title: string, body: string }
  * @param {object} data - Optional extra data payload
  */
-export const sendPushNotification = async (recipientId, recipientModel, notification, data = {}) => {
+export const sendPushNotification = async (recipientId, recipientModel, notification, data = {}, skipSave = false) => {
   try {
     if (!isFirebaseInitialized) {
       // Allow the API to keep working even if Firebase credentials are missing/misconfigured.
@@ -45,17 +45,19 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
     }
 
     // PERSISTENCE: Save to database for history (Save even if no token for in-app history)
-    try {
-      await Notification.create({
-        recipient: recipientId,
-        recipientModel: recipientModel === 'Admin' || recipientModel === 'Branch' ? 'Staff' : recipientModel,
-        title: notification.title,
-        body: notification.body,
-        data: data,
-        type: data.type || 'general'
-      });
-    } catch (saveError) {
-      console.error('Error saving notification to DB:', saveError.message);
+    if (!skipSave) {
+      try {
+        await Notification.create({
+          recipient: recipientId,
+          recipientModel: recipientModel === 'Admin' || recipientModel === 'Branch' ? 'Staff' : recipientModel,
+          title: notification.title,
+          body: notification.body,
+          data: data,
+          type: data.type || 'general'
+        });
+      } catch (saveError) {
+        console.error('Error saving notification to DB:', saveError.message);
+      }
     }
 
     if (!recipient || !recipient.fcmToken) {
@@ -100,7 +102,7 @@ export const notifyAdmins = async (notification, data = {}) => {
   try {
     const admins = await Admin.find({ isActive: true });
     for (const admin of admins) {
-      await sendPushNotification(admin._id, 'Admin', notification, data);
+      await sendPushNotification(admin._id, 'Admin', notification, data, true);
     }
   } catch (error) {
     console.error('Error notifying admins:', error);
@@ -131,11 +133,11 @@ export const notifyByBranchAndPermission = async (permission, branchId, notifica
       const allRecipients = [...new Map([...staff, ...superAdmins].map(item => [item._id.toString(), item])).values()];
       
       for (const recipient of allRecipients) {
-        await sendPushNotification(recipient._id, 'Admin', notification, data);
+        await sendPushNotification(recipient._id, 'Admin', notification, data, true);
       }
     } else {
       for (const s of staff) {
-        await sendPushNotification(s._id, 'Admin', notification, data);
+        await sendPushNotification(s._id, 'Admin', notification, data, true);
       }
     }
   } catch (error) {
@@ -149,7 +151,7 @@ export const notifyByBranchAndPermission = async (permission, branchId, notifica
 export const notifyUsers = async (userIds, notification, data = {}) => {
   try {
     for (const id of userIds) {
-      await sendPushNotification(id, 'User', notification, data);
+      await sendPushNotification(id, 'User', notification, data, true);
     }
   } catch (error) {
     console.error('Error notifying users:', error);
@@ -163,7 +165,7 @@ export const notifyAllUsers = async (notification, data = {}) => {
   try {
     const users = await User.find({ status: 'Active' }, '_id');
     for (const user of users) {
-      await sendPushNotification(user._id, 'User', notification, data);
+      await sendPushNotification(user._id, 'User', notification, data, true);
     }
   } catch (error) {
     console.error('Error in notifyAllUsers:', error);

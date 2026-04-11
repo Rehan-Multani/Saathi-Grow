@@ -22,6 +22,25 @@ import PromoUsage from '../models/PromoUsage.js';
 import { sendPushNotification, notifyByBranchAndPermission } from '../services/notificationService.js';
 import { sendSystemNotificationEmail } from '../services/emailService.js';
 
+/**
+ * Enrich order items with physicalLocation from the product document.
+ * This ensures receivers/pickers can locate products in the warehouse/store.
+ */
+const enrichItemsWithLocations = async (items) => {
+  return Promise.all(items.map(async (item) => {
+    try {
+      const productId = item.product?._id || item.product;
+      const product = await Product.findById(productId).select('physicalLocation').lean();
+      return {
+        ...item,
+        physicalLocation: product?.physicalLocation || item.physicalLocation || null
+      };
+    } catch (_) {
+      return item;
+    }
+  }));
+};
+
 const validateStoreDistance = async (storeId, storeType, userLocation) => {
   if (!storeId || !userLocation || !userLocation.coordinates || userLocation.coordinates.length < 2) return true;
 
@@ -319,11 +338,14 @@ export const verifyRazorpayPayment = async (req, res) => {
     // Recompute bill to guarantee no manipulation during payment verify leap
     const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
 
+    // Enrich items with physicalLocation for receiver picking
+    const enrichedItems = await enrichItemsWithLocations(orderData.items);
+
     // Setup Document safely
     const order = new Order({
       orderId: 'SG-' + Date.now().toString(),
       user: req.user._id,
-      items: orderData.items,
+      items: enrichedItems,
       shippingAddress: orderData.shippingAddress,
       paymentMethod: 'online',
       paymentStatus: 'paid', // Mark as paid for razorpay
@@ -814,10 +836,13 @@ export const createCODOrder = async (req, res) => {
     // Always recompute on backend. NEVER trust frontend amount
     const computedBill = await computeBillDetails(orderData.items, { promoId: orderData.promoId, userId: req.user._id });
 
+    // Enrich items with physicalLocation for receiver picking
+    const enrichedCODItems = await enrichItemsWithLocations(orderData.items);
+
     const order = new Order({
       orderId: 'SG-' + Date.now().toString(),
       user: req.user._id,
-      items: orderData.items,
+      items: enrichedCODItems,
       shippingAddress: orderData.shippingAddress,
       paymentMethod: 'cod',
       paymentStatus: 'pending',

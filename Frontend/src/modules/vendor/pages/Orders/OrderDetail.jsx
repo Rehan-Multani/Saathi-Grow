@@ -124,8 +124,9 @@ const OrderDetail = () => {
                                         )}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-bold text-gray-900">{item.product?.name || 'Unknown Product'}</p>
-                                        <p className="text-xs text-gray-500">Qty: {item.quantity} × {formatCurrency(item.price)}</p>
+                                        <p className="text-sm font-bold text-gray-900">{item.product?.name || item.name || 'Unknown Product'}</p>
+                                        {item.physicalLocation && <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1 mt-0.5"><MapPin size={10} className="text-amber-500" />{item.physicalLocation}</p>}
+                                        <p className="text-xs text-gray-500">Qty: {item.quantity} ï¿½ {formatCurrency(item.price)}</p>
                                     </div>
                                     <p className="text-sm font-bold text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
                                 </div>

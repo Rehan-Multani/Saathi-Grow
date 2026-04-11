@@ -42,6 +42,7 @@ import PayoutDetails from '../pages/vendors/PayoutDetails';
 import Branches from '../pages/locations/Branches';
 import AddBranch from '../pages/locations/AddBranch';
 import EditBranch from '../pages/locations/EditBranch';
+import LocationManagement from '../pages/locations/LocationManagement';
 
 import AllPromoCodes from '../pages/promocodes/AllPromoCodes';
 import CreatePromoCode from '../pages/promocodes/CreatePromoCode';
@@ -153,6 +154,7 @@ const AdminRoutes = () => {
                         <Route path="products" element={<AllProducts />} />
                         <Route path="products/add" element={<AddProduct />} />
                         <Route path="products/:id/inventory-logs" element={<ProductInventoryLogs />} />
+                        <Route path="products/locations/management" element={<LocationManagement />} />
 
                         {/* Categories */}
                         <Route path="categories" element={<AllCategories />} />
@@ -205,6 +207,7 @@ const AdminRoutes = () => {
                         <Route path="locations/branches" element={<Branches />} />
                         <Route path="locations/branches/add" element={<AddBranch />} />
                         <Route path="locations/branches/edit/:id" element={<EditBranch />} />
+                        
 
                         {/* Offers & Sliders */}
                         <Route path="offers/deals" element={<AllOfferDeals />} />

@@ -198,7 +198,15 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center gap-2">
                                                         <img src={item.image || 'https://placehold.co/40'} className="w-8 h-8 rounded border border-slate-100 object-cover" />
-                                                        <span className="font-bold text-slate-700 truncate max-w-[150px]">{item.name}</span>
+                                                        <div>
+                                                            <div className="font-bold text-slate-700 truncate max-w-[150px]">{item.name}</div>
+                                                            {item.physicalLocation && (
+                                                                <div className="flex items-center gap-1 mt-0.5">
+                                                                    <MapPin size={10} className="text-amber-500" />
+                                                                    <span className="text-[10px] font-bold text-amber-600">{item.physicalLocation}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3 text-center">{item.quantity}</td>

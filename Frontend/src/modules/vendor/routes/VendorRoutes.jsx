@@ -37,6 +37,7 @@ import LegalPolicies from '../pages/LegalPolicies';
 import VendorAllOffers from '../pages/offers/VendorAllOffers';
 import VendorManageOffer from '../pages/offers/VendorManageOffer';
 import VendorPOS from '../pages/VendorPOS';
+import VendorLocations from '../pages/VendorLocations';
 import { useVendor } from '../contexts/VendorContext';
 
 const VendorLayout = () => {
@@ -81,6 +82,7 @@ const VendorRoutes = () => {
                     <Route path="products/add" element={<AddProduct />} />
                     <Route path="products/edit/:productId" element={<EditProduct />} />
                     <Route path="products/delete/:productId" element={<DeleteProductPage />} />
+                    <Route path="products/locations" element={<VendorLocations />} />
                     <Route path="products/bulk" element={<BulkUpload />} />
                     <Route path="brands" element={<AllBrands />} />
                     <Route path="brands/add" element={<AddBrand />} />
@@ -88,6 +90,7 @@ const VendorRoutes = () => {
                     <Route path="pos-billing" element={<VendorPOSWrapper />} />
                     <Route path="orders/:orderId" element={<OrderDetail />} />
                     <Route path="orders/tracking" element={<OrderTracking />} />
+                    
                     <Route path="inventory-reports" element={<InventoryReports />} />
                     <Route path="support-tickets" element={<SupportTickets />} />
                     <Route path="customers" element={<Customers />} />

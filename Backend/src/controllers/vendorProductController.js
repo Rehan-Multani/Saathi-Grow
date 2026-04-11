@@ -6,6 +6,7 @@ import { cloudinary } from '../config/cloudinary.js';
 import QRCode from 'qrcode';
 import { generateProductDescription, generateProductTags } from '../utils/aiService.js';
 import { sendPushNotification } from '../services/notificationService.js';
+import { syncLocationAssignment } from './physicalLocationController.js';
 
 // Helper to determine status based on stock
 const determineProductStatus = (stock, threshold, existingStatus) => {
@@ -136,6 +137,16 @@ export const addVendorProduct = async (req, res) => {
       reason: 'Vendor Product Creation'
     });
 
+    // Sync physical location assignment
+    if (physicalLocation) {
+      await syncLocationAssignment({
+        newLabel: physicalLocation,
+        productId: product._id.toString(),
+        branchId: null,
+        vendorId: req.vendor._id.toString()
+      });
+    }
+
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -251,6 +262,14 @@ export const updateVendorProduct = async (req, res) => {
       product.status = determineProductStatus(product.stock, product.lowStockThreshold, product.status);
 
       const updatedProduct = await product.save();
+
+      // Sync physical location assignment
+      await syncLocationAssignment({
+        newLabel: updatedProduct.physicalLocation || null,
+        productId: updatedProduct._id.toString(),
+        branchId: null,
+        vendorId: req.vendor._id.toString()
+      });
 
       // --- Production Vendor Stock Alert ---
       if (updatedProduct.stock <= (updatedProduct.lowStockThreshold || 10)) {

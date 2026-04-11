@@ -10,6 +10,7 @@ import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
 import { getVendors } from '../../api/vendorApi';
 import { createProduct, getAISuggestions } from '../../api/productApi';
+import { getAvailableAdminLocations } from '../../api/physicalLocationApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
@@ -31,6 +32,7 @@ const AddProduct = () => {
     const [filteredBrands, setFilteredBrands] = useState([]);
     const [branches, setBranches] = useState([]);
     const [vendors, setVendors] = useState([]);
+    const [availableLocations, setAvailableLocations] = useState([]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -49,6 +51,18 @@ const AddProduct = () => {
     const [tempImage, setTempImage] = useState(null);
     const [tagInput, setTagInput] = useState('');
     const isVendorProduct = Boolean(formData.vendor);
+
+    // Fetch available locations whenever the first selected branch changes
+    useEffect(() => {
+        if (!adminUser?.token || formData.specificBranches.length === 0) {
+            setAvailableLocations([]);
+            return;
+        }
+        const firstBranchId = formData.specificBranches[0];
+        getAvailableAdminLocations(adminUser.token, firstBranchId)
+            .then(data => setAvailableLocations(Array.isArray(data) ? data : []))
+            .catch(() => setAvailableLocations([]));
+    }, [adminUser?.token, formData.specificBranches]);
 
     // Initialization
     useEffect(() => {
@@ -348,7 +362,22 @@ const AddProduct = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.physical_location')}</label>
-                                    <input type="text" name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} placeholder="Shelf A-10" className="form-input-simple" />
+                                    {availableLocations.length > 0 ? (
+                                        <select name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} className="form-input-simple">
+                                            <option value="">— Not Assigned —</option>
+                                            {availableLocations.map(loc => (
+                                                <option key={loc._id} value={loc.label}>{loc.label}{loc.description ? ` (${loc.description})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input type="text" name="physicalLocation" value={formData.physicalLocation} onChange={handleChange}
+                                            placeholder={formData.specificBranches.length === 0 ? 'Select a branch first' : 'No locations set up — type manually'}
+                                            className="form-input-simple"
+                                            disabled={formData.specificBranches.length === 0} />
+                                    )}
+                                    {formData.specificBranches.length === 0 && (
+                                        <p className="text-[10px] text-slate-400">Allocate at least one branch to see location options.</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

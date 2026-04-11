@@ -217,9 +217,9 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
               <button onClick={toggleTheme} className="p-2.5 text-gray-400 hover:text-[#0c831f] transition-colors">
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              <div className="relative">
-                <Link to="/notifications" className="p-2.5 bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-all">
-                  <Bell size={20} />
+              <div className="relative flex items-center justify-center">
+                <Link to="/notifications" className="flex items-center justify-center w-[38px] h-[38px] bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-all">
+                  <Bell size={18} />
                 </Link>
                 {unreadCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-lg">{unreadCount}</span>}
               </div>
@@ -233,9 +233,9 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
               ) : (
                 <Link to="/login" className="px-4 py-2 bg-gray-900 text-white text-xs font-black uppercase tracking-wider rounded-xl">Login</Link>
               )}
-              <div className="relative">
-                <button onClick={() => protectAction(toggleCart)} className="p-2.5 bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-all">
-                  <ShoppingBag size={20} />
+              <div className="relative flex items-center justify-center">
+                <button onClick={() => protectAction(toggleCart)} className="flex items-center justify-center w-[38px] h-[38px] bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-all">
+                  <ShoppingBag size={18} />
                 </button>
                 {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-[#0c831f] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black shadow-lg">{cartCount}</span>}
               </div>
