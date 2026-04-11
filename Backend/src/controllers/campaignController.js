@@ -14,9 +14,9 @@ export const getCampaignSections = async (req, res) => {
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
 
     const listQuery = CampaignSection.find()
-      .select('title subtitle highlightText displayType bgColor textColor accentColor order isActive bannerImage products vendor')
+      .select('title subtitle highlightText displayType bgColor textColor accentColor isActive bannerImage products vendor')
       .populate('products.productId', 'name image basePrice mrp sku')
-      .sort('order')
+      .sort('-createdAt')
       .lean();
 
     if (hasPagination) {
@@ -83,12 +83,11 @@ export const getActiveCampaignSections = async (req, res) => {
       bgColor: 1,
       textColor: 1,
       accentColor: 1,
-      order: 1,
       isActive: 1,
       bannerImage: 1,
     })
       .populate('products.productId', 'name image basePrice mrp unitType unitValue category status isSaathiGrow')
-      .sort('order')
+      .sort('-createdAt')
       .lean();
 
     // Inject isDeliverable if store context provided
@@ -204,7 +203,7 @@ export const getCampaignMetadata = async (req, res) => {
 // @access  Private (Admin)
 export const createCampaignSection = async (req, res) => {
   try {
-    const { title, subtitle, highlightText, bgColor, textColor, accentColor, products, order, displayType } = req.body;
+    const { title, subtitle, highlightText, bgColor, textColor, accentColor, products, displayType } = req.body;
 
     let parsedProducts = products;
     if (typeof products === 'string') {
@@ -239,7 +238,6 @@ export const createCampaignSection = async (req, res) => {
       accentColor,
       displayType: displayType || 'festive',
       products: parsedProducts,
-      order,
       bannerImage: req.file ? req.file.path : ''
     });
 
@@ -274,7 +272,7 @@ export const updateCampaignSection = async (req, res) => {
       return res.status(403).json({ message: 'Admin can only delete vendor campaigns, not edit them' });
     }
 
-    const { title, subtitle, highlightText, bgColor, textColor, accentColor, products, order, isActive, displayType } = req.body;
+    const { title, subtitle, highlightText, bgColor, textColor, accentColor, products, isActive, displayType } = req.body;
 
     section.title = title || section.title;
     section.subtitle = subtitle !== undefined ? subtitle : section.subtitle;
@@ -294,7 +292,7 @@ export const updateCampaignSection = async (req, res) => {
       }, { campaignId: section._id.toString(), type: 'campaign' });
     }
     
-    section.order = order !== undefined ? order : section.order;
+
     if (displayType) section.displayType = displayType;
 
     if (products) {

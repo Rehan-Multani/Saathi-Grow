@@ -62,6 +62,21 @@ export const getBrands = async (req, res) => {
   }
 };
 
+// @desc    Get brand by name (Public)
+// @route   GET /api/admin/brands/public/name/:name
+// @access  Public
+export const getBrandByNamePublic = async (req, res) => {
+  try {
+    const brand = await Brand.findOne({ name: req.params.name, status: 'Active' });
+    if (!brand) {
+      return res.status(404).json({ message: 'Brand not found' });
+    }
+    res.json(brand);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get brand by ID
 // @route   GET /api/admin/brands/:id
 // @access  Private (Admin/Vendor)

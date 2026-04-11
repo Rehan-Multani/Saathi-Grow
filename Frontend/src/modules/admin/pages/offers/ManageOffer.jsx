@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Form, Row, Col, Card, Spinner, InputGroup, Breadcrumb } from 'react-bootstrap';
-import { Save, X, Plus, Trash2, Search, ArrowLeft, Image as ImageIcon, Sparkles, LayoutGrid, Upload, Percent } from 'lucide-react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { getProducts } from '../../api/productApi';
-import { getCategories } from '../../api/categoryApi';
+import { Save, X, Plus, Trash2, ArrowLeft, Image as ImageIcon, Sparkles, LayoutGrid, Upload, Percent, Loader2, Calendar, Shield, Info, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { createOfferDeal, updateOfferDeal, getOfferDealById } from '../../api/offerDealApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
@@ -12,629 +10,474 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const ManageOffer = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { adminUser } = useAdminAuth();
-  const fileInputRef = useRef(null);
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(id ? true : false);
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [showPicker, setShowPicker] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+    const { t } = useTranslation('admin_offers');
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { adminUser } = useAdminAuth();
+    const fileInputRef = useRef(null);
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(id ? true : false);
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [showPicker, setShowPicker] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
 
-  const [formData, setFormData] = useState({
-    title: '',
-    subtitle: '',
-    description: '',
-    bgColor: '#f8fafc',
-    textColor: '#1e293b',
-    accentColor: '#3b82f6',
-    isActive: true,
-    order: 0,
-    displayLocation: 'Home Slider',
-    expiryDate: '',
-    discountPercentage: 0,
-    animationType: 'Default',
-    backgroundEffect: 'None'
-  });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [categoriesData] = await Promise.all([
-          getCategories(adminUser.token)
-        ]);
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-
-        if (id) {
-          const offer = await getOfferDealById(adminUser.token, id);
-          setFormData({
-            title: offer.title || '',
-            subtitle: offer.subtitle || '',
-            description: offer.description || '',
-            bgColor: offer.bgColor || '#f8fafc',
-            textColor: offer.textColor || '#1e293b',
-            accentColor: offer.accentColor || '#3b82f6',
-            isActive: offer.isActive !== undefined ? offer.isActive : true,
-            order: offer.order || 0,
-            displayLocation: offer.displayLocation || 'Home Slider',
-            expiryDate: offer.expiryDate ? new Date(offer.expiryDate).toISOString().split('T')[0] : '',
-            discountPercentage: offer.discountPercentage || 0,
-            animationType: offer.animationType || 'Default',
-            backgroundEffect: offer.backgroundEffect || 'None'
-          });
-          setImagePreview(offer.bannerImage);
-          setSelectedProducts(offer.products.map(p => ({
-            productId: p.productId?._id || p.productId,
-            name: p.productId?.name,
-            image: p.productId?.image,
-            mrp: p.productId?.mrp || p.productId?.basePrice,
-            basePrice: p.productId?.basePrice
-          })));
-        }
-      } catch (error) {
-        console.error('Error fetching offer:', error);
-        toast.error('Failed to load offer details');
-      } finally {
-        setFetching(false);
-      }
-    };
-    if (adminUser?.token) fetchData();
-  }, [id, adminUser]);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleDiscountChange = (e) => {
-    const percent = Number(e.target.value);
-    setFormData(prev => ({ ...prev, discountPercentage: percent }));
-
-    if (selectedProducts.length > 0) {
-      setSelectedProducts(prev => prev.map(p => ({
-        ...p,
-        basePrice: Math.round(p.mrp * (1 - percent / 100))
-      })));
-    }
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handlePickerSelect = (newProducts) => {
-    const formatted = newProducts.map(product => {
-      const mrp = product.mrp || product.basePrice;
-      const initialBasePrice = formData.discountPercentage > 0
-        ? Math.round(mrp * (1 - formData.discountPercentage / 100))
-        : product.basePrice;
-
-      return {
-        productId: product._id,
-        name: product.name,
-        image: product.image,
-        mrp: mrp,
-        basePrice: initialBasePrice
-      };
+    const [formData, setFormData] = useState({
+        title: '',
+        subtitle: '',
+        description: '',
+        bgColor: '#f8fafc',
+        textColor: '#1e293b',
+        accentColor: '#3b82f6',
+        isActive: true,
+        displayLocation: 'Home Slider',
+        expiryDate: '',
+        discountPercentage: 0,
+        animationType: 'Default',
+        backgroundEffect: 'None'
     });
 
-    setSelectedProducts([...selectedProducts, ...formatted]);
-    toast.success(`${formatted.length} products added to collection`);
-  };
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                if (id) {
+                    const offer = await getOfferDealById(adminUser.token, id);
+                    setFormData({
+                        title: offer.title || '',
+                        subtitle: offer.subtitle || '',
+                        description: offer.description || '',
+                        bgColor: offer.bgColor || '#f8fafc',
+                        textColor: offer.textColor || '#1e293b',
+                        accentColor: offer.accentColor || '#3b82f6',
+                        isActive: offer.isActive !== undefined ? offer.isActive : true,
+                        displayLocation: offer.displayLocation || 'Home Slider',
+                        expiryDate: offer.expiryDate ? new Date(offer.expiryDate).toISOString().split('T')[0] : '',
+                        discountPercentage: offer.discountPercentage || 0,
+                        animationType: offer.animationType || 'Default',
+                        backgroundEffect: offer.backgroundEffect || 'None'
+                    });
+                    setImagePreview(offer.bannerImage);
+                    setSelectedProducts(offer.products.map(p => ({
+                        productId: p.productId?._id || p.productId,
+                        name: p.productId?.name,
+                        image: p.productId?.image,
+                        mrp: p.productId?.mrp || p.productId?.basePrice,
+                        basePrice: p.basePrice || p.productId?.basePrice
+                    })));
+                }
+            } catch (error) {
+                toast.error(t('messages.fetch_error'));
+            } finally {
+                setFetching(false);
+            }
+        };
+        if (adminUser?.token) fetchData();
+    }, [id, adminUser, t]);
 
-  const removeProduct = (productId) => {
-    setSelectedProducts(selectedProducts.filter(p => p.productId !== productId));
-  };
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
 
-  const handlePriceChange = (productId, price) => {
-    setSelectedProducts(selectedProducts.map(p =>
-      p.productId === productId ? { ...p, basePrice: price === '' ? '' : Number(price) } : p
-    ));
-  };
+    const handleDiscountChange = (e) => {
+        const percent = Number(e.target.value);
+        setFormData(prev => ({ ...prev, discountPercentage: percent }));
 
-  const paginatedProducts = selectedProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+        if (selectedProducts.length > 0) {
+            setSelectedProducts(prev => prev.map(p => ({
+                ...p,
+                basePrice: Math.round(p.mrp * (1 - percent / 100))
+            })));
+        }
+    };
 
-  const totalPages = Math.ceil(selectedProducts.length / itemsPerPage);
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-  const getPageNumbers = () => {
-    const pages = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 4) {
-        for (let i = 1; i <= 5; i++) pages.push(i);
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 3) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push('...');
-        pages.push(currentPage - 1);
-        pages.push(currentPage);
-        pages.push(currentPage + 1);
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
-    return pages;
-  };
+    const handlePickerSelect = (newProducts) => {
+        const formatted = newProducts.map(product => {
+            const mrp = product.mrp || product.basePrice;
+            const initialBasePrice = formData.discountPercentage > 0
+                ? Math.round(mrp * (1 - formData.discountPercentage / 100))
+                : (product.currentPrice || product.basePrice);
 
+            return {
+                productId: product._id,
+                name: product.name,
+                image: product.image,
+                mrp: mrp,
+                basePrice: initialBasePrice
+            };
+        });
 
+        setSelectedProducts([...selectedProducts, ...formatted]);
+    };
 
+    const removeProduct = (productId) => {
+        setSelectedProducts(selectedProducts.filter(p => p.productId !== productId));
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handlePriceChange = (productId, price) => {
+        setSelectedProducts(selectedProducts.map(p =>
+            p.productId === productId ? { ...p, basePrice: price === '' ? '' : Number(price) } : p
+        ));
+    };
 
-    if (!id && !fileInputRef.current.files[0]) {
-      return toast.error('A banner image is required for new offers');
-    }
-
-    if (formData.expiryDate) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (new Date(formData.expiryDate) <= today) {
-        return toast.error('Expiry date must be in the future');
-      }
-    }
-
-    setLoading(true);
-    try {
-      const data = new FormData();
-      Object.keys(formData).forEach(key => data.append(key, formData[key]));
-
-      if (fileInputRef.current.files[0]) {
-        data.append('bannerImage', fileInputRef.current.files[0]);
-      }
-
-      const productsPayload = selectedProducts.map(p => ({
-        productId: p.productId,
-        basePrice: p.basePrice
-      }));
-      data.append('products', JSON.stringify(productsPayload));
-
-      if (id) {
-        await updateOfferDeal(adminUser.token, id, data);
-        toast.success('Offer deal updated successfully');
-      } else {
-        await createOfferDeal(adminUser.token, data);
-        toast.success('Premium offer deal published');
-      }
-      navigate('/admin/offers/deals');
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-  if (fetching) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <Spinner animation="border" variant="primary" />
-      </div>
+    const paginatedProducts = selectedProducts.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
     );
-  }
 
-  return (
-    <div className="p-4 p-md-6">
-      <div className="mb-4 d-flex justify-content-between align-items-center">
-        <div>
-          <div className="d-flex align-items-center gap-2">
-            <h4 className="fw-bold mb-1 text-gray-800">{id ? 'Edit Banner Offer' : 'Launch New Banner Offer'}</h4>
-            <PageInfoTooltip info={pageInfoData.manageOffer} />
-          </div>
-          <Breadcrumb className="small mb-0 font-medium">
-            <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/admin/offers/deals" }}>Offers & Deals</Breadcrumb.Item>
-            <Breadcrumb.Item active>{id ? 'Edit' : 'Create'}</Breadcrumb.Item>
-          </Breadcrumb>
-        </div>
-        <Button variant="light" as={Link} to="/admin/offers/deals" className="d-flex align-items-center gap-2 border shadow-sm px-4 rounded-lg">
-          <ArrowLeft size={18} /> Back
-        </Button>
-      </div>
+    const totalPages = Math.ceil(selectedProducts.length / itemsPerPage);
 
-      <Form onSubmit={handleSubmit}>
-        <Row className="g-4">
-          <Col lg={5}>
-            <Card className="border-0 shadow-sm mb-4 rounded-xl overflow-hidden">
-              <Card.Header className="bg-white border-bottom-0 pt-4 px-4 pb-0">
-                <h6 className="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
-                  <ImageIcon size={18} /> Offer Visuals & Banner
-                </h6>
-              </Card.Header>
-              <Card.Body className="p-4">
-                <div
-                  className="relative h-[220px] rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-all overflow-hidden mb-4 group"
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  {imagePreview ? (
-                    <>
-                      <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-medium flex-col gap-2">
-                        <Upload size={24} />
-                        <span>Change Banner Image</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center p-4">
-                      <div className="bg-blue-600/10 p-3 rounded-full mb-3 d-inline-block text-blue-600">
-                        <Upload size={24} />
-                      </div>
-                      <div className="fw-bold text-gray-700">Upload Banner Image</div>
-                      <div className="text-[11px] text-gray-400 mt-1 uppercase tracking-wider">Recommended: 1200x500px</div>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                </div>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-                <Row className="g-3">
-                  <Col md={12}>
-                    <Form.Label className="small fw-bold text-gray-500 mb-1">Offer Title</Form.Label>
-                    <Form.Control
-                      name="title"
-                      value={formData.title}
-                      onChange={handleChange}
-                      placeholder="e.g. Price Crash! Savings alert"
-                      className="bg-light border-0 py-2 rounded-lg"
-                      required
-                    />
-                  </Col>
-                  <Col md={12}>
-                    <Form.Label className="small fw-bold text-gray-500 mb-1">Subtitle</Form.Label>
-                    <Form.Control
-                      name="subtitle"
-                      value={formData.subtitle}
-                      onChange={handleChange}
-                      placeholder="e.g. Daily Essentials Bundle Save Big"
-                      className="bg-light border-0 py-2 rounded-lg"
-                    />
-                  </Col>
-                  <Col md={12}>
-                    <Form.Label className="small fw-bold text-gray-500 mb-1">Discount Percentage (%)</Form.Label>
-                    <InputGroup className="bg-light border-0 rounded-lg overflow-hidden">
-                      <InputGroup.Text className="bg-transparent border-0"><Percent size={16} /></InputGroup.Text>
-                      <Form.Control
-                        type="number"
-                        name="discountPercentage"
-                        value={formData.discountPercentage === 0 && formData.discountPercentage !== "" ? "0" : formData.discountPercentage}
-                        onChange={handleDiscountChange}
-                        onFocus={(e) => {
-                          if (formData.discountPercentage === 0 || formData.discountPercentage === "0") {
-                            setFormData(prev => ({ ...prev, discountPercentage: "" }));
-                          }
-                        }}
-                        onBlur={(e) => {
-                          if (formData.discountPercentage === "" || formData.discountPercentage === null) {
-                            setFormData(prev => ({ ...prev, discountPercentage: 0 }));
-                          }
-                        }}
-                        placeholder="Set global discount for collection..."
-                        className="bg-transparent border-0 py-2"
-                      />
-                    </InputGroup>
-                  </Col>
-                  <Col md={12}>
-                    <Form.Label className="small fw-bold text-gray-500 mb-1">Brief Description (Show on detail page)</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={3}
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      placeholder="Describe the value of this deal to the user..."
-                      className="bg-light border-0 py-2 rounded-lg"
-                    />
-                  </Col>
-                </Row>
+        if (!id && !fileInputRef.current?.files[0]) {
+            return toast.error(t('messages.image_required'));
+        }
 
-                <hr className="my-4" />
+        if (formData.expiryDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (new Date(formData.expiryDate) <= today) {
+                return toast.error(t('messages.date_error'));
+            }
+        }
 
-                <div className="p-3 rounded-xl border overflow-hidden relative" style={{ backgroundColor: formData.bgColor }}>
-                  <h6 className="small fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: formData.textColor }}>
-                    <ImageIcon size={14} /> Detail Page Header Preview
-                  </h6>
-                  <div className="flex gap-4">
-                    <div className="flex-1 relative z-1">
-                      <h4 className="fw-bold mb-1" style={{ color: formData.textColor }}>{formData.title || 'Offer Title'}</h4>
-                      <p className="small mb-0 opacity-70" style={{ color: formData.textColor }}>{formData.subtitle || 'Subtitle preview'}</p>
-                    </div>
-                    <div className="w-24 h-24 rounded-lg bg-gray-200 shadow-sm border border-white/10 overflow-hidden">
-                      {imagePreview && <img src={imagePreview} className="w-full h-full object-cover" alt="Preview small" />}
-                    </div>
-                  </div>
-                  <div className="mt-4 relative z-1">
-                    <button className="btn btn-sm px-4 py-2 fw-bold text-white rounded-lg shadow-sm" style={{ backgroundColor: formData.accentColor, border: 'none' }}>
-                      {formData.discountPercentage}% OFF
-                    </button>
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
+        setLoading(true);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => data.append(key, formData[key]));
 
-            <Card className="border-0 shadow-sm rounded-xl mb-4">
-              <Card.Body className="p-4">
-                <h6 className="fw-bold mb-3 text-gray-700">Display Settings</h6>
-                <Row className="g-3">
-                  <Col md={12}>
-                    <Form.Label className="small fw-bold text-gray-500">Expiry Date</Form.Label>
-                    <Form.Control 
-                      type="date" 
-                      name="expiryDate" 
-                      value={formData.expiryDate} 
-                      onChange={handleChange} 
-                      min={new Date().toISOString().split('T')[0]}
-                      className="bg-light border-0 py-2" 
-                    />
-                  </Col>
-                </Row>
-                
-                <h6 className="fw-bold mt-4 mb-3 text-gray-400 small uppercase tracking-wider">Visual Branding</h6>
-                <div className="space-y-3">
-                  <div className="d-flex align-items-center justify-between gap-3">
-                    <Form.Label className="text-[10px] fw-bold text-gray-500 uppercase mb-0">Background</Form.Label>
-                    <div className="d-flex gap-2 align-items-center">
-                      <Form.Control type="color" name="bgColor" value={formData.bgColor} onChange={handleChange} className="p-1 rounded border-0 shadow-sm" style={{ width: '30px', height: '30px' }} />
-                      <Form.Control type="text" name="bgColor" value={formData.bgColor} onChange={handleChange} className="bg-light border-0 py-1 px-2 small font-mono" style={{ fontSize: '10px', width: '70px' }} />
-                    </div>
-                  </div>
-                  <div className="d-flex align-items-center justify-between gap-3">
-                    <Form.Label className="text-[10px] fw-bold text-gray-500 uppercase mb-0">Text Color</Form.Label>
-                    <div className="d-flex gap-2 align-items-center">
-                      <Form.Control type="color" name="textColor" value={formData.textColor} onChange={handleChange} className="p-1 rounded border-0 shadow-sm" style={{ width: '30px', height: '30px' }} />
-                      <Form.Control type="text" name="textColor" value={formData.textColor} onChange={handleChange} className="bg-light border-0 py-1 px-2 small font-mono" style={{ fontSize: '10px', width: '70px' }} />
-                    </div>
-                  </div>
-                  <div className="d-flex align-items-center justify-between gap-3">
-                    <Form.Label className="text-[10px] fw-bold text-gray-500 uppercase mb-0">Accent / Btn</Form.Label>
-                    <div className="d-flex gap-2 align-items-center">
-                      <Form.Control type="color" name="accentColor" value={formData.accentColor} onChange={handleChange} className="p-1 rounded border-0 shadow-sm" style={{ width: '30px', height: '30px' }} />
-                      <Form.Control type="text" name="accentColor" value={formData.accentColor} onChange={handleChange} className="bg-light border-0 py-1 px-2 small font-mono" style={{ fontSize: '10px', width: '70px' }} />
-                    </div>
-                  </div>
-                </div>
-                <Form.Group className="mt-3">
-                  <Form.Label className="small fw-bold text-gray-500 d-flex align-items-center gap-2">
-                    <Sparkles size={14} className="text-blue-500" /> Floating Animation Style
-                  </Form.Label>
-                  <Form.Select 
-                    name="animationType" 
-                    value={formData.animationType} 
-                    onChange={handleChange} 
-                    className="bg-light border-0 py-2"
-                  >
-                    <option value="None">No Animation</option>
-                    <option value="Default">Default (Gifts & Shopping)</option>
-                    <option value="Cleaning">Cleaning & Household</option>
-                    <option value="Fruits">Fresh Fruits</option>
-                    <option value="Vegetables">Green Vegetables</option>
-                    <option value="Staples">Daily Staples (Rice/Dal)</option>
-                    <option value="Snacks">Snacks & Bakery</option>
-                    <option value="Meat">Meat & Seafood</option>
-                    <option value="Beverages">Beverages & Drinks</option>
-                    <option value="Bakery">Bakery & Cookies</option>
-                    <option value="BabyCare">Baby & Kids Care</option>
-                    <option value="PetCare">Pet Supplies</option>
-                    <option value="Beauty">Beauty & Personal Care</option>
-                    <option value="Festive">Festive / Packaged FMCG</option>
-                  </Form.Select>
-                </Form.Group>
+            if (fileInputRef.current?.files[0]) {
+                data.append('bannerImage', fileInputRef.current.files[0]);
+            }
 
-                <Form.Group className="mt-3">
-                  <Form.Label className="small fw-bold text-gray-500 d-flex align-items-center gap-2">
-                    <Sparkles size={14} className="text-orange-400" /> Background Visual Effect
-                  </Form.Label>
-                  <Form.Select 
-                    name="backgroundEffect" 
-                    value={formData.backgroundEffect} 
-                    onChange={handleChange} 
-                    className="bg-light border-0 py-2"
-                  >
-                    <option value="None">No Background Effect</option>
-                    <option value="Confetti">🎉 Falling Confetti (Sale/Party)</option>
-                    <option value="Sparkles">✨ Floating Sparkles (Premium/New)</option>
-                    <option value="Bubbles">🫧 Rising Bubbles (Fresh/Clean)</option>
-                    <option value="Snow">❄️ Falling Snow (Winter/Festive)</option>
-                  </Form.Select>
-                  <Form.Text className="text-muted small">Subtle environmental effect behind content.</Form.Text>
-                </Form.Group>
-                <hr className="my-4" />
-                <Form.Check
-                  type="switch"
-                  id="isActive"
-                  label={<span className="fw-medium text-gray-600">This offer is live and visible</span>}
-                  name="isActive"
-                  checked={formData.isActive}
-                  onChange={handleChange}
-                />
-              </Card.Body>
-            </Card>
-          </Col>
+            const productsPayload = selectedProducts.map(p => ({
+                productId: p.productId,
+                basePrice: p.basePrice
+            }));
+            data.append('products', JSON.stringify(productsPayload));
 
-          <Col lg={7}>
-            <Card className="border-0 shadow-sm rounded-xl h-100">
-              <Card.Body className="p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h6 className="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
-                    <LayoutGrid size={18} /> Products Collection
-                  </h6>
-                  <span className="badge bg-blue-50 text-blue-600 rounded-pill px-3 py-2 border border-blue-100">{selectedProducts.length} Items Selected</span>
-                </div>
+            if (id) {
+                await updateOfferDeal(adminUser.token, id, data);
+                toast.success(t('messages.update_success'));
+            } else {
+                await createOfferDeal(adminUser.token, data);
+                toast.success(t('messages.create_success'));
+            }
+            navigate('/admin/offers/deals');
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-                <div className="mb-4">
-                  <div className="flex bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-8 items-center justify-center flex-col hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer group" onClick={() => setShowPicker(true)}>
-                    <div className="bg-white p-3 rounded-full shadow-sm text-blue-600 mb-3 group-hover:scale-110 transition-transform">
-                      <Plus size={28} />
-                    </div>
-                    <div className="fw-bold text-gray-700">Add Products to Collection</div>
-                    <div className="text-[11px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Pick from local inventory (Non-Vendor)</div>
-                  </div>
-                </div>
-
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle caption-top">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="small fw-bold text-gray-400 border-0 ps-3 py-3">Product Name</th>
-                        <th className="small fw-bold text-gray-400 border-0 text-center py-3">Market Price</th>
-                        <th className="small fw-bold text-gray-400 border-0 text-center py-3">Selling Price (₹)</th>
-                        <th className="small fw-bold text-gray-400 border-0 text-center py-3">Benefit</th>
-                        <th className="small fw-bold text-gray-400 border-0 text-end pe-3 py-3">Remove</th>
-                      </tr>
-                    </thead>
-                    <tbody className="border-0">
-                      {paginatedProducts.length > 0 ? paginatedProducts.map((p, idx) => (
-                        <tr key={p.productId} className="border-bottom border-gray-100">
-                          <td className="ps-3 py-3">
-                            <div className="d-flex align-items-center gap-3 text-gray-800">
-                              <div className="p-1 bg-gray-50 rounded border flex-shrink-0">
-                                <img src={p.image} className="w-10 h-10 rounded object-cover" alt="" />
-                              </div>
-                              <div className="fw-bold small truncate max-w-[180px]">{p.name}</div>
-                            </div>
-                          </td>
-                          <td className="text-center text-gray-400 line-through font-mono small">₹{p.mrp}</td>
-                          <td className="text-center" style={{ width: '130px' }}>
-                            <Form.Control
-                              type="number"
-                              size="sm"
-                              value={p.basePrice}
-                              onFocus={(e) => { if (p.basePrice === 0 || p.basePrice === "0") handlePriceChange(p.productId, '') }}
-                              onBlur={(e) => { if (p.basePrice === "" || p.basePrice === null) handlePriceChange(p.productId, 0) }}
-                              onChange={(e) => handlePriceChange(p.productId, e.target.value)}
-                              className="text-center fw-bold text-blue-600 bg-blue-50 border-0 rounded-lg py-1.5 shadow-none"
-                            />
-                          </td>
-                          <td className="text-center">
-                            <span className="px-2 py-1 rounded-sm font-bold text-[10px] bg-green-50 text-green-700 border border-green-100 shadow-sm d-inline-block">
-                              SAVE ₹{p.mrp - p.basePrice} ({Math.round(((p.mrp - p.basePrice) / p.mrp) * 100)}%)
-                            </span>
-                          </td>
-                          <td className="text-end pe-3">
-                            <button
-                               type="button"
-                              onClick={() => removeProduct(p.productId)}
-                              className="p-1.5 text-red-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      )) : (
-                        <tr>
-                          <td colSpan="5" className="text-center py-24 text-gray-300">
-                            <div className="opacity-40 mb-3"><LayoutGrid size={48} className="mx-auto" /></div>
-                            <p className="small fw-medium">No products selected for this banner.<br />Search and add items to create a high-value offer collection.</p>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination Controls */}
-                {selectedProducts.length > itemsPerPage && (
-                  <div className="d-flex justify-content-between align-items-center mt-3 px-3">
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                      Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, selectedProducts.length)} of {selectedProducts.length}
-                    </div>
-                    <div className="d-flex gap-1">
-                      <Button 
-                        variant="light" 
-                        size="sm" 
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(prev => prev - 1)}
-                        className="rounded-lg border-0 bg-gray-50 px-3"
-                      >
-                        Prev
-                      </Button>
-                      {getPageNumbers().map((page, i) => (
-                         page === '...' ? (
-                          <span key={`dots-${i}`} className="d-flex align-items-center px-1 text-gray-400">...</span>
-                        ) : (
-                          <Button 
-                            key={page}
-                            variant={currentPage === page ? "primary" : "light"}
-                            size="sm"
-                            onClick={() => setCurrentPage(page)}
-                            className="rounded-lg border-0 w-8 h-8 p-0"
-                          >
-                            {page}
-                          </Button>
-                        )
-                      ))}
-                      <Button 
-                        variant="light" 
-                        size="sm" 
-                        disabled={currentPage === Math.ceil(selectedProducts.length / itemsPerPage)}
-                        onClick={() => setCurrentPage(prev => prev + 1)}
-                        className="rounded-lg border-0 bg-gray-50 px-3"
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        <div className="bg-white border-top fixed-bottom p-3 shadow-2xl z-50 text-end" style={{ width: 'calc(100% - 260px)', marginLeft: '260px' }}>
-          <div className="container-fluid d-flex justify-content-end gap-3 align-items-center">
-            <div className="me-auto hidden md:block text-start">
-              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">Status</div>
-              <div className={`text-xs font-bold ${formData.isActive ? 'text-green-600' : 'text-gray-400'}`}>
-                {formData.isActive ? '₹ Ready for Launch' : '₹ Draft / Offline'}
-              </div>
+    if (fetching) {
+        return (
+            <div className="flex justify-center items-center py-24 min-h-[400px]">
+                <Loader2 size={40} className="text-blue-600 animate-spin" />
             </div>
-            <Button variant="light" as={Link} to="/admin/offers/deals" className="px-5 py-2 fw-bold text-gray-500 hover:bg-gray-100 border shadow-sm">Cancel</Button>
-            <Button variant="primary" type="submit" disabled={loading} className="px-5 py-2 fw-bold shadow-lg d-flex align-items-center gap-2">
-              {loading ? <Spinner animation="border" size="sm" /> : <Save size={20} />}
-              {id ? 'Apply Changes' : 'Publish Offer'}
-            </Button>
-          </div>
+        );
+    }
+
+    return (
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="mb-8">
+                <button
+                    onClick={() => navigate('/admin/offers/deals')}
+                    className="flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors mb-4 group font-semibold"
+                >
+                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-[10px] uppercase tracking-wider">{t('form.cancel')}</span>
+                </button>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
+                            <ImageIcon size={24} />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold tracking-tight">
+                                {id ? t('form.edit_title') : t('form.add_title')}
+                            </h1>
+                            <p className="text-slate-500 text-xs font-medium mt-0.5">{t('form.breadcrumb')}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start mb-24">
+                {/* Visuals & Form */}
+                <div className="xl:col-span-5 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{t('form.visuals_section')}</h3>
+                        </div>
+
+                        {/* Image Upload */}
+                        <div 
+                            className="relative aspect-[21/9] rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 group overflow-hidden transition-all shadow-inner"
+                            onClick={() => fileInputRef.current.click()}
+                        >
+                            {imagePreview ? (
+                                <img src={imagePreview} className="w-full h-full object-cover" alt="Banner" />
+                            ) : (
+                                <div className="text-center p-6 space-y-2">
+                                    <div className="text-blue-600 bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <Upload size={20} />
+                                    </div>
+                                    <div className="text-xs font-bold text-slate-700 uppercase tracking-tight">{t('form.upload_text')}</div>
+                                    <div className="text-[10px] text-slate-400 font-medium">{t('form.recommended_size')}</div>
+                                </div>
+                            )}
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
+                        </div>
+
+                        {/* Fields */}
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.offer_title')}</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    placeholder={t('form.offer_title_placeholder')}
+                                    className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.subtitle')}</label>
+                                <input
+                                    type="text"
+                                    name="subtitle"
+                                    value={formData.subtitle}
+                                    onChange={handleChange}
+                                    placeholder={t('form.subtitle_placeholder')}
+                                    className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.discount')}</label>
+                                    <div className="relative">
+                                        <Percent className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+                                        <input
+                                            type="number"
+                                            name="discountPercentage"
+                                            value={formData.discountPercentage}
+                                            onChange={handleDiscountChange}
+                                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.expiry_date')}</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+                                        <input
+                                            type="date"
+                                            name="expiryDate"
+                                            value={formData.expiryDate}
+                                            onChange={handleChange}
+                                            min={new Date().toISOString().split('T')[0]}
+                                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="pt-4 border-t border-slate-50 space-y-4">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.visual_branding')}</label>
+                                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase">{t('form.bg_color')}</span>
+                                        <input type="color" name="bgColor" value={formData.bgColor} onChange={handleChange} className="w-8 h-8 rounded-lg border-none shadow-sm cursor-pointer p-0" />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase">{t('form.text_color')}</span>
+                                        <input type="color" name="textColor" value={formData.textColor} onChange={handleChange} className="w-8 h-8 rounded-lg border-none shadow-sm cursor-pointer p-0" />
+                                    </div>
+                                    <div className="flex items-center justify-between md:col-span-2">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase">{t('form.accent_color')}</span>
+                                        <input type="color" name="accentColor" value={formData.accentColor} onChange={handleChange} className="w-8 h-8 rounded-lg border-none shadow-sm cursor-pointer p-0" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-slate-900 rounded-2xl text-white shadow-lg">
+                                <div className="flex items-center gap-3">
+                                    <Shield size={18} className="text-blue-400" />
+                                    <div>
+                                        <div className="text-[11px] font-bold uppercase tracking-tight">{t('form.live_toggle')}</div>
+                                        <p className="text-[9px] text-slate-500 font-medium uppercase">{formData.isActive ? 'Visible' : 'Hidden'}</p>
+                                    </div>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        className="sr-only peer"
+                                        checked={formData.isActive}
+                                        onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                                    />
+                                    <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Products Section */}
+                <div className="xl:col-span-7 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 flex flex-col min-h-[600px]">
+                        <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-6">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{t('form.collection_section')}</h3>
+                            <button 
+                                type="button"
+                                onClick={() => setShowPicker(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-blue-100 flex items-center gap-2 transition-all active:scale-95"
+                            >
+                                <Plus size={14} /> {t('form.add_products')}
+                            </button>
+                        </div>
+
+                        <div className="flex-grow overflow-x-auto scrollbar-thin">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50/50 border-b border-slate-100">
+                                        <th className="px-4 py-4 text-[10px] font-bold text-slate-400 uppercase text-left">{t('form.table_product')}</th>
+                                        <th className="px-4 py-4 text-[10px] font-bold text-slate-400 uppercase text-center">{t('form.table_mrp')}</th>
+                                        <th className="px-4 py-4 text-[10px] font-bold text-slate-400 uppercase text-center">{t('form.table_selling')}</th>
+                                        <th className="px-4 py-4 text-[10px] font-bold text-slate-400 uppercase text-end">{t('form.table_remove')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {paginatedProducts.length > 0 ? (
+                                        paginatedProducts.map((p) => (
+                                            <tr key={p.productId} className="hover:bg-slate-50/30 transition-colors group">
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-lg border border-slate-100 overflow-hidden shadow-sm flex-shrink-0">
+                                                            <img src={p.image} className="w-full h-full object-cover" alt="" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <div className="text-[11px] font-bold text-slate-800 uppercase truncate max-w-[140px]">{p.name}</div>
+                                                            <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">ID: {p.productId.slice(-6)}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 text-center">
+                                                    <span className="text-slate-400 text-xs font-bold line-through">₹{p.mrp}</span>
+                                                </td>
+                                                <td className="px-4 py-4 text-center" style={{ width: '120px' }}>
+                                                    <input
+                                                        type="number"
+                                                        value={p.basePrice}
+                                                        onChange={(e) => handlePriceChange(p.productId, e.target.value)}
+                                                        className="w-full px-2 py-1.5 bg-blue-50/50 border-none rounded-lg text-center text-xs font-bold text-blue-600 focus:ring-1 ring-blue-500/20"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-4 text-end">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeProduct(p.productId)}
+                                                        className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="4" className="py-24 text-center opacity-30">
+                                                <LayoutGrid size={48} className="mx-auto text-slate-300 mb-2" />
+                                                <p className="text-xs font-bold uppercase tracking-widest">{t('form.no_products')}</p>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {totalPages > 1 && (
+                            <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Total Items: {selectedProducts.length}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        type="button"
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(c => c - 1)}
+                                        className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-30"
+                                    >
+                                        <ChevronLeft size={16} />
+                                    </button>
+                                    <span className="text-[10px] font-bold text-slate-600 px-2">{currentPage} / {totalPages}</span>
+                                    <button 
+                                        type="button"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(c => c + 1)}
+                                        className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-30"
+                                    >
+                                        <ChevronRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </form>
+
+            <div className="bg-white/95 border-t border-slate-200 fixed bottom-0 left-0 right-0 z-[60] ml-0 lg:ml-[260px] p-4 px-8 flex items-center justify-between shadow-lg backdrop-blur-sm">
+                <div className="hidden md:flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${formData.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{formData.isActive ? 'Ready to Publish' : 'Draft Mode'}</span>
+                </div>
+                <div className="flex gap-4 w-full md:w-auto">
+                    <button 
+                        onClick={() => navigate('/admin/offers/deals')}
+                        className="px-8 py-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 rounded-xl"
+                    >
+                        {t('form.cancel')}
+                    </button>
+                    <button 
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="flex-1 md:flex-none px-12 py-3 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        {id ? t('form.update') : t('form.publish')}
+                    </button>
+                </div>
+            </div>
+
+            <ProductPickerModal
+                show={showPicker}
+                onHide={() => setShowPicker(false)}
+                onSelect={handlePickerSelect}
+                existingProductIds={selectedProducts.map(p => p.productId)}
+                token={adminUser?.token}
+            />
         </div>
-      </Form>
-      <ProductPickerModal
-        show={showPicker}
-        onHide={() => setShowPicker(false)}
-        onSelect={handlePickerSelect}
-        existingProductIds={selectedProducts.map(p => p.productId)}
-        token={adminUser?.token}
-      />
-      <div className="py-10"></div>
-    </div>
-  );
+    );
 };
 
 export default ManageOffer;

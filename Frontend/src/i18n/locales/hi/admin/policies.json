@@ -1,0 +1,33 @@
+{
+    "title": "कानूनी व नीतियां",
+    "subtitle": "सभी प्लेटफ़ॉर्म मॉड्यूल में कानूनी दस्तावेज़ों का प्रबंधन करें।",
+    "add_btn": "नई नीति जोड़ें",
+    "filter_role": "रोल के अनुसार फ़िल्टर करें:",
+    "all_roles": "सभी देखें",
+    "table": {
+        "title": "नीति का नाम",
+        "roles": "रोल",
+        "status": "स्थिति",
+        "updated": "अंतिम अपडेट",
+        "actions": "एक्शन"
+    },
+    "status": {
+        "active": "सक्रिय",
+        "inactive": "निष्क्रिय"
+    },
+    "modal": {
+        "add_title": "नई नीति जोड़ें",
+        "edit_title": "नीति संपादित करें",
+        "label_title": "नीति का नाम",
+        "label_slug": "URL स्लग",
+        "label_audience": "लक्ष्य दर्शक (Target Audience)",
+        "label_content": "नीति का विवरण (Content)",
+        "label_active": "स्थिति (प्लेटफ़ॉर्म पर दिखाई देगी)",
+        "placeholder_title": "उदा. गोपनीयता नीति (Privacy Policy)",
+        "placeholder_slug": "उदा. privacy-policy",
+        "placeholder_content": "अपना कानूनी टेक्स्ट यहाँ लिखें...",
+        "cancel": "रद्द करें",
+        "save": "बदलाव सेव करें",
+        "create": "नीति बनाएँ"
+    }
+}

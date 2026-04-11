@@ -13,7 +13,7 @@ export const getOfferDeals = async (req, res) => {
     // If Admin (no req.vendor), query remains empty to see ALL offers
     const offers = await OfferDeal.find(query)
       .populate('products.productId', 'name image basePrice mrp sku')
-      .sort('order');
+      .sort('-createdAt');
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -35,7 +35,7 @@ export const getOfferDealById = async (req, res) => {
 // @desc    Create a new offer deal
 export const createOfferDeal = async (req, res) => {
   try {
-    const { title, subtitle, description, bgColor, textColor, accentColor, products, order, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
+    const { title, subtitle, description, bgColor, textColor, accentColor, products, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
 
     let parsedProducts = products;
     if (typeof products === 'string') {
@@ -70,7 +70,6 @@ export const createOfferDeal = async (req, res) => {
       textColor,
       accentColor,
       products: parsedProducts,
-      order,
       expiryDate,
       displayLocation,
       discountPercentage: discountPercentage || 0,
@@ -113,7 +112,7 @@ export const updateOfferDeal = async (req, res) => {
       return res.status(403).json({ message: 'Admin can only delete vendor deals, not edit them' });
     }
 
-    const { title, subtitle, description, bgColor, textColor, accentColor, products, order, isActive, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
+    const { title, subtitle, description, bgColor, textColor, accentColor, products, isActive, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
 
     offer.title = title || offer.title;
     offer.subtitle = subtitle !== undefined ? subtitle : offer.subtitle;
@@ -132,7 +131,7 @@ export const updateOfferDeal = async (req, res) => {
       }, { offerId: offer._id.toString(), type: 'offer' });
     }
 
-    offer.order = order !== undefined ? order : offer.order;
+
     offer.expiryDate = expiryDate || offer.expiryDate;
 
     if (expiryDate) {
@@ -210,11 +209,11 @@ export const getActiveOfferDeals = async (req, res) => {
         } 
       },
       { $addFields: { totalProducts: { $size: "$products" } } },
-      { $sort: { order: 1 } },
+      { $sort: { createdAt: -1 } },
       {
         $project: {
           title: 1, subtitle: 1, description: 1, bgColor: 1, textColor: 1, accentColor: 1,
-          bannerImage: 1, isActive: 1, order: 1, expiryDate: 1, displayLocation: 1,
+          bannerImage: 1, isActive: 1, expiryDate: 1, displayLocation: 1,
           discountPercentage: 1, animationType: 1, backgroundEffect: 1, totalProducts: 1,
           products: { $slice: ["$products", 10] }
         }

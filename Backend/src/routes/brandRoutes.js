@@ -4,12 +4,16 @@ import {
   getBrands,
   getBrandById,
   updateBrand,
-  deleteBrand
+  deleteBrand,
+  getBrandByNamePublic
 } from '../controllers/brandController.js';
 import { protectAdmin, protectStoreManager, restrictTo } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
+
+// Public routes
+router.get('/public/name/:name', getBrandByNamePublic);
 
 // Brand routes - Allow Admin & Vendor
 router.route('/')

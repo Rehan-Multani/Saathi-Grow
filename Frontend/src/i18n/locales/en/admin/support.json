@@ -1,0 +1,64 @@
+{
+    "title": "Support Center",
+    "tickets": {
+        "title": "Customer Help",
+        "search_placeholder": "Search by ID or Name...",
+        "refresh": "Refresh",
+        "load_failed": "Failed to load help requests",
+        "escalate_success": "Sent to store for review!",
+        "escalate_failed": "Failed to send to store",
+        "status": {
+            "open": "Active",
+            "escalated": "With Store",
+            "responded": "Replied",
+            "resolved": "Fixed",
+            "closed": "Closed",
+            "sla_breach": "Late"
+        },
+        "table": {
+            "ticket_id": "Ticket ID",
+            "order_id": "Order Info",
+            "user": "Customer",
+            "category": "Issue",
+            "priority": "Need",
+            "status": "State",
+            "actions": "View"
+        },
+        "modal": {
+            "title": "Help Details",
+            "info_section": "Issue Details",
+            "order_section": "Order Details",
+            "escalation_section": "Ask Store",
+            "resolution_section": "Solution",
+            "user_comment": "Customer Said",
+            "admin_can_resolve": "Write your reply",
+            "resolution_placeholder": "Tell us how this was fixed...",
+            "escalate_btn": "Ask Store",
+            "resolve_btn": "Mark Fixed",
+            "save_btn": "Update",
+            "update_success": "Update Successful",
+            "close": "Close"
+        }
+    },
+    "faqs": {
+        "title": "Common Questions (FAQs)",
+        "add_new": "Add Question",
+        "search_placeholder": "Search questions...",
+        "no_matching": "No questions found",
+        "delete_confirm": "Delete this question?",
+        "delete_success": "Question deleted",
+        "save_success": "Saved successfully",
+        "modal": {
+            "add_title": "New Question",
+            "edit_title": "Edit Question",
+            "question": "The Question",
+            "answer": "The Answer",
+            "category": "Group",
+            "status": "Show it?",
+            "active": "Visible",
+            "inactive": "Hidden",
+            "save": "Save Now",
+            "update": "Update Now"
+        }
+    }
+}

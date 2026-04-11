@@ -1,0 +1,63 @@
+{
+    "title": "Analytics",
+    "revenue": {
+        "title": "Income Growth",
+        "subtitle": "Track how much money the business is making.",
+        "charts": {
+            "monthly": "Monthly Sales",
+            "daily": "Daily Orders"
+        },
+        "stats": {
+            "gross": "Total Sales",
+            "net": "Final Income",
+            "fees": "App Fees"
+        }
+    },
+    "demand": {
+        "title": "Popular Items",
+        "subtitle": "Discover which products are selling fastest.",
+        "peak_hours": "Busy Times",
+        "top_categories": "Top Types",
+        "repeat_customers": "Regular Users"
+    },
+    "finance": {
+        "title": "Finance",
+        "earnings": {
+            "title": "Vendor Money",
+            "subtitle": "Manage vendor sales earnings and bank transfers.",
+            "total_earned": "Total Earnings",
+            "paid_to_bank": "Paid to Bank",
+            "pending": "To Pay",
+            "commission": "Platform Fees",
+            "tabs": {
+                "sales": "Earnings",
+                "payouts": "Withdrawals"
+            },
+            "table": {
+                "vendor": "Vendor",
+                "amount": "Total",
+                "status": "State",
+                "order_id": "Order ID",
+                "payout_id": "Payout ID",
+                "date": "Date"
+            },
+            "filters": {
+                "all_vendors": "All Partners",
+                "all_status": "All Records",
+                "pending": "Pending",
+                "settled": "Settled"
+            }
+        },
+        "tax": {
+            "title": "Tax Files",
+            "subtitle": "View and download tax related documents.",
+            "reports": "GST Reports",
+            "history": "Submission History"
+        }
+    },
+    "common": {
+        "view_details": "View More",
+        "recalculate": "Update Data",
+        "payout": "Send Payment"
+    }
+}

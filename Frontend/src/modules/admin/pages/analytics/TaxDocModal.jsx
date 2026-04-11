@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
-import { X, FileText, Download, Printer, Eye } from 'lucide-react';
+import { X, FileText, Download, Printer, Eye, Loader2, CheckCircle2, ShieldCheck, FileSearch } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const TaxDocModal = ({ show, onHide, doc }) => {
+    const { t } = useTranslation('admin_analytics');
+    
     useEffect(() => {
         if (show) {
             document.body.style.overflow = 'hidden';
@@ -16,55 +19,73 @@ const TaxDocModal = ({ show, onHide, doc }) => {
     if (!show || !doc) return null;
 
     return (
-        <div className="fixed inset-0 z-[1060] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onHide}></div>
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onHide}></div>
+            
+            {/* Modal Content */}
+            <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
-                    <h5 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <FileText size={20} className="text-primary" /> Tax Document
-                    </h5>
-                    <button onClick={onHide} className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-500">
-                        <X size={20} />
+                <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                    <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
+                            <FileSearch size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-black text-slate-800 uppercase tracking-tight leading-tight">Tax Document</h3>
+                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 opacity-80">Reference: {doc.id}</p>
+                        </div>
+                    </div>
+                    <button onClick={onHide} className="p-2.5 hover:bg-white rounded-xl transition-colors text-slate-400 hover:text-rose-500 border border-transparent hover:border-slate-100">
+                        <X size={24} />
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className="p-6">
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6 flex flex-col items-center justify-center text-center">
-                        <FileText size={48} className="text-gray-300 mb-3" />
-                        <h6 className="font-bold text-gray-700">{doc.id}_Report.pdf</h6>
-                        <p className="text-sm text-gray-500 mb-0">Generated on {new Date().toLocaleDateString()}</p>
+                <div className="p-10">
+                    {/* Visual Doc Card */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-8 mb-10 flex flex-col items-center justify-center text-center shadow-inner">
+                        <div className="w-20 h-20 bg-white rounded-[1.5rem] border border-slate-100 flex items-center justify-center mb-4 shadow-sm">
+                            <FileText size={40} className="text-slate-300" />
+                        </div>
+                        <h6 className="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-1">{doc.id}_STATEMENT.PDF</h6>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter opacity-60">Created on {new Date().toLocaleDateString()}</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Filing Period</label>
-                            <div className="font-medium text-gray-800">{doc.period}</div>
+                    <div className="grid grid-cols-2 gap-y-8 gap-x-10">
+                        <div className="space-y-1">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block opacity-70">Month/Year</span>
+                            <span className="text-xs font-black text-slate-800 uppercase tracking-tight block">{doc.period}</span>
                         </div>
-                        <div className="mb-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Status</label>
-                            <div className={`font-medium ${doc.status === 'Filed' ? 'text-green-600' : 'text-amber-600'}`}>{doc.status}</div>
+                        <div className="space-y-1">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block opacity-70">Current State</span>
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest border inline-block ${doc.status === 'Filed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                                {doc.status}
+                            </span>
                         </div>
-                        <div className="mb-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Taxable Amount</label>
-                            <div className="font-medium text-gray-800">{doc.taxable}</div>
+                        <div className="space-y-1">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block opacity-70">Taxable Money</span>
+                            <span className="text-xs font-black text-slate-800 uppercase tracking-tight block">{doc.taxable}</span>
                         </div>
-                        <div className="mb-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase">Tax Collected</label>
-                            <div className="font-medium text-gray-800">{doc.gst}</div>
+                        <div className="space-y-1">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block opacity-70">GST Collected</span>
+                            <span className="text-xs font-black text-blue-600 uppercase tracking-tight block">{doc.gst}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                        <Printer size={16} /> Print
+                <div className="px-10 py-8 bg-slate-50/30 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button
+                        onClick={onHide}
+                        className="px-8 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200 rounded-2xl bg-white hover:bg-slate-50 transition-all font-sans"
+                    >
+                        Close View
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <Download size={16} /> Download PDF
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-100 transition-all active:scale-[0.98] flex items-center gap-2"
+                    >
+                        <Download size={16} />
+                        Get PDF
                     </button>
                 </div>
             </div>

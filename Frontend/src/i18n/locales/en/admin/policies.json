@@ -1,0 +1,33 @@
+{
+    "title": "Legal & Policies",
+    "subtitle": "Manage legal documents across all platform modules.",
+    "add_btn": "Add Policy",
+    "filter_role": "Filter by Role:",
+    "all_roles": "View All",
+    "table": {
+        "title": "Policy Title",
+        "roles": "Roles",
+        "status": "Status",
+        "updated": "Last Updated",
+        "actions": "Actions"
+    },
+    "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+    },
+    "modal": {
+        "add_title": "Add New Policy",
+        "edit_title": "Edit Policy",
+        "label_title": "Policy Title",
+        "label_slug": "URL Slug",
+        "label_audience": "Target Audience",
+        "label_content": "Policy Content",
+        "label_active": "Active Status",
+        "placeholder_title": "e.g. Privacy Policy",
+        "placeholder_slug": "e.g. privacy-policy",
+        "placeholder_content": "Type your legal text here...",
+        "cancel": "Cancel",
+        "save": "Save Changes",
+        "create": "Create Policy"
+    }
+}

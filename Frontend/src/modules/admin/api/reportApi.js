@@ -109,6 +109,19 @@ export const getAdminVendorPayoutDetail = async (token, id) => {
     throw error.response?.data || error;
   }
 };
+
+export const exportVendorEarningsCSV = async (token, params = {}) => {
+  try {
+    const response = await axios.get(`${REPORT_BASE_URL}/vendor-earnings/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params,
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
 export const getStrategicAnalytics = async (token, params = {}) => {
   try {
     const response = await axios.get(`${REPORT_BASE_URL}/strategic-analytics`, {

@@ -44,6 +44,20 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
       default: throw new Error('Invalid recipient model');
     }
 
+    // PERSISTENCE: Save to database for history (Save even if no token for in-app history)
+    try {
+      await Notification.create({
+        recipient: recipientId,
+        recipientModel: recipientModel === 'Admin' || recipientModel === 'Branch' ? 'Staff' : recipientModel,
+        title: notification.title,
+        body: notification.body,
+        data: data,
+        type: data.type || 'general'
+      });
+    } catch (saveError) {
+      console.error('Error saving notification to DB:', saveError.message);
+    }
+
     if (!recipient || !recipient.fcmToken) {
       console.log(`No recipient or FCM tokens found for: ${recipientId}`);
       return false;
@@ -70,20 +84,6 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
     // sendEach is the replacement for sendAll in firebase-admin 12.x
     const response = await firebaseAdmin.messaging().sendEach(messages);
     console.log(`Successfully sent notifications to ${recipientId} (${response.successCount} succeeded)`);
-
-    // PERSISTENCE: Save to database for history
-    try {
-      await Notification.create({
-        recipient: recipientId,
-        recipientModel: recipientModel === 'Admin' || recipientModel === 'Branch' ? 'Staff' : recipientModel,
-        title: notification.title,
-        body: notification.body,
-        data: data,
-        type: data.type || 'general'
-      });
-    } catch (saveError) {
-      console.error('Error saving notification to DB:', saveError.message);
-    }
 
     return true;
 

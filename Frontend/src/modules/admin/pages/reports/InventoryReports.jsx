@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, Table, Button, Form, ProgressBar, Badge, InputGroup, Spinner } from 'react-bootstrap';
-import { Download, AlertTriangle, Search, Filter, X, ShoppingBag, ChevronLeft, ChevronRight, Store, Truck } from 'lucide-react';
+import { Download, AlertTriangle, Search, Filter, X, ShoppingBag, ChevronLeft, ChevronRight, Store, Truck, RefreshCw, Loader2, Package } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getInventoryReports, exportInventoryCSV } from '../../api/reportApi';
 import { getBranches } from '../../api/branchApi';
@@ -12,7 +11,7 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const InventoryReports = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_reports');
     const { adminUser } = useAdminAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -37,13 +36,6 @@ const InventoryReports = () => {
     const [totalItems, setTotalItems] = useState(0);
     const limit = 10;
 
-    // Unified Source Options
-    const sourceOptions = useMemo(() => {
-        const branchOptions = branches.map(b => ({ id: b._id, name: b.name, type: 'branch', icon: <Store size={14} className="me-2" /> }));
-        const vendorOptions = vendors.map(v => ({ id: v._id, name: v.storeName, type: 'vendor', icon: <Truck size={14} className="me-2" /> }));
-        return [...branchOptions, ...vendorOptions];
-    }, [branches, vendors]);
-
     const fetchDropdownData = useCallback(async () => {
         if (!adminUser?.token) return;
         try {
@@ -54,17 +46,16 @@ const InventoryReports = () => {
             ]);
             setBranches(branchData || []);
             setVendors(vendorData || []);
-            // Map categories to handle possible different data structures
             const cats = Array.isArray(categoryData) ? categoryData : (categoryData.categories || []);
             setCategories(cats.map(c => typeof c === 'string' ? c : c.name) || []);
         } catch (error) {
-            console.error('Failed to fetch dropdown options:', error);
+            console.error('Failed to fetch filter options');
         }
     }, [adminUser]);
 
-    const fetchInventory = useCallback(async (isSilent = false) => {
+    const fetchInventory = useCallback(async () => {
         if (!adminUser?.token) return;
-        if (!isSilent) setLoading(true);
+        setLoading(true);
         try {
             const params = {
                 page,
@@ -83,7 +74,7 @@ const InventoryReports = () => {
                 setTotalItems(res.pagination?.total || 0);
             }
         } catch (error) {
-            console.error('Fetch Inventory Error:', error);
+            toast.error('Failed to load inventory data');
         } finally {
             setLoading(false);
         }
@@ -97,7 +88,6 @@ const InventoryReports = () => {
         fetchInventory();
     }, [fetchInventory]);
 
-    // Reset pagination when filters change
     useEffect(() => {
         setPage(1);
     }, [searchTerm, selectedCategory, selectedSource, stockStatus]);
@@ -122,10 +112,9 @@ const InventoryReports = () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success(t('stock.reports.inventory.alerts.export_success'));
+            toast.success('Report downloaded successfully');
         } catch (error) {
-            console.error('Export failed:', error);
-            toast.error(t('stock.reports.inventory.alerts.export_error'));
+            toast.error('Failed to export report');
         } finally {
             setExporting(false);
         }
@@ -138,293 +127,219 @@ const InventoryReports = () => {
         setShowFilterMenu(false);
     };
 
-    const getStatusVariant = (status) => {
-        switch(status) {
-            case 'In Stock': return 'success';
-            case 'Low Stock': return 'warning';
-            case 'Out of Stock': return 'danger';
-            default: return 'secondary';
-        }
-    };
-
     return (
-        <div className="p-2 p-md-4">
-            <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <div className="bg-primary bg-opacity-10 p-3 rounded-3 text-primary d-none d-md-flex">
-                        <ShoppingBag size={24} />
+        <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('inventory.title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.inventoryReports} />
                     </div>
-                    <div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="fw-bold mb-1 text-dark">{t('stock.reports.inventory.title')}</h4>
-                            <PageInfoTooltip data={pageInfoData.inventoryReports} />
-                        </div>
-                        <p className="text-muted small mb-0 d-none d-sm-block">{t('stock.reports.inventory.subtitle')}</p>
-                    </div>
+                    <p className="text-slate-500 text-xs mt-1 font-bold opacity-70 uppercase tracking-tight">{t('inventory.subtitle')}</p>
                 </div>
 
-                <div className="d-flex flex-column flex-sm-row gap-2 w-100 w-lg-auto text-nowrap">
-                    <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        className={`d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-3 ${stockStatus === 'Out of Stock' ? 'active shadow-none bg-danger text-white' : ''}`}
+                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <button 
                         onClick={() => setStockStatus(stockStatus === 'Out of Stock' ? '' : 'Out of Stock')}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all border shadow-sm flex items-center gap-2 ${stockStatus === 'Out of Stock' ? 'bg-rose-600 text-white border-rose-600 shadow-rose-100' : 'bg-white text-rose-600 border-rose-100 shadow-slate-100'}`}
                     >
-                        <X size={16} /> <span>{t('stock.reports.inventory.out_of_stock_btn', { count: summary.outOfStockCount })}</span>
-                    </Button>
-                    <Button 
-                        variant="outline-warning" 
-                        size="sm" 
-                        className={`d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-3 ${stockStatus === 'Low Stock' ? 'active shadow-none bg-warning text-dark' : ''}`}
-                        onClick={() => setStockStatus(stockStatus === 'Low Stock' ? '' : 'Low Stock')}
-                    >
-                        <AlertTriangle size={16} /> <span>{t('stock.reports.inventory.low_stock_btn', { count: summary.lowStockCount })}</span>
-                    </Button>
-                    <Button 
-                        variant="primary" 
-                        size="sm" 
-                        className="d-flex align-items-center gap-2 shadow-sm flex-grow-1 flex-sm-grow-0 justify-content-center px-4"
+                        <X size={14} /> {t('inventory.low_stock_alerts')} ({summary.outOfStockCount || 0})
+                    </button>
+                    
+                    <button
                         onClick={handleExport}
                         disabled={exporting}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        {exporting ? <Spinner animation="border" size="sm" /> : <Download size={16} />}
-                        <span>{exporting ? t('stock.reports.inventory.exporting') : t('stock.reports.inventory.export_report')}</span>
-                    </Button>
+                        {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                        <span>{t('sales.download')}</span>
+                    </button>
+                    
+                    <button
+                        onClick={fetchInventory}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl hover:border-blue-500 transition-all shadow-sm active:scale-90"
+                    >
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
                 </div>
             </div>
 
-            {/* Inventory Table */}
-            <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-white py-3 border-0">
-                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                        <h6 className="mb-0 fw-bold">{t('stock.reports.inventory.table_title')}</h6>
-                        <div className="d-flex flex-column flex-sm-row gap-3 w-100 w-md-auto align-items-stretch">
-                            <div className="flex-grow-1" style={{ maxWidth: '400px' }}>
-                                <InputGroup className="bg-light rounded-3 overflow-hidden border-0">
-                                    <InputGroup.Text className="bg-light border-0 text-muted ps-3">
-                                        <Search size={18} />
-                                    </InputGroup.Text>
-                                    <Form.Control
-                                        placeholder={t('stock.reports.inventory.search_placeholder')}
-                                        className="bg-light border-0 ps-1 py-2 shadow-none font-small"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </InputGroup>
-                            </div>
-
-                            <div className="position-relative">
-                                <Button
-                                    size="sm"
-                                    variant={selectedCategory || selectedSource.id || stockStatus ? "primary" : "outline-secondary"}
-                                    className="d-flex align-items-center justify-content-center gap-2 h-100 px-3 shadow-none border no-hover-effect"
-                                    onClick={() => setShowFilterMenu(!showFilterMenu)}
-                                >
-                                    <Filter size={18} />
-                                    <span>{t('stock.reports.inventory.filter')}</span>
-                                    {(selectedCategory || selectedSource.id || stockStatus) && (
-                                        <Badge bg="white" text="primary" pill className="ms-1 small">!</Badge>
-                                    )}
-                                </Button>
-
-                                {showFilterMenu && (
-                                    <div className="position-absolute end-0 mt-2 bg-white shadow-xl border rounded-3 p-3 animate-in fade-in slide-in-from-top-2 duration-200"
-                                        style={{
-                                            width: '280px',
-                                            zIndex: 1100,
-                                            right: '0'
-                                        }}>
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                            <h6 className="mb-0 fw-bold small text-uppercase text-muted letter-spacing-wider">{t('stock.reports.inventory.filter_menu.title')}</h6>
-                                            <Button variant="link" className="p-0 text-muted" onClick={() => setShowFilterMenu(false)}>
-                                                <X size={18} />
-                                            </Button>
-                                        </div>
-
-                                        <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">{t('stock.reports.inventory.filter_menu.category_label')}</Form.Label>
-                                            <Form.Select
-                                                size="sm"
-                                                className="bg-light border-0 py-2 shadow-none"
-                                                value={selectedCategory}
+            {/* List Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                <div className="px-8 py-5 border-b border-slate-50 flex flex-col md:flex-row justify-between items-md-center gap-4 bg-slate-50/10">
+                    <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                        <Package size={16} className="text-blue-600" /> Stock Status Table
+                    </h5>
+                    
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Find items..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-[11px] font-bold text-slate-700 shadow-sm"
+                            />
+                        </div>
+                        
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowFilterMenu(!showFilterMenu)}
+                                className={`p-2.5 rounded-xl border flex items-center gap-2 transition-all shadow-sm ${showFilterMenu || selectedCategory || selectedSource.id ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
+                            >
+                                <Filter size={18} />
+                            </button>
+                            
+                            {showFilterMenu && (
+                                <div className="absolute right-0 mt-3 w-72 bg-white border border-slate-100 shadow-2xl rounded-2xl p-6 z-50 animate-in fade-in slide-in-from-top-4 duration-200">
+                                    <div className="flex justify-between items-center mb-6 border-b border-slate-50 pb-2">
+                                        <h6 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Global Filters</h6>
+                                        <button onClick={() => setShowFilterMenu(false)} className="text-slate-400 hover:text-rose-500"><X size={18} /></button>
+                                    </div>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">Category</label>
+                                            <select 
+                                                value={selectedCategory} 
                                                 onChange={(e) => setSelectedCategory(e.target.value)}
+                                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold outline-none focus:border-blue-500"
                                             >
-                                                <option value="">{t('stock.reports.inventory.filter_menu.all_categories')}</option>
+                                                <option value="">All Categories</option>
                                                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </Form.Select>
+                                            </select>
                                         </div>
-
-                                        <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">{t('stock.reports.inventory.filter_menu.source_label')}</Form.Label>
-                                            <Form.Select
-                                                size="sm"
-                                                className="bg-light border-0 py-2 shadow-none"
+                                        
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">Vendor Source</label>
+                                            <select 
                                                 value={`${selectedSource.id}|${selectedSource.type}`}
                                                 onChange={(e) => {
                                                     const [id, type] = e.target.value.split('|');
                                                     setSelectedSource({ id: id || '', type: type || '' });
                                                 }}
+                                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold outline-none focus:border-blue-500"
                                             >
-                                                <option value="|">{t('stock.reports.inventory.filter_menu.all_sources')}</option>
-                                                <optgroup label={t('stock.reports.inventory.filter_menu.branches_group')}>
-                                                    {sourceOptions.filter(s => s.type === 'branch').map(s => (
-                                                        <option key={s.id} value={`${s.id}|${s.type}`}>🏪 {s.name}</option>
-                                                    ))}
-                                                </optgroup>
-                                                <optgroup label={t('stock.reports.inventory.filter_menu.vendors_group')}>
-                                                    {sourceOptions.filter(s => s.type === 'vendor').map(s => (
-                                                        <option key={s.id} value={`${s.id}|${s.type}`}>🚚 {s.name}</option>
-                                                    ))}
-                                                </optgroup>
-                                            </Form.Select>
+                                                <option value="|">All Sources</option>
+                                                {branches.map(b => <option key={b._id} value={`${b._id}|branch`}>🏪 {b.name}</option>)}
+                                                {vendors.map(v => <option key={v._id} value={`${v._id}|vendor`}>🚚 {v.storeName}</option>)}
+                                            </select>
                                         </div>
-
-                                        <div className="mb-3">
-                                            <Form.Label className="small fw-bold text-muted text-uppercase mb-1">{t('stock.reports.inventory.filter_menu.status_label')}</Form.Label>
-                                            <Form.Select
-                                                size="sm"
-                                                className="bg-light border-0 py-2 shadow-none"
-                                                value={stockStatus}
-                                                onChange={(e) => setStockStatus(e.target.value)}
-                                            >
-                                                <option value="">{t('stock.reports.inventory.filter_menu.all_items')}</option>
-                                                <option value="In Stock">{t('stock.reports.inventory.filter_menu.in_stock')}</option>
-                                                <option value="Low Stock">{t('stock.reports.inventory.filter_menu.low_stock_only')}</option>
-                                                <option value="Out of Stock">{t('stock.reports.inventory.filter_menu.out_of_stock')}</option>
-                                            </Form.Select>
-                                        </div>
-
-                                        {(selectedCategory || selectedSource.id || stockStatus) && (
-                                            <Button
-                                                variant="link"
-                                                className="w-100 p-0 text-danger small text-decoration-none border-top pt-2 mt-2"
-                                                onClick={clearFilters}
-                                            >
-                                                {t('stock.reports.inventory.filter_menu.clear_filters')}
-                                            </Button>
-                                        )}
                                     </div>
-                                )}
-                            </div>
+                                    
+                                    {(selectedCategory || selectedSource.id) && (
+                                        <button 
+                                            onClick={clearFilters}
+                                            className="w-full mt-6 pt-4 border-t border-slate-50 text-[10px] font-black text-rose-500 uppercase tracking-widest"
+                                        >
+                                            Clear Selection
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
-                </Card.Header>
-                <Card.Body className="p-0 position-relative" style={{ minHeight: '200px' }}>
-                    {loading && (
-                        <div className="position-absolute top-50 start-50 translate-middle" style={{ zIndex: 10 }}>
-                            <Spinner animation="border" variant="primary" />
-                        </div>
-                    )}
-                    <Table hover responsive className={`mb-0 align-middle ${loading ? 'opacity-50' : ''}`}>
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">{t('stock.reports.inventory.table.product')}</th>
-                                <th className="border-0 py-3">{t('stock.reports.inventory.table.vendor_source')}</th>
-                                <th className="border-0 py-3">{t('stock.reports.inventory.table.category')}</th>
-                                <th className="border-0 py-3" style={{ width: '200px' }}>{t('stock.reports.inventory.table.stock_level')}</th>
-                                <th className="border-0 py-3 text-center">{t('stock.reports.inventory.table.reorder_point')}</th>
-                                <th className="border-0 py-3 text-end pe-4">{t('stock.reports.inventory.table.status')}</th>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100 font-bold text-slate-500 uppercase text-[10px] tracking-widest">
+                                <th className="px-8 py-5">Product Info</th>
+                                <th className="px-6 py-5">Vendor</th>
+                                <th className="px-6 py-5">Type</th>
+                                <th className="px-6 py-5">Availability</th>
+                                <th className="px-6 py-5 text-center">Alert Point</th>
+                                <th className="px-8 py-5 text-right">State</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {inventory.length > 0 ? inventory.map((item, idx) => (
-                                <tr key={item.id || idx}>
-                                    <td className="ps-4">
-                                        <div className="fw-bold text-dark">{item.name}</div>
-                                        <div className="small text-muted">{item.sku}</div>
-                                    </td>
-                                    <td>
-                                        <Badge bg="info" className="bg-opacity-10 text-info fw-medium border border-info border-opacity-25 px-2 py-1">
-                                            {item.vendor}
-                                        </Badge>
-                                    </td>
-                                    <td><span className="text-secondary small fw-medium">{item.category}</span></td>
-                                    <td>
-                                        <div className="d-flex align-items-center gap-2">
-                                            <ProgressBar
-                                                now={Math.min(parseInt(item.stock), 100)}
-                                                max={100}
-                                                variant={item.status === 'Low Stock' ? 'warning' : item.status === 'Out of Stock' ? 'danger' : 'success'}
-                                                style={{ height: '6px', width: '100px' }}
-                                                className="rounded-pill shadow-none"
-                                            />
-                                            <span className="small fw-bold">{item.stock} {item.unitType}</span>
+                        <tbody className="divide-y divide-slate-100 font-medium">
+                            {loading && inventory.length === 0 ? (
+                                [...Array(5)].map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="6" className="px-8 py-6">
+                                            <div className="h-4 bg-slate-50 rounded w-full"></div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : inventory.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="py-24 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100">
+                                                <Package size={32} className="text-slate-200" />
+                                            </div>
+                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No matching stock items</p>
                                         </div>
                                     </td>
-                                    <td className="text-center text-muted small">{item.reorderLevel} {t('stock.reports.inventory.table.units')}</td>
-                                    <td className="text-end pe-4">
-                                        <Badge
-                                            bg={getStatusVariant(item.status)}
-                                            className="rounded-pill fw-normal px-3 py-1 shadow-sm"
-                                        >
-                                            {t(`stock.reports.inventory.statuses.${item.status?.toLowerCase().replace(/\s+/g, '_')}`)}
-                                        </Badge>
-                                    </td>
                                 </tr>
-                            )) : !loading && (
-                                <tr>
-                                    <td colSpan="6" className="text-center py-5 text-muted">
-                                        {t('stock.reports.inventory.table.no_data')}
-                                    </td>
-                                </tr>
+                            ) : (
+                                inventory.map((item, idx) => (
+                                    <tr key={item.id || idx} className="hover:bg-slate-50/30 transition-colors">
+                                        <td className="px-8 py-5">
+                                            <div className="text-xs font-black text-slate-800 uppercase tracking-tight">{item.name}</div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{item.sku}</div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-100 uppercase">
+                                                {item.vendor}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight opacity-70">{item.category}</span>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full rounded-full ${item.status === 'Low Stock' ? 'bg-amber-500' : item.status === 'Out of Stock' ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                                                        style={{ width: `${Math.min((item.stock / (item.reorderLevel * 2)) * 100, 100)}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-xs font-black text-slate-800">{item.stock}</span>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase">{item.unitType}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">
+                                                {item.reorderLevel} units
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5 text-right">
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                                                item.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                item.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-600 border-rose-100'
+                                            }`}>
+                                                {item.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
-                {totalItems > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('stock.reports.inventory.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('stock.reports.inventory.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, totalItems)}</span> {t('stock.reports.inventory.pagination.of')} <span className="fw-semibold text-dark">{totalItems}</span> {t('stock.reports.inventory.pagination.products')}
+                {/* Pagination Toolbar */}
+                {!loading && totalItems > 0 && totalPages > 1 && (
+                    <div className="px-8 py-6 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Scanning {((page - 1) * limit) + 1} - {Math.min(page * limit, totalItems)} of {totalItems} items
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                            >
+                        <div className="flex items-center gap-2">
+                             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 bg-white border rounded-xl disabled:opacity-30 hover:border-blue-500 shadow-sm transition-all">
                                 <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
-                                {(() => {
-                                    const pages = [];
-                                    const maxVisible = 5;
-                                    let start = Math.max(1, page - 2);
-                                    let end = Math.min(totalPages, start + maxVisible - 1);
-                                    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
-
-                                    for (let p = start; p <= end; p++) {
-                                        pages.push(
-                                            <Button
-                                                key={p}
-                                                variant={page === p ? 'primary' : 'light'}
-                                                className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                style={{ width: '36px', height: '36px', padding: 0 }}
-                                                onClick={() => setPage(p)}
-                                            >
-                                                {p}
-                                            </Button>
-                                        );
-                                    }
-                                    return pages;
-                                })()}
-                            </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                            >
+                            </button>
+                            <span className="text-xs font-bold text-slate-500 px-4">{page} / {totalPages}</span>
+                            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 bg-white border rounded-xl disabled:opacity-30 hover:border-blue-500 shadow-sm transition-all">
                                 <ChevronRight size={16} />
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
         </div>
     );
 };

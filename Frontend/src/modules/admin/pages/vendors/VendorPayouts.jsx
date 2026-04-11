@@ -47,7 +47,7 @@ const VendorPayouts = () => {
             showCancelButton: true,
             confirmButtonColor: color,
             cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Yes, proceed'
+            confirmButtonText: t('form.save') || 'Yes, proceed'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
@@ -63,7 +63,7 @@ const VendorPayouts = () => {
 
     const filteredPayouts = payouts.filter(p => {
         const matchesSearch = p.vendor?.storeName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             p.payoutId?.toLowerCase().includes(searchTerm.toLowerCase());
+                             (p.payoutId || p._id)?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = filterStatus === 'All' || p.status === filterStatus;
         return matchesSearch && matchesStatus;
     });
@@ -72,7 +72,7 @@ const VendorPayouts = () => {
         return (
             <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
                 <Loader2 size={40} className="text-blue-500 animate-spin" />
-                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-none">Loading Payments...</p>
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-none">{t('loading')}</p>
             </div>
         );
     }
@@ -82,16 +82,16 @@ const VendorPayouts = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight text-slate-900">Withdrawals</h1>
-                    <p className="text-slate-500 text-xs mt-1 font-medium italic">Track and manage vendor payments</p>
+                    <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('payouts.title')}</h1>
+                    <p className="text-slate-500 text-xs mt-1 font-medium italic">{t('payouts.subtitle')}</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64 group">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <div className="relative w-full md:w-80 group">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
                         <input
                             type="text"
-                            placeholder="Search by ID or Store..."
+                            placeholder={t('payouts.search_placeholder')}
                             className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -100,17 +100,17 @@ const VendorPayouts = () => {
                     <select 
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer"
+                        className="w-full md:w-48 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-blue-500 shadow-sm appearance-none cursor-pointer"
                     >
                         <option value="All">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Paid">Settled</option>
-                        <option value="Rejected">Cancelled</option>
+                        <option value="Pending">{t('payouts.status.pending')}</option>
+                        <option value="Paid">{t('payouts.status.paid')}</option>
+                        <option value="Rejected">{t('payouts.status.rejected')}</option>
                     </select>
                     <button
                         onClick={() => fetchPayouts(true)}
                         disabled={refreshing}
-                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 shrink-0 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
                     >
                         <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
                     </button>
@@ -120,9 +120,9 @@ const VendorPayouts = () => {
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                 {[
-                    { label: 'Pending Requests', value: payouts.filter(p => p.status === 'Pending').length, icon: <Clock size={20} />, color: 'amber' },
-                    { label: 'Settled Today', value: '₹0', icon: <CheckCircle size={20} />, color: 'emerald' },
-                    { label: 'Total Balance', value: '₹0', icon: <Wallet size={20} />, color: 'blue' }
+                    { label: t('payout_report.history.table.status'), value: payouts.filter(p => p.status === 'Pending' || p.status === 'Requested').length, icon: <Clock size={20} />, color: 'amber' },
+                    { label: t('payouts.stats.settled'), value: `₹${payouts.filter(p => p.status === 'Paid').reduce((sum, p) => sum + (Number(p.amount) || 0), 0).toLocaleString()}`, icon: <CheckCircle size={20} />, color: 'emerald' },
+                    { label: t('payouts.stats.total_volume'), value: `₹${payouts.reduce((sum, p) => sum + (Number(p.amount) || 0), 0).toLocaleString()}`, icon: <Wallet size={20} />, color: 'blue' }
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-all">
                         <div className="space-y-1.5">
@@ -142,12 +142,12 @@ const VendorPayouts = () => {
                     <table className="w-full text-left font-medium">
                         <thead>
                             <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                <th className="px-8 py-5">Payout ID</th>
-                                <th className="px-6 py-5">Store Name</th>
-                                <th className="px-6 py-5">Amount</th>
-                                <th className="px-6 py-5">Request Date</th>
-                                <th className="px-6 py-5 text-center">Status</th>
-                                <th className="px-8 py-5 text-right">Actions</th>
+                                <th className="px-8 py-5">{t('payouts.table.id')}</th>
+                                <th className="px-6 py-5">{t('payouts.table.vendor')}</th>
+                                <th className="px-6 py-5">{t('payouts.table.amount')}</th>
+                                <th className="px-6 py-5">{t('payouts.table.date')}</th>
+                                <th className="px-6 py-5 text-center">{t('payouts.table.status')}</th>
+                                <th className="px-8 py-5 text-right">{t('all_vendors.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -174,25 +174,25 @@ const VendorPayouts = () => {
                                         <td className="px-6 py-6 text-center">
                                             <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${
                                                 payout.status === 'Paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                payout.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
+                                                (payout.status === 'Pending' || payout.status === 'Requested') ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
                                             }`}>
-                                                {payout.status === 'Paid' ? 'Settled' : payout.status}
+                                                {payout.status === 'Paid' ? t('payouts.status.paid') : (payout.status === 'Requested' ? t('payouts.status.pending') : payout.status)}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            {payout.status === 'Pending' ? (
+                                            {(payout.status === 'Pending' || payout.status === 'Requested') ? (
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button 
                                                         onClick={() => handleStatusUpdate(payout._id, 'Paid')}
                                                         className="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition-all active:scale-95 shadow-sm border-none"
                                                     >
-                                                        Approve
+                                                        {t('form.submit')}
                                                     </button>
                                                     <button 
                                                         onClick={() => handleStatusUpdate(payout._id, 'Rejected')}
                                                         className="px-4 py-1.5 bg-white border border-rose-200 text-rose-500 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-rose-50 transition-all active:scale-95"
                                                     >
-                                                        Reject
+                                                        {t('form.cancel')}
                                                     </button>
                                                 </div>
                                             ) : (
@@ -209,7 +209,7 @@ const VendorPayouts = () => {
                             ) : (
                                 <tr>
                                     <td colSpan="6" className="py-24 text-center">
-                                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">No payment requests found</p>
+                                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">{t('all_vendors.no_data')}</p>
                                     </td>
                                 </tr>
                             )}

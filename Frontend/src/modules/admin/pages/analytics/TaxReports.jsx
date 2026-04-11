@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Card, Table, Button, Form, Row, Col, Alert } from 'react-bootstrap';
-import { Download, FileText, Printer, Calculator, AlertTriangle } from 'lucide-react';
+import { Download, FileText, Printer, Calculator, AlertTriangle, FileSearch, ShieldCheck, CheckCircle2, Clock, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import TaxDocModal from './TaxDocModal';
 
 const TAX_DATA = [
-    { id: 'GST-1001', period: 'Nov 2023', taxable: '?25,000.00', gst: '?1,250.00', status: 'Filed' },
-    { id: 'GST-1002', period: 'Oct 2023', taxable: '?22,500.00', gst: '?1,125.00', status: 'Filed' },
-    { id: 'GST-1003', period: 'Sep 2023', taxable: '?18,000.00', gst: '?900.00', status: 'Audited' },
+    { id: 'TX-40121', period: 'Nov 2023', taxable: '₹25,000.00', gst: '₹1,250.00', status: 'Filed' },
+    { id: 'TX-39281', period: 'Oct 2023', taxable: '₹22,500.00', gst: '₹1,125.00', status: 'Filed' },
+    { id: 'TX-38102', period: 'Sep 2023', taxable: '₹18,000.00', gst: '₹900.00', status: 'Pending' },
 ];
 
 const TaxReports = () => {
+    const { t } = useTranslation('admin_analytics');
     const [showModal, setShowModal] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState(null);
 
@@ -19,94 +20,120 @@ const TaxReports = () => {
     };
 
     return (
-        <div className="p-3">
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0 text-nowrap">Tax & GST Reports</h4>
-                <div className="flex-grow-1 w-100 w-sm-auto d-flex justify-content-end">
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm">
-                        <Download size={16} /> <span className="d-none d-sm-inline">Download 1099-K</span>
-                        <span className="d-inline d-sm-none">Download</span>
-                    </Button>
+        <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('finance.tax.title')}</h1>
+                    <p className="text-slate-500 text-xs mt-1 font-bold opacity-70 uppercase tracking-tight">{t('finance.tax.subtitle')}</p>
+                </div>
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
+                    >
+                        <Download size={16} />
+                        <span>{t('sales.download', { ns: 'admin_reports' })} 1099-K</span>
+                    </button>
                 </div>
             </div>
 
-            <Row className="mb-4 g-3">
-                <Col xs={12} lg={8}>
-                    <Card className="border-0 shadow-sm h-100">
-                        <Card.Header className="bg-white py-3 border-0">
-                            <h6 className="mb-0 fw-bold">Tax Filing History</h6>
-                        </Card.Header>
-                        <Card.Body className="p-0">
-                            <Table hover responsive className="mb-0 align-middle">
-                                <thead className="bg-light text-muted small text-uppercase">
-                                    <tr>
-                                        <th className="ps-4 border-0 py-3">Filing ID</th>
-                                        <th className="border-0 py-3">Period</th>
-                                        <th className="border-0 py-3">Taxable Sales</th>
-                                        <th className="border-0 py-3">Collected Tax</th>
-                                        <th className="border-0 py-3">Status</th>
-                                        <th className="border-0 py-3 text-end pe-4">Docs</th>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Main Content */}
+                <div className="lg:col-span-2">
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-8 py-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/10">
+                            <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <FileSearch size={16} className="text-blue-600" /> {t('finance.tax.history')}
+                            </h5>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50/50 border-b border-slate-100 font-bold text-slate-500 uppercase text-[10px] tracking-widest">
+                                        <th className="px-8 py-5 text-blue-600">Record ID</th>
+                                        <th className="px-6 py-5">Month</th>
+                                        <th className="px-6 py-5">Sales Money</th>
+                                        <th className="px-6 py-5">GST Paid</th>
+                                        <th className="px-6 py-5 text-center">State</th>
+                                        <th className="px-8 py-5 text-right uppercase">Files</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="divide-y divide-slate-100 font-bold">
                                     {TAX_DATA.map((t, idx) => (
-                                        <tr key={idx}>
-                                            <td className="ps-4 fw-bold font-monospace text-primary">{t.id}</td>
-                                            <td>{t.period}</td>
-                                            <td>{t.taxable}</td>
-                                            <td className="fw-bold">{t.gst}</td>
-                                            <td>
-                                                <span className={`badge bg-${t.status === 'Filed' ? 'success' : 'warning'} rounded-pill fw-normal px-3`}>
+                                        <tr key={idx} className="hover:bg-slate-50/30 transition-colors group">
+                                            <td className="px-8 py-5 text-[10px] font-black uppercase text-slate-400">#{t.id}</td>
+                                            <td className="px-6 py-5 text-[11px] text-slate-800 uppercase tracking-tight">{t.period}</td>
+                                            <td className="px-6 py-5 text-[11px] text-slate-500">{t.taxable}</td>
+                                            <td className="px-6 py-5 text-[11px] text-slate-900">{t.gst}</td>
+                                            <td className="px-6 py-5 text-center">
+                                                <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
+                                                    t.status === 'Filed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                }`}>
                                                     {t.status}
                                                 </span>
                                             </td>
-                                            <td className="text-end pe-4">
-                                                <Button
-                                                    variant="light"
-                                                    size="sm"
-                                                    className="btn-icon-soft text-secondary"
-                                                    title="View PDF"
+                                            <td className="px-8 py-5 text-right">
+                                                <button 
                                                     onClick={() => handleViewDoc(t)}
+                                                    className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                                                 >
                                                     <FileText size={16} />
-                                                </Button>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} lg={4}>
-                    <Card className="border-0 shadow-sm bg-light mb-3">
-                        <Card.Body>
-                            <div className="d-flex align-items-center mb-3">
-                                <Calculator size={20} className="me-2 text-primary" />
-                                <h6 className="fw-bold mb-0">Sales Tax Settings</h6>
-                            </div>
-                            <Form.Group className="mb-3">
-                                <Form.Label className="small text-muted text-uppercase fw-bold">Standard GST Rate (%)</Form.Label>
-                                <Form.Control type="number" defaultValue="5.0" />
-                            </Form.Group>
-                            <Form.Check
-                                type="switch"
-                                id="auto-tax"
-                                label="Automated Tax Calculation"
-                                defaultChecked
-                                className="mb-3"
-                            />
-                            <Button variant="primary" size="sm" className="w-100">Update Settings</Button>
-                        </Card.Body>
-                    </Card>
-                    <Alert variant="info" className="border-0 shadow-sm d-flex align-items-start small">
-                        <AlertTriangle size={18} className="me-2 mt-1 flex-shrink-0" />
-                        <div>
-                            <strong>Upcoiming Deadline:</strong> Quarter 4 tax filing is due by Jan 15th. Ensure all sales data is reconciled.
+                            </table>
                         </div>
-                    </Alert>
-                </Col>
-            </Row>
+                    </div>
+                </div>
+
+                {/* Sidebar Config */}
+                <div className="space-y-6">
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8">
+                        <div className="flex items-center gap-3 mb-8 border-b border-slate-50 pb-4">
+                            <Calculator size={20} className="text-blue-600" />
+                            <h6 className="text-[11px] font-black text-slate-800 uppercase tracking-widest leading-none">Tax Controls</h6>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">Tax Rate (%)</label>
+                                <input 
+                                    type="number" 
+                                    defaultValue="5.0" 
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:border-blue-600 outline-none"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Auto Calculate</span>
+                                <div className="w-10 h-5 bg-blue-600 rounded-full relative cursor-pointer">
+                                    <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full translate-x-0" />
+                                </div>
+                            </div>
+                            
+                            <button className="w-full py-3.5 bg-blue-600 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-100">
+                                Apply Changes
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-amber-50 rounded-[2rem] border border-amber-100 p-8 shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-amber-200/20 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-amber-300/30 transition-all duration-700" />
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 text-amber-600 mb-3">
+                                <AlertTriangle size={18} />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Urgent Notice</span>
+                            </div>
+                            <p className="text-[10px] font-bold text-amber-800 leading-relaxed uppercase tracking-tight">
+                                Quarter 4 details are due by Jan 15th. Please check all money records before filing.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <TaxDocModal
                 show={showModal}

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
-import { fetchProducts } from '../../api/shopApi';
+import { fetchProducts, fetchBrandByName } from '../../api/shopApi';
 import ProductCard from '../../components/product/ProductCard';
 import { ChevronLeft, Search, X, SlidersHorizontal, Leaf, MapPin, Star } from 'lucide-react';
 import { ProductCardSkeleton } from '../../components/common/Skeleton';
@@ -87,14 +87,24 @@ const ShopListingPage = ({ type }) => {
             setPage(pageNum);
             lastFetchRef.current = paramKey;
 
+            let fetchedBrand = null;
+            if (type === 'brand' && !append) {
+                try {
+                    fetchedBrand = await fetchBrandByName(brandName);
+                } catch (e) {
+                    console.warn("Brand info not found natively, using fallback.");
+                }
+            }
+
             // Extract Info stably using updater
             setShopInfo(prevInfo => {
                  if (prevInfo) return prevInfo;
-                 if (newProducts.length === 0) return null;
+                 if (newProducts.length === 0 && !fetchedBrand) return null;
                  
-                 const first = newProducts[0];
+                 const first = newProducts[0] || {};
                  if (type === 'brand') {
-                     return { name: brandName, logo: first.image, type: 'Brand' };
+                     // Prefer the fetched brand logo, if empty return null (UI falls back to placeholder)
+                     return { name: brandName, logo: fetchedBrand?.logo || null, type: 'Brand' };
                  } else if (type === 'store') {
                      if (params.storeType === 'vendor' && first.vendor) {
                          return { 

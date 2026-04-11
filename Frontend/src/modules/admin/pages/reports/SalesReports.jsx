@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
-import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Download, Calendar, IndianRupee, TrendingUp, ShoppingBag, ChevronLeft, ChevronRight, AlertCircle, RefreshCw, Loader2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getSalesReports, exportSalesCSV } from '../../api/reportApi';
 import { toast } from 'react-toastify';
@@ -9,7 +8,7 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const SalesReports = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_reports');
     const { adminUser } = useAdminAuth();
     const [page, setPage] = useState(1);
     const [period, setPeriod] = useState('last_30_days');
@@ -45,12 +44,11 @@ const SalesReports = () => {
                 setData(res);
             }
         } catch (error) {
-            console.error('Failed to fetch reports:', error);
-            toast.error(error.message || t('stock.reports.sales.alerts.load_error'));
+            toast.error(error.message || 'Failed to load report data');
         } finally {
             setLoading(false);
         }
-    }, [adminUser.token, page, period, t]);
+    }, [adminUser.token, page, period]);
 
     useEffect(() => {
         fetchReports();
@@ -74,10 +72,9 @@ const SalesReports = () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success(t('stock.reports.sales.alerts.export_success'));
+            toast.success(t('sales.download_success', { defaultValue: 'Report downloaded' }));
         } catch (error) {
-            console.error('Export failed:', error);
-            toast.error(t('stock.reports.sales.alerts.export_error'));
+            toast.error(t('common.error', { ns: 'common' }));
         } finally {
             setExporting(false);
         }
@@ -92,220 +89,210 @@ const SalesReports = () => {
     };
 
     return (
-        <div className="p-3">
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <div className="d-flex align-items-center gap-2">
-                    <h4 className="fw-bold mb-0 text-nowrap">{t('stock.reports.sales.title')}</h4>
-                    <PageInfoTooltip data={pageInfoData.salesReports} />
+        <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('sales.title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.salesReports} />
+                    </div>
+                    <p className="text-slate-500 text-xs mt-1 font-bold opacity-70 uppercase tracking-tight">{t('sales.subtitle')}</p>
                 </div>
-                <div className="d-flex gap-2 flex-grow-1 w-100 w-sm-auto justify-content-between justify-content-sm-end">
-                    <Form.Select 
-                        size="sm" 
-                        style={{ width: '140px' }} 
-                        className="shadow-none"
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <select 
                         value={period}
                         onChange={handlePeriodChange}
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm appearance-none cursor-pointer pr-10"
                     >
-                        <option value="last_30_days">{t('stock.reports.sales.period.last_30_days')}</option>
-                        <option value="this_month">{t('stock.reports.sales.period.this_month')}</option>
-                        <option value="last_month">{t('stock.reports.sales.period.last_month')}</option>
-                        <option value="this_year">{t('stock.reports.sales.period.this_year')}</option>
-                    </Form.Select>
-                    <Button 
-                        variant="outline-primary" 
-                        size="sm" 
-                        className="d-flex align-items-center gap-2 shadow-sm"
+                        <option value="last_30_days">Last 30 Days</option>
+                        <option value="this_month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="this_year">This Year</option>
+                    </select>
+
+                    <button
                         onClick={handleExport}
                         disabled={exporting}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        {exporting ? (
-                            <Spinner animation="border" size="sm" />
-                        ) : (
-                            <Download size={16} />
-                        )}
-                        <span className="d-none d-sm-inline">{exporting ? t('stock.reports.sales.exporting') : t('stock.reports.sales.export_csv')}</span>
-                        <span className="d-inline d-sm-none">{t('stock.reports.sales.export_short')}</span>
-                    </Button>
+                        {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                        <span>{t('sales.download')}</span>
+                    </button>
+                    
+                    <button
+                        onClick={fetchReports}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl hover:border-blue-500 transition-all shadow-sm active:scale-90"
+                    >
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <Row className="g-3 mb-4">
-                <Col xs={12} sm={6} md={3}>
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body>
-                            <div className="d-flex align-items-center gap-3 mb-2">
-                                <div className="bg-success bg-opacity-10 p-2 rounded text-success">
-                                    <IndianRupee size={20} />
-                                </div>
-                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.total_revenue')}</span>
-                            </div>
-                            <h4 className="fw-bold mb-0">{formatCurrency(data.stats.totalRevenue)}</h4>
-                            <small className={data.stats.revenueGrowth >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}>
-                                {data.stats.revenueGrowth >= 0 ? '+' : ''}{data.stats.revenueGrowth}% {t('stock.reports.sales.stats.growth_suffix')}
-                            </small>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} md={3}>
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body>
-                            <div className="d-flex align-items-center gap-3 mb-2">
-                                <div className="bg-primary bg-opacity-10 p-2 rounded text-primary">
-                                    <ShoppingBag size={20} />
-                                </div>
-                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.total_orders')}</span>
-                            </div>
-                            <h4 className="fw-bold mb-0">{data.stats.totalOrders}</h4>
-                            <small className={data.stats.ordersGrowth >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}>
-                                {data.stats.ordersGrowth >= 0 ? '+' : ''}{data.stats.ordersGrowth}% {t('stock.reports.sales.stats.growth_suffix')}
-                            </small>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} md={3}>
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body>
-                            <div className="d-flex align-items-center gap-3 mb-2">
-                                <div className="bg-warning bg-opacity-10 p-2 rounded text-warning">
-                                    <TrendingUp size={20} />
-                                </div>
-                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.avg_order_value')}</span>
-                            </div>
-                            <h4 className="fw-bold mb-0">{formatCurrency(data.stats.avgOrderValue)}</h4>
-                            <small className="text-muted">{t('stock.reports.sales.stats.standard_avg')}</small>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} md={3}>
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body>
-                            <div className="d-flex align-items-center gap-3 mb-2">
-                                <div className="bg-info bg-opacity-10 p-2 rounded text-info">
-                                    <Calendar size={20} />
-                                </div>
-                                <span className="text-muted small text-uppercase fw-bold">{t('stock.reports.sales.stats.period_sales')}</span>
-                            </div>
-                            <h4 className="fw-bold mb-0">{formatCurrency(data.stats.periodSales)}</h4>
-                            <small className="text-muted">{t('stock.reports.sales.stats.currently_viewing', { period: t(`stock.reports.sales.period.${period}`) })}</small>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* Sales Table */}
-            <Card className="border-0 shadow-sm min-vh-50">
-                <Card.Header className="bg-white py-3 border-0">
-                    <h6 className="mb-0 fw-bold">{t('stock.reports.sales.table.title')}</h6>
-                </Card.Header>
-                <Card.Body className="p-0 position-relative">
-                    {loading && (
-                        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 z-index-10">
-                            <Spinner animation="border" variant="primary" />
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                            <IndianRupee size={20} />
                         </div>
-                    )}
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">{t('stock.reports.sales.table.order_id')}</th>
-                                <th className="border-0 py-3">{t('stock.reports.sales.table.date')}</th>
-                                <th className="border-0 py-3">{t('stock.reports.sales.table.customer')}</th>
-                                <th className="border-0 py-3">{t('stock.reports.sales.table.items')}</th>
-                                <th className="border-0 py-3">{t('stock.reports.sales.table.payment')}</th>
-                                <th className="border-0 py-3">{t('stock.reports.sales.table.status')}</th>
-                                <th className="border-0 py-3 text-end pe-4">{t('stock.reports.sales.table.amount')}</th>
+                        <div className={`flex items-center gap-1 text-[10px] font-bold uppercase ${data.stats.revenueGrowth >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {data.stats.revenueGrowth >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                            {Math.abs(data.stats.revenueGrowth)}%
+                        </div>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('sales.total_revenue')}</p>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1">{formatCurrency(data.stats.totalRevenue)}</h3>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
+                            <ShoppingBag size={20} />
+                        </div>
+                        <div className={`flex items-center gap-1 text-[10px] font-bold uppercase ${data.stats.ordersGrowth >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {data.stats.ordersGrowth >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                            {Math.abs(data.stats.ordersGrowth)}%
+                        </div>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('sales.total_orders')}</p>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1">{data.stats.totalOrders}</h3>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shadow-sm">
+                            <TrendingUp size={20} />
+                        </div>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('sales.average_value')}</p>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1">{formatCurrency(data.stats.avgOrderValue)}</h3>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+                            <Calendar size={20} />
+                        </div>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Period Sales</p>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1">{formatCurrency(data.stats.periodSales)}</h3>
+                </div>
+            </div>
+
+            {/* List Toolbar */}
+            <div className="bg-white px-8 py-4 border border-slate-200 rounded-t-[2rem] border-b-0 flex items-center justify-between">
+                <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{t('sales.title')} Table</h5>
+                {!loading && (
+                    <div className="text-[10px] font-bold text-slate-400 uppercase">
+                        Total {data.pagination.total} orders detected
+                    </div>
+                )}
+            </div>
+
+            {/* Table Container */}
+            <div className="bg-white rounded-b-[2rem] border border-slate-200 shadow-sm overflow-hidden mb-8">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100 font-bold text-slate-500 uppercase text-[10px] tracking-widest">
+                                <th className="px-8 py-4">{t('sales.table.order_id')}</th>
+                                <th className="px-6 py-4">{t('sales.table.date')}</th>
+                                <th className="px-6 py-4">{t('sales.table.customer')}</th>
+                                <th className="px-6 py-4 text-center">{t('sales.table.status')}</th>
+                                <th className="px-8 py-4 text-right uppercase">{t('sales.table.amount')}</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {!loading && data.orders.length === 0 ? (
+                        <tbody className="divide-y divide-slate-100">
+                            {loading && data.orders.length === 0 ? (
+                                [...Array(5)].map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="5" className="px-8 py-6">
+                                            <div className="h-4 bg-slate-50 rounded w-full"></div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : data.orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-5">
-                                        <AlertCircle size={40} className="text-muted opacity-25 mb-2" />
-                                        <p className="text-muted small mb-0">{t('stock.reports.sales.table.no_transactions')}</p>
+                                    <td colSpan="5" className="py-24 text-center">
+                                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                            <AlertCircle size={40} className="text-slate-200" />
+                                        </div>
+                                        <h3 className="text-slate-900 font-black text-xs uppercase tracking-tight">{t('sales.no_data')}</h3>
+                                        <p className="text-slate-400 text-[10px] font-bold mt-1 uppercase tracking-widest">Adjustment of period flags required.</p>
                                     </td>
                                 </tr>
                             ) : (
                                 data.orders.map((order, idx) => (
-                                    <tr key={idx}>
-                                        <td className="ps-4 fw-bold text-primary">{order.id}</td>
-                                        <td className="text-muted small">{order.date}</td>
-                                        <td>{order.customer}</td>
-                                        <td>{t('stock.reports.sales.table.items_count', { count: order.items })}</td>
-                                        <td>
-                                            <span className="text-xs fw-medium px-2 py-1 bg-gray-100 rounded text-gray-600">
-                                                {t(`dashboard.payment_methods.${order.payment?.toLowerCase()}`)}
-                                            </span>
+                                    <tr key={idx} className="hover:bg-slate-50/30 transition-colors">
+                                        <td className="px-8 py-5">
+                                            <div className="text-xs font-black text-blue-600 uppercase tracking-tighter">#{order.id}</div>
                                         </td>
-                                        <td>
-                                            <span className={`badge bg-${
-                                                order.status === 'Delivered' || order.status === 'Completed' ? 'success' : 
-                                                order.status === 'Refunded' || order.status === 'Cancelled' || order.status === 'Returned' ? 'danger' : 
-                                                'warning'
-                                            } rounded-pill fw-normal px-3`}>
-                                                {t(`dashboard.order_status.${order.status?.toLowerCase().replace(/\s+/g, '_')}`)}
-                                            </span>
+                                        <td className="px-6 py-5">
+                                            <div className="text-[11px] font-bold text-slate-500 uppercase opacity-70">{order.date}</div>
                                         </td>
-                                        <td className="text-end pe-4 fw-bold">{formatCurrency(order.total)}</td>
+                                        <td className="px-6 py-5">
+                                            <div className="text-xs font-bold text-slate-800 uppercase truncate max-w-[180px]">{order.customer}</div>
+                                            <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{order.items} items — {order.payment}</div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex justify-center">
+                                                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-100 shadow-sm ${
+                                                    order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 shadow-emerald-100/50' : 
+                                                    order.status === 'Refunded' || order.status === 'Cancelled' ? 'bg-rose-50 text-rose-600 shadow-rose-100/50' : 
+                                                    'bg-blue-50 text-blue-600 shadow-blue-100/50'
+                                                }`}>
+                                                    {order.status}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5 text-right font-black text-slate-900 text-xs">
+                                            {formatCurrency(order.total)}
+                                        </td>
                                     </tr>
                                 ))
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
-                {data.pagination.total > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            {t('stock.reports.sales.pagination.showing')} <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> {t('stock.reports.sales.pagination.to')} <span className="fw-semibold text-dark">{Math.min(page * limit, data.pagination.total)}</span> {t('stock.reports.sales.pagination.of')} <span className="fw-semibold text-dark">{data.pagination.total}</span> {t('stock.reports.sales.pagination.orders')}
+                {/* Pagination Toolbar */}
+                {!loading && data.pagination.total > 0 && data.pagination.totalPages > 1 && (
+                    <div className="px-8 py-6 bg-slate-50/30 flex items-center justify-between border-t border-slate-200">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Dispensing <span className="text-slate-900">{((page - 1) * limit) + 1} - {Math.min(page * limit, data.pagination.total)}</span> of {data.pagination.total} records
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        <div className="flex items-center gap-2">
+                            <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className={`p-2 rounded-xl transition-all border shadow-sm ${page === 1 ? 'opacity-30 cursor-not-allowed' : 'bg-white hover:border-blue-500 shadow-blue-100'}`}
                             >
                                 <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
-                                {(() => {
-                                    const totalPages = data.pagination.totalPages;
-                                    return [...Array(totalPages)].map((_, i) => {
-                                        const p = i + 1;
-                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
-                                            return (
-                                                <Button
-                                                    key={p}
-                                                    variant={page === p ? 'primary' : 'light'}
-                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                    style={{ width: '36px', height: '36px', padding: 0 }}
-                                                    onClick={() => setPage(p)}
-                                                >
-                                                    {p}
-                                                </Button>
-                                            );
-                                        } else if (p === page - 2 || p === page + 2) {
-                                            return <span key={p} className="text-muted px-1">...</span>;
-                                        }
-                                        return null;
-                                    });
-                                })()}
+                            </button>
+                            <div className="flex gap-1.5">
+                                {[...Array(data.pagination.totalPages)].map((_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => setPage(i + 1)}
+                                        className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all flex items-center justify-center shadow-sm ${page === i + 1 ? 'bg-blue-600 text-white shadow-blue-100' : 'bg-white border hover:border-blue-500'}`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
                             </div>
-
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === data.pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            <button
                                 onClick={() => setPage(p => Math.min(data.pagination.totalPages, p + 1))}
                                 disabled={page === data.pagination.totalPages}
+                                className={`p-2 rounded-xl transition-all border shadow-sm ${page === data.pagination.totalPages ? 'opacity-30 cursor-not-allowed' : 'bg-white hover:border-blue-500 shadow-blue-100'}`}
                             >
                                 <ChevronRight size={16} />
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
         </div>
     );
 };

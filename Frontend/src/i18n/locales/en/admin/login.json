@@ -1,11 +1,30 @@
 {
-  "title": "Admin Login",
-  "subtitle": "Strategic Gateway",
-  "email": "Access ID / Email",
-  "password": "Secure Key",
-  "remember_me": "Preserve Session",
-  "forgot_password": "Recovery",
-  "sign_in": "Authenticate",
+  "title": "Welcome Back",
+  "subtitle": "Admin Dashboard Access",
+  "email": "Email Address",
+  "password": "Password",
+  "remember_me": "Keep me logged in",
+  "forgot_password": "Forgot Password?",
+  "sign_in": "Sign In",
   "error_password_length": "Password must be at least 6 characters",
-  "error_invalid": "Invalid email or password"
+  "error_invalid": "Invalid email or password",
+  "lang_switch": "Language",
+  "forgot": {
+    "title": "Recover Account",
+    "subtitle": "Enter your email to reset your password",
+    "email_label": "Registered Email",
+    "submit": "Send Reset Link",
+    "success_title": "Check Your Email",
+    "success_msg": "A password reset link has been sent to",
+    "back_to_login": "Back to Login"
+  },
+  "reset": {
+    "title": "Reset Password",
+    "subtitle": "Create a new secure password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password",
+    "submit": "Reset Password",
+    "success_title": "Password Reset!",
+    "success_msg": "Your password has been successfully updated. Redirecting..."
+  }
 }

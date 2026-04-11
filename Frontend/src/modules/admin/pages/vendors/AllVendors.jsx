@@ -50,13 +50,13 @@ const AllVendors = () => {
 
     const handleDelete = (id) => {
         Swal.fire({
-            title: 'Delete Vendor?',
-            text: "This will remove the vendor from the list.",
+            title: t('all_vendors.alerts.delete_title') || 'Delete Vendor?',
+            text: t('all_vendors.alerts.delete_text') || "This will remove the vendor from the list.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Yes, delete',
+            confirmButtonText: t('form.delete') || 'Yes, delete',
             customClass: {
                 popup: 'rounded-3xl border-none shadow-2xl',
                 confirmButton: 'rounded-xl px-6 py-2.5 font-bold uppercase text-xs tracking-widest',
@@ -66,7 +66,7 @@ const AllVendors = () => {
             if (result.isConfirmed) {
                 try {
                     await deleteVendor(adminUser.token, id);
-                    toast.success('Vendor deleted successfully');
+                    toast.success(t('all_vendors.alerts.delete_success') || 'Vendor deleted successfully');
                     fetchVendors();
                 } catch (error) {
                     toast.error('Failed to delete vendor');
@@ -88,7 +88,7 @@ const AllVendors = () => {
         return (
             <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
                 <Loader2 size={40} className="text-blue-500 animate-spin" />
-                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Loading Vendors...</p>
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest">{t('loading')}</p>
             </div>
         );
     }
@@ -99,18 +99,18 @@ const AllVendors = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900">Vendor List</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('all_vendors.title')}</h1>
                         <PageInfoTooltip data={pageInfoData.allVendors} />
                     </div>
-                    <p className="text-slate-500 text-xs mt-1 font-medium italic">Manage all registered store partners</p>
+                    <p className="text-slate-500 text-xs mt-1 font-medium italic">{t('all_vendors.subtitle')}</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-80 group">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <div className="relative w-full md:w-80 group">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
                         <input
                             type="text"
-                            placeholder="Search name, owner or email..."
+                            placeholder={t('search_placeholder')}
                             className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -119,15 +119,15 @@ const AllVendors = () => {
                     <button
                         onClick={() => fetchVendors(true)}
                         disabled={refreshing}
-                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 shrink-0 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
                     >
                         <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
                     </button>
                     <button
                         onClick={() => navigate('/admin/vendors/add')}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold tracking-tight hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-100 uppercase border-none"
+                        className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold tracking-tight hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-100 uppercase border-none flex items-center justify-center gap-2"
                     >
-                        <Plus size={18} /> Add Vendor
+                        <Plus size={18} /> {t('add_new')}
                     </button>
                 </div>
             </div>
@@ -138,11 +138,11 @@ const AllVendors = () => {
                     <table className="w-full text-left font-medium">
                         <thead>
                             <tr className="bg-slate-50/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                <th className="px-8 py-5">Store Details</th>
-                                <th className="px-6 py-5">Owner Info</th>
-                                <th className="px-6 py-5 text-center">Products</th>
-                                <th className="px-6 py-5 text-center">Status</th>
-                                <th className="px-8 py-5 text-right">Actions</th>
+                                <th className="px-8 py-5">{t('all_vendors.table.store')}</th>
+                                <th className="px-6 py-5">{t('all_vendors.table.owner')}</th>
+                                <th className="px-6 py-5 text-center">{t('all_vendors.table.products')}</th>
+                                <th className="px-6 py-5 text-center">{t('all_vendors.table.status')}</th>
+                                <th className="px-8 py-5 text-right">{t('all_vendors.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -176,7 +176,7 @@ const AllVendors = () => {
                                         <td className="px-6 py-6 text-center">
                                             <div className="flex flex-col items-center">
                                                 <span className="text-sm font-bold text-slate-800 leading-none tracking-tight">{vendor.products || 0}</span>
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">Items</span>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">{t('payout_report.history.table.amount')}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-6 text-center">
@@ -184,7 +184,9 @@ const AllVendors = () => {
                                                 vendor.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                                 vendor.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
                                             }`}>
-                                                {vendor.status}
+                                                {vendor.status === 'Active' ? t('all_vendors.status.active') : 
+                                                 vendor.status === 'Pending' ? t('all_vendors.status.pending') : 
+                                                 vendor.status === 'Inactive' ? t('all_vendors.status.inactive') : vendor.status}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6 text-right">
@@ -192,21 +194,21 @@ const AllVendors = () => {
                                                 <button 
                                                     onClick={() => navigate(`/admin/vendors/${vendor._id}`)}
                                                     className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-95 border-none bg-transparent"
-                                                    title="View Details"
+                                                    title={t('all_vendors.actions.details')}
                                                 >
                                                     <ArrowRight size={20} />
                                                 </button>
                                                 <button 
                                                     onClick={() => { setSelectedVendor(vendor); setShowEdit(true); }}
                                                     className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all active:scale-95 border-none bg-transparent"
-                                                    title="Edit"
+                                                    title={t('form.edit')}
                                                 >
                                                     <Edit size={20} />
                                                 </button>
                                                 <button 
                                                     onClick={() => handleDelete(vendor._id)}
                                                     className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all active:scale-95 border-none bg-transparent"
-                                                    title="Delete"
+                                                    title={t('form.delete')}
                                                 >
                                                     <Trash2 size={20} />
                                                 </button>
@@ -221,7 +223,7 @@ const AllVendors = () => {
                                             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 shadow-inner">
                                                 <Store size={32} className="text-slate-200" />
                                             </div>
-                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic leading-none">No vendors found</p>
+                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic leading-none">{t('all_vendors.no_data')}</p>
                                         </div>
                                     </td>
                                 </tr>

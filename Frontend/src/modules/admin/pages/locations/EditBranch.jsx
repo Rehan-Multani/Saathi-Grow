@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Row, Col, Spinner, Image } from 'react-bootstrap';
-import { Save, X, ArrowLeft, Upload, Store } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Save, X, ArrowLeft, Upload, Store, Mail, Phone, MapPin, Shield, CheckCircle2, Hash, Image as ImageIcon, Loader2, Info } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getBranchById, updateBranch } from '../../api/branchApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -8,8 +8,10 @@ import { toast } from 'react-toastify';
 import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import Swal from 'sweetalert2';
 
 const EditBranch = () => {
+    const { t } = useTranslation('admin_locations');
     const navigate = useNavigate();
     const { id } = useParams();
     const { adminUser } = useAdminAuth();
@@ -57,7 +59,7 @@ const EditBranch = () => {
                     setLogoPreview(data.logo);
                 }
             } catch (error) {
-                toast.error('Failed to fetch branch details');
+                toast.error(t('messages.fetch_error'));
                 navigate('/admin/locations/branches');
             } finally {
                 setFetching(false);
@@ -67,7 +69,14 @@ const EditBranch = () => {
         if (id && adminUser.token) {
             fetchBranch();
         }
-    }, [id, adminUser.token, navigate]);
+    }, [id, adminUser.token, navigate, t]);
+
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `.pac-container { z-index: 10000 !important; border-radius: 1rem; border: none; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); padding: 8px; font-family: inherit; }`;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, []);
 
     const handleLogoChange = (e) => {
         const file = e.target.files[0];
@@ -128,10 +137,15 @@ const EditBranch = () => {
             }
 
             await updateBranch(adminUser.token, id, data);
-            toast.success('Branch updated successfully');
+            Swal.fire({
+                title: t('messages.update_success'),
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
             navigate('/admin/locations/branches');
         } catch (error) {
-            toast.error(error.message || 'Failed to update branch');
+            toast.error(error.message || t('messages.update_error'));
         } finally {
             setLoading(false);
         }
@@ -139,233 +153,222 @@ const EditBranch = () => {
 
     if (fetching) {
         return (
-            <div className="d-flex justify-content-center align-items-center p-5">
-                <Spinner animation="border" variant="primary" />
+            <div className="flex justify-center items-center p-20 min-h-[400px]">
+                <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
             </div>
         );
     }
 
     return (
-        <Form onSubmit={handleSubmit} className="p-3">
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <Button
-                        variant="light"
-                        size="sm"
-                        className="rounded-circle p-2 shadow-sm border bg-white"
-                        onClick={() => navigate(-1)}
-                    >
-                        <ArrowLeft size={16} />
-                    </Button>
-                    <div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="fw-bold mb-0 text-nowrap">Edit Branch</h4>
-                            <PageInfoTooltip info={pageInfoData.addBranch} />
-                        </div>
-                        <p className="text-muted small mb-0 uppercase tracking-widest opacity-60">Update Location Details</p>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="mb-8">
+                <button
+                    onClick={() => navigate('/admin/locations/branches')}
+                    className="flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors mb-4 group font-semibold"
+                >
+                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-[10px] uppercase tracking-wider">{t('form.discard')}</span>
+                </button>
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
+                        <Store size={24} />
                     </div>
-                </div>
-                <div className="d-flex justify-content-end flex-grow-1 w-100 w-sm-auto gap-2">
-                    <Button variant="light" onClick={() => navigate('/admin/locations/branches')} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4">
-                        <X size={18} /> Cancel
-                    </Button>
-                    <Button variant="primary" type="submit" disabled={loading} className="d-flex align-items-center gap-2 shadow-sm justify-content-center px-4">
-                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                        {loading ? 'Updating...' : 'Update Branch'}
-                    </Button>
+                    <div>
+                        <h1 className="text-xl font-bold tracking-tight">{t('form.edit_title')}</h1>
+                        <p className="text-slate-500 text-xs font-medium mt-0.5">{t('subtitle')}</p>
+                    </div>
                 </div>
             </div>
 
-            <Row>
-                <Col lg={8}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body className="p-4 p-md-5">
-                            <h6 className="fw-bold mb-4 text-primary border-bottom pb-2">Branch Information</h6>
-                            <Row>
-                                <Col md={8}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Name <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="e.g. Main Store - Downtown"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Code <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="BNH001"
-                                            name="code"
-                                            value={formData.code}
-                                            onChange={handleChange}
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle text-uppercase font-monospace"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-
-                            <Row>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Phone <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control
-                                            type="tel"
-                                            placeholder="+91 00000 00000"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Branch Email</Form.Label>
-                                        <Form.Control
-                                            type="email"
-                                            placeholder="branch@sathigro.com"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-
-                            <h6 className="fw-bold mb-3 mt-4 text-primary border-bottom pb-2">Location Details</h6>
-                            <Row>
-                                <Col md={12}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Street Address (Search on Map) <span className="text-danger">*</span></Form.Label>
-                                        <GoogleMapsInput
-                                            onLocationSelect={handleLocationSelect}
-                                            defaultValue={formData.address.street}
-                                            placeholder="Search for branch location..."
-                                        />
-                                        <div className="mt-3">
-                                            <Form.Control
-                                                type="text"
-                                                name="address.street"
-                                                value={formData.address.street}
-                                                onChange={handleChange}
-                                                placeholder="123 Market St"
-                                                required
-                                                className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                            />
-                                        </div>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">City</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="address.city"
-                                            value={formData.address.city}
-                                            onChange={handleChange}
-                                            placeholder="City"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">State</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="address.state"
-                                            value={formData.address.state}
-                                            onChange={handleChange}
-                                            placeholder="State"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">Zip Code</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="address.zipCode"
-                                            value={formData.address.zipCode}
-                                            onChange={handleChange}
-                                            placeholder="000000"
-                                            required
-                                            className="py-2.5 shadow-none border-light-subtle bg-light-subtle font-monospace"
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm mb-4">
-                        <Card.Body className="p-4">
-                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">Branch Logo</h6>
-                            <div className="text-center mb-3 p-4 border border-dashed rounded bg-light position-relative" style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {logoPreview ? (
-                                    <div className="position-relative w-100">
-                                        <Image src={logoPreview} fluid rounded style={{ maxHeight: '150px' }} />
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            className="position-absolute top-0 end-0 m-2 rounded-circle p-1"
-                                            onClick={() => { setLogoPreview(null); setLogoFile(null); }}
-                                        >
-                                            <X size={16} />
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="text-muted py-4">
-                                        <Store className="mb-2 opacity-25" size={48} />
-                                        <p className="small mb-0">Drag and drop or click to upload logo</p>
-                                    </div>
-                                )}
-                                <Form.Control
-                                    type="file"
-                                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
-                                    onChange={handleLogoChange}
-                                    accept="image/*"
-                                />
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-8 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-8">
+                        {/* Basic Information */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{t('form.basic_info')}</h3>
                             </div>
-                            <Form.Text className="text-muted small">Recommended size: 500x500px. Max: 2MB</Form.Text>
-                        </Card.Body>
-                    </Card>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.branch_name')}</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.branch_code')}</label>
+                                    <input
+                                        type="text"
+                                        name="code"
+                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 uppercase"
+                                        value={formData.code}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.phone')}</label>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="md:col-span-2 space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.email')}</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-                    <Card className="border-0 shadow-sm">
-                        <Card.Body className="p-4">
-                            <h6 className="fw-bold mb-3 text-primary border-bottom pb-2">Branch Settings</h6>
-                            <Form.Group className="mb-3 d-flex align-items-center justify-content-between">
-                                <Form.Label className="small fw-bold mb-0">Branch Status</Form.Label>
-                                <Form.Check
-                                    type="switch"
-                                    id="branch-status-switch"
-                                    label={formData.isActive ? "Active" : "Inactive"}
-                                    name="isActive"
+                        {/* Address */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{t('form.address_info')}</h3>
+                            </div>
+                            <div className="space-y-5">
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.location_search')}</label>
+                                    <GoogleMapsInput
+                                        onLocationSelect={handleLocationSelect}
+                                        defaultValue={formData.address.street}
+                                        placeholder="Search address..."
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="md:col-span-4 space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.address')}</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                            value={formData.address.street}
+                                            onChange={(e) => setFormData({...formData, address: {...formData.address, street: e.target.value}})}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.city')}</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                            value={formData.address.city}
+                                            onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.state')}</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                            value={formData.address.state}
+                                            onChange={(e) => setFormData({...formData, address: {...formData.address, state: e.target.value}})}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2 space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.zip')}</label>
+                                        <input
+                                            type="text"
+                                            maxLength={6}
+                                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                            value={formData.address.zipCode}
+                                            onChange={(e) => setFormData({...formData, address: {...formData.address, zipCode: e.target.value.replace(/\D/g, '')}})}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 sticky top-6">
+                        <div className="space-y-3">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.branding')}</label>
+                            <div className="relative group aspect-square">
+                                <div className="w-full h-full rounded-2xl bg-slate-50 border-2 border-slate-200 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all group-hover:border-blue-400 group-hover:bg-white shadow-inner">
+                                    {logoPreview ? (
+                                        <img src={logoPreview} className="w-full h-full object-contain p-4" alt="Preview" />
+                                    ) : (
+                                        <div className="flex flex-col items-center text-slate-300 gap-2 text-center">
+                                            <ImageIcon size={40} />
+                                            <span className="text-[10px] font-bold uppercase">{t('form.upload_text')}</span>
+                                        </div>
+                                    )}
+                                    <input type="file" onChange={handleLogoChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+                                </div>
+                                {logoPreview && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => { setLogoPreview(null); setLogoFile(null); }}
+                                        className="absolute -top-2 -right-2 bg-rose-500 text-white p-2 rounded-lg shadow-lg"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-slate-900 rounded-2xl text-white">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${formData.isActive ? 'bg-emerald-600' : 'bg-slate-700'}`}>
+                                    <Shield size={20} />
+                                </div>
+                                <div>
+                                    <div className="text-[11px] font-bold uppercase tracking-tight">{t('form.operational_status')}</div>
+                                    <p className="text-[9px] text-slate-400 font-medium">{t('form.status_description')}</p>
+                                </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
                                     checked={formData.isActive}
-                                    onChange={handleChange}
+                                    onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                                 />
-                            </Form.Group>
-                            <p className="small text-muted mb-0">Inactive branches won't be visible in the user app and can't process orders.</p>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Form>
+                                <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            disabled={loading}
+                            className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase shadow-xl transition-all active:scale-95 ${loading ? 'bg-slate-100 text-slate-400' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100'}`}
+                        >
+                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                            {t('form.submit_edit')}
+                        </button>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-3">
+                        <Info className="text-blue-500 mt-1 shrink-0" size={16} />
+                        <p className="text-[10px] text-blue-700 font-medium leading-normal">
+                            Note: All branch codes must be unique system-wide to ensure proper data tracking.
+                        </p>
+                    </div>
+                </div>
+            </form>
+        </div>
     );
 };
 

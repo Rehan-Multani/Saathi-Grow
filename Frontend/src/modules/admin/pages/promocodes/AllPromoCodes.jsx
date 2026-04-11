@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Spinner } from 'react-bootstrap';
-import { Search, Plus, Ticket, Copy, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Plus, Ticket, Copy, Edit, Trash2, ChevronLeft, ChevronRight, RefreshCw, LayoutGrid } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import PromoCodeEditModal from '../../components/promocodes/PromoCodeEditModal';
 import { getPromoCodes, deletePromoCode, updatePromoCode } from '../../api/promoCodeApi';
@@ -11,9 +11,12 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllPromoCodes = () => {
+    const { t } = useTranslation('admin_promocodes');
+    const navigate = useNavigate();
     const { adminUser } = useAdminAuth();
     const [promos, setPromos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedPromo, setSelectedPromo] = useState(null);
@@ -22,22 +25,24 @@ const AllPromoCodes = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
 
-    const fetchPromos = async () => {
+    const fetchPromos = useCallback(async (isRefresh = false) => {
         if (!adminUser?.token) return;
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
         try {
-            setLoading(true);
             const result = await getPromoCodes(adminUser.token);
             setPromos(result.data || []);
         } catch (error) {
-            toast.error(error.message || 'Failed to fetch promo codes');
+            toast.error(t('messages.fetch_error'));
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
-    };
+    }, [adminUser?.token, t]);
 
     useEffect(() => {
         fetchPromos();
-    }, [adminUser?.token]);
+    }, [fetchPromos]);
 
     const filtered = promos.filter(p =>
         p.code.toLowerCase().includes(searchTerm.toLowerCase())
@@ -47,7 +52,6 @@ const AllPromoCodes = () => {
     const totalPages = Math.ceil(totalFiltered / limit) || 1;
     const paginatedPromos = filtered.slice((page - 1) * limit, page * limit);
 
-    // Reset pagination when search changes
     useEffect(() => {
         setPage(1);
     }, [searchTerm]);
@@ -55,8 +59,7 @@ const AllPromoCodes = () => {
     const handleCopy = (code) => {
         navigator.clipboard.writeText(code);
         Swal.fire({
-            title: 'Copied!',
-            text: `Code "${code}" copied to clipboard.`,
+            title: t('copy_success'),
             icon: 'success',
             timer: 1500,
             showConfirmButton: false,
@@ -76,32 +79,38 @@ const AllPromoCodes = () => {
             fetchPromos();
             setShowEditModal(false);
             Swal.fire({
-                title: 'Updated!',
-                text: 'Promo code details have been updated.',
+                title: t('messages.update_success'),
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
             });
         } catch (error) {
-            toast.error(error.message || 'Update failed');
+            toast.error(error.message || t('messages.fetch_error'));
         }
     };
 
     const handleDelete = (id, code) => {
         Swal.fire({
-            title: 'Delete Promo Code?',
-            text: `Are you sure you want to remove "${code}"?`,
+            title: t('messages.delete_confirm_title'),
+            text: t('messages.delete_confirm_msg', { code }),
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Delete'
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Yes, Delete',
+            cancelButtonText: 'Cancel'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     await deletePromoCode(adminUser.token, id);
                     fetchPromos();
-                    Swal.fire('Deleted!', 'Promo code has been removed.', 'success');
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: t('messages.delete_success'),
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
                 } catch (error) {
                     toast.error(error.message || 'Delete failed');
                 }
@@ -109,201 +118,225 @@ const AllPromoCodes = () => {
         });
     };
 
-    const getStatusBadge = (p) => {
+    const renderStatusBadge = (p) => {
         const now = new Date();
         const validUntil = new Date(p.validUntil);
         const validFrom = new Date(p.validFrom);
 
+        let config = { text: t('status.active'), class: 'bg-emerald-600 text-white border-emerald-600' };
+
         if (!p.isActive) {
-            return <Badge bg="secondary" className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">Inactive</Badge>;
+            config = { text: t('status.inactive'), class: 'bg-slate-400 text-white border-slate-400' };
+        } else if (now < validFrom) {
+            config = { text: t('status.upcoming'), class: 'bg-blue-600 text-white border-blue-600' };
+        } else if (now > validUntil) {
+            config = { text: t('status.expired'), class: 'bg-rose-600 text-white border-rose-600' };
+        } else if (p.usageLimitTotal > 0 && p.usedCount >= p.usageLimitTotal) {
+            config = { text: t('status.limit_reached'), class: 'bg-slate-800 text-white border-slate-800' };
         }
 
-        if (now < validFrom) {
-            return <Badge bg="info" className="bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill fw-normal px-3 py-1.5 shadow-sm">Upcoming</Badge>;
-        }
-
-        if (now > validUntil) {
-            return <Badge bg="danger" className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">Expired</Badge>;
-        }
-
-        if (p.usageLimitTotal > 0 && p.usedCount >= p.usageLimitTotal) {
-            return <Badge bg="dark" className="bg-opacity-75 rounded-pill fw-normal px-3 py-1.5 shadow-sm">Limit Reached</Badge>;
-        }
-
-        return <Badge bg="success" className="rounded-pill fw-normal px-3 py-1.5 shadow-sm">Active</Badge>;
+        return (
+            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${config.class}`}>
+                {config.text}
+            </span>
+        );
     };
 
     return (
-        <div className="p-3 p-md-4">
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <div className="d-flex align-items-center gap-3">
-                        <div className="bg-primary bg-opacity-10 p-2 rounded text-primary d-none d-md-flex">
-                            <Ticket size={20} />
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h5 className="mb-0 fw-bold text-nowrap">Promo Codes</h5>
-                            <PageInfoTooltip data={pageInfoData.allPromoCodes} />
-                        </div>
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight">{t('title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.allPromoCodes} />
                     </div>
-                    <div className="d-flex flex-column flex-sm-row gap-2 flex-grow-1 justify-content-sm-end">
-                        <InputGroup className="w-100 shadow-sm" style={{ maxWidth: '350px' }}>
-                            <InputGroup.Text className="bg-white border-end-0 text-muted"><Search size={18} /></InputGroup.Text>
-                            <Form.Control
-                                placeholder="Search Code..."
-                                className="border-start-0 ps-0 shadow-none py-2"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </InputGroup>
-                        <Link to="/admin/promocodes/create" className="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-4 shadow-sm py-2">
-                            <Plus size={18} /> <span className="fw-bold">Create Code</span>
-                        </Link>
-                    </div>
-                </Card.Body>
-            </Card>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('subtitle')}</p>
+                </div>
 
-            <Card className="border-0 shadow-sm overflow-hidden mt-2">
-                <Card.Body className="p-0">
-                    {loading ? (
-                        <div className="text-center py-5">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-2 text-muted">Loading Promo Codes...</p>
-                        </div>
-                    ) : (
-                        <Table hover responsive className="mb-0 align-middle">
-                            <thead className="bg-light text-muted small text-uppercase font-weight-bold">
-                                <tr>
-                                    <th className="ps-4 border-0 py-3">Code</th>
-                                    <th className="border-0 py-3">Discount Type</th>
-                                    <th className="border-0 py-3 text-center">Value</th>
-                                    <th className="border-0 py-3 text-center">Usage</th>
-                                    <th className="border-0 py-3 text-center">Min Order</th>
-                                    <th className="border-0 py-3 text-center">Status</th>
-                                    <th className="border-0 py-3 text-end pe-4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginatedPromos.length > 0 ? paginatedPromos.map((p) => (
-                                    <tr key={p._id}>
-                                        <td className="ps-4">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div className="bg-light p-2 rounded text-primary border shadow-sm">
-                                                    <Ticket size={20} />
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-80 group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder={t('search_placeholder')}
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-xs font-bold text-slate-700 shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button
+                        onClick={() => fetchPromos(true)}
+                        disabled={refreshing}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
+                    >
+                        <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button
+                        onClick={() => navigate('/admin/promocodes/create')}
+                        className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100"
+                    >
+                        <Plus size={16} />
+                        <span>{t('add_new')}</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Table Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto scrollbar-thin">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">{t('table.code')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('table.type')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('table.value')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('table.usage')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('table.min_order')}</th>
+                                <th className="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase text-center">{t('table.status')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase text-right">{t('table.actions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-medium">
+                            {loading && !refreshing ? (
+                                [1, 2, 3, 4, 5].map(i => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="7" className="px-6 py-4">
+                                            <div className="h-10 bg-slate-50 rounded-lg w-full"></div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : paginatedPromos.length > 0 ? (
+                                paginatedPromos.map((p) => (
+                                    <tr key={p._id} className="hover:bg-slate-50/30 transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                                                    <Ticket size={18} />
                                                 </div>
                                                 <div>
-                                                    <div className="fw-bold text-dark font-monospace h6 mb-0">{p.code}</div>
-                                                    <div className="text-muted small" style={{ fontSize: '10px' }}>ID: {p._id}</div>
+                                                    <div className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{p.code}</div>
+                                                    <div className="text-[10px] text-slate-400 font-medium mt-0.5">ID: {p._id.slice(-6)}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="text-secondary small fw-medium">{p.discountType}</td>
-                                        <td className="text-center">
-                                            <Badge bg="success" className="bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 fw-bold">
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="px-2 py-1 bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg whitespace-nowrap uppercase tracking-tight">
+                                                {p.discountType}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="text-xs font-bold text-slate-900">
                                                 {p.discountType === 'Percentage' ? `${p.discountValue}%` : 
                                                  p.discountType === 'FreeShipping' ? 'FREE' : `₹${p.discountValue}`}
-                                            </Badge>
+                                            </span>
                                         </td>
-                                        <td className="text-center font-monospace small">
-                                            <Badge bg="light" text="dark" className="border px-3 py-1.5 shadow-none">
-                                                {p.usedCount} / {p.usageLimitTotal === 0 ? '∞' : p.usageLimitTotal}
-                                            </Badge>
+                                        <td className="px-4 py-4 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <div className="text-[10px] font-bold text-slate-600">
+                                                    {p.usedCount} / {p.usageLimitTotal === 0 ? '∞' : p.usageLimitTotal}
+                                                </div>
+                                                <div className="w-12 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-blue-500" 
+                                                        style={{ width: `${p.usageLimitTotal === 0 ? (p.usedCount > 0 ? 100 : 0) : Math.min((p.usedCount / p.usageLimitTotal) * 100, 100)}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td className="text-center text-secondary small fw-bold">₹{p.minOrderValue}</td>
-                                         <td className="text-center">
-                                             {getStatusBadge(p)}
-                                         </td>
-                                        <td className="text-end pe-4">
-                                            <div className="d-flex justify-content-end gap-2">
-                                                <Button
-                                                    variant="light" size="sm"
-                                                    className="btn-icon-soft text-secondary border shadow-none mt-1"
-                                                    title="Copy Code"
+                                        <td className="px-4 py-4 text-center text-xs font-bold text-slate-600">
+                                            ₹{p.minOrderValue}
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            {renderStatusBadge(p)}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-1.5">
+                                                <button
                                                     onClick={() => handleCopy(p.code)}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
+                                                    title="Copy Code"
                                                 >
                                                     <Copy size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="light" size="sm"
-                                                    className="btn-icon-soft text-primary border shadow-none mt-1"
+                                                </button>
+                                                <button
                                                     onClick={() => handleEdit(p)}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
                                                 >
                                                     <Edit size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="light" size="sm"
-                                                    className="btn-icon-soft text-danger border shadow-none mt-1"
+                                                </button>
+                                                <button
                                                     onClick={() => handleDelete(p._id, p.code)}
+                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
                                                 >
                                                     <Trash2 size={16} />
-                                                </Button>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
-                                )) : (
-                                    <tr>
-                                        <td colSpan="7" className="text-center py-5 text-muted small">
-                                            No promo codes found matching your search.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    )}
-                </Card.Body>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="py-20 text-center">
+                                        <div className="flex flex-col items-center justify-center gap-3">
+                                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
+                                                <Ticket size={32} className="text-slate-200" />
+                                            </div>
+                                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('empty_state')}</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                {/* Pagination Controls */}
+                {/* Pagination */}
                 {totalFiltered > 0 && (
-                    <div className="bg-white border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
-                        <div className="text-secondary small">
-                            Showing <span className="fw-semibold text-dark">{((page - 1) * limit) + 1}</span> to <span className="fw-semibold text-dark">{Math.min(page * limit, totalFiltered)}</span> of <span className="fw-semibold text-dark">{totalFiltered}</span> codes
+                    <div className="bg-slate-50/50 border-t border-slate-100 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                            Showing <span className="text-slate-900 mx-0.5">{((page - 1) * limit) + 1}</span> — <span className="text-slate-900 mx-0.5">{Math.min(page * limit, totalFiltered)}</span> of <span className="text-slate-900 mx-0.5">{totalFiltered}</span> Codes
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        <div className="flex items-center gap-2">
+                            <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className={`p-2 rounded-xl transition-all border shadow-sm ${page === 1 ? 'bg-slate-50 text-slate-200 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-500 hover:text-blue-600 active:scale-95'}`}
                             >
                                 <ChevronLeft size={16} />
-                            </Button>
-
-                            <div className="d-flex align-items-center gap-1">
-                                {(() => {
-                                    return [...Array(totalPages)].map((_, i) => {
-                                        const p = i + 1;
-                                        if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
-                                            return (
-                                                <Button
-                                                    key={p}
-                                                    variant={page === p ? 'primary' : 'light'}
-                                                    className={`rounded shadow-sm ${page === p ? 'fw-bold' : 'text-secondary border'}`}
-                                                    style={{ width: '36px', height: '36px', padding: 0 }}
-                                                    onClick={() => setPage(p)}
-                                                >
-                                                    {p}
-                                                </Button>
-                                            );
-                                        } else if (p === page - 2 || p === page + 2) {
-                                            return <span key={p} className="text-muted px-1">...</span>;
-                                        }
-                                        return null;
-                                    });
-                                })()}
+                            </button>
+                            
+                            <div className="flex items-center gap-1.5 hidden sm:flex">
+                                {[...Array(totalPages)].map((_, i) => {
+                                    const p = i + 1;
+                                    if (p === 1 || p === totalPages || Math.abs(page - p) <= 1) {
+                                        return (
+                                            <button
+                                                key={p}
+                                                onClick={() => setPage(p)}
+                                                className={`w-8 h-8 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center shadow-sm ${page === p ? 'bg-blue-600 text-white shadow-blue-100 shadow-md ring-2 ring-blue-500/10' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-400 hover:text-blue-600'}`}
+                                            >
+                                                {p}
+                                            </button>
+                                        );
+                                    } else if (p === page - 2 || p === page + 2) {
+                                        return <span key={p} className="text-slate-300 font-bold px-0.5">...</span>;
+                                    }
+                                    return null;
+                                })}
                             </div>
 
-                            <Button
-                                variant="light"
-                                className={`d-flex align-items-center justify-content-center p-2 rounded border shadow-sm ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
+                                className={`p-2 rounded-xl transition-all border shadow-sm ${page === totalPages ? 'bg-slate-50 text-slate-200 border-slate-100 cursor-not-allowed' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-500 hover:text-blue-600 active:scale-95'}`}
                             >
                                 <ChevronRight size={16} />
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
             <PromoCodeEditModal
                 show={showEditModal}
@@ -311,6 +344,11 @@ const AllPromoCodes = () => {
                 promoCode={selectedPromo}
                 onSave={handleSave}
             />
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .scrollbar-thin::-webkit-scrollbar { height: 4px; width: 4px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

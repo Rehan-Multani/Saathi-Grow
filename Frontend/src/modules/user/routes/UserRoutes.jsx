@@ -199,7 +199,9 @@ const UserLayout = () => {
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} customTheme={customTheme} />
             </div>
             {/* Spacer for fixed Navbar + Ticker */}
-            {!hideDesktopChrome && !hideNavbarMobile && <div className="h-[165px] md:h-28"></div>}
+            {!hideDesktopChrome && (
+                <div className={`h-[165px] md:h-28 flex-shrink-0 w-full ${hideNavbarMobile ? 'hidden md:block' : 'block'}`}></div>
+            )}
             <CartSidebar />
             <LocationModal />
             <StoreSelector isOpen={isStoreSelectorOpen} onClose={() => setIsStoreSelectorOpen(false)} />

@@ -8,6 +8,7 @@ import {
   exportVendorReport,
   getRevenueAnalytics,
   getAdminVendorEarnings,
+  exportVendorEarnings,
   getAdminVendorPayoutDetail,
   getBranchStrategicAnalytics
 } from '../controllers/reportController.js';
@@ -31,6 +32,7 @@ router.get('/vendors/export', protectAdmin, exportVendorReport);
 router.get('/revenue-analytics', protectAdmin, getRevenueAnalytics);
 router.get('/strategic-analytics', protectAdmin, getBranchStrategicAnalytics);
 router.get('/vendor-earnings', protectAdmin, getAdminVendorEarnings);
+router.get('/vendor-earnings/export', protectAdmin, exportVendorEarnings);
 router.get('/vendor-payouts/:id', protectAdmin, getAdminVendorPayoutDetail);
 
 export default router;

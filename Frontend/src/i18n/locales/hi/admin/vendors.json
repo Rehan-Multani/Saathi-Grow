@@ -1,99 +1,174 @@
 {
-  "title": "विक्रेता",
-  "subtitle": "सभी विक्रेताओं को मैनेज करें",
-  "search": "नाम या ईमेल से खोजें...",
-  "add_new": "नया विक्रेता",
-  "loading_msg": "लोड हो रहा है...",
+  "title": "विक्रेता (Vendors)",
+  "subtitle": "स्टोर पार्टनर्स को मैनेज करें",
+  "search_placeholder": "स्टोर या मालिक के नाम से खोजें...",
+  "add_new": "विक्रेता जोड़ें",
+  "loading": "लोड हो रहा है...",
   "all_vendors": {
-    "title": "विक्रेता सूची",
-    "subtitle": "सभी विक्रेताओं का विवरण",
-    "add_btn": "विक्रेता जोड़ें",
-    "no_vendors": "कोई विक्रेता नहीं मिला",
+    "title": "स्टोर लिस्ट",
+    "subtitle": "सक्रिय पार्टनर्स का विवरण",
+    "no_data": "कोई विक्रेता नहीं मिला",
     "table": {
-      "entity": "स्टोर का विवरण",
-      "contact": "संपर्क व्यक्ति",
-      "portfolio": "उत्पाद",
+      "store": "स्टोर की जानकारी",
+      "owner": "स्टोर मालिक",
+      "products": "उत्पाद",
       "status": "स्थिति",
       "actions": "कार्रवाई"
     },
-    "actions": {
-      "details": "विवरण देखें",
-      "edit": "बदलें",
-      "delete": "हटाएं",
-      "approve": "स्वीकार करें",
-      "reject": "अस्वीकार करें"
-    },
-    "alerts": {
-      "delete_title": "विक्रेता को हटाएं?",
-      "delete_text": "यह विक्रेता को लिस्ट से हटा देगा।",
-      "delete_confirm": "हाँ, हटाएं",
-      "delete_success": "विक्रेता हटा दिया गया"
-    }
-  },
-  "add": {
-    "title": "नया विक्रेता जोड़ें",
-    "subtitle": "नया विक्रेता रजिस्टर करें",
-    "section": {
-      "basic": "स्टोर की जानकारी",
-      "contact": "संपर्क जानकारी",
-      "account": "खाते की जानकारी",
-      "documents": "दस्तावेज"
-    },
-    "form": {
-      "store_name": "स्टोर का नाम",
-      "owner_name": "मालिक का नाम",
-      "email": "ईमेल",
-      "phone": "फ़ोन नंबर",
-      "address": "पूरा पता",
-      "password": "पासवर्ड",
-      "logo": "लोगो",
-      "category": "श्रेणी",
-      "status": "स्थिति",
-      "submit": "सेव करें",
-      "cancel": "रद्द करें"
-    }
-  },
-  "edit": {
-    "title": "विक्रेता बदलें",
-    "subtitle": "विवरण अपडेट करें",
-    "form": {
-      "save": "बदलाव सेव करें",
-      "cancel": "रद्द करें"
-    }
-  },
-  "details": {
-    "title": "विक्रेता का विवरण",
-    "subtitle": "विक्रेता की जानकारी देखें",
-    "stats": {
-      "total_products": "उत्पाद",
-      "active_orders": "सक्रिय ऑर्डर",
-      "total_earned": "कुल कमाई",
-      "rating": "रेटिंग"
+    "status": {
+      "active": "एक्टिव",
+      "inactive": "इन-एक्टिव",
+      "pending": "पेंडिंग"
     }
   },
   "payouts": {
-    "title": "विक्रेता भुगतान",
-    "subtitle": "पेमेंट ट्रैक और मैनेज करें",
-    "search_placeholder": "आईडी या स्टोर से खोजें...",
+    "title": "पेमेंट (Payments)",
+    "subtitle": "विक्रेता की कमाई ट्रैक करें",
+    "search_placeholder": "ID या स्टोर से खोजें...",
+    "stats": {
+      "total_volume": "कुल व्यापार",
+      "settled": "कुल结算 (Settled)"
+    },
     "table": {
+      "id": "आईडी (ID)",
       "vendor": "विक्रेता",
       "amount": "राशि",
       "date": "तारीख",
+      "method": "तरीका",
       "status": "स्थिति"
     },
     "status": {
-      "pending": "लंबित",
-      "processing": "प्रगति पर",
       "paid": "सफल",
+      "pending": "पेंडिंग",
+      "processing": "प्रगति पर",
       "rejected": "अस्वीकार"
     }
   },
+  "payout_report": {
+    "title": "पेमेंट की जानकारी",
+    "id_label": "रेफरेन्स आईडी (Ref ID)",
+    "export": "PDF सेव करें",
+    "print": "प्रिंट (Print)",
+    "amount_card": {
+      "label": "पेमेंट राशि",
+      "date": "तारीख",
+      "method": "पेमेंट तरीका",
+      "store": "स्टोर का नाम",
+      "ref": "आईडी (ID)"
+    },
+    "summary": {
+      "title": "पेमेंट समरी",
+      "total": "कुल राशि",
+      "fee": "कंपनी शुल्क",
+      "final": "अंतिम भुगतान",
+      "via": "के माध्यम से भेजा गया",
+      "note": "नोट",
+      "currency": "रुपये (INR)"
+    },
+    "history": {
+      "title": "पुराने पेमेंट्स",
+      "badge": "हाल के रिकॉर्ड",
+      "table": {
+        "date": "तारीख",
+        "ref": "आईडी",
+        "amount": "राशि",
+        "status": "स्थिति",
+        "page": "पेज",
+        "of": "कुल"
+      },
+      "no_history": "कोई पुराना रिकॉर्ड नहीं मिला"
+    },
+    "sidebar": {
+      "title": "स्टोर का विवरण",
+      "bank": "बैंक का नाम",
+      "account": "बैंक अकाउंट नंबर",
+      "ifsc": "IFSC कोड",
+      "upi": "UPI आईडी",
+      "help_title": "मदद चाहिए?",
+      "help_text": "अगर आपको कोई समस्या है, तो सपोर्ट टीम से संपर्क करें।",
+      "contact_btn": "सहायता लें"
+    }
+  },
+  "details": {
+    "title": "स्टोर हब (Store Hub)",
+    "subtitle": "विक्रेता का पूरा प्रोफाइल",
+    "stats": {
+      "earnings": "कुल कमाई",
+      "orders": "कुल ऑर्डर्स",
+      "products": "उत्पाद",
+      "pending": "बाकी पेमेंट"
+    },
+    "best_sellers": {
+      "title": "सबसे ज्यादा बिकने वाले सामान",
+      "view_all": "सब देखें",
+      "table": {
+        "name": "सामान का नाम",
+        "price": "कीमत",
+        "sales": "बिक्री",
+        "stock": "स्टॉक",
+        "status": "स्थिति"
+      }
+    },
+    "profile": {
+      "title": "स्टोर प्रोफाइल",
+      "owner": "मालिक का नाम",
+      "email": "ईमेल एड्रेस",
+      "phone": "फ़ोन नंबर",
+      "address": "पता",
+      "joined": "जुड़ने की तारीख"
+    },
+    "ops": {
+      "title": "स्टोर की स्थिति",
+      "completion": "ऑर्डर पूरा होने की दर",
+      "verified_msg": "यह स्टोर वैरिफाइड है और प्लेटफॉर्म के सभी नियमों का पालन करता है।"
+    }
+  },
   "products": {
-    "title": "विक्रेता उत्पाद",
-    "subtitle": "विक्रेताओं के उत्पाद देखें",
-    "filter": {
-      "all": "सभी विक्रेता",
-      "select": "विक्रेता चुनें"
+    "title": "स्टोर के उत्पाद",
+    "subtitle": "पार्टनर्स के सामान की लिस्ट",
+    "search": "सामान खोजें...",
+    "filter_all": "सभी विक्रेता",
+    "table": {
+      "item": "उत्पाद",
+      "store": "स्टोर",
+      "category": "श्रेणी",
+      "price": "कीमत",
+      "stock": "स्टॉक",
+      "status": "स्थिति"
+    }
+  },
+  "form": {
+    "save": "सेव करें",
+    "cancel": "रद्द करें",
+    "edit": "बदलें",
+    "delete": "हटाएं",
+    "submit": "सबमिट करें",
+    "description": "विवरण (Description)",
+    "store_name": "स्टोर का नाम",
+    "store_name_placeholder": "स्टोर का नाम लिखें",
+    "owner_name": "मालिक का नाम",
+    "owner_name_placeholder": "मालिक का नाम लिखें",
+    "email": "ईमेल एड्रेस",
+    "email_placeholder": "ईमेल पता लिखें",
+    "phone": "फ़ोन नंबर",
+    "phone_placeholder": "फ़ोन नंबर लिखें",
+    "address": "पता (Address)",
+    "street": "गली/मोहल्ला",
+    "street_placeholder": "गली या पूरा पता लिखें",
+    "city": "शहर",
+    "city_placeholder": "अपना शहर लिखें",
+    "logo": "लोगो (Logo)",
+    "logo_upload": "लोगो अपलोड करें",
+    "status": "स्थिति (Status)",
+    "status_pending": "स्वीकृति के लिए लंबित",
+    "status_msg": "नए विक्रेता सत्यापन से पहले लंबित श्रेणी में रहते हैं।",
+    "add_success": "विक्रेता सफलतापूर्वक जोड़ा गया",
+    "edit_success": "विक्रेता विवरण अपडेट हो गया",
+    "contact": {
+      "title": "विक्रेता से संपर्क करें",
+      "subject": "विषय (Subject)",
+      "message": "संदेश (Message)",
+      "send": "संदेश भेजें"
     }
   }
 }

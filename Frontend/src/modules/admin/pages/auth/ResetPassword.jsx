@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ShieldCheck, Lock, Loader2, ArrowRight, Eye, EyeOff, ShieldAlert } from 'lucide-react';
-import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import { Mail, Lock, Loader2, ArrowRight, Eye, EyeOff, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { resetAdminPassword } from '../../api/adminApi';
 import { toast } from 'react-toastify';
+import logo from '../../../../assets/logo.png';
 
 const ResetPassword = () => {
+    const { t, i18n } = useTranslation('admin_login');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -13,60 +16,82 @@ const ResetPassword = () => {
     const { token } = useParams();
     const navigate = useNavigate();
 
+    const changeLanguage = (lng) => {
+        i18n.changeLanguage(lng);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (password !== confirmPassword) {
-            return toast.error('Security Keys do not intersect. Please verify.');
+            return toast.error('Passwords do not match');
         }
 
         if (password.length < 8) {
-            return toast.error('Key depth insufficient. Minimum 8 characters required.');
+            return toast.error('Password must be at least 8 characters');
         }
 
         setLoading(true);
 
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/reset-password/${token}`, { password });
+            await resetAdminPassword(token, password);
             setSuccess(true);
-            toast.success('Security Credentials Updated');
+            toast.success(t('reset.success_title'));
             setTimeout(() => navigate('/admin/login'), 3000);
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Access token invalid or expired');
+            toast.error(err.message || 'Access token invalid or expired');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden flex flex-col border border-gray-100 relative">
+        <div className="min-h-screen bg-[#0A0F1D] flex items-center justify-center p-4 relative overflow-hidden font-sans">
+            {/* Background Decorative Elements */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/5 rounded-full blur-[120px]"></div>
+            
+             {/* Language Switcher */}
+             <div className="absolute top-8 right-8 z-20 flex gap-2">
+                <button
+                    onClick={() => changeLanguage('en')}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${i18n.language === 'en' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white/10 text-white/40 hover:bg-white/20'}`}
+                >
+                    English
+                </button>
+                <button
+                    onClick={() => changeLanguage('hi')}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${i18n.language === 'hi' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white/10 text-white/40 hover:bg-white/20'}`}
+                >
+                    हिन्दी
+                </button>
+            </div>
+
+            <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] w-full max-w-[420px] overflow-hidden p-10 relative z-10 animate-in zoom-in duration-500">
                 
-                <div className="p-10 w-full text-center">
-                    <div className="flex justify-center mb-8">
-                        <div className="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-200 transform rotate-6 transition-transform hover:rotate-0 duration-500">
-                            <ShieldAlert className="text-white" size={38} />
-                        </div>
+                <div className="flex flex-col items-center mb-10 text-center">
+                    <div className="w-24 h-24 mb-6 transition-transform hover:scale-105 duration-500">
+                        <img src={logo} alt="SaathiGrow Logo" className="w-full h-full object-contain" />
                     </div>
 
                     {!success ? (
                         <>
                             <div className="mb-10">
-                                <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tighter uppercase tracking-widest leading-none">New <span className="text-blue-600">Protocol</span></h2>
-                                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2">Initialize new security credentials</p>
+                                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('reset.title')}</h2>
+                                <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest opacity-60 leading-none">{t('reset.subtitle')}</p>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                            <form onSubmit={handleSubmit} className="space-y-6 w-full">
                                 <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">New Security Key</label>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('reset.new_password')}</label>
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-300 transition-colors group-focus-within:text-blue-500">
-                                            <Lock size={20} />
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 transition-colors group-focus-within:text-blue-500">
+                                            <Lock size={18} />
                                         </div>
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             required
-                                            className="block w-full pl-14 pr-14 py-4 bg-gray-50 border-transparent border-2 rounded-2xl font-bold text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-sm shadow-sm"
+                                            className="block w-full pl-12 pr-14 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-50 transition-all"
                                             placeholder="••••••••"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
@@ -74,23 +99,23 @@ const ResetPassword = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-300 hover:text-blue-600 transition-colors"
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-300 hover:text-blue-600 transition-colors border-none bg-transparent"
                                         >
-                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Confirm Protocol Key</label>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('reset.confirm_password')}</label>
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-300 transition-colors group-focus-within:text-blue-500">
-                                            <Lock size={20} />
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 transition-colors group-focus-within:text-blue-500">
+                                            <Lock size={18} />
                                         </div>
                                         <input
                                             type="password"
                                             required
-                                            className="block w-full pl-14 pr-6 py-4 bg-gray-50 border-transparent border-2 rounded-2xl font-bold text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-sm shadow-sm"
+                                            className="block w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-50 transition-all font-sans"
                                             placeholder="••••••••"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -101,26 +126,26 @@ const ResetPassword = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full flex items-center justify-center py-5 px-6 rounded-2xl shadow-xl shadow-blue-200 text-xs font-black uppercase tracking-[0.2em] text-white bg-blue-600 hover:bg-black transform active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed group overflow-hidden"
+                                    className="w-full flex items-center justify-center py-4 px-6 rounded-2xl text-[11px] font-bold text-white bg-slate-900 hover:bg-black transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_20px_40px_-15px_rgba(0,0,0,0.2)] active:scale-[0.98] uppercase tracking-[0.2em] border-none group"
                                 >
                                     {loading ? (
                                         <Loader2 size={24} className="animate-spin" />
                                     ) : (
                                         <span className="flex items-center gap-3">
-                                            Authorize Reset <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                            {t('reset.submit')} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                         </span>
                                     )}
                                 </button>
                             </form>
                         </>
                     ) : (
-                        <div className="py-6 scale-in-center">
+                        <div className="py-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-100 shadow-sm">
                                 <ShieldCheck size={32} />
                             </div>
-                            <h3 className="text-xl font-black text-gray-900 mb-3 uppercase tracking-tight">Protocol Updated</h3>
-                            <p className="text-sm font-bold text-gray-500 leading-relaxed mb-8">
-                                Your security credentials have been successfully updated. Redirecting to terminal...
+                            <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">{t('reset.success_title')}</h3>
+                            <p className="text-sm font-bold text-gray-500 leading-relaxed mb-8 px-4 opacity-70 italic">
+                                {t('reset.success_msg')}
                             </p>
                             <div className="flex justify-center">
                                 <Loader2 size={24} className="animate-spin text-blue-600" />
@@ -128,16 +153,11 @@ const ResetPassword = () => {
                         </div>
                     )}
 
-                    <p className="mt-12 text-center text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">
-                        &copy; 2026 SAATHIGROW • SECURITY HUB
+                    <p className="mt-12 text-center text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em] leading-none">
+                        &copy; 2026 SAATHIGROW • Security Hub
                     </p>
                 </div>
             </div>
-
-            <style dangerouslySetInnerHTML={{ __html: `
-                .scale-in-center { animation: scaleIn 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
-                @keyframes scaleIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-            `}} />
         </div>
     );
 };

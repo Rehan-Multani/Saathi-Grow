@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from '../../../config/apiConfig';
+import { API_BASE_URL } from '../../../config/apiConfig';
 
 const ADMIN_BASE_URL = `${API_BASE_URL}/admin`;
 const buildQuery = (params = {}) => {
@@ -133,6 +133,38 @@ export const deleteStaff = async (token, id) => {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to delete staff');
+  return data;
+};
+
+export const forgotAdminPassword = async (email) => {
+  const response = await fetch(`${ADMIN_BASE_URL}/forgot-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, portal: 'admin' }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to send reset link');
+  }
+  return data;
+};
+
+export const resetAdminPassword = async (token, password) => {
+  const response = await fetch(`${ADMIN_BASE_URL}/reset-password/${token}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to reset password');
+  }
   return data;
 };
 

@@ -152,6 +152,21 @@ export const getPayoutById = async (token, id) => {
   return data;
 };
 
+// Contact
+export const contactVendor = async (token, id, messageData) => {
+  const response = await fetch(`${VENDORS_API_BASE_URL}/${id}/contact`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(messageData)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to send message');
+  return data;
+};
+
 // Aliases for better semantics and backward compatibility with refactored pages
 export const getVendorDetails = getVendorById;
 export const getVendorPayouts = getPayouts;

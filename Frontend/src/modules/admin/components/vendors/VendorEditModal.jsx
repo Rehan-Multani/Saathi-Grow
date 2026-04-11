@@ -127,7 +127,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onHide} />
             <form onSubmit={handleSubmit} className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh] border border-slate-100">
-                
+
                 {/* Header */}
                 <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30 shrink-0">
                     <div className="flex items-center gap-4">
@@ -135,8 +135,8 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                             <Store size={24} />
                         </div>
                         <div>
-                             <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Edit Vendor</h3>
-                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Update store profile</p>
+                            <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight">{t('form.edit')}</h3>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{t('subtitle')}</p>
                         </div>
                     </div>
                     <button type="button" onClick={onHide} className="p-3 text-slate-300 hover:text-slate-900 hover:bg-white rounded-2xl transition-all border-none bg-transparent">
@@ -149,7 +149,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                     {/* Basic Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Store Name</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.store_name')}</label>
                             <input
                                 type="text"
                                 name="storeName"
@@ -160,7 +160,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Owner Name</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.owner_name')}</label>
                             <input
                                 type="text"
                                 name="ownerName"
@@ -171,7 +171,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.email')}</label>
                             <input
                                 type="email"
                                 name="email"
@@ -182,7 +182,7 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.phone')}</label>
                             <input
                                 type="text"
                                 name="phone"
@@ -197,25 +197,25 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                     {/* Address Section */}
                     <div className="space-y-5 pt-8 border-t border-slate-50">
                         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                            <MapPin size={14} /> Shop Address
+                            <MapPin size={14} /> {t('form.address')}
                         </label>
                         <GoogleMapsInput
                             onLocationSelect={handleLocationSelect}
                             defaultValue={formData.address.street}
                         />
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input 
-                                type="text" 
-                                placeholder="Street" 
-                                value={formData.address.street} 
-                                onChange={(e) => setFormData({...formData, address: {...formData.address, street: e.target.value}})}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input
+                                type="text"
+                                placeholder={t('form.street')}
+                                value={formData.address.street}
+                                onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
                                 className="w-full bg-white border border-slate-100 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all font-sans shadow-sm"
                             />
-                            <input 
-                                type="text" 
-                                placeholder="City" 
-                                value={formData.address.city} 
-                                onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
+                            <input
+                                type="text"
+                                placeholder={t('form.city')}
+                                value={formData.address.city}
+                                onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
                                 className="w-full bg-white border border-slate-100 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all font-sans shadow-sm"
                             />
                         </div>
@@ -224,20 +224,20 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
                     {/* Status & Logo */}
                     <div className="flex flex-col md:flex-row gap-10 items-start pt-8 border-t border-slate-50">
                         <div className="flex-1 space-y-2 w-full">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Status</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.status')}</label>
                             <select
                                 name="status"
                                 value={formData.status}
                                 onChange={handleChange}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-[1.25rem] py-3.5 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner appearance-none cursor-pointer"
                             >
-                                <option value="Active">Active</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Inactive">Inactive</option>
+                                <option value="Active">{t('all_vendors.status.active')}</option>
+                                <option value="Pending">{t('all_vendors.status.pending')}</option>
+                                <option value="Inactive">{t('all_vendors.status.inactive')}</option>
                             </select>
                         </div>
                         <div className="w-full md:w-36 shrink-0 relative group">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1 text-center">Store Image</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1 text-center">{t('form.logo')}</label>
                             <div className="relative aspect-square rounded-[1.5rem] border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300 shadow-inner">
                                 {logoPreview ? (
                                     <img src={logoPreview} className="w-full h-full object-cover" />
@@ -252,18 +252,19 @@ const VendorEditModal = ({ show, onHide, vendor, onSave }) => {
 
                 {/* Footer */}
                 <div className="p-8 border-t border-slate-50 bg-slate-50/10 flex justify-end gap-4 shrink-0">
-                    <button type="button" onClick={onHide} className="px-8 py-3.5 text-[10px] font-bold text-slate-500 bg-white border border-slate-200 rounded-[1.25rem] hover:bg-slate-50 transition-all active:scale-95 shadow-sm uppercase tracking-widest">Cancel</button>
+                    <button type="button" onClick={onHide} className="px-8 py-3.5 text-[10px] font-bold text-slate-500 bg-white border border-slate-200 rounded-[1.25rem] hover:bg-slate-50 transition-all active:scale-95 shadow-sm uppercase tracking-widest">{t('form.cancel')}</button>
                     <button
                         type="submit"
                         disabled={loading}
                         className="px-10 py-3.5 bg-blue-600 text-white rounded-[1.25rem] text-[10px] font-bold tracking-widest hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-100 uppercase flex items-center gap-3 border-none"
                     >
                         {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Save Changes
+                        {t('form.save')}
                     </button>
                 </div>
             </form>
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .scrollbar-thin::-webkit-scrollbar { width: 4px; }
                 .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />

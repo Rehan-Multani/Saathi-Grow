@@ -44,9 +44,9 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                         <div>
                             <h3 className="text-xl font-bold text-slate-900 leading-none uppercase tracking-tight">{vendor.storeName}</h3>
                             <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest leading-none">
-                                <span>Vendor ID: #{vendor._id.slice(-8)}</span>
+                                <span>{t('payout_report.amount_card.ref')}: #{vendor._id.slice(-8)}</span>
                                 <span className={`flex items-center gap-1 ${vendor.status === 'Active' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                     • {vendor.status}
+                                     • {vendor.status === 'Active' ? t('all_vendors.status.active') : vendor.status}
                                 </span>
                             </div>
                         </div>
@@ -60,12 +60,12 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-5">
                         <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50 space-y-2 group hover:bg-blue-100/50 transition-colors">
-                            <div className="text-[10px] font-bold text-blue-500 uppercase tracking-widest opacity-60">Products</div>
-                            <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{vendor.products || 0} <span className="text-xs font-bold text-slate-400 opacity-60">Items</span></div>
+                            <div className="text-[10px] font-bold text-blue-500 uppercase tracking-widest opacity-60">{t('details.stats.products')}</div>
+                            <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{vendor.products || 0} <span className="text-xs font-bold text-slate-400 opacity-60">{t('details.stats.products')}</span></div>
                         </div>
                         <div className="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-110/50 space-y-2 group hover:bg-emerald-100/50 transition-colors">
-                            <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest opacity-60">Earnings</div>
-                            <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none">₹0 <span className="text-xs font-bold text-slate-400 opacity-60">INR</span></div>
+                            <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest opacity-60">{t('details.stats.earnings')}</div>
+                            <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none">₹0 <span className="text-xs font-bold text-slate-400 opacity-60">{t('payout_report.summary.currency') || 'INR'}</span></div>
                         </div>
                     </div>
 
@@ -73,7 +73,7 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                     <div className="space-y-8">
                         <div>
                             <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-3">
-                                <Activity size={14} className="text-blue-500" /> Business Details
+                                <Activity size={14} className="text-blue-500" /> {t('all_vendors.table.store')}
                             </h4>
                             <div className="space-y-6">
                                 <div className="flex items-center gap-5 group">
@@ -81,7 +81,7 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                                         <Mail size={18} />
                                     </div>
                                     <div className="min-w-0">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block leading-none mb-1.5 opacity-60">Email Address</span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block leading-none mb-1.5 opacity-60">{t('details.profile.email')}</span>
                                         <span className="text-xs font-bold text-slate-800 lowercase tracking-tight block truncate opacity-90">{vendor.email}</span>
                                     </div>
                                 </div>
@@ -90,7 +90,7 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                                         <Phone size={18} />
                                     </div>
                                     <div className="min-w-0">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block leading-none mb-1.5 opacity-60">Phone Number</span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block leading-none mb-1.5 opacity-60">{t('details.profile.phone')}</span>
                                         <span className="text-xs font-bold text-slate-800 tracking-tight block truncate opacity-90">{vendor.phone}</span>
                                     </div>
                                 </div>
@@ -99,7 +99,7 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                                         <MapPin size={18} />
                                     </div>
                                     <div className="min-w-0">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block leading-none mb-2 opacity-60">Shop Location</span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block leading-none mb-2 opacity-60">{t('details.profile.address')}</span>
                                         <span className="text-xs font-bold text-slate-800 tracking-tight block opacity-90 leading-relaxed uppercase">{vendor.address?.street || vendor.address}{vendor.address?.city ? `, ${vendor.address.city}` : ''}</span>
                                     </div>
                                 </div>
@@ -108,7 +108,7 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
 
                         {vendor.description && (
                             <div className="bg-slate-50/50 border border-slate-100 rounded-3xl p-6 italic">
-                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 leading-none">About Company</h4>
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 leading-none">{t('form.description')}</h4>
                                 <p className="text-[11px] text-slate-600 leading-relaxed font-bold opacity-80 tracking-tight">"{vendor.description}"</p>
                             </div>
                         )}
@@ -120,23 +120,23 @@ const VendorDetailsModal = ({ show, onHide, vendor }) => {
                                     {vendor.ownerName?.charAt(0)}
                                 </div>
                                 <div className="min-w-0">
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1 leading-none">Store Owner</div>
+                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1 leading-none">{t('details.profile.owner')}</div>
                                     <div className="font-bold text-sm text-white uppercase tracking-tight truncate opacity-90">{vendor.ownerName}</div>
                                 </div>
                             </div>
-                            <div className="px-4 py-1.5 bg-white/10 rounded-xl text-[9px] font-bold uppercase tracking-widest border border-white/5 whitespace-nowrap text-white/80 scale-95 group-hover:scale-100 transition-all shadow-inner">Partner</div>
+                            <div className="px-4 py-1.5 bg-white/10 rounded-xl text-[9px] font-bold uppercase tracking-widest border border-white/5 whitespace-nowrap text-white/80 scale-95 group-hover:scale-100 transition-all shadow-inner">{t('all_vendors.table.store')}</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer Section */}
                 <div className="p-8 border-t border-slate-50 bg-slate-50/10 flex justify-end gap-4 shrink-0">
-                    <button onClick={onHide} className="px-8 py-3.5 bg-white border border-slate-200 text-slate-500 rounded-[1.25rem] text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Close</button>
+                    <button onClick={onHide} className="px-8 py-3.5 bg-white border border-slate-200 text-slate-500 rounded-[1.25rem] text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm">{t('form.cancel')}</button>
                     <button
                         onClick={handleViewProducts}
                         className="px-10 py-3.5 bg-slate-900 text-white rounded-[1.25rem] text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-xl shadow-slate-200 flex items-center gap-3 border-none"
                     >
-                        View Products
+                        {t('details.best_sellers.view_all')}
                         <ArrowUpRight size={18} />
                     </button>
                 </div>

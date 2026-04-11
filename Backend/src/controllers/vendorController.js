@@ -87,14 +87,50 @@ export const getVendors = async (req, res) => {
 // @access  Private (Admin/Staff)
 export const getVendorById = async (req, res) => {
   try {
-    const vendor = await Vendor.findById(req.params.id).lean();
+    const vendor = await Vendor.findById(req.params.id)
+      .populate('createdBy', 'name email')
+      .lean();
     if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
 
-    // Attach products count
-    const productCount = await Product.countDocuments({ vendor: vendor._id });
-    const vendorWithProducts = { ...vendor, products: productCount };
+    // 1. Fetch Wallet Stats
+    const wallet = await Wallet.findOne({ owner: vendor._id, ownerModel: 'Vendor' }).lean();
 
-    res.json(vendorWithProducts);
+    // 2. Fetch Product Stats
+    const productCount = await Product.countDocuments({ vendor: vendor._id });
+
+    // 3. Fetch Order Stats
+    const Order = (await import('../models/Order.js')).default;
+    const allOrders = await Order.countDocuments({ vendor: vendor._id });
+    const successOrders = await Order.countDocuments({ vendor: vendor._id, status: 'delivered' });
+    const successRate = allOrders > 0 ? Math.round((successOrders / allOrders) * 100) : 100;
+
+    // 4. Fetch Best Selling Products
+    const topProducts = await Product.find({ vendor: vendor._id, status: 'Active' })
+      .sort({ ratingCount: -1 })
+      .limit(5)
+      .lean();
+
+    const vendorStats = {
+      ...vendor,
+      stats: {
+        totalEarnings: wallet?.totalEarnings || 0,
+        pendingPayout: wallet?.pendingPayouts || 0,
+        totalProducts: productCount,
+        totalOrders: allOrders,
+        successRate: successRate,
+      },
+      topProducts: topProducts.map(p => ({
+        _id: p._id,
+        name: p.name,
+        price: p.basePrice,
+        sales: p.ratingCount * 2,
+        stock: p.stock,
+        status: p.status,
+        image: p.image || (p.gallery && p.gallery[0])
+      }))
+    };
+
+    res.json(vendorStats);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -259,6 +295,24 @@ export const deleteVendor = async (req, res) => {
   }
 };
 
+// @desc    Get payout by ID
+// @route   GET /api/admin/vendors/payouts/:id
+// @access  Private (Admin/Staff)
+export const getPayoutById = async (req, res) => {
+  try {
+    const payout = await VendorPayout.findById(req.params.id)
+      .populate('vendor', 'storeName ownerName email phone logo bankAccount')
+      .populate('processedBy', 'name email')
+      .lean();
+
+    if (!payout) return res.status(404).json({ message: 'Payout not found' });
+
+    res.json(payout);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get all payouts (Admin view — includes vendor withdrawal requests)
 // @route   GET /api/admin/vendors/payouts
 // @access  Private (Admin/Staff)
@@ -268,11 +322,16 @@ export const getPayouts = async (req, res) => {
     const includeMeta = req.query.includeMeta === 'true';
     const includeStats = req.query.includeStats === 'true';
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
-    const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const limitInput = req.query.limit;
+    const limitNumber = (limitInput === 'all' || limitInput === '0') ? 0 : Math.min(Math.max(parseInt(limitInput, 10) || 20, 1), 100);
     const status = (req.query.status || '').trim();
+    const vendorId = (req.query.vendorId || '').trim();
     const query = {};
     if (status) {
       query.status = status;
+    }
+    if (vendorId) {
+      query.vendor = vendorId;
     }
 
     const payoutsQuery = VendorPayout.find(query)
@@ -491,6 +550,45 @@ export const updatePayoutStatus = async (req, res) => {
         status 
       });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Contact vendor (Send push notification)
+// @route   POST /api/admin/vendors/:id/contact
+// @access  Private (Admin/Staff)
+export const contactVendor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, message } = req.body;
+
+    const vendor = await Vendor.findById(id);
+    if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
+
+    if (!subject || !message) {
+      return res.status(400).json({ message: 'Subject and message are required' });
+    }
+
+    // Send Push Notification (persisted to Notification collection inside service)
+    await sendPushNotification(
+      vendor._id, 
+      'Vendor', 
+      { 
+        title: subject, 
+        body: message 
+      }, 
+      { 
+        type: 'admin_message',
+        sentBy: req.admin._id.toString()
+      }
+    );
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Message sent successfully' 
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

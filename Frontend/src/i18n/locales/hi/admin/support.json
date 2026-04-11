@@ -1,0 +1,64 @@
+{
+    "title": "हेल्प सेंटर",
+    "tickets": {
+        "title": "कस्टमर शिकायत",
+        "search_placeholder": "ID या नाम से खोजें...",
+        "refresh": "रिफ्रेश",
+        "load_failed": "टिकट लोड नहीं हो पाए",
+        "escalate_success": "स्टोर को जानकारी भेज दी गई!",
+        "escalate_failed": "भेजने में समस्या आई",
+        "status": {
+            "open": "खुला",
+            "escalated": "स्टोर के पास",
+            "responded": "जवाब आया",
+            "resolved": "ठीक हुआ",
+            "closed": "बंद",
+            "sla_breach": "लेट"
+        },
+        "table": {
+            "ticket_id": "शिकायत #",
+            "order_id": "ऑर्डर #",
+            "user": "ग्राहक",
+            "category": "प्रकार",
+            "priority": "जरूरी",
+            "status": "स्थिति",
+            "actions": "देखें"
+        },
+        "modal": {
+            "title": "शिकायत की जानकारी",
+            "info_section": "क्या समस्या है?",
+            "order_section": "ऑर्डर की जानकारी",
+            "escalation_section": "स्टोर को भेजें",
+            "resolution_section": "समाधान",
+            "user_comment": "ग्राहक का कहना",
+            "admin_can_resolve": "अपना जवाब लिखें",
+            "resolution_placeholder": "बताएं कि समस्या कैसे सुलझाई गई...",
+            "escalate_btn": "स्टोर को भेजें",
+            "resolve_btn": "सुलझ गया",
+            "save_btn": "अपडेट करें",
+            "update_success": "सफलतापूर्वक अपडेट हुआ",
+            "close": "बंद करें"
+        }
+    },
+    "faqs": {
+        "title": "सवाल-जवाब (FAQs)",
+        "add_new": "नया सवाल जोड़ें",
+        "search_placeholder": "सर्च करें...",
+        "no_matching": "कुछ नहीं मिला",
+        "delete_confirm": "क्या आप इसे हटाना चाहते हैं?",
+        "delete_success": "हटा दिया गया",
+        "save_success": "सेव हो गया",
+        "modal": {
+            "add_title": "नया सवाल",
+            "edit_title": "सवाल सुधारें",
+            "question": "सवाल",
+            "answer": "जवाब",
+            "category": "श्रेणी",
+            "status": "दिखाएं?",
+            "active": "दिख रहा है",
+            "inactive": "छिपा हुआ",
+            "save": "सेव करें",
+            "update": "अपडेट करें"
+        }
+    }
+}

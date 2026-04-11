@@ -1,0 +1,46 @@
+{
+  "title": "कैंपेन (Campaigns)",
+  "subtitle": "खास अवसरों के लिए प्रोडक्ट्स का कलेक्शन बनाएं और मैनेज करें।",
+  "add_new": "नया कैंपेन जोड़ें",
+  "search_placeholder": "कैंपेन खोजें...",
+  "empty_state": "कोई कैंपेन नहीं मिला",
+  "empty_subtitle": "त्यौहारों या कम कीमतों वाले खास कलेक्शन बनाना शुरू करें।",
+  "loading": "लोड हो रहा है...",
+  "status": {
+    "active": "सक्रिय (Active)",
+    "offline": "बंद (Offline)"
+  },
+  "types": {
+    "festive": "त्यौहार थीम",
+    "lowest_prices": "कम कीमत थीम"
+  },
+  "form": {
+    "add_title": "कैंपेन बनाएं",
+    "edit_title": "कैंपेन बदलें",
+    "basic_info": "कैंपेन की जानकारी",
+    "display_type": "थीम (Theme)",
+    "title_label": "कैंपेन का नाम",
+    "title_placeholder": "जैसे: दिवाली धमाका",
+    "subtitle_label": "छोटा सब-टाइटल",
+    "subtitle_placeholder": "जैसे: स्नेक्स पर भारी बचत",
+    "highlight_label": "बैज टेक्स्ट (Badge)",
+    "highlight_placeholder": "जैसे: सीमित समय के लिए!",
+    "visual_settings": "डिजाइन और कलर",
+    "bg_color": "बैकग्राउंड कलर",
+    "text_color": "अक्षर का कलर (Text)",
+    "isActive": "क्या यह कैंपेन चालू है?",
+    "products_section": "कैंपेन में प्रोडक्ट जोड़ें",
+    "save": "कैंपेन सेव करें",
+    "update": "बदलाव सेव करें",
+    "cancel": "कैंसिल",
+    "back": "पीछे"
+  },
+  "messages": {
+    "fetch_error": "कैंपेन लोड नहीं हो सके",
+    "delete_confirm_title": "कैंपेन हटाएं?",
+    "delete_confirm_msg": "क्या आप वाकई \"{{name}}\" को हटाना चाहते हैं?",
+    "delete_success": "कैंपेन हटा दिया गया है।",
+    "create_success": "कैंपेन सफलतापूर्वक बन गया",
+    "update_success": "बदलाव सफलतापूर्वक सेव हो गए"
+  }
+}

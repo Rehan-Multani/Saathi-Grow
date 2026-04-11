@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { X, Store, Award, Package, IndianRupee, TrendingUp, Calendar, User, Phone, Mail, ChevronRight, Activity, ArrowUpRight, BarChart3, Clock } from 'lucide-react';
+import { X, Store, Award, Package, IndianRupee, TrendingUp, Calendar, User, Phone, Mail, ChevronRight, Activity, ArrowUpRight, BarChart3, Clock, Layout, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const VendorPerformanceModal = ({ show, onHide, vendor }) => {
-    const { t } = useTranslation('admin_vendors');
+    const { t } = useTranslation('admin_reports');
     
     useEffect(() => {
         if (show) {
@@ -19,131 +19,132 @@ const VendorPerformanceModal = ({ show, onHide, vendor }) => {
     if (!show || !vendor) return null;
 
     return (
-        <div className="fixed inset-0 z-[1060] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-500" onClick={onHide}></div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onHide}></div>
             
-            <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300 border border-slate-100 relative">
-                
-                {/* Header with Background Pattern */}
-                <div className="relative p-10 bg-slate-50/10 shrink-0 border-b border-slate-50">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-blue-50/50 rounded-full blur-[80px] -mr-24 -mt-24 pointer-events-none" />
-                    <div className="relative flex justify-between items-start">
-                        <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-center text-blue-600 shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-all duration-500 shrink-0">
-                                <Store size={36} />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase tracking-tight leading-none mb-3">{vendor.vendorName}</h1>
-                                <div className="flex items-center gap-3">
-                                    <span className="px-3 py-1 bg-blue-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-100 border-none">Analysis Hub</span>
-                                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest italic leading-none opacity-60">ID: #{vendor.id?.slice(-8)}</span>
-                                </div>
-                            </div>
+            {/* Modal Content */}
+            <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+                {/* Header */}
+                <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
+                            <Store size={28} />
                         </div>
-                        <button onClick={onHide} className="p-3 text-slate-300 hover:text-slate-900 hover:bg-white rounded-2xl transition-all border-none bg-transparent">
-                            <X size={24} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Body - Scrollable Content */}
-                <div className="p-10 overflow-y-auto scrollbar-thin grow">
-                    {/* Performance Stat Clusters */}
-                    <div className="grid grid-cols-2 gap-6 mb-12">
-                        <div className="p-8 bg-gradient-to-br from-emerald-50/50 to-white rounded-[2rem] border border-emerald-110/30 flex flex-col justify-between group hover:border-emerald-200 transition-all shadow-sm">
-                            <div className="flex justify-between items-start mb-6">
-                                <span className="text-[10px] font-bold text-emerald-600/60 uppercase tracking-widest leading-none">Gross Sales</span>
-                                <div className="p-3 bg-white text-emerald-500 rounded-2xl shadow-sm border border-emerald-50 group-hover:scale-110 transition-transform">
-                                    <TrendingUp size={24} />
-                                </div>
-                            </div>
-                            <div>
-                                 <div className="text-3xl font-black text-slate-900 tracking-tighter leading-none italic font-sans">₹{vendor.totalSales?.toLocaleString()}</div>
-                                 <p className="text-[10px] font-bold text-emerald-600/40 uppercase tracking-widest mt-2">Lifetime Revenue</p>
-                            </div>
-                        </div>
-
-                        <div className="p-8 bg-gradient-to-br from-blue-50/50 to-white rounded-[2rem] border border-blue-110/30 flex flex-col justify-between group hover:border-blue-200 transition-all shadow-sm">
-                             <div className="flex justify-between items-start mb-6">
-                                <span className="text-[10px] font-bold text-blue-600/60 uppercase tracking-widest leading-none">Catalog Size</span>
-                                <div className="p-3 bg-white text-blue-500 rounded-2xl shadow-sm border border-blue-50 group-hover:scale-110 transition-transform">
-                                    <Package size={24} />
-                                </div>
-                            </div>
-                            <div>
-                                 <div className="text-3xl font-black text-slate-900 tracking-tighter leading-none italic font-sans">{vendor.productsListed} <span className="text-sm font-bold text-slate-300 uppercase tracking-widest opacity-60">SKUs</span></div>
-                                 <p className="text-[10px] font-bold text-blue-600/40 uppercase tracking-widest mt-2">Inventory Depth</p>
-                            </div>
+                        <div>
+                            <h3 className="text-base font-black text-slate-800 uppercase tracking-tight leading-tight">{vendor.vendorName}</h3>
+                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 opacity-80">{t('vendor.modal.title')}</p>
                         </div>
                     </div>
-
-                    <div className="space-y-10">
-                        {/* Profile Analysis Section */}
-                        <section className="relative">
-                            <div className="flex items-center gap-3 mb-8 border-b border-slate-50 pb-4">
-                                <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
-                                    <BarChart3 size={16} />
-                                </div>
-                                <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest leading-none">Entity Metadata</h3>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                                {[
-                                    { icon: <User size={16} />, label: 'Principal Associate', value: vendor.owner },
-                                    { icon: <Calendar size={16} />, label: 'Registry Entry', value: vendor.memberSince },
-                                    { icon: <Phone size={16} />, label: 'Contact Interface', value: vendor.contact },
-                                    { icon: <Clock size={16} />, label: 'Order Frequency', value: `${vendor.orderCount} Closed Orders` }
-                                ].map((item, i) => (
-                                    <div key={i} className="flex gap-4 group">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-blue-500 group-hover:bg-white group-hover:border-blue-100/50 transition-all shadow-inner shrink-0">
-                                            {item.icon}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] block leading-none mb-1.5 opacity-60 italic">{item.label}</span>
-                                            <span className="text-[11px] font-bold text-slate-800 uppercase tracking-tight block truncate opacity-90">{item.value}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* Status Identity Card */}
-                        <div className={`p-6 rounded-[2rem] border overflow-hidden relative group cursor-default transition-all duration-500 ${vendor.status === 'Active' ? 'bg-emerald-50 border-emerald-100 text-emerald-700 shadow-xl shadow-emerald-50/50' : 'bg-amber-50 border-amber-100 text-amber-700 shadow-xl shadow-amber-50/50'}`}>
-                           <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-125 transition-transform duration-700" />
-                           <div className="relative flex items-center gap-5">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-all shrink-0 ${vendor.status === 'Active' ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-amber-500 text-white shadow-amber-200'}`}>
-                                    <Award size={24} />
-                                </div>
-                                <div className="min-w-0">
-                                    <div className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-1 leading-none italic">Partner Reliability</div>
-                                    <div className="text-xs font-bold uppercase tracking-tight leading-relaxed">This partner is currently {vendor.status} with a verified integrity score.</div>
-                                </div>
-                           </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer Actions */}
-                <div className="p-10 border-t border-slate-50 bg-slate-50/20 flex justify-end gap-4 shrink-0">
-                    <button 
-                        onClick={onHide} 
-                        className="px-10 py-4 bg-white border border-slate-200 text-slate-500 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
-                    >
-                        Close
+                    <button onClick={onHide} className="p-2.5 hover:bg-white rounded-xl transition-colors text-slate-400 hover:text-rose-500 border border-transparent hover:border-slate-100">
+                        <X size={24} />
                     </button>
-                    <button 
-                         onClick={() => window.location.reload()}
-                         className="px-12 py-4 bg-blue-600 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-blue-100 flex items-center gap-3 border-none"
+                </div>
+
+                <div className="p-10 max-h-[75vh] overflow-y-auto scrollbar-thin">
+                    {/* Key Stats Grid */}
+                    <div className="grid grid-cols-2 gap-6 mb-10">
+                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-between shadow-sm transform hover:scale-[1.02] transition-transform">
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Total Income</span>
+                                <div className="p-2 bg-white text-emerald-600 rounded-lg shadow-sm border border-slate-100">
+                                    <TrendingUp size={18} />
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-2xl font-black text-slate-800 tracking-tight">₹{vendor.totalSales?.toLocaleString()}</h4>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-1">Life-time Earnings</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-between shadow-sm transform hover:scale-[1.02] transition-transform">
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Products</span>
+                                <div className="p-2 bg-white text-blue-600 rounded-lg shadow-sm border border-slate-100">
+                                    <Package size={18} />
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-2xl font-black text-slate-800 tracking-tight">{vendor.productsListed || 0}</h4>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-1">Items Listed</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Metadata Section */}
+                    <div className="space-y-8">
+                        <div className="space-y-4">
+                            <h5 className="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">{t('vendor.modal.close')} Info</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100">
+                                        <User size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1 opacity-70">Owner Name</p>
+                                        <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">{vendor.owner}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100">
+                                        <Calendar size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1 opacity-70">Joined Date</p>
+                                        <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">{vendor.memberSince}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100">
+                                        <Phone size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1 opacity-70">Contact Details</p>
+                                        <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">{vendor.contact}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100">
+                                        <BarChart3 size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1 opacity-70">Total Success</p>
+                                        <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">{vendor.orderCount} Orders Done</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Reliability Badge */}
+                        <div className={`p-6 rounded-3xl border flex items-center gap-5 shadow-sm ${vendor.status === 'Active' ? 'bg-emerald-50/50 border-emerald-100 text-emerald-700' : 'bg-amber-50/50 border-amber-100 text-amber-700'}`}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${vendor.status === 'Active' ? 'bg-emerald-600 text-white shadow-emerald-100' : 'bg-amber-600 text-white shadow-amber-100'}`}>
+                                <Award size={24} />
+                            </div>
+                            <div className="min-w-0">
+                                <h6 className="text-[11px] font-black uppercase tracking-widest mb-1 leading-none opacity-80">Vendor Reliability</h6>
+                                <p className="text-xs font-bold leading-relaxed uppercase tracking-tight">Status is currently identified as {vendor.status} with verified records.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="px-10 py-8 bg-slate-50/30 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button
+                        onClick={onHide}
+                        className="px-8 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200 rounded-2xl bg-white hover:bg-slate-50 transition-all shadow-sm"
                     >
-                        <Activity size={18} /> Refresh Analysis
+                        {t('vendor.modal.close')}
+                    </button>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-100 transition-all active:scale-[0.98] flex items-center gap-2"
+                    >
+                        <RefreshCw size={16} />
+                        Update Numbers
                     </button>
                 </div>
             </div>
-            
-            <style dangerouslySetInnerHTML={{ __html: `
-                .scrollbar-thin::-webkit-scrollbar { width: 4px; border-radius: 10px; }
-                .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-            `}} />
         </div>
     );
 };

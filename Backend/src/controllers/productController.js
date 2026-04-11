@@ -420,7 +420,7 @@ export const getProducts = async (req, res) => {
       }
     }
     // If no storeId, but we are a branch staff/vendor auth, apply their scope
-    else if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId) {
+    else if (req.admin && req.admin.role !== 'Admin' && req.admin.branchId && req.query.allBranches !== 'true') {
       query['branchStocks.branchId'] = req.admin.branchId;
     } else if (req.vendor) {
       query.vendor = req.vendor._id;

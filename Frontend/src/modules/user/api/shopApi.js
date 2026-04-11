@@ -40,6 +40,13 @@ export const fetchBrands = async (category = '') => {
   return data;
 };
 
+export const fetchBrandByName = async (name) => {
+  const response = await fetch(`${API_BASE_URL}/admin/brands/public/name/${encodeURIComponent(name)}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch brand details');
+  return data;
+};
+
 export const fetchProductById = async (id, params = {}) => {
   const query = new URLSearchParams(params).toString();
   const response = await fetch(`${API_BASE_URL}/admin/products/${id}?${query}`);

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Form, Button, Row, Col, Badge, Table, Spinner, InputGroup, Pagination } from 'react-bootstrap';
-import { Send, Bell, Smartphone, User, Clock, CheckCircle, Search, Users, Shield, Truck, Store, Trash2 } from 'lucide-react';
+import { Send, Bell, User, Clock, Search, Users, Shield, Truck, Store, Trash2, Smartphone, ChevronLeft, ChevronRight, Loader2, Info, RefreshCw, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
@@ -9,7 +8,7 @@ import { sendNotification, getNotificationHistory, searchRecipients, deleteNotif
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
 const PushNotifications = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_notifications');
     const { adminUser } = useAdminAuth();
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
@@ -74,12 +73,12 @@ const PushNotifications = () => {
 
     const handleSend = async () => {
         if (!title || !message) {
-            toast.error(t('common.fill_required', { defaultValue: 'Please enter title and message' }));
+            toast.error(t('push.fill_required', { defaultValue: 'Connection Error' }));
             return;
         }
 
         if (targetType === 'individual' && !selectedRecipient) {
-            toast.error('Please select a recipient');
+            toast.error('Select a recipient first');
             return;
         }
 
@@ -96,30 +95,30 @@ const PushNotifications = () => {
 
             const res = await sendNotification(adminUser.token, payload);
             if (res.success) {
-                toast.success(t('notifications.push.dispatch_success'));
+                toast.success(t('push.dispatch_success'));
                 setTitle('');
                 setMessage('');
                 setSelectedRecipient(null);
                 setSearchQuery('');
-                fetchHistory(1); // Refresh history
+                fetchHistory(1);
             }
         } catch (error) {
-            toast.error(error.message || 'Failed to dispatch signal');
+            toast.error(error.message || 'Failed to send');
         } finally {
             setDispatching(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm(t('notifications.push.delete_record_confirm'))) return;
+        if (!window.confirm(t('push.delete_record_confirm'))) return;
         try {
             const res = await deleteNotifications(adminUser.token, [id]);
             if (res.success) {
-                toast.success(t('notifications.push.delete_success', { defaultValue: 'Record Deleted' }));
+                toast.success(t('push.delete_success'));
                 fetchHistory(currentPage);
             }
         } catch (error) {
-            toast.error(t('common.error'));
+            toast.error(t('common.error', { ns: 'common' }));
         }
     };
 
@@ -135,289 +134,288 @@ const PushNotifications = () => {
 
     const getTargetEntityName = (n) => {
         if (n.isBroadcast) {
-            return `${t('notifications.push.group')}: ${n.targetGroup?.toUpperCase() || 'ALL'}`;
+            const g = n.targetGroup || 'all';
+            return t(`push.${g === 'all' ? 'all_nodes' : g}`);
         }
-        return n.recipient?.name || t('notifications.push.unknown_recipient');
+        return n.recipient?.name || t('push.unknown_recipient');
     };
 
     return (
-        <div className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="d-flex align-items-center gap-2">
-                    <h4 className="fw-bold mb-0">{t('notifications.push.title')}</h4>
-                    <PageInfoTooltip data={pageInfoData.pushNotifications} />
+        <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('push.title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.pushNotifications} />
+                    </div>
                 </div>
             </div>
 
-            <Row className="g-4 mb-4">
-                {/* Control Panel */}
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm h-100">
-                        <Card.Header className="bg-primary text-white py-3 border-0">
-                            <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                                <Send size={18} /> {t('notifications.push.initialize')}
-                            </h6>
-                        </Card.Header>
-                        <Card.Body>
-                            <Form.Group className="mb-3">
-                                <Form.Label className="small fw-bold text-muted">{t('notifications.push.transmission_protocol')}</Form.Label>
-                                <div className="d-flex gap-2">
-                                    <Button
-                                        variant={targetType === 'broadcast' ? 'primary' : 'outline-primary'}
-                                        size="sm"
-                                        className="flex-grow-1"
-                                        onClick={() => setTargetType('broadcast')}
-                                    >
-                                        {t('notifications.push.mass_broadcast')}
-                                    </Button>
-                                    <Button
-                                        variant={targetType === 'individual' ? 'primary' : 'outline-primary'}
-                                        size="sm"
-                                        className="flex-grow-1"
-                                        onClick={() => setTargetType('individual')}
-                                    >
-                                        {t('notifications.push.direct_signal')}
-                                    </Button>
-                                </div>
-                            </Form.Group>
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start mb-8">
+                {/* Send Form */}
+                <div className="xl:col-span-8">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-md">
+                                <Send size={20} />
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{t('push.initialize')}</h3>
+                        </div>
 
-                            {targetType === 'broadcast' ? (
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-bold text-muted">{t('notifications.push.strategic_audience')}</Form.Label>
-                                    <Form.Select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
-                                        <option value="all">{t('notifications.push.all_nodes')}</option>
-                                        <option value="users">{t('notifications.push.premium_users')}</option>
-                                        <option value="vendors">{t('notifications.push.vendor_network')}</option>
-                                        <option value="delivery_partners">{t('notifications.push.logistics_partners')}</option>
-                                        <option value="staff">{t('notifications.push.internal_staff')}</option>
-                                        <option value="branch_managers">{t('notifications.push.regional_managers')}</option>
-                                    </Form.Select>
-                                </Form.Group>
-                            ) : (
-                                <>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="small fw-bold text-muted">{t('notifications.push.entity_type')}</Form.Label>
-                                        <Form.Select value={recipientType} onChange={(e) => {
-                                            setRecipientType(e.target.value);
-                                            setSelectedRecipient(null);
-                                            setSearchResults([]);
-                                            setSearchQuery('');
-                                        }}>
-                                            <option value="User">{t('common.customers')}</option>
-                                            <option value="Vendor">{t('common.vendors')}</option>
-                                            <option value="DeliveryPartner">{t('sidebar.delivery_partners')}</option>
-                                            <option value="Staff">{t('common.staff')}</option>
-                                            <option value="Branch Manager">{t('sidebar.branches')}</option>
-                                        </Form.Select>
-                                    </Form.Group>
-                                    <Form.Group className="mb-3 position-relative">
-                                        <Form.Label className="small fw-bold text-muted">{t('notifications.push.locate_recipient')}</Form.Label>
-                                        <InputGroup size="sm">
-                                            <InputGroup.Text className="bg-white"><Search size={14} /></InputGroup.Text>
-                                            <Form.Control
-                                                placeholder={t('common.search')}
-                                                value={selectedRecipient ? selectedRecipient.name : searchQuery}
-                                                onChange={(e) => handleSearch(e.target.value)}
-                                                readOnly={!!selectedRecipient}
-                                            />
-                                            {selectedRecipient && (
-                                                <Button variant="outline-danger" onClick={() => setSelectedRecipient(null)}>{t('common.cancel')}</Button>
-                                            )}
-                                        </InputGroup>
-                                        {searchLoading && <div className="position-absolute end-0 top-50 me-5 translate-middle-y"><Spinner animation="border" size="sm" /></div>}
-                                        {searchResults.length > 0 && !selectedRecipient && (
-                                            <div className="position-absolute w-100 bg-white shadow rounded mt-1 z-3 border overflow-auto" style={{ maxHeight: '200px' }}>
-                                                {searchResults.map(res => (
-                                                    <div
-                                                        key={res._id}
-                                                        className="p-2 border-bottom cursor-pointer hover-bg-light small d-flex justify-content-between align-items-center"
-                                                        onClick={() => {
-                                                            setSelectedRecipient(res);
-                                                            setSearchResults([]);
-                                                        }}
-                                                        style={{ cursor: 'pointer' }}
-                                                    >
-                                                        <span>{res.name}</span>
-                                                        <span className="text-muted">{res.phone}</span>
-                                                    </div>
-                                                ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('push.transmission_protocol')}</label>
+                                    <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100 font-bold">
+                                        <button
+                                            onClick={() => setTargetType('broadcast')}
+                                            className={`py-2 px-3 rounded-lg text-xs transition-all ${targetType === 'broadcast' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-400'}`}
+                                        >
+                                            {t('push.mass_broadcast')}
+                                        </button>
+                                        <button
+                                            onClick={() => setTargetType('individual')}
+                                            className={`py-2 px-3 rounded-lg text-xs transition-all ${targetType === 'individual' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-400'}`}
+                                        >
+                                            {t('push.direct_signal')}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {targetType === 'broadcast' ? (
+                                    <div className="space-y-2 animate-in fade-in duration-200">
+                                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('push.strategic_audience')}</label>
+                                        <select
+                                            value={selectedGroup}
+                                            onChange={(e) => setSelectedGroup(e.target.value)}
+                                            className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm"
+                                        >
+                                            <option value="all">{t('push.all_nodes')}</option>
+                                            <option value="users">{t('push.premium_users')}</option>
+                                            <option value="vendors">{t('push.vendor_network')}</option>
+                                            <option value="delivery_partners">{t('push.logistics_partners')}</option>
+                                            <option value="staff">{t('push.internal_staff')}</option>
+                                            <option value="branch_managers">{t('push.regional_managers')}</option>
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 animate-in fade-in duration-200">
+                                        <div className="space-y-2">
+                                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('push.entity_type')}</label>
+                                            <select
+                                                value={recipientType}
+                                                onChange={(e) => {
+                                                    setRecipientType(e.target.value);
+                                                    setSelectedRecipient(null);
+                                                    setSearchQuery('');
+                                                }}
+                                                className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm"
+                                            >
+                                                <option value="User">{t('common.customers', { ns: 'common' })}</option>
+                                                <option value="Vendor">{t('common.vendors', { ns: 'common' })}</option>
+                                                <option value="DeliveryPartner">{t('sidebar.delivery_partners', { ns: 'admin_sidebar' })}</option>
+                                                <option value="Staff">{t('common.staff', { ns: 'common' })}</option>
+                                                <option value="Branch Manager">{t('sidebar.branches', { ns: 'admin_sidebar' })}</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-2 relative">
+                                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('push.locate_recipient')}</label>
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                                <input
+                                                    type="text"
+                                                    placeholder={t('common.search', { ns: 'common' })}
+                                                    value={selectedRecipient ? selectedRecipient.name : searchQuery}
+                                                    onChange={(e) => handleSearch(e.target.value)}
+                                                    readOnly={!!selectedRecipient}
+                                                    className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm"
+                                                />
+                                                {selectedRecipient && (
+                                                    <button onClick={() => setSelectedRecipient(null)} className="absolute right-2 top-1/2 -translate-y-1/2 text-rose-500 bg-rose-50 px-2 py-1 rounded-lg text-[9px] font-bold uppercase">Cancel</button>
+                                                )}
+                                                {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-blue-600" size={16} />}
                                             </div>
-                                        )}
-                                    </Form.Group>
-                                </>
-                            )}
-
-                            <Form.Group className="mb-3">
-                                <Form.Label className="small fw-bold text-muted">{t('notifications.push.signal_title')}</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder={t('notifications.push.signal_title')}
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                />
-                            </Form.Group>
-
-                            <Form.Group className="mb-4">
-                                <Form.Label className="small fw-bold text-muted">{t('notifications.push.protocol_msg')}</Form.Label>
-                                <Form.Control
-                                    as="textarea"
-                                    rows={4}
-                                    placeholder={t('notifications.push.protocol_msg')}
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                />
-                            </Form.Group>
-
-                            <Button
-                                variant="primary"
-                                className="w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-bold"
-                                onClick={handleSend}
-                                disabled={dispatching}
-                            >
-                                {dispatching ? <Spinner animation="border" size="sm" /> : <Bell size={18} />}
-                                {t('notifications.push.dispatch_signal')}
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                {/* Preview Panel */}
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm h-100 bg-gradient-light">
-                        <Card.Body className="d-flex align-items-center justify-content-center">
-                            <div className="bg-white rounded-4 shadow p-3" style={{ width: '280px', minHeight: '400px', border: '1px solid #eee' }}>
-                                <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                                    <span className="small fw-bold text-primary">SathiGro</span>
-                                    <span className="small text-muted">{t('common.now', { defaultValue: 'Now' })}</span>
-                                </div>
-                                <div className="d-flex gap-2">
-                                    <div className="bg-primary rounded p-2 text-white" style={{ height: '32px', width: '32px' }}>
-                                        <Bell size={16} />
+                                            {searchResults.length > 0 && !selectedRecipient && (
+                                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 shadow-xl rounded-xl z-50 py-2 font-bold">
+                                                    {searchResults.map(res => (
+                                                        <button key={res._id} onClick={() => { setSelectedRecipient(res); setSearchResults([]); }} className="w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center justify-between text-[11px] uppercase tracking-tight">
+                                                            <span className="text-slate-700">{res.name}</span>
+                                                            <span className="text-slate-400">{res.phone}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex-grow-1 overflow-hidden">
-                                        <h6 className="mb-1 fw-bold small text-dark text-truncate">{title || t('notifications.push.signal_title')}</h6>
-                                        <p className="mb-0 small text-muted text-wrap" style={{ fontSize: '11px', lineHeight: '1.4' }}>
-                                            {message || t('notifications.push.preview_instruction')}
-                                        </p>
-                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('push.signal_title')}</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Note title..."
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm"
+                                    />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">{t('push.protocol_msg')}</label>
+                                    <textarea
+                                        rows={4}
+                                        placeholder="Write message here..."
+                                        value={message}
+                                        onChange={(e) => setMessage(e.target.value)}
+                                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm resize-none"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleSend}
+                                    disabled={dispatching}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {dispatching ? <Loader2 size={18} className="animate-spin" /> : <Bell size={18} />}
+                                    {t('push.dispatch_signal')}
+                                </button>
                             </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
+                        </div>
+                    </div>
+                </div>
 
-                {/* Analysis Panel */}
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm h-100">
-                        <Card.Body>
-                            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">{t('notifications.push.analysis_title')}</h6>
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="text-muted">{t('notifications.push.total_dispatched')}</span>
-                                <span className="fw-bold text-dark">{totalItems.toLocaleString()}</span>
+                {/* Preview Card */}
+                <div className="xl:col-span-4 space-y-6">
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 h-full flex flex-col items-center justify-center min-h-[300px]">
+                        <div className="bg-white rounded-2xl p-4 shadow-xl border border-slate-100 w-full max-w-[240px] animate-in slide-in-from-bottom duration-300">
+                             <div className="flex justify-between items-center mb-3">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center">
+                                        <Bell size={10} className="text-white" />
+                                    </div>
+                                    <span className="text-[9px] font-bold text-slate-900 uppercase">Saathi-Grow</span>
+                                </div>
+                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Now</span>
                             </div>
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="text-muted">{t('notifications.push.response_rate')}</span>
-                                <span className="fw-bold text-success">18.5%</span>
+                            <div className="space-y-1">
+                                <h4 className="text-[11px] font-bold text-slate-800 leading-tight">{title || t('push.signal_title')}</h4>
+                                <p className="text-[10px] font-bold text-slate-500 leading-relaxed overflow-hidden line-clamp-3 opacity-80">
+                                    {message || t('push.preview_instruction')}
+                                </p>
                             </div>
-                            <div className="d-flex justify-content-between">
-                                <span className="text-muted">{t('notifications.push.protocol_health')}</span>
-                                <span className="fw-bold text-primary">98.8%</span>
-                            </div>
-                            <hr className="my-4 opacity-10" />
-                            <div className="bg-light p-3 rounded-3 small text-muted">
-                                {t('notifications.push.metrics_wait')}
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                        </div>
+                        <p className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('push.preview')}</p>
+                    </div>
+                </div>
+            </div>
 
-            {/* Broadcast History */}
-            <Card className="border-0 shadow-sm overflow-hidden mb-4">
-                <Card.Header className="bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0 fw-bold">{t('notifications.push.history')}</h5>
-                    <Badge bg="light" text="dark" className="border">{t('notifications.push.historical_logs')}: {totalItems}</Badge>
-                </Card.Header>
-                <Card.Body className="p-0">
-                    <div className="table-responsive">
-                        <Table hover className="mb-0 align-middle">
-                            <thead className="bg-light text-muted small text-uppercase">
-                                <tr>
-                                    <th className="ps-4 border-0 py-3">{t('notifications.push.signal_content')}</th>
-                                    <th className="border-0 py-3">{t('notifications.push.target_entity')}</th>
-                                    <th className="border-0 py-3">{t('notifications.push.dispatch_time')}</th>
-                                    <th className="border-0 py-3">{t('notifications.push.protocol_state')}</th>
-                                    <th className="border-0 py-3 text-end pe-4">{t('notifications.admin_inbox.actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-5">
-                                            <Spinner animation="grow" variant="primary" />
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tight">{t('push.total_dispatched')}</span>
+                        <p className="text-2xl font-bold text-slate-900">{totalItems.toLocaleString()}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                        <Send size={24} />
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tight">{t('push.response_rate')}</span>
+                        <p className="text-2xl font-bold text-emerald-600">18.5%</p>
+                    </div>
+                    <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                        <Smartphone size={24} />
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tight">{t('push.protocol_health')}</span>
+                        <p className="text-2xl font-bold text-blue-600">98.8%</p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                        <Shield size={24} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Logs Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-50">
+                    <h5 className="mb-0 text-sm font-bold uppercase tracking-tight text-slate-800">{t('push.history')}</h5>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100 font-bold text-slate-500 uppercase text-[11px]">
+                                <th className="px-6 py-4">{t('push.signal_content')}</th>
+                                <th className="px-4 py-4 text-center">{t('push.target_entity')}</th>
+                                <th className="px-4 py-4 text-center">{t('push.dispatch_time')}</th>
+                                <th className="px-4 py-4 text-center">{t('push.protocol_state')}</th>
+                                <th className="px-6 py-4 text-right">{t('admin_inbox.actions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading && history.length === 0 ? (
+                                [1, 2, 3].map(i => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="5" className="px-6 py-6">
+                                            <div className="h-10 bg-slate-50 rounded-lg w-full"></div>
                                         </td>
                                     </tr>
-                                ) : history.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center py-5 text-muted">{t('notifications.admin_inbox.empty')}</td>
+                                ))
+                            ) : history.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="py-20 text-center text-slate-400">{t('admin_inbox.empty_title')}</td>
+                                </tr>
+                            ) : (
+                                history.map((n) => (
+                                    <tr key={n._id} className="hover:bg-slate-50/50 transition-colors font-medium">
+                                        <td className="px-6 py-5">
+                                            <div className="font-bold text-slate-800 text-xs uppercase tracking-tight">{n.title}</div>
+                                            <div className="text-[11px] text-slate-400 font-bold line-clamp-1">{n.body}</div>
+                                        </td>
+                                        <td className="px-4 py-5 text-center">
+                                            <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 text-slate-500 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">
+                                                {getTargetEntityIcon(n)}
+                                                {getTargetEntityName(n)}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-5 text-center">
+                                            <div className="flex items-center justify-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase">
+                                                <Clock size={12} />
+                                                {new Date(n.createdAt).toLocaleDateString()}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-5 text-center font-bold">
+                                            <span className="px-3 py-1 bg-emerald-600 text-white text-[9px] rounded-lg uppercase">{t('push.sent')}</span>
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <div className="flex justify-end gap-1.5">
+                                                <button onClick={() => { setTitle(n.title); setMessage(n.body); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Reuse"><RefreshCw size={16} /></button>
+                                                <button onClick={() => handleDelete(n._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg" title="Delete"><Trash2 size={16} /></button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                ) : (
-                                    history.map((n) => (
-                                        <tr key={n._id}>
-                                            <td className="ps-4">
-                                                <div className="fw-bold text-dark">{n.title}</div>
-                                                <div className="small text-muted text-truncate" style={{ maxWidth: '250px' }}>{n.body}</div>
-                                            </td>
-                                            <td>
-                                                <Badge bg="light" text="dark" className="border fw-normal d-inline-flex align-items-center gap-1">
-                                                    {getTargetEntityIcon(n)} {getTargetEntityName(n)}
-                                                </Badge>
-                                            </td>
-                                            <td>
-                                                <div className="d-flex align-items-center gap-1 text-muted small">
-                                                    <Clock size={14} /> {new Date(n.createdAt).toLocaleString()}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <Badge bg="success" className="rounded-pill fw-normal px-3">{t('notifications.push.sent')}</Badge>
-                                            </td>
-                                            <td className="text-end pe-4">
-                                                <div className="d-flex justify-content-end gap-2">
-                                                    <Button variant="link" size="sm" className="p-0 text-primary">{t('notifications.push.resend')}</Button>
-                                                    <Button variant="link" size="sm" className="p-0 text-danger" onClick={() => handleDelete(n._id)}><Trash2 size={16} /></Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </Table>
-                    </div>
-                </Card.Body>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
                 {totalPages > 1 && (
-                    <Card.Footer className="bg-white border-0 py-3 d-flex justify-content-center">
-                        <Pagination className="mb-0">
-                            <Pagination.Prev
-                                disabled={currentPage === 1}
-                                onClick={() => fetchHistory(currentPage - 1)}
-                            />
-                            {[...Array(totalPages)].map((_, i) => (
-                                <Pagination.Item
-                                    key={i + 1}
-                                    active={i + 1 === currentPage}
-                                    onClick={() => fetchHistory(i + 1)}
-                                >
-                                    {i + 1}
-                                </Pagination.Item>
-                            ))}
-                            <Pagination.Next
-                                disabled={currentPage === totalPages}
-                                onClick={() => fetchHistory(currentPage + 1)}
-                            />
-                        </Pagination>
-                    </Card.Footer>
+                    <div className="p-6 border-t border-slate-100 flex items-center justify-between">
+                         <div className="flex items-center gap-2 mx-auto">
+                            <button onClick={() => fetchHistory(currentPage - 1)} disabled={currentPage === 1} className="p-2 border rounded-xl disabled:opacity-30"><ChevronLeft size={16} /></button>
+                            <span className="text-xs font-bold text-slate-500">{currentPage} of {totalPages}</span>
+                            <button onClick={() => fetchHistory(currentPage + 1)} disabled={currentPage === totalPages} className="p-2 border rounded-xl disabled:opacity-30"><ChevronRight size={16} /></button>
+                        </div>
+                    </div>
                 )}
-            </Card>
+            </div>
         </div>
     );
 };

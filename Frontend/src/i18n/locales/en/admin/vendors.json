@@ -1,99 +1,174 @@
 {
   "title": "Vendors",
   "subtitle": "Manage all store partners",
-  "search": "Search vendor name, owner or email...",
+  "search_placeholder": "Search store or owner...",
   "add_new": "Add Vendor",
-  "loading_msg": "Loading...",
+  "loading": "Loading...",
   "all_vendors": {
-    "title": "Vendor List",
-    "subtitle": "Overview of all vendors",
-    "add_btn": "Add Vendor",
-    "no_vendors": "No vendors found",
+    "title": "Store Directory",
+    "subtitle": "Overview of active partners",
+    "no_data": "No vendors found",
     "table": {
-      "entity": "Store Details",
-      "contact": "Contact Person",
-      "portfolio": "Products",
+      "store": "Store Info",
+      "owner": "Store Owner",
+      "products": "Products",
       "status": "Status",
       "actions": "Actions"
     },
-    "actions": {
-      "details": "View Details",
-      "edit": "Edit",
-      "delete": "Delete",
-      "approve": "Approve",
-      "reject": "Reject"
-    },
-    "alerts": {
-      "delete_title": "Delete Vendor?",
-      "delete_text": "This will remove the vendor from the list.",
-      "delete_confirm": "Yes, Delete",
-      "delete_success": "Vendor removed"
-    }
-  },
-  "add": {
-    "title": "Add New Vendor",
-    "subtitle": "Register a new vendor",
-    "section": {
-      "basic": "Store Info",
-      "contact": "Contact Info",
-      "account": "Account Info",
-      "documents": "Documents"
-    },
-    "form": {
-      "store_name": "Store Name",
-      "owner_name": "Owner Name",
-      "email": "Email Address",
-      "phone": "Phone Number",
-      "address": "Full Address",
-      "password": "Password",
-      "logo": "Store Logo",
-      "category": "Category",
-      "status": "Status",
-      "submit": "Save Vendor",
-      "cancel": "Cancel"
-    }
-  },
-  "edit": {
-    "title": "Edit Vendor",
-    "subtitle": "Update vendor details",
-    "form": {
-      "save": "Save Changes",
-      "cancel": "Cancel"
-    }
-  },
-  "details": {
-    "title": "Vendor Details",
-    "subtitle": "View vendor profile",
-    "stats": {
-      "total_products": "Products",
-      "active_orders": "Active Orders",
-      "total_earned": "Total Earnings",
-      "rating": "Rating"
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending"
     }
   },
   "payouts": {
-    "title": "Vendor Payouts",
-    "subtitle": "Track and manage payments",
-    "search_placeholder": "Search by ID or Store...",
+    "title": "Payments",
+    "subtitle": "Track and manage vendor earnings",
+    "search_placeholder": "Search ID or Store...",
+    "stats": {
+      "total_volume": "Total Volume",
+      "settled": "Settled Total"
+    },
     "table": {
+      "id": "ID",
       "vendor": "Vendor",
       "amount": "Amount",
       "date": "Date",
+      "method": "Method",
       "status": "Status"
     },
     "status": {
+      "paid": "Paid",
       "pending": "Pending",
       "processing": "Processing",
-      "paid": "Paid",
       "rejected": "Rejected"
     }
   },
+  "payout_report": {
+    "title": "Withdrawal Detail",
+    "id_label": "Reference ID",
+    "export": "Save PDF",
+    "print": "Print",
+    "amount_card": {
+      "label": "Withdrawal Amount",
+      "date": "Date",
+      "method": "Payment Mode",
+      "store": "Store Name",
+      "ref": "Reference ID"
+    },
+    "summary": {
+      "title": "Payment Summary",
+      "total": "Total Amount",
+      "fee": "Company Fee",
+      "final": "Final Payment",
+      "via": "Processed via",
+      "note": "Note",
+      "currency": "INR"
+    },
+    "history": {
+      "title": "Withdrawal History",
+      "badge": "Recent Records",
+      "table": {
+        "date": "Date",
+        "ref": "Ref ID",
+        "amount": "Amount",
+        "status": "Status",
+        "page": "Page",
+        "of": "of"
+      },
+      "no_history": "No history records found"
+    },
+    "sidebar": {
+      "title": "Store Details",
+      "bank": "Bank Name",
+      "account": "Account Number",
+      "ifsc": "IFSC Code",
+      "upi": "UPI ID",
+      "help_title": "Need Help?",
+      "help_text": "If you find any problem in the details, please contact support.",
+      "contact_btn": "Contact Support"
+    }
+  },
+  "details": {
+    "title": "Store Hub",
+    "subtitle": "Complete vendor profile",
+    "stats": {
+      "earnings": "Total Earnings",
+      "orders": "Total Orders",
+      "products": "Products",
+      "pending": "Pending Payment"
+    },
+    "best_sellers": {
+      "title": "Top Selling Products",
+      "view_all": "View All",
+      "table": {
+        "name": "Product Name",
+        "price": "Price",
+        "sales": "Sales",
+        "stock": "Stock",
+        "status": "Status"
+      }
+    },
+    "profile": {
+      "title": "Store Profile",
+      "owner": "Owner Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "address": "Address",
+      "joined": "Joined On"
+    },
+    "ops": {
+      "title": "Store Status",
+      "completion": "Order Completion",
+      "verified_msg": "This store is verified and follows platform rules."
+    }
+  },
   "products": {
-    "title": "Vendor Products",
-    "subtitle": "View items listed by vendors",
-    "filter": {
-      "all": "All Vendors",
-      "select": "Select Vendor"
+    "title": "Store Products",
+    "subtitle": "Listing of items from partners",
+    "search": "Search products...",
+    "filter_all": "All Vendors",
+    "table": {
+      "item": "Product",
+      "store": "Store",
+      "category": "Category",
+      "price": "Price",
+      "stock": "Stock",
+      "status": "Status"
+    }
+  },
+  "form": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "submit": "Submit",
+    "description": "Description",
+    "store_name": "Store Name",
+    "store_name_placeholder": "Enter store name",
+    "owner_name": "Owner Name",
+    "owner_name_placeholder": "Enter owner name",
+    "email": "Email Address",
+    "email_placeholder": "Enter email address",
+    "phone": "Phone Number",
+    "phone_placeholder": "Enter phone number",
+    "address": "Address Details",
+    "street": "Street",
+    "street_placeholder": "Street / Full Address",
+    "city": "City",
+    "city_placeholder": "City",
+    "logo": "Store Logo",
+    "logo_upload": "Upload Logo",
+    "status": "Status",
+    "status_pending": "Pending Approval",
+    "status_msg": "New vendors start as pending before verification.",
+    "add_success": "Vendor added successfully",
+    "edit_success": "Vendor updated successfully",
+    "contact": {
+      "title": "Contact Vendor",
+      "subject": "Subject",
+      "message": "Message",
+      "send": "Send Message"
     }
   }
 }

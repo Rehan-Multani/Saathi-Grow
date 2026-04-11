@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Send, Mail, User, Store, X, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { contactVendor } from '../../api/vendorApi';
+import { useAdminAuth } from '../../context/AdminAuthContext';
+import { toast } from 'react-toastify';
 
 const ContactVendorModal = ({ show, onHide, vendor, onSubmit }) => {
     const { t } = useTranslation('admin_vendors');
+    const { adminUser } = useAdminAuth();
     const [message, setMessage] = useState('');
     const [subject, setSubject] = useState('');
     const [sending, setSending] = useState(false);
@@ -11,11 +15,18 @@ const ContactVendorModal = ({ show, onHide, vendor, onSubmit }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSending(true);
-        console.log(`Contacting Vendor ${vendor?.storeName}:`, { subject, message });
-        await new Promise(resolve => setTimeout(resolve, 800));
-        if (onSubmit) onSubmit();
-        setSending(false);
-        onHide();
+        try {
+            await contactVendor(adminUser.token, vendor._id, { subject, message });
+            toast.success(t('form.edit_success'));
+            if (onSubmit) onSubmit();
+            setSubject('');
+            setMessage('');
+            onHide();
+        } catch (error) {
+            toast.error(error.message || 'Failed to send message');
+        } finally {
+            setSending(false);
+        }
     };
 
     if (!show) return null;
@@ -33,8 +44,8 @@ const ContactVendorModal = ({ show, onHide, vendor, onSubmit }) => {
                             <Mail size={24} />
                         </div>
                         <div>
-                             <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Contact Vendor</h3>
-                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Send a message</p>
+                             <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight">{t('form.contact.title')}</h3>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{t('form.contact.send')}</p>
                         </div>
                     </div>
                     <button type="button" onClick={onHide} className="p-3 text-slate-300 hover:text-slate-900 hover:bg-white rounded-2xl transition-all border-none bg-transparent">
@@ -52,7 +63,7 @@ const ContactVendorModal = ({ show, onHide, vendor, onSubmit }) => {
                         <div className="min-w-0">
                             <div className="text-[11px] font-bold text-slate-900 uppercase tracking-tight truncate leading-none mb-1.5">{vendor?.storeName}</div>
                              <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none opacity-60">Owner:</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none opacity-60">{t('details.profile.owner')}:</span>
                                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter leading-none italic">{vendor?.ownerName}</span>
                              </div>
                         </div>
@@ -61,10 +72,10 @@ const ContactVendorModal = ({ show, onHide, vendor, onSubmit }) => {
                     {/* Inputs */}
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 leading-none">Subject</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 leading-none">{t('form.contact.subject')}</label>
                             <input
                                 type="text"
-                                placeholder="Why are you contacting them?"
+                                placeholder="..."
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-[1.25rem] py-3.5 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
@@ -73,10 +84,10 @@ const ContactVendorModal = ({ show, onHide, vendor, onSubmit }) => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 leading-none">Message</label>
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1 leading-none">{t('form.contact.message')}</label>
                             <textarea
                                 rows={6}
-                                placeholder={`Write your message here...`}
+                                placeholder="..."
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-[1.5rem] py-4 px-5 text-xs font-bold text-slate-800 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner resize-none tracking-tight leading-relaxed italic"
@@ -88,14 +99,14 @@ const ContactVendorModal = ({ show, onHide, vendor, onSubmit }) => {
 
                 {/* Footer Section */}
                 <div className="p-8 border-t border-slate-50 bg-slate-50/10 flex justify-end gap-4 shrink-0">
-                    <button type="button" onClick={onHide} className="px-8 py-3.5 bg-white border border-slate-200 text-slate-500 rounded-[1.25rem] text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Cancel</button>
+                    <button type="button" onClick={onHide} className="px-8 py-3.5 bg-white border border-slate-200 text-slate-500 rounded-[1.25rem] text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95 shadow-sm">{t('form.cancel')}</button>
                     <button
                         type="submit"
                         disabled={sending}
                         className="px-10 py-3.5 bg-blue-600 text-white rounded-[1.25rem] text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-100 flex items-center gap-3 border-none"
                     >
                         {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                        Send Message
+                        {t('form.contact.send')}
                     </button>
                 </div>
             </form>

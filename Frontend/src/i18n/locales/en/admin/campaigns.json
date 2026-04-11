@@ -1,0 +1,46 @@
+{
+  "title": "Campaigns",
+  "subtitle": "Create and manage special themed collections for your customers.",
+  "add_new": "Add New Campaign",
+  "search_placeholder": "Search campaigns...",
+  "empty_state": "No Campaigns Found",
+  "empty_subtitle": "Start creating collections like 'Festive Deals' or 'Lowest prices'.",
+  "loading": "Loading...",
+  "status": {
+    "active": "Active",
+    "offline": "Offline"
+  },
+  "types": {
+    "festive": "Festive Theme",
+    "lowest_prices": "Price Drop Theme"
+  },
+  "form": {
+    "add_title": "Create Campaign",
+    "edit_title": "Edit Campaign",
+    "basic_info": "Campaign Details",
+    "display_type": "Theme Type",
+    "title_label": "Campaign Name",
+    "title_placeholder": "e.g. Diwali Specials",
+    "subtitle_label": "Short Subtitle",
+    "subtitle_placeholder": "e.g. Extra savings on snacks",
+    "highlight_label": "Badge Text",
+    "highlight_placeholder": "e.g. Limited Time!",
+    "visual_settings": "Design & Appearance",
+    "bg_color": "Background Color",
+    "text_color": "Text Color",
+    "isActive": "Is this campaign active?",
+    "products_section": "Add Products to Campaign",
+    "save": "Save Campaign",
+    "update": "Save Changes",
+    "cancel": "Cancel",
+    "back": "Back"
+  },
+  "messages": {
+    "fetch_error": "Could not load campaigns",
+    "delete_confirm_title": "Delete Campaign?",
+    "delete_confirm_msg": "Are you sure you want to delete \"{{name}}\"?",
+    "delete_success": "Campaign deleted.",
+    "create_success": "Campaign created successfully",
+    "update_success": "Campaign updated successfully"
+  }
+}

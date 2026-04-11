@@ -80,7 +80,7 @@ const AddVendor = () => {
             if (logoFile) data.append('logo', logoFile);
 
             await createVendor(adminUser.token, data);
-            toast.success('Vendor added successfully');
+            toast.success(t('form.add_success'));
             navigate('/admin/vendors');
         } catch (error) {
             toast.error(error.message || 'Failed to add vendor');
@@ -98,8 +98,8 @@ const AddVendor = () => {
                         <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900">Add New Vendor</h1>
-                        <p className="text-slate-500 text-xs mt-1 font-medium">Register a new store partner</p>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('add_new')}</h1>
+                        <p className="text-slate-500 text-xs mt-1 font-medium">{t('subtitle')}</p>
                     </div>
                 </div>
 
@@ -108,7 +108,7 @@ const AddVendor = () => {
                         onClick={() => navigate('/admin/vendors')}
                         className="flex-1 md:flex-none px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
                     >
-                        Cancel
+                        {t('form.cancel')}
                     </button>
                     <button
                         onClick={handleSubmit}
@@ -116,7 +116,7 @@ const AddVendor = () => {
                         className="flex-1 md:flex-none px-8 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold tracking-tight hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2 border-none"
                     >
                         {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Save Vendor
+                        {t('add_new')}
                     </button>
                 </div>
             </div>
@@ -130,18 +130,18 @@ const AddVendor = () => {
                                 <Store size={20} />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight leading-none">Store Details</h3>
+                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight leading-none">{t('all_vendors.table.store')}</h3>
                                 <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest leading-none">Basic Information</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Store Name</label>
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.store_name')}</label>
                                 <input
                                     type="text"
                                     name="storeName"
-                                    placeholder="Enter store name"
+                                    placeholder={t('form.store_name_placeholder')}
                                     value={formData.storeName}
                                     onChange={handleChange}
                                     className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
@@ -149,13 +149,13 @@ const AddVendor = () => {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Owner Name</label>
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.owner_name')}</label>
                                 <div className="relative group">
                                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
                                     <input
                                         type="text"
                                         name="ownerName"
-                                        placeholder="Enter owner name"
+                                        placeholder={t('form.owner_name_placeholder')}
                                         value={formData.ownerName}
                                         onChange={handleChange}
                                         className="w-full pl-11 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
@@ -164,11 +164,11 @@ const AddVendor = () => {
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.email')}</label>
                                 <input
                                     type="email"
                                     name="email"
-                                    placeholder="Enter email address"
+                                    placeholder={t('form.email_placeholder')}
                                     value={formData.email}
                                     onChange={handleChange}
                                     className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
@@ -176,13 +176,13 @@ const AddVendor = () => {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t('form.phone')}</label>
                                 <div className="relative group">
                                     <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
                                     <input
                                         type="text"
                                         name="phone"
-                                        placeholder="Enter phone number"
+                                        placeholder={t('form.phone_placeholder')}
                                         value={formData.phone}
                                         onChange={handleChange}
                                         className="w-full pl-11 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500/50 focus:bg-white transition-all shadow-inner"
@@ -197,7 +197,7 @@ const AddVendor = () => {
                                 <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
                                     <MapPin size={20} />
                                 </div>
-                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight leading-none">Address Details</h3>
+                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight leading-none">{t('form.address')}</h3>
                             </div>
                             <GoogleMapsInput 
                                 onLocationSelect={handleLocationSelect} 
@@ -206,14 +206,14 @@ const AddVendor = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input 
                                     type="text" 
-                                    placeholder="Street" 
+                                    placeholder={t('form.street')} 
                                     value={formData.address.street} 
                                     onChange={(e) => setFormData({...formData, address: {...formData.address, street: e.target.value}})}
                                     className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all shadow-sm"
                                 />
                                 <input 
                                     type="text" 
-                                    placeholder="City" 
+                                    placeholder={t('form.city')} 
                                     value={formData.address.city} 
                                     onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
                                     className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all shadow-sm"
@@ -230,7 +230,7 @@ const AddVendor = () => {
                             <div className="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center border border-pink-100">
                                 <Camera size={16} />
                             </div>
-                            <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest leading-none">Store Logo</h3>
+                            <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest leading-none">{t('form.logo')}</h3>
                         </div>
                         
                         <div className="relative group aspect-square rounded-[1.5rem] border-2 border-dashed border-slate-100 bg-slate-50/50 flex items-center justify-center overflow-hidden cursor-pointer hover:border-blue-300 hover:bg-white transition-all duration-300">
@@ -246,7 +246,7 @@ const AddVendor = () => {
                                     <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100">
                                         <Store size={24} />
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">Upload Logo</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">{t('form.logo_upload')}</span>
                                 </div>
                             )}
                             <input type="file" className="absolute inset-0 opacity-0 cursor-pointer px-0 py-0" onChange={handleLogoChange} accept="image/*" title="" />
@@ -256,15 +256,15 @@ const AddVendor = () => {
 
                     {/* Status Card */}
                     <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8">
-                        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest leading-none mb-6">Status</h3>
+                        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest leading-none mb-6">{t('form.status')}</h3>
                         <div className="space-y-4">
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
-                                <span className="text-xs font-bold text-slate-600">Pending Approval</span>
+                                <span className="text-xs font-bold text-slate-600">{t('form.status_pending')}</span>
                                 <CheckCircle2 size={18} className="text-emerald-500" />
                             </div>
                             <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-3">
                                 <Info className="text-blue-500 mt-0.5 shrink-0" size={16} />
-                                <p className="text-[10px] text-blue-700 font-bold leading-normal italic">New vendors start as pending before verification.</p>
+                                <p className="text-[10px] text-blue-700 font-bold leading-normal italic">{t('form.status_msg')}</p>
                             </div>
                         </div>
                     </div>

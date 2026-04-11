@@ -767,65 +767,77 @@ export const getRevenueAnalytics = async (req, res) => {
 // @access  Private (Admin)
 export const getAdminVendorEarnings = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, vendorId } = req.query;
-
-    let query = {};
-    if (status && status !== 'All Vendors') {
-      if (status === 'Pending Payouts') query.status = 'Pending';
-      else if (status === 'Completed Payouts') query.status = 'Paid';
-    }
-    if (vendorId) query.vendor = vendorId;
+    const { page = 1, limit = 10, status, vendorId, view = 'earnings' } = req.query;
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    const [stats, payouts, total] = await Promise.all([
-      // Global Stats
+    // Filter for Stats
+    let statsMatch = {};
+    if (vendorId) statsMatch.vendor = new mongoose.Types.ObjectId(vendorId);
+
+    // Filter for List
+    let listQuery = {};
+    if (vendorId) listQuery.vendor = vendorId;
+
+    const [stats, records, total] = await Promise.all([
+      // 1. Stats Calculation (Filtered by vendor if provided)
       Promise.all([
         VendorPayout.aggregate([
-          { $match: { status: 'Paid' } },
+          { $match: { ...statsMatch, status: 'Paid' } },
           { $group: { _id: null, total: { $sum: '$amount' } } }
         ]),
         VendorPayout.aggregate([
-          { $match: { status: { $in: ['Pending', 'Processing'] } } },
+          { $match: { ...statsMatch, status: { $in: ['Pending', 'Processing'] } } },
           { $group: { _id: null, total: { $sum: '$amount' } } }
         ]),
         Order.aggregate([
-          { $match: { status: 'delivered' } },
-          { $group: { _id: null, total: { $sum: '$platformCommission' } } }
+          { $match: { ...statsMatch, status: 'delivered' } },
+          { $group: { _id: null, totalCommission: { $sum: '$platformCommission' }, totalVendorEarnings: { $sum: '$vendorPayoutAmount' } } }
         ])
       ]),
-      VendorPayout.find(query)
-        .populate('vendor', 'storeName ownerName email')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum)
-        .lean(),
-      VendorPayout.countDocuments(query)
+      // 2. Paginated Data (Toggle between Earnings vs Withdrawals)
+      view === 'earnings' 
+        ? Order.find({ ...listQuery, status: 'delivered' })
+            .populate('vendor', 'storeName')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum)
+            .lean()
+        : VendorPayout.find({ ...listQuery, ...(status && status !== 'All Vendors' ? { status: status === 'Pending Payouts' ? 'Pending' : 'Paid' } : {}) })
+            .populate('vendor', 'storeName')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
+      // 3. Count
+      view === 'earnings'
+        ? Order.countDocuments({ ...listQuery, status: 'delivered' })
+        : VendorPayout.countDocuments({ ...listQuery, ...(status && status !== 'All Vendors' ? { status: status === 'Pending Payouts' ? 'Pending' : 'Paid' } : {}) })
     ]);
 
     const totalPaidOut = stats[0][0]?.total || 0;
     const pendingDue = stats[1][0]?.total || 0;
-    const commissionEarned = stats[2][0]?.total || 0;
+    const commissionEarned = stats[2][0]?.totalCommission || 0;
+    const netEarnings = stats[2][0]?.totalVendorEarnings || 0;
 
     res.json({
       success: true,
       stats: {
         totalPaidOut,
         pendingDue,
-        commissionEarned
+        commissionEarned,
+        netEarnings
       },
-      payouts: payouts.map(p => ({
-        id: p._id,
-        payoutId: `PAY-${p._id.toString().slice(-4).toUpperCase()}`,
-        vendor: p.vendor?.storeName || 'Unknown Vendor',
-        date: p.createdAt.toISOString().split('T', 1)[0],
-        amount: p.amount,
-        status: p.status,
-        method: p.paymentMethod,
-        reference: p.referenceNumber,
-        note: p.note
+      records: records.map(r => ({
+        id: r._id,
+        recordId: view === 'earnings' ? r.orderId : `PAY-${r._id.toString().slice(-4).toUpperCase()}`,
+        vendor: r.vendor?.storeName || 'Unknown',
+        date: r.createdAt.toISOString().split('T')[0],
+        amount: view === 'earnings' ? r.vendorPayoutAmount : r.amount,
+        status: view === 'earnings' ? 'Delivered' : r.status,
+        type: view === 'earnings' ? 'Earnings' : 'Withdrawal'
       })),
       pagination: {
         total,
@@ -837,6 +849,45 @@ export const getAdminVendorEarnings = async (req, res) => {
 
   } catch (error) {
     console.error('Admin Vendor Earnings Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Export vendor earnings as CSV
+// @route   GET /api/admin/reports/vendor-earnings/export
+// @access  Private (Admin)
+export const exportVendorEarnings = async (req, res) => {
+  try {
+    const { status, vendorId, view = 'earnings' } = req.query;
+
+    let query = {};
+    if (vendorId) query.vendor = vendorId;
+
+    const records = view === 'earnings'
+      ? await Order.find({ ...query, status: 'delivered' }).populate('vendor', 'storeName').sort({ createdAt: -1 }).lean()
+      : await VendorPayout.find({ ...query, ...(status && status !== 'All Vendors' ? { status: status === 'Pending Payouts' ? 'Pending' : 'Paid' } : {}) }).populate('vendor', 'storeName').sort({ createdAt: -1 }).lean();
+
+    let csv = view === 'earnings'
+      ? 'Order ID,Vendor,Delivered Date,Earned Amount,Status\n'
+      : 'Payout ID,Vendor,Requested Date,Amount,Method,Reference,Status,Note\n';
+
+    records.forEach(r => {
+      if (view === 'earnings') {
+        const date = r.createdAt.toISOString().split('T')[0];
+        csv += `${r.orderId},"${r.vendor?.storeName || 'Unknown'}",${date},${r.vendorPayoutAmount},Delivered\n`;
+      } else {
+        const payoutId = `PAY-${r._id.toString().slice(-4).toUpperCase()}`;
+        const date = r.createdAt.toISOString().split('T')[0];
+        const note = (r.note || '-').replace(/,/g, ' ');
+        csv += `${payoutId},"${r.vendor?.storeName || 'Unknown'}",${date},${r.amount},${r.paymentMethod},"${r.referenceNumber || '-'}",${r.status},"${note}"\n`;
+      }
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=vendor_${view}_${new Date().toISOString().split('T')[0]}.csv`);
+    return res.status(200).send(csv);
+  } catch (error) {
+    console.error('Export Vendor Earnings Error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

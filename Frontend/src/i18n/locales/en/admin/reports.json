@@ -1,0 +1,60 @@
+{
+    "title": "Reports",
+    "sales": {
+        "title": "Order Reports",
+        "subtitle": "Track your sales and income performance.",
+        "generate": "Create Report",
+        "download": "Download File",
+        "date_range": "Pick Dates",
+        "total_orders": "Total Orders",
+        "total_revenue": "Total Income",
+        "average_value": "Average Order",
+        "top_products": "Top Items",
+        "no_data": "No order data found for these dates.",
+        "table": {
+            "order_id": "Order Info",
+            "date": "Date",
+            "customer": "Customer",
+            "amount": "Amount",
+            "status": "State"
+        }
+    },
+    "inventory": {
+        "title": "Stock Reports",
+        "subtitle": "Check your current stock levels and history.",
+        "low_stock_alerts": "Out of Stock Items",
+        "value": "Total Stock Value",
+        "turnover": "Moving Items",
+        "table": {
+            "name": "Item Name",
+            "category": "Type",
+            "stock": "In Stock",
+            "value": "Value",
+            "status": "Level"
+        }
+    },
+    "vendor": {
+        "title": "Vendor Service Reports",
+        "subtitle": "See how your vendors are performing.",
+        "rating": "User Rating",
+        "delivery_time": "Average Speed",
+        "table": {
+            "name": "Vendor Name",
+            "orders": "Total Orders",
+            "rating": "Rating",
+            "actions": "View Performance"
+        },
+        "modal": {
+            "title": "Service Details",
+            "performance_graph": "Monthly Progress",
+            "feedback": "User Feedback",
+            "close": "Close"
+        }
+    },
+    "common": {
+        "filter": "Filter",
+        "refresh": "Refresh",
+        "print": "Print",
+        "export": "Export CSV"
+    }
+}

@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Row, Col, Card, Spinner, InputGroup, Breadcrumb, Badge } from 'react-bootstrap';
-import { Save, X, Plus, Trash2, Search, ArrowLeft, Eye, Sparkles, LayoutGrid, TrendingDown, PartyPopper } from 'lucide-react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Save, Plus, Trash2, ArrowLeft, Eye, Sparkles, LayoutGrid, TrendingDown, PartyPopper, Loader2, ChevronLeft, ChevronRight, Shield, X } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getProducts } from '../../api/productApi';
-import { getCategories } from '../../api/categoryApi';
 import { createCampaign, updateCampaign, getCampaignById } from '../../api/campaignApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
@@ -13,453 +10,439 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const ManageCampaign = () => {
-  const { t } = useTranslation();
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { adminUser } = useAdminAuth();
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(id ? true : false);
-  const [categories, setCategories] = useState([]);
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [showPicker, setShowPicker] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+    const { t } = useTranslation('admin_campaigns');
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { adminUser } = useAdminAuth();
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(id ? true : false);
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [showPicker, setShowPicker] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
-  const [formData, setFormData] = useState({
-    title: '',
-    subtitle: '',
-    highlightText: 'Limited Time Offer!',
-    displayType: 'festive',
-    bgColor: '#FFEBEF',
-    textColor: '#D81B60',
-    accentColor: '#E91E63',
-    isActive: true,
-    order: 0
-  });
+    const [formData, setFormData] = useState({
+        title: '',
+        subtitle: '',
+        highlightText: 'Limited Time!',
+        displayType: 'festive',
+        bgColor: '#FFEBEF',
+        textColor: '#D81B60',
+        accentColor: '#E91E63',
+        isActive: true
+    });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [categoriesData] = await Promise.all([
-          getCategories(adminUser.token)
-        ]);
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                if (id) {
+                    const campaign = await getCampaignById(adminUser.token, id);
+                    setFormData({
+                        title: campaign.title || '',
+                        subtitle: campaign.subtitle || '',
+                        highlightText: campaign.highlightText || 'Limited Time!',
+                        displayType: campaign.displayType || 'festive',
+                        bgColor: campaign.bgColor || '#FFEBEF',
+                        textColor: campaign.textColor || '#D81B60',
+                        accentColor: campaign.accentColor || '#E91E63',
+                        isActive: campaign.isActive !== undefined ? campaign.isActive : true
+                    });
+                    setSelectedProducts(campaign.products.map(p => ({
+                        productId: p.productId?._id || p.productId,
+                        name: p.productId?.name,
+                        image: p.productId?.image,
+                        mrp: p.productId?.mrp || p.productId?.basePrice,
+                        basePrice: p.basePrice || p.productId?.basePrice
+                    })));
+                }
+            } catch (error) {
+                toast.error(t('messages.fetch_error'));
+            } finally {
+                setFetching(false);
+            }
+        };
+        if (adminUser?.token) fetchData();
+    }, [id, adminUser, t]);
 
-        if (id) {
-          const campaign = await getCampaignById(adminUser.token, id);
-          setFormData({
-            title: campaign.title || '',
-            subtitle: campaign.subtitle || '',
-            highlightText: campaign.highlightText || 'Limited Time Offer!',
-            displayType: campaign.displayType || 'festive',
-            bgColor: campaign.bgColor || '#FFEBEF',
-            textColor: campaign.textColor || '#D81B60',
-            accentColor: campaign.accentColor || '#E91E63',
-            isActive: campaign.isActive !== undefined ? campaign.isActive : true,
-            order: campaign.order || 0
-          });
-          setSelectedProducts(campaign.products.map(p => ({
-            productId: p.productId?._id || p.productId,
-            name: p.productId?.name,
-            image: p.productId?.image,
-            mrp: p.productId?.mrp || p.productId?.basePrice,
-            basePrice: p.productId?.basePrice
-          })));
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error(t('common.error_loading', { defaultValue: 'Failed to load data' }));
-      } finally {
-        setFetching(false);
-      }
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
-    if (adminUser?.token) fetchData();
-  }, [id, adminUser, t]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+    const handlePickerSelect = (newProducts) => {
+        const formatted = newProducts.map(product => ({
+            productId: product._id,
+            name: product.name,
+            image: product.image,
+            mrp: product.mrp || product.basePrice,
+            basePrice: product.currentPrice || product.basePrice
+        }));
+        setSelectedProducts([...selectedProducts, ...formatted]);
+    };
 
-  const handlePickerSelect = (newProducts) => {
-    const formatted = newProducts.map(product => ({
-      productId: product._id,
-      name: product.name,
-      image: product.image,
-      mrp: product.mrp || product.basePrice,
-      basePrice: product.basePrice
-    }));
+    const removeProduct = (productId) => {
+        setSelectedProducts(selectedProducts.filter(p => p.productId !== productId));
+    };
 
-    setSelectedProducts([...selectedProducts, ...formatted]);
-    toast.success(t('campaigns.alerts.products_added', { count: formatted.length, defaultValue: `${formatted.length} products added to campaign` }));
-  };
+    const handlePriceChange = (productId, price) => {
+        setSelectedProducts(selectedProducts.map(p =>
+            p.productId === productId ? { ...p, basePrice: price === '' ? '' : Number(price) } : p
+        ));
+    };
 
-  const removeProduct = (productId) => {
-    setSelectedProducts(selectedProducts.filter(p => p.productId !== productId));
-  };
-
-  const handlePriceChange = (productId, price) => {
-    setSelectedProducts(selectedProducts.map(p =>
-      p.productId === productId ? { ...p, basePrice: price === '' ? '' : Number(price) } : p
-    ));
-  };
-
-  const paginatedProducts = selectedProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(selectedProducts.length / itemsPerPage);
-
-  const getPageNumbers = () => {
-    const pages = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 4) {
-        for (let i = 1; i <= 5; i++) pages.push(i);
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 3) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push('...');
-        pages.push(currentPage - 1);
-        pages.push(currentPage);
-        pages.push(currentPage + 1);
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
-    return pages;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (selectedProducts.length === 0) {
-      return toast.error(t('campaigns.alerts.no_products', { defaultValue: 'Please add at least one product' }));
-    }
-
-    setLoading(true);
-    try {
-      const payload = {
-          ...formData,
-          products: selectedProducts.map(p => ({
-            productId: p.productId,
-            basePrice: p.basePrice
-          }))
-      };
-
-      if (id) {
-        await updateCampaign(adminUser.token, id, payload);
-        toast.success(t('campaigns.alerts.update_success'));
-      } else {
-        await createCampaign(adminUser.token, payload);
-        toast.success(t('campaigns.alerts.create_success'));
-      }
-      navigate('/admin/campaigns');
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (fetching) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <Spinner animation="border" variant="primary" />
-      </div>
+    const paginatedProducts = selectedProducts.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
     );
-  }
 
-  return (
-    <div className="p-4 p-md-6">
-      <div className="mb-4 d-flex justify-content-between align-items-center">
-        <div>
-          <div className="d-flex align-items-center gap-2">
-            <h4 className="fw-bold mb-1 text-gray-800">{id ? t('campaigns.edit') : t('campaigns.add_new')}</h4>
-            <PageInfoTooltip info={pageInfoData.manageCampaign} />
-          </div>
-          <Breadcrumb className="small mb-0">
-            <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/admin/campaigns" }}>{t('campaigns.title')}</Breadcrumb.Item>
-            <Breadcrumb.Item active>{id ? t('common.edit') : t('common.create')}</Breadcrumb.Item>
-          </Breadcrumb>
-        </div>
-        <Button variant="light" as={Link} to="/admin/campaigns" className="d-flex align-items-center gap-2 border shadow-sm px-4">
-          <ArrowLeft size={18} /> {t('common.back', { defaultValue: 'Back' })}
-        </Button>
-      </div>
+    const totalPages = Math.ceil(selectedProducts.length / itemsPerPage);
 
-      <Form onSubmit={handleSubmit}>
-        <Row className="g-4">
-          <Col lg={4}>
-            <Card className="border-0 shadow-sm mb-4">
-              <Card.Body className="p-4">
-                <h6 className="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
-                  <Sparkles size={20} /> {t('campaigns.form.ui_customization')}
-                </h6>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (selectedProducts.length === 0) {
+            return toast.error('Please add at least one product');
+        }
 
-                {/* Display Type Selector */}
-                <Form.Group className="mb-4">
-                  <Form.Label className="small fw-bold text-muted">{t('campaigns.form.display_type')}</Form.Label>
-                  <div className="d-flex gap-3 mt-1">
-                    <div
-                      onClick={() => setFormData(p => ({ ...p, displayType: 'festive' }))}
-                      className={`flex-1 p-3 rounded-xl border-2 cursor-pointer transition-all text-center ${formData.displayType === 'festive' ? 'border-primary bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <PartyPopper size={24} className={`mx-auto mb-1 ${formData.displayType === 'festive' ? 'text-primary' : 'text-gray-400'}`} />
-                      <div className={`small fw-bold ${formData.displayType === 'festive' ? 'text-primary' : 'text-gray-500'}`}>{t('campaigns.form.festive_type')}</div>
+        setLoading(true);
+        try {
+            const payload = {
+                ...formData,
+                products: selectedProducts.map(p => ({
+                    productId: p.productId,
+                    basePrice: p.basePrice
+                }))
+            };
+
+            if (id) {
+                await updateCampaign(adminUser.token, id, payload);
+                toast.success(t('messages.update_success'));
+            } else {
+                await createCampaign(adminUser.token, payload);
+                toast.success(t('messages.create_success'));
+            }
+            navigate('/admin/campaigns');
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (fetching) {
+        return (
+            <div className="flex justify-center items-center py-24 min-h-[400px]">
+                <Loader2 size={40} className="text-blue-600 animate-spin" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header */}
+            <div className="mb-8">
+                <button
+                    onClick={() => navigate('/admin/campaigns')}
+                    className="flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors mb-4 group font-semibold"
+                >
+                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-[10px] uppercase tracking-wider">{t('form.cancel')}</span>
+                </button>
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
+                        <Sparkles size={24} />
                     </div>
-                    <div
-                      onClick={() => setFormData(p => ({ ...p, displayType: 'lowest_prices' }))}
-                      className={`flex-1 p-3 rounded-xl border-2 cursor-pointer transition-all text-center ${formData.displayType === 'lowest_prices' ? 'border-success bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <TrendingDown size={24} className={`mx-auto mb-1 ${formData.displayType === 'lowest_prices' ? 'text-success' : 'text-gray-400'}`} />
-                      <div className={`small fw-bold ${formData.displayType === 'lowest_prices' ? 'text-success' : 'text-gray-500'}`}>{t('campaigns.form.lowest_price_type')}</div>
+                    <div>
+                        <h1 className="text-xl font-bold tracking-tight">
+                            {id ? t('form.edit_title') : t('form.add_title')}
+                        </h1>
+                        <p className="text-slate-500 text-xs font-medium mt-0.5">{t('title')}</p>
                     </div>
-                  </div>
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold text-muted">{t('products.form.name')}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    placeholder={t('campaigns.form.placeholder.title')}
-                    required
-                    className="py-2"
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold text-muted">{t('products.form.description')}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="subtitle"
-                    value={formData.subtitle}
-                    onChange={handleChange}
-                    placeholder={t('campaigns.form.placeholder.subtitle')}
-                    className="py-2"
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="small fw-bold text-muted">{t('campaigns.form.pill_text')}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="highlightText"
-                    value={formData.highlightText}
-                    onChange={handleChange}
-                    className="py-2"
-                  />
-                </Form.Group>
-
-                <hr className="my-4 opacity-50" />
-
-                {/* Color pickers only for festive type */}
-                {formData.displayType === 'festive' && (
-                  <Row className="mb-3">
-                    <Col md={12} className="mb-3">
-                      <Form.Label className="small fw-bold text-muted">{t('campaigns.form.bg_color')}</Form.Label>
-                      <div className="d-flex gap-2 align-items-center">
-                        <Form.Control type="color" name="bgColor" value={formData.bgColor} onChange={handleChange} className="form-control-color border-0 p-0 overflow-hidden rounded-circle" style={{ height: '32px', width: '32px', minWidth: '32px' }} />
-                        <Form.Control type="text" value={formData.bgColor} onChange={handleChange} name="bgColor" className="bg-light border-0 font-monospace small" />
-                      </div>
-                    </Col>
-                    <Col md={12} className="mb-3">
-                      <Form.Label className="small fw-bold text-muted">{t('campaigns.form.text_color')}</Form.Label>
-                      <div className="d-flex gap-2 align-items-center">
-                        <Form.Control type="color" name="textColor" value={formData.textColor} onChange={handleChange} className="form-control-color border-0 p-0 overflow-hidden rounded-circle" style={{ height: '32px', width: '32px', minWidth: '32px' }} />
-                        <Form.Control type="text" value={formData.textColor} onChange={handleChange} name="textColor" className="bg-light border-0 font-monospace small" />
-                      </div>
-                    </Col>
-                    <Col md={12}>
-                      <Form.Label className="small fw-bold text-muted">{t('campaigns.form.accent_color')}</Form.Label>
-                      <div className="d-flex gap-2 align-items-center">
-                        <Form.Control type="color" name="accentColor" value={formData.accentColor} onChange={handleChange} className="form-control-color border-0 p-0 overflow-hidden rounded-circle" style={{ height: '32px', width: '32px', minWidth: '32px' }} />
-                        <Form.Control type="text" value={formData.accentColor} onChange={handleChange} name="accentColor" className="bg-light border-0 font-monospace small" />
-                      </div>
-                    </Col>
-                  </Row>
-                )}
-
-                {/* Live Preview */}
-                <div className="mt-3">
-                    <h6 className="small fw-bold text-muted mb-2">{t('common.preview', { defaultValue: 'Live Preview' })}</h6>
-                    {formData.displayType === 'festive' ? (
-                    <div className="p-4 rounded shadow-sm border" style={{ backgroundColor: formData.bgColor }}>
-                        <div className="d-flex justify-content-between align-items-start mb-3">
-                        <div className="badge rounded-pill px-3 py-2 shadow-sm" style={{ backgroundColor: formData.accentColor, color: '#fff', fontSize: '10px' }}>
-                            {formData.highlightText}
-                        </div>
-                        </div>
-                        <h4 className="fw-bold mb-1" style={{ color: formData.textColor }}>{formData.title || 'Section Title'}</h4>
-                        <p className="small mb-0" style={{ color: formData.textColor, opacity: 0.8 }}>{formData.subtitle || 'Subtitle goes here'}</p>
-                    </div>
-                    ) : (
-                    <div className="p-4 rounded shadow-sm border" style={{ background: 'linear-gradient(to right, #e8f5e9, #ffffff)' }}>
-                        <div className="d-flex align-items-center gap-2 mb-2">
-                        <div className="bg-success p-1 rounded">
-                            <TrendingDown size={14} className="text-white" />
-                        </div>
-                        <span className="fw-bold text-success small">{formData.title || 'Lowest Prices Ever'}</span>
-                        </div>
-                        <div className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill border border-danger-subtle bg-danger-subtle">
-                        <div className="rounded-circle bg-danger" style={{ width: 8, height: 8 }}></div>
-                        <span className="text-danger fw-bold" style={{ fontSize: 10 }}>🔥 {formData.highlightText}</span>
-                        </div>
-                    </div>
-                    )}
                 </div>
+            </div>
 
-                <Form.Group className="mt-4">
-                  <Form.Check
-                    type="switch"
-                    id="isActive"
-                    label={<span className="fw-bold small text-muted">{t('campaigns.form.visible_front')}</span>}
-                    name="isActive"
-                    checked={formData.isActive}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Card.Body>
-            </Card>
-          </Col>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start mb-24">
+                <div className="xl:col-span-5 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{t('form.basic_info')}</h3>
+                        </div>
 
-          <Col lg={8}>
-            <Card className="border-0 shadow-sm min-vh-75">
-              <Card.Body className="p-4">
-                <h6 className="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
-                  <Plus size={20} /> {t('campaigns.table.manage_selection')}
-                </h6>
+                        {/* Theme Toggle */}
+                        <div className="space-y-3">
+                             <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.display_type')}</label>
+                             <div className="grid grid-cols-2 gap-4">
+                                <div
+                                    onClick={() => setFormData(p => ({ ...p, displayType: 'festive' }))}
+                                    className={`p-4 rounded-2xl border-2 transition-all text-center group cursor-pointer ${formData.displayType === 'festive' ? 'border-blue-500 bg-blue-50' : 'border-slate-100 bg-white hover:border-slate-200'}`}
+                                >
+                                    <div className={`w-10 h-10 rounded-xl mx-auto flex items-center justify-center mb-2 transition-transform group-hover:scale-110 ${formData.displayType === 'festive' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-400'}`}>
+                                        <PartyPopper size={20} />
+                                    </div>
+                                    <div className={`text-[10px] font-bold uppercase tracking-tight ${formData.displayType === 'festive' ? 'text-blue-700' : 'text-slate-500'}`}>{t('types.festive')}</div>
+                                </div>
+                                <div
+                                    onClick={() => setFormData(p => ({ ...p, displayType: 'lowest_prices' }))}
+                                    className={`p-4 rounded-2xl border-2 transition-all text-center group cursor-pointer ${formData.displayType === 'lowest_prices' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white hover:border-slate-200'}`}
+                                >
+                                    <div className={`w-10 h-10 rounded-xl mx-auto flex items-center justify-center mb-2 transition-transform group-hover:scale-110 ${formData.displayType === 'lowest_prices' ? 'bg-emerald-600 text-white' : 'bg-slate-50 text-slate-400'}`}>
+                                        <TrendingDown size={20} />
+                                    </div>
+                                    <div className={`text-[10px] font-bold uppercase tracking-tight ${formData.displayType === 'lowest_prices' ? 'text-emerald-700' : 'text-slate-500'}`}>{t('types.lowest_prices')}</div>
+                                </div>
+                             </div>
+                        </div>
 
-                <div className="mb-4">
-                  <div className="d-flex flex-column align-items-center justify-content-center p-5 border-2 border-dashed rounded-4 bg-light cursor-pointer" onClick={() => setShowPicker(true)}>
-                    <div className="bg-white p-3 rounded-circle shadow-sm text-primary mb-3">
-                      <Plus size={28} />
-                    </div>
-                    <div className="fw-bold text-dark">{t('campaigns.table.browse_add')}</div>
-                    <div className="text-muted small text-center mt-1 px-4">{t('campaigns.table.browse_help')}</div>
-                  </div>
-                </div>
-
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle">
-                    <thead className="bg-light border-0">
-                      <tr>
-                        <th className="small fw-bold text-muted border-0 px-3 py-3">{t('campaigns.table.product_details')}</th>
-                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('products.form.mrp')}</th>
-                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('products.form.base_price')}</th>
-                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('campaigns.table.savings')}</th>
-                        <th className="small fw-bold text-muted border-0 text-center py-3">{t('locations.branches.table.actions')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="border-0">
-                      {paginatedProducts.length > 0 ? paginatedProducts.map(p => (
-                        <tr key={p.productId}>
-                          <td className="px-3 py-3 border-0">
-                            <div className="d-flex align-items-center gap-3">
-                              <div className="bg-white border border-light p-1 rounded">
-                                <img src={p.image} className="rounded" style={{ width: '45px', height: '45px', objectFit: 'contain' }} />
-                              </div>
-                              <div className="small fw-bold text-dark">{p.name}</div>
+                        {/* Fields */}
+                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4 shadow-inner">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.title_label')}</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    placeholder={t('form.title_placeholder')}
+                                    className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                    required
+                                />
                             </div>
-                          </td>
-                          <td className="text-center text-muted border-0 py-3">₹{p.mrp}</td>
-                          <td className="text-center border-0 py-3" style={{ width: '130px' }}>
-                            <Form.Control
-                              size="sm"
-                              type="number"
-                              value={p.basePrice}
-                              onFocus={(e) => { if (p.basePrice === 0 || p.basePrice === "0") handlePriceChange(p.productId, '') }}
-                              onBlur={(e) => { if (p.basePrice === "" || p.basePrice === null) handlePriceChange(p.productId, 0) }}
-                              onChange={(e) => handlePriceChange(p.productId, e.target.value)}
-                              className="text-center fw-bold text-primary"
-                            />
-                          </td>
-                          <td className="text-center border-0 py-3">
-                            <Badge bg="success-soft" className="text-success fw-bold">
-                              {t('campaigns.table.save_amount', { amount: p.mrp - p.basePrice, defaultValue: `SAVE ₹${p.mrp - p.basePrice}` })}
-                            </Badge>
-                          </td>
-                          <td className="text-center border-0 py-3">
-                            <Button variant="link" className="text-danger p-0" onClick={() => removeProduct(p.productId)}>
-                              <Trash2 size={18} />
-                            </Button>
-                          </td>
-                        </tr>
-                      )) : (
-                        <tr>
-                          <td colSpan="5" className="text-center py-5">
-                            <div className="opacity-25 mb-3"><LayoutGrid size={40} className="mx-auto" /></div>
-                            <p className="text-muted small">{t('common.no_data', { defaultValue: 'No products selected.' })}</p>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.subtitle_label')}</label>
+                                <input
+                                    type="text"
+                                    name="subtitle"
+                                    value={formData.subtitle}
+                                    onChange={handleChange}
+                                    placeholder={t('form.subtitle_placeholder')}
+                                    className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.highlight_label')}</label>
+                                <input
+                                    type="text"
+                                    name="highlightText"
+                                    value={formData.highlightText}
+                                    onChange={handleChange}
+                                    placeholder={t('form.highlight_placeholder')}
+                                    className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Visual Branding Section */}
+                        {formData.displayType === 'festive' && (
+                             <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-6 ring-4 ring-slate-50 transition-all">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Sparkles size={16} className="text-blue-500" />
+                                    <h4 className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">{t('form.visual_settings')}</h4>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                     <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase">{t('form.bg_color')}</span>
+                                        <input type="color" name="bgColor" value={formData.bgColor} onChange={handleChange} className="w-8 h-8 rounded-lg border-none shadow-sm cursor-pointer p-0" />
+                                     </div>
+                                     <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase">{t('form.text_color')}</span>
+                                        <input type="color" name="textColor" value={formData.textColor} onChange={handleChange} className="w-8 h-8 rounded-lg border-none shadow-sm cursor-pointer p-0" />
+                                     </div>
+                                     <div className="flex items-center justify-between col-span-2 border-t border-slate-50 pt-3 mt-1">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Accent Color</span>
+                                        <input type="color" name="accentColor" value={formData.accentColor} onChange={handleChange} className="w-8 h-8 rounded-lg border-none shadow-sm cursor-pointer p-0" />
+                                     </div>
+                                </div>
+                             </div>
+                        )}
+
+                        {/* Preview */}
+                        <div className="space-y-3">
+                             <div className="flex items-center gap-2 px-1">
+                                <Eye size={12} className="text-slate-400" />
+                                <h6 className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Live Preview</h6>
+                             </div>
+                             
+                             {formData.displayType === 'festive' ? (
+                                <div className="p-6 rounded-3xl shadow-xl border border-white/20" style={{ backgroundColor: formData.bgColor }}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="px-3 py-1 rounded-full text-[9px] font-bold uppercase text-white" style={{ backgroundColor: formData.accentColor }}>
+                                            {formData.highlightText}
+                                        </div>
+                                    </div>
+                                    <h4 className="text-lg font-bold tracking-tight mb-1" style={{ color: formData.textColor }}>{formData.title || 'Campaign Title'}</h4>
+                                    <p className="text-[11px] font-medium opacity-80" style={{ color: formData.textColor }}>{formData.subtitle || 'Browse products below'}</p>
+                                </div>
+                             ) : (
+                                <div className="p-6 rounded-3xl shadow-xl border border-emerald-100 bg-white relative overflow-hidden">
+                                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16"></div>
+                                     <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg">
+                                            <TrendingDown size={22} />
+                                        </div>
+                                        <h4 className="text-sm font-bold text-emerald-900 uppercase">{formData.title || 'Lowest Prices'}</h4>
+                                     </div>
+                                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-bold uppercase">
+                                        🔥 {formData.highlightText}
+                                     </div>
+                                </div>
+                             )}
+                        </div>
+
+                        <div className="bg-slate-900 rounded-2xl p-6 text-white flex items-center justify-between shadow-lg">
+                            <div className="flex items-center gap-3">
+                                <Shield size={18} className="text-blue-400" />
+                                <div>
+                                    <h4 className="text-xs font-bold uppercase tracking-tight">{t('form.isActive')}</h4>
+                                    <p className="text-[9px] text-slate-500 font-medium uppercase">{formData.isActive ? 'Active' : 'Offline'}</p>
+                                </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={formData.isActive}
+                                    onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                                />
+                                <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Pagination Controls */}
-                {selectedProducts.length > itemsPerPage && (
-                  <div className="d-flex justify-content-between align-items-center mt-3 px-2">
-                    <div className="text-muted small">
-                      {t('categories.pagination.showing')} {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, selectedProducts.length)} {t('categories.pagination.of')} {selectedProducts.length}
-                    </div>
-                    <div className="d-flex gap-2">
-                      <Button 
-                        variant="light" 
-                        size="sm" 
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(prev => prev - 1)}
-                      >
-                        {t('common.prev', { defaultValue: 'Prev' })}
-                      </Button>
-                      <Button 
-                        variant="light" 
-                        size="sm" 
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(prev => prev + 1)}
-                      >
-                        {t('common.next', { defaultValue: 'Next' })}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+                {/* Products Section */}
+                <div className="xl:col-span-7 space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 flex flex-col min-h-[600px]">
+                        <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-6">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{t('form.products_section')}</h3>
+                            <button 
+                                type="button"
+                                onClick={() => setShowPicker(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-blue-100 flex items-center gap-2 transition-all active:scale-95"
+                            >
+                                <Plus size={14} /> Add Products
+                            </button>
+                        </div>
 
-        <div className="bg-white border-top fixed-bottom p-3 text-end shadow-lg" style={{ left: '260px', right: 0, zIndex: 1000 }}>
-          <div className="d-flex justify-content-end gap-3 px-4">
-            <Button variant="light" as={Link} to="/admin/campaigns" className="px-5">{t('common.cancel')}</Button>
-            <Button variant="primary" type="submit" disabled={loading} className="px-5 d-flex align-items-center gap-2">
-              {loading ? <Spinner animation="border" size="sm" /> : <Save size={20} />}
-              {id ? t('campaigns.form.update') : t('campaigns.form.publish')}
-            </Button>
-          </div>
+                        <div className="flex-grow">
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {paginatedProducts.length > 0 ? (
+                                    paginatedProducts.map((p) => (
+                                        <div key={p.productId} className="p-4 bg-slate-50/50 border border-slate-100 rounded-2xl group hover:border-blue-200 transition-all relative flex flex-col">
+                                            <div className="flex items-start gap-3 mb-4">
+                                                <div className="w-12 h-12 rounded-xl border border-slate-200 bg-white p-1 overflow-hidden shrink-0 shadow-sm">
+                                                    <img src={p.image} className="w-full h-full object-cover" alt="" />
+                                                </div>
+                                                <div className="min-w-0 pr-6">
+                                                    <div className="text-[11px] font-bold text-slate-800 uppercase truncate max-w-full">{p.name}</div>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-[10px] text-slate-400 font-bold">MRP: ₹{p.mrp}</span>
+                                                        <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black">-{Math.round(((p.mrp - p.basePrice) / p.mrp) * 100)}%</span>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeProduct(p.productId)}
+                                                    className="absolute top-4 right-4 p-1.5 text-slate-300 hover:text-rose-600 rounded-lg transition-all"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="mt-auto pt-4 border-t border-slate-200/50 flex flex-col gap-1.5">
+                                                <div className="flex justify-between items-center px-1">
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase">Offer Price</span>
+                                                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Save ₹{p.mrp - p.basePrice}</span>
+                                                </div>
+                                                <div className="relative">
+                                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 font-bold text-xs">₹</span>
+                                                     <input
+                                                        type="number"
+                                                        value={p.basePrice}
+                                                        onChange={(e) => handlePriceChange(p.productId, e.target.value)}
+                                                        className="w-full pl-7 pr-4 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-blue-700 outline-none focus:ring-1 ring-blue-500/20 shadow-sm"
+                                                     />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full py-24 flex flex-col items-center justify-center gap-3 opacity-30">
+                                        <LayoutGrid size={48} className="text-slate-300" />
+                                        <p className="text-xs font-bold uppercase tracking-widest text-slate-500">No products added yet</p>
+                                    </div>
+                                )}
+                             </div>
+
+                             {selectedProducts.length > itemsPerPage && (
+                                <div className="mt-auto pt-10 border-t border-slate-50 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            type="button"
+                                            disabled={currentPage === 1}
+                                            onClick={() => setCurrentPage(prev => prev - 1)}
+                                            className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-30"
+                                        >
+                                            <ChevronLeft size={16} />
+                                        </button>
+                                        <span className="text-[10px] font-bold text-slate-600 px-2">{currentPage} / {totalPages}</span>
+                                        <button 
+                                            type="button"
+                                            disabled={currentPage === totalPages}
+                                            onClick={() => setCurrentPage(prev => prev + 1)}
+                                            className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-30"
+                                        >
+                                            <ChevronRight size={16} />
+                                        </button>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pr-2">
+                                        Total Items: {selectedProducts.length}
+                                    </span>
+                                </div>
+                             )}
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            {/* Float Command Bar */}
+            <div className="bg-white/95 border-t border-slate-200 fixed bottom-0 left-0 right-0 z-[60] ml-0 lg:ml-[260px] p-4 px-8 flex items-center justify-between shadow-lg backdrop-blur-sm">
+                <div className="hidden md:flex items-center gap-3 pl-4">
+                     <div className={`w-3 h-3 rounded-full ${formData.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                     <div>
+                        <div className="text-[11px] font-bold uppercase tracking-tight text-slate-900">
+                            {formData.isActive ? 'System Ready' : 'Draft Mode'}
+                        </div>
+                     </div>
+                </div>
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    <button 
+                        onClick={() => navigate('/admin/campaigns')}
+                        className="px-8 py-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 rounded-xl"
+                    >
+                        {t('form.cancel')}
+                    </button>
+                    <button 
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="flex-1 md:flex-none px-12 py-3 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center gap-3 active:scale-95 border-none outline-none"
+                    >
+                        {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                        {id ? t('form.update') : t('form.save')}
+                    </button>
+                </div>
+            </div>
+
+            <ProductPickerModal
+                show={showPicker}
+                onHide={() => setShowPicker(false)}
+                onSelect={handlePickerSelect}
+                existingProductIds={selectedProducts.map(p => p.productId)}
+                token={adminUser?.token}
+            />
         </div>
-      </Form>
-      <ProductPickerModal
-        show={showPicker}
-        onHide={() => setShowPicker(false)}
-        onSelect={handlePickerSelect}
-        existingProductIds={selectedProducts.map(p => p.productId)}
-        token={adminUser?.token}
-      />
-      <div className="mb-5 py-4"></div>
-    </div>
-  );
+    );
 };
 
 export default ManageCampaign;

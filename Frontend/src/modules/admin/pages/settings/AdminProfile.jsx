@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
-import { Save, User, Mail, Phone, Lock, Camera, Loader2 } from 'lucide-react';
+import { Save, User, Mail, Phone, Lock, Camera, Loader2, Settings2 } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AdminProfile = () => {
+    const { t } = useTranslation('admin_settings');
     const { adminUser, adminUpdateProfile } = useAdminAuth();
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -42,19 +43,16 @@ const AdminProfile = () => {
     const validateForm = () => {
         const newErrors = {};
         
-        // Name validation: 2-50 chars, letters and spaces only
         const nameRegex = /^[a-zA-Z\s]{2,50}$/;
         if (!nameRegex.test(formData.name)) {
             newErrors.name = 'Please enter a valid name (2-50 characters, letters only)';
         }
 
-        // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
-            newErrors.email = 'Please provide a valid email address (e.g., name@gmail.com)';
+            newErrors.email = 'Please provide a valid email address';
         }
 
-        // Phone validation: 10 digit Indian mobile
         const phoneRegex = /^[6-9][0-9]{9}$/;
         if (!phoneRegex.test(formData.phone)) {
             newErrors.phone = 'Please enter a valid 10-digit mobile number';
@@ -123,9 +121,7 @@ const AdminProfile = () => {
 
         setLoading(true);
         try {
-            await adminUpdateProfile({
-                password: formData.newPassword
-            });
+            await adminUpdateProfile({ password: formData.newPassword });
             toast.success('Password changed successfully!');
             setFormData(prev => ({ ...prev, newPassword: '', confirmPassword: '' }));
         } catch (error) {
@@ -136,228 +132,214 @@ const AdminProfile = () => {
     };
 
     return (
-        <div className="p-4 bg-light min-vh-100">
-            <div className="d-flex align-items-center gap-2 mb-4">
-                <h4 className="fw-bold mb-0">Admin Profile</h4>
-                <PageInfoTooltip info={pageInfoData.adminProfile} />
+        <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <Settings2 size={16} className="text-blue-600" />
+                        <span className="text-sm font-semibold text-blue-600">Profile Settings</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold text-slate-800">{t('admin_profile.title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.adminProfile} />
+                    </div>
+                    <p className="text-slate-500 text-sm mt-1">{t('admin_profile.subtitle')}</p>
+                </div>
             </div>
 
-            <Row className="g-4">
-                <Col lg={4}>
-                    <Card className="border-0 shadow-sm mb-4 overflow-hidden rounded-4">
-                        <Card.Body className="text-center p-4">
-                            <div className="position-relative d-inline-block mb-3">
-                                <div className="bg-light rounded-circle d-flex align-items-center justify-content-center overflow-hidden border-4 border-white shadow-sm" style={{ width: '140px', height: '140px' }}>
-                                    {imagePreview ? (
-                                        <img src={imagePreview} alt="Profile" className="w-100 h-100 object-fit-cover" />
-                                    ) : (
-                                        <div className="bg-indigo-50 w-100 h-100 d-flex align-items-center justify-content-center">
-                                            <User size={60} className="text-indigo-200" />
-                                        </div>
-                                    )}
+            <div className="flex flex-col lg:flex-row gap-6">
+                <div className="w-full lg:w-1/3 flex flex-col gap-6">
+                    {/* Profile Card */}
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden text-center p-8">
+                        <div className="relative inline-block mb-4">
+                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-50 shadow-md flex items-center justify-center bg-slate-100 mx-auto group">
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User size={48} className="text-slate-300" />
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => fileInputRef.current.click()}>
+                                    <Camera size={24} className="text-white" />
                                 </div>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    accept="image/*"
-                                    className="d-none"
-                                />
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    className="position-absolute bottom-0 end-0 rounded-circle p-2 shadow-lg border-2 border-white"
-                                    onClick={() => fileInputRef.current.click()}
-                                >
-                                    <Camera size={18} />
-                                </Button>
                             </div>
-                            <h5 className="fw-bold mb-1">{formData.name || 'Super Admin'}</h5>
-                            <p className="text-indigo-600 bg-indigo-50 d-inline-block px-3 py-1 rounded-pill small fw-bold text-uppercase tracking-wider mb-3">
-                                {formData.role}
-                            </p>
-                            <div className="d-grid mt-2">
-                                <Button
-                                    variant="outline-primary"
-                                    size="sm"
-                                    className="rounded-3 py-2"
-                                    onClick={() => fileInputRef.current.click()}
-                                >
-                                    Change Profile Photo
-                                </Button>
-                            </div>
-                        </Card.Body>
-                    </Card>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept="image/*"
+                                className="hidden"
+                            />
+                            <button
+                                onClick={() => fileInputRef.current.click()}
+                                className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-full shadow-lg shadow-blue-500/20 border-2 border-white transition-all transform active:scale-95"
+                            >
+                                <Camera size={16} />
+                            </button>
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-800 mb-2">{formData.name || 'Admin User'}</h2>
+                        <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg border border-blue-100">
+                            {formData.role || 'Super Admin'}
+                        </span>
+                    </div>
 
-                    <Card className="border-0 shadow-sm rounded-4">
-                        <Card.Header className="bg-white py-3 border-0">
-                            <h6 className="mb-0 fw-bold text-uppercase small tracking-wide text-indigo-600">Security Settings</h6>
-                        </Card.Header>
-                        <Card.Body className="pt-0">
-                            <Form onSubmit={handleUpdatePassword}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small text-muted fw-bold">New Password</Form.Label>
-                                    <InputGroup className="bg-light rounded-3 overflow-hidden border-0">
-                                        <InputGroup.Text className="bg-light border-0 pe-0">
-                                            <Lock size={16} className="text-muted" />
-                                        </InputGroup.Text>
-                                        <Form.Control
+                    {/* Security Card */}
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="border-b border-slate-100 px-6 py-4 flex items-center gap-2">
+                            <Lock size={18} className="text-slate-500" />
+                            <h3 className="text-base font-semibold text-slate-700">{t('admin_profile.security')}</h3>
+                        </div>
+                        <div className="p-6">
+                            <form onSubmit={handleUpdatePassword} className="space-y-4">
+                                <div className="space-y-1.5 focus-within:text-blue-600 text-slate-500 transition-colors">
+                                    <label className="text-xs font-medium ml-1">{t('admin_profile.new_password')}</label>
+                                    <div className="relative">
+                                        <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" />
+                                        <input
                                             type="password"
                                             name="newPassword"
+
                                             value={formData.newPassword}
                                             onChange={handleChange}
-                                            className="bg-light border-0 shadow-none py-2"
-                                            placeholder="Min. 8 characters"
-                                        />
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="small text-muted fw-bold">Confirm Password</Form.Label>
-                                    <InputGroup className="bg-light rounded-3 overflow-hidden border-0">
-                                        <InputGroup.Text className="bg-light border-0 pe-0">
-                                            <Lock size={16} className="text-muted" />
-                                        </InputGroup.Text>
-                                        <Form.Control
-                                            type="password"
-                                            name="confirmPassword"
-                                            value={formData.confirmPassword}
-                                            onChange={handleChange}
-                                            className="bg-light border-0 shadow-none py-2"
-                                            placeholder="Repeat password"
-                                        />
-                                    </InputGroup>
-                                </Form.Group>
-                                <Button
-                                    type="submit"
-                                    variant="primary"
-                                    className="w-100 py-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                                    disabled={loading || !formData.newPassword}
-                                >
-                                    {loading ? <Loader2 size={16} className="animate-spin" /> : 'Update Password'}
-                                </Button>
-                            </Form>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                <Col lg={8}>
-                    <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
-                        <Form onSubmit={handleUpdatePersonal} noValidate>
-                            <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center border-bottom">
-                                <h6 className="mb-0 fw-bold text-uppercase small tracking-wide text-indigo-600">Personal Information</h6>
-                                <Button
-                                    type="submit"
-                                    variant="primary"
-                                    className="d-flex align-items-center gap-2 px-4 rounded-3 shadow-sm"
-                                    disabled={saving}
-                                >
-                                    {saving ? <Loader2 size={16} className="animate-spin" /> : <><Save size={18} /> Save Changes</>}
-                                </Button>
-                            </Card.Header>
-                            <Card.Body className="p-4">
-                                <Row className="g-4 mb-4">
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted fw-bold text-uppercase">Full Name</Form.Label>
-                                            <InputGroup className={`rounded-3 overflow-hidden border ${errors.name ? 'border-danger' : 'border-light bg-light'}`}>
-                                                <InputGroup.Text className="bg-transparent border-0 pe-0">
-                                                    <User size={18} className="text-muted" />
-                                                </InputGroup.Text>
-                                                <Form.Control
-                                                    type="text"
-                                                    name="name"
-                                                    value={formData.name}
-                                                    onChange={handleChange}
-                                                    isInvalid={!!errors.name}
-                                                    className="bg-transparent border-0 shadow-none py-2"
-                                                    placeholder="Enter full name"
-                                                    required
-                                                />
-                                            </InputGroup>
-                                            {errors.name && <div className="text-danger small mt-1 ml-1">{errors.name}</div>}
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted fw-bold text-uppercase">Email Address</Form.Label>
-                                            <InputGroup className={`rounded-3 overflow-hidden border ${errors.email ? 'border-danger' : 'border-light bg-light'}`}>
-                                                <InputGroup.Text className="bg-transparent border-0 pe-0">
-                                                    <Mail size={18} className="text-muted" />
-                                                </InputGroup.Text>
-                                                <Form.Control
-                                                    type="email"
-                                                    name="email"
-                                                    value={formData.email}
-                                                    onChange={handleChange}
-                                                    isInvalid={!!errors.email}
-                                                    className="bg-transparent border-0 shadow-none py-2"
-                                                    placeholder="admin@example.com"
-                                                    required
-                                                />
-                                            </InputGroup>
-                                            {errors.email && <div className="text-danger small mt-1 ml-1">{errors.email}</div>}
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-
-                                <Row className="g-4 mb-4">
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted fw-bold text-uppercase">Phone Number</Form.Label>
-                                            <InputGroup className={`rounded-3 overflow-hidden border ${errors.phone ? 'border-danger' : 'border-light bg-light'}`}>
-                                                <InputGroup.Text className="bg-transparent border-0 pe-0">
-                                                    <Phone size={18} className="text-muted" />
-                                                </InputGroup.Text>
-                                                <Form.Control
-                                                    type="text"
-                                                    name="phone"
-                                                    value={formData.phone}
-                                                    onChange={handleChange}
-                                                    isInvalid={!!errors.phone}
-                                                    className="bg-transparent border-0 shadow-none py-2"
-                                                    placeholder="10-digit mobile"
-                                                    required
-                                                />
-                                            </InputGroup>
-                                            {errors.phone && <div className="text-danger small mt-1 ml-1">{errors.phone}</div>}
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group>
-                                            <Form.Label className="small text-muted fw-bold text-uppercase">Access Role</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                value={formData.role}
-                                                disabled
-                                                className="bg-light border-0 shadow-none py-2 text-uppercase fw-bold small text-muted rounded-3"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-
-                                <div className="mt-5">
-                                    <h6 className="fw-bold mb-3 text-uppercase small tracking-wide text-indigo-600 border-bottom pb-2">System Preferences</h6>
-                                    <div className="bg-light p-3 rounded-4">
-                                        <Form.Check
-                                            type="switch"
-                                            id="email-notif"
-                                            label="Email alerts for system updates"
-                                            defaultChecked
-                                            className="mb-3 custom-switch"
-                                        />
-                                        <Form.Check
-                                            type="switch"
-                                            id="sms-notif"
-                                            label="SMS alerts for high-priority incidents"
-                                            className="custom-switch"
+                                            placeholder="Min. 8 chars"
+                                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
                                         />
                                     </div>
                                 </div>
-                            </Card.Body>
-                        </Form>
-                    </Card>
-                </Col>
-            </Row>
+                                <div className="space-y-1.5 focus-within:text-blue-600 text-slate-500 transition-colors">
+                                    <label className="text-xs font-medium ml-1">{t('admin_profile.confirm_password')}</label>
+                                    <div className="relative">
+                                        <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="password"
+
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            placeholder="Repeat password"
+                                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading || !formData.newPassword}
+                                    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all transform active:scale-95 ${loading || !formData.newPassword ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20'}`}
+                                >
+
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
+                                    <span>{t('admin_profile.update_password')}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="w-full lg:w-2/3">
+                    <form onSubmit={handleUpdatePersonal} className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="border-b border-slate-100 px-6 md:px-8 py-5 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <User size={18} className="text-slate-500" />
+                                <h3 className="text-base font-semibold text-slate-700">{t('admin_profile.personal_info')}</h3>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all transform active:scale-95 ${saving ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-black shadow-lg shadow-black/10'}`}
+                            >
+                                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                <span>{t('common.save')}</span>
+                            </button>
+                        </div>
+
+                        <div className="p-6 md:p-8 space-y-8 flex-grow">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className={`space-y-1.5 transition-colors ${errors.name ? 'text-red-500' : 'text-slate-500 focus-within:text-blue-600'}`}>
+                                    <label className="text-xs font-medium ml-1">{t('admin_profile.full_name')}</label>
+                                    <div className="relative">
+                                        <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
+
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl text-sm font-normal text-slate-800 focus:bg-white outline-none transition-all ${errors.name ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
+                                            required
+                                        />
+                                    </div>
+                                    {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+                                </div>
+
+                                <div className={`space-y-1.5 transition-colors ${errors.email ? 'text-red-500' : 'text-slate-500 focus-within:text-blue-600'}`}>
+                                    <label className="text-xs font-medium ml-1">{t('admin_profile.email_address')}</label>
+                                    <div className="relative">
+                                        <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl text-sm font-normal text-slate-800 focus:bg-white outline-none transition-all ${errors.email ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
+                                            required
+                                        />
+                                    </div>
+                                    {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+                                </div>
+
+                                <div className={`space-y-1.5 transition-colors ${errors.phone ? 'text-red-500' : 'text-slate-500 focus-within:text-blue-600'}`}>
+                                    <label className="text-xs font-medium ml-1">{t('admin_profile.phone_number')}</label>
+                                    <div className="relative">
+                                        <Phone size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="text"
+
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-xl text-sm font-normal text-slate-800 focus:bg-white outline-none transition-all ${errors.phone ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'}`}
+                                            required
+                                        />
+                                    </div>
+                                    {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+                                </div>
+
+                                <div className="space-y-1.5 text-slate-500">
+                                    <label className="text-xs font-medium ml-1">{t('admin_profile.access_role')}</label>
+                                    <input
+                                        type="text"
+                                        value={formData.role || 'Admin'}
+                                        disabled
+                                        className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-medium text-slate-500 cursor-not-allowed"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-6 border-t border-slate-100">
+                                <h4 className="text-base font-semibold text-slate-700 mb-4">{t('admin_profile.settings')}</h4>
+                                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-4">
+
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                                            <input type="checkbox" defaultChecked className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-blue-600 transform translate-x-5 transition-transform duration-200 ease-in-out" style={{ top: '2px', left: '2px' }} />
+                                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-blue-600 cursor-pointer"></label>
+                                        </div>
+                                        <span className="text-sm text-slate-700">{t('admin_profile.email_alerts')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                                            <input type="checkbox" className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 transition-transform duration-200 ease-in-out" style={{ top: '2px', left: '2px' }} />
+                                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer"></label>
+                                        </div>
+                                        <span className="text-sm text-slate-700">{t('admin_profile.sms_alerts')}</span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     );
 };

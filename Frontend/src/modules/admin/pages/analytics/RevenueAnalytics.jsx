@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Form, Row, Col, Table, Badge, Spinner } from 'react-bootstrap';
-import { Download, Calendar, TrendingUp, TrendingDown, ArrowUpRight, BarChart3, Wallet, CreditCard } from 'lucide-react';
+import { Download, Calendar, TrendingUp, TrendingDown, ArrowUpRight, BarChart3, Wallet, CreditCard, RefreshCw, Loader2, IndianRupee, PieChart, Info } from 'lucide-react';
 import {
     AreaChart,
     Area,
@@ -18,7 +17,7 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const RevenueAnalytics = () => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('admin_analytics');
     const { adminUser } = useAdminAuth();
     const [period, setPeriod] = useState('this_week');
     const [loading, setLoading] = useState(true);
@@ -33,8 +32,7 @@ const RevenueAnalytics = () => {
                 setData(res);
             }
         } catch (error) {
-            console.error('Fetch Analytics Error:', error);
-            toast.error(t('analytics.revenue.load_error', { defaultValue: 'Failed to load revenue analytics' }));
+            toast.error(t('revenue.load_error', { defaultValue: 'Failed to load income data' }));
         } finally {
             setLoading(false);
         }
@@ -54,8 +52,9 @@ const RevenueAnalytics = () => {
 
     if (loading && !data) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
-                <Spinner animation="border" variant="primary" />
+            <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
+                <Loader2 size={40} className="text-blue-600 animate-spin" />
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Collecting Business Data...</p>
             </div>
         );
     }
@@ -67,209 +66,206 @@ const RevenueAnalytics = () => {
     };
 
     return (
-        <div className="p-2 p-md-4">
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <div className="d-flex align-items-center gap-3">
-                    <div className="bg-primary bg-opacity-10 p-3 rounded-3 text-primary d-none d-md-flex">
-                        <TrendingUp size={24} />
+        <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('revenue.title')}</h1>
+                        <PageInfoTooltip data={pageInfoData.revenueAnalytics} />
                     </div>
-                    <div>
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="fw-bold mb-1 text-dark text-nowrap">{t('analytics.revenue.title')}</h4>
-                            <PageInfoTooltip data={pageInfoData.revenueAnalytics} />
-                        </div>
-                        <p className="text-muted small mb-0 d-none d-sm-block">{t('analytics.revenue.subtitle')}</p>
-                    </div>
+                    <p className="text-slate-500 text-xs mt-1 font-bold opacity-70 uppercase tracking-tight">{t('revenue.subtitle')}</p>
                 </div>
 
-                <div className="d-flex gap-2 flex-grow-1 w-100 w-sm-auto justify-content-between justify-content-sm-end">
-                    <Form.Select 
-                        size="sm" 
-                        style={{ width: '160px' }} 
-                        className="shadow-none border-0 bg-light fw-medium"
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <select 
                         value={period}
                         onChange={(e) => setPeriod(e.target.value)}
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm appearance-none cursor-pointer pr-10 min-w-[160px]"
                     >
-                        <option value="this_week">{t('analytics.revenue.period.week')}</option>
-                        <option value="this_month">{t('analytics.revenue.period.month')}</option>
-                        <option value="last_month">{t('analytics.revenue.period.last_month')}</option>
-                        <option value="year_to_date">{t('analytics.revenue.period.ytd')}</option>
-                    </Form.Select>
-                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center gap-2 shadow-sm px-3">
-                        <Download size={16} /> <span className="d-none d-sm-inline text-nowrap">{t('analytics.revenue.export')}</span>
-                        <span className="d-inline d-sm-none">{t('common.export', { defaultValue: 'Export' })}</span>
-                    </Button>
+                        <option value="this_week">{t('revenue.period.week', { defaultValue: 'This Week' })}</option>
+                        <option value="this_month">{t('revenue.period.month', { defaultValue: 'This Month' })}</option>
+                        <option value="last_month">{t('revenue.period.last_month', { defaultValue: 'Last Month' })}</option>
+                        <option value="year_to_date">{t('revenue.period.ytd', { defaultValue: 'This Year' })}</option>
+                    </select>
+
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
+                    >
+                        <Download size={16} />
+                        <span>{t('sales.download', { ns: 'admin_reports' })}</span>
+                    </button>
+                    
+                    <button
+                        onClick={fetchAnalytics}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl hover:border-blue-500 transition-all shadow-sm active:scale-90"
+                    >
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
                 </div>
             </div>
 
-            {/* Overview Cards */}
-            <Row className="g-3 mb-4">
-                <Col xs={12} sm={6} lg={3}>
-                    <Card className="border-0 shadow-sm bg-primary text-white overflow-hidden position-relative" style={{ minHeight: '120px' }}>
-                        <Card.Body className="z-1">
-                            <div className="text-white-50 small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.net_sales')}</div>
-                            <h3 className="fw-bold mb-0">{formatCurrency(summary.totalNetSales)}</h3>
-                            <div className={`small mt-2 d-flex align-items-center gap-1 ${summary.salesGrowth >= 0 ? 'text-white' : 'text-white-50'}`}>
-                                {summary.salesGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                <span>{Math.abs(summary.salesGrowth)}%</span> {t('common.vs_prev', { defaultValue: 'vs prev period' })}
-                            </div>
-                        </Card.Body>
-                        <BarChart3 size={80} className="position-absolute end-0 bottom-0 opacity-10 mb-n3 me-n2" />
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} lg={3}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-danger border-4">
-                        <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.refunds')}</div>
-                            <h3 className="fw-bold mb-0 text-danger">{formatCurrency(summary.totalRefunds)}</h3>
-                            <div className="small mt-2 text-muted">{t('analytics.revenue.cards.refunds_desc', { defaultValue: 'Value of returned orders' })}</div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} lg={3}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-warning border-4">
-                        <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.vendor_payouts')}</div>
-                            <h3 className="fw-bold mb-0 text-dark">{formatCurrency(summary.vendorPayouts)}</h3>
-                            <div className="small mt-2 text-muted d-flex align-items-center gap-1">
-                                <Wallet size={14} className="text-warning" /> {t('analytics.revenue.cards.payouts_desc', { defaultValue: 'Settlements processed' })}
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6} lg={3}>
-                    <Card className="border-0 shadow-sm h-100 border-start border-success border-4">
-                        <Card.Body>
-                            <div className="text-muted small text-uppercase fw-bold mb-2">{t('analytics.revenue.cards.net_profit')}</div>
-                            <h3 className="fw-bold mb-0 text-success">{formatCurrency(summary.netProfit)}</h3>
-                            <div className={`small mt-2 d-flex align-items-center gap-1 ${summary.profitGrowth >= 0 ? 'text-success' : 'text-danger'}`}>
-                                {summary.profitGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                <span>{Math.abs(summary.profitGrowth)}%</span> {t('common.growth', { defaultValue: 'growth' })}
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+            {/* Metrics Overview */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-blue-600 p-6 rounded-[2rem] text-white shadow-xl shadow-blue-100 flex flex-col justify-between min-h-[140px] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                    <div className="relative z-10">
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{t('revenue.stats.gross')}</p>
+                        <h3 className="text-2xl font-black mt-1 tracking-tight">{formatCurrency(summary.totalNetSales)}</h3>
+                    </div>
+                    <div className="relative z-10 flex items-center gap-1 text-[10px] font-bold mt-4">
+                        {summary.salesGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        <span>{Math.abs(summary.salesGrowth)}%</span> Growth
+                    </div>
+                </div>
 
-            {/* Visual Analytics Chart */}
-            <Card className="border-0 shadow-sm mb-4">
-                <Card.Header className="bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <h6 className="mb-0 fw-bold">{t('analytics.revenue.chart_title', { defaultValue: 'Revenue Growth Overview' })}</h6>
-                        <small className="text-muted">{t('analytics.revenue.chart_subtitle', { defaultValue: 'Net sales performance based on delivered orders' })}</small>
+                        <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4">
+                            <CreditCard size={20} />
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Refunded Money</p>
+                        <h3 className="text-xl font-black text-slate-800 mt-1">{formatCurrency(summary.totalRefunds)}</h3>
                     </div>
-                    <div className="d-flex align-items-center gap-2">
-                        {loading && <Spinner animation="border" size="sm" variant="primary" className="me-2" />}
-                        <Badge bg="success" className="bg-opacity-10 text-success fw-normal px-2">{t('common.live_update', { defaultValue: 'Live Update' })}</Badge>
+                </div>
+
+                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
+                            <Wallet size={20} />
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('finance.earnings.paid')}</p>
+                        <h3 className="text-xl font-black text-slate-800 mt-1">{formatCurrency(summary.vendorPayouts)}</h3>
                     </div>
-                </Card.Header>
-                <Card.Body className="pt-0">
-                    <div style={{ width: '100%', height: 350, minHeight: '350px' }}>
+                </div>
+
+                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
+                            <IndianRupee size={20} />
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('revenue.stats.net')}</p>
+                        <h3 className="text-xl font-black text-emerald-600 mt-1">{formatCurrency(summary.netProfit)}</h3>
+                    </div>
+                    <div className={`flex items-center gap-1 text-[10px] font-bold mt-2 ${summary.profitGrowth >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {summary.profitGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        <span>{Math.abs(summary.profitGrowth)}%</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Visual Progress Section */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-8">
+                <div className="px-10 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/10">
+                    <div>
+                        <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{t('revenue.title')} Progress</h5>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Performance tracking for current period</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                         <div className="w-3 h-3 bg-blue-600 rounded-full" />
+                         <span className="text-[10px] font-bold text-slate-600 uppercase">Growth Signal</span>
+                    </div>
+                </div>
+                
+                <div className="p-10">
+                    <div className="w-full h-[400px]">
                         {chartData.length > 0 ? (
-                            <ResponsiveContainer minWidth={0} minHeight={0}>
-                                <AreaChart
-                                    data={chartData}
-                                    margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
-                                >
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                                     <defs>
-                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#0c831f" stopOpacity={0.1} />
-                                            <stop offset="95%" stopColor="#0c831f" stopOpacity={0} />
+                                        <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15}/>
+                                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                    <XAxis
-                                        dataKey="name"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 12, fill: '#64748b' }}
+                                    <XAxis 
+                                        dataKey="name" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8', textTransform: 'uppercase'}} 
                                         dy={10}
                                     />
-                                    <YAxis
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 12, fill: '#64748b' }}
-                                        tickFormatter={(value) => `₹${value}`}
+                                    <YAxis 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} 
+                                        tickFormatter={(val) => `₹${val}`}
                                     />
-                                    <Tooltip
-                                        contentStyle={{
-                                            borderRadius: '12px',
-                                            border: 'none',
-                                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                                            fontSize: '14px'
-                                        }}
-                                        formatter={(value) => [formatCurrency(value), t('common.revenue', { defaultValue: 'Revenue' })]}
+                                    <Tooltip 
+                                        contentStyle={{borderRadius: '1.5rem', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '1rem'}}
+                                        labelStyle={{fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '0.5rem', color: '#1e293b'}}
+                                        itemStyle={{fontSize: '10px', fontWeight: 700, textTransform: 'uppercase'}}
                                     />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="revenue"
-                                        stroke="#0c831f"
-                                        strokeWidth={3}
-                                        fillOpacity={1}
-                                        fill="url(#colorRevenue)"
+                                    <Area 
+                                        type="monotone" 
+                                        dataKey="revenue" 
+                                        stroke="#2563eb" 
+                                        strokeWidth={4} 
+                                        fillOpacity={1} 
+                                        fill="url(#revenueFill)" 
+                                        animationDuration={1500}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="h-100 d-flex flex-column justify-content-center align-items-center text-muted">
-                                <TrendingUp size={48} className="mb-3 opacity-20" />
-                                <p>{t('analytics.revenue.no_data', { defaultValue: 'No data available for the selected period' })}</p>
+                            <div className="h-full flex flex-col items-center justify-center gap-3 text-slate-300">
+                                <BarChart3 size={64} strokeWidth={1} />
+                                <p className="text-[10px] font-black uppercase tracking-widest">{t('revenue.no_data', { defaultValue: 'No business data detected' })}</p>
                             </div>
                         )}
                     </div>
-                </Card.Body>
-            </Card>
+                </div>
+            </div>
 
-            {/* Detailed Table */}
-            <Card className="border-0 shadow-sm overflow-hidden mb-4">
-                <Card.Header className="bg-white py-3 border-0">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <h6 className="mb-0 fw-bold">{t('analytics.revenue.table_title', { defaultValue: 'Daily Breakdown' })}</h6>
-                        <Badge bg="light" text="dark" className="fw-normal border">
-                           {t('analytics.revenue.last_days', { count: dailyBreakdown.length, defaultValue: `Last ${dailyBreakdown.length} Active Days` })}
-                        </Badge>
-                    </div>
-                </Card.Header>
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 border-0 py-3">{t('analytics.revenue.table.date')}</th>
-                                <th className="border-0 py-3 text-center">{t('analytics.revenue.table.orders')}</th>
-                                <th className="border-0 py-3">{t('analytics.revenue.table.gross_sales')}</th>
-                                <th className="border-0 py-3 text-danger">{t('analytics.revenue.cards.refunds')}</th>
-                                <th className="border-0 py-3 text-end pe-4 fw-bold">{t('analytics.revenue.table.net_sales')}</th>
+            {/* Daily Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                <div className="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
+                    <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">History Log</h5>
+                    <span className="text-[9px] font-black text-slate-400 uppercase bg-slate-50 px-3 py-1 rounded-lg border border-slate-100 italic">Verified Records</span>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100 font-bold text-slate-500 uppercase text-[10px] tracking-widest">
+                                <th className="px-8 py-5">Activity Date</th>
+                                <th className="px-6 py-5 text-center">Orders</th>
+                                <th className="px-6 py-5">Total Sales</th>
+                                <th className="px-6 py-5 text-rose-500">Returned</th>
+                                <th className="px-8 py-5 text-right">Net Income</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-100 font-bold">
                             {dailyBreakdown.length > 0 ? dailyBreakdown.map((day, idx) => (
-                                <tr key={idx}>
-                                    <td className="ps-4">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <div className="bg-light p-2 rounded-circle text-primary">
+                                <tr key={idx} className="hover:bg-slate-50/30 transition-colors">
+                                    <td className="px-8 py-5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                                                 <Calendar size={14} />
                                             </div>
-                                            <span className="small fw-medium">{day.date}</span>
+                                            <span className="text-xs uppercase tracking-tight text-slate-700">{day.date}</span>
                                         </div>
                                     </td>
-                                    <td className="text-center">
-                                        <span className="badge bg-light text-dark fw-normal border px-3">{day.orders}</span>
+                                    <td className="px-6 py-5 text-center">
+                                        <span className="bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-black text-slate-600">
+                                            {day.orders}
+                                        </span>
                                     </td>
-                                    <td><span className="small fw-medium">{formatCurrency(day.gross)}</span></td>
-                                    <td><span className="small fw-medium text-danger">{formatCurrency(day.refunds)}</span></td>
-                                    <td className="text-end pe-4 fw-bold text-primary">{formatCurrency(day.net)}</td>
+                                    <td className="px-6 py-5 text-[11px] text-slate-500 uppercase">{formatCurrency(day.gross)}</td>
+                                    <td className="px-6 py-5 text-[11px] text-rose-400 uppercase">{formatCurrency(day.refunds)}</td>
+                                    <td className="px-8 py-5 text-right font-black text-blue-600 text-xs tracking-tight">
+                                        {formatCurrency(day.net)}
+                                    </td>
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-5 text-muted">
-                                        No financial records found for this period.
-                                    </td>
+                                    <td colSpan="5" className="py-20 text-center text-slate-400 text-[10px] font-black uppercase">{t('revenue.no_data')}</td>
                                 </tr>
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
-            </Card>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 };

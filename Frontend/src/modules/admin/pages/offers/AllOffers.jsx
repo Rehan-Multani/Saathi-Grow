@@ -1,32 +1,36 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit, Trash2, LayoutGrid, Image as ImageIcon, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, LayoutGrid, Image as ImageIcon, Search, RefreshCw, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Spinner, Badge } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getOfferDeals, deleteOfferDeal } from '../../api/offerDealApi';
-import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import Swal from 'sweetalert2';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllOffers = () => {
+  const { t } = useTranslation('admin_offers');
   const navigate = useNavigate();
   const { adminUser } = useAdminAuth();
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     try {
       const data = await getOfferDeals(adminUser.token);
-      setOffers(data);
+      setOffers(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error fetching offers:', error);
-      toast.error('Failed to load offer deals');
+      toast.error(t('messages.fetch_error'));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [adminUser.token]);
+  }, [adminUser.token, t]);
 
   useEffect(() => {
     fetchData();
@@ -41,107 +45,149 @@ const AllOffers = () => {
   };
 
   const handleDelete = async (id, title) => {
-    const result = await showDeleteConfirmation('Delete Offer Deal?', `Are you sure you want to remove "${title}"?`);
-    if (result.isConfirmed) {
-      try {
-        await deleteOfferDeal(adminUser.token, id);
-        setOffers(offers.filter(o => o._id !== id));
-        showSuccessAlert('Deleted!', 'Offer has been removed.');
-      } catch (error) {
-        showErrorAlert('Error', error.message);
+    Swal.fire({
+      title: t('messages.delete_confirm_title'),
+      text: t('messages.delete_confirm_msg', { name: title }),
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteOfferDeal(adminUser.token, id);
+          setOffers(offers.filter(o => o._id !== id));
+          Swal.fire({
+            title: t('messages.delete_success'),
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        } catch (error) {
+          toast.error(error.message);
+        }
       }
-    }
+    });
   };
 
+  const filteredOffers = offers.filter(o => 
+    o.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.subtitle?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="p-4 p-md-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <div className="d-flex align-items-center gap-2">
-              <h5 className="mb-0 font-bold text-gray-800 text-lg">Banner Offers & High-Yield Deals</h5>
-              <PageInfoTooltip data={pageInfoData.allOffers} />
-            </div>
-            <p className="text-muted small mb-0">Manage premium banners that showcase specific product collections on the user home screen.</p>
+    <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight">{t('title')}</h1>
+            <PageInfoTooltip data={pageInfoData.allOffers} />
+          </div>
+          <p className="text-slate-500 text-xs mt-1 font-medium">{t('subtitle')}</p>
+        </div>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-80 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+            <input
+              type="text"
+              placeholder={t('search_placeholder')}
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-xs font-bold text-slate-700 shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <button
-            onClick={handleCreate}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+            onClick={() => fetchData(true)}
+            disabled={refreshing}
+            className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
           >
-            <Plus size={20} />
-            <span>Create New Banner Offer</span>
+            <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={handleCreate}
+            className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100"
+          >
+            <Plus size={16} />
+            <span>{t('add_new')}</span>
           </button>
         </div>
       </div>
 
-      <div className="row g-4">
-        {loading ? (
-          <div className="col-12 text-center py-10">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-2 text-muted text-sm">Loading offers...</p>
-          </div>
-        ) : offers.length > 0 ? (
-          offers.map((o) => (
-            <div key={o._id} className="col-md-6">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-100 transition-all hover:shadow-md">
-                <div className="relative h-[180px] bg-gray-100">
-                  <img
-                    src={o.bannerImage}
-                    className="w-full h-full object-cover"
-                    alt={o.title}
-                  />
-                  <div className="absolute top-3 right-3 flex gap-2">
-                    <Badge bg={o.isActive ? 'success' : 'secondary'} className="shadow-sm">
-                      {o.isActive ? 'Active' : 'Offline'}
-                    </Badge>
-                    <div className="bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-gray-700 shadow-sm border border-white/20">
-                      PRIORITY: {o.order}
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                    <h6 className="text-white fw-bold mb-0">{o.title}</h6>
-                    <p className="text-white/80 text-xs mb-0">{o.subtitle}</p>
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {loading && !refreshing ? (
+          [1, 2, 3, 4].map(i => (
+            <div key={i} className="h-[280px] bg-white rounded-2xl border border-slate-200 shadow-sm animate-pulse"></div>
+          ))
+        ) : filteredOffers.length > 0 ? (
+          filteredOffers.map((o) => (
+            <div key={o._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group transition-all hover:shadow-md hover:border-blue-200">
+              <div className="relative h-[200px] bg-slate-50 overflow-hidden">
+                <img
+                  src={o.bannerImage}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  alt={o.title}
+                />
+                <div className="absolute top-4 right-4 shadow-lg">
+                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${
+                    o.isActive ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-400 text-white border-slate-400'
+                  }`}>
+                    {o.isActive ? t('status.active') : t('status.offline')}
+                  </span>
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-slate-900/60 to-transparent">
+                  <h3 className="text-white text-sm font-bold uppercase tracking-tight">{o.title}</h3>
+                  <p className="text-white/80 text-[10px] font-bold mt-0.5 uppercase tracking-wide truncate">{o.subtitle}</p>
+                </div>
+              </div>
+
+              <div className="p-5 flex items-center justify-between bg-white">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px] uppercase tracking-wide">
+                    <LayoutGrid size={14} className="text-blue-500" />
+                    {t('products_count', { count: o.products.length })}
                   </div>
                 </div>
-                <div className="p-4 bg-white flex items-center justify-between border-t">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-gray-400 text-xs">
-                      <LayoutGrid size={14} />
-                      <span>{o.products.length} Products</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-400 text-xs">
-                      <ImageIcon size={14} />
-                      <span>{o.displayLocation}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {!o.vendor && (
-                      <button
-                        onClick={() => handleEdit(o._id)}
-                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
-                        title="Edit"
-                      >
-                        <Edit size={16} />
-                      </button>
-                    )}
+
+                <div className="flex gap-1.5">
+                  {!o.vendor && (
                     <button
-                      onClick={() => handleDelete(o._id, o.title)}
-                      className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"
-                      title="Delete"
+                      onClick={() => handleEdit(o._id)}
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
                     >
-                      <Trash2 size={16} />
+                      <Edit size={16} />
                     </button>
-                  </div>
+                  )}
+                  <button
+                    onClick={() => handleDelete(o._id, o.title)}
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="col-12 text-center py-20 bg-white rounded-xl border border-dashed text-gray-400 border-gray-200">
-            <ImageIcon size={48} className="mx-auto mb-3 opacity-20" />
-            <h6 className="fw-bold text-gray-400">No Offer Banners Found</h6>
-            <p className="small mb-4 text-gray-400">Create visually appealing banners to push your products to the top of the user feed.</p>
-            <button onClick={handleCreate} className="btn btn-primary btn-sm px-4">Start Creating</button>
+          <div className="col-span-1 md:col-span-2 py-24 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-center px-6">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
+              <ImageIcon size={40} className="text-slate-200" />
+            </div>
+            <div>
+              <h3 className="text-slate-800 font-bold uppercase tracking-wide text-xs mb-1">{t('empty_state')}</h3>
+              <p className="text-slate-400 text-[11px] font-medium max-w-xs mx-auto">{t('empty_subtitle')}</p>
+            </div>
+            <button 
+              onClick={handleCreate} 
+              className="mt-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all outline-none"
+            >
+              {t('start_creating')}
+            </button>
           </div>
         )}
       </div>

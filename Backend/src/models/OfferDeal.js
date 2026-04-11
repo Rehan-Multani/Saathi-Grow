@@ -48,10 +48,6 @@ const offerDealSchema = new mongoose.Schema({
   expiryDate: {
     type: Date
   },
-  order: {
-    type: Number,
-    default: 0
-  },
   displayLocation: {
     type: String,
     enum: ['Home Slider', 'Category Page', 'N/A'],

@@ -1,0 +1,63 @@
+{
+  "title": "Promo Codes",
+  "subtitle": "Create and manage discount codes for your customers.",
+  "add_new": "Add New Code",
+  "search_placeholder": "Search promo codes...",
+  "empty_state": "No Promo Codes Found",
+  "empty_subtitle": "Start by creating your first discount code to attract customers.",
+  "start_creating": "Create Now",
+  "loading": "Loading promo codes...",
+  "copy_success": "Code copied to clipboard!",
+  "table": {
+    "code": "Promo Code",
+    "type": "Discount Type",
+    "value": "Value",
+    "usage": "Usage",
+    "min_order": "Min Order",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "upcoming": "Upcoming",
+    "expired": "Expired",
+    "limit_reached": "Limit Reached"
+  },
+  "form": {
+    "add_title": "Create Promo Code",
+    "edit_title": "Edit Promo Code",
+    "breadcrumb": "Promo Codes Management",
+    "config_section": "Promo Details",
+    "identity_label": "Enter Code Name",
+    "generate": "Generate",
+    "discount_type": "Select Type",
+    "discount_value": "Discount Value",
+    "min_order": "Minimum Order (₹)",
+    "max_discount": "Max Discount (₹)",
+    "usage_section": "Usage Limits",
+    "total_limit": "Total Usage Count",
+    "per_user_limit": "Limit Per User",
+    "validity_section": "Validity Dates",
+    "valid_from": "Start Date",
+    "valid_until": "Expiry Date",
+    "description": "Short Description",
+    "description_placeholder": "What is this code for?",
+    "live_toggle": "Active Status",
+    "save": "Save Promo Code",
+    "update": "Update Promo Code",
+    "cancel": "Cancel",
+    "back": "Back"
+  },
+  "messages": {
+    "fetch_error": "Failed to load promo codes",
+    "delete_confirm_title": "Delete Promo Code?",
+    "delete_confirm_msg": "Are you sure you want to delete \"{{code}}\"?",
+    "delete_success": "Promo code deleted successfully.",
+    "create_success": "Promo code created successfully.",
+    "update_success": "Promo code updated successfully.",
+    "date_error": "Expiry date must be after start date.",
+    "past_date_error": "Start date cannot be in the past.",
+    "negative_error": "Value cannot be negative."
+  }
+}

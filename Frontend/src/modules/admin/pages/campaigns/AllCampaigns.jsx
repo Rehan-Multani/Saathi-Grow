@@ -1,32 +1,36 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit, Trash2, Eye, LayoutGrid } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Spinner } from 'react-bootstrap';
+import { Plus, Edit, Trash2, LayoutGrid, Search, RefreshCw, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { getCampaigns, deleteCampaign } from '../../api/campaignApi';
-import { showDeleteConfirmation, showSuccessAlert, showErrorAlert } from '../../../../common/utils/alertUtils';
+import Swal from 'sweetalert2';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const AllCampaigns = () => {
+  const { t } = useTranslation('admin_campaigns');
   const navigate = useNavigate();
   const { adminUser } = useAdminAuth();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     try {
       const data = await getCampaigns(adminUser.token);
-      setCampaigns(data);
+      setCampaigns(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error fetching campaigns:', error);
-      toast.error('Failed to load campaigns');
+      toast.error(t('messages.fetch_error'));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [adminUser.token]);
+  }, [adminUser.token, t]);
 
   useEffect(() => {
     fetchData();
@@ -41,116 +45,168 @@ const AllCampaigns = () => {
   };
 
   const handleDelete = async (id, title) => {
-    const result = await showDeleteConfirmation('Delete Campaign Section?', `Are you sure you want to remove "${title}"?`);
-    if (result.isConfirmed) {
-      try {
-        await deleteCampaign(adminUser.token, id);
-        setCampaigns(campaigns.filter(c => c._id !== id));
-        showSuccessAlert('Deleted!', 'Section has been removed.');
-      } catch (error) {
-        showErrorAlert('Error', error.message);
+    Swal.fire({
+      title: t('messages.delete_confirm_title'),
+      text: t('messages.delete_confirm_msg', { name: title }),
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteCampaign(adminUser.token, id);
+          setCampaigns(campaigns.filter(c => c._id !== id));
+          Swal.fire({
+            title: t('messages.delete_success'),
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        } catch (error) {
+          toast.error(error.message);
+        }
       }
-    }
+    });
   };
 
+  const filteredCampaigns = campaigns.filter(c => 
+    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    c.subtitle?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="p-4 p-md-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 p-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <div className="d-flex align-items-center gap-2">
-              <h5 className="mb-0 font-bold text-gray-800 text-lg">Festive & Special Campaign Sections</h5>
-               <PageInfoTooltip data={pageInfoData.allCampaigns} />
-            </div>
-            <p className="text-muted small mb-0">Create and manage customizable UI sections for your mobile app & web frontend.</p>
+    <div className="container-fluid py-6 bg-slate-50/20 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight">{t('title')}</h1>
+            <PageInfoTooltip data={pageInfoData.allCampaigns} />
+          </div>
+          <p className="text-slate-500 text-xs mt-1 font-medium">{t('subtitle')}</p>
+        </div>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-80 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+            <input
+              type="text"
+              placeholder={t('search_placeholder')}
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500/50 transition-all text-xs font-bold text-slate-700 shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <button
-            onClick={handleCreate}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+            onClick={() => fetchData(true)}
+            disabled={refreshing}
+            className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
           >
-            <Plus size={20} />
-            <span>Add New Section</span>
+            <RefreshCw size={18} className={`${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={handleCreate}
+            className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all shadow-blue-100"
+          >
+            <Plus size={16} />
+            <span>{t('add_new')}</span>
           </button>
         </div>
       </div>
 
-      <div className="row g-4">
-        {loading ? (
-          <div className="col-12 text-center py-10">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-2 text-muted text-sm">Loading campaign sections...</p>
-          </div>
-        ) : campaigns.length > 0 ? (
-          campaigns.map((c) => (
-            <div key={c._id} className="col-md-6 col-xl-4">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-100 transition-all hover:shadow-md">
-                <div className="p-4 flex-grow-1" style={{ backgroundColor: c.bgColor + '20' }}>
-                  <div className="flex justify-between items-start mb-3">
-                    <div
-                      className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider"
-                      style={{ backgroundColor: c.bgColor, color: c.textColor }}
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {loading && !refreshing ? (
+          [1, 2, 3].map(i => (
+             <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm animate-pulse h-48"></div>
+          ))
+        ) : filteredCampaigns.length > 0 ? (
+          filteredCampaigns.map((c) => (
+            <div key={c._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group transition-all hover:shadow-md hover:border-blue-200">
+               <div className="p-6 relative overflow-hidden" style={{ backgroundColor: c.bgColor + '15' }}>
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <span 
+                      className="px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-tight shadow-sm border"
+                      style={{ backgroundColor: c.bgColor, color: c.textColor, borderColor: c.textColor + '20' }}
                     >
                       {c.highlightText}
-                    </div>
-                    <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${c.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {c.isActive ? 'Active' : 'Hidden'}
-                    </div>
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-tight ${
+                      c.isActive ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-400 text-white border-slate-400'
+                    }`}>
+                      {c.isActive ? t('status.active') : t('status.offline')}
+                    </span>
                   </div>
-                  <h6 className="font-bold text-gray-800 mb-1">{c.title}</h6>
-                  <p className="text-xs text-gray-500 mb-3">{c.subtitle}</p>
 
-                  <div className="flex -space-x-2 overflow-hidden mb-4">
+                  <h3 className="text-slate-900 text-sm font-bold leading-tight uppercase tracking-tight mb-1 truncate">{c.title}</h3>
+                  <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wide truncate mb-5">{c.subtitle}</p>
+
+                  <div className="flex items-center -space-x-3">
                     {c.products.slice(0, 5).map((p, idx) => (
-                      <img
-                        key={idx}
-                        className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover bg-white"
-                        src={p.productId?.image}
-                        alt=""
-                      />
+                      <div key={idx} className="w-8 h-8 rounded-lg ring-2 ring-white shadow-sm overflow-hidden bg-white border border-slate-100">
+                        <img src={p.productId?.image} className="w-full h-full object-cover" alt="" />
+                      </div>
                     ))}
                     {c.products.length > 5 && (
-                      <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500">
+                      <div className="w-8 h-8 rounded-lg ring-2 ring-white shadow-sm bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white">
                         +{c.products.length - 5}
                       </div>
                     )}
                   </div>
-                </div>
-                <div className="p-4 bg-white border-t border-gray-50 flex items-center justify-between mt-auto">
-                  <div className="flex gap-2 items-center flex-wrap">
-                    <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wide ${c.displayType === 'lowest_prices' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}>
-                      {c.displayType === 'lowest_prices' ? '📉 Lowest Prices' : '🎉 Festive'}
+               </div>
+
+               <div className="p-5 flex items-center justify-between border-t border-slate-50 bg-white">
+                  <div className="flex gap-2 items-center">
+                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tight border ${
+                      c.displayType === 'lowest_prices' 
+                      ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                      : 'bg-blue-50 text-blue-600 border-blue-100'
+                    }`}>
+                      {c.displayType === 'lowest_prices' ? t('types.lowest_prices') : t('types.festive')}
                     </span>
-                    <span className="text-gray-400 text-xs flex items-center gap-1">
-                      <LayoutGrid size={14} />
-                      {c.products.length} Products
-                    </span>
+                    <div className="flex items-center gap-1 text-slate-400 font-bold text-[10px] uppercase ml-1">
+                      <LayoutGrid size={12} />
+                      {c.products.length}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+
+                  <div className="flex gap-1.5">
                     {!c.vendor && (
                       <button
                         onClick={() => handleEdit(c._id)}
-                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
-                        title="Edit"
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-95"
                       >
                         <Edit size={16} />
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(c._id, c.title)}
-                      className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors border border-red-100"
-                      title="Delete"
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-95"
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
-                </div>
-              </div>
+               </div>
             </div>
           ))
         ) : (
-          <div className="col-12 text-center py-10 bg-white rounded-xl border border-dashed text-gray-400">
-            <Eye size={40} className="mx-auto mb-3 opacity-20" />
-            <p>No campaign sections found. Create your first festive deal!</p>
+          <div className="col-span-full py-24 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-center px-6">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
+               <Sparkles size={40} className="text-slate-200" />
+            </div>
+            <div>
+              <h3 className="text-slate-800 font-bold uppercase tracking-wide text-xs mb-1">{t('empty_state')}</h3>
+              <p className="text-slate-400 text-[11px] font-medium max-w-xs mx-auto">{t('empty_subtitle')}</p>
+            </div>
+            <button 
+              onClick={handleCreate} 
+              className="mt-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all outline-none"
+            >
+              {t('add_new')}
+            </button>
           </div>
         )}
       </div>
