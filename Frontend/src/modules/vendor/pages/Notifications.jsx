@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Clock, CheckCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { Bell, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config/apiConfig';
 import { formatDistanceToNow } from 'date-fns';
 
 const Notifications = () => {
-    const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const vendorToken = localStorage.getItem('sathiGro_vendor_token');
@@ -43,60 +42,66 @@ const Notifications = () => {
     };
 
     return (
-        <div className="-mx-4 -my-4 md:mx-0 md:my-0 md:space-y-6 lg:space-y-5 bg-white md:bg-transparent min-h-screen md:min-h-0">
-            <div className="sticky top-0 z-20 bg-white border-b border-gray-100 md:border-none px-4 py-3 lg:py-2 md:px-0 md:py-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="p-6 max-w-5xl mx-auto">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">Notifications</h1>
-                    <p className="text-sm text-slate-500 hidden md:block font-medium">Stay updated with your store activity</p>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Notifications</h1>
+                    <p className="text-sm text-gray-500 mt-1 font-medium">Stay updated with your store activity.</p>
                 </div>
-                <button onClick={markAllRead} className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-                    Mark all as read
-                </button>
+                {notifications.length > 0 && (
+                    <button 
+                        onClick={markAllRead} 
+                        className="px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:text-[#0c831f] hover:bg-green-50 hover:border-green-200 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center gap-2"
+                    >
+                        <CheckCircle size={16} /> Mark all read
+                    </button>
+                )}
             </div>
 
-            <div className="bg-white md:rounded-2xl md:shadow-sm md:border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {loading ? (
-                    <div className="flex justify-center py-10">
-                        <Loader2 className="animate-spin text-green-600" size={30} />
+                    <div className="flex flex-col items-center justify-center py-20">
+                         <div className="w-10 h-10 border-4 border-gray-200 border-t-[#0c831f] rounded-full animate-spin mb-4"></div>
+                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Notifications...</p>
+                    </div>
+                ) : notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                            <Bell size={32} />
+                        </div>
+                        <h3 className="text-base font-bold text-gray-900 mb-1">You're all caught up!</h3>
+                        <p className="text-sm font-medium text-gray-500">There are no new notifications right now.</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-gray-100">
                         {notifications.map((notification) => (
-                            <div key={notification._id} className={`p-4 lg:p-4 hover:bg-slate-50 transition-colors flex gap-4 bg-white ${notification.isRead ? 'opacity-70 bg-transparent' : ''}`}>
-                                <div className={`w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center border ${notification.type === 'order' ? 'bg-blue-50 border-blue-100 text-blue-600' :
+                            <div key={notification._id} className={`p-5 hover:bg-gray-50 transition-colors flex gap-4 ${notification.isRead ? 'opacity-70 bg-transparent' : 'bg-green-50/20'}`}>
+                                <div className={`w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center border shadow-sm ${
+                                    notification.type === 'order' ? 'bg-[#0c831f]/10 border-[#0c831f]/20 text-[#0c831f]' :
                                     notification.type === 'inventory_alert' ? 'bg-red-50 border-red-100 text-red-600' :
-                                        'bg-slate-50 border-slate-100 text-slate-500'
-                                    }`}>
+                                    'bg-white border-gray-200 text-gray-500'
+                                }`}>
                                     <Bell size={20} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start mb-1">
-                                        <div className={`text-base font-semibold truncate pr-2 ${notification.isRead ? 'text-slate-600' : 'text-slate-800'}`}>
+                                        <h4 className={`text-base font-bold truncate pr-2 ${notification.isRead ? 'text-gray-600' : 'text-gray-900'}`}>
                                             {notification.title}
-                                        </div>
-                                        <span className="text-xs text-slate-400 font-medium whitespace-nowrap ml-2">
-                                            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                        </h4>
+                                        <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap ml-2 mt-1">
+                                            <Clock size={10} /> {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-slate-500 leading-snug font-medium line-clamp-2">{notification.body}</p>
+                                    <p className="text-sm text-gray-500 font-medium leading-relaxed">{notification.body}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
-
-            {notifications.length === 0 && (
-                <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
-                        <Bell size={24} />
-                    </div>
-                    <p className="text-sm text-gray-500">No notifications yet</p>
-                </div>
-            )}
         </div>
     );
 };
 
 export default Notifications;
-

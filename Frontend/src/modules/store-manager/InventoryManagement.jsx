@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Download, Database, FileSpreadsheet, RefreshCcw, Activity, Layers, Activity as ActivityIcon } from 'lucide-react';
+import { Plus, Download, Database, FileSpreadsheet, RefreshCcw, Activity, Layers, Activity as ActivityIcon, Loader2, Package } from 'lucide-react';
 import InventoryTable from './components/InventoryTable';
 import SearchFilterBar from './components/SearchFilterBar';
 import StockUpdateModal from './components/StockUpdateModal';
@@ -33,7 +33,7 @@ const InventoryManagement = () => {
             const data = await productApi.getProducts(managerUser.token);
             setProducts(data.products || []);
         } catch (error) {
-            toast.error(error.message || 'Failed to sync inventory intelligence');
+            toast.error(error.message || 'Failed to sync inventory');
         } finally {
             setLoading(false);
         }
@@ -75,16 +75,18 @@ const InventoryManagement = () => {
     const handleUpdateStock = async (requestData) => {
         try {
             setLoading(true);
+            const currentStock = selectedProduct?.branchStocks?.find(bs => bs.branchId?._id === managerUser?.branchId || bs.branchId === managerUser?.branchId)?.stock || 0;
             await createInventoryRequest(managerUser.token, {
                 productId: requestData.productId,
-                currentStock: selectedProduct?.branchStocks?.find(bs => bs.branchId?._id === managerUser?.branchId || bs.branchId === managerUser?.branchId)?.stock || 0,
+                currentStock,
                 adjustment: requestData.adjustment,
                 type: requestData.type,
                 notes: requestData.notes
             });
-            toast.success("Inventory re-calibration request transmitted.");
+            toast.success("Inventory update request submitted.");
+            fetchInventory();
         } catch (error) {
-            toast.error(error.message || "Protocol failure: Request rejected.");
+            toast.error(error.message || "Failed to submit request.");
         } finally {
             setLoading(false);
             setIsStockModalOpen(false);
@@ -97,45 +99,68 @@ const InventoryManagement = () => {
     };
 
     return (
-        <div className="inventory-command-portal p-6 md:p-10">
+        <div className="p-6 max-w-7xl mx-auto">
             {/* Header Section */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12">
-                <div className="portal-header-text">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="badge-pill bg-blue-50 text-blue-600 border border-blue-100">
-                            <Activity size={12} className="animate-pulse" />
-                            <span>System Status: Optimal</span>
-                        </div>
-                        <div className="badge-pill bg-slate-50 text-slate-500 border border-slate-100">
-                            <Layers size={12} />
-                            <span>Data Nodes: {products.length}</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="h-16 w-1 hover-scale bg-blue-600 rounded-full"></div>
-                        <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase tracking-widest leading-none">Command <span className="text-blue-600">Assets</span></h1>
-                            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2 ml-1">Universal Asset Registry & Ledger Operations</p>
-                        </div>
-                    </div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Manage Stock</h1>
+                    <p className="text-sm text-slate-500 mt-1 font-medium">Manage and track stock levels for your store.</p>
                 </div>
 
-                <div className="flex items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-3 w-full md:w-auto">
                     <button 
                         onClick={fetchInventory}
                         disabled={loading}
-                        className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black uppercase text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
                     >
-                        <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} /> Sync Intelligence
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCcw size={16} />} 
+                        Refresh Stock
                     </button>
-                    <button className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-2xl shadow-slate-200 active:scale-95">
-                        <FileSpreadsheet size={16} /> Export Ledger
+                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-sm">
+                        <FileSpreadsheet size={16} /> Export CSV
                     </button>
                 </div>
             </div>
 
-            {/* Filter Hub Component */}
-            <div className="filter-hub-wrapper mb-8">
+            {/* Stats Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                            <Package size={24} />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Products</p>
+                            <p className="text-2xl font-black text-slate-900">{products.length}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                            <Activity size={24} />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">In Stock</p>
+                            <p className="text-2xl font-black text-slate-900">{products.filter(p => p.status === 'Active').length}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-red-600">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center">
+                            <Layers size={24} />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Low/Out of Stock</p>
+                            <p className="text-2xl font-black text-slate-900">{products.filter(p => p.status !== 'Active').length}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filter Section */}
+            <div className="mb-6">
                 <SearchFilterBar
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
@@ -150,19 +175,19 @@ const InventoryManagement = () => {
                 />
             </div>
 
-            {/* Data Visualization Layer */}
-            <div className="data-layer relative">
-                <div className="absolute top-[-2.5rem] right-4 text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">
-                    Showing {filteredProducts.length} Classified SKU's
+            {/* Table Section */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        Showing {filteredProducts.length} Products
+                    </span>
                 </div>
-                
-                <div className="inventory-table-container">
-                    <InventoryTable
-                        products={filteredProducts}
-                        onUpdateStock={openStockModal}
-                        branchId={managerUser?.branchId?._id || managerUser?.branchId}
-                    />
-                </div>
+                <InventoryTable
+                    products={filteredProducts}
+                    onUpdateStock={openStockModal}
+                    branchId={managerUser?.branchId?._id || managerUser?.branchId}
+                    loading={loading}
+                />
             </div>
 
             <StockUpdateModal
@@ -170,24 +195,8 @@ const InventoryManagement = () => {
                 onClose={() => setIsStockModalOpen(false)}
                 onUpdate={handleUpdateStock}
                 product={selectedProduct}
+                loading={loading}
             />
-
-            <style dangerouslySetInnerHTML={{ __html: `
-                .inventory-command-portal { background: #fdfdff; min-height: 100vh; position: relative; overflow-x: hidden; }
-                
-                .badge-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 10rem; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
-                .hover-scale { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-                .inventory-command-portal:hover .hover-scale { transform: scaleY(1.2); }
-                
-                .inventory-table-container { background: #fff; border: 1px solid #f1f5f9; border-radius: 3rem; box-shadow: 0 40px 60px -15px rgba(0,0,0,0.05); overflow: hidden; }
-                
-                /* Override possible global SearchFilterBar / InventoryTable styles */
-                .filter-hub-wrapper { background: #fff; border: 1px solid #f1f5f9; border-radius: 2.5rem; padding: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-                
-                .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10rem; }
-            `}} />
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, FileSpreadsheet } from 'lucide-react';
+import { Database, FileSpreadsheet, Activity, ChevronRight, Package, Search } from 'lucide-react';
 import InventoryTable from '../../../store-manager/components/InventoryTable';
 import SearchFilterBar from '../../../store-manager/components/SearchFilterBar';
 import StockUpdateModal from '../../../store-manager/components/StockUpdateModal';
@@ -14,13 +14,11 @@ const StaffInventory = () => {
     const [loading, setLoading] = useState(true);
     const [filteredProducts, setFilteredProducts] = useState([]);
 
-    // Search & Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [subCategoryFilter, setSubCategoryFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
 
-    // Modals State
     const [isStockModalOpen, setIsStockModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -99,46 +97,59 @@ const StaffInventory = () => {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h2 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-4">
-                        <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200">
-                            <Database size={24} />
+        <div className="space-y-6 animate-in fade-in duration-700">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic">Manage Stock</h1>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-100 italic">
+                            <Activity size={12} className="animate-pulse" /> Live Stock
                         </div>
-                        Inventory Command Center
-                    </h2>
-                    <p className="text-slate-500 text-sm font-medium mt-1 ml-16">Real-time oversight of warehouse SKU availability, valuation, and life-cycle management.</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Update store stock levels</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <button className="flex items-center gap-2 px-6 py-3 text-xs font-black text-slate-600 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all shadow-sm uppercase tracking-widest active:translate-y-0.5">
-                        <FileSpreadsheet size={16} className="text-emerald-500" /> Catalog Export
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2.5 px-6 py-3.5 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-[11px] uppercase tracking-[0.1em] hover:bg-slate-50 transition-all shadow-sm active:scale-95 group">
+                        <FileSpreadsheet size={18} className="text-emerald-500" /> Export List
                     </button>
                 </div>
             </div>
 
-            <SearchFilterBar
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                categoryFilter={categoryFilter}
-                setCategoryFilter={setCategoryFilter}
-                subCategoryFilter={subCategoryFilter}
-                setSubCategoryFilter={setSubCategoryFilter}
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                categories={categories}
-                subCategories={subCategories}
-            />
-
-            <div className="relative">
-                <div className="absolute -top-6 right-8 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] pointer-events-none">
-                    Showing {filteredProducts.length} of {products.length} Assets
-                </div>
-                <InventoryTable
-                    products={filteredProducts}
-                    onUpdateStock={openStockModal}
-                    branchId={staffUser?.branchId?._id || staffUser?.branchId}
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden p-6 md:p-8">
+                <SearchFilterBar
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    categoryFilter={categoryFilter}
+                    setCategoryFilter={setCategoryFilter}
+                    subCategoryFilter={subCategoryFilter}
+                    setSubCategoryFilter={setSubCategoryFilter}
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    categories={categories}
+                    subCategories={subCategories}
                 />
+
+                <div className="mt-8 relative">
+                    <div className="flex items-center justify-between mb-4 px-2">
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-4 bg-blue-600 rounded-full"></div>
+                            <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Product Catalog</span>
+                        </div>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                            {filteredProducts.length} of {products.length} Products
+                        </div>
+                    </div>
+                    
+                    <div className="bg-[#fcfdfe] rounded-[2rem] border border-slate-100 overflow-hidden">
+                        <InventoryTable
+                            products={filteredProducts}
+                            onUpdateStock={openStockModal}
+                            branchId={staffUser?.branchId?._id || staffUser?.branchId}
+                            loading={loading}
+                        />
+                    </div>
+                </div>
             </div>
 
             <StockUpdateModal
@@ -147,6 +158,11 @@ const StaffInventory = () => {
                 onUpdate={handleUpdateStock}
                 product={selectedProduct}
             />
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

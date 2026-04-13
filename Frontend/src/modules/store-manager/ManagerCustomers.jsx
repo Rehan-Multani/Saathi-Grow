@@ -1,207 +1,250 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, InputGroup, Badge, Dropdown, Spinner } from 'react-bootstrap';
-import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Upload, Download, Send } from 'lucide-react';
+import { Search, MoreHorizontal, Mail, Phone, MapPin, Eye, Ban, CheckCircle, Send, Loader2, ChevronDown, UserSquare, ShieldAlert, ShoppingBag, CreditCard } from 'lucide-react';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import * as customerApi from '../../common/api/customerManagementApi';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
-// We reuse modals from admin but they might need prop adaptation if they use context
 import CustomerDetailsModal from '../../common/components/customers/CustomerDetailsModal';
 import SendMessageModal from '../../common/components/customers/SendMessageModal';
 
 const ManagerCustomers = () => {
-  const { managerUser } = useStoreManagerAuth();
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [messageType, setMessageType] = useState('Message');
+    const { managerUser } = useStoreManagerAuth();
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showMessageModal, setShowMessageModal] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [messageType, setMessageType] = useState('Message');
+    const [activeDropdown, setActiveDropdown] = useState(null);
 
-  const fetchCustomers = async () => {
-    try {
-      setLoading(true);
-      const token = managerUser?.token;
-      if (!token) return;
-      const data = await customerApi.getAllCustomers(token);
-      setCustomers(data);
-    } catch (error) {
-      toast.error(error.message || 'Failed to fetch customer list');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchCustomers = async () => {
+        try {
+            setLoading(true);
+            const token = managerUser?.token;
+            if (!token) return;
+            const data = await customerApi.getAllCustomers(token);
+            setCustomers(data);
+        } catch (error) {
+            toast.error(error.message || 'Failed to fetch customer list');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    fetchCustomers();
-  }, [managerUser?.token]);
+    useEffect(() => {
+        fetchCustomers();
+    }, [managerUser?.token]);
 
-  const filtered = customers.filter(c =>
-    (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.phone || '').includes(searchTerm)
-  );
-
-  const handleViewProfile = (customer) => {
-    setSelectedCustomer(customer);
-    setShowDetailsModal(true);
-  };
-
-  const handleSendMessage = (customer, type) => {
-    setSelectedCustomer(customer);
-    setMessageType(type);
-    setShowMessageModal(true);
-  };
-
-  const handleStatusToggle = async (customer) => {
-    try {
-      const formData = new FormData();
-      formData.append('isActive', !customer.isActive);
-      await customerApi.updateCustomer(managerUser.token, customer._id, formData);
-      setCustomers(prev => prev.map(c => c._id === customer._id ? { ...c, isActive: !c.isActive } : c));
-      toast.success(`User ${customer.isActive ? 'blocked' : 'unblocked'} successfully`);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center min-h-[400px]">
-        <Spinner animation="border" variant="primary" />
-      </div>
+    const filtered = customers.filter(c =>
+        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.phone || '').includes(searchTerm)
     );
-  }
 
-  return (
-    <div className="p-4">
-      <Card className="border-0 shadow-sm mb-4 rounded-xl overflow-hidden">
-        <Card.Body className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 bg-white p-4">
-          <div className="d-flex align-items-center gap-3">
-            <h4 className="mb-0 fw-bold text-slate-800">Branch Customers</h4>
-            <Badge bg="primary-subtle" className="text-primary rounded-pill px-3 py-1">Branch-ID: {managerUser?.branchId}</Badge>
-          </div>
-          <div className="d-flex gap-2 flex-grow-1 justify-content-md-end w-100 w-md-auto">
-            <InputGroup style={{ maxWidth: '400px' }} className="shadow-none">
-              <InputGroup.Text className="bg-light border-0"><Search size={18} className="text-muted" /></InputGroup.Text>
-              <Form.Control
-                placeholder="Search by name, email or mobile..."
-                className="bg-light border-0 shadow-none ps-0"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </InputGroup>
-          </div>
-        </Card.Body>
-      </Card>
+    const toggleDropdown = (id) => {
+        if (activeDropdown === id) setActiveDropdown(null);
+        else setActiveDropdown(id);
+    };
 
-      <Card className="border-0 shadow-sm rounded-xl overflow-hidden">
-        <Card.Body className="p-0">
-          <div className="table-responsive">
-            <Table hover responsive className="mb-0 align-middle">
-              <thead className="bg-slate-50 text-slate-500 small text-uppercase fw-bold">
-                <tr>
-                  <th className="ps-4 border-0 py-3">Customer Profile</th>
-                  <th className="border-0 py-3">Contact Information</th>
-                  <th className="border-0 py-3">Location</th>
-                  <th className="border-0 py-3 text-center">Wallet</th>
-                  <th className="border-0 py-3 text-center">Status</th>
-                  <th className="border-0 py-3 text-end pe-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="border-top-0">
-                {filtered.length > 0 ? filtered.map((c, idx) => (
-                  <tr key={idx} className="border-bottom">
-                    <td className="ps-4">
-                      <div className="d-flex align-items-center gap-3">
-                        {c.profileImage ? (
-                          <img src={c.profileImage} alt={c.name} className="rounded-circle" style={{ width: 42, height: 42, objectFit: 'cover' }} />
-                        ) : (
-                          <div className="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-lg" style={{ width: 42, height: 42 }}>
-                            {c.name ? c.name.charAt(0).toUpperCase() : 'U'}
-                          </div>
-                        )}
-                        <div>
-                          <div className="fw-bold text-slate-700">{c.name || 'Anonymous User'}</div>
-                          <div className="text-slate-400 small" style={{ fontSize: '10px' }}>ID: {c._id}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-column gap-1">
-                        <div className="d-flex align-items-center gap-2 text-slate-600 small font-medium">
-                          <Mail size={14} className="text-slate-400" /> {c.email || 'No email'}
-                        </div>
-                        <div className="d-flex align-items-center gap-2 text-slate-600 small font-medium">
-                          <Phone size={14} className="text-slate-400" /> +91 {c.phone}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center gap-2 text-slate-500 small">
-                        <MapPin size={14} className="text-slate-300" /> {c.addresses?.[0]?.city || 'Location N/A'}
-                      </div>
-                    </td>
-                    <td className="text-center">
-                      <div className="fw-bold text-slate-700">₹{c.walletBalance || 0}</div>
-                    </td>
-                    <td className="text-center">
-                      <Badge bg={c.isActive ? 'success' : 'danger'} className="rounded-pill px-3 py-1 fw-normal" style={{ fontSize: '11px' }}>
-                        {c.isActive ? 'Active' : 'Restricted'}
-                      </Badge>
-                    </td>
-                    <td className="text-end pe-4">
-                      <Dropdown align="end">
-                        <Dropdown.Toggle variant="light" className="btn-sm border-0 shadow-none no-caret p-1">
-                          <MoreHorizontal size={18} className="text-slate-400" />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu className="border-0 shadow-lg rounded-xl">
-                          <Dropdown.Item className="d-flex align-items-center gap-2 py-2" onClick={() => handleViewProfile(c)}>
-                            <Eye size={16} className="text-primary" /> View Profile
-                          </Dropdown.Item>
-                          <Dropdown.Item className="d-flex align-items-center gap-2 py-2" onClick={() => handleSendMessage(c, 'Email')}>
-                            <Mail size={16} className="text-info" /> Send Email
-                          </Dropdown.Item>
-                          <Dropdown.Item className="d-flex align-items-center gap-2 py-2" onClick={() => handleSendMessage(c, 'Message')}>
-                            <Send size={16} className="text-primary" /> SMS Alert
-                          </Dropdown.Item>
-                          <Dropdown.Divider />
-                          <Dropdown.Item onClick={() => handleStatusToggle(c)} className={c.isActive ? 'text-danger' : 'text-success'}>
-                            {c.isActive ? (
-                              <div className="d-flex align-items-center gap-2"><Ban size={16} /> Block Member</div>
+    const handleViewProfile = (customer) => {
+        setSelectedCustomer(customer);
+        setShowDetailsModal(true);
+        setActiveDropdown(null);
+    };
+
+    const handleSendMessage = (customer, type) => {
+        setSelectedCustomer(customer);
+        setMessageType(type);
+        setShowMessageModal(true);
+        setActiveDropdown(null);
+    };
+
+    const handleStatusToggle = async (customer) => {
+        setActiveDropdown(null);
+        try {
+            const formData = new FormData();
+            formData.append('isActive', !customer.isActive);
+            await customerApi.updateCustomer(managerUser.token, customer._id, formData);
+            setCustomers(prev => prev.map(c => c._id === customer._id ? { ...c, isActive: !c.isActive } : c));
+            toast.success(`User ${customer.isActive ? 'blocked' : 'unblocked'} successfully`);
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
+    return (
+        <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Customers</h1>
+                    <p className="text-sm text-slate-500 font-medium mt-1">List of customers in your store.</p>
+                </div>
+                <div className="px-4 py-2 bg-white border border-slate-200 rounded-xl flex items-center gap-2.5 shadow-sm">
+                    <UserSquare size={16} className="text-blue-600" />
+                    <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{managerUser?.role}: {managerUser?.branchId?.name || 'Store'}</span>
+                </div>
+            </div>
+
+            {/* List Container */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between bg-slate-50/50">
+                    <div className="relative w-full md:max-w-md group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Find by name, email or mobile..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium shadow-sm transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto min-h-[450px]">
+                    <table className="w-full text-left">
+                        <thead className="bg-white border-b border-slate-200">
+                            <tr>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Customer</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Contact Details</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Wallet Balance</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="6" className="py-20 text-center">
+                                        <Loader2 size={32} className="animate-spin text-blue-600 mx-auto" />
+                                        <p className="mt-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Loading customers...</p>
+                                    </td>
+                                </tr>
+                            ) : filtered.length > 0 ? (
+                                filtered.map((c, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50 transition-colors group">
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-4">
+                                                {c.profileImage ? (
+                                                    <img src={c.profileImage} alt={c.name} className="w-11 h-11 rounded-2xl object-cover shrink-0 border border-slate-200" />
+                                                ) : (
+                                                    <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-black text-sm border border-blue-100 uppercase">
+                                                        {c.name ? c.name.charAt(0) : 'U'}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors uppercase text-sm">{c.name || 'No Name'}</div>
+                                                    <div className="text-[10px] font-bold text-slate-400 mt-0.5 tracking-wider">ID: {c._id?.slice(-8)}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium mb-1">
+                                                <Mail size={14} className="text-slate-400 shrink-0" /> <span className="truncate max-w-[150px]">{c.email || 'No email'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase">
+                                                <Phone size={14} className="text-slate-300 shrink-0" /> +91 {c.phone}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-2 text-sm text-slate-700 font-medium">
+                                                <MapPin size={14} className="text-slate-400 shrink-0" /> <span className="truncate">{c.addresses?.[0]?.city || 'Location N/A'}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <div className="flex items-center justify-center gap-1.5">
+                                                <CreditCard size={12} className="text-slate-400" />
+                                                <span className="font-black text-slate-900">₹{c.walletBalance?.toLocaleString() || 0}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border inline-flex items-center gap-1.5 ${c.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                                <span className={`w-1 h-1 rounded-full ${c.isActive ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></span>
+                                                {c.isActive ? 'Active' : 'Blocked'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-right relative">
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => toggleDropdown(c._id)}
+                                                    className={`px-3 py-1.5 border rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 shadow-sm ${activeDropdown === c._id ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400'}`}
+                                                >
+                                                    Actions <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === c._id ? 'rotate-180' : ''}`} />
+                                                </button>
+
+                                                {activeDropdown === c._id && (
+                                                    <>
+                                                        <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
+                                                        <div className="absolute right-0 mt-10 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                                                            <div className="p-1">
+                                                                <button 
+                                                                    onClick={() => handleViewProfile(c)} 
+                                                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-3 rounded-xl transition-colors"
+                                                                >
+                                                                    <Eye size={16} /> View Profile
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleSendMessage(c, 'Email')} 
+                                                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-3 rounded-xl transition-colors"
+                                                                >
+                                                                    <Mail size={16} /> Email Customer
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleSendMessage(c, 'Message')} 
+                                                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-3 rounded-xl transition-colors"
+                                                                >
+                                                                    <Send size={16} /> Message Customer
+                                                                </button>
+                                                                <div className="border-t border-slate-100 my-1"></div>
+                                                                  <button 
+                                                                    onClick={() => handleStatusToggle(c)} 
+                                                                    className={`w-full text-left px-4 py-2.5 text-xs font-bold flex items-center gap-3 rounded-xl transition-colors ${c.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}`}
+                                                                >
+                                                                    {c.isActive ? (
+                                                                        <><ShieldAlert size={16} /> Block</>
+                                                                    ) : (
+                                                                        <><CheckCircle size={16} /> Unblock</>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
                             ) : (
-                              <div className="d-flex align-items-center gap-2"><CheckCircle size={16} /> Unblock Member</div>
+                                <tr>
+                                    <td colSpan="6" className="py-24 text-center">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                            <ShoppingBag size={24} className="text-slate-200" />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No local customers registered</p>
+                                    </td>
+                                </tr>
                             )}
-                          </Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan="6" className="text-center py-5 text-slate-400">No customers found for your branch yet.</td></tr>
-                )}
-              </tbody>
-            </Table>
-          </div>
-        </Card.Body>
-      </Card>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-      <CustomerDetailsModal
-        show={showDetailsModal}
-        onHide={() => setShowDetailsModal(false)}
-        customer={selectedCustomer}
-      />
+            <CustomerDetailsModal
+                show={showDetailsModal}
+                onHide={() => setShowDetailsModal(false)}
+                customer={selectedCustomer}
+            />
 
-      <SendMessageModal
-        show={showMessageModal}
-        onHide={() => setShowMessageModal(false)}
-        customer={selectedCustomer}
-        type={messageType}
-      />
-    </div>
-  );
+            <SendMessageModal
+                show={showMessageModal}
+                onHide={() => setShowMessageModal(false)}
+                customer={selectedCustomer}
+                type={messageType}
+            />
+        </div>
+    );
 };
 
 export default ManagerCustomers;

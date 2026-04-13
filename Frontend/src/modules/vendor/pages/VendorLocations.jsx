@@ -104,15 +104,15 @@ const VendorLocations = () => {
   const occupied = filtered.filter(l => l.assignedProduct);
 
   return (
-    <div className="bg-white min-h-screen p-4">
-      <div className="max-w-2xl mx-auto space-y-5">
+    <div className="p-6 max-w-5xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center gap-3">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <MapPin size={18} className="text-green-600" /> Store Locations
-            </h2>
-            <p className="text-[11px] text-gray-400 font-medium mt-0.5">Manage your store shelf & rack locations</p>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+              <MapPin size={24} className="text-[#0c831f]" /> Store Locations
+            </h1>
+            <p className="text-sm text-gray-500 font-medium mt-1">Manage your store shelf & rack locations</p>
           </div>
           <div className="flex gap-2">
             <button onClick={() => fetchLocations(true)} disabled={refreshing}

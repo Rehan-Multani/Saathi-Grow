@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
-import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, ChevronLeft, ChevronRight, Package, Calendar, User, MoreHorizontal, XCircle, Inbox } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
@@ -19,7 +18,9 @@ const StaffOrders = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+    const [activeRow, setActiveRow] = useState(null);
+    const itemsPerPage = 10;
 
     const fetchOrders = async () => {
         try {
@@ -27,74 +28,22 @@ const StaffOrders = () => {
             const data = await getAllOrdersAdmin({ limit: 1000 });
             setOrders(data.orders || []);
         } catch (error) {
-            console.error('Failed to fetch orders:', error);
-            Swal.fire('Error', 'Could not load orders queue', 'error');
+            console.error('Failed to load orders:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, statusFilter]);
+    useEffect(() => { fetchOrders(); }, []);
+    useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter]);
 
     const handleStatusUpdate = async (id, newStatus) => {
         try {
             await updateOrderStatus(id, newStatus);
-            Swal.fire({
-                title: 'Success!',
-                text: `Order status updated to ${newStatus}`,
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            });
-            fetchOrders(); // Refresh list
+            fetchOrders();
+            setActiveRow(null);
         } catch (error) {
-            Swal.fire('Error', error.response?.data?.message || 'Update failed', 'error');
-        }
-    };
-
-    const handleMarkAllPacked = () => {
-        const processingOrders = orders.filter(o => o.status === 'confirmed' || o.status === 'preparing');
-
-        if (processingOrders.length === 0) {
-            Swal.fire({
-                title: 'No Orders to Pack',
-                text: 'There are no active orders currently ready for packing.',
-                icon: 'info',
-            });
-            return;
-        }
-
-        Swal.fire({
-            title: `Mark ${processingOrders.length} Orders as Packed?`,
-            text: "This will update all preparing/confirmed orders to 'Packed' status.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            confirmButtonText: 'Yes, Mark All'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // In real app, we might need a bulk update endpoint, but let's do sequential for now if needed or just inform user
-                Swal.fire('Tip', 'Bulk update is coming soon. Please update individually for now.', 'info');
-            }
-        });
-    };
-
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'pending': return 'warning';
-            case 'confirmed': return 'info';
-            case 'preparing': return 'info';
-            case 'ready_for_pickup': return 'primary';
-            case 'out_for_delivery': return 'primary';
-            case 'delivered': return 'success';
-            case 'cancelled': return 'danger';
-            default: return 'secondary';
+            Swal.fire({ title: 'Error', text: 'Update failed', icon: 'error', customClass: { popup: 'rounded-[1.5rem]' } });
         }
     };
 
@@ -109,181 +58,254 @@ const StaffOrders = () => {
         const matchesSearch =
             orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customerName.toLowerCase().includes(searchTerm.toLowerCase());
-
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
-
         return matchesSearch && matchesStatus;
     });
 
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
     const paginatedOrders = filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
+            case 'confirmed': return 'bg-blue-50 text-blue-600 border-blue-100';
+            case 'preparing': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
+            case 'ready_for_pickup': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            case 'out_for_delivery': return 'bg-sky-50 text-sky-600 border-sky-100';
+            case 'delivered': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            case 'cancelled': return 'bg-red-50 text-red-600 border-red-100';
+            default: return 'bg-slate-50 text-slate-500 border-slate-100';
+        }
+    };
+
+    const formatStatusName = (status) => {
+        if (status === 'preparing') return 'Packing';
+        if (status === 'ready_for_pickup') return 'Ready';
+        if (status === 'out_for_delivery') return 'Transit';
+        return status.replace(/_/g, ' ');
+    };
+
     return (
-        <div>
+        <div className="space-y-6 animate-in fade-in duration-500 overflow-x-hidden text-left">
             <OrderDetailsModal show={showModal} onHide={() => setShowModal(false)} order={selectedOrder} />
-            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-                <h4 className="fw-bold mb-0">Active Orders Queue</h4>
-                <Button
-                    variant="primary"
-                    size="sm"
-                    className="d-flex align-items-center gap-2 align-self-start align-self-sm-auto shadow-sm"
-                    onClick={handleMarkAllPacked}
-                >
-                    <CheckCircle size={16} /> Mark All Packed
-                </Button>
+            
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left px-1">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic font-black leading-none text-left">Order Feed</h1>
+                    <div className="flex items-center gap-3 font-black text-left">
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-100 italic font-black text-left">
+                            <Box size={12} className="animate-pulse" /> Live Tracking
+                        </div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5 font-black text-left">{filteredOrders.length} active orders</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                   <button onClick={fetchOrders} className="w-12 h-12 bg-white border border-slate-200 text-slate-400 hover:text-blue-600 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0 font-black">
+                        <RefreshCcw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                    <div className="relative group/search flex-1 md:w-80 text-left">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-blue-500 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Find ID or user..."
+                            className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-14 pr-6 text-sm font-bold text-slate-700 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-400/10 placeholder:text-slate-300 transition-all shadow-sm font-black lowercase tracking-widest text-left"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="relative">
+                        <button 
+                            onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all border shadow-sm shrink-0 font-black ${statusFilter !== 'All' ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-500/20' : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'}`}
+                        >
+                            <Filter size={18} />
+                        </button>
+                        {showStatusDropdown && (
+                            <>
+                                <div className="fixed inset-0 z-[60]" onClick={() => setShowStatusDropdown(false)}></div>
+                                <div className="absolute right-0 mt-3 w-64 bg-white rounded-[2rem] shadow-2xl border border-slate-100 z-[70] p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-right text-left">
+                                    <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic leading-none font-black text-left">Status Map</h3>
+                                    <div className="grid grid-cols-1 gap-1">
+                                        {['All', 'pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'delivered', 'cancelled'].map(status => (
+                                            <button
+                                                key={status}
+                                                onClick={() => { setStatusFilter(status); setShowStatusDropdown(false); }}
+                                                className={`w-full text-left px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all italic leading-none font-black ${statusFilter === status ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+                                            >
+                                                {formatStatusName(status)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-white py-3 border-0">
-                    <div className="d-flex flex-column flex-sm-row gap-2">
-                        <InputGroup className="w-100 w-sm-auto">
-                            <InputGroup.Text className="bg-light border-end-0">
-                                <Search size={16} className="text-muted" />
-                            </InputGroup.Text>
-                            <Form.Control
-                                placeholder="Search Order ID or Customer..."
-                                className="bg-light border-start-0 shadow-none"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </InputGroup>
-                        <Dropdown align="end" onSelect={(key) => setStatusFilter(key)}>
-                            <Dropdown.Toggle variant="outline-light" className="text-dark border d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto shadow-none">
-                                <Filter size={16} /> {statusFilter === 'All' ? 'Filter Status' : statusFilter.replace(/_/g, ' ').toUpperCase()}
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                <Dropdown.Item eventKey="All" active={statusFilter === 'All'}>All Orders</Dropdown.Item>
-                                <Dropdown.Divider />
-                                <Dropdown.Item eventKey="pending" active={statusFilter === 'pending'}>Pending</Dropdown.Item>
-                                <Dropdown.Item eventKey="confirmed" active={statusFilter === 'confirmed'}>Confirmed</Dropdown.Item>
-                                <Dropdown.Item eventKey="preparing" active={statusFilter === 'preparing'}>Preparing</Dropdown.Item>
-                                <Dropdown.Item eventKey="ready_for_pickup" active={statusFilter === 'ready_for_pickup'}>Ready for Pickup</Dropdown.Item>
-                                <Dropdown.Item eventKey="out_for_delivery" active={statusFilter === 'out_for_delivery'}>Out for Delivery</Dropdown.Item>
-                                <Dropdown.Item eventKey="delivered" active={statusFilter === 'delivered'}>Delivered (Historic)</Dropdown.Item>
-                                <Dropdown.Item eventKey="cancelled" active={statusFilter === 'cancelled'}>Cancelled</Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </div>
-                </Card.Header>
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th className="ps-4 py-3 border-0">Order ID</th>
-                                <th className="py-3 border-0">Customer</th>
-                                <th className="py-3 border-0">Items</th>
-                                <th className="py-3 border-0">Total</th>
-                                <th className="py-3 border-0">Status</th>
-                                <th className="py-3 border-0 text-end pe-4">Actions</th>
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden min-h-[600px] flex flex-col group p-4 lg:p-6 text-left">
+                <div className="overflow-x-auto custom-scrollbar flex-1">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50">
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-left font-black">Order Info</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-left font-black">User</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 font-black">Amount</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 font-black">Stage</th>
+                                <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 font-black">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="6" className="text-center py-5">
-                                        <Spinner animation="border" variant="primary" size="sm" className="me-2" />
-                                        Loading orders...
-                                    </td>
-                                </tr>
+                        <tbody className="divide-y divide-slate-50 border-0">
+                            {loading && orders.length === 0 ? (
+                                Array( 10 ).fill(0).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="5" className="px-8 py-6"><div className="h-14 bg-slate-50 rounded-2xl w-full"></div></td>
+                                    </tr>
+                                ))
                             ) : paginatedOrders.length > 0 ? (
                                 paginatedOrders.map((order) => (
-                                    <tr key={order._id}>
-                                        <td className="ps-4 fw-bold">{order.orderId}</td>
-                                        <td>
-                                            <div>{order.user?.name || 'Guest'}</div>
-                                            <small className="text-muted">{new Date(order.createdAt).toLocaleString()}</small>
+                                    <tr key={order._id} className="group/row hover:bg-blue-50/20 transition-all duration-300">
+                                        <td className="px-8 py-5 text-left border-0">
+                                            <div className="flex items-center gap-4 text-left">
+                                                <div className="w-12 h-12 bg-slate-950 text-white rounded-xl flex items-center justify-center font-black text-xs shadow-xl group-hover/row:scale-110 group-hover/row:bg-blue-600 transition-all duration-500 shrink-0 italic">
+                                                   {order.orderId?.slice(-3).toUpperCase() || 'ORD'}
+                                                </div>
+                                                <div className="text-left font-black">
+                                                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono italic font-black leading-none text-left">Ref: #{order.orderId?.slice(-8) || '0000'}</div>
+                                                   <div className="flex items-center gap-1.5 mt-2.5 font-black text-left leading-none font-black italic">
+                                                      <Package size={12} className="text-blue-500 shrink-0" />
+                                                      <span className="text-[9px] font-black text-slate-500 uppercase italic font-black">{order.items?.length || 0} Assets</span>
+                                                   </div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td>
-                                            <Badge bg="light" text="dark" className="border">
-                                                {order.items?.length || 0} Items
-                                            </Badge>
+                                        <td className="px-8 py-5 text-left border-0">
+                                            <div className="flex items-center gap-4 text-left">
+                                               <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm overflow-hidden flex items-center justify-center shrink-0">
+                                                  {order.user?.profileImage ? <img src={order.user.profileImage} className="w-full h-full object-cover" alt="p" /> : <User size={16} className="text-slate-300" />}
+                                               </div>
+                                               <div className="text-left font-black">
+                                                  <div className="text-[12px] font-black text-slate-900 uppercase group-hover/row:text-blue-600 transition-colors italic font-black leading-none text-left">{order.user?.name || 'Guest User'}</div>
+                                                  <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-2.5 leading-none italic font-black text-left">
+                                                     <Calendar size={11} className="shrink-0" /> {new Date(order.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                  </div>
+                                               </div>
+                                            </div>
                                         </td>
-                                        <td className="fw-bold">₹{order.totalAmount}</td>
-                                        <td>
-                                            <Badge bg={getStatusBadge(order.status)} className="rounded-pill px-3 fw-normal uppercase">
-                                                {order.status.replace(/_/g, ' ')}
-                                            </Badge>
+                                        <td className="px-8 py-5 text-center border-0">
+                                            <span className="text-sm font-black text-slate-900 italic font-black tracking-tight leading-none">₹{order.totalAmount?.toLocaleString()}</span>
                                         </td>
-                                        <td className="text-end pe-4">
-                                            <div className="d-flex justify-content-end gap-2">
-                                                <Dropdown>
-                                                    <Dropdown.Toggle variant="light" size="sm" className="btn-icon-soft border-0 shadow-sm d-flex align-items-center gap-1">
-                                                        Manage
-                                                    </Dropdown.Toggle>
-                                                    <Dropdown.Menu className="shadow-sm border-0">
-                                                        <Dropdown.Item onClick={() => handleViewOrder(order)} className="d-flex align-items-center gap-2">
-                                                            <Eye size={16} /> View Details
-                                                        </Dropdown.Item>
-                                                        {order.status !== 'cancelled' && order.status !== 'delivered' && order.status !== 'returned' && (
-                                                            <>
-                                                                <Dropdown.Divider />
-                                                                {['pending', 'confirmed'].includes(order.status) && (
-                                                                    <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'preparing')}>Mark Preparing</Dropdown.Item>
-                                                                )}
-                                                                {order.status === 'preparing' && (
-                                                                    <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'ready_for_pickup')}>Ready for Pickup</Dropdown.Item>
-                                                                )}
-                                                                <Dropdown.Divider />
-                                                                <Dropdown.Item className="text-danger" onClick={() => handleStatusUpdate(order._id, 'cancelled')}>Cancel Order</Dropdown.Item>
-                                                            </>
-                                                        )}
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
+                                        <td className="px-8 py-5 text-center border-0">
+                                            <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border transition-all shadow-sm italic font-black leading-none inline-block ${getStatusStyle(order.status)}`}>
+                                                {formatStatusName(order.status)}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 text-right border-0 relative">
+                                            <div className="flex justify-end gap-2 text-left">
+                                                <button 
+                                                    onClick={() => handleViewOrder(order)}
+                                                    className="w-10 h-10 rounded-xl bg-white text-slate-400 hover:text-blue-600 border border-slate-200 flex items-center justify-center transition-all shadow-sm active:scale-95 group/btn shrink-0 font-black"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+                                                
+                                                <div className="relative shrink-0">
+                                                    <button 
+                                                        onClick={() => setActiveRow(activeRow === order._id ? null : order._id)}
+                                                        className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all shadow-sm active:scale-95 font-black ${activeRow === order._id ? 'bg-slate-950 text-white border-slate-950 shadow-xl shadow-slate-950/20 font-black' : 'bg-white text-slate-400 border border-slate-200 hover:text-slate-950'}`}
+                                                    >
+                                                        <MoreHorizontal size={18} />
+                                                    </button>
+                                                    
+                                                    {activeRow === order._id && (
+                                                        <>
+                                                            <div className="fixed inset-0 z-50 px-1" onClick={() => setActiveRow(null)}></div>
+                                                            <div className="absolute right-0 top-full mt-3 w-48 bg-white border border-slate-100 rounded-[1.5rem] shadow-3xl p-3 z-50 animate-in fade-in zoom-in-95 duration-200 text-left">
+                                                                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-left px-3 py-2 border-b border-slate-50 mb-2 italic leading-none font-black text-left">Actions</h3>
+                                                                <div className="grid grid-cols-1 gap-1">
+                                                                    {['pending', 'confirmed'].includes(order.status) && (
+                                                                        <button onClick={() => handleStatusUpdate(order._id, 'preparing')} className="w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase text-blue-600 hover:bg-blue-50 transition-all flex items-center gap-3 italic font-black">
+                                                                            <RefreshCcw size={14} className="animate-spin-slow" /> Pack
+                                                                        </button>
+                                                                    )}
+                                                                    {order.status === 'preparing' && (
+                                                                        <button onClick={() => handleStatusUpdate(order._id, 'ready_for_pickup')} className="w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-3 italic font-black">
+                                                                            <CheckCircle size={14} /> Complete
+                                                                        </button>
+                                                                    )}
+                                                                    {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                                                                         <button onClick={() => handleStatusUpdate(order._id, 'cancelled')} className="w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase text-red-500 hover:bg-red-50 transition-all flex items-center gap-3 italic font-black text-left">
+                                                                            <XCircle size={14} /> Void
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-5 text-muted">
-                                        No active orders found matching the filter.
+                                    <td colSpan="5" className="py-32 text-center border-0">
+                                        <div className="flex flex-col items-center justify-center text-center mx-auto">
+                                            <div className="w-24 h-24 bg-slate-50 text-slate-100 rounded-[3rem] flex items-center justify-center mb-6 border border-slate-100 shadow-inner">
+                                                <Inbox size={40} strokeWidth={1.5} />
+                                            </div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 italic font-black">No Orders In Feed</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
-                    </Table>
-                </Card.Body>
-                {filteredOrders.length > 0 && (
-                    <Card.Footer className="bg-white border-top-0 py-3 px-4">
-                        <div className="d-flex justify-content-between align-items-center">
-                            <div className="text-muted small">
-                                Showing <span className="fw-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, filteredOrders.length)}</span> to <span className="fw-bold">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> of <span className="fw-bold">{filteredOrders.length}</span> orders
-                            </div>
-                            <div className="d-flex gap-2">
-                                <Button 
-                                    variant="light" 
-                                    size="sm" 
-                                    disabled={currentPage === 1}
-                                    onClick={() => setCurrentPage(prev => prev - 1)}
-                                    className="border shadow-sm px-3"
-                                >
-                                    <ChevronLeft size={16} />
-                                </Button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                    <Button
-                                        key={page}
-                                        variant={currentPage === page ? "primary" : "light"}
-                                        size="sm"
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`border shadow-sm px-3 ${currentPage === page ? 'text-white' : ''}`}
-                                    >
-                                        {page}
-                                    </Button>
-                                ))}
-                                <Button 
-                                    variant="light" 
-                                    size="sm" 
-                                    disabled={currentPage === totalPages}
-                                    onClick={() => setCurrentPage(prev => prev + 1)}
-                                    className="border shadow-sm px-3"
-                                >
-                                    <ChevronRight size={16} />
-                                </Button>
-                            </div>
+                    </table>
+                </div>
+
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                    <div className="px-8 py-8 border-t border-slate-50 bg-slate-50/10 flex flex-col sm:flex-row justify-between items-center gap-6">
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap italic font-black text-left">
+                            Showing <span className="text-slate-900 font-black">{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</span> of {filteredOrders.length} active
                         </div>
-                    </Card.Footer>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+                            <button 
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                className="px-5 py-3 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all disabled:opacity-20 shadow-sm shrink-0 italic font-black"
+                            >
+                                Prev
+                            </button>
+                            <div className="flex items-center gap-1.5 mx-2 shrink-0">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                    <button
+                                        key={p}
+                                        onClick={() => setCurrentPage(p)}
+                                        className={`min-w-[40px] h-10 rounded-xl text-[11px] font-black transition-all shadow-sm font-black ${currentPage === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200'}`}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
+                            <button 
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-5 py-3 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all disabled:opacity-20 shadow-sm shrink-0 italic font-black"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
                 )}
-            </Card>
+            </div>
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+                .animate-spin-slow { animation: spin 3s linear infinite; }
+            `}} />
         </div>
     );
 };

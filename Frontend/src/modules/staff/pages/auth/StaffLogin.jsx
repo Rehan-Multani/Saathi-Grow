@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStaffAuth } from '../../context/StaffAuthContext';
-import { UserCheck, Eye, EyeOff } from 'lucide-react';
-import { Card, Form, Button, Alert, Container, Row, Col, InputGroup } from 'react-bootstrap';
+import { Eye, EyeOff, Lock, Mail, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import logo from '../../../../assets/logo_fav.png';
 
 const StaffLogin = () => {
     const [email, setEmail] = useState('');
@@ -17,7 +17,6 @@ const StaffLogin = () => {
         e.preventDefault();
         setError('');
 
-        // Basic password validation
         if (password.length < 6) {
             setError('Password must be at least 6 characters long.');
             return;
@@ -36,71 +35,112 @@ const StaffLogin = () => {
     };
 
     return (
-        <div className="min-h-screen bg-light d-flex align-items-center justify-content-center py-5">
-            <Container>
-                <Row className="justify-content-center">
-                    <Col md={6} lg={4}>
-                        <div className="text-center mb-4">
-                            <div className="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '64px', height: '64px' }}>
-                                <UserCheck size={32} />
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 font-sans selection:bg-blue-100 selection:text-blue-900 animate-in fade-in duration-500">
+            {/* Background elements */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 opacity-30">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/20 blur-[120px] rounded-full"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-400/20 blur-[120px] rounded-full"></div>
+            </div>
+
+            <div className="w-full max-w-[440px] space-y-8">
+                <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-200/60 overflow-hidden p-8 lg:p-12 relative group">
+                    {/* Header Branding */}
+                    <div className="text-center space-y-6 mb-10">
+                        <div className="flex justify-center">
+                            <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center shadow-2xl transition-transform duration-500 p-3">
+                                <img src={logo} className="w-full h-full object-contain brightness-0 invert" alt="Saathi-Grow" />
                             </div>
-                            <h3 className="fw-bold text-dark">Staff Portal</h3>
-                            <p className="text-muted">Sign in to access your dashboard</p>
                         </div>
-                        <Card className="border-0 shadow-sm rounded-lg">
-                            <Card.Body className="p-4">
-                                {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
-                                <Form onSubmit={handleSubmit}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="fw-bold small text-uppercase">Email Address</Form.Label>
-                                        <Form.Control
-                                            type="email"
-                                            placeholder="name@example.com"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required
-                                            size="lg"
-                                            className="bg-light border-0 text-dark"
-                                        />
-                                    </Form.Group>
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="fw-bold small text-uppercase">Password</Form.Label>
-                                        <InputGroup size="lg">
-                                            <Form.Control
-                                                type={showPassword ? "text" : "password"}
-                                                placeholder="••••••••"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                required
-                                                className="bg-light border-0 text-dark"
-                                            />
-                                            <Button 
-                                                variant="light" 
-                                                className="bg-light border-0 text-dark"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                type="button"
-                                            >
-                                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                            </Button>
-                                        </InputGroup>
-                                    </Form.Group>
-                                    <Button variant="primary" type="submit" size="lg" className="w-100 fw-bold shadow-sm" disabled={loading}>
-                                        {loading ? 'Signing in...' : 'Sign In'}
-                                    </Button>
-                                </Form>
-                                <div className="mt-4 text-center">
-                                    <small className="text-muted">
-                                        Forgot password? Contact your System Administrator.
-                                    </small>
-                                </div>
-                            </Card.Body>
-                            <Card.Footer className="bg-white border-top-0 py-3 text-center">
-                                <small className="text-muted">Demo: staff@sathigro.com / staff123</small>
-                            </Card.Footer>
-                        </Card>
-                    </Col>
-                </Row>
-            </Container>
+                        <div className="space-y-2">
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Staff Portal</h2>
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Officer Login</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="py-3 px-4 bg-red-50 text-red-600 text-[11px] rounded-2xl border border-red-100 text-center font-black uppercase tracking-wider animate-shake">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                <Mail size={12} className="text-blue-500" /> Email Address
+                            </label>
+                            <input
+                                type="email"
+                                required
+                                className="block w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all text-sm"
+                                placeholder="name@saathigrow.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                <Lock size={12} className="text-blue-500" /> Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    className="block w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all text-sm"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-1 pr-4 flex items-center text-slate-300 hover:text-blue-600 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full relative group/btn h-14 bg-slate-900 text-white rounded-2xl overflow-hidden transition-all hover:bg-slate-800 active:scale-95 disabled:opacity-75 disabled:pointer-events-none mt-4 shadow-xl shadow-slate-200"
+                        >
+                            <div className="absolute inset-x-0 bottom-0 h-1 bg-blue-600 transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-500 origin-left"></div>
+                            {loading ? (
+                                <Loader2 size={18} className="animate-spin mx-auto" />
+                            ) : (
+                                <span className="flex items-center justify-center gap-3 font-black text-xs uppercase tracking-widest">
+                                    Login <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                                </span>
+                            )}
+                        </button>
+                    </form>
+                    
+                    <div className="mt-8 text-center pt-6 border-t border-slate-50">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Forgot password?</p>
+                        <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase">Contact System Admin</p>
+                    </div>
+                </div>
+
+                <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center gap-2 text-blue-600">
+                        <ShieldCheck size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Secure Staff Access</span>
+                    </div>
+                </div>
+            </div>
+            <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-4px); }
+                    75% { transform: translateX(4px); }
+                }
+                .animate-shake { animation: shake 0.4s ease-in-out 0s 2; }
+            `}} />
         </div>
     );
 };

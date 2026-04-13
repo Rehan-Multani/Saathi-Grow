@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal, Button, Form, Row, Col, Image } from 'react-bootstrap';
 import { Save, Camera, X } from 'lucide-react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { getCategories } from '../../../../common/api/categoryApi';
@@ -102,125 +101,136 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
     onSave(data);
   };
 
+  if (!show) return null;
+
   return (
-    <Modal show={show} onHide={onHide} centered size="lg" className="brand-edit-modal font-sans">
-      <Modal.Header closeButton className="border-0 pb-0">
-        <Modal.Title className="fw-bold text-lg text-[#0c831f]">Edit Brand Details</Modal.Title>
-      </Modal.Header>
-      <Modal.Body className="pt-4 px-4 pb-4">
-        <Form onSubmit={handleSubmit}>
-          <Row>
-            <Col md={4} className="text-center mb-4 mb-md-0">
-              <div className="position-relative d-inline-block">
-                <div
-                  className="bg-light rounded border d-flex align-items-center justify-content-center overflow-hidden mb-3"
-                  style={{ width: '150px', height: '150px' }}
-                >
-                  {logoPreview ? (
-                    <Image src={logoPreview} className="w-100 h-100 object-fit-contain" />
-                  ) : (
-                    <div className="text-muted small">No Logo</div>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  className="position-absolute bottom-0 end-0 rounded-circle p-2 shadow border-0"
-                  style={{ backgroundColor: '#0c831f' }}
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  <Camera size={16} />
-                </Button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="d-none"
-                  accept="image/*"
-                  onChange={handleLogoChange}
-                />
-              </div>
-              <p className="text-muted text-[10px] mt-2 font-medium">Update Brand Logo</p>
-            </Col>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Edit Brand Details</h2>
+          <button onClick={onHide} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+            <X size={20} />
+          </button>
+        </div>
 
-            <Col md={8}>
-              <Row>
-                <Col md={6} className="mb-3">
-                  <Form.Label className="small fw-bold text-gray-500 text-[10px] grayscale uppercase">Brand Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="bg-light border-0 py-2.5 text-xs font-semibold"
-                    required
-                  />
-                </Col>
-                <Col md={6} className="mb-3">
-                  <Form.Label className="small fw-bold text-gray-500 text-[10px] grayscale uppercase">Category</Form.Label>
-                  <Form.Select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="bg-light border-0 py-2.5 text-xs font-semibold"
-                    required
+        <div className="p-6 overflow-y-auto">
+          <form onSubmit={handleSubmit} id="editBrandForm">
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Logo Section */}
+              <div className="w-full md:w-48 shrink-0 flex flex-col items-center">
+                <div className="relative inline-block mb-3">
+                  <div className="w-36 h-36 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Preview" className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-xs font-bold text-gray-400">No Logo</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute -bottom-2 -right-2 p-2.5 bg-[#0c831f] text-white rounded-xl shadow-lg border-2 border-white hover:bg-[#0a6b19] transition-colors"
                   >
-                    <option value="">Select Category</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat.name}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Col>
-              </Row>
-
-              <div className="mb-3">
-                <Form.Label className="small fw-bold text-gray-500 text-[10px] grayscale uppercase">Website</Form.Label>
-                <Form.Control
-                  type="url"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleChange}
-                  className="bg-light border-0 py-2.5 text-xs font-semibold"
-                />
+                    <Camera size={18} />
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                  />
+                </div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center">Update Logo</p>
               </div>
 
-              <div className="mb-3">
-                <Form.Label className="small fw-bold text-gray-500 text-[10px] grayscale uppercase">Description</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="bg-light border-0 py-2.5 text-xs font-semibold"
-                />
-              </div>
+              {/* Form Fields */}
+              <div className="flex-1 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Brand Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Category</label>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      required
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((cat) => (
+                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-              <div className="mb-3">
-                <Form.Label className="small fw-bold text-gray-500 text-[10px] grayscale uppercase">Status</Form.Label>
-                <Form.Select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="bg-light border-0 py-2.5 text-xs font-semibold shadow-none"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </Form.Select>
-              </div>
-            </Col>
-          </Row>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Website</label>
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
+                  />
+                </div>
 
-          <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-            <Button variant="light" onClick={onHide} className="px-4 py-2 text-secondary font-bold text-xs">
-              Cancel
-            </Button>
-            <Button type="submit" className="px-5 py-2 font-bold text-xs d-flex align-items-center gap-2 border-0" style={{ backgroundColor: '#0c831f' }}>
-              <Save size={16} /> Save Changes
-            </Button>
-          </div>
-        </Form>
-      </Modal.Body>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Description</label>
+                  <textarea
+                    rows={3}
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Status</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:bg-white focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div className="p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onHide}
+            className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="editBrandForm"
+            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#0c831f] hover:bg-[#0a6b19] transition-colors flex items-center gap-2 shadow-sm"
+          >
+            <Save size={18} /> Save Changes
+          </button>
+        </div>
+      </div>
 
       <ImageCropperModal
         show={showCropper}
@@ -229,7 +239,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
         onCropComplete={handleCropComplete}
         aspect={1}
       />
-    </Modal>
+    </div>
   );
 };
 

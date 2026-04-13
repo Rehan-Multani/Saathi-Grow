@@ -1,187 +1,255 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Badge, Button, Form, InputGroup, Dropdown, Spinner } from 'react-bootstrap';
-import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, DollarSign } from 'lucide-react';
+import { Search, Filter, Eye, Box, Truck, CheckCircle, RefreshCcw, DollarSign, Loader2, ChevronDown, Check, XCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import Swal from 'sweetalert2';
 import OrderDetailsModal from '../../common/components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, updateOrderStatus } from '../../common/api/orderApi';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 
 const ManagerOrders = () => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [showModal, setShowModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [showModal, setShowModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [activeDropdown, setActiveDropdown] = useState(null);
 
-  const { managerUser } = useStoreManagerAuth();
+    const { managerUser } = useStoreManagerAuth();
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const data = await getAllOrdersAdmin({ limit: 1000 });
-      setOrders(data.orders || []);
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
-      Swal.fire('Error', 'Could not load branch orders', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const data = await getAllOrdersAdmin({ limit: 1000 });
+            setOrders(data.orders || []);
+        } catch (error) {
+            console.error('Failed to fetch orders:', error);
+            Swal.fire('Error', 'Could not load branch orders', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+    useEffect(() => {
+        fetchOrders();
+    }, []);
 
-  const handleStatusUpdate = async (id, newStatus) => {
-    try {
-      await updateOrderStatus(id, newStatus);
-      Swal.fire({
-        title: 'Success!',
-        text: `Order status updated to ${newStatus}`,
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false
-      });
-      fetchOrders();
-    } catch (error) {
-      Swal.fire('Error', error.response?.data?.message || 'Update failed', 'error');
-    }
-  };
+    const handleStatusUpdate = async (id, newStatus) => {
+        setActiveDropdown(null);
+        try {
+            await updateOrderStatus(id, newStatus);
+            Swal.fire({
+                title: 'Status Updated',
+                text: `Order status changed to ${newStatus.replace(/_/g, ' ')}`,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                confirmButtonColor: '#2563eb'
+            });
+            fetchOrders();
+        } catch (error) {
+            Swal.fire('Error', error.response?.data?.message || 'Update failed', 'error');
+        }
+    };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pending': return 'warning';
-      case 'confirmed': return 'info';
-      case 'preparing': return 'info';
-      case 'ready_for_pickup': return 'primary';
-      case 'out_for_delivery': return 'primary';
-      case 'delivered': return 'success';
-      case 'cancelled': return 'danger';
-      case 'returned': return 'dark';
-      default: return 'secondary';
-    }
-  };
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200';
+            case 'confirmed': return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'preparing': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+            case 'ready_for_pickup': return 'bg-purple-50 text-purple-700 border-purple-200';
+            case 'out_for_delivery': return 'bg-teal-50 text-teal-700 border-teal-200';
+            case 'delivered': return 'bg-green-50 text-green-700 border-green-200';
+            case 'cancelled': return 'bg-red-50 text-red-700 border-red-200';
+            case 'returned': return 'bg-slate-100 text-slate-700 border-slate-300';
+            default: return 'bg-slate-50 text-slate-600 border-slate-200';
+        }
+    };
 
-  const filteredOrders = Array.isArray(orders)
-    ? orders.filter(order => {
-      const orderId = order.orderId || order._id;
-      const customerName = order.user?.name || 'Guest';
-      return (orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customerName.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (statusFilter === 'All' || order.status === statusFilter);
-    })
-    : [];
+    const toggleDropdown = (id) => {
+        if (activeDropdown === id) setActiveDropdown(null);
+        else setActiveDropdown(id);
+    };
 
-  return (
-    <div className="p-4">
-      <OrderDetailsModal show={showModal} onHide={() => setShowModal(false)} order={selectedOrder} />
+    const filteredOrders = Array.isArray(orders)
+        ? orders.filter(order => {
+            const orderId = order.orderId || order._id;
+            const customerName = order.user?.name || 'Guest';
+            return (orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                customerName.toLowerCase().includes(searchTerm.toLowerCase())) &&
+                (statusFilter === 'All' || order.status === statusFilter);
+        })
+        : [];
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="fw-bold mb-1">Branch Orders Management</h4>
-          <p className="text-muted small">Managing orders for: <strong>{managerUser?.branchId?.name || 'Assigned Branch'}</strong></p>
-        </div>
-        <Button variant="outline-primary" size="sm" onClick={fetchOrders} disabled={loading}>
-          <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
-        </Button>
-      </div>
+    return (
+        <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+            <OrderDetailsModal show={showModal} onHide={() => setShowModal(false)} order={selectedOrder} />
 
-      <Card className="border-0 shadow-sm rounded-xl overflow-hidden">
-        <Card.Header className="bg-white py-3 border-0">
-          <div className="d-flex flex-column flex-md-row gap-3">
-            <InputGroup className="flex-grow-1">
-              <InputGroup.Text className="bg-light border-0"><Search size={18} /></InputGroup.Text>
-              <Form.Control
-                placeholder="Search by Order ID or Customer..."
-                className="bg-light border-0 shadow-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </InputGroup>
-            <Dropdown onSelect={(k) => setStatusFilter(k)}>
-              <Dropdown.Toggle variant="light" className="border-0 shadow-none d-flex align-items-center gap-2">
-                <Filter size={18} /> {statusFilter === 'All' ? 'All Status' : statusFilter.toUpperCase()}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item eventKey="All">All Status</Dropdown.Item>
-                <Dropdown.Item eventKey="pending">Pending</Dropdown.Item>
-                <Dropdown.Item eventKey="confirmed">Confirmed</Dropdown.Item>
-                <Dropdown.Item eventKey="preparing">Preparing</Dropdown.Item>
-                <Dropdown.Item eventKey="ready_for_pickup">Ready for Pickup</Dropdown.Item>
-                <Dropdown.Item eventKey="out_for_delivery">Out for Delivery</Dropdown.Item>
-                <Dropdown.Item eventKey="delivered">Delivered</Dropdown.Item>
-                <Dropdown.Item eventKey="cancelled">Cancelled</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </div>
-        </Card.Header>
-        <Card.Body className="p-0">
-          <div className="table-responsive">
-            <Table hover className="align-middle mb-0">
-              <thead className="bg-light text-muted small uppercase">
-                <tr>
-                  <th className="ps-4">Order ID</th>
-                  <th>Customer</th>
-                  <th>Items</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                  <th className="text-end pe-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan="6" className="text-center py-5"><Spinner animation="border" size="sm" /></td></tr>
-                ) : filteredOrders.map(order => (
-                  <tr key={order._id}>
-                    <td className="ps-4 fw-bold text-primary">{order.orderId}</td>
-                    <td>
-                      <div className="fw-semibold">{order.user?.name || 'Guest'}</div>
-                      <div className="text-muted x-small">{new Date(order.createdAt).toLocaleDateString()}</div>
-                    </td>
-                    <td>{order.items?.length || 0}</td>
-                    <td className="fw-bold">?{order.totalAmount}</td>
-                    <td>
-                      <Badge bg={getStatusBadge(order.status)} className="rounded-pill px-3">
-                        {order.status.replace(/_/g, ' ')}
-                      </Badge>
-                    </td>
-                    <td className="text-end pe-4">
-                      <div className="d-flex justify-content-end gap-2">
-                        <Dropdown>
-                          <Dropdown.Toggle variant="light" size="sm" className="btn-icon-soft border-0 shadow-sm d-flex align-items-center gap-1">
-                            Manage
-                          </Dropdown.Toggle>
-                          <Dropdown.Menu className="shadow-sm border-0">
-                            <Dropdown.Item onClick={() => { setSelectedOrder(order); setShowModal(true); }} className="d-flex align-items-center gap-2">
-                              <Eye size={16} /> View Details
-                            </Dropdown.Item>
-                            {order.status !== 'cancelled' && order.status !== 'delivered' && order.status !== 'returned' && (
-                              <>
-                                <Dropdown.Divider />
-                                {['pending', 'confirmed'].includes(order.status) && (
-                                  <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'preparing')}>Mark Preparing</Dropdown.Item>
-                                )}
-                                {order.status === 'preparing' && (
-                                  <Dropdown.Item onClick={() => handleStatusUpdate(order._id, 'ready_for_pickup')}>Ready for Pickup</Dropdown.Item>
-                                )}
-                                <Dropdown.Divider />
-                                <Dropdown.Item className="text-danger" onClick={() => handleStatusUpdate(order._id, 'cancelled')}>Cancel Order</Dropdown.Item>
-                              </>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Manage Orders</h1>
+                    <p className="text-sm text-slate-500 font-medium mt-1">Branch: <span className="font-bold text-blue-600 truncate">{managerUser?.branchId?.name || 'Assigned Branch'}</span></p>
+                </div>
+                <button 
+                    onClick={fetchOrders} 
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                >
+                    <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} /> Refresh List
+                </button>
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex flex-col lg:flex-row gap-4 justify-between bg-slate-50/50">
+                    <div className="relative w-full lg:max-w-md group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by Order ID or Customer..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium transition-all shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <select 
+                                className="appearance-none w-full md:w-56 bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-10 text-xs outline-none focus:border-blue-400 font-bold text-slate-600 cursor-pointer shadow-sm transition-all"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="All">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="preparing">Preparing</option>
+                                <option value="ready_for_pickup">Ready for Pickup</option>
+                                <option value="out_for_delivery">Out for Delivery</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto min-h-[450px]">
+                    <table className="w-full text-left">
+                        <thead className="bg-white border-b border-slate-200">
+                            <tr>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Order ID</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Customer Details</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Items</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Total Amount</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-20">
+                                        <Loader2 size={32} className="animate-spin text-blue-600 mx-auto" />
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-4">Loading Orders...</p>
+                                    </td>
+                                </tr>
+                            ) : filteredOrders.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="text-center py-24">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                            <ShoppingBag size={24} className="text-slate-300" />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No matching orders found</p>
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredOrders.map(order => (
+                                    <tr key={order._id} className="hover:bg-slate-50 transition-colors group">
+                                        <td className="px-6 py-5 text-center">
+                                            <span className="font-bold text-blue-600 text-sm">#{order.orderId?.slice(-6) || '...'}</span>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors uppercase">{order.user?.name || 'Guest'}</div>
+                                            <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5 tracking-wider">{new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <span className="text-sm font-bold text-slate-700 px-2 py-0.5 bg-slate-100 rounded-lg">{order.items?.length || 0}</span>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className="text-base font-black text-slate-900">₹{order.totalAmount.toLocaleString()}</span>
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border tracking-wider uppercase inline-flex items-center gap-1.5 ${getStatusStyle(order.status)}`}>
+                                                <span className="w-1 h-1 rounded-full bg-current opacity-70"></span>
+                                                {order.status.replace(/_/g, ' ')}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-right relative">
+                                            <div className="flex items-center justify-end gap-2.5">
+                                                <button 
+                                                    onClick={() => { setSelectedOrder(order); setShowModal(true); }}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white border border-slate-200 bg-white rounded-xl transition-all shadow-sm active:scale-95"
+                                                    title="View Details"
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+                                                
+                                                <div className="relative">
+                                                    <button 
+                                                        onClick={() => toggleDropdown(order._id)}
+                                                        className={`px-4 py-2 border rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 shadow-sm ${activeDropdown === order._id ? 'bg-slate-900 border-slate-900 text-white shadow-slate-200' : 'bg-white border-slate-200 text-slate-700 hover:border-blue-400'}`}
+                                                    >
+                                                        Manage <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === order._id ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                    
+                                                    {activeDropdown === order._id && (
+                                                        <>
+                                                            <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
+                                                            <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                                                                <div className="p-2 border-b border-slate-50 bg-slate-50 flex items-center justify-between">
+                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase px-2">Update Status</span>
+                                                                    <RefreshCcw size={10} className="text-slate-300" />
+                                                                </div>
+                                                                <div className="p-1">
+                                                                    {order.status !== 'cancelled' && order.status !== 'delivered' && order.status !== 'returned' ? (
+                                                                        <>
+                                                                            {['pending', 'confirmed'].includes(order.status) && (
+                                                                                <button onClick={() => handleStatusUpdate(order._id, 'preparing')} className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 rounded-xl transition-colors">
+                                                                                    <Box size={14} /> Mark as Preparing
+                                                                                </button>
+                                                                            )}
+                                                                            {order.status === 'preparing' && (
+                                                                                <button onClick={() => handleStatusUpdate(order._id, 'ready_for_pickup')} className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-green-600 flex items-center gap-2 rounded-xl transition-colors">
+                                                                                    <CheckCircle size={14} /> Ready for Pickup
+                                                                                </button>
+                                                                            )}
+                                                                            <div className="border-t border-slate-100 my-1"></div>
+                                                                            <button onClick={() => handleStatusUpdate(order._id, 'cancelled')} className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2 rounded-xl transition-colors">
+                                                                                <XCircle size={14} /> Cancel Order
+                                                                            </button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <div className="px-4 py-4 text-center">
+                                                                            <RefreshCcw size={16} className="mx-auto text-slate-200 mb-2" />
+                                                                            <p className="text-[10px] text-slate-400 font-bold uppercase">No Manual Actions</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
                             )}
-                          </Dropdown.Menu>
-                        </Dropdown>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        </Card.Body>
-      </Card>
-    </div>
-  );
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default ManagerOrders;

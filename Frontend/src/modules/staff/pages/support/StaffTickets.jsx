@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Badge, Button, Modal, Form, Spinner } from 'react-bootstrap';
-import { MessageSquare, Send, ArrowUpRight, CheckCircle, Search, Filter, Loader2, Package, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, Send, ArrowUpRight, CheckCircle, Search, Filter, Loader2, Package, User, ChevronLeft, ChevronRight, AlertCircle, X, Camera, Paperclip, ClipboardList, Inbox, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useStaffAuth } from '../../context/StaffAuthContext';
 import * as complaintApi from '../../../../common/api/complaintApi';
 import { toast } from 'react-toastify';
@@ -21,41 +20,27 @@ const StaffTickets = () => {
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [recommendRefund, setRecommendRefund] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 10;
 
     const loadComplaints = async () => {
         try {
             setIsLoading(true);
             const res = await complaintApi.getAllComplaintsForAdmin(token);
-            if (res.success) {
-                setComplaints(res.complaints);
-            }
+            if (res.success) setComplaints(res.complaints);
         } catch (error) {
-            toast.error('Failed to load tickets');
+            toast.error('Failed to load');
         } finally {
             setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        if (token) loadComplaints();
-    }, [token]);
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, filterStatus]);
+    useEffect(() => { if (token) loadComplaints(); }, [token]);
+    useEffect(() => { setCurrentPage(1); }, [searchQuery, filterStatus]);
 
     const handleAction = async (action) => {
         try {
             setIsActionLoading(true);
-            if (action === 'ESCALATE') {
-                const res = await complaintApi.escalateToStore(token, selectedTicket.ticketId, adminNotes);
-                if (res.success) {
-                    toast.success('Escalated to Store');
-                    loadComplaints();
-                    setShowDetailModal(false);
-                }
-            } else if (action === 'RESOLVE') {
+            if (action === 'RESOLVE') {
                 const res = await complaintApi.resolveComplaintByStore(token, {
                     ticketId: selectedTicket.ticketId,
                     storeNotes: adminNotes || resolutionText,
@@ -63,13 +48,13 @@ const StaffTickets = () => {
                     storeRecommendedRefund: recommendRefund
                 });
                 if (res.success) {
-                    toast.success('Resolution & Recommendation sent to Admin');
+                    toast.success('Done');
                     loadComplaints();
                     setShowDetailModal(false);
                 }
             }
         } catch (error) {
-            toast.error('Operation failed');
+            toast.error('Failed');
         } finally {
             setIsActionLoading(false);
             setAdminNotes('');
@@ -77,12 +62,12 @@ const StaffTickets = () => {
     };
 
     const statusMap = {
-        'OPEN': { bg: 'warning', label: 'PENDING TRIAGE' },
-        'ESCALATED_TO_STORE': { bg: 'danger', label: 'IN STORE RESOLUTION' },
-        'STORE_RESPONDED': { bg: 'primary', label: 'STORE RESPONDED' },
-        'RESOLVED': { bg: 'success', label: 'RESOLVED' },
-        'CLOSED': { bg: 'secondary', label: 'CLOSED' },
-        'OVERDUE': { bg: 'danger', label: 'SLA BREACH' }
+        'OPEN': { style: 'bg-amber-50 text-amber-600 border-amber-100', label: 'PENDING' },
+        'ESCALATED_TO_STORE': { style: 'bg-blue-50 text-blue-600 border-blue-100', label: 'IN REVIEW' },
+        'STORE_RESPONDED': { style: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'RESPONDED' },
+        'RESOLVED': { style: 'bg-emerald-50 text-emerald-700 border-emerald-100', label: 'SOLVED' },
+        'CLOSED': { style: 'bg-slate-100 text-slate-500 border-slate-200', label: 'CLOSED' },
+        'OVERDUE': { style: 'bg-red-50 text-red-600 border-red-100', label: 'DELAYED' }
     };
 
     const filtered = complaints.filter(c => {
@@ -97,19 +82,28 @@ const StaffTickets = () => {
     const paginatedTickets = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
-        <div className="p-1">
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                <div>
-                    <h4 className="fw-black text-[#0c831f] mb-0 uppercase tracking-tight">Support Intake Center</h4>
-                    <p className="small text-muted font-bold uppercase tracking-wider">Triage and manage customer grievances</p>
+        <div className="space-y-6 animate-in fade-in duration-500 overflow-x-hidden text-left">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left px-1">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic leading-none font-black text-left">Triage Hub</h1>
+                    <div className="flex items-center gap-3 font-black text-left">
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-100 italic leading-none font-black text-left">
+                            <MessageSquare size={12} className="animate-pulse" /> Live Tickets
+                        </div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5 font-black text-left">{filtered.length} requests</p>
+                    </div>
                 </div>
-                <div className="d-flex gap-2">
-                    <div className="position-relative">
-                        <Search className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" size={16} />
-                        <Form.Control
-                            size="sm"
-                            className="ps-5 border-0 bg-light rounded-3 font-bold"
-                            placeholder="SEARCH TICKETS..."
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button onClick={loadComplaints} className="w-12 h-12 bg-white border border-slate-200 text-slate-400 hover:text-blue-600 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0 font-black">
+                        <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
+                    </button>
+                    <div className="relative group w-full md:w-96 text-left">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Find by ID or user..."
+                            className="w-full pl-14 pr-6 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none text-sm font-bold transition-all focus:ring-4 focus:ring-blue-400/10 focus:border-blue-400 shadow-sm font-black lowercase tracking-widest text-left"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -117,258 +111,265 @@ const StaffTickets = () => {
                 </div>
             </div>
 
-            <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
-                <Card.Body className="p-0">
-                    <Table hover responsive className="mb-0 align-middle">
-                        <thead className="bg-[#0c831f]/5 text-muted small text-uppercase fw-black tracking-widest">
-                            <tr>
-                                <th className="ps-4 py-3 border-0">Ticket ID</th>
-                                <th className="py-3 border-0">Context</th>
-                                <th className="py-3 border-0">Priority</th>
-                                <th className="py-3 border-0 text-center">Status</th>
-                                <th className="py-3 border-0 text-end pe-4">Action</th>
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden min-h-[500px] flex flex-col group p-4 lg:p-6 text-left font-black">
+                <div className="overflow-x-auto custom-scrollbar flex-1">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50">
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-left font-black">Ticket Info</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-left font-black">Details</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 font-black">Priority</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 font-black">Stage</th>
+                                <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 font-black">Review</th>
                             </tr>
                         </thead>
-                        <tbody className="font-bold border-0">
-                            {isLoading ? (
-                                <tr><td colSpan="5" className="text-center py-5"><Spinner animation="border" variant="success" /></td></tr>
+                        <tbody className="divide-y divide-slate-50 border-0">
+                            {isLoading && complaints.length === 0 ? (
+                                Array( 10 ).fill(0).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan="5" className="px-8 py-6"><div className="h-14 bg-slate-50 rounded-2xl w-full"></div></td>
+                                    </tr>
+                                ))
+                            ) : paginatedTickets.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="py-32 text-center border-0">
+                                        <div className="flex flex-col items-center justify-center text-center mx-auto">
+                                            <div className="w-24 h-24 bg-slate-50 rounded-[3rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 text-slate-200 shadow-inner">
+                                                <Inbox size={40} />
+                                            </div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 italic font-black">All Clear</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             ) : paginatedTickets.map((c) => (
-                                <tr key={c.ticketId} className="border-bottom border-light">
-                                    <td className="ps-4">
-                                        <div className="text-[#0c831f] xs fw-black uppercase">{c.ticketId}</div>
-                                        <div className="xs text-muted">Order #{c.order?.orderId?.slice(-6)}</div>
+                                <tr key={c.ticketId} className="group/row hover:bg-blue-50/20 transition-all duration-300">
+                                    <td className="px-8 py-5 text-left border-0">
+                                        <div className="flex items-center gap-4 text-left font-black italic">
+                                            <div className="w-12 h-12 rounded-xl bg-slate-950 text-white flex items-center justify-center group-hover/row:scale-110 group-hover/row:bg-blue-600 transition-all font-black duration-500 shrink-0 italic">
+                                                {c.ticketId?.slice(-3).toUpperCase() || 'TKT'}
+                                            </div>
+                                            <div className="text-left font-black font-black">
+                                                <p className="font-black text-slate-900 tracking-widest text-[11px] uppercase italic font-black leading-none text-left">Ref: #{c.ticketId?.slice(-8) || '000000'}</p>
+                                                <p className="text-[9px] text-slate-400 font-black mt-2.5 uppercase tracking-tighter italic font-black leading-none text-left font-black">Order: #{c.order?.orderId?.slice(-8) || 'N/A'}</p>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td>
-                                        <div className="small fw-black uppercase">{c.category}</div>
-                                        <div className="xs text-muted flex align-center gap-1"><UserIcon size={12} /> {c.user?.name}</div>
+                                    <td className="px-8 py-5 text-left border-0">
+                                        <div className="text-left font-black italic text-left">
+                                            <p className="font-black text-slate-900 text-[12px] uppercase italic font-black leading-none text-left truncate max-w-[150px] font-black">{c.category}</p>
+                                            <div className="flex items-center gap-2 mt-2.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none font-black text-left">
+                                                <User size={11} className="shrink-0" /> {c.user?.name || 'Guest User'}
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td>
-                                        <Badge bg={c.priority === 'High' ? 'danger' : 'warning'} className="xs border-0 px-2 py-1 uppercase tracking-tighter">
+                                    <td className="px-8 py-5 text-center border-0 font-black">
+                                        <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black border uppercase tracking-widest shadow-sm italic font-black leading-none inline-block ${c.priority === 'High' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                                             {c.priority}
-                                        </Badge>
+                                        </span>
                                     </td>
-                                    <td className="text-center">
-                                        <Badge bg={statusMap[c.status]?.bg} className="bg-opacity-10 text-dark border xs fw-black px-2 py-1 uppercase tracking-widest">
+                                    <td className="px-8 py-5 text-center border-0 font-black">
+                                        <span className={`px-4 py-2 rounded-xl text-[9px] font-black border uppercase tracking-widest shadow-sm italic font-black leading-none inline-block ${statusMap[c.status]?.style}`}>
                                             {statusMap[c.status]?.label}
-                                        </Badge>
+                                        </span>
                                     </td>
-                                    <td className="text-end pe-4">
-                                        <Button
-                                            variant="light"
-                                            size="sm"
-                                            className="fw-black xs uppercase tracking-widest text-[#0c831f] border-0"
-                                            onClick={() => {
-                                                setSelectedTicket(c);
-                                                setShowDetailModal(true);
-                                            }}
+                                    <td className="px-8 py-5 text-right border-0 relative font-black">
+                                        <button 
+                                            onClick={() => { setSelectedTicket(c); setShowDetailModal(true); }}
+                                            className="w-10 h-10 bg-white text-slate-400 hover:text-blue-600 rounded-xl border border-slate-200 hover:border-blue-400 transition-all shadow-sm active:scale-95 flex items-center justify-center ml-auto font-black"
                                         >
-                                            View & Manage
-                                        </Button>
+                                            <ArrowUpRight size={18} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                    </Table>
-                </Card.Body>
-                {filtered.length > 0 && (
-                    <Card.Footer className="bg-white border-top-0 py-3 px-4">
-                        <div className="d-flex justify-content-between align-items-center">
-                            <div className="text-muted small font-bold uppercase tracking-wider">
-                                Showing <span className="text-[#0c831f]">{Math.min((currentPage - 1) * itemsPerPage + 1, filtered.length)}</span> to <span className="text-[#0c831f]">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="text-[#0c831f]">{filtered.length}</span> tickets
-                            </div>
-                            <div className="d-flex gap-2">
-                                <Button 
-                                    variant="light" 
-                                    size="sm" 
-                                    disabled={currentPage === 1}
-                                    onClick={() => setCurrentPage(prev => prev - 1)}
-                                    className="border-0 bg-light rounded-2 px-3 hover:bg-[#0c831f] hover:text-white transition-all shadow-none"
-                                >
-                                    <ChevronLeft size={16} />
-                                </Button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                    <Button
-                                        key={page}
-                                        variant={currentPage === page ? "success" : "light"}
-                                        size="sm"
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`border-0 rounded-2 px-3 font-black transition-all shadow-none ${currentPage === page ? 'bg-[#0c831f] text-white' : 'bg-light text-muted'}`}
+                    </table>
+                </div>
+
+                {!isLoading && totalPages > 1 && (
+                    <div className="px-8 py-8 bg-slate-50/10 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap italic font-black text-left">
+                            Showing <span className="text-slate-900 font-black font-black">{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of {filtered.length} tickets
+                        </p>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+                            <button 
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                className="px-5 py-3 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all disabled:opacity-20 shadow-sm shrink-0 italic font-black"
+                            >
+                                Prev
+                            </button>
+                            <div className="flex items-center gap-1.5 mx-2 shrink-0">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                    <button
+                                        key={p}
+                                        onClick={() => setCurrentPage(p)}
+                                        className={`min-w-[40px] h-10 rounded-xl text-[11px] font-black transition-all shadow-sm font-black ${currentPage === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200'}`}
                                     >
-                                        {page}
-                                    </Button>
+                                        {p}
+                                    </button>
                                 ))}
-                                <Button 
-                                    variant="light" 
-                                    size="sm" 
-                                    disabled={currentPage === totalPages}
-                                    onClick={() => setCurrentPage(prev => prev + 1)}
-                                    className="border-0 bg-light rounded-2 px-3 hover:bg-[#0c831f] hover:text-white transition-all shadow-none"
-                                >
-                                    <ChevronRight size={16} />
-                                </Button>
                             </div>
+                            <button 
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-5 py-3 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all disabled:opacity-20 shadow-sm shrink-0 italic font-black"
+                            >
+                                Next
+                            </button>
                         </div>
-                    </Card.Footer>
-                )}
-            </Card>
-
-            <Modal 
-                show={showDetailModal} 
-                onHide={() => setShowDetailModal(false)} 
-                centered 
-                size="lg"
-                contentClassName="border-0 rounded-[2rem] overflow-hidden shadow-2xl"
-            >
-                <Modal.Header className="bg-gradient-to-r from-[#0c831f] to-[#14a32a] p-4 border-0">
-                    <div className="d-flex justify-content-between align-items-center w-100 px-2">
-                        <div className="d-flex align-items-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                                <MessageSquare className="text-white" size={20} />
-                            </div>
-                            <div>
-                                <h5 className="mb-0 text-white font-black uppercase tracking-tight">Manage Ticket</h5>
-                                <div className="text-white/70 text-[10px] font-bold tracking-widest">{selectedTicket?.ticketId}</div>
-                            </div>
-                        </div>
-                        <button 
-                            onClick={() => setShowDetailModal(false)}
-                            className="w-8 h-8 rounded-full bg-black/10 text-white hover:bg-black/20 flex items-center justify-center transition-all border-0"
-                        >
-                            <Loader2 size={18} className={isActionLoading ? "animate-spin" : ""} />
-                        </button>
                     </div>
-                </Modal.Header>
-                <Modal.Body className="p-0 bg-slate-50/50">
-                    {selectedTicket && (
-                        <div className="row g-0">
-                            {/* Left Side: Details */}
-                            <div className="col-md-7 p-4 p-lg-5">
-                                <div className="space-y-6">
-                                    <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Original Complaint</label>
-                                        </div>
-                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-50 relative">
-                                            <p className="text-sm font-bold text-slate-700 leading-relaxed mb-0">"{selectedTicket.description}"</p>
-                                        </div>
+                )}
+            </div>
 
-                                        {selectedTicket.attachments && selectedTicket.attachments.length > 0 && (
-                                            <div className="mt-4">
-                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Attached Evidence</label>
-                                                <div className="d-flex gap-2 overflow-auto pb-2 scroll-hide">
-                                                    {selectedTicket.attachments.map((img, idx) => (
-                                                        <a key={idx} href={img} target="_blank" rel="noreferrer" className="group">
-                                                            <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
-                                                                <img src={img} alt="Evidence" className="w-100 h-100 object-cover" />
-                                                            </div>
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
+            {showDetailModal && selectedTicket && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 text-left">
+                    <div className="bg-white rounded-[3rem] max-w-5xl w-full shadow-3xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-slate-200 flex flex-col md:flex-row min-h-[500px] max-h-[90vh] text-left">
+                        <button 
+                            onClick={() => setShowDetailModal(false)} 
+                            className="absolute top-8 right-8 w-10 h-10 bg-slate-50 text-slate-400 hover:text-red-500 rounded-2xl flex items-center justify-center transition-all z-[110] font-black shadow-sm"
+                        >
+                            <X size={20} />
+                        </button>
 
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-4 ms-2">
-                                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resolution Thread</label>
-                                        </div>
-                                        <div className="ms-2 ps-4 border-l-2 border-slate-100 space-y-4">
-                                            {selectedTicket.resolutionThread?.length > 0 ? (
-                                                selectedTicket.resolutionThread.map((msg, idx) => (
-                                                    <div key={idx} className="relative mb-3 last:mb-0">
-                                                        <div className="absolute -left-[25px] top-1 w-2.5 h-2.5 bg-white border-2 border-slate-200 rounded-full" />
-                                                        <div className="bg-white p-3 rounded-2xl border border-slate-50 shadow-sm inline-block max-w-full">
-                                                            <div className="text-[9px] text-[#0c831f] font-black uppercase tracking-widest mb-1">{msg.senderName}</div>
-                                                            <div className="text-xs font-bold text-slate-600 leading-snug">{msg.message}</div>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-[11px] text-slate-400 font-bold italic py-2">No resolution updates yet.</div>
-                                            )}
-                                        </div>
-                                    </div>
+                        <div className="flex-1 p-8 lg:p-12 overflow-y-auto custom-scrollbar border-b md:border-b-0 md:border-r border-slate-50 text-left font-black italic">
+                            <div className="flex items-center gap-5 mb-10 text-left font-black italic font-black">
+                                <div className="p-4 bg-slate-950 rounded-2xl text-white shadow-xl italic font-black shrink-0">
+                                    <MessageSquare size={26} />
+                                </div>
+                                <div className="text-left font-black">
+                                    <h3 className="font-black text-slate-900 text-2xl tracking-tight uppercase leading-none italic font-black text-left">Support Review</h3>
+                                    <p className="text-[10px] text-blue-600 font-black uppercase tracking-[0.3em] mt-3 leading-none italic font-black text-left">TKT: #{selectedTicket.ticketId?.slice(-12) || '00000'}</p>
                                 </div>
                             </div>
 
-                            {/* Right Side: Actions */}
-                            <div className="col-md-5 bg-white border-l border-slate-50 p-4 p-lg-5">
-                                <div className="flex flex-col h-100">
-                                    <div className="mb-auto">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Internal Notes</label>
+                            <div className="space-y-8 text-left font-black">
+                                <div className="p-8 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 relative overflow-hidden group text-left font-black italic font-black">
+                                     <div className="absolute right-0 top-0 w-32 h-full bg-blue-200/10 blur-3xl pointer-events-none rounded-full font-black" />
+                                     <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2 italic leading-none font-black text-left">
+                                       <AlertCircle size={14} className="shrink-0" /> User Message
+                                    </p>
+                                    <p className="text-lg font-black text-slate-800 leading-relaxed italic font-black text-left font-black">"{selectedTicket.description}"</p>
+                                </div>
+
+                                {selectedTicket.attachments?.length > 0 && (
+                                     <div className="space-y-4 text-left font-black">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4 italic flex items-center gap-2 leading-none font-black text-left">
+                                           <Camera size={14} className="shrink-0 text-slate-300" /> Evidence Photos
+                                        </p>
+                                        <div className="flex flex-wrap gap-3 ml-2 text-left font-black font-black">
+                                            {selectedTicket.attachments.map((img, i) => (
+                                                <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 group hover:border-blue-600 transition-all shadow-sm shrink-0 text-left">
+                                                    <img src={img} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-125" alt="proof" />
+                                                    <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all font-black text-left font-black">
+                                                        <Search size={22} className="text-white drop-shadow-3xl font-black font-black" />
+                                                    </div>
+                                                </a>
+                                            ))}
                                         </div>
-                                        <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all focus-within:border-[#0c831f] focus-within:shadow-lg focus-within:shadow-[#0c831f]/5">
+                                    </div>
+                                )}
+
+                                <div className="space-y-4 text-left font-black">
+                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4 italic flex items-center gap-2 leading-none font-black text-left">
+                                        <MessageSquare size={14} className="shrink-0 text-slate-300" /> Thread Records
+                                    </p>
+                                    <div className="space-y-4 ml-2 text-left font-black font-black">
+                                        {selectedTicket.resolutionThread?.length > 0 ? (
+                                            selectedTicket.resolutionThread.map((msg, idx) => (
+                                                <div key={idx} className="flex gap-4 group/msg text-left font-black italic font-black">
+                                                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm font-black italic">
+                                                       <User size={16} className="text-slate-300" />
+                                                    </div>
+                                                    <div className="p-5 bg-white border border-slate-100 rounded-[1.8rem] shadow-sm flex-1 text-left font-black italic">
+                                                        <div className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-2 italic leading-none font-black text-left font-black">{msg.senderName}</div>
+                                                        <p className="text-xs font-bold text-slate-600 leading-normal italic font-black text-left">"{msg.message}"</p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="py-10 text-center border-2 border-dashed border-slate-50 rounded-[2.5rem] bg-slate-50/20 text-left">
+                                               <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic font-black leading-none text-center font-black">Empty Thread</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full md:w-96 p-8 lg:p-12 bg-slate-50/50 flex flex-col justify-between text-left border-l border-slate-100 font-black italic">
+                            <div className="space-y-8 flex-1 overflow-y-auto pr-1 custom-scrollbar text-left font-black">
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2 italic flex items-center gap-2 leading-none font-black text-left">
+                                       <ClipboardList size={14} className="shrink-0" /> Internal Logs
+                                    </label>
+                                    <textarea
+                                        rows={4}
+                                        className="w-full p-6 bg-white border border-slate-200 rounded-[2.5rem] text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-400/10 focus:border-blue-400 shadow-sm transition-all resize-none placeholder:text-slate-200 italic font-black text-left font-black"
+                                        placeholder="Internal team notes..."
+                                        value={adminNotes}
+                                        onChange={(e) => setAdminNotes(e.target.value)}
+                                    />
+                                </div>
+
+                                {['OPEN', 'ESCALATED_TO_STORE', 'OVERDUE'].includes(selectedTicket.status) && (
+                                     <div className="space-y-8 pt-2 text-left font-black">
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2 italic flex items-center gap-2 leading-none font-black text-left">
+                                               <CheckCircle size={14} /> Public Solution
+                                            </label>
                                             <textarea
                                                 rows={4}
-                                                className="w-100 bg-transparent border-0 text-sm font-bold text-slate-700 focus:outline-none resize-none"
-                                                placeholder="Add private notes for the store manager..."
-                                                value={adminNotes}
-                                                onChange={(e) => setAdminNotes(e.target.value)}
+                                                className="w-full p-6 bg-white border border-slate-200 rounded-[2.5rem] text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-400/10 focus:border-blue-400 shadow-sm transition-all resize-none placeholder:text-slate-200 italic font-black text-left font-black"
+                                                placeholder="Resolution for user..."
+                                                value={resolutionText}
+                                                onChange={(e) => setResolutionText(e.target.value)}
                                             />
                                         </div>
-                                    </div>
 
-                                    <div className="mt-8 space-y-3">
-                                        {['OPEN', 'ESCALATED_TO_STORE', 'OVERDUE'].includes(selectedTicket.status) && (
-                                            <div className="mt-4 space-y-4">
-                                                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-all focus-within:border-[#0c831f]">
-                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Resolution Response</label>
-                                                    <textarea
-                                                        rows={3}
-                                                        className="w-100 bg-transparent border-0 text-sm font-bold text-slate-700 focus:outline-none resize-none"
-                                                        placeholder="Describe how the issue was resolved..."
-                                                        value={resolutionText}
-                                                        onChange={(e) => setResolutionText(e.target.value)}
-                                                    />
+                                        {selectedTicket.order && (
+                                            <button 
+                                                onClick={() => setRecommendRefund(!recommendRefund)}
+                                                className={`flex items-center gap-4 p-5 rounded-[1.8rem] border transition-all w-full text-left font-black tracking-widest uppercase italic text-[10px] shadow-sm ${recommendRefund ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-xl shadow-amber-500/20' : 'bg-white border-slate-200 text-slate-400 hover:border-blue-300'}`}
+                                            >
+                                                <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all shrink-0 ${recommendRefund ? 'bg-amber-600 border-amber-600 text-white shadow-inner' : 'bg-slate-50 border-slate-200'}`}>
+                                                   {recommendRefund && <ShieldCheck size={14} />}
                                                 </div>
-
-                                                {selectedTicket.order && (
-                                                    <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-2xl border border-amber-100">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            id="staff-recommend-refund"
-                                                            checked={recommendRefund}
-                                                            onChange={(e) => setRecommendRefund(e.target.checked)}
-                                                            className="w-4 h-4 accent-[#0c831f]"
-                                                        />
-                                                        <label htmlFor="staff-recommend-refund" className="text-[10px] font-black text-amber-900 uppercase cursor-pointer">
-                                                            Recommend Refund (Requires Central Admin Approval)
-                                                        </label>
-                                                    </div>
-                                                )}
-
-                                                <Button
-                                                    variant="success"
-                                                    className="w-100 bg-gradient-to-r from-emerald-500 to-emerald-600 border-0 text-white font-black uppercase text-[11px] tracking-[0.15em] py-3.5 rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                                                    disabled={!resolutionText.trim() || isActionLoading}
-                                                    onClick={() => handleAction('RESOLVE')}
-                                                >
-                                                    {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
-                                                    Submit Resolution
-                                                </Button>
-                                            </div>
+                                                Request Refund Stream
+                                            </button>
                                         )}
-
-                                        <button 
-                                            onClick={() => setShowDetailModal(false)}
-                                            className="w-100 bg-slate-50 border-0 text-slate-400 font-black uppercase text-[10px] tracking-widest py-3 rounded-2xl hover:bg-slate-100 transition-all"
-                                        >
-                                            Dismiss View
-                                        </button>
                                     </div>
-                                </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-4 mt-10 text-left pt-8 border-t border-slate-100 font-black italic">
+                                {['OPEN', 'ESCALATED_TO_STORE', 'OVERDUE'].includes(selectedTicket.status) && (
+                                    <button
+                                        onClick={() => handleAction('RESOLVE')}
+                                        disabled={!resolutionText.trim() || isActionLoading}
+                                        className="w-full py-6 bg-blue-600 hover:bg-black text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-3xl shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-3 italic font-black"
+                                    >
+                                        {isActionLoading ? <Loader2 size={18} className="animate-spin text-white" /> : <>Resolve Now</>}
+                                    </button>
+                                )}
+                                <button 
+                                    onClick={() => setShowDetailModal(false)}
+                                    className="w-full py-5 bg-white text-slate-400 hover:text-slate-900 border border-slate-200 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all italic leading-none font-black shadow-sm"
+                                >
+                                    Cancel
+                                </button>
                             </div>
                         </div>
-                    )}
-                </Modal.Body>
-            </Modal>
+                    </div>
+                </div>
+            )}
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };
 
 export default StaffTickets;
-

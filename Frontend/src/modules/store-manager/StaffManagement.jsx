@@ -1,425 +1,415 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Badge, Button, Form, Modal, InputGroup, Spinner, ListGroup } from 'react-bootstrap';
-import { Search, UserPlus, Mail, Phone, Edit, Trash2, Key, Shield, Eye, CheckCircle, XCircle, Calendar, MapPin } from 'lucide-react';
+import { Search, UserPlus, Mail, Phone, Edit, Trash2, Shield, Eye, CheckCircle, Calendar, MapPin, X, Loader2, ShieldCheck, UserCheck } from 'lucide-react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import { API_BASE_URL } from '../../config/apiConfig';
 
 const StaffManagement = () => {
-  const { managerUser } = useStoreManagerAuth();
-  const currentUser = managerUser;
+    const { managerUser } = useStoreManagerAuth();
+    const currentUser = managerUser;
 
-  // Permissions and View logic
-  const isBranchManager = currentUser?.role === 'Branch Manager';
-  const hasPermission = isBranchManager;
-  const canPerformActions = isBranchManager; // Only Manager can Edit/Delete/Add
+    const isBranchManager = currentUser?.role === 'Branch Manager';
+    const hasPermission = isBranchManager;
+    const canPerformActions = isBranchManager;
 
-  const [staff, setStaff] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [editingStaff, setEditingStaff] = useState(null);
-  const [selectedStaff, setSelectedStaff] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
+    const [staff, setStaff] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
+    const [editingStaff, setEditingStaff] = useState(null);
+    const [selectedStaff, setSelectedStaff] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    permissions: []
-  });
-
-  const AVAILABLE_PERMISSIONS = [
-    { id: 'VIEW_ORDERS', label: 'View Orders List' },
-    { id: 'MANAGE_ORDERS', label: 'Manage/Change Order Status' },
-    { id: 'MANAGE_REFUNDS_RETURNS', label: 'Approve Refunds & Returns' },
-    { id: 'VIEW_PRODUCTS', label: 'View Products Catalog' },
-    { id: 'MANAGE_INVENTORY', label: 'Update Stock/Inventory' },
-    { id: 'VIEW_CUSTOMERS', label: 'View Customer Info' },
-    { id: 'MANAGE_POS_BILLING', label: 'Handle POS Billing & Terminal' }
-  ];
-
-  const fetchStaff = async () => {
-    try {
-      setLoading(true);
-      const token = currentUser?.token;
-      if (!token) return;
-
-      const { data } = await axios.get(`${API_BASE_URL}/admin/staff`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStaff(data);
-    } catch (error) {
-      console.error('Fetch staff error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (currentUser?.token) {
-      fetchStaff();
-    }
-  }, [currentUser?.token]);
-
-  const handlePermissionToggle = (perm) => {
-    setFormData(prev => ({
-      ...prev,
-      permissions: prev.permissions.includes(perm)
-        ? prev.permissions.filter(p => p !== perm)
-        : [...prev.permissions, perm]
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Password validation for new staff or password update
-    if (!editingStaff && formData.password.length < 8) {
-      Swal.fire('Error', 'Password must be at least 8 characters long.', 'error');
-      return;
-    }
-    if (editingStaff && formData.password && formData.password.length < 8) {
-      Swal.fire('Error', 'New password must be at least 8 characters long.', 'error');
-      return;
-    }
-
-    try {
-      const token = currentUser?.token;
-      if (editingStaff) {
-        await axios.put(`${API_BASE_URL}/admin/staff/${editingStaff._id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        Swal.fire('Updated!', 'Staff member updated successfully', 'success');
-      } else {
-        await axios.post(`${API_BASE_URL}/admin/staff`, { ...formData, role: 'Staff' }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        Swal.fire('Created!', 'New staff member added', 'success');
-      }
-      setShowModal(false);
-      fetchStaff();
-    } catch (error) {
-      Swal.fire('Error', error.response?.data?.message || 'Operation failed', 'error');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "This staff member will be permanently removed!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Yes, remove them'
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        permissions: []
     });
 
-    if (result.isConfirmed) {
-      try {
-        const token = currentUser?.token;
-        await axios.delete(`${API_BASE_URL}/admin/staff/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
+    const AVAILABLE_PERMISSIONS = [
+        { id: 'VIEW_ORDERS', label: 'View Orders' },
+        { id: 'MANAGE_ORDERS', label: 'Manage Orders' },
+        { id: 'MANAGE_REFUNDS_RETURNS', label: 'Manage Returns' },
+        { id: 'VIEW_PRODUCTS', label: 'View Products' },
+        { id: 'MANAGE_INVENTORY', label: 'Update Stock' },
+        { id: 'VIEW_CUSTOMERS', label: 'View Customers' },
+        { id: 'MANAGE_POS_BILLING', label: 'POS Billing' }
+    ];
+
+    const fetchStaff = async () => {
+        try {
+            setLoading(true);
+            const token = currentUser?.token;
+            if (!token) return;
+
+            const { data } = await axios.get(`${API_BASE_URL}/admin/staff`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setStaff(data);
+        } catch (error) {
+            console.error('Fetch error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (currentUser?.token) {
+            fetchStaff();
+        }
+    }, [currentUser?.token]);
+
+    const handlePermissionToggle = (perm) => {
+        setFormData(prev => ({
+            ...prev,
+            permissions: prev.permissions.includes(perm)
+                ? prev.permissions.filter(p => p !== perm)
+                : [...prev.permissions, perm]
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!editingStaff && formData.password.length < 8) {
+            Swal.fire('Error', 'Password must be at least 8 characters.', 'error');
+            return;
+        }
+        if (editingStaff && formData.password && formData.password.length < 8) {
+            Swal.fire('Error', 'Password must be at least 8 characters.', 'error');
+            return;
+        }
+
+        try {
+            const token = currentUser?.token;
+            if (editingStaff) {
+                await axios.put(`${API_BASE_URL}/admin/staff/${editingStaff._id}`, formData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                Swal.fire('Success', 'Staff member updated successfully.', 'success');
+            } else {
+                await axios.post(`${API_BASE_URL}/admin/staff`, { ...formData, role: 'Staff' }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                Swal.fire('Success', 'New staff member added.', 'success');
+            }
+            setShowModal(false);
+            fetchStaff();
+        } catch (error) {
+            Swal.fire('Error', error.response?.data?.message || 'Failed', 'error');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        const result = await Swal.fire({
+            title: 'Remove Staff?',
+            text: "This action will permanently remove this member from the branch.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Yes, Remove'
         });
-        Swal.fire('Deleted!', 'Staff member removed', 'success');
-        fetchStaff();
-      } catch (error) {
-        Swal.fire('Error', 'Failed to remove staff', 'error');
-      }
+
+        if (result.isConfirmed) {
+            try {
+                const token = currentUser?.token;
+                await axios.delete(`${API_BASE_URL}/admin/staff/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                Swal.fire('Removed!', 'Staff member has been removed.', 'success');
+                fetchStaff();
+            } catch (error) {
+                Swal.fire('Error', 'Delete failed', 'error');
+            }
+        }
+    };
+
+    const openEditModal = (member) => {
+        setEditingStaff(member);
+        setFormData({
+            name: member.name,
+            email: member.email,
+            phone: member.phone || '',
+            password: '',
+            permissions: member.permissions || []
+        });
+        setShowModal(true);
+    };
+
+    const filteredStaff = (Array.isArray(staff) ? staff : [])
+        .filter(s =>
+            (s?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (s?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+    if (!hasPermission) {
+        return (
+            <div className="p-6 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mb-6 border border-red-100 shadow-inner">
+                    <Shield size={40} />
+                </div>
+                <h1 className="text-2xl font-bold text-slate-800">Access Restricted</h1>
+                <p className="text-slate-500 mt-2 max-w-sm">Only branch managers are permitted to access staff management records.</p>
+            </div>
+        );
     }
-  };
 
-  const openEditModal = (member) => {
-    setEditingStaff(member);
-    setFormData({
-      name: member.name,
-      email: member.email,
-      phone: member.phone || '',
-      password: '',
-      permissions: member.permissions || []
-    });
-    setShowModal(true);
-  };
-
-  const openDetailsModal = (member) => {
-    setSelectedStaff(member);
-    setShowDetails(true);
-  };
-
-  // Filter list based on search term (Backend already handles branch scoping)
-  const filteredStaff = (Array.isArray(staff) ? staff : [])
-    .filter(s =>
-      (s?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-  if (!hasPermission) {
     return (
-      <div className="p-5 text-center">
-        <Shield size={48} className="text-danger mb-3" />
-        <h3>Access Denied</h3>
-        <p className="text-muted">You do not have the required permissions to manage staff.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="fw-bold mb-0 text-slate-800 text-start">Staff Management</h4>
-          <div className="text-muted small text-start">
-            {isStaff ? 'Viewing team members for your branch' : 'Manage team members for your branch'}
-          </div>
-        </div>
-        {canPerformActions && (
-          <Button variant="primary" onClick={() => { setEditingStaff(null); setFormData({ name: '', email: '', phone: '', password: '', permissions: [] }); setShowModal(true); }} className="rounded-pill px-4">
-            <UserPlus size={18} className="me-2" /> Add Staff
-          </Button>
-        )}
-      </div>
-
-      <Card className="border-0 shadow-sm rounded-xl overflow-hidden">
-        <Card.Header className="bg-white py-4 px-4 border-0">
-          <div className="d-flex justify-content-between align-items-center">
-            <InputGroup className="max-w-md shadow-none bg-light rounded-pill px-2">
-              <InputGroup.Text className="bg-transparent border-0"><Search size={18} className="text-muted" /></InputGroup.Text>
-              <Form.Control
-                placeholder="Search by name or email..."
-                className="bg-transparent border-0 shadow-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </InputGroup>
-            <Badge bg="primary-subtle" className="text-primary rounded-pill px-3 py-2 border border-primary-subtle">
-              Branch: {currentUser?.branchId?.name || currentUser?.branchId || 'Global'}
-            </Badge>
-          </div>
-        </Card.Header>
-        <Card.Body className="p-0">
-          <div className="table-responsive">
-            <Table hover className="align-middle mb-0 border-0">
-              <thead className="bg-slate-50 text-slate-500 small uppercase fw-bold">
-                <tr>
-                  <th className="ps-4 border-0 py-3">Staff Profile</th>
-                  <th className="border-0 py-3">Contact Information</th>
-                  <th className="border-0 py-3">Status</th>
-                  <th className="border-0 py-3">Permissions</th>
-                  <th className="text-end pe-4 border-0 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="border-top-0">
-                {loading ? (
-                  <tr><td colSpan="5" className="text-center py-5"><Spinner animation="border" variant="primary" size="sm" /></td></tr>
-                ) : filteredStaff.length === 0 ? (
-                  <tr><td colSpan="5" className="text-center py-5 text-muted">No staff members found for this branch.</td></tr>
-                ) : filteredStaff.map(member => (
-                  <tr key={member._id} className="border-bottom">
-                    <td className="ps-4">
-                      <div className="d-flex align-items-center gap-3">
-                        <div className="bg-primary-subtle text-primary rounded-circle p-2 font-bold w-10 h-10 d-flex align-items-center justify-content-center shadow-sm">
-                          {member.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="fw-bold text-slate-700">{member.name}</div>
-                          <div className="text-muted small">Role: {member.role}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-column gap-1">
-                        <div className="text-slate-600 small d-flex align-items-center gap-1"><Mail size={12} /> {member.email}</div>
-                        <div className="text-slate-500 small d-flex align-items-center gap-1"><Phone size={12} /> {member.phone || 'N/A'}</div>
-                      </div>
-                    </td>
-                    <td>
-                      <Badge bg={member.isActive !== false ? 'success' : 'danger'} className="rounded-pill px-3 py-1 fw-normal">
-                        {member.isActive !== false ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-wrap gap-1">
-                        {member.permissions?.slice(0, 3).map(p => (
-                          <Badge key={p} bg="light" className="border border-slate-200 fw-normal py-1 shadow-xs" style={{ color: '#334155' }}>{p}</Badge>
-                        ))}
-                        {member.permissions?.length > 3 && <Badge bg="primary-subtle" className="text-primary border border-primary-subtle py-1 shadow-xs">+{member.permissions.length - 3}</Badge>}
-                      </div>
-                    </td>
-                    <td className="text-end pe-4">
-                      <div className="d-flex justify-content-end gap-2">
-                        <Button variant="light" size="sm" onClick={() => openDetailsModal(member)} className="border hover:bg-primary-subtle hover:text-primary transition-all"><Eye size={16} /></Button>
-                        {canPerformActions && (
-                          <>
-                            <Button variant="light" size="sm" onClick={() => openEditModal(member)} className="border"><Edit size={16} className="text-primary" /></Button>
-                            <Button variant="outline-danger" size="sm" onClick={() => handleDelete(member._id)} className="border-danger-subtle"><Trash2 size={16} /></Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        </Card.Body>
-      </Card>
-
-      {/* Detail Modal */}
-      <Modal show={showDetails} onHide={() => setShowDetails(false)} centered size="md">
-        <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="fw-bold">Staff Member Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-4">
-          {selectedStaff && (
-            <div className="text-center">
-              <div className="bg-primary-subtle text-primary rounded-circle p-4 font-bold w-20 h-20 d-flex align-items-center justify-content-center shadow-sm mx-auto mb-3 text-2xl">
-                {selectedStaff.name.charAt(0).toUpperCase()}
-              </div>
-              <h4 className="fw-bold text-slate-800 mb-1">{selectedStaff.name}</h4>
-              <Badge bg="primary-subtle" className="text-primary rounded-pill px-3 mb-4">{selectedStaff.role}</Badge>
-
-              <ListGroup variant="flush" className="text-start border rounded-xl overflow-hidden">
-                <ListGroup.Item className="py-3 d-flex align-items-center gap-3">
-                  <div className="bg-light p-2 rounded-lg text-primary"><Mail size={18} /></div>
-                  <div>
-                    <div className="small text-muted fw-bold">Email Address</div>
-                    <div className="text-slate-700">{selectedStaff.email}</div>
-                  </div>
-                </ListGroup.Item>
-                <ListGroup.Item className="py-3 d-flex align-items-center gap-3">
-                  <div className="bg-light p-2 rounded-lg text-success"><Phone size={18} /></div>
-                  <div>
-                    <div className="small text-muted fw-bold">Phone Number</div>
-                    <div className="text-slate-700">{selectedStaff.phone || 'Not Provided'}</div>
-                  </div>
-                </ListGroup.Item>
-                <ListGroup.Item className="py-3 d-flex align-items-center gap-3">
-                  <div className="bg-light p-2 rounded-lg text-info"><MapPin size={18} /></div>
-                  <div>
-                    <div className="small text-muted fw-bold">Assigned Branch</div>
-                    <div className="text-slate-700">{selectedStaff.branchId?.name || selectedStaff.branchId || 'N/A'}</div>
-                  </div>
-                </ListGroup.Item>
-                <ListGroup.Item className="py-3 d-flex align-items-center gap-3">
-                  <div className="bg-light p-2 rounded-lg text-warning"><Shield size={18} /></div>
-                  <div className="w-100">
-                    <div className="small text-muted fw-bold mb-2">Access Privileges</div>
-                    <div className="d-flex flex-wrap gap-1">
-                      {selectedStaff.permissions?.map(p => (
-                        <Badge key={p} bg="light" className="border fw-normal" style={{ color: '#334155' }}>{p}</Badge>
-                      )) || <span className="text-muted small italic">No specific permissions assigned</span>}
-                    </div>
-                  </div>
-                </ListGroup.Item>
-                <ListGroup.Item className="py-3 d-flex align-items-center gap-3">
-                  <div className="bg-light p-2 rounded-lg text-purple"><Calendar size={18} /></div>
-                  <div>
-                    <div className="small text-muted fw-bold">Member Since</div>
-                    <div className="text-slate-700">{new Date(selectedStaff.createdAt).toLocaleDateString()}</div>
-                  </div>
-                </ListGroup.Item>
-              </ListGroup>
-
-              <div className="mt-4 d-flex justify-content-center gap-2">
-                <div className="d-flex align-items-center gap-1 text-success small fw-bold">
-                  <CheckCircle size={14} /> Account Status: Active
+        <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Staff Management</h1>
+                    <p className="text-sm text-slate-500 font-medium mt-1">Manage your team and their access permissions.</p>
                 </div>
-              </div>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer className="border-0 pt-0">
-          <Button variant="primary" className="w-100 rounded-pill" onClick={() => setShowDetails(false)}>Close View</Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Edit/Create Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className="staff-modal">
-        <Modal.Header closeButton className="border-0 pb-0 px-4 pt-4">
-          <Modal.Title className="fw-bold h5 d-flex align-items-center gap-2">
-            <div className="bg-primary-subtle p-2 rounded-lg"><UserPlus className="text-primary" size={20} /></div>
-            {editingStaff ? 'Update Staff Member' : 'Register New Staff'}
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmit}>
-          <Modal.Body className="py-4 px-4">
-            <div className="row g-4">
-              <div className="col-md-6 text-start">
-                <Form.Group>
-                  <Form.Label className="small fw-bold text-muted uppercase">Full Name</Form.Label>
-                  <Form.Control required className="bg-light border-0 py-2 shadow-none" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Enter name" />
-                </Form.Group>
-              </div>
-              <div className="col-md-6 text-start">
-                <Form.Group>
-                  <Form.Label className="small fw-bold text-muted uppercase">Email Address</Form.Label>
-                  <Form.Control required type="email" className="bg-light border-0 py-2 shadow-none" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" />
-                </Form.Group>
-              </div>
-              <div className="col-md-6 text-start">
-                <Form.Group>
-                  <Form.Label className="small fw-bold text-muted uppercase">Phone Number</Form.Label>
-                  <Form.Control className="bg-light border-0 py-2 shadow-none" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 0000000000" />
-                </Form.Group>
-              </div>
-              <div className="col-md-6 text-start">
-                <Form.Group>
-                  <Form.Label className="small fw-bold text-muted uppercase">Password {editingStaff && '(Optional)'}</Form.Label>
-                  <InputGroup className="bg-light border-0 py-0 rounded overflow-hidden">
-                    <Form.Control 
-                      type={showPassword ? "text" : "password"} 
-                      required={!editingStaff} 
-                      className="bg-transparent border-0 shadow-none py-2" 
-                      value={formData.password} 
-                      onChange={e => setFormData({ ...formData, password: e.target.value })} 
-                      placeholder="••••••••" 
-                    />
-                    <Button 
-                      variant="transparent" 
-                      className="border-0 text-muted hover:text-primary transition-colors"
-                      onClick={() => setShowPassword(!showPassword)}
+                {canPerformActions && (
+                    <button
+                        onClick={() => { setEditingStaff(null); setFormData({ name: '', email: '', phone: '', password: '', permissions: [] }); setShowModal(true); }}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-md shadow-blue-100 transition-all active:scale-95"
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </Button>
-                  </InputGroup>
-                </Form.Group>
-              </div>
-              <div className="col-12 text-start">
-                <hr className="my-2" />
-                <Form.Label className="small fw-bold mb-3 d-flex align-items-center gap-2 text-primary">
-                  <Shield size={16} /> Assign Role Permissions
-                </Form.Label>
-                <div className="row g-2">
-                  {AVAILABLE_PERMISSIONS.map(perm => (
-                    <div key={perm.id} className="col-md-4">
-                      <div
-                        className={`p-3 border rounded-xl cursor-pointer transition-all text-sm d-flex align-items-center gap-2 ${formData.permissions.includes(perm.id) ? 'bg-primary-subtle border-primary' : 'bg-white hover:bg-light'}`}
-                        onClick={() => handlePermissionToggle(perm.id)}
-                      >
-                        <Form.Check
-                          type="checkbox"
-                          checked={formData.permissions.includes(perm.id)}
-                          onChange={() => { }} // Controlled via parent click
-                          className="m-0 pointer-events-none"
-                        />
-                        <span className="fw-medium text-slate-700">{perm.label}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                        <UserPlus size={16} /> Add New Member
+                    </button>
+                )}
             </div>
-          </Modal.Body>
-          <Modal.Footer className="border-top-0 px-4 pb-4 pt-0">
-            <Button variant="light" onClick={() => setShowModal(false)} className="px-4 py-2 border shadow-none text-secondary fw-medium">Cancel</Button>
-            <Button variant="primary" type="submit" className="px-4 py-2 fw-medium shadow-sm">{editingStaff ? 'Save Changes' : 'Create Staff Member'}</Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
-    </div>
-  );
+
+            {/* List Section */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50">
+                    <div className="relative w-full max-w-md group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by name or email..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100/50 font-medium shadow-sm transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="px-4 py-2 bg-white border border-slate-200 rounded-xl flex items-center gap-2.5 shadow-sm">
+                        <UserCheck size={16} className="text-blue-600" />
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{currentUser?.branchId?.name || 'Assigned Branch'}</span>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto min-h-[400px]">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-white border-b border-slate-200">
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Name</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Contact Info</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Permissions</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="5" className="py-20 text-center">
+                                        <Loader2 size={32} className="animate-spin text-blue-600 mx-auto" />
+                                        <p className="mt-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Loading staff...</p>
+                                    </td>
+                                </tr>
+                            ) : filteredStaff.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="py-24 text-center">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                            <ShieldCheck size={24} className="text-slate-200" />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No staff records found</p>
+                                    </td>
+                                </tr>
+                            ) : filteredStaff.map(member => (
+                                <tr key={member._id} className="hover:bg-slate-50 transition-colors group">
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-black text-sm border border-blue-100 shadow-sm uppercase group-hover:scale-110 transition-transform">
+                                                {member.name.slice(0, 2)}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors uppercase">{member.name}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{member.role}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
+                                            <Mail size={14} className="text-slate-400" /> {member.email}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold mt-1 uppercase">
+                                            <Phone size={14} className="text-slate-300" /> {member.phone || 'N/A'}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5 text-center">
+                                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border flex items-center gap-1.5 w-fit mx-auto ${member.isActive !== false ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                            <span className={`w-1 h-1 rounded-full ${member.isActive !== false ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></span>
+                                            {member.isActive !== false ? 'Active' : 'Locked'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex flex-wrap gap-1.5 max-w-[200px]">
+                                            {member.permissions?.slice(0, 2).map(p => (
+                                                <span key={p} className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-tighter">{p.replace(/_/g, ' ')}</span>
+                                            ))}
+                                            {member.permissions?.length > 2 && <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-black">+{member.permissions.length - 2}</span>}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5 text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button onClick={() => { setSelectedStaff(member); setShowDetails(true); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white border border-slate-200 bg-white rounded-xl transition-all shadow-sm active:scale-95" title="View Detail">
+                                                <Eye size={16} />
+                                            </button>
+                                            {canPerformActions && (
+                                                <>
+                                                    <button onClick={() => openEditModal(member)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-white border border-slate-200 bg-white rounded-xl transition-all shadow-sm active:scale-95" title="Modify">
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(member._id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-white border border-slate-200 bg-white rounded-xl transition-all shadow-sm active:scale-95" title="Remove">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* View Details Modal */}
+            {showDetails && selectedStaff && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-[2.5rem] shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Staff Info</h3>
+                            <button onClick={() => setShowDetails(false)} className="p-2 text-slate-400 hover:bg-slate-200 rounded-full transition-colors"><X size={20} /></button>
+                        </div>
+                        <div className="p-8">
+                            <div className="text-center mb-8">
+                                <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center font-black text-3xl mx-auto mb-4 border border-blue-100 shadow-inner">
+                                    {selectedStaff.name.slice(0, 2).toUpperCase()}
+                                </div>
+                                <h4 className="font-bold text-slate-900 text-xl uppercase">{selectedStaff.name}</h4>
+                                <span className="inline-block px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest mt-2 border border-slate-200">{selectedStaff.role}</span>
+                            </div>
+                            
+                            <div className="space-y-4 rounded-3xl border border-slate-100 p-6 bg-slate-50/30 shadow-inner">
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400">
+                                        <Mail size={18} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Email Address</p>
+                                        <p className="text-sm font-bold text-slate-800 truncate">{selectedStaff.email}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400">
+                                        <Phone size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Phone Number</p>
+                                        <p className="text-sm font-bold text-slate-800">{selectedStaff.phone || 'No Phone'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400">
+                                        <Shield size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Permissions</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedStaff.permissions?.map(p => (
+                                                <span key={p} className="px-2 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-tighter">{p.replace(/_/g, ' ')}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Upsert Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-[2.5rem] shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-3 uppercase tracking-tight">
+                                <UserPlus size={20} className="text-blue-600" /> 
+                                {editingStaff ? 'Edit Staff Member' : 'Add New Member'}
+                            </h3>
+                            <button onClick={() => setShowModal(false)} className="p-2 text-slate-400 hover:bg-slate-200 rounded-full transition-colors"><X size={20} /></button>
+                        </div>
+                        
+                        <div className="p-8 overflow-y-auto custom-scrollbar">
+                            <form id="staffForm" onSubmit={handleSubmit} className="space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                                        <input required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: Rahul Sharma" />
+                                    </div>
+                                     <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Work Email</label>
+                                        <input required type="email" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="email@store.com" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+                                        <input className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="Internal phone" />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Password {editingStaff && '(Optional)'}</label>
+                                        <input type="password" required={!editingStaff} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-medium focus:bg-white focus:border-blue-400 transition-all outline-none" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="Min. 8 characters" />
+                                    </div>
+                                </div>
+                                
+                                <div className="pt-6 border-t border-slate-100">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <ShieldCheck size={16} className="text-blue-600" /> Permissions
+                                        </label>
+                                        <span className="text-[10px] font-bold text-blue-600 px-2.5 py-1 bg-blue-50 rounded-lg border border-blue-100">Pick any</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {AVAILABLE_PERMISSIONS.map(perm => {
+                                            const isActive = formData.permissions.includes(perm.id);
+                                            return (
+                                                <div
+                                                    key={perm.id}
+                                                    className={`p-4 border-2 rounded-2xl cursor-pointer transition-all flex items-center gap-4 ${isActive ? 'bg-blue-600 border-blue-600 shadow-md shadow-blue-100' : 'bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50'}`}
+                                                    onClick={() => handlePermissionToggle(perm.id)}
+                                                >
+                                                    <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${isActive ? 'bg-white border-white' : 'border-slate-200'}`}>
+                                                        {isActive && <Check size={12} className="text-blue-600 font-black" />}
+                                                    </div>
+                                                    <span className={`text-xs font-bold uppercase tracking-tighter ${isActive ? 'text-white' : 'text-slate-600'}`}>{perm.label}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div className="p-8 border-t border-slate-100 bg-slate-50/50 shrink-0 flex justify-end gap-4">
+                            <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 bg-white border border-slate-200 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
+                            <button type="submit" form="staffForm" className="px-8 py-3 bg-blue-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95">{editingStaff ? 'Update Staff Info' : 'Add Staff'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
+        </div>
+    );
 };
 
 export default StaffManagement;

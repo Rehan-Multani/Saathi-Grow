@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package, Sparkles, ChevronLeft, ChevronRight, Activity, Box, Tag, Layers, BarChart3 } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePlus, History as HistoryIcon, Store, Package, Sparkles, ChevronLeft, ChevronRight, Activity, Box, Tag, Layers, BarChart3, X, Zap } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import ProductEditModal from '../../../common/components/products/ProductEditModal';
 import RestockModal from '../../../common/components/products/RestockModal';
@@ -46,6 +46,7 @@ const ManagerProducts = () => {
                 if (value && value !== 'all') prev.set(key, value);
                 else prev.delete(key);
             });
+            prev.set('page', '1'); // Reset to page 1 on filter change
             return prev;
         });
     }, [setSearchParams]);
@@ -87,7 +88,7 @@ const ManagerProducts = () => {
     useEffect(() => {
         const timeout = setTimeout(() => {
             if (localSearch !== searchTerm) {
-                updateParams({ search: localSearch, page: 1 });
+                updateParams({ search: localSearch });
             }
         }, 500);
         return () => clearTimeout(timeout);
@@ -97,26 +98,21 @@ const ManagerProducts = () => {
         if (p.vendor) return p.stock || 0;
         if (!p.branchStocks || p.branchStocks.length === 0) return 0;
         if (managerUser?.branchId) {
-            const myStock = p.branchStocks.find(bs => (bs.branchId?._id || bs.branchId) === managerUser.branchId);
+            const myStock = p.branchStocks.find(bs => (bs.branchId?._id || bs.branchId) === (managerUser.branchId?._id || managerUser.branchId));
             return myStock ? myStock.stock : 0;
         }
         return p.branchStocks.reduce((sum, bs) => sum + bs.stock, 0);
     };
 
     const handleDelete = async (id, name) => {
-        if (managerUser?.role !== 'Admin' && !managerUser?.permissions?.includes('MANAGE_PRODUCTS')) {
-            toast.error("Unauthorized: Escalation required for deletion.");
-            return;
-        }
-
-        const result = await showDeleteConfirmation('Wipe SKU?', `Are you sure you want to permanently remove ${name}?`);
+        const result = await showDeleteConfirmation('Remove SKU?', `Are you sure you want to permanently remove ${name}?`);
         if (result.isConfirmed) {
             try {
                 await deleteProduct(managerUser.token, id);
                 setProducts(products.filter(p => p._id !== id));
-                showSuccessAlert('SKU Terminated', 'Product identity removed from node.');
+                showSuccessAlert('Removed', 'Product removed from list.');
             } catch (error) {
-                showErrorAlert('Operation Failed', error.message || 'Failed to delete');
+                showErrorAlert('Failed', error.message || 'Operation failed');
             }
         }
     };
@@ -127,7 +123,7 @@ const ManagerProducts = () => {
 
     const handleRestockOpen = (p) => {
         if (p.vendor) {
-            toast.info('Inventory Managed by External Vendor Node');
+            toast.info('Stock managed by Vendor Node');
             return;
         }
         setSelectedProduct(p);
@@ -136,7 +132,7 @@ const ManagerProducts = () => {
 
     const handleEdit = (p) => {
         if (p.vendor) {
-            toast.info('Profile Managed by External Vendor Node');
+            toast.info('Profile managed by Vendor');
             return;
         }
         setSelectedProduct(p);
@@ -147,51 +143,48 @@ const ManagerProducts = () => {
         try {
             const updated = await updateProduct(managerUser.token, selectedProduct._id, updatedProductData);
             setProducts(products.map(p => p._id === updated._id ? updated : p));
-            toast.success('SKU Profile Synchronized');
+            toast.success('Product updated');
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || 'Failed to update SKU');
+            toast.error(error.message || 'Update failed');
         }
     };
 
-    const activeFiltersCount = [selectedCategory, selectedBrand].filter(Boolean).length;
-
     return (
-        <div className="manager-products-page p-6 md:p-10">
-            {/* Page Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
-                <div className="header-content">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-3 bg-blue-50 w-fit px-3 py-1 rounded-full border border-blue-100">
-                        <Activity size={12} className="animate-pulse" />
-                        <span>Inventory Pulse: Active</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter">SKU <span className="text-blue-600 italic">Inventory</span></h1>
+        <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">All Products</h1>
                         <PageInfoTooltip data={pageInfoData.allProducts} />
                     </div>
-                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">{totalProducts} Classified Active Stock Units</p>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-100">
+                            <Activity size={12} className="animate-pulse" /> Real-time Stock
+                        </div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{totalProducts} items available</p>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                    {managerUser?.permissions?.includes('MANAGE_PRODUCTS') && (
-                        <Link
-                            to="/store-manager/products/add"
-                            className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-black transition-all shadow-2xl shadow-slate-200 active:scale-95"
-                        >
-                            <Plus size={18} /> Enroll New SKU
-                        </Link>
-                    )}
+                    <Link
+                        to="/store-manager/products/add"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2.5 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-black transition-all shadow-xl shadow-slate-200 active:scale-95 group"
+                    >
+                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Add Product
+                    </Link>
                 </div>
             </div>
 
-            {/* Action & Filter Toolbar */}
-            <div className="bg-white border border-slate-100 rounded-[2.5rem] p-4 mb-8 shadow-xl shadow-slate-200/40 flex flex-col lg:flex-row items-center gap-4">
+            {/* Filter Bar */}
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-4 flex flex-col lg:flex-row items-center gap-4 shadow-sm">
                 <div className="w-full lg:flex-1 relative group">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={20} />
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
                     <input
                         type="text"
-                        placeholder="Scan or type SKU, Name, or Category..."
-                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-14 pr-6 text-[13px] font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-100 transition-all placeholder:text-slate-400"
+                        placeholder="Search product name or SKU..."
+                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-100/50 transition-all placeholder:text-slate-300 shadow-inner"
                         value={localSearch}
                         onChange={(e) => setLocalSearch(e.target.value)}
                     />
@@ -201,45 +194,46 @@ const ManagerProducts = () => {
                     <div className="relative">
                         <button
                             onClick={() => setShowFilterMenu(!showFilterMenu)}
-                            className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all border ${showFilterMenu || activeFiltersCount > 0 ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200' : 'bg-white text-slate-600 border-slate-100 hover:bg-slate-50 shadow-sm'}`}
+                            className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border ${showFilterMenu || (selectedCategory || selectedBrand) ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                         >
-                            <Filter size={18} /> Logic Filter
-                            {activeFiltersCount > 0 && <span className="w-5 h-5 bg-white text-blue-600 rounded-full flex items-center justify-center text-[10px]">{activeFiltersCount}</span>}
+                            <Filter size={18} /> Filters
+                            {(selectedCategory || selectedBrand) && <span className="w-2 h-2 bg-white rounded-full"></span>}
                         </button>
 
                         {showFilterMenu && (
-                            <div className="filter-dropdown">
-                                <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Select Parameters</h3>
-                                <div className="space-y-4">
+                            <div className="absolute top-full right-0 mt-3 w-72 bg-white border border-slate-200 rounded-[2rem] shadow-2xl p-6 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-5">Filter Options</h3>
+                                <div className="space-y-5">
                                     <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-slate-600 ml-1">Market Category</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Category</label>
                                         <select
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-xs font-bold text-slate-700 outline-none focus:border-blue-500"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-blue-500"
                                             value={selectedCategory}
-                                            onChange={(e) => updateParams({ category: e.target.value, page: 1 })}
+                                            onChange={(e) => updateParams({ category: e.target.value })}
                                         >
                                             <option value="">All Categories</option>
                                             {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-slate-600 ml-1">Brand Identity</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Brand</label>
                                         <select
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-xs font-bold text-slate-700 outline-none focus:border-blue-500"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-blue-500"
                                             value={selectedBrand}
-                                            onChange={(e) => updateParams({ brand: e.target.value, page: 1 })}
+                                            onChange={(e) => updateParams({ brand: e.target.value })}
                                         >
                                             <option value="">All Brands</option>
                                             {brands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                         </select>
                                     </div>
-                                    <div className="h-px bg-slate-50 my-2"></div>
-                                    <button 
-                                        onClick={() => { updateParams({ category: '', brand: '', page: 1 }); setShowFilterMenu(false); }}
-                                        className="w-full py-2.5 text-rose-500 font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 rounded-xl transition-all"
-                                    >
-                                        Clear Intelligence
-                                    </button>
+                                    <div className="pt-2">
+                                        <button 
+                                            onClick={() => { updateParams({ category: '', brand: '' }); setShowFilterMenu(false); }}
+                                            className="w-full py-3 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100"
+                                        >
+                                            Reset Filters
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -247,18 +241,18 @@ const ManagerProducts = () => {
                 </div>
             </div>
 
-            {/* Inventory Data Registry */}
-            <div className="bg-white border border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden relative">
+            {/* Product Table */}
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50/50 text-[10px] uppercase font-black tracking-widest text-slate-400 border-b border-slate-50">
+                    <table className="w-full text-left">
+                         <thead className="bg-[#fcfdfe] border-b border-slate-100">
                             <tr>
-                                <th className="px-8 py-6">SKU Protocol</th>
-                                <th className="px-8 py-6">Classification</th>
-                                <th className="px-8 py-6">Pricing Node</th>
-                                <th className="px-8 py-6 text-center">Current Stock</th>
-                                <th className="px-8 py-6 text-center">Status</th>
-                                <th className="px-8 py-6 text-right">Operational Port</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Product</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Price</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Stock</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Status</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -266,135 +260,132 @@ const ManagerProducts = () => {
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td colSpan="6" className="px-8 py-6">
-                                            <div className="h-14 bg-slate-50 rounded-2xl w-full"></div>
+                                            <div className="h-16 bg-slate-50 rounded-2xl w-full"></div>
                                         </td>
                                     </tr>
                                 ))
                             ) : products.length > 0 ? (
-                                products.map((p) => (
-                                    <tr key={p._id} className="group hover:bg-slate-50/50 transition-all duration-300">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-100 flex items-center justify-center p-1 relative shadow-sm group-hover:shadow-md transition-all">
-                                                    {p.image ? (
-                                                        <img src={p.image} alt="" className="w-full h-full object-contain filter drop-shadow-sm" />
-                                                    ) : (
-                                                        <Box size={24} className="text-slate-200" />
-                                                    )}
-                                                    <div className={`diet-indicator ${p.isVeg ? 'veg' : 'non-veg'}`} title={p.isVeg ? 'Veg' : 'Non-Veg'}></div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm font-black text-slate-900 mb-1">{p.name}</div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black text-slate-400 font-mono tracking-wider bg-slate-100 px-2 py-0.5 rounded-lg">{p.sku}</span>
-                                                        {p.isSaathiGrow && <span className="premium-label"><Sparkles size={8} /> Premium</span>}
+                                products.map((p) => {
+                                    const stock = getTotalStock(p);
+                                    return (
+                                        <tr key={p._id} className="group hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-14 h-14 bg-white rounded-2xl border border-slate-100 flex items-center justify-center p-1.5 shadow-sm group-hover:scale-105 transition-transform relative">
+                                                        {p.image ? (
+                                                            <img src={p.image} alt="" className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <Box size={24} className="text-slate-200" />
+                                                        )}
+                                                        <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${p.isVeg ? 'bg-emerald-500' : 'bg-red-500'}`} title={p.isVeg ? 'Veg' : 'Non-Veg'}></div>
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="text-[13px] font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase truncate max-w-[180px]">{p.name}</div>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-[9px] font-black text-slate-400 font-mono tracking-wider bg-slate-100 px-2 py-0.5 rounded uppercase">{p.sku?.slice(-10)}</span>
+                                                            {p.isSaathiGrow && <span className="bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-amber-100 flex items-center gap-1"><Sparkles size={10} /> Premium</span>}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500 tracking-tight">
-                                                    <Tag size={12} className="text-blue-500" /> {p.category}
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase truncate max-w-[120px]">
+                                                        <Tag size={12} className="text-blue-400 shrink-0" /> {p.category}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase truncate max-w-[120px]">
+                                                        <Layers size={12} className="text-slate-300 shrink-0" /> {p.brandName}
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 tracking-tight">
-                                                    <Layers size={12} className="text-indigo-400" /> {p.brandName}
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="space-y-0.5">
+                                                    <div className="text-base font-black text-slate-900 tracking-tight italic">₹{p.basePrice?.toLocaleString()}</div>
+                                                    {p.mrp > p.basePrice && (
+                                                        <div className="text-[10px] text-slate-300 font-black line-through italic">₹{p.mrp.toLocaleString()} MRP</div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <div className="space-y-1">
-                                                <div className="text-base font-black text-slate-900 italic">₹{p.basePrice?.toFixed(2)}</div>
-                                                {p.mrp && p.mrp > p.basePrice && (
-                                                    <div className="text-[10px] text-slate-400 font-bold line-through">₹{p.mrp.toFixed(2)} MRP</div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6 text-center">
-                                            <div className={`inline-flex flex-col items-center justify-center w-14 h-14 rounded-2xl font-black transition-all ${getTotalStock(p) === 0 ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
-                                                <span className="text-lg">{getTotalStock(p)}</span>
-                                                <span className="text-[7px] uppercase -mt-1 tracking-tighter">Units</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6 text-center">
-                                            <div className={`status-pill ${p.status}`}>
-                                                <div className="dot"></div>
-                                                <span>{p.status}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end gap-2.5">
-                                                <button
-                                                    onClick={() => setShowQR(showQR === p._id ? null : p._id)}
-                                                    className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all border ${showQR === p._id ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/20' : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-blue-50 hover:text-blue-500'}`}
-                                                >
-                                                    <QrCode size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleLogsOpen(p)}
-                                                    className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 hover:bg-indigo-50 hover:text-indigo-500 flex items-center justify-center transition-all border border-slate-100"
-                                                >
-                                                    <BarChart3 size={18} />
-                                                </button>
-                                                {!p.vendor && managerUser?.permissions?.includes('MANAGE_INVENTORY') && (
+                                            </td>
+                                            <td className="px-8 py-5 text-center">
+                                                <div className={`inline-flex flex-col items-center justify-center w-12 h-12 rounded-2xl font-black transition-all border ${stock <= 5 ? 'bg-red-50 text-red-600 border-red-100 animate-pulse' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                                                    <span className="text-lg leading-none">{stock}</span>
+                                                    <span className="text-[7px] uppercase tracking-tighter">Stock</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5 text-center">
+                                                <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border ${p.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                                    {p.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-5 text-right relative">
+                                                <div className="flex justify-end gap-2">
                                                     <button
-                                                        onClick={() => handleRestockOpen(p)}
-                                                        className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-500 transition-all border border-slate-100 flex items-center justify-center"
+                                                        onClick={() => setShowQR(showQR === p._id ? null : p._id)}
+                                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${showQR === p._id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-200 hover:text-blue-600 hover:border-blue-400'}`}
+                                                        title="QR Code"
                                                     >
-                                                        <PackagePlus size={18} />
+                                                        <QrCode size={18} />
                                                     </button>
-                                                )}
-                                                {!p.vendor && managerUser?.permissions?.includes('MANAGE_PRODUCTS') && (
                                                     <button
-                                                        onClick={() => handleEdit(p)}
-                                                        className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:bg-blue-50 hover:text-blue-500 flex items-center justify-center transition-all"
+                                                        onClick={() => handleLogsOpen(p)}
+                                                        className="w-10 h-10 rounded-xl bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-400 flex items-center justify-center transition-all"
+                                                        title="Stock History"
                                                     >
-                                                        <Edit size={18} />
+                                                        <BarChart3 size={18} />
                                                     </button>
-                                                )}
-                                                {managerUser?.permissions?.includes('DELETE_PRODUCTS') && (
+                                                    {!p.vendor && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleRestockOpen(p)}
+                                                                className="w-10 h-10 rounded-xl bg-white text-slate-400 border border-slate-200 hover:text-emerald-600 hover:border-emerald-400 transition-all flex items-center justify-center"
+                                                                title="Add Stock"
+                                                            >
+                                                                <PackagePlus size={18} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleEdit(p)}
+                                                                className="w-10 h-10 rounded-xl bg-white text-slate-400 border border-slate-200 hover:text-blue-600 hover:border-blue-400 flex items-center justify-center transition-all"
+                                                                title="Edit Product"
+                                                            >
+                                                                <Edit size={18} />
+                                                            </button>
+                                                        </>
+                                                    )}
                                                     <button
                                                         onClick={() => handleDelete(p._id, p.name)}
-                                                        className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-300 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-all"
+                                                        className="w-10 h-10 rounded-xl bg-white text-slate-400 border border-slate-200 hover:text-red-500 hover:border-red-400 flex items-center justify-center transition-all"
+                                                        title="Delete entry"
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>
-                                                )}
-                                                {p.vendor && (
-                                                    <div className="px-4 py-2 bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest rounded-xl border border-purple-100 flex items-center gap-2">
-                                                        <Store size={14} /> Vendor Linked
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {showQR === p._id && (
-                                                <div className="qr-portal scale-in-center">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU Identification</span>
-                                                        <button onClick={() => setShowQR(null)} className="text-slate-300 hover:text-rose-500 transition-colors"><X size={16} /></button>
-                                                    </div>
-                                                    <div className="bg-slate-50 p-4 rounded-[2rem] border border-slate-100 mb-6 flex justify-center">
-                                                        {p.qrCode ? <img src={p.qrCode} alt="" className="w-32 h-32" /> : <QRCodeSVG value={p.sku} size={128} level="H" />}
-                                                    </div>
-                                                    <div className="text-[11px] font-black text-slate-900 font-mono bg-white border border-slate-100 py-3 rounded-xl mb-6 tracking-wider uppercase">{p.sku}</div>
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); /* Download logic */ }}
-                                                        className="w-full py-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-xl shadow-slate-200 active:scale-95 flex items-center justify-center gap-2"
-                                                    >
-                                                        <Download size={14} /> Download Asset
-                                                    </button>
                                                 </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
+
+                                                {showQR === p._id && (
+                                                    <div className="absolute right-8 top-full mt-2 w-56 bg-white border border-slate-200 rounded-[2rem] shadow-2xl p-6 z-[60] animate-in fade-in zoom-in-95 duration-200">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">SKU Identity</span>
+                                                            <button onClick={() => setShowQR(null)} className="text-slate-300 hover:text-red-500"><X size={16} /></button>
+                                                        </div>
+                                                        <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 flex justify-center mb-4">
+                                                            {p.qrCode ? <img src={p.qrCode} alt="" className="w-32 h-32" /> : <QRCodeSVG value={p.sku} size={128} level="H" />}
+                                                        </div>
+                                                        <div className="text-[10px] font-black text-slate-900 font-mono tracking-widest uppercase bg-slate-50 py-2 rounded-lg text-center border-slate-200 mb-4">{p.sku?.slice(-12)}</div>
+                                                        <button className="w-full py-3 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                                                            <Download size={14} /> Download Image
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="px-8 py-32 text-center">
-                                        <div className="flex flex-col items-center opacity-30 grayscale saturate-0 scale-75">
-                                            <Package size={100} strokeWidth={1} />
-                                            <p className="mt-6 text-sm font-black text-slate-900 uppercase tracking-[0.3em]">No SKUs Detected</p>
+                                    <td colSpan="6" className="py-24 text-center">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 text-slate-200">
+                                            <Package size={24} />
                                         </div>
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No products found</p>
                                     </td>
                                 </tr>
                             )}
@@ -402,40 +393,27 @@ const ManagerProducts = () => {
                     </table>
                 </div>
 
-                {/* Pagination Footer */}
-                {!loading && totalPages > 0 && (
-                    <div className="bg-slate-50/50 border-t border-slate-100 px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            Showing <span className="text-slate-900">{products.length}</span> of <span className="text-slate-900">{totalProducts}</span> SKU deployments
-                        </div>
-                        <div className="flex items-center gap-3">
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                    <div className="px-8 py-5 border-t border-slate-50 flex items-center justify-between bg-slate-50/10">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                            Showing products <span className="text-slate-900">{(page-1)*limit + 1}-{Math.min(page*limit, totalProducts)}</span> of {totalProducts}
+                        </p>
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={() => updateParams({ page: Math.max(1, page - 1) })}
                                 disabled={page === 1}
-                                className="nav-btn"
+                                className="p-2 border border-slate-200 rounded-xl hover:bg-white transition-all disabled:opacity-30"
                             >
-                                <ChevronLeft size={16} /> Previous
+                                <ChevronLeft size={16} />
                             </button>
-                            <div className="flex items-center gap-1.5">
-                                {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                                    const pNum = i + 1;
-                                    return (
-                                        <button
-                                            key={pNum}
-                                            onClick={() => updateParams({ page: pNum })}
-                                            className={`page-btn ${page === pNum ? 'active' : ''}`}
-                                        >
-                                            {pNum}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <span className="text-xs font-black text-slate-900 px-3 py-1 bg-white border border-slate-200 rounded-lg">{page} / {totalPages}</span>
                             <button
                                 onClick={() => updateParams({ page: Math.min(totalPages, page + 1) })}
                                 disabled={page === totalPages}
-                                className="nav-btn"
+                                className="p-2 border border-slate-200 rounded-xl hover:bg-white transition-all disabled:opacity-30"
                             >
-                                Next <ChevronRight size={16} />
+                                <ChevronRight size={16} />
                             </button>
                         </div>
                     </div>
@@ -457,38 +435,8 @@ const ManagerProducts = () => {
             />
 
             <style dangerouslySetInnerHTML={{ __html: `
-                .manager-products-page { background: #fdfdff; min-height: 100vh; position: relative; }
-                .filter-dropdown { position: absolute; top: 110%; right: 0; width: 300px; background: #fff; border: 1px solid #f1f5f9; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); padding: 24px; z-index: 100; animation: scaleIn 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-                .qr-portal { position: absolute; right: 80px; top: 0; width: 240px; background: #fff; border: 1px solid #f1f5f9; border-radius: 2.5rem; box-shadow: 0 40px 60px -12px rgba(0,0,0,0.2); padding: 24px; z-index: 50; }
-                
-                .diet-indicator { position: absolute; bottom: 8px; right: 8px; width: 10px; height: 10px; border-radius: 2px; border: 1px solid; display: flex; align-items: center; justify-content: center; transform: scale(0.8); }
-                .diet-indicator::after { content: ''; width: 50%; height: 50%; border-radius: 50%; }
-                .diet-indicator.veg { border-color: #10b981; }
-                .diet-indicator.veg::after { background: #10b981; }
-                .diet-indicator.non-veg { border-color: #ef4444; }
-                .diet-indicator.non-veg::after { background: #ef4444; }
-                
-                .premium-label { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; font-size: 8px; font-weight: 900; text-transform: uppercase; tracking: 0.1em; padding: 2px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; }
-                
-                .status-pill { display: flex; align-items: center; gap: 8px; width: fit-content; padding: 6px 14px; border-radius: 10rem; font-size: 9px; font-weight: 900; text-transform: uppercase; border: 1px solid transparent; margin: 0 auto; }
-                .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
-                .status-pill.Active { background: #ecfdf5; color: #065f46; border-color: #d1fae5; }
-                .status-pill.Active .dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
-                .status-pill.Low-Stock { background: #fffbeb; color: #92400e; border-color: #fef3c7; animation: pulse-yellow 2s infinite; }
-                .status-pill.Low-Stock .dot { background: #f59e0b; }
-                .status-pill.Out-of-Stock { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
-                .status-pill.Out-of-Stock .dot { background: #94a3b8; }
-
-                .nav-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 1.25rem; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #64748b; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-                .nav-btn:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
-                .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-                
-                .page-btn { width: 44px; height: 44px; border-radius: 1.25rem; background: transparent; color: #94a3b8; font-size: 11px; font-weight: 900; transition: all 0.2s; }
-                .page-btn:hover { background: #f1f5f9; color: #475569; }
-                .page-btn.active { background: #3b82f6; color: #fff; box-shadow: 0 10px 20px -5px rgba(59,130,246,0.3); }
-
-                @keyframes scaleIn { from { opacity: 0; transform: scale(0.95) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-                @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />
         </div>
     );

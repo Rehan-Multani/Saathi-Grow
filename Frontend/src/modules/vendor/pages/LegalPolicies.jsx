@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Spinner, ListGroup, Breadcrumb } from 'react-bootstrap';
-import { Shield, ChevronRight, FileText, Info, Badge } from 'lucide-react';
+import { Shield, ChevronRight, FileText, Info } from 'lucide-react';
 import { getPoliciesList, getPolicyContent } from '../../../common/utils/legalUtils';
 
 const LegalPolicies = () => {
@@ -32,114 +31,103 @@ const LegalPolicies = () => {
 
   if (loading) {
     return (
-      <div className="p-4 text-center">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-2 text-muted small uppercase tracking-widest font-bold">Loading Policies...</p>
+      <div className="flex flex-col items-center justify-center p-12 min-h-[400px]">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-[#0c831f] rounded-full animate-spin mb-4"></div>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Policies...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-3 p-md-4">
-      <Breadcrumb className="small mb-4">
-        <Breadcrumb.Item href="/vendor/dashboard">Dashboard</Breadcrumb.Item>
-        <Breadcrumb.Item active>Legal & Policies</Breadcrumb.Item>
-      </Breadcrumb>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 font-medium">
+        <span>Dashboard</span>
+        <ChevronRight size={14} className="text-gray-300" />
+        <span className="text-gray-900 font-bold">Legal & Policies</span>
+      </div>
 
-      <div className="d-flex align-items-center gap-3 mb-4">
-        <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+      <div className="flex items-center gap-4 mb-8">
+        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-sm">
           <Shield size={24} />
         </div>
         <div>
-          <h4 className="fw-bold mb-0">Vendor Policies</h4>
-          <p className="text-muted small mb-0">Legal agreements and guidelines for Saathi-Grow Vendors.</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Vendor Policies</h1>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Legal agreements and guidelines for Vendors.</p>
         </div>
       </div>
 
-      <div className="row g-4">
-        <div className="col-lg-4">
-          <Card className="border-0 shadow-sm rounded-3 overflow-hidden">
-            <ListGroup variant="flush">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:w-80 shrink-0">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-4">
+            <div className="divide-y divide-gray-100">
               {policies.map(p => (
-                <ListGroup.Item
+                <button
                   key={p._id}
-                  action
-                  active={selectedSlug === p.slug}
                   onClick={() => handleSelectPolicy(p.slug)}
-                  className="d-flex align-items-center justify-content-between py-3 border-light"
+                  className={`w-full flex items-center justify-between p-4 transition-colors ${
+                    selectedSlug === p.slug 
+                      ? 'bg-[#0c831f] text-white hover:bg-[#0a6b19]' 
+                      : 'hover:bg-gray-50 text-gray-700'
+                  }`}
                 >
-                  <div className="d-flex align-items-center gap-3">
-                    <FileText size={18} className={selectedSlug === p.slug ? 'text-white' : 'text-primary'} />
-                    <span className="fw-bold small uppercase tracking-tighter">{p.title}</span>
+                  <div className="flex items-center gap-3">
+                    <FileText size={18} className={selectedSlug === p.slug ? 'text-white/80' : 'text-[#0c831f]'} />
+                    <span className="text-sm font-bold tracking-tight">{p.title}</span>
                   </div>
-                  <ChevronRight size={16} className={selectedSlug === p.slug ? 'text-white' : 'text-muted'} />
-                </ListGroup.Item>
+                  <ChevronRight size={16} className={selectedSlug === p.slug ? 'text-white/60' : 'text-gray-400'} />
+                </button>
               ))}
               {policies.length === 0 && (
-                <ListGroup.Item className="text-center py-4 text-muted small">
+                <div className="p-6 text-center text-sm text-gray-500 font-medium">
                   No policies available.
-                </ListGroup.Item>
+                </div>
               )}
-            </ListGroup>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="mt-4 border-0 bg-light shadow-none">
-            <Card.Body className="d-flex gap-3 align-items-start">
-              <Info size={20} className="text-primary mt-1" />
-              <div>
-                <h6 className="fw-bold mb-1 small uppercase font-black">Need Help?</h6>
-                <p className="text-muted mb-0" style={{ fontSize: '11px' }}>
-                  If you have questions regarding these policies, please contact vendor support.
-                </p>
-              </div>
-            </Card.Body>
-          </Card>
+          <div className="bg-gray-50 rounded-xl p-4 flex gap-3 items-start border border-gray-100">
+            <Info size={18} className="text-[#0c831f] shrink-0 mt-0.5" />
+            <div>
+              <h6 className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-1">Need Help?</h6>
+              <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                If you have questions regarding these policies, please contact support.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="col-lg-8">
-          <Card className="border-0 shadow-sm rounded-3" style={{ minHeight: '500px' }}>
-            <Card.Body className="p-4 p-md-5">
+        <div className="flex-1">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-h-[500px]">
+            <div className="p-6 md:p-8">
               {contentLoading ? (
-                <div className="h-100 d-flex flex-column align-items-center justify-content-center py-5">
-                  <Spinner animation="grow" variant="primary" size="sm" />
-                  <span className="mt-3 text-muted small font-bold uppercase tracking-widestAlpha">Fetching Content...</span>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0c831f] rounded-full animate-spin mb-4"></div>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fetching Content...</span>
                 </div>
               ) : content ? (
-                <div className="policy-viewer">
-                  <div className="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                    <h2 className="fw-black text-dark mb-0">{content.title}</h2>
-                    <Badge bg="light" className="text-muted border fw-normal">
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 pb-6 border-b border-gray-100">
+                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{content.title}</h2>
+                    <span className="inline-flex py-1 px-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-500">
                       Last Updated: {new Date(content.updatedAt).toLocaleDateString()}
-                    </Badge>
+                    </span>
                   </div>
-                  <div
-                    className="policy-content text-secondary leading-relaxed"
-                    style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8' }}
-                  >
-                    {content.content}
+                  <div className="prose prose-sm max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-bold prose-p:leading-relaxed">
+                    <div style={{ whiteSpace: 'pre-wrap' }}>
+                      {content.content}
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
-                  <FileText size={48} className="opacity-25 mb-3" />
-                  <p className="fw-bold">Select a policy to view content</p>
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                  <FileText size={48} className="opacity-20 mb-4" />
+                  <p className="text-sm font-bold text-gray-500">Select a policy to view content</p>
                 </div>
               )}
-            </Card.Body>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
-
-      <style>{`
-                .policy-content { font-size: 0.95rem; }
-                .policy-content h1, .policy-content h2, .policy-content h3 { 
-                    color: #1a1a1a; 
-                    font-weight: 800; 
-                    margin-top: 1.5rem; 
-                    margin-bottom: 1rem;
-                }
-                .policy-viewer h2 { font-size: 1.5rem; }
-            `}</style>
     </div>
   );
 };

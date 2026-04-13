@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Edit, QrCode, Download, Filter, PackagePlus, Store, Package, Sparkles, ChevronLeft, ChevronRight, Activity, Box, Tag, Layers, BarChart3, X } from 'lucide-react';
+import { Search, Edit, QrCode, Download, Filter, PackagePlus, Store, Package, Sparkles, ChevronLeft, ChevronRight, Activity, Box, Tag, Layers, BarChart3, X, RefreshCw } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import ProductEditModal from '../../../../common/components/products/ProductEditModal';
 import RestockModal from '../../../../common/components/products/RestockModal';
@@ -9,8 +9,6 @@ import { getProducts, updateProduct } from '../../../../common/api/productApi';
 import { getCategories } from '../../../../common/api/categoryApi';
 import { getBrands } from '../../../../common/api/brandApi';
 import { toast } from 'react-toastify';
-import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
-import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const StaffProducts = () => {
     const navigate = useNavigate();
@@ -70,22 +68,17 @@ const StaffProducts = () => {
             setCategories(categoriesData);
             setBrands(brandsData);
         } catch (error) {
-            console.error('Error fetching data:', error);
-            toast.error('Failed to load inventory assets');
+            toast.error('Failed to load products');
         } finally {
             setLoading(false);
         }
     }, [staffUser?.token, page, limit, searchTerm, selectedCategory, selectedBrand]);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (localSearch !== searchTerm) {
-                updateParams({ search: localSearch, page: 1 });
-            }
+            if (localSearch !== searchTerm) updateParams({ search: localSearch, page: 1 });
         }, 500);
         return () => clearTimeout(timeout);
     }, [localSearch, searchTerm, updateParams]);
@@ -101,19 +94,13 @@ const StaffProducts = () => {
     };
 
     const handleRestockOpen = (p) => {
-        if (p.vendor) {
-            toast.info('Inventory Managed by External Vendor Node');
-            return;
-        }
+        if (p.vendor) return toast.info('Managed by Vendor');
         setSelectedProduct(p);
         setShowRestockModal(true);
     };
 
     const handleEdit = (p) => {
-        if (p.vendor) {
-            toast.info('Profile Managed by External Vendor Node');
-            return;
-        }
+        if (p.vendor) return toast.info('Managed by Vendor');
         setSelectedProduct(p);
         setShowEditModal(true);
     };
@@ -122,63 +109,57 @@ const StaffProducts = () => {
         try {
             const updated = await updateProduct(staffUser.token, selectedProduct._id, updatedProductData);
             setProducts(products.map(p => p._id === updated._id ? updated : p));
-            toast.success('SKU Profile Synchronized');
+            toast.success('Updated');
             setShowEditModal(false);
         } catch (error) {
-            toast.error(error.message || 'Failed to update SKU');
+            toast.error('Failed to update');
         }
     };
 
     const activeFiltersCount = [selectedCategory, selectedBrand].filter(Boolean).length;
 
     return (
-        <div className="staff-inventory-page p-6 md:p-10">
-            {/* Page Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
-                <div className="header-content">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-3 bg-indigo-50 w-fit px-3 py-1 rounded-full border border-indigo-100">
-                        <Activity size={12} className="animate-pulse" />
-                        <span>Logistics Pulse: Active</span>
+        <div className="space-y-6 animate-in fade-in duration-500 overflow-x-hidden text-left">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left px-1">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic font-black leading-none text-left">Product List</h1>
+                    <div className="flex items-center gap-3 font-black text-left">
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-100 italic font-black text-left">
+                            <Activity size={12} className="animate-pulse" /> System Live
+                        </div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5 font-black text-left">{totalProducts} Products found</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase tracking-widest leading-none">Global <span className="text-indigo-600">Stock</span></h1>
-                        <PageInfoTooltip data={pageInfoData.allProducts} />
-                    </div>
-                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">{totalProducts} Active Assets Detected</p>
-                </div>
-            </div>
-
-            {/* Action Toolbar */}
-            <div className="bg-white border border-slate-100 rounded-[2.5rem] p-4 mb-8 shadow-xl shadow-slate-200/40 flex flex-col lg:flex-row items-center gap-4">
-                <div className="w-full lg:flex-1 relative group">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Scan SKU or Search Registry..."
-                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-14 pr-6 text-[13px] font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
-                        value={localSearch}
-                        onChange={(e) => setLocalSearch(e.target.value)}
-                    />
                 </div>
 
-                <div className="flex items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                     <button onClick={fetchData} className="w-12 h-12 bg-white border border-slate-200 text-slate-400 hover:text-blue-600 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0 font-black">
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                    <div className="relative group flex-1 md:w-80 text-left">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Find by name or SKU..."
+                            className="w-full pl-14 pr-6 py-3.5 bg-white border border-slate-200 rounded-2xl outline-none text-sm font-bold transition-all focus:ring-4 focus:ring-blue-400/10 focus:border-blue-400 shadow-sm font-black lowercase tracking-widest text-left"
+                            value={localSearch}
+                            onChange={(e) => setLocalSearch(e.target.value)}
+                        />
+                    </div>
                     <div className="relative">
                         <button
                             onClick={() => setShowFilterMenu(!showFilterMenu)}
-                            className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all border ${showFilterMenu || activeFiltersCount > 0 ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-200' : 'bg-white text-slate-600 border-slate-100 hover:bg-slate-50 shadow-sm'}`}
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all border shadow-sm shrink-0 font-black ${activeFiltersCount > 0 ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-500/20' : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'}`}
                         >
-                            <Filter size={18} /> Logic Filter
-                            {activeFiltersCount > 0 && <span className="w-5 h-5 bg-white text-indigo-600 rounded-full flex items-center justify-center text-[10px]">{activeFiltersCount}</span>}
+                            <Filter size={18} />
                         </button>
-
                         {showFilterMenu && (
-                            <div className="filter-dropdown">
-                                <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Select Parameters</h3>
-                                <div className="space-y-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-slate-600 ml-1">Market Category</label>
+                            <div className="absolute right-0 mt-3 w-72 bg-white border border-slate-100 rounded-[2rem] shadow-2xl p-6 z-[60] animate-in zoom-in-95 duration-200 text-left">
+                                <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic leading-none font-black text-left">Filters</h3>
+                                <div className="space-y-5">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-600 ml-2 uppercase italic leading-none font-black text-left">Category</label>
                                         <select
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 text-xs font-black text-slate-700 outline-none focus:border-blue-500 uppercase italic shadow-sm font-black"
                                             value={selectedCategory}
                                             onChange={(e) => updateParams({ category: e.target.value, page: 1 })}
                                         >
@@ -186,10 +167,10 @@ const StaffProducts = () => {
                                             {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                                         </select>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-slate-600 ml-1">Brand Identity</label>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-600 ml-2 uppercase italic leading-none font-black text-left">Brand</label>
                                         <select
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 text-xs font-black text-slate-700 outline-none focus:border-blue-500 uppercase italic shadow-sm font-black"
                                             value={selectedBrand}
                                             onChange={(e) => updateParams({ brand: e.target.value, page: 1 })}
                                         >
@@ -197,13 +178,14 @@ const StaffProducts = () => {
                                             {brands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
                                         </select>
                                     </div>
-                                    <div className="h-px bg-slate-50 my-2"></div>
-                                    <button 
-                                        onClick={() => { updateParams({ category: '', brand: '', page: 1 }); setShowFilterMenu(false); }}
-                                        className="w-full py-2.5 text-rose-500 font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 rounded-xl transition-all"
-                                    >
-                                        Clear Intelligence
-                                    </button>
+                                    <div className="pt-2">
+                                        <button 
+                                            onClick={() => { updateParams({ category: '', brand: '', page: 1 }); setShowFilterMenu(false); }}
+                                            className="w-full py-4 bg-red-50 text-red-600 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-red-100 transition-all italic leading-none font-black"
+                                        >
+                                            Reset Filter
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -211,130 +193,117 @@ const StaffProducts = () => {
                 </div>
             </div>
 
-            {/* Inventory Data Registry */}
-            <div className="bg-white border border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden relative">
-                <div className="overflow-x-auto custom-scrollbar">
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden min-h-[500px] flex flex-col group p-4 lg:p-6 text-left">
+                <div className="overflow-x-auto custom-scrollbar flex-1">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50/50 text-[10px] uppercase font-black tracking-widest text-slate-400 border-b border-slate-50">
-                            <tr>
-                                <th className="px-8 py-6">SKU Protocol</th>
-                                <th className="px-8 py-6">Classification</th>
-                                <th className="px-8 py-6">Pricing Node</th>
-                                <th className="px-8 py-6 text-center">Current Stock</th>
-                                <th className="px-8 py-6 text-center">Status</th>
-                                <th className="px-8 py-6 text-right">Operational Port</th>
+                        <thead>
+                            <tr className="bg-slate-50/50">
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-left">Details</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-left">Area</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 text-left">Price</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">Units</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">Status</th>
+                                <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {loading ? (
-                                Array(5).fill(0).map((_, i) => (
+                        <tbody className="divide-y divide-slate-50 border-0">
+                            {loading && products.length === 0 ? (
+                                Array(8).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan="6" className="px-8 py-6">
-                                            <div className="h-14 bg-slate-50 rounded-2xl w-full"></div>
-                                        </td>
+                                        <td colSpan="6" className="px-8 py-6"><div className="h-14 bg-slate-50 rounded-2xl w-full"></div></td>
                                     </tr>
                                 ))
                             ) : products.length > 0 ? (
                                 products.map((p) => (
-                                    <tr key={p._id} className="group hover:bg-slate-50/50 transition-all duration-300">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-100 flex items-center justify-center p-1 relative shadow-sm group-hover:shadow-md transition-all">
+                                    <tr key={p._id} className="group/row hover:bg-blue-50/20 transition-all duration-300">
+                                        <td className="px-8 py-5 text-left border-0">
+                                            <div className="flex items-center gap-4 text-left">
+                                                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-100 flex items-center justify-center p-2 relative shadow-sm group-hover/row:shadow-lg transition-all shrink-0">
                                                     {p.image ? (
-                                                        <img src={p.image} alt="" className="w-full h-full object-contain filter drop-shadow-sm" />
+                                                        <img src={p.image} className="w-full h-full object-contain drop-shadow-md group-hover/row:scale-110 transition-transform duration-500" />
                                                     ) : (
-                                                        <Box size={24} className="text-slate-200" />
+                                                        <Box size={24} className="text-slate-100" />
                                                     )}
-                                                    <div className={`diet-indicator ${p.isVeg ? 'veg' : 'non-veg'}`} title={p.isVeg ? 'Veg' : 'Non-Veg'}></div>
+                                                    <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white shadow-sm ${p.isVeg ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
                                                 </div>
-                                                <div>
-                                                    <div className="text-sm font-black text-slate-900 mb-1">{p.name}</div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black text-slate-400 font-mono tracking-wider bg-slate-100 px-2 py-0.5 rounded-lg">{p.sku}</span>
-                                                        {p.isSaathiGrow && <span className="premium-label"><Sparkles size={8} /> Premium</span>}
+                                                <div className="text-left font-black">
+                                                    <div className="text-sm font-black text-slate-900 mb-1.5 uppercase italic leading-none font-black text-left">{p.name}</div>
+                                                    <div className="flex items-center gap-2 font-black leading-none text-left">
+                                                        <span className="text-[9px] font-black text-slate-400 font-mono tracking-widest bg-slate-50 px-2 py-1 rounded-lg italic font-black">#{p.sku}</span>
+                                                        {p.isSaathiGrow && <span className="bg-blue-600 text-white text-[7px] font-black rounded-lg px-2 py-1 uppercase tracking-widest shadow-lg shadow-blue-500/20 italic"><Sparkles size={8} className="inline mr-1" /> Premium</span>}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500 tracking-tight">
-                                                    <Tag size={12} className="text-indigo-500" /> {p.category}
+                                        <td className="px-8 py-5 text-left border-0">
+                                            <div className="space-y-2 text-left font-black">
+                                                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 italic leading-none text-left">
+                                                    <Tag size={12} className="text-blue-500 shrink-0" /> {p.category}
                                                 </div>
-                                                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 tracking-tight">
-                                                    <Layers size={12} className="text-indigo-400" /> {p.brandName}
+                                                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-400 italic leading-none text-left">
+                                                    <Layers size={12} className="text-slate-300 shrink-0" /> {p.brandName}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="space-y-1">
-                                                <div className="text-base font-black text-slate-900 italic">₹{p.basePrice?.toFixed(2)}</div>
+                                        <td className="px-8 py-5 text-left border-0">
+                                            <div className="text-base font-black text-slate-900 italic font-black leading-none text-left">₹{p.basePrice?.toLocaleString()}</div>
+                                        </td>
+                                        <td className="px-8 py-5 text-center border-0">
+                                            <div className={`inline-flex flex-col items-center justify-center w-12 h-12 rounded-xl font-black shadow-sm border ${getTotalStock(p) === 0 ? 'bg-red-50 text-red-600 border-red-100 shadow-red-500/5' : 'bg-blue-50 text-blue-600 border-blue-100 shadow-blue-500/5'}`}>
+                                                <span className="text-sm font-black italic font-black">{getTotalStock(p)}</span>
+                                                <span className="text-[7px] font-black uppercase -mt-0.5 tracking-tighter">Units</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 text-center">
-                                            <div className={`inline-flex flex-col items-center justify-center w-14 h-14 rounded-2xl font-black transition-all ${getTotalStock(p) === 0 ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
-                                                <span className="text-lg">{getTotalStock(p)}</span>
-                                                <span className="text-[7px] uppercase -mt-1 tracking-tighter">Units</span>
-                                            </div>
+                                        <td className="px-8 py-5 text-center border-0">
+                                             <span className={`px-4 py-2 rounded-xl text-[9px] font-black border uppercase tracking-widest shadow-sm inline-block italic ${p.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : p.status === 'Low-Stock' ? 'bg-amber-50 text-amber-600 border-amber-100 animate-pulse' : 'bg-slate-100 text-slate-400 border-slate-200 grayscale'}`}>
+                                                {p.status}
+                                            </span>
                                         </td>
-                                        <td className="px-8 py-6 text-center">
-                                            <div className={`status-pill ${p.status}`}>
-                                                <div className="dot"></div>
-                                                <span>{p.status}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
+                                        <td className="px-8 py-5 text-right border-0 relative">
                                             <div className="flex justify-end gap-2.5">
                                                 <button
                                                     onClick={() => setShowQR(showQR === p._id ? null : p._id)}
-                                                    className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all border ${showQR === p._id ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/20' : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-indigo-50 hover:text-indigo-500'}`}
+                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border shadow-sm shrink-0 font-black ${showQR === p._id ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/10' : 'bg-white text-slate-400 border-slate-200 hover:text-blue-600'}`}
                                                 >
                                                     <QrCode size={18} />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleLogsOpen(p)}
-                                                    className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 hover:bg-indigo-50 hover:text-indigo-500 flex items-center justify-center transition-all border border-slate-100"
-                                                >
-                                                    <BarChart3 size={18} />
-                                                </button>
-                                                {!p.vendor && staffUser?.permissions?.includes('MANAGE_INVENTORY') && (
+                                                {!p.vendor && (
                                                     <button
                                                         onClick={() => handleRestockOpen(p)}
-                                                        className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-500 transition-all border border-slate-100 flex items-center justify-center"
+                                                        className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:bg-emerald-50 hover:text-emerald-500 transition-all shadow-sm flex items-center justify-center shrink-0 font-black"
                                                     >
                                                         <PackagePlus size={18} />
                                                     </button>
                                                 )}
-                                                {!p.vendor && staffUser?.permissions?.includes('MANAGE_PRODUCTS') && (
+                                                {!p.vendor && (
                                                     <button
                                                         onClick={() => handleEdit(p)}
-                                                        className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:bg-indigo-50 hover:text-indigo-500 flex items-center justify-center transition-all"
+                                                        className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-blue-600 transition-all shadow-sm flex items-center justify-center shrink-0 font-black"
                                                     >
                                                         <Edit size={18} />
                                                     </button>
                                                 )}
                                                 {p.vendor && (
-                                                    <div className="px-4 py-2 bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest rounded-xl border border-purple-100 flex items-center gap-2">
-                                                        <Store size={14} /> Vendor Linked
+                                                    <div className="px-4 py-2 bg-slate-50 text-slate-400 text-[8px] font-black uppercase tracking-widest rounded-xl border border-slate-100 flex items-center gap-2 italic leading-none shrink-0 shadow-sm font-black">
+                                                       <Store size={14} className="shrink-0" /> Vendor Arc
                                                     </div>
                                                 )}
                                             </div>
 
                                             {showQR === p._id && (
-                                                <div className="qr-portal scale-in-center">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU Identification</span>
-                                                        <button onClick={() => setShowQR(null)} className="text-slate-300 hover:text-rose-500 transition-colors"><X size={16} /></button>
+                                                <div className="absolute right-8 top-full mt-4 w-72 bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl p-8 z-50 animate-in zoom-in-95 duration-200 text-left cursor-default">
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-black italic leading-none text-left">Code Access</h4>
+                                                        <button onClick={() => setShowQR(null)} className="text-slate-300 hover:text-red-500 transition-colors"><X size={18} /></button>
                                                     </div>
-                                                    <div className="bg-slate-50 p-4 rounded-[2rem] border border-slate-100 mb-6 flex justify-center">
-                                                        {p.qrCode ? <img src={p.qrCode} alt="" className="w-32 h-32" /> : <QRCodeSVG value={p.sku} size={128} level="H" />}
+                                                    <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 mb-6 flex justify-center shadow-inner">
+                                                        {p.qrCode ? <img src={p.qrCode} className="w-40 h-40 drop-shadow-xl" alt="qr" /> : <QRCodeSVG value={p.sku} size={160} level="H" className="drop-shadow-xl" />}
                                                     </div>
-                                                    <div className="text-[11px] font-black text-slate-900 font-mono bg-white border border-slate-100 py-3 rounded-xl mb-6 tracking-wider uppercase">{p.sku}</div>
+                                                    <div className="text-[11px] font-black text-slate-900 font-mono bg-blue-50 border border-blue-100 py-4 rounded-xl mb-6 tracking-widest uppercase italic text-center text-blue-600 font-black">{p.sku}</div>
                                                     <button 
-                                                        onClick={(e) => { e.stopPropagation(); /* Download logic */ }}
-                                                        className="w-full py-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-xl shadow-slate-200 active:scale-95 flex items-center justify-center gap-2"
+                                                        className="w-full py-4 bg-slate-900 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-black transition-all shadow-3xl shadow-slate-100 active:scale-95 flex items-center justify-center gap-3 italic font-black"
                                                     >
-                                                        <Download size={14} /> Download Asset
+                                                        <Download size={16} /> Download
                                                     </button>
                                                 </div>
                                             )}
@@ -343,10 +312,12 @@ const StaffProducts = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="px-8 py-32 text-center">
-                                        <div className="flex flex-col items-center opacity-30 grayscale saturate-0 scale-75">
-                                            <Package size={100} strokeWidth={1} />
-                                            <p className="mt-6 text-sm font-black text-slate-900 uppercase tracking-[0.3em]">Registry Empty</p>
+                                    <td colSpan="6" className="px-8 py-32 text-center border-0">
+                                        <div className="flex flex-col items-center justify-center text-center mx-auto">
+                                            <div className="w-24 h-24 bg-slate-50 text-slate-100 rounded-[3rem] flex items-center justify-center mb-6 border border-slate-100 shadow-inner">
+                                                <Package size={40} strokeWidth={1.5} />
+                                            </div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 italic font-black">No Products Found</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -355,40 +326,37 @@ const StaffProducts = () => {
                     </table>
                 </div>
 
-                {/* Pagination Footer */}
-                {!loading && totalPages > 0 && (
-                    <div className="bg-slate-50/50 border-t border-slate-100 px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            Showing <span className="text-slate-900">{products.length}</span> of <span className="text-slate-900">{totalProducts}</span> Unit deployments
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                    <div className="px-8 py-8 border-t border-slate-50 bg-slate-50/10 flex flex-col sm:flex-row justify-between items-center gap-6">
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap italic font-black text-left">
+                            Showing <span className="text-slate-900 font-black">{products.length}</span> of <span className="text-slate-900 font-black">{totalProducts}</span> deployments
                         </div>
-                        <div className="flex items-center gap-3">
-                            <button
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+                            <button 
                                 onClick={() => updateParams({ page: Math.max(1, page - 1) })}
                                 disabled={page === 1}
-                                className="nav-btn"
+                                className="px-5 py-3 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all disabled:opacity-20 shadow-sm shrink-0 italic font-black"
                             >
-                                <ChevronLeft size={16} /> Previous
+                                Prev
                             </button>
-                            <div className="flex items-center gap-1.5">
-                                {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                                    const pNum = i + 1;
-                                    return (
-                                        <button
-                                            key={pNum}
-                                            onClick={() => updateParams({ page: pNum })}
-                                            className={`page-btn ${page === pNum ? 'active' : ''}`}
-                                        >
-                                            {pNum}
-                                        </button>
-                                    );
-                                })}
+                            <div className="flex items-center gap-1.5 mx-2 shrink-0">
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => updateParams({ page: i + 1 })}
+                                        className={`w-10 h-10 rounded-xl text-[11px] font-black transition-all shadow-sm font-black ${page === i + 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-blue-200'}`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
                             </div>
-                            <button
+                            <button 
                                 onClick={() => updateParams({ page: Math.min(totalPages, page + 1) })}
                                 disabled={page === totalPages}
-                                className="nav-btn"
+                                className="px-5 py-3 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all disabled:opacity-20 shadow-sm shrink-0 italic font-black"
                             >
-                                Next <ChevronRight size={16} />
+                                Next
                             </button>
                         </div>
                     </div>
@@ -408,40 +376,10 @@ const StaffProducts = () => {
                 product={selectedProduct}
                 onRestockSuccess={fetchData}
             />
-
+            
             <style dangerouslySetInnerHTML={{ __html: `
-                .staff-inventory-page { background: #fdfdff; min-height: 100vh; position: relative; }
-                .filter-dropdown { position: absolute; top: 110%; right: 0; width: 300px; background: #fff; border: 1px solid #f1f5f9; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); padding: 24px; z-index: 100; animation: scaleIn 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-                .qr-portal { position: absolute; right: 80px; top: 0; width: 240px; background: #fff; border: 1px solid #f1f5f9; border-radius: 2.5rem; box-shadow: 0 40px 60px -12px rgba(0,0,0,0.2); padding: 24px; z-index: 50; }
-                
-                .diet-indicator { position: absolute; bottom: 8px; right: 8px; width: 10px; height: 10px; border-radius: 2px; border: 1px solid; display: flex; align-items: center; justify-content: center; transform: scale(0.8); }
-                .diet-indicator::after { content: ''; width: 50%; height: 50%; border-radius: 50%; }
-                .diet-indicator.veg { border-color: #10b981; }
-                .diet-indicator.veg::after { background: #10b981; }
-                .diet-indicator.non-veg { border-color: #ef4444; }
-                .diet-indicator.non-veg::after { background: #ef4444; }
-                
-                .premium-label { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; font-size: 8px; font-weight: 900; text-transform: uppercase; tracking: 0.1em; padding: 2px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; }
-                
-                .status-pill { display: flex; align-items: center; gap: 8px; width: fit-content; padding: 6px 14px; border-radius: 10rem; font-size: 9px; font-weight: 900; text-transform: uppercase; border: 1px solid transparent; margin: 0 auto; }
-                .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
-                .status-pill.Active { background: #ecfdf5; color: #065f46; border-color: #d1fae5; }
-                .status-pill.Active .dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
-                .status-pill.Low-Stock { background: #fffbeb; color: #92400e; border-color: #fef3c7; animation: pulse-yellow 2s infinite; }
-                .status-pill.Low-Stock .dot { background: #f59e0b; }
-                .status-pill.Out-of-Stock { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
-                .status-pill.Out-of-Stock .dot { background: #94a3b8; }
-
-                .nav-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 1.25rem; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #64748b; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-                .nav-btn:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
-                .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-                
-                .page-btn { width: 44px; height: 44px; border-radius: 1.25rem; background: transparent; color: #94a3b8; font-size: 11px; font-weight: 900; transition: all 0.2s; }
-                .page-btn:hover { background: #f1f5f9; color: #475569; }
-                .page-btn.active { background: #3b82f6; color: #fff; box-shadow: 0 10px 20px -5px rgba(59,130,246,0.3); }
-
-                @keyframes scaleIn { from { opacity: 0; transform: scale(0.95) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-                @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}} />
         </div>
     );

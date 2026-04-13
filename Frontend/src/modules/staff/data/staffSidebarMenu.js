@@ -6,7 +6,7 @@ export const staffSidebarMenu = [
         permission: null
     },
     {
-        title: 'POS Billing',
+        title: 'Billing',
         path: '/staff/pos-billing',
         icon: 'Zap',
         permission: 'MANAGE_POS_BILLING'
@@ -21,7 +21,7 @@ export const staffSidebarMenu = [
         ],
     },
     {
-        title: 'Inventory',
+        title: 'Manage Stock',
         path: '/staff/inventory',
         icon: 'Package',
         permission: 'MANAGE_INVENTORY'
@@ -51,7 +51,7 @@ export const staffSidebarMenu = [
         permission: null
     },
     {
-        title: 'Staff Management',
+        title: 'Manage Staff',
         path: '/staff/staff',
         icon: 'UserPlus',
         permission: null

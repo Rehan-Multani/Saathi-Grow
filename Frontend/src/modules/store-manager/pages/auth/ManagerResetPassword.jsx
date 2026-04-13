@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ShieldCheck, Lock, Loader2, ArrowRight, Eye, EyeOff, ShieldAlert } from 'lucide-react';
+import { Lock, Loader2, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import logo from '../../../../assets/logo_fav.png';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -17,11 +18,11 @@ const ManagerResetPassword = () => {
         e.preventDefault();
         
         if (password !== confirmPassword) {
-            return toast.error('Security Keys do not intersect. Please verify.');
+            return toast.error('Passwords do not match.');
         }
 
         if (password.length < 8) {
-            return toast.error('Key depth insufficient. Minimum 8 characters required.');
+            return toast.error('New password must be at least 8 characters.');
         }
 
         setLoading(true);
@@ -29,44 +30,48 @@ const ManagerResetPassword = () => {
         try {
             await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/reset-password/${token}`, { password });
             setSuccess(true);
-            toast.success('Manager Credentials Updated');
-            setTimeout(() => navigate('/store-manager/login'), 3000);
+            toast.success('Password updated successfully');
+            setTimeout(() => navigate('/store-manager/login'), 2500);
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Access token invalid or expired');
+            toast.error(err.response?.data?.message || 'Invalid or expired reset link');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden flex flex-col border border-gray-100 relative">
-                
-                <div className="p-10 w-full text-center">
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 font-sans selection:bg-blue-100 selection:text-blue-900 animate-in fade-in duration-500">
+            {/* Background elements */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 opacity-30">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/20 blur-[120px] rounded-full"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-400/20 blur-[120px] rounded-full"></div>
+            </div>
+
+            <div className="w-full max-w-[440px] space-y-8">
+                <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-200/60 overflow-hidden p-8 lg:p-12 text-center group">
                     <div className="flex justify-center mb-8">
-                        <div className="w-20 h-20 bg-emerald-900 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-emerald-200 transform rotate-6 transition-transform hover:rotate-0 duration-500">
-                            <ShieldAlert className="text-white" size={38} />
+                        <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center shadow-2xl rotate-3 group-hover:rotate-0 transition-transform duration-500 p-3">
+                            <img src={logo} className="w-full h-full object-contain brightness-0 invert" alt="Saathi-Grow" />
                         </div>
                     </div>
 
                     {!success ? (
                         <>
-                            <div className="mb-10">
-                                <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tighter uppercase tracking-widest leading-none">New <span className="text-emerald-600">Protocol</span></h2>
-                                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2">Initialize new manager credentials</p>
+                            <div className="space-y-3 mb-10">
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Set New Password</h2>
+                                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Create a new password for your account.</p>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">New Access Key</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-300 transition-colors group-focus-within:text-emerald-500">
-                                            <Lock size={20} />
-                                        </div>
+                            <form onSubmit={handleSubmit} className="space-y-5 text-left">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <Lock size={12} className="text-blue-500" /> New Password
+                                    </label>
+                                    <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             required
-                                            className="block w-full pl-14 pr-14 py-4 bg-gray-50 border-transparent border-2 rounded-2xl font-bold text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all text-sm shadow-sm"
+                                            className="block w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all text-sm"
                                             placeholder="••••••••"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
@@ -74,70 +79,62 @@ const ManagerResetPassword = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-300 hover:text-emerald-600 transition-colors"
+                                            className="absolute inset-y-0 right-1 pr-4 flex items-center text-slate-300 hover:text-blue-600 transition-colors"
                                         >
-                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 text-left">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Confirm Protocol Key</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-300 transition-colors group-focus-within:text-emerald-500">
-                                            <Lock size={20} />
-                                        </div>
-                                        <input
-                                            type="password"
-                                            required
-                                            className="block w-full pl-14 pr-6 py-4 bg-gray-50 border-transparent border-2 rounded-2xl font-bold text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all text-sm shadow-sm"
-                                            placeholder="••••••••"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                        />
-                                    </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <Lock size={12} className="text-blue-500" /> Confirm New Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        required
+                                        className="block w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all text-sm"
+                                        placeholder="••••••••"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                    />
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full flex items-center justify-center py-5 px-6 rounded-2xl shadow-xl shadow-emerald-200 text-xs font-black uppercase tracking-[0.2em] text-white bg-emerald-600 hover:bg-black transform active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed group overflow-hidden"
+                                    className="w-full relative group/btn h-14 bg-slate-900 text-white rounded-2xl overflow-hidden transition-all hover:bg-slate-800 active:scale-95 disabled:opacity-75 disabled:pointer-events-none mt-4 shadow-xl shadow-slate-200"
                                 >
+                                    <div className="absolute inset-x-0 bottom-0 h-1 bg-blue-600 transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-500 origin-left"></div>
                                     {loading ? (
-                                        <Loader2 size={24} className="animate-spin" />
+                                        <Loader2 size={18} className="animate-spin mx-auto" />
                                     ) : (
-                                        <span className="flex items-center gap-3">
-                                            Update Credentials <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        <span className="flex items-center justify-center gap-3 font-black text-xs uppercase tracking-widest">
+                                            Update Password <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                                         </span>
                                     )}
                                 </button>
                             </form>
                         </>
                     ) : (
-                        <div className="py-6 scale-in-center">
-                            <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-100 shadow-sm">
-                                <ShieldCheck size={32} />
-                            </div>
-                            <h3 className="text-xl font-black text-gray-900 mb-3 uppercase tracking-tight">Credentials Secured</h3>
-                            <p className="text-sm font-bold text-gray-500 leading-relaxed mb-8">
-                                Manager security credentials updated. Redirecting to terminal...
+                        <div className="py-2 animate-in fade-in zoom-in-95 duration-500">
+                            <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Password Changed</h3>
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed mb-8 px-4">
+                                Your account password has been successfully updated. Redirecting to login...
                             </p>
                             <div className="flex justify-center">
-                                <Loader2 size={24} className="animate-spin text-emerald-600" />
+                                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100">
+                                    <Loader2 size={24} className="animate-spin text-blue-600" />
+                                </div>
                             </div>
                         </div>
                     )}
+                </div>
 
-                    <p className="mt-12 text-center text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">
-                        &copy; 2026 SAATHIGROW • MANAGER SECURITY
-                    </p>
+                <div className="text-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-40">Secure Access</p>
                 </div>
             </div>
-
-            <style dangerouslySetInnerHTML={{ __html: `
-                .scale-in-center { animation: scaleIn 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
-                @keyframes scaleIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-            `}} />
         </div>
     );
 };

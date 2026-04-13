@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
     Bell, Trash2, CheckSquare, Square, Mail, Eye, 
     MoreVertical, ChevronLeft, ChevronRight, Loader2,
-    CheckCircle2, XCircle
+    CheckCircle2, XCircle, RefreshCcw, BellOff, Inbox
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -33,7 +33,7 @@ const Notifications = () => {
                 setPagination(res.data.pagination);
             }
         } catch (error) {
-            toast.error('Failed to load notifications');
+            toast.error('Failed to load');
         } finally {
             setLoading(false);
         }
@@ -44,7 +44,7 @@ const Notifications = () => {
     }, [page, staffToken]);
 
     const handleSelectAll = () => {
-        if (selectedIds.length === notifications.length) {
+        if (selectedIds.length === notifications.length && notifications.length > 0) {
             setSelectedIds([]);
         } else {
             setSelectedIds(notifications.map(n => n._id));
@@ -61,20 +61,16 @@ const Notifications = () => {
         if (selectedIds.length === 0) return;
         setUpdating(true);
         try {
-            // Backend currently only has markAllRead or single markAsRead
-            // I'll do sequential markAsRead if multiple are selected or suggest a bulk endpoint
-            // For now, I'll use markAsRead for each selected or implement bulk on backend if I can.
-            // Actually, I'll just do sequential for the selected ones.
             await Promise.all(selectedIds.map(id => 
                 axios.put(`${API_BASE_URL}/notifications/read/${id}`, {}, {
                     headers: { Authorization: `Bearer ${staffToken}` }
                 })
             ));
-            toast.success('Selected marked as read');
+            toast.success('Done');
             setSelectedIds([]);
             fetchNotifications();
         } catch (error) {
-            toast.error('Action failed');
+            toast.error('Failed');
         } finally {
             setUpdating(false);
         }
@@ -82,18 +78,16 @@ const Notifications = () => {
 
     const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return;
-        
         const result = await Swal.fire({
-            title: 'Delete Notifications?',
-            text: `Are you sure you want to delete ${selectedIds.length} notifications?`,
+            title: 'Wipe Logs?',
+            text: `Clear ${selectedIds.length} items?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Yes, Delete'
+            confirmButtonText: 'Yes, Wipe',
+            customClass: { popup: 'rounded-[1.5rem]' }
         });
-
         if (!result.isConfirmed) return;
-
         setUpdating(true);
         try {
             const res = await axios.delete(`${API_BASE_URL}/notifications/delete`, {
@@ -101,12 +95,12 @@ const Notifications = () => {
                 data: { ids: selectedIds }
             });
             if (res.data.success) {
-                toast.success('Notifications deleted');
+                toast.success('Done');
                 setSelectedIds([]);
                 fetchNotifications();
             }
         } catch (error) {
-            toast.error('Deletion failed');
+            toast.error('Failed');
         } finally {
             setUpdating(false);
         }
@@ -124,145 +118,136 @@ const Notifications = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
-                <div className="flex items-center gap-5">
-                    <div className="p-4 bg-emerald-600 rounded-[1.5rem] text-white shadow-xl shadow-emerald-100 ring-4 ring-emerald-50">
-                        <Bell size={28} />
-                    </div>
-                    <div>
-                        <h2 className="font-black text-gray-800 text-3xl tracking-tight">Notification Center</h2>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Received Updates & Alerts</p>
+        <div className="space-y-6 animate-in fade-in duration-500 overflow-x-hidden text-left font-black">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left px-1 font-black">
+                <div className="space-y-2 text-left font-black">
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase italic leading-none font-black text-left font-black">System Logs</h1>
+                    <div className="flex items-center gap-3 font-black text-left">
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-100 italic leading-none font-black text-left font-black">
+                            <Bell size={12} className="animate-pulse" /> Alerts
                         </div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5 font-black text-left font-black">System Event Log</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full md:w-auto font-black text-left">
                     <button 
                         onClick={() => { setPage(1); fetchNotifications(); }}
-                        className="p-3 text-emerald-600 bg-emerald-50 rounded-2xl border border-emerald-100 hover:bg-emerald-100 transition-all font-bold text-xs uppercase tracking-widest"
+                        className="w-12 h-12 bg-white border border-slate-200 text-slate-400 hover:text-blue-600 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0 font-black"
                     >
-                        Sync
+                        <RefreshCcw size={18} className={loading && notifications.length > 0 ? 'animate-spin' : ''} />
                     </button>
-                </div>
-            </div>
-
-            {/* Actions Bar */}
-            <div className="bg-white rounded-[2rem] p-4 border border-gray-100 shadow-sm flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={handleSelectAll}
-                        className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-xs font-black uppercase tracking-widest text-slate-600"
-                    >
-                        {selectedIds.length === notifications.length && notifications.length > 0 ? <CheckSquare size={16} className="text-emerald-500" /> : <Square size={16} />}
-                        Select All
-                    </button>
-
                     {selectedIds.length > 0 && (
-                        <div className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300">
-                            <span className="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full font-black uppercase tracking-widest border border-emerald-100">
-                                {selectedIds.length} Selected
-                            </span>
+                        <div className="flex items-center gap-2 animate-in slide-in-from-right duration-300 font-black">
                             <button 
                                 onClick={handleBulkMarkRead}
                                 disabled={updating}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all text-[10px] font-black uppercase tracking-widest"
+                                className="flex items-center gap-2 px-5 py-3.5 bg-blue-600 text-white rounded-2xl transition-all text-[11px] font-black uppercase tracking-widest italic disabled:opacity-50 shadow-xl shadow-blue-500/20 font-black"
                             >
-                                <Eye size={14} /> Mark Read
+                                <Eye size={16} /> Check
                             </button>
                             <button 
                                 onClick={handleBulkDelete}
                                 disabled={updating}
-                                className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all text-[10px] font-black uppercase tracking-widest"
+                                className="flex items-center justify-center w-12 h-12 bg-red-50 text-red-600 border border-red-100 rounded-2xl hover:bg-red-600 hover:text-white transition-all disabled:opacity-50 shadow-sm font-black"
                             >
-                                <Trash2 size={14} /> Delete
+                                <Trash2 size={18} />
                             </button>
                         </div>
                     )}
                 </div>
+            </div>
 
-                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    Showing {notifications.length} of {pagination.total} Alerts
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col group p-4 lg:p-6 text-left font-black">
+                <div className="px-2 mb-6 flex justify-between items-center text-left font-black">
+                    <button 
+                        onClick={handleSelectAll}
+                        className={`flex items-center gap-3 px-5 py-3 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest italic font-black ${selectedIds.length === notifications.length && notifications.length > 0 ? 'bg-slate-950 text-white font-black' : 'bg-slate-50 text-slate-400 border border-slate-100 hover:text-blue-600'}`}
+                    >
+                        {selectedIds.length === notifications.length && notifications.length > 0 ? <CheckSquare size={16} /> : <Square size={16} />}
+                        Sync All
+                    </button>
+                    <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] italic font-black leading-none text-left">
+                        {pagination.total} Events
+                    </div>
+                </div>
+
+                <div className="space-y-4 text-left font-black font-black">
+                    {loading && notifications.length === 0 ? (
+                         Array( 6 ).fill(0).map((_, i) => (
+                            <div key={i} className="bg-slate-50/50 rounded-[2rem] h-24 w-full animate-pulse border border-slate-50 flex items-center px-8 text-left font-black" />
+                        ))
+                    ) : notifications.length === 0 ? (
+                        <div className="py-32 text-center mx-auto text-left font-black">
+                            <div className="w-24 h-24 bg-slate-50 rounded-[3rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 text-slate-200 shadow-inner">
+                                <Inbox size={40} />
+                            </div>
+                            <h3 className="font-black text-[10px] text-slate-300 uppercase tracking-[0.4em] italic font-black text-center font-black">No alerts</h3>
+                        </div>
+                    ) : (
+                        notifications.map(notif => (
+                            <div 
+                                key={notif._id}
+                                className={`group bg-white rounded-[2rem] p-6 border transition-all duration-300 flex items-start gap-5 text-left relative overflow-hidden font-black ${selectedIds.includes(notif._id) ? 'border-blue-500 bg-blue-50/10 shadow-lg shadow-blue-500/5 font-black' : 'border-slate-100 hover:border-blue-200 hover:shadow-md shadow-sm font-black'} ${!notif.isRead ? 'border-l-4 border-l-blue-600 bg-blue-50/20' : ''}`}
+                            >
+                                <button 
+                                    onClick={() => toggleSelect(notif._id)}
+                                    className="mt-1 flex-shrink-0 relative z-10 font-black font-black"
+                                >
+                                    {selectedIds.includes(notif._id) ? <CheckSquare size={20} className="text-blue-600 shadow-sm" /> : <Square size={20} className="text-slate-100 group-hover:text-blue-400 transition-colors shadow-sm" />}
+                                </button>
+
+                                <div className="flex-1 min-w-0 font-black text-left font-black" onClick={() => markSingleRead(notif._id)}>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 text-left font-black italic font-black">
+                                        <h4 className={`text-sm font-black tracking-tight uppercase italic leading-none shrink-0 font-black text-left font-black ${!notif.isRead ? 'text-slate-950 font-black' : 'text-slate-400'}`}>
+                                            {notif.title}
+                                        </h4>
+                                        <span className={`text-[9px] font-black uppercase tracking-widest font-mono shrink-0 leading-none font-black italic text-left font-black ${!notif.isRead ? 'text-blue-600 font-black' : 'text-slate-300'}`}>
+                                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(notif.createdAt).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                        </span>
+                                    </div>
+                                    <p className={`text-[12px] font-bold leading-relaxed tracking-tight font-black text-left italic font-black pr-16 font-black ${!notif.isRead ? 'text-slate-700 font-black font-black' : 'text-slate-400'}`}>
+                                        {notif.body}
+                                    </p>
+                                </div>
+
+                                {!notif.isRead && (
+                                    <div className="absolute right-6 top-6 px-3 py-1 bg-blue-600 text-white rounded-lg flex-shrink-0 animate-in fade-in zoom-in-50 shadow-xl shadow-blue-500/20 font-black font-black">
+                                        <p className="text-[8px] font-black uppercase tracking-widest italic font-black">New</p>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
-            {/* Notifications List */}
-            <div className="space-y-3">
-                {loading ? (
-                    <div className="bg-white rounded-[2rem] p-24 text-center border border-gray-100 shadow-sm flex flex-col items-center gap-4">
-                        <Loader2 className="animate-spin text-emerald-600" size={40} />
-                        <p className="text-xs font-black text-emerald-600/50 uppercase tracking-widest">Polling Secure Gateway...</p>
-                    </div>
-                ) : notifications.length === 0 ? (
-                    <div className="bg-white rounded-[2rem] p-24 text-center border border-gray-100 shadow-sm flex flex-col items-center gap-4">
-                        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center">
-                            <Bell className="text-emerald-200" size={32} />
-                        </div>
-                        <h3 className="font-black text-gray-800 text-xl tracking-tight">Inbox Clear</h3>
-                        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">No new notifications in this scope.</p>
-                    </div>
-                ) : (
-                    notifications.map(notif => (
-                        <div 
-                            key={notif._id}
-                            className={`group bg-white rounded-[1.8rem] p-5 border transition-all duration-300 flex items-start gap-5 ${selectedIds.includes(notif._id) ? 'border-emerald-500 ring-2 ring-emerald-50 shadow-emerald-50' : 'border-gray-100 shadow-sm hover:border-emerald-200'} ${!notif.isRead ? 'border-l-4 border-l-emerald-600' : ''}`}
-                        >
-                            <button 
-                                onClick={() => toggleSelect(notif._id)}
-                                className="mt-1 flex-shrink-0"
-                            >
-                                {selectedIds.includes(notif._id) ? <CheckSquare size={20} className="text-emerald-600" /> : <Square size={20} className="text-gray-200 group-hover:text-emerald-300 transition-colors" />}
-                            </button>
-
-                            <div className="flex-1 min-w-0" onClick={() => markSingleRead(notif._id)}>
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
-                                    <h4 className={`text-sm font-black tracking-tight ${!notif.isRead ? 'text-gray-800' : 'text-gray-500'}`}>
-                                        {notif.title}
-                                    </h4>
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">
-                                        {new Date(notif.createdAt).toLocaleString()}
-                                    </span>
-                                </div>
-                                <p className={`text-xs leading-relaxed ${!notif.isRead ? 'text-gray-600' : 'text-gray-400'}`}>
-                                    {notif.body}
-                                </p>
-                            </div>
-
-                            {!notif.isRead && (
-                                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-full flex-shrink-0 animate-pulse">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
-                                </div>
-                            )}
-                        </div>
-                    ))
-                )}
-            </div>
-
-            {/* Pagination */}
             {!loading && pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center gap-3">
+                <div className="flex justify-center items-center gap-3 pt-6 font-black text-left font-black">
                     <button 
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="p-3 bg-white border border-gray-100 rounded-2xl shadow-sm text-gray-400 hover:text-emerald-600 disabled:opacity-50 transition-all"
+                        className="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 rounded-2xl shadow-sm text-slate-400 hover:text-blue-600 disabled:opacity-20 transition-all active:scale-95 shrink-0 font-black font-black"
                     >
                         <ChevronLeft size={20} />
                     </button>
-                    <div className="bg-white px-6 py-3 border border-gray-100 rounded-2xl shadow-sm font-black text-gray-800 text-sm tracking-widest">
-                        {page} <span className="text-gray-300 mx-2">/</span> {pagination.totalPages}
+                    <div className="bg-white h-12 px-8 flex items-center border border-slate-200 rounded-2xl shadow-sm font-black text-slate-950 text-[11px] tracking-[0.3em] italic leading-none shrink-0 font-black">
+                        {page} <span className="text-slate-100 mx-4 font-black">/</span> {pagination.totalPages}
                     </div>
                     <button 
                         onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
                         disabled={page >= pagination.totalPages}
-                        className="p-3 bg-white border border-gray-100 rounded-2xl shadow-sm text-gray-400 hover:text-emerald-600 disabled:opacity-50 transition-all"
+                        className="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 rounded-2xl shadow-sm text-slate-400 hover:text-blue-600 disabled:opacity-20 transition-all active:scale-95 shrink-0 font-black font-black"
                     >
                         <ChevronRight size={20} />
                     </button>
                 </div>
             )}
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

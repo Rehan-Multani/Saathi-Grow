@@ -1,74 +1,56 @@
 import React from 'react';
-import { X, CheckCircle, XCircle, ShoppingBag, AlertCircle, Fingerprint, RefreshCcw, ShieldCheck, Image } from 'lucide-react';
+import { X, CheckCircle, XCircle, ShoppingBag, AlertCircle, Fingerprint, RefreshCcw, ShieldCheck, Image, ShieldAlert, PackageCheck } from 'lucide-react';
 
 const ReturnApprovalModal = ({ isOpen, onClose, onApprove, onReject, request }) => {
     if (!isOpen || !request) return null;
 
     return (
-        <div className="fixed inset-0 z-[1060] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}></div>
-
-            <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-slate-100">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-500 to-orange-600"></div>
-
-                <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                            <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
-                                <RefreshCcw size={20} />
-                            </div>
-                            Quality Clearance Audit
-                        </h3>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1 ml-11">Reference Audit Log #8821</p>
-                    </div>
-                    <button onClick={onClose} className="w-10 h-10 flex items-center justify-center hover:bg-slate-100 rounded-2xl transition-all text-slate-400 hover:text-rose-500 active:scale-90">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-lg rounded-3xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-200">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <PackageCheck size={20} className="text-blue-600" />
+                        Return Quality Check
+                    </h3>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="p-8 space-y-6">
-                    <div className="flex items-center gap-5 p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-full blur-xl -mr-8 -mt-8"></div>
-                        <div className="p-3 bg-white text-blue-600 rounded-2xl shadow-sm border border-slate-100 group-hover:scale-110 transition-transform duration-300">
-                            <ShoppingBag size={20} />
+                <div className="p-6 space-y-6">
+                    <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <div className="w-12 h-12 bg-white text-blue-600 rounded-xl flex items-center justify-center shadow-sm border border-slate-200">
+                            <ShoppingBag size={24} />
                         </div>
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-0.5">
-                                <Fingerprint size={12} className="text-slate-400" />
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Entry ID</p>
-                            </div>
-                            <p className="text-sm font-black text-slate-800 tracking-tight">#{request.orderId}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                                <p className="text-xs font-bold text-slate-600 truncate max-w-[150px]">{request.productName}</p>
-                                <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                                <p className="text-xs font-black text-blue-600 uppercase tracking-tighter tabular-nums">{request.quantity} Units</p>
-                            </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Order ID</p>
+                            <p className="text-sm font-bold text-slate-800 tracking-tight">#{request.orderId}</p>
+                            <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{request.productName} • <span className="font-bold text-blue-600">{request.quantity} Units</span></p>
                         </div>
-                        <div className={`px-3 py-1.5 rounded-full text-[9px] font-black border tracking-widest ${request.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                            {request.status.toUpperCase()}
-                        </div>
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border tracking-wider uppercase ${request.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-200 text-slate-600'}`}>
+                            {request.status}
+                        </span>
                     </div>
 
-                    <div className="space-y-3">
-                        <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                            <AlertCircle size={12} className="text-amber-500" /> Discrepancy Observation
+                    <div className="space-y-2.5">
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">
+                            <AlertCircle size={14} className="text-amber-500" /> Reason for Return
                         </label>
-                        <div className="p-5 bg-amber-50/30 border border-amber-100/50 rounded-[1.5rem] text-sm text-slate-700 italic leading-relaxed shadow-sm">
-                            <p className="font-bold">"{request.reason}"</p>
-                            {request.description && <p className="text-xs text-slate-500 mt-2 non-italic">{request.description}</p>}
+                        <div className="p-4 bg-amber-50/50 border border-amber-200/50 rounded-2xl">
+                            <p className="text-sm font-bold text-slate-800 italic">"{request.reason}"</p>
+                            {request.description && <p className="text-xs text-slate-500 mt-2 font-medium italic-none">"{request.description}"</p>}
                         </div>
                     </div>
 
-                    {/* Image Proof Display */}
                     {request.images && request.images.length > 0 && (
-                        <div className="space-y-3">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Evidence Documentation</p>
-                            <div className="flex flex-wrap gap-2">
+                        <div className="space-y-2.5">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Evidence Photos</p>
+                            <div className="flex flex-wrap gap-2 px-1">
                                 {request.images.map((img, i) => (
-                                    <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="relative w-16 h-16 rounded-2xl overflow-hidden border border-slate-100 group shadow-sm transition-transform hover:scale-105">
+                                    <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 group shadow-sm hover:border-blue-400 transition-all">
                                         <img src={img} alt="proof" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                            <Image size={14} className="text-white" />
+                                            <Image size={18} className="text-white" />
                                         </div>
                                     </a>
                                 ))}
@@ -76,32 +58,32 @@ const ReturnApprovalModal = ({ isOpen, onClose, onApprove, onReject, request }) 
                         </div>
                     )}
 
-                    <div className="bg-blue-900 p-6 rounded-[2rem] border border-blue-800 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-blue-600/10 transition-opacity opacity-0 group-hover:opacity-100"></div>
-                        <div className="relative z-10">
-                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.25em] flex items-center gap-2 mb-2">
-                                <ShieldCheck size={14} className="text-blue-500" /> Protocol Advisory
-                            </p>
-                            <p className="text-xs text-blue-100 font-medium leading-relaxed">
-                                Execution will trigger <span className="font-black text-white">Automated Inventory Integration</span>. Stock count will increment by <span className="text-amber-400 font-black uppercase tracking-tight">{request.quantity} units</span> upon successful audit clearance.
+                    <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg flex gap-4">
+                        <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-500/20">
+                            <ShieldCheck size={20} />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-white mb-1">Stock Update Information</p>
+                            <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                                Approving this return will automatically add <span className="text-blue-400 font-bold">{request.quantity} units</span> back to your branch inventory.
                             </p>
                         </div>
                     </div>
 
-                    <div className="pt-2 flex gap-4">
+                    <div className="pt-2 flex gap-4 border-t border-slate-100">
                         <button
                             onClick={() => onReject(request.id)}
-                            className="flex-1 py-4 bg-white border border-rose-100 text-rose-500 text-[11px] font-black rounded-2xl hover:bg-rose-50 hover:border-rose-200 transition-all flex items-center justify-center gap-2 uppercase tracking-widest active:scale-95"
+                            className="flex-1 py-3 bg-white border border-red-200 text-red-600 text-xs font-bold rounded-xl hover:bg-red-50 hover:border-red-300 transition-all flex items-center justify-center gap-2 uppercase tracking-widest active:scale-95 shadow-sm"
                         >
                             <XCircle size={16} />
-                            Reject Log
+                            Reject
                         </button>
                         <button
                             onClick={() => onApprove(request)}
-                            className="flex-[1.5] py-4 bg-blue-600 text-white text-[11px] font-black rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all flex items-center justify-center gap-2 uppercase tracking-widest active:scale-95"
+                            className="flex-[1.5] py-3 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 uppercase tracking-widest active:scale-95"
                         >
                             <CheckCircle size={16} />
-                            Approve & Integrate
+                            Approve & Add to Stock
                         </button>
                     </div>
                 </div>

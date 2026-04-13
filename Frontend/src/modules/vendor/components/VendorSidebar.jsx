@@ -31,7 +31,7 @@ const VendorSidebar = () => {
                 { label: 'Manage Products', path: '/vendor/products' },
                 { label: 'Add Product', path: '/vendor/products/add' },
                 { label: 'Manage Brands', path: '/vendor/brands' },
-                { label: 'Bulk Upload', path: '/vendor/products/bulk' },
+                { label: 'Location Management', path: '/vendor/products/locations' },
             ]
         },
         { icon: Layers, label: 'Stock Management', path: '/vendor/stock' },

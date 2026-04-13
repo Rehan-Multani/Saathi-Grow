@@ -26,6 +26,7 @@ export const adminSidebarMenu = [
         submenu: [
             { title: 'All Products', key: 'all_products', path: '/admin/products' },
             { title: 'Add Product', key: 'add_product', path: '/admin/products/add' },
+            { title: 'Physical Locations', key: 'physical_locations', path: '/admin/products/locations/management' },
         ],
     },
     {

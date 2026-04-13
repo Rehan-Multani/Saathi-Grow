@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight, Package, Sparkles } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, CheckCircle, Clock, XCircle, AlertCircle, ChevronLeft, ChevronRight, Package, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVendor } from '../../contexts/VendorContext';
 import { formatCurrency } from '../../../../common/utils/formatUtils';
@@ -53,21 +53,21 @@ const ProductList = () => {
 
     const StatusBadge = ({ status }) => {
         const variants = {
-            'Pending Approval': 'bg-amber-50 text-amber-600 border-amber-100',
-            'Active': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-            'Rejected': 'bg-rose-50 text-rose-600 border-rose-100',
-            'Inactive': 'bg-slate-100 text-slate-400 border-slate-200'
+            'Pending Approval': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+            'Active': 'bg-green-50 text-green-700 border-green-200',
+            'Rejected': 'bg-red-50 text-red-700 border-red-200',
+            'Inactive': 'bg-gray-100 text-gray-600 border-gray-200'
         };
         const config = {
-            'Pending Approval': { icon: <Clock size={10} />, label: 'PENDING' },
-            'Active': { icon: <CheckCircle size={10} />, label: 'ACTIVE' },
-            'Rejected': { icon: <XCircle size={10} />, label: 'REJECTED' },
-            'Inactive': { icon: <AlertCircle size={10} />, label: 'INACTIVE' }
+            'Pending Approval': { icon: <Clock size={12} />, label: 'PENDING' },
+            'Active': { icon: <CheckCircle size={12} />, label: 'ACTIVE' },
+            'Rejected': { icon: <XCircle size={12} />, label: 'REJECTED' },
+            'Inactive': { icon: <AlertCircle size={12} />, label: 'INACTIVE' }
         };
-        const current = config[status] || { icon: <CheckCircle size={10} />, label: 'ACTIVE' };
+        const current = config[status] || { icon: <CheckCircle size={12} />, label: 'ACTIVE' };
         
         return (
-            <span className={`flex items-center gap-1.5 py-1 px-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest border transition-all ${variants[status] || 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${variants[status] || 'bg-blue-50 text-blue-700 border-blue-200'}`}>
                 {current.icon} {current.label}
             </span>
         );
@@ -75,27 +75,27 @@ const ProductList = () => {
 
     const PaginationUI = () => (
         totalItems > 0 && (
-            <div className="border-t border-slate-100 px-8 py-5 flex flex-col sm:flex-row items-center justify-between bg-slate-50/50 gap-4">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Catalog Exposure: <strong className="text-slate-900">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, totalItems)}</strong> / <strong className="text-slate-900">{totalItems}</strong> SKU's
+            <div className="border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-white gap-4">
+                <span className="text-xs font-medium text-gray-500">
+                    Showing <strong className="text-gray-900">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, totalItems)}</strong> of <strong className="text-gray-900">{totalItems}</strong> products
                 </span>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-bold shadow-sm"
                     >
-                        <ChevronLeft size={16} /> Previous
+                        <ChevronLeft size={16} /> Prev
                     </button>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                         {Array.from({ length: totalPages }, (_, i) => {
                             const p = i + 1;
                             if (totalPages > 5) {
                                 if (p !== 1 && p !== totalPages && Math.abs(currentPage - p) > 1) {
-                                    if (p === 2 && currentPage > 3) return <span key="dots1" className="text-slate-300">...</span>;
-                                    if (p === totalPages - 1 && currentPage < totalPages - 2) return <span key="dots2" className="text-slate-300">...</span>;
+                                    if (p === 2 && currentPage > 3) return <span key="dots1" className="text-gray-400 px-1">...</span>;
+                                    if (p === totalPages - 1 && currentPage < totalPages - 2) return <span key="dots2" className="text-gray-400 px-1">...</span>;
                                     return null;
                                 }
                             }
@@ -103,7 +103,7 @@ const ProductList = () => {
                                 <button
                                     key={p}
                                     onClick={() => handlePageChange(p)}
-                                    className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all ${currentPage === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400 hover:bg-slate-100'}`}
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${currentPage === p ? 'bg-[#0c831f] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
                                 >
                                     {p}
                                 </button>
@@ -114,7 +114,7 @@ const ProductList = () => {
                     <button
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-bold shadow-sm"
                     >
                         Next <ChevronRight size={16} />
                     </button>
@@ -124,123 +124,115 @@ const ProductList = () => {
     );
 
     return (
-        <div className="space-y-6">
-            {/* Header Toolbar */}
-            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6">
-                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
-                            <Package size={24} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-1.5 uppercase tracking-widest">Inventory Catalog</h2>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Global Deployment Index: <span className="text-slate-900 font-black">{products.length} Units</span></p>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto flex-1">
-                        <div className="flex-1 max-w-md relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Query resource SKU/Identity..."
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:bg-white focus:border-blue-500/50 transition-all outline-none shadow-sm"
-                            />
-                        </div>
-                        
-                        <div className="flex gap-3">
-                            <select
-                                value={categoryFilter}
-                                onChange={(e) => handleFilterChange(setCategoryFilter, e.target.value)}
-                                className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:border-blue-500/50 transition-all shadow-sm"
-                            >
-                                <option value="all">System Categories</option>
-                                {categories.filter(c => c !== 'all').map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
-                            
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
-                                className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:border-blue-500/50 transition-all shadow-sm"
-                            >
-                                <option value="all">Audit Status</option>
-                                <option value="Active">Operational</option>
-                                <option value="Pending Approval">Buffering</option>
-                                <option value="Rejected">Flagged</option>
-                                <option value="Inactive">Offline</option>
-                            </select>
-                        </div>
-
-                        <button
-                            onClick={() => navigate('/vendor/products/add')}
-                            className="bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 active:scale-95"
-                        >
-                            <Plus size={16} strokeWidth={3} /> Propose SKU
-                        </button>
-                    </div>
+        <div className="p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Products</h1>
+                    <p className="text-sm text-gray-500 mt-1">Manage your complete product catalog.</p>
                 </div>
+                <button
+                    onClick={() => navigate('/vendor/products/add')}
+                    className="w-full md:w-auto bg-[#0c831f] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#0a6b19] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                    <Plus size={18} /> Add New Product
+                </button>
             </div>
 
-            {/* Catalog Table */}
-            <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-                <div className="overflow-x-auto overflow-y-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by name or SKU..."
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                            className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-10 pr-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] transition-all outline-none"
+                        />
+                    </div>
+                    
+                    <div className="flex gap-3">
+                        <select
+                            value={categoryFilter}
+                            onChange={(e) => handleFilterChange(setCategoryFilter, e.target.value)}
+                            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#0c831f] transition-all"
+                        >
+                            <option value="all">All Categories</option>
+                            {categories.filter(c => c !== 'all').map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                        
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
+                            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-[#0c831f] transition-all"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Pending Approval">Pending</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Resource Identity</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Unit Valuation</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Inventory Depth</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Protocol Status</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Terminal Actions</th>
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Product Info</th>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Pricing</th>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Stock</th>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Status</th>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-gray-100">
                             {paginatedProducts.map((product) => (
-                                <tr key={product._id} className="hover:bg-slate-50/50 transition-all group">
-                                    <td className="px-6 py-5">
+                                <tr key={product._id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 p-2 shadow-sm transition-transform group-hover:scale-110 duration-500">
+                                            <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 p-1 flex-shrink-0">
                                                 <img src={product.image} alt="" className="w-full h-full object-contain" />
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="text-xs font-black text-slate-900 uppercase tracking-tight mb-1 truncate max-w-[240px]">{product.name}</div>
+                                                <div className="text-sm font-bold text-gray-900 truncate mb-1">{product.name}</div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="px-2 py-0.5 bg-slate-50 text-slate-500 border border-slate-100 rounded text-[9px] font-black uppercase tracking-widest">{typeof product.category === 'object' ? product.category.name : product.category}</span>
-                                                    <span className="text-[9px] text-slate-300 font-mono font-bold uppercase tracking-widest">{product.sku}</span>
-                                                    {product.isSaathiGrow && <Sparkles size={10} className="text-blue-500" />}
+                                                    <span className="text-xs text-gray-500 font-medium">{typeof product.category === 'object' ? product.category.name : product.category}</span>
+                                                    <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded font-mono font-medium">{product.sku}</span>
+                                                    {product.isSaathiGrow && <Sparkles size={12} className="text-yellow-500" />}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5 text-center">
-                                        <div className="text-sm font-black text-slate-900 tracking-tighter">₹{product.basePrice?.toLocaleString()}</div>
-                                        {product.mrp > product.basePrice && <div className="text-[10px] text-slate-300 line-through font-bold">₹{product.mrp?.toLocaleString()}</div>}
+                                    <td className="px-6 py-4 text-center">
+                                        <div className="text-sm font-bold text-gray-900">₹{product.basePrice?.toLocaleString()}</div>
+                                        {product.mrp > product.basePrice && <div className="text-xs text-gray-400 line-through font-medium">₹{product.mrp?.toLocaleString()}</div>}
                                     </td>
-                                    <td className="px-6 py-5 text-center">
-                                        <div className={`inline-block px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${product.totalStock < (product.lowStockThreshold || 10) ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
-                                            {product.totalStock} {product.unitType || 'PCS'}
-                                        </div>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-bold border ${product.totalStock < (product.lowStockThreshold || 10) ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+                                            {product.totalStock} {product.unitType || 'pcs'}
+                                        </span>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-4">
                                         <div className="flex justify-center">
                                             <StatusBadge status={product.status || 'Active'} />
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5 text-right">
-                                        <div className="flex items-center justify-end gap-2.5">
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-2">
                                             <button 
                                                 onClick={() => navigate(`edit/${product._id}`)} 
-                                                className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100 rounded-xl transition-all border border-slate-100 shadow-sm active:scale-90"
+                                                className="p-1.5 text-gray-400 hover:text-[#0c831f] hover:bg-green-50 rounded-md transition-colors"
+                                                title="Edit Product"
                                             >
                                                 <Edit2 size={16} />
                                             </button>
                                             <button 
-                                                onClick={() => { if (window.confirm('Initiate permanent resource deletion?')) navigate(`delete/${product._id}`) }} 
-                                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl transition-all border border-slate-100 shadow-sm active:scale-90"
+                                                onClick={() => { if (window.confirm('Are you sure you want to delete this product?')) navigate(`delete/${product._id}`) }} 
+                                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                title="Delete Product"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -255,12 +247,12 @@ const ProductList = () => {
             </div>
 
             {totalItems === 0 && (
-                <div className="flex flex-col items-center justify-center py-24 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200">
-                    <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-slate-200 shadow-xl border border-slate-100 mb-6">
-                        <Package size={32} strokeWidth={1} />
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-gray-100 mt-4">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4">
+                        <Package size={28} />
                     </div>
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">No Resources Identified</h3>
-                    <p className="text-[10px] text-slate-400 mt-2 uppercase font-bold tracking-widest opacity-60">Adjust query parameters to expand scan range</p>
+                    <h3 className="text-base font-bold text-gray-900">No products found</h3>
+                    <p className="text-sm text-gray-500 mt-1">Try adjusting your filters or search query.</p>
                 </div>
             )}
         </div>

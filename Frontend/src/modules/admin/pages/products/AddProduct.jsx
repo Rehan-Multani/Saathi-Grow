@@ -31,7 +31,6 @@ const AddProduct = () => {
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
     const [branches, setBranches] = useState([]);
-    const [vendors, setVendors] = useState([]);
     const [availableLocations, setAvailableLocations] = useState([]);
 
     // Form State
@@ -69,15 +68,14 @@ const AddProduct = () => {
         const fetchData = async () => {
             if (!adminUser?.token) return;
             try {
-                const [categoriesData, subCategoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
+                const [categoriesData, subCategoriesData, brandsData, branchesData] = await Promise.all([
                     getCategories(adminUser.token), getSubCategories(adminUser.token),
-                    getBrands(adminUser.token), getBranches(adminUser.token), getVendors(adminUser.token)
+                    getBrands(adminUser.token), getBranches(adminUser.token)
                 ]);
                 setCategories(categoriesData.filter(c => c.status === 'Active'));
                 setSubCategories(subCategoriesData.filter(sc => sc.status === 'Active'));
                 setBrands(brandsData.filter(b => b.status === 'Active'));
                 setBranches(branchesData.filter(b => b.isActive));
-                setVendors(vendorsData.filter(v => v.status === 'Active'));
             } catch (error) {
                 toast.error(t('messages.load_failed'));
             } finally {
@@ -386,20 +384,13 @@ const AddProduct = () => {
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                                 <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
-                                Branch & Vendor Access
+                                Branch Access
                             </h3>
 
                             <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">{t('fields.direct_vendor')}</label>
-                                    <select name="vendor" value={formData.vendor} onChange={handleChange} className="form-input-simple">
-                                        <option value="">Internal / Branch Managed</option>
-                                        {vendors.map(v => <option key={v._id} value={v._id}>{v.storeName} ({v.businessName})</option>)}
-                                    </select>
-                                    <p className="text-[10px] text-slate-400 font-medium italic">Selecting a vendor will bypass internal branch stock allocation.</p>
-                                </div>
+                                {/* Direct Vendor Supply selection removed as Admin only manages Branch stock */}
 
-                                {!isVendorProduct && (
+                                <div className="space-y-4 pt-4">
                                     <div className="space-y-4 pt-4 border-t border-slate-50">
                                         <label className="text-sm font-semibold text-slate-700 block">{t('fields.allocate_branches')}</label>
                                         <div className="flex flex-wrap gap-2">
@@ -420,12 +411,12 @@ const AddProduct = () => {
                                                         <div className="flex-1 font-bold text-xs text-slate-700 uppercase tracking-tight">{bs.name}</div>
                                                         <div className="flex gap-4">
                                                             <div className="space-y-1">
-                                                                <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock</span>
-                                                                <input type="number" value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
+                                                                 <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock</span>
+                                                                 <input type="number" value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</span>
-                                                                <input type="number" value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none text-rose-500" />
+                                                                 <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</span>
+                                                                 <input type="number" value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none text-rose-500" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -433,7 +424,7 @@ const AddProduct = () => {
                                             </div>
                                         )}
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>

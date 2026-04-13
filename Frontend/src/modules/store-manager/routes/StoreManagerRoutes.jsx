@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
-import { Spinner } from 'react-bootstrap';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import StoreManagerLayout from '../StoreManagerLayout';
 import StoreManagerDashboard from '../StoreManagerDashboard';
 import InventoryManagement from '../InventoryManagement';
@@ -29,7 +29,6 @@ const ProtectedStoreManagerRoute = () => {
     if (!managerUser) {
         return <Navigate to="/store-manager/login" replace />;
     }
-    // Only 'Branch Manager' role can access the /store-manager portal
     if (managerUser.role !== 'Branch Manager') {
         return <Navigate to="/store-manager/login" replace />;
     }
@@ -43,7 +42,7 @@ const ManagerPOSWrapper = () => {
 const StoreManagerRoutes = () => {
     return (
         <StoreManagerAuthProvider>
-            <Suspense fallback={<div className="p-5 d-flex justify-content-center"><Spinner animation="border" variant="primary" /></div>}>
+            <Suspense fallback={<div className="p-10 flex justify-center items-center h-full"><Loader2 className="animate-spin text-blue-600" size={32} /></div>}>
                 <Routes>
                     {/* Public Store Manager Routes */}
                     <Route path="login" element={<StoreManagerLogin />} />

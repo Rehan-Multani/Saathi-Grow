@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Row, Col, Card, Button, InputGroup, Image, Spinner, OverlayTrigger, Tooltip, Badge } from 'react-bootstrap';
 import { RefreshCw, Save, Upload, X, Sparkles, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
@@ -54,7 +53,6 @@ const AddProduct = () => {
     const [tempImage, setTempImage] = useState(null);
     const [tagInput, setTagInput] = useState('');
 
-    // Fetch Initial Data
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -79,15 +77,12 @@ const AddProduct = () => {
         }
     }, [vendor.token]);
 
-    // Fetch vendor locations
     useEffect(() => {
         if (!vendor?.token) return;
         getAvailableVendorLocations(vendor.token)
             .then(data => setAvailableLocations(Array.isArray(data) ? data : []))
             .catch(() => setAvailableLocations([]));
     }, [vendor?.token]);
-
-
 
     useEffect(() => {
         if (formData.category) {
@@ -178,17 +173,6 @@ const AddProduct = () => {
         setFormData({ ...formData, sku: generateSKU() });
     };
 
-    const addTag = (newTag) => {
-        const trimmedTag = (newTag || tagInput).trim();
-        if (trimmedTag && !formData.tags.includes(trimmedTag)) {
-            setFormData(prev => ({
-                ...prev,
-                tags: [...prev.tags, trimmedTag]
-            }));
-            if (!newTag) setTagInput('');
-        }
-    };
-
     const handleAISuggestion = async (type) => {
         if (!formData.name) {
             return toast.warning('Please enter a product name first');
@@ -199,13 +183,6 @@ const AddProduct = () => {
             if (type === 'description') {
                 setFormData(prev => ({ ...prev, description: data.suggestion }));
                 toast.success('Description generated!');
-            } else if (type === 'tags') {
-                const newTags = data.suggestion.split(',').map(t => t.trim()).filter(t => t);
-                setFormData(prev => ({
-                    ...prev,
-                    tags: [...new Set([...prev.tags, ...newTags])]
-                }));
-                toast.success('Tags generated!');
             }
         } catch (error) {
             toast.error(error.message || `Failed to generate ${type}`);
@@ -217,7 +194,6 @@ const AddProduct = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Brand is only required if brands exist for the selected category
         const isBrandRequired = formData.category && filteredBrands.length > 0;
 
         if (!formData.name || !formData.category || (isBrandRequired && !formData.brandName) || !formData.basePrice || !formData.sku) {
@@ -251,406 +227,195 @@ const AddProduct = () => {
         }
     };
 
-    if (initialLoading) {
-        return (
-            <div className="d-flex justify-content-center align-items-center vh-100">
-                <Spinner animation="border" variant="success" />
-            </div>
-        );
-    }
+    if (initialLoading) return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-[#0c831f] rounded-full animate-spin"></div>
+        </div>
+    );
 
     return (
-        <div className="p-3 bg-white min-vh-100 overflow-x-hidden">
-            <div className="flex items-center gap-3 mb-4">
-                <button onClick={() => navigate('/vendor/products')} className="p-2 hover:bg-gray-100 rounded-full transition-colors md:hidden">
-                    <ArrowLeft size={18} className="text-gray-600" />
+        <div className="p-6 max-w-7xl mx-auto border-t border-transparent">
+            <div className="flex items-center gap-3 mb-6">
+                <button onClick={() => navigate('/vendor/products')} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <ArrowLeft size={20} className="text-gray-600" />
                 </button>
-                <h4 className="mb-0 fw-bold">Add New Product</h4>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Add New Product</h1>
+                    <p className="text-sm text-gray-500 font-medium">Create a new product for your catalog.</p>
+                </div>
             </div>
 
-            <Form onSubmit={handleSubmit}>
-                <Row className="g-4">
-                    <Col lg={8}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="mb-3 fw-bold">General Information</h6>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-semibold text-gray-600">Product Name <span className="text-danger">*</span></Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="e.g. Fresh Mangoes (1kg)"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        required
-                                        className="text-xs"
-                                    />
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <Form.Label className="mb-0 small fw-semibold text-gray-600">Description <span className="text-danger">*</span></Form.Label>
-                                        <OverlayTrigger overlay={<Tooltip>Generate with AI</Tooltip>}>
-                                            <Button
-                                                variant="link"
-                                                className="p-0 text-success d-flex align-items-center gap-1 text-decoration-none"
-                                                onClick={() => handleAISuggestion('description')}
-                                                disabled={aiLoading.description}
-                                            >
-                                                {aiLoading.description ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
-                                                <small className="font-bold">AI Write</small>
-                                            </Button>
-                                        </OverlayTrigger>
+            <form onSubmit={handleSubmit}>
+                <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-1 space-y-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">General Information</h2>
+                            
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Product Name</label>
+                                    <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all" />
+                                </div>
+                                
+                                <div>
+                                    <div className="flex justify-between items-center mb-1.5">
+                                        <label className="text-xs font-bold text-gray-700">Description</label>
+                                        <button type="button" onClick={() => handleAISuggestion('description')} disabled={aiLoading.description} className="text-xs font-bold text-[#0c831f] flex items-center gap-1 hover:underline">
+                                            {aiLoading.description ? <div className="w-3 h-3 border-2 border-[#0c831f] border-t-transparent rounded-full animate-spin" /> : <Sparkles size={12} />}
+                                            AI Write
+                                        </button>
                                     </div>
-                                    <Form.Control
-                                        as="textarea" rows={4}
-                                        placeholder="Enter detailed product description..."
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        required
-                                        className="text-xs"
-                                    />
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <div className="d-flex justify-content-between align-items-center mb-1">
-                                        <Form.Label className="mb-0 small fw-semibold text-gray-600">Tags (for better search)</Form.Label>
-                                        <OverlayTrigger overlay={<Tooltip>Suggest tags with AI</Tooltip>}>
-                                            <Button
-                                                variant="link"
-                                                className="p-0 text-success d-flex align-items-center gap-1 text-decoration-none"
-                                                onClick={() => handleAISuggestion('tags')}
-                                                disabled={aiLoading.tags}
-                                            >
-                                                {aiLoading.tags ? <Spinner animation="border" size="sm" /> : <Sparkles size={14} />}
-                                                <small className="font-bold">AI Tags</small>
-                                            </Button>
-                                        </OverlayTrigger>
+                                    <textarea rows={4} name="description" value={formData.description} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0c831f] focus:ring-1 focus:ring-[#0c831f] outline-none transition-all resize-none" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Pricing & Units</h2>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Price (₹)</label>
+                                    <input type="number" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">MRP (₹)</label>
+                                    <input type="number" name="mrp" value={formData.mrp} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Unit Type</label>
+                                    <select name="unitType" value={formData.unitType} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all bg-white">
+                                        <option value="pcs">Pcs</option><option value="kg">Kg</option><option value="gm">Gm</option><option value="ml">Ml</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Stock</label>
+                                    <input type="number" name="stock" value={formData.stock} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold focus:border-[#0c831f] outline-none transition-all" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Low Stock Alert at</label>
+                                    <input type="number" name="lowStockThreshold" value={formData.lowStockThreshold} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Physical Location</label>
+                                    {availableLocations.length > 0 ? (
+                                        <select name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all bg-white">
+                                            <option value="">— Not Assigned —</option>
+                                            {availableLocations.map(loc => (
+                                                <option key={loc._id} value={loc.label}>{loc.label}{loc.description ? ` (${loc.description})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input type="text" placeholder="No locations — type manually" name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all" />
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Dietary Type</label>
+                                    <div className="flex bg-gray-50 p-1 border border-gray-200 rounded-lg">
+                                        <button type="button" onClick={() => setFormData({ ...formData, isVeg: true })} className={`flex-1 py-1 text-xs font-bold rounded-md transition-all ${formData.isVeg ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>VEG</button>
+                                        <button type="button" onClick={() => setFormData({ ...formData, isVeg: false })} className={`flex-1 py-1 text-xs font-bold rounded-md transition-all ${!formData.isVeg ? 'bg-red-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>NON-VEG</button>
                                     </div>
-                                    <div className="d-flex flex-wrap gap-2 mb-2">
-                                        {formData.tags.map((tag, index) => (
-                                            <span key={index} className="badge rounded-pill bg-light text-dark border d-flex align-items-center gap-2 px-3 py-2 text-[10px]">
-                                                {tag}
-                                                <X size={12} className="cursor-pointer text-muted hover-danger" onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))} />
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <InputGroup size="sm">
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Type tag and press Enter..."
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-                                            className="text-xs"
-                                        />
-                                        <Button variant="outline-secondary" onClick={(e) => { e.preventDefault(); addTag(); }}>Add</Button>
-                                    </InputGroup>
-                                </Form.Group>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                <h6 className="mb-3 fw-bold mt-4">Pricing & Units</h6>
-                                <Row className="align-items-end g-2">
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">Selling Price (₹) <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="0.00"
-                                                name="basePrice"
-                                                value={formData.basePrice}
-                                                onChange={handleChange}
-                                                required
-                                                className="text-xs fw-bold"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">MRP (₹)</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="0.00"
-                                                name="mrp"
-                                                value={formData.mrp}
-                                                onChange={handleChange}
-                                                className="text-xs text-muted"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">Unit Type</Form.Label>
-                                            <Form.Select name="unitType" value={formData.unitType} onChange={handleChange} className="text-xs">
-                                                <option value="pcs">Pcs</option>
-                                                <option value="kg">Kg</option>
-                                                <option value="gm">Gm</option>
-                                                <option value="ml">Ml</option>
-                                                <option value="ltr">Ltr</option>
-                                                <option value="pkt">Pkt</option>
-                                                <option value="box">Box</option>
-                                            </Form.Select>
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">Current Stock <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="0"
-                                                name="stock"
-                                                value={formData.stock}
-                                                onChange={handleChange}
-                                                required
-                                                min="0"
-                                                className="text-xs fw-bold"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">Low Stock Alert at</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="10"
-                                                name="lowStockThreshold"
-                                                value={formData.lowStockThreshold}
-                                                onChange={handleChange}
-                                                min="0"
-                                                className="text-xs"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={3}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600 mb-1">{t('products.form.food_type', { defaultValue: 'Dietary Type' })}</Form.Label>
-                                            <div className="d-flex p-1 bg-gray-50 border border-gray-100 rounded-lg gap-1">
-                                                <button
-                                                    type="button"
-                                                    className={`flex-fill d-flex align-items-center justify-content-center gap-1.5 py-1.5 rounded-md border-0 transition-all font-bold text-[9px] ${formData.isVeg ? 'bg-green-600 text-white shadow-sm' : 'bg-transparent text-green-700 hover:bg-green-50'}`}
-                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: true }))}
-                                                >
-                                                    <div className={`rounded-circle ${formData.isVeg ? 'bg-white' : 'bg-green-600'}`} style={{ width: '6px', height: '6px' }}></div>
-                                                    {t('products.dietary.veg', { defaultValue: 'VEG' })}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className={`flex-fill d-flex align-items-center justify-content-center gap-1.5 py-1.5 rounded-md border-0 transition-all font-bold text-[9px] ${!formData.isVeg ? 'bg-red-600 text-white shadow-sm' : 'bg-transparent text-red-700 hover:bg-red-50'}`}
-                                                    onClick={() => setFormData(prev => ({ ...prev, isVeg: false }))}
-                                                >
-                                                    <div className={`rounded-circle ${!formData.isVeg ? 'bg-white' : 'bg-red-600'}`} style={{ width: '6px', height: '6px' }}></div>
-                                                    {t('products.dietary.non_veg', { defaultValue: 'NON-VEG' })}
-                                                </button>
-                                            </div>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-
-                                <Row className="g-2">
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">Physical Location (Shelf/Rack)</Form.Label>
-                                            {availableLocations.length > 0 ? (
-                                                <Form.Select name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} className="text-xs">
-                                                    <option value="">— Not Assigned —</option>
-                                                    {availableLocations.map(loc => (
-                                                        <option key={loc._id} value={loc.label}>{loc.label}{loc.description ? ` (${loc.description})` : ''}</option>
-                                                    ))}
-                                                </Form.Select>
-                                            ) : (
-                                                <Form.Control
-                                                    type="text"
-                                                    placeholder="No locations set up — type manually"
-                                                    name="physicalLocation"
-                                                    value={formData.physicalLocation}
-                                                    onChange={handleChange}
-                                                    className="text-xs"
-                                                />
-                                            )}
-                                            <Form.Text className="text-[10px] text-muted">Manage locations in Store &rarr; Locations</Form.Text>
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="small fw-semibold text-gray-600">Unit Amount (e.g. 500 for 500g)</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                placeholder="1"
-                                                name="unitValue"
-                                                value={formData.unitValue}
-                                                onChange={handleChange}
-                                                className="text-xs"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-
-
-                            </Card.Body>
-                        </Card>
-                    </Col>
-
-                    <Col lg={4}>
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="mb-3 fw-bold">Classification</h6>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-semibold text-gray-600">Category <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select name="category" value={formData.category} onChange={handleChange} required className="text-xs">
+                    <div className="w-full lg:w-[350px] space-y-6 shrink-0">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Classification</h2>
+                            
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Category</label>
+                                    <select name="category" value={formData.category} onChange={handleChange} required className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all bg-white">
                                         <option value="">Select Category...</option>
                                         {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
-                                    </Form.Select>
-                                </Form.Group>
+                                    </select>
+                                </div>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-semibold text-gray-600">Subcategory</Form.Label>
-                                    <Form.Select
-                                        name="subCategory"
-                                        value={formData.subCategory}
-                                        onChange={handleChange}
-                                        disabled={!formData.category}
-                                        className="text-xs"
-                                    >
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Subcategory</label>
+                                    <select name="subCategory" value={formData.subCategory} onChange={handleChange} disabled={!formData.category} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all bg-white disabled:bg-gray-50 disabled:text-gray-400">
                                         <option value="">Select Subcategory...</option>
                                         {filteredSubCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}
-                                    </Form.Select>
-                                </Form.Group>
+                                    </select>
+                                </div>
 
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-semibold text-gray-600">
-                                        Brand Name {formData.category && filteredBrands.length > 0 && <span className="text-danger">*</span>}
-                                    </Form.Label>
-                                    <Form.Select
-                                        name="brandName"
-                                        value={formData.brandName}
-                                        onChange={handleChange}
-                                        required={formData.category && filteredBrands.length > 0}
-                                        disabled={!formData.category || (formData.category && filteredBrands.length === 0)}
-                                        className="text-xs"
-                                    >
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 flex items-center gap-1">
+                                        Brand {formData.category && filteredBrands.length > 0 && <span className="text-red-500">*</span>}
+                                    </label>
+                                    <select name="brandName" value={formData.brandName} onChange={handleChange} required={formData.category && filteredBrands.length > 0} disabled={!formData.category || (formData.category && filteredBrands.length === 0)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium focus:border-[#0c831f] outline-none transition-all bg-white disabled:bg-gray-50 disabled:text-gray-400">
                                         <option value="">{formData.category && filteredBrands.length === 0 ? 'No Brands Available' : 'Select Brand...'}</option>
                                         {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
-                                    </Form.Select>
+                                    </select>
                                     {formData.category && filteredBrands.length === 0 && (
-                                        <div className="text-[10px] text-muted mt-1 italic font-medium flex items-center gap-1">
-                                            <AlertCircle size={10} className="text-amber-500" />
-                                            <span>No brands found in "{formData.category}". You can skip this for now.</span>
-                                        </div>
+                                        <p className="text-[10px] text-yellow-600 flex items-center gap-1 mt-1.5 font-medium"><AlertCircle size={10} /> No brands found in category. Skip.</p>
                                     )}
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small fw-semibold text-gray-600">SKU (Auto-Generated) <span className="text-danger">*</span></Form.Label>
-                                    <InputGroup size="sm">
-                                        <Form.Control
-                                            readOnly
-                                            value={formData.sku}
-                                            className="bg-light text-xs font-mono"
-                                            required
-                                        />
-                                        <Button variant="outline-secondary" onClick={handleRefreshSKU} title="Regenerate SKU">
-                                            <RefreshCw size={14} />
-                                        </Button>
-                                    </InputGroup>
-                                </Form.Group>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">SKU (Auto-generated)</label>
+                                    <div className="relative">
+                                    <input type="text" readOnly value={formData.sku} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-mono bg-gray-50 text-gray-500 cursor-not-allowed pr-10" />
+                                    <button type="button" onClick={handleRefreshSKU} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-700 bg-white rounded-md border border-gray-100 shadow-sm"><RefreshCw size={14} /></button>
+                                    </div>
+                                </div>
 
                                 {formData.sku && (
-                                    <div className="text-center mt-3 p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
-                                        <div className="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Product QR</div>
-                                        <div className="d-inline-block p-1 bg-white">
-                                            <QRCodeSVG value={formData.sku} size={130} level="H" />
-                                        </div>
-                                        <div className="text-[10px] mt-2 text-gray-400 font-mono italic">{formData.sku}</div>
+                                    <div className="flex justify-center p-4 border border-gray-100 rounded-xl bg-gray-50">
+                                        <QRCodeSVG value={formData.sku} size={100} />
                                     </div>
                                 )}
-                            </Card.Body>
-                        </Card>
+                            </div>
+                        </div>
 
-                        <Card className="border-0 shadow-sm mb-4">
-                            <Card.Body>
-                                <h6 className="mb-3 fw-bold">Images</h6>
-                                <div className="text-center mb-3 p-4 border-2 border-dashed rounded-xl bg-gray-50 position-relative group hover:border-[#0c831f] transition-all">
-                                    {imagePreview ? (
-                                        <div className="position-relative">
-                                            <Image src={imagePreview} alt="Preview" fluid rounded className="max-h-40" />
-                                            <Button variant="danger" size="sm" className="position-absolute top-0 end-0 m-2 rounded-circle p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md" onClick={() => { setImagePreview(null); setImageFile(null); }}>
-                                                <X size={14} />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className="text-gray-400 py-4">
-                                            <Upload className="mb-2 mx-auto" size={24} />
-                                            <p className="text-[10px] font-bold uppercase tracking-tight">Main Product Image</p>
-                                        </div>
-                                    )}
-                                    <Form.Control
-                                        type="file"
-                                        className="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
-                                        onChange={handleImageChange}
-                                        accept="image/*"
-                                        disabled={!!imagePreview}
-                                    />
-                                </div>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Media</h2>
+                            
+                            <div className="relative border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 flex items-center justify-center p-4 hover:bg-gray-100 transition-colors cursor-pointer group">
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="Preview" className="max-h-32 rounded-lg object-contain" />
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <Upload size={24} className="text-gray-400 mx-auto mb-2" />
+                                        <span className="text-xs font-bold text-gray-500 block">Click to upload Main Image</span>
+                                    </div>
+                                )}
+                                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} accept="image/*" />
+                            </div>
 
-                                <Form.Label className="small fw-bold text-gray-600 mb-2">Gallery (Up to 10)</Form.Label>
-                                <div className="d-flex flex-wrap gap-2">
-                                    {galleryPreviews.map((preview, index) => (
-                                        <div key={index} className="position-relative" style={{ width: '60px', height: '60px' }}>
-                                            <Image src={preview} alt={`Gallery ${index}`} thumbnail className="w-100 h-100 object-cover rounded-md" />
-                                            <Button
-                                                variant="danger"
-                                                size="sm"
-                                                className="position-absolute top-0 end-0 rounded-circle p-0 d-flex align-items-center justify-center shadow-sm"
-                                                style={{ width: '18px', height: '18px', marginTop: '-6px', marginRight: '-6px' }}
-                                                onClick={() => removeGalleryImage(index)}
-                                            >
-                                                <X size={10} />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    {galleryFiles.length < 10 && (
-                                        <div
-                                            className="border-2 border-dashed rounded-md d-flex flex-column align-items-center justify-center cursor-pointer hover:bg-gray-100 text-gray-400 transition-all shadow-sm"
-                                            style={{ width: '60px', height: '60px' }}
-                                            onClick={() => document.getElementById('gallery-input').click()}
-                                        >
-                                            <Plus size={20} />
-                                        </div>
-                                    )}
-                                </div>
-                                <Form.Control
-                                    id="gallery-input"
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    className="d-none"
-                                    onChange={handleGalleryChange}
-                                />
-                                <ImageCropperModal
-                                    show={showCropper}
-                                    imageSrc={tempImage}
-                                    onCancel={() => { setShowCropper(false); setTempImage(null); }}
-                                    onCropComplete={handleCropComplete}
-                                    aspect={1}
-                                />
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                {galleryPreviews.map((p, i) => (
+                                    <div key={i} className="relative w-12 h-12 rounded-lg border border-gray-200 overflow-hidden group">
+                                        <img src={p} alt="Gallery" className="w-full h-full object-cover" />
+                                        <button type="button" onClick={() => removeGalleryImage(i)} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
+                                    </div>
+                                ))}
+                                {galleryPreviews.length < 10 && (
+                                    <div onClick={() => document.getElementById('edit-gallery-input').click()} className="w-12 h-12 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 hover:bg-gray-50 cursor-pointer transition-colors">
+                                        <Plus size={16} />
+                                    </div>
+                                )}
+                                <input id="edit-gallery-input" type="file" multiple accept="image/*" className="hidden" onChange={handleGalleryChange} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <div className="d-flex justify-content-end gap-3 mb-10 pt-4 border-t border-gray-100">
-                    <Button variant="light" size="sm" className="px-5 py-2 font-bold text-gray-600 rounded-lg" onClick={() => navigate('/vendor/products')}>Discard</Button>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-8 py-2 bg-[#0c831f] hover:bg-[#0a6b19] text-white rounded-lg font-bold shadow-sm transition-all flex items-center gap-2"
-                    >
-                        {loading ? <Spinner animation="border" size="sm" /> : <Save size={18} />}
-                        Save Product
+                <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
+                    <button type="button" onClick={() => navigate('/vendor/products')} className="px-5 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" disabled={loading} className="px-6 py-2.5 bg-[#0c831f] text-white text-sm font-bold rounded-xl hover:bg-[#0a6b19] flex items-center gap-2 shadow-sm transition-colors active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
+                        {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={18} />} Create Product
                     </button>
                 </div>
-            </Form>
+            </form>
+
+            {showCropper && <ImageCropperModal show={showCropper} imageSrc={tempImage} onCancel={() => setShowCropper(false)} onCropComplete={handleCropComplete} aspect={1} />}
         </div>
     );
 };
 
 export default AddProduct;
-
