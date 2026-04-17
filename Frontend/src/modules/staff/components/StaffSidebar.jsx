@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { staffSidebarMenu } from '../data/staffSidebarMenu';
 import { useStaffAuth } from '../context/StaffAuthContext';
-import logo from '../../../../assets/logo_fav.png';
+import logo from '../../../assets/logo_fav.png';
 
 const StaffSidebar = ({ showMobile, onClose }) => {
     const location = useLocation();
