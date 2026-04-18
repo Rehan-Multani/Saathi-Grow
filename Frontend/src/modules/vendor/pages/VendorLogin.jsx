@@ -100,7 +100,7 @@ const VendorLogin = () => {
                                 <input type="checkbox" id="remember" className="rounded text-[#0c831f] focus:ring-[#0c831f]" />
                                 <label htmlFor="remember" className="text-gray-600 font-medium cursor-pointer">Remember me</label>
                             </div>
-                            <button type="button" className="text-[#0c831f] font-bold hover:underline">Forgot password?</button>
+                            <button type="button" onClick={() => navigate('/vendor/forgot-password')} className="text-[#0c831f] font-bold hover:underline">Forgot password?</button>
                         </div>
 
                         <button

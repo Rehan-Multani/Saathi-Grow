@@ -136,8 +136,41 @@ export const getProfile = async (req, res) => {
   }
 };
 
-// @desc    Update partner profile
-// @route   PUT /api/delivery/auth/profile
+// @desc    Change partner password
+// @route   PUT /api/delivery/auth/change-password
+// @access  Private (Partner)
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+    }
+
+    const partner = await DeliveryPartner.findById(req.partner._id).select('+password');
+
+    if (!partner) {
+      return res.status(404).json({ message: 'Partner not found' });
+    }
+
+    const isMatch = await partner.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    partner.password = newPassword;
+    await partner.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change Password Error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 // @access  Private (Partner)
 export const updateProfile = async (req, res) => {
   try {

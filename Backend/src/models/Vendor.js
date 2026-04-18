@@ -60,6 +60,8 @@ const vendorSchema = new mongoose.Schema({
     minlength: 6,
     select: false
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   createdBy: {
     type: mongoose.Schema.ObjectId,
     ref: 'Admin'

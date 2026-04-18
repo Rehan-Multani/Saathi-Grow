@@ -233,8 +233,8 @@ const OrderTrackingPage = () => {
   const storeCoords = order.branchId?.address?.location?.coordinates || order.vendor?.address?.location?.coordinates;
   const storePos = storeCoords ? { lat: storeCoords[1], lng: storeCoords[0] } : null;
 
-  const mapCenter = driverLocation || destPos;
-  const etaMins = driverLocation ? Math.max(2, Math.round(getDistance(driverLocation, destPos) / 333) + 1) : null;
+  const mapCenter = riderLocation || destPos;
+  const etaMins = riderLocation ? Math.max(2, Math.round(getDistance(riderLocation, destPos) / 333) + 1) : null;
 
   return (
     <div className="fixed inset-0 z-[100] bg-white dark:bg-black overflow-hidden flex flex-col">
@@ -306,9 +306,9 @@ const OrderTrackingPage = () => {
             }}
           />
 
-          {driverLocation && (
+          {riderLocation && (
             <MarkerF
-              position={driverLocation}
+              position={riderLocation}
               icon={{
                 url: bikeImg,
                 scaledSize: new window.google.maps.Size(45, 45),

@@ -80,7 +80,7 @@ const PullToRefresh = ({ onRefresh, children }) => {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
-            {/* SATHIGRO Pixel-Perfect Brand Loader Overlay */}
+            {/* SAATHIGRO Pixel-Perfect Brand Loader Overlay */}
             <motion.div
                 style={{ 
                     opacity, 
@@ -139,7 +139,7 @@ const PullToRefresh = ({ onRefresh, children }) => {
                         <motion.span 
                             className="text-[18px] font-black tracking-[0.45em] text-[#CCFF00] uppercase"
                         >
-                            SATHIGRO
+                            SAATHIGRO
                         </motion.span>
                         {/* Underline Progress Line */}
                         <div className="w-24 h-[4.5px] bg-[#f2f4f7] mt-5 rounded-full overflow-hidden relative">

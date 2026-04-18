@@ -6,7 +6,9 @@ import {
   updateProfile,
   getBankAccount,
   saveBankAccount,
-  deleteBankAccount
+  deleteBankAccount,
+  forgotPassword,
+  resetPassword
 } from '../controllers/vendorAuthController.js';
 import { updateFCMToken } from '../controllers/notificationController.js';
 
@@ -53,6 +55,8 @@ const router = express.Router();
 // Public routes
 router.post('/login', login);
 router.post('/register', register);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
 
 // Protected routes
 router.get('/profile', protectVendor, getProfile);

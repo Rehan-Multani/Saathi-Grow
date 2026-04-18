@@ -147,63 +147,63 @@ const VendorRegister = () => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700 ml-1">Owner Name</label>
-                                <div className="relative">
-                                    <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="ownerName" required onChange={handleChange} value={formData.ownerName} type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="Rahul Kumar" />
+                                <label className="text-xs font-bold text-gray-700">Owner Name</label>
+                                <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
+                                    <User size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
+                                    <input name="ownerName" required onChange={handleChange} value={formData.ownerName} type="text" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="Rahul Kumar" />
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700 ml-1">Email Address</label>
-                                <div className="relative">
-                                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="email" required onChange={handleChange} value={formData.email} type="email" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="rahul@example.com" />
+                                <label className="text-xs font-bold text-gray-700">Email Address</label>
+                                <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
+                                    <Mail size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
+                                    <input name="email" required onChange={handleChange} value={formData.email} type="email" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="rahul@example.com" />
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700 ml-1">Mobile Number</label>
-                                <div className="relative">
-                                    <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="phone" required onChange={handleChange} value={formData.phone} type="tel" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="+91 98765 43210" />
+                                <label className="text-xs font-bold text-gray-700">Mobile Number</label>
+                                <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
+                                    <Phone size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
+                                    <input name="phone" required onChange={handleChange} value={formData.phone} type="tel" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="+91 98765 43210" />
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-gray-700 ml-1">Password</label>
-                                <div className="relative">
-                                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="��������" />
+                                <label className="text-xs font-bold text-gray-700">Password</label>
+                                <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
+                                    <Lock size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
+                                    <input name="password" required onChange={handleChange} value={formData.password} type="password" minLength={6} className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="••••••••" />
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-700 ml-1">Store Name</label>
-                            <div className="relative">
-                                <Store size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <input name="storeName" required onChange={handleChange} value={formData.storeName} type="text" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium" placeholder="Fresh Mart Details" />
+                            <label className="text-xs font-bold text-gray-700">Store Name</label>
+                            <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors">
+                                <Store size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
+                                <input name="storeName" required onChange={handleChange} value={formData.storeName} type="text" className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400" placeholder="Fresh Mart Details" />
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <label className="text-xs font-bold text-gray-700 ml-1 flex items-center gap-1">
+                        <div className="space-y-3">
+                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
                                 <MapPin size={14} /> Store Address
                             </label>
 
                             <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <div className="flex items-center gap-2 border border-gray-200 rounded-xl bg-gray-50 px-3 py-2.5 focus-within:border-[#0c831f] focus-within:bg-white transition-colors flex-1">
+                                    <Search size={15} className="text-gray-400 shrink-0 min-w-[15px]" />
                                     <input
                                         ref={searchRef}
                                         type="text"
                                         placeholder="Search your store location..."
-                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl focus:bg-white focus:border-[#0c831f] outline-none text-sm font-medium shadow-sm"
+                                        className="flex-1 min-w-0 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
                                     />
                                 </div>
                                 <button
                                     type="button"
                                     onClick={detectLocation}
                                     disabled={isDetecting}
-                                    className="px-4 py-2 bg-green-50 text-[#0c831f] border border-green-100 rounded-xl hover:bg-green-100 transition-all flex items-center gap-2 text-xs font-bold shadow-sm whitespace-nowrap active:scale-95"
+                                    className="px-4 py-2 bg-green-50 text-[#0c831f] border border-green-100 rounded-xl hover:bg-green-100 transition-all flex items-center gap-2 text-xs font-bold whitespace-nowrap active:scale-95"
                                 >
                                     <Navigation size={14} className={isDetecting ? "animate-pulse" : ""} />
                                     {isDetecting ? 'Detecting...' : 'Live Location'}
@@ -266,6 +266,10 @@ const VendorRegister = () => {
                     </div>
                 </div>
             </div>
+            <style>{`
+                input::-webkit-contacts-auto-fill-button,
+                input::-webkit-credentials-auto-fill-button { visibility: hidden; pointer-events: none; }
+            `}</style>
         </div>
     );
 };

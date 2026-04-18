@@ -22,23 +22,104 @@ import {
     Lock,
     Globe,
     CheckCircle2,
-    MessageCircle
+    MessageCircle,
+    Loader2
 } from 'lucide-react';
 import useDeliveryStore from '../store/deliveryStore';
 import { toast } from 'react-toastify';
-import { updateDeliveryProfile } from '../api/deliveryAuthApi';
+import { updateDeliveryProfile, changeDeliveryPassword } from '../api/deliveryAuthApi';
 
 const ProfileSettings = () => {
     const { profile, logout, token, fetchProfile } = useDeliveryStore();
     const [notifications, setNotifications] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [selectedView, setSelectedView] = useState('menu');
+    const [isEditing, setIsEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [editData, setEditData] = useState({ name: '', email: '', phone: '' });
+    const [isEditingVehicle, setIsEditingVehicle] = useState(false);
+    const [savingVehicle, setSavingVehicle] = useState(false);
+    const [vehicleData, setVehicleData] = useState({ vehicleType: '', vehicleNumber: '' });
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const [savingPassword, setSavingPassword] = useState(false);
+    const [twoFactorEnabled, setTwoFactorEnabled] = useState(() => {
+        return localStorage.getItem('delivery_2fa') !== 'false';
+    });
+    const [showActiveSessions, setShowActiveSessions] = useState(false);
     const navigate = useNavigate();
 
     const handleLogout = () => {
         logout();
         toast.info('Logged out successfully');
         navigate('/delivery/login');
+    };
+
+    const handleEditStart = () => {
+        setEditData({ name: profile?.name || '', email: profile?.email || '', phone: profile?.phone || '' });
+        setIsEditing(true);
+    };
+
+    const handleEditSave = async () => {
+        setSaving(true);
+        try {
+            const formData = new FormData();
+            formData.append('name', editData.name);
+            formData.append('email', editData.email);
+            formData.append('phone', editData.phone);
+            await updateDeliveryProfile(token, formData);
+            await fetchProfile();
+            setIsEditing(false);
+            toast.success('Profile updated!');
+        } catch {
+            toast.error('Update failed');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleVehicleEditStart = () => {
+        setVehicleData({ vehicleType: profile?.vehicleType || '', vehicleNumber: profile?.vehicleNumber || '' });
+        setIsEditingVehicle(true);
+    };
+
+    const handleVehicleSave = async () => {
+        setSavingVehicle(true);
+        try {
+            const formData = new FormData();
+            formData.append('vehicleType', vehicleData.vehicleType);
+            formData.append('vehicleNumber', vehicleData.vehicleNumber);
+            await updateDeliveryProfile(token, formData);
+            await fetchProfile();
+            setIsEditingVehicle(false);
+            toast.success('Vehicle details updated!');
+        } catch {
+            toast.error('Update failed');
+        } finally {
+            setSavingVehicle(false);
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            toast.error('Passwords do not match');
+            return;
+        }
+        if (passwordData.newPassword.length < 6) {
+            toast.error('Password must be at least 6 characters');
+            return;
+        }
+        setSavingPassword(true);
+        try {
+            await changeDeliveryPassword(token, passwordData.currentPassword, passwordData.newPassword);
+            toast.success('Password changed successfully!');
+            setShowChangePassword(false);
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'Failed to change password');
+        } finally {
+            setSavingPassword(false);
+        }
     };
 
     const handleImageUpload = async (e) => {
@@ -74,11 +155,50 @@ const ProfileSettings = () => {
     const renderSubView = () => {
         const views = {
             personal: (
-                <div className="space-y-1">
+                <div className="space-y-4">
+                    {/* Edit / Save buttons */}
+                    <div className="flex justify-end">
+                        {isEditing ? (
+                            <div className="flex gap-2">
+                                <button onClick={() => setIsEditing(false)} className="px-4 py-1.5 text-xs font-bold text-slate-500 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all">Cancel</button>
+                                <button onClick={handleEditSave} disabled={saving} className="px-4 py-1.5 text-xs font-bold text-white bg-[#028A0F] rounded-xl hover:bg-[#026b0c] transition-all flex items-center gap-1.5 disabled:opacity-60">
+                                    {saving ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                                    Save
+                                </button>
+                            </div>
+                        ) : (
+                            <button onClick={handleEditStart} className="px-4 py-1.5 text-xs font-bold text-[#028A0F] border border-[#028A0F]/30 rounded-xl hover:bg-[#028A0F]/5 transition-all">
+                                Edit
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Editable fields */}
                     {[
-                        { label: 'Full name', value: profile?.name, icon: <User size={16} /> },
-                        { label: 'Email address', value: profile?.email, icon: <Mail size={16} /> },
-                        { label: 'Phone number', value: profile?.phone || '+91 98765 43210', icon: <Phone size={16} /> },
+                        { label: 'Full name', key: 'name', icon: <User size={16} />, editable: true },
+                        { label: 'Email address', key: 'email', icon: <Mail size={16} />, editable: true, type: 'email' },
+                        { label: 'Phone number', key: 'phone', icon: <Phone size={16} />, editable: true, type: 'tel' },
+                    ].map((field, i) => (
+                        <div key={i} className="flex items-center gap-3 py-2.5 border-b border-slate-50 dark:border-zinc-800/30">
+                            <div className="text-[#028A0F] opacity-70 shrink-0">{field.icon}</div>
+                            <div className="flex-1">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">{field.label}</p>
+                                {isEditing ? (
+                                    <input
+                                        type={field.type || 'text'}
+                                        value={editData[field.key]}
+                                        onChange={e => setEditData(prev => ({ ...prev, [field.key]: e.target.value }))}
+                                        className="w-full text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors"
+                                    />
+                                ) : (
+                                    <p className="text-sm font-medium text-slate-800 dark:text-zinc-100">{profile?.[field.key] || 'N/A'}</p>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* Read-only fields */}
+                    {[
                         { label: 'Joined date', value: 'January 2024', icon: <Calendar size={16} /> },
                         { label: 'Total missions', value: '1,284', icon: <Truck size={16} /> },
                         { label: 'Base location', value: profile?.city || 'Indore, MP', icon: <MapPin size={16} /> },
@@ -94,12 +214,58 @@ const ProfileSettings = () => {
                 </div>
             ),
             vehicle: (
-                <div className="space-y-1">
-                    <div className="py-3 border-b border-slate-50 dark:border-zinc-800/30">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Active vehicle</p>
-                        <h3 className="text-base font-bold text-slate-800 dark:text-zinc-100">{profile?.vehicleType || 'Two wheeler'}</h3>
-                        <p className="text-xs font-medium text-[#028A0F]">{profile?.vehicleNumber || 'MP-09-AB-1234'}</p>
+                <div className="space-y-4">
+                    {/* Edit / Save buttons */}
+                    <div className="flex justify-end">
+                        {isEditingVehicle ? (
+                            <div className="flex gap-2">
+                                <button onClick={() => setIsEditingVehicle(false)} className="px-4 py-1.5 text-xs font-bold text-slate-500 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all">Cancel</button>
+                                <button onClick={handleVehicleSave} disabled={savingVehicle} className="px-4 py-1.5 text-xs font-bold text-white bg-[#028A0F] rounded-xl hover:bg-[#026b0c] transition-all flex items-center gap-1.5 disabled:opacity-60">
+                                    {savingVehicle ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                                    Save
+                                </button>
+                            </div>
+                        ) : (
+                            <button onClick={handleVehicleEditStart} className="px-4 py-1.5 text-xs font-bold text-[#028A0F] border border-[#028A0F]/30 rounded-xl hover:bg-[#028A0F]/5 transition-all">
+                                Edit
+                            </button>
+                        )}
                     </div>
+
+                    <div className="py-3 border-b border-slate-50 dark:border-zinc-800/30">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Active vehicle</p>
+                        {isEditingVehicle ? (
+                            <div className="space-y-2">
+                                <div>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Vehicle type</p>
+                                    <input
+                                        type="text"
+                                        value={vehicleData.vehicleType}
+                                        onChange={e => setVehicleData(p => ({ ...p, vehicleType: e.target.value }))}
+                                        placeholder="e.g. Bike, Scooter"
+                                        className="w-full text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Vehicle number</p>
+                                    <input
+                                        type="text"
+                                        value={vehicleData.vehicleNumber}
+                                        onChange={e => setVehicleData(p => ({ ...p, vehicleNumber: e.target.value }))}
+                                        placeholder="e.g. MP09AB1234"
+                                        className="w-full text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#028A0F] transition-colors uppercase"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <h3 className="text-base font-bold text-slate-800 dark:text-zinc-100">{profile?.vehicleType || 'Two wheeler'}</h3>
+                                <p className="text-xs font-medium text-[#028A0F]">{profile?.vehicleNumber || 'MP-09-AB-1234'}</p>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Read-only fields */}
                     {[
                         { label: 'Registration no', value: profile?.vehicleNumber || 'MP-09-AB-1234' },
                         { label: 'Insurance policy', value: 'POL-882104-XX', status: 'Active' },
@@ -139,23 +305,79 @@ const ProfileSettings = () => {
             ),
             security: (
                 <div className="space-y-0.5">
-                    {[
-                        { label: 'Change password', icon: <Lock size={16} /> },
-                        { label: 'Two-factor authentication', icon: <Smartphone size={16} />, status: 'On' },
-                        { label: 'Active sessions', icon: <Smartphone size={16} />, status: '3 Active' },
-                        { label: 'Biometric access', icon: <User size={16} />, status: 'Setup' },
-                    ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-zinc-800/30 cursor-pointer group">
-                            <div className="flex items-center gap-3">
-                                <div className="text-slate-400">{item.icon}</div>
-                                <span className="text-sm font-medium text-slate-800 dark:text-zinc-100 group-hover:text-[#028A0F] transition-colors">{item.label}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {item.status && <span className="text-[9px] font-bold text-[#028A0F] uppercase tracking-tighter">{item.status}</span>}
-                                <ChevronRight size={14} className="text-slate-300" />
+                    {/* Two-factor authentication - Toggle */}
+                    <div className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-zinc-800/30">
+                        <div className="flex items-center gap-3">
+                            <div className="text-slate-400"><Smartphone size={16} /></div>
+                            <div>
+                                <span className="text-sm font-medium text-slate-800 dark:text-zinc-100 block">Two-factor authentication</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                    {twoFactorEnabled ? 'OTP required on every login' : 'OTP verification off'}
+                                </span>
                             </div>
                         </div>
-                    ))}
+                        <button
+                            onClick={() => {
+                                const next = !twoFactorEnabled;
+                                setTwoFactorEnabled(next);
+                                localStorage.setItem('delivery_2fa', String(next));
+                                toast.success(`Two-factor authentication ${next ? 'enabled' : 'disabled'}`);
+                            }}
+                            className={`relative w-11 h-6 rounded-full transition-colors duration-300 flex-shrink-0 border-none ${twoFactorEnabled ? 'bg-[#028A0F]' : 'bg-slate-200'}`}
+                        >
+                            <motion.div
+                                animate={{ x: twoFactorEnabled ? 20 : 2 }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+                            />
+                        </button>
+                    </div>
+
+                    {/* Active sessions */}
+                    <div>
+                        <div
+                            onClick={() => setShowActiveSessions(p => !p)}
+                            className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-zinc-800/30 cursor-pointer group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="text-slate-400"><Smartphone size={16} /></div>
+                                <span className="text-sm font-medium text-slate-800 dark:text-zinc-100 group-hover:text-[#028A0F] transition-colors">Active sessions</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-[#028A0F] uppercase tracking-tighter">1 Active</span>
+                                <ChevronRight size={14} className={`text-slate-300 transition-transform ${showActiveSessions ? 'rotate-90' : ''}`} />
+                            </div>
+                        </div>
+
+                        {showActiveSessions && (
+                            <div className="py-3 px-1 space-y-3 border-b border-slate-50">
+                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-[#028A0F]/10 rounded-lg flex items-center justify-center">
+                                            <Smartphone size={16} className="text-[#028A0F]" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-slate-800">This device</p>
+                                            <p className="text-[9px] text-slate-400 font-medium">
+                                                {navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser'} • Active now
+                                            </p>
+                                            <p className="text-[9px] text-slate-400 font-medium">
+                                                Logged in as {profile?.name || 'Partner'} • {profile?.phone}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">Current</span>
+                                </div>
+                                <p className="text-[9px] text-slate-400 font-medium px-1">Only 1 active session found. You are logged in on this device only.</p>
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full py-2 text-xs font-bold text-red-500 border border-red-100 rounded-xl hover:bg-red-50 transition-all"
+                                >
+                                    Log out this session
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             ),
             help: (
@@ -218,7 +440,7 @@ const ProfileSettings = () => {
             <div className="space-y-4 pb-6 min-h-screen">
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => setSelectedView('menu')}
+                        onClick={() => { setSelectedView('menu'); setIsEditing(false); setIsEditingVehicle(false); setShowChangePassword(false); setShowActiveSessions(false); }}
                         className="text-slate-400 hover:text-[#028A0F] transition-all p-1"
                     >
                         <ArrowLeft size={20} />

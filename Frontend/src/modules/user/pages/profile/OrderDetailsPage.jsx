@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, MessageSquare, AlertCircle, RefreshCw, XCircle, ChevronRight, Package, Truck, CheckCircle, Navigation as NavIcon, Shield, ShoppingBag, Tag, X, Check, Pencil } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as orderApi from '../../api/orderApi';
 import { toast } from 'react-toastify';
@@ -13,6 +13,11 @@ const OrderDetailsPage = () => {
     const [order, setOrder] = useState(null);
     const [rawOrder, setRawOrder] = useState(null); // Full raw data for guard checks
     const [isLoading, setIsLoading] = useState(true);
+    const [currentTag, setCurrentTag] = useState(null);
+    const [showTagModal, setShowTagModal] = useState(false);
+    const [tagInput, setTagInput] = useState('');
+    const [userTags, setUserTags] = useState([]);
+    const [tagLoading, setTagLoading] = useState(false);
 
     useEffect(() => {
         const loadOrder = async () => {
@@ -43,6 +48,7 @@ const OrderDetailsPage = () => {
                     };
                     setRawOrder(data); // preserve raw for guards
                     setOrder(processedOrder);
+                    setCurrentTag(data.tag || null);
                 } catch (err) {
                     toast.error("Failed to load secure order details.");
                     navigate('/orders');
@@ -53,6 +59,42 @@ const OrderDetailsPage = () => {
         };
         loadOrder();
     }, [token, id, navigate]);
+
+    useEffect(() => {
+        if (token) {
+            orderApi.getUserTags(token).then(setUserTags).catch(() => {});
+        }
+    }, [token]);
+
+    const handleSaveTag = async () => {
+        if (!tagInput.trim()) return;
+        setTagLoading(true);
+        try {
+            const res = await orderApi.setOrderTag(token, id, tagInput.trim());
+            setCurrentTag(res.tag);
+            setShowTagModal(false);
+            setTagInput('');
+            toast.success('Tag saved!');
+        } catch {
+            toast.error('Failed to save tag');
+        } finally {
+            setTagLoading(false);
+        }
+    };
+
+    const handleRemoveTag = async () => {
+        setTagLoading(true);
+        try {
+            await orderApi.removeOrderTag(token, id);
+            setCurrentTag(null);
+            setShowTagModal(false);
+            toast.success('Tag removed');
+        } catch {
+            toast.error('Failed to remove tag');
+        } finally {
+            setTagLoading(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -65,22 +107,41 @@ const OrderDetailsPage = () => {
     if (!order) return null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-24">
-            {/* Header */}
-            <div className="hidden md:block sticky top-0 z-40 bg-white/20 dark:bg-black/20 md:bg-none md:bg-white md:dark:bg-black backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4">
-                <div className="max-w-2xl md:max-w-6xl mx-auto flex items-center gap-4">
-                    <button onClick={() => navigate('/orders')} className="p-2 bg-gray-50 dark:bg-white/5 rounded-full shadow-sm text-gray-600 dark:text-gray-300 active:scale-95 transition-all">
+        <div className="min-h-screen bg-[#f4f6f8] dark:bg-[#141414] transition-colors duration-300 pb-28">
+            {/* ── Sticky Header ── */}
+            <div className="sticky top-0 z-40 bg-white dark:bg-[#1a1a1a] border-b border-gray-100 dark:border-white/5 shadow-sm">
+                <div className="max-w-2xl md:max-w-3xl mx-auto flex items-center gap-3 px-4 py-3">
+                    <button
+                        onClick={() => navigate('/orders')}
+                        className="w-9 h-9 flex items-center justify-center bg-gray-50 dark:bg-white/5 rounded-full border border-gray-100 dark:border-white/10 text-gray-500 active:scale-95 transition-all flex-shrink-0"
+                    >
                         <ArrowLeft size={16} />
                     </button>
-                    <div>
-                        <div className="!text-[11.5px] md:!text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight leading-none mb-1">Order Summary</div>
-                        <p className="!text-[7.5px] md:!text-base text-gray-400 font-bold tracking-widest uppercase">#{order.id.slice(-6).toUpperCase()} · {order.date}</p>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-black text-gray-900 dark:text-white leading-none truncate">Order Summary</p>
+                        <p className="text-[10px] text-gray-400 font-bold mt-0.5 truncate">#{rawOrder?.orderId || order.id.slice(-8).toUpperCase()} · {order.date}</p>
                     </div>
+                    {/* Tag badge in header */}
+                    {currentTag ? (
+                        <button
+                            onClick={() => { setTagInput(currentTag); setShowTagModal(true); }}
+                            className="flex items-center gap-1 bg-[#eefaf1] dark:bg-[#0c831f]/10 text-[#0c831f] border border-[#0c831f]/20 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide active:scale-95 transition-all flex-shrink-0"
+                        >
+                            <Tag size={10} /> {currentTag} <Pencil size={9} className="opacity-50" />
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => { setTagInput(''); setShowTagModal(true); }}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-dashed border-gray-300 dark:border-white/10 text-gray-400 text-[10px] font-black uppercase tracking-wide active:scale-95 transition-all flex-shrink-0"
+                        >
+                            <Tag size={10} /> Tag
+                        </button>
+                    )}
                 </div>
             </div>
 
-            <div className="max-w-2xl md:max-w-6xl mx-auto px-2 md:px-0 py-4 md:py-8">
-                <div className="bg-transparent md:bg-white/40 md:rounded-xl p-3 md:p-5 mb-6 md:border border-gray-100 dark:border-white/10 md:shadow-sm overflow-hidden relative">
+            <div className="max-w-2xl md:max-w-3xl mx-auto px-4 py-4">
+                <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl p-4 mb-4 border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden relative">
                     {/* Background Line */}
                     <div className="absolute top-[27px] md:top-[38px] left-[12.5%] right-[12.5%] h-[2px] bg-gray-200 dark:bg-white/10 z-0"></div>
                     {/* Active Line (75% total span across 3 gaps) */}
@@ -125,7 +186,47 @@ const OrderDetailsPage = () => {
                     </div>
                 </div>
 
-                {/* Refund Success Pulse */}
+                {/* Tag Modal */}
+                {showTagModal && (
+                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowTagModal(false)}>
+                        <div className="bg-white dark:bg-[#1a1a1a] rounded-t-3xl sm:rounded-2xl w-full sm:max-w-sm p-6 pb-24 sm:pb-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-black text-gray-900 dark:text-white text-base">Tag this order</h3>
+                                <button onClick={() => setShowTagModal(false)} className="p-1.5 rounded-full bg-gray-100 dark:bg-white/5 text-gray-400"><X size={16} /></button>
+                            </div>
+                            <input
+                                type="text"
+                                value={tagInput}
+                                onChange={e => setTagInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleSaveTag()}
+                                placeholder="e.g. ration, monthly, groceries"
+                                maxLength={30}
+                                autoFocus
+                                className="w-full border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#0c831f] bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white mb-3"
+                            />
+                            {userTags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {userTags.map(t => (
+                                        <button key={t.tagName} onClick={() => setTagInput(t.tagName)}
+                                            className={`px-3 py-1 rounded-full text-[11px] font-black border transition-all ${tagInput === t.tagName ? 'bg-[#0c831f] text-white border-[#0c831f]' : 'bg-gray-50 dark:bg-white/5 text-gray-500 border-gray-200 dark:border-white/10 hover:border-[#0c831f] hover:text-[#0c831f]'}`}>
+                                            {t.tagName} <span className="opacity-60">({t.orderCount})</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex gap-2">
+                                {currentTag && (
+                                    <button onClick={handleRemoveTag} disabled={tagLoading} className="flex-1 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-black hover:bg-red-50 transition-all disabled:opacity-50">
+                                        Remove
+                                    </button>
+                                )}
+                                <button onClick={handleSaveTag} disabled={tagLoading || !tagInput.trim()} className="flex-1 py-2.5 rounded-xl bg-[#0c831f] text-white text-sm font-black hover:bg-[#0a6b19] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                                    {tagLoading ? <RefreshCw size={14} className="animate-spin" /> : <><Check size={14} /> Save Tag</>}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {order.status === 'returned' && (
                     <div className="bg-[#0c831f]/10 border border-[#0c831f]/20 p-4 rounded-2xl flex items-center gap-4 mb-6 animate-pulse">
                         <div className="w-10 h-10 rounded-xl bg-[#0c831f] flex items-center justify-center text-white">
@@ -177,19 +278,19 @@ const OrderDetailsPage = () => {
                         </div>
                     )}
 
-                <div className="space-y-8 animate-in fade-in duration-500 md:grid md:grid-cols-2 md:gap-8">
+                <div className="space-y-4 animate-in fade-in duration-500">
                     {/* Order Items */}
-                    <div className="bg-transparent md:bg-white md:dark:bg-[#141414] md:border border-gray-100 dark:border-white/5 md:rounded-2xl p-0 md:p-4 mb-8">
-                        <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Ordered items</p>
-                        <div className="divide-y divide-gray-100 dark:divide-white/5 border-y border-gray-100 dark:border-white/5">
+                    <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">
+                        <p className="text-[10px] font-black text-gray-400 tracking-[0.2em] mb-3 uppercase">Ordered items</p>
+                        <div className="divide-y divide-gray-50 dark:divide-white/5">
                             {order.items.map((item, i) => (
-                                <div key={i} className="flex items-center gap-4 py-4 px-1 hover:bg-gray-50/50 dark:hover:bg-white/5 transition-all">
-                                    <div className="w-11 h-11 rounded-lg bg-gray-50 dark:bg-white/10 p-1.5 border border-gray-100 dark:border-white/10 flex-shrink-0">
+                                <div key={i} className="flex items-center gap-3 py-3">
+                                    <div className="w-11 h-11 rounded-xl bg-gray-50 dark:bg-white/10 p-1.5 border border-gray-100 dark:border-white/10 flex-shrink-0">
                                         <img src={item.img} alt={item.name} className="w-full h-full object-contain" />
                                     </div>
                                     <div className="flex-1">
-                                        <div className="!text-[10px] md:!text-lg font-black text-gray-800 dark:text-gray-100 leading-tight tracking-tight">{item.name}</div>
-                                        <div className="!text-[9px] md:!text-base text-gray-400 font-bold mt-1">Qty: {item.qty} ₹ {item.price}</div>
+                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100 leading-tight">{item.name}</div>
+                                        <div className="text-[10px] text-gray-400 font-bold mt-0.5">Qty: {item.qty} · {item.price}</div>
                                     </div>
                                 </div>
                             ))}
@@ -197,146 +298,112 @@ const OrderDetailsPage = () => {
                     </div>
 
                     {/* Bill Details */}
-                    <div className="bg-transparent md:bg-white md:dark:bg-[#141414] md:border border-gray-100 dark:border-white/5 md:rounded-2xl p-0 md:p-4 mb-10">
-                        <div className="flex items-center gap-2 mb-4 px-1">
-                            <ShoppingBag size={14} className="text-[#0c831f]" />
-                            <h3 className="!text-[10px] font-black text-gray-400 tracking-widest uppercase">Bill details</h3>
+                    <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-center gap-2 mb-3">
+                            <ShoppingBag size={13} className="text-[#0c831f]" />
+                            <h3 className="text-[10px] font-black text-gray-400 tracking-widest uppercase">Bill details</h3>
                         </div>
-                        <div className="space-y-4 px-1">
+                        <div className="space-y-3">
                             <div className="flex justify-between items-center">
-                                <span className="text-[11px] text-gray-500 font-medium capitalize">Items total</span>
-                                <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{order.subTotal}</span>
+                                <span className="text-[12px] text-gray-500 font-medium">Items Total</span>
+                                <span className="text-[12px] font-black text-gray-900 dark:text-white">₹{order.subTotal}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-[11px] text-gray-500 font-medium capitalize">Delivery fee</span>
-                                <span className={`text-[11px] font-black ${order.deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
+                                <span className="text-[12px] text-gray-500 font-medium">Delivery Fee</span>
+                                <span className={`text-[12px] font-black ${order.deliveryFee === 0 ? 'text-[#0c831f]' : 'text-gray-900 dark:text-white'}`}>
                                     {order.deliveryFee === 0 ? 'Free' : `₹${order.deliveryFee}`}
                                 </span>
                             </div>
                             {order.handlingFee > 0 && (
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[11px] text-gray-500 font-medium capitalize">Handling fee</span>
-                                    <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{order.handlingFee}</span>
+                                    <span className="text-[12px] text-gray-500 font-medium">Handling Fee</span>
+                                    <span className="text-[12px] font-black text-gray-900 dark:text-white">₹{order.handlingFee}</span>
                                 </div>
                             )}
-
                             {order.taxAmount > 0 && (
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[11px] text-gray-500 font-medium capitalize">Taxes (GST)</span>
-                                    <span className="text-[11px] font-black text-gray-900 dark:text-white">₹{order.taxAmount}</span>
+                                    <span className="text-[12px] text-gray-500 font-medium">Taxes (GST)</span>
+                                    <span className="text-[12px] font-black text-gray-900 dark:text-white">₹{order.taxAmount}</span>
                                 </div>
                             )}
-
                             {order.discountAmount > 0 && (
                                 <div className="flex justify-between items-center text-[#0c831f]">
-                                    <span className="text-[11px] font-bold capitalize">Promo Discount</span>
-                                    <span className="text-[11px] font-black">−₹{order.discountAmount}</span>
+                                    <span className="text-[12px] font-bold">Promo Discount</span>
+                                    <span className="text-[12px] font-black">−₹{order.discountAmount}</span>
                                 </div>
                             )}
-
-                            <div className="pt-5 border-t border-dashed border-gray-100 dark:border-white/10 flex justify-between items-center">
+                            <div className="pt-3 border-t border-dashed border-gray-100 dark:border-white/10 flex justify-between items-center">
                                 <span className="text-[14px] font-black text-gray-900 dark:text-white">Grand Total</span>
-                                <span className="text-[20px] font-black text-gray-900 dark:text-white tracking-tighter">₹{order.total}</span>
+                                <span className="text-[18px] font-black text-gray-900 dark:text-white">₹{order.total}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Support Actions */}
-                    <div>
-                        <p className="!text-[8px] md:!text-sm font-black text-gray-400 tracking-[0.2em] mb-4 px-1 uppercase">Need help with this order?</p>
-                        <div className="border-t border-gray-100 dark:border-white/5">
-                            <button onClick={() => navigate(`/orders/${order.id}/complaint`)} className="w-full py-5 px-1 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group border-b border-gray-100 dark:border-white/5">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 border border-orange-100 dark:border-orange-500/10">
+                    <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
+                        <p className="text-[10px] font-black text-gray-400 tracking-[0.2em] px-4 pt-4 pb-2 uppercase">Need help with this order?</p>
+                        <div className="divide-y divide-gray-50 dark:divide-white/5">
+                            <button onClick={() => navigate(`/orders/${order.id}/complaint`)} className="w-full py-4 px-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-100 dark:border-orange-500/10 flex-shrink-0">
                                         <MessageSquare size={15} />
                                     </div>
                                     <div className="text-left">
-                                        <div className="!text-[10.5px] md:!text-lg font-black text-gray-800 dark:text-gray-100 tracking-tight">Raise a complaint</div>
-                                        <p className="!text-[8.5px] md:!text-base text-gray-400 font-bold tracking-tight">Issues with delivery or payment</p>
+                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Raise a complaint</div>
+                                        <p className="text-[10px] text-gray-400 font-medium">Issues with delivery or payment</p>
                                     </div>
                                 </div>
-                                <ChevronRight size={14} className="text-gray-200 group-hover:text-orange-500 transition-all" />
+                                <ChevronRight size={14} className="text-gray-300 group-hover:text-orange-500 transition-all flex-shrink-0" />
                             </button>
 
                             <button
                                 onClick={() => {
                                     const canReturn = order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested;
-                                    if (canReturn) {
-                                        navigate(`/orders/${order.id}/return`);
-                                    } else if (rawOrder?.returnRequest?.isRequested) {
+                                    if (canReturn) { navigate(`/orders/${order.id}/return`); }
+                                    else if (rawOrder?.returnRequest?.isRequested) {
                                         const rStatus = rawOrder.returnRequest.status;
-                                        const msg = rStatus === 'Approved' ? 'Your return has been approved! Refund is processing.' :
-                                            rStatus === 'Rejected' ? 'Your return request was rejected by our team.' :
-                                                'Your return request is under review.';
-                                        toast.info(msg);
-                                    } else {
-                                        toast.info('Returns are only available for delivered orders.');
-                                    }
+                                        toast.info(rStatus === 'Approved' ? 'Return approved! Refund processing.' : rStatus === 'Rejected' ? 'Return request was rejected.' : 'Return request is under review.');
+                                    } else { toast.info('Returns available only for delivered orders.'); }
                                 }}
-                                className={`w-full py-5 px-1 flex items-center justify-between transition-all group border-b border-gray-100 dark:border-white/5 ${order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested ? 'hover:bg-gray-50/50 dark:hover:bg-white/5 active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'}`}
+                                className={`w-full py-4 px-4 flex items-center justify-between transition-all group ${order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested ? 'hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]' : 'opacity-50 cursor-not-allowed'}`}
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center border ${rawOrder?.returnRequest?.isRequested ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 border-amber-100 dark:border-amber-500/10' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-blue-100 dark:border-blue-500/10'}`}>
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0 ${rawOrder?.returnRequest?.isRequested ? 'bg-amber-50 text-amber-500 border-amber-100' : 'bg-blue-50 text-blue-500 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/10'}`}>
                                         <RefreshCw size={15} />
                                     </div>
                                     <div className="text-left">
-                                        <div className="!text-[10.5px] md:!text-lg font-black text-gray-800 dark:text-gray-100 tracking-tight">Return items</div>
-                                        <p className="!text-[8.5px] md:!text-base text-gray-400 font-bold tracking-tight">
-                                            {rawOrder?.returnRequest?.isRequested
-                                                ? `Request ${rawOrder.returnRequest.status?.toLowerCase()} · ${rawOrder.returnRequest.reason}`
-                                                : order.status === 'delivered' ? 'Returning defective or wrong items' : 'Available only after delivery'}
+                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Return items</div>
+                                        <p className="text-[10px] text-gray-400 font-medium">
+                                            {rawOrder?.returnRequest?.isRequested ? `Request ${rawOrder.returnRequest.status?.toLowerCase()}` : order.status === 'delivered' ? 'Returning defective or wrong items' : 'Available only after delivery'}
                                         </p>
                                     </div>
                                 </div>
-                                {order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested && (
-                                    <ChevronRight size={14} className="text-gray-200 group-hover:text-blue-500 transition-all" />
-                                )}
+                                {order.status === 'delivered' && !rawOrder?.returnRequest?.isRequested && <ChevronRight size={14} className="text-gray-300 group-hover:text-blue-500 transition-all flex-shrink-0" />}
                             </button>
 
                             <button
                                 onClick={() => {
-                                    const statusLower = (order.status || '').toLowerCase();
                                     const restricted = ['out_for_delivery', 'delivered', 'cancelled', 'returned'];
-                                    if (!restricted.includes(statusLower)) {
-                                        navigate(`/orders/${order.id}/cancel`);
-                                    } else {
-                                        toast.info("Cancellation and changes no longer available for this order state.");
-                                    }
+                                    if (!restricted.includes(order.status)) { navigate(`/orders/${order.id}/cancel`); }
+                                    else { toast.info('Cancellation no longer available for this order.'); }
                                 }}
-                                className={`w-full py-5 px-1 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-white/5 transition-all group border-b border-gray-100 dark:border-white/5 ${['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes((order.status || '').toLowerCase()) ? 'opacity-50 cursor-not-allowed grayscale' : 'active:scale-[0.98]'}`}
+                                className={`w-full py-4 px-4 flex items-center justify-between transition-all group ${['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98]'}`}
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-600 border border-red-100 dark:border-red-500/10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 border border-red-100 dark:border-red-500/10 flex-shrink-0">
                                         <XCircle size={15} />
                                     </div>
                                     <div className="text-left">
-                                        <div className="!text-[10.5px] md:!text-lg font-black text-gray-800 dark:text-gray-100 tracking-tight">Cancel order</div>
-                                        <p className="!text-[8.5px] md:!text-base text-gray-400 font-bold tracking-tight">
-                                            {['out_for_delivery', 'delivered'].includes(order.status) ? 'Order is already out for delivery' : order.status === 'cancelled' ? 'This order was cancelled' : 'Cancel items before delivery'}
+                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Cancel order</div>
+                                        <p className="text-[10px] text-gray-400 font-medium">
+                                            {['out_for_delivery', 'delivered'].includes(order.status) ? 'Already out for delivery' : order.status === 'cancelled' ? 'This order was cancelled' : 'Cancel before delivery'}
                                         </p>
                                     </div>
                                 </div>
-                                {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && (
-                                    <ChevronRight size={14} className="text-gray-200 group-hover:text-red-500 transition-all" />
-                                )}
+                                {!['out_for_delivery', 'delivered', 'cancelled', 'returned'].includes(order.status) && <ChevronRight size={14} className="text-gray-300 group-hover:text-red-500 transition-all flex-shrink-0" />}
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {/* Bottom Floating Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-black/60 backdrop-blur-md border-t border-gray-100 dark:border-white/5 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] selection:bg-none md:hidden">
-                <div className="max-w-2xl mx-auto flex items-center justify-between px-2">
-                    <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-sm border border-blue-100 dark:border-blue-500/10">
-                            <AlertCircle size={15} />
-                        </div>
-                        <span className="!text-[8.5px] font-black text-gray-800 dark:text-gray-200 tracking-widest uppercase">Support is online</span>
-                    </div>
-                    <button onClick={() => navigate(`/orders/${order.id}/support-chat`)} className="text-[#0c831f] !text-[10px] font-black flex items-center gap-0.5 active:scale-95 transition-all uppercase tracking-tight">
-                        Chat now <ChevronRight size={14} strokeWidth={3} />
-                    </button>
                 </div>
             </div>
         </div>

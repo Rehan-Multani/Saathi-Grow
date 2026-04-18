@@ -15,7 +15,11 @@ import {
   createWalletOrder,
   requestReturn,
   createReturnBatch,
-  getOrderRoute
+  getOrderRoute,
+  setOrderTag,
+  removeOrderTag,
+  getUserTags,
+  getOrdersByTag
 } from '../controllers/orderController.js';
 import { protect, protectAdmin, requirePermission } from '../middleware/authMiddleware.js';
 import { sensitiveAdminActionLimiter, auditAction, idempotencyGuard } from '../middleware/securityMiddleware.js';
@@ -26,10 +30,14 @@ const router = express.Router();
 
 // --- Customer Order Routes ---
 router.get('/myorders', protect, getMyOrders);
+router.get('/tags', protect, getUserTags);
+router.get('/by-tag/:tag', protect, getOrdersByTag);
 router.get('/:id', protect, getOrderById);
 router.get('/:id/route', protect, getOrderRoute);
 router.post('/:id/cancel', protect, cancelOrderUser);
 router.post('/:id/return', protect, upload.array('images', 5), requestReturn);
+router.put('/:id/tag', protect, setOrderTag);
+router.delete('/:id/tag', protect, removeOrderTag);
 
 router.post('/razorpay', protect, createRazorpayOrder);
 router.post('/verify', protect, verifyRazorpayPayment);

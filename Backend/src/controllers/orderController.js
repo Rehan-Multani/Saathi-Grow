@@ -2060,3 +2060,91 @@ export const createReturnBatch = async (req, res) => {
     await session.endSession();
   }
 };
+
+
+// ─── ORDER TAGGING ────────────────────────────────────────────────────────────
+
+const sanitizeTag = (tag) => tag.trim().replace(/\s+/g, ' ').toLowerCase();
+const isValidTag = (tag) => /^[a-z0-9 -]+$/.test(tag) && tag.length >= 1 && tag.length <= 30;
+
+// @desc    Set or update tag on an order
+// @route   PUT /api/orders/:id/tag
+// @access  Private (User)
+export const setOrderTag = async (req, res) => {
+  try {
+    const { tag } = req.body;
+    if (!tag) return res.status(400).json({ message: 'Tag is required' });
+
+    const sanitized = sanitizeTag(tag);
+    if (!isValidTag(sanitized)) {
+      return res.status(400).json({ message: 'Tag must be 1-30 characters and contain only letters, numbers, spaces, or hyphens' });
+    }
+
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    order.tag = sanitized;
+    await order.save();
+    res.json({ tag: order.tag });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Remove tag from an order
+// @route   DELETE /api/orders/:id/tag
+// @access  Private (User)
+export const removeOrderTag = async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    order.tag = null;
+    await order.save();
+    res.json({ message: 'Tag removed' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get all unique tags for the logged-in user with order counts
+// @route   GET /api/orders/tags
+// @access  Private (User)
+export const getUserTags = async (req, res) => {
+  try {
+    const results = await Order.aggregate([
+      { $match: { user: req.user._id, tag: { $exists: true, $ne: null } } },
+      { $group: { _id: { $toLower: '$tag' }, displayName: { $first: '$tag' }, count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    res.json(results.map(r => ({ tagName: r.displayName, orderCount: r.count })));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get orders filtered by tag
+// @route   GET /api/orders/by-tag/:tag
+// @access  Private (User)
+export const getOrdersByTag = async (req, res) => {
+  try {
+    const tag = req.params.tag;
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const query = { user: req.user._id, tag: { $regex: `^${tag}$`, $options: 'i' } };
+    const [orders, total] = await Promise.all([
+      Order.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('items.product', 'name images basePrice stock')
+        .lean(),
+      Order.countDocuments(query)
+    ]);
+
+    res.json({ orders, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -193,6 +193,12 @@ const orderSchema = new mongoose.Schema({
         name: String,
         email: String,
         phone: String
+    },
+    tag: {
+        type: String,
+        default: null,
+        trim: true,
+        maxlength: 30
     }
 }, {
     timestamps: true

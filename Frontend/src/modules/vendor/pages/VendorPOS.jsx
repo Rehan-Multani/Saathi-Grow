@@ -137,12 +137,12 @@ const VendorPOS = () => {
         </div>
 
         <div className="flex-1 max-w-xl mx-4 lg:mx-12">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 h-11 focus-within:bg-white focus-within:border-[#0c831f] transition-colors">
+              <Search className="text-gray-400 shrink-0" size={16} />
               <input 
                 type="text" 
                 placeholder="Search products by name or SKU..."
-                className="w-full h-11 bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 text-sm font-medium text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-[#0c831f] focus:outline-none transition-colors"
+                className="flex-1 bg-transparent text-sm font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none"
                 value={searchTerm}
                 onChange={e => { setSearchTerm(e.target.value); fetchProducts(e.target.value); }}
               />
@@ -150,10 +150,10 @@ const VendorPOS = () => {
         </div>
 
         <div className="flex items-center gap-2">
-            <button onClick={() => fetchProducts()} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white">
+            <button onClick={() => fetchProducts(searchTerm)} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white" title="Refresh products">
                 <RotateCcw size={18} />
             </button>
-            <button className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white">
+            <button onClick={() => window.print()} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white" title="Print">
                 <Printer size={18} />
             </button>
         </div>

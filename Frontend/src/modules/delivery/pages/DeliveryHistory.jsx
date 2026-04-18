@@ -31,17 +31,17 @@ const DeliveryHistory = () => {
         const params = {
             page: currentPage,
             limit: 10,
-            search: searchQuery,
             date: dateFilter
         };
         refreshOrders('history', params);
-    }, [token, refreshOrders, currentPage, searchQuery, dateFilter]);
+    }, [token, refreshOrders, currentPage, dateFilter]);
 
     const historicalOrders = useMemo(() => {
         if (!history || !Array.isArray(history)) return [];
-        return history.flatMap(run =>
+        const all = history.flatMap(run =>
             run.orders.filter(o => o.order).map(o => ({
                 id: o.order?.orderId || o.order?._id || 'Unknown',
+                rawDate: new Date(o.deliveredAt || o.failedAt || run.completedAt || run.createdAt),
                 date: new Date(o.deliveredAt || o.failedAt || run.completedAt || run.createdAt).toLocaleDateString(),
                 time: new Date(o.deliveredAt || o.failedAt || run.completedAt || run.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 status: o.status === 'delivered' ? 'Delivered' : (o.status === 'failed' ? 'Failed' : o.status.replace(/_/g, ' ')),
@@ -49,8 +49,15 @@ const DeliveryHistory = () => {
                 customer: o.order?.user?.name || 'Customer',
                 location: o.order?.shippingAddress?.street || 'Unknown'
             }))
-        );
-    }, [history]);
+        ).sort((a, b) => b.rawDate - a.rawDate);
+
+        const q = searchQuery.trim().toLowerCase();
+        return q ? all.filter(o =>
+            o.id.toLowerCase().includes(q) ||
+            o.customer.toLowerCase().includes(q) ||
+            o.status.toLowerCase().includes(q)
+        ) : all;
+    }, [history, searchQuery]);
 
     const handleDownloadReport = () => {
         const id = toast.loading("Generating delivery history report...");
@@ -107,8 +114,8 @@ const DeliveryHistory = () => {
 
             {/* Filters Row */}
             <div className="flex items-stretch gap-2">
-                <div className="relative group flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#028A0F]" size={14} />
+                <div className="flex items-center gap-2 flex-1 bg-white border border-slate-100 rounded-2xl px-3 py-2.5 shadow-sm focus-within:border-[#028A0F]/30">
+                    <Search className="text-slate-400 shrink-0" size={14} />
                     <input
                         type="text"
                         value={searchQuery}
@@ -117,19 +124,20 @@ const DeliveryHistory = () => {
                             setCurrentPage(1);
                         }}
                         placeholder="Search order id..."
-                        className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-100 rounded-2xl text-[11px] font-bold outline-none shadow-sm focus:border-[#028A0F]/30"
+                        className="flex-1 bg-transparent text-[11px] font-bold outline-none"
                     />
                 </div>
                 <div className="relative shrink-0">
                     <button
                         onClick={() => document.getElementById('hist-date').showPicker()}
-                        className="w-10 h-10 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:border-[#028A0F] transition-all active:scale-95 shadow-sm"
+                        className="h-full px-3 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:border-[#028A0F] transition-all active:scale-95 shadow-sm"
                     >
                         <Calendar size={18} className="text-[#028A0F]" />
                     </button>
                     <input 
                         id="hist-date"
                         type="date"
+                        max={new Date().toISOString().split('T')[0]}
                         className="absolute inset-0 opacity-0 pointer-events-none"
                         onChange={(e) => {
                             setDateFilter(e.target.value);

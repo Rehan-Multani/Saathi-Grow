@@ -111,15 +111,6 @@ const StockManagement = () => {
                     <p className="text-xs text-gray-500 font-medium">Track and update your inventory levels</p>
                 </div>
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                    <button
-                        onClick={handleSync}
-                        disabled={isSyncing}
-                        className="flex-1 sm:flex-none px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-                    >
-                        <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
-                        {isSyncing ? 'Syncing...' : 'Sync Data'}
-                    </button>
-
                     {hasAnyChanges && (
                         <>
                             <button
@@ -181,14 +172,14 @@ const StockManagement = () => {
 
             {/* Filters */}
             <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-3 sticky top-16 z-20 md:static">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-lg px-3 py-1.5 focus-within:border-[#0c831f] bg-white">
+                    <Search className="text-gray-400 shrink-0" size={15} />
                     <input
                         type="text"
                         placeholder="Search products by name..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-1.5 border border-gray-200 rounded-lg focus:border-[#0c831f] focus:outline-none text-xs"
+                        className="flex-1 bg-transparent focus:outline-none text-xs"
                     />
                 </div>
                 <div className="flex gap-2 text-xs font-bold overflow-x-auto pb-1 md:pb-0 scrollbar-hide">

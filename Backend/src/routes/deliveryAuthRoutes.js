@@ -3,7 +3,8 @@ import {
   requestOTP,
   verifyOTP,
   getProfile,
-  updateProfile
+  updateProfile,
+  changePassword
 } from '../controllers/deliveryAuthController.js';
 import { protectDeliveryPartner } from '../middleware/authMiddleware.js';
 import {
@@ -19,5 +20,6 @@ router.post('/verify-otp', validateDeliveryOtpVerifyPayload, verifyOTP);
 
 router.get('/profile', protectDeliveryPartner, getProfile);
 router.put('/profile', protectDeliveryPartner, upload.single('profileImage'), updateProfile);
+router.put('/change-password', protectDeliveryPartner, changePassword);
 
 export default router;

@@ -27,6 +27,7 @@ import enAdminReports from './locales/en/admin/reports.json';
 import enAdminAnalytics from './locales/en/admin/analytics.json';
 import enAdminPolicies from './locales/en/admin/policies.json';
 import enAdminSettings from './locales/en/admin/settings.json';
+import enAdminPromocodes from './locales/en/admin/promocodes.json';
 
 
 // Admin Modules (Hindi)
@@ -50,6 +51,7 @@ import hiAdminReports from './locales/hi/admin/reports.json';
 import hiAdminAnalytics from './locales/hi/admin/analytics.json';
 import hiAdminPolicies from './locales/hi/admin/policies.json';
 import hiAdminSettings from './locales/hi/admin/settings.json';
+import hiAdminPromocodes from './locales/hi/admin/promocodes.json';
 
 
 const resources = {
@@ -74,7 +76,8 @@ const resources = {
     admin_reports: enAdminReports,
     admin_analytics: enAdminAnalytics,
     admin_policies: enAdminPolicies,
-    admin_settings: enAdminSettings
+    admin_settings: enAdminSettings,
+    admin_promocodes: enAdminPromocodes
   },
 
   hi: {
@@ -98,7 +101,8 @@ const resources = {
     admin_reports: hiAdminReports,
     admin_analytics: hiAdminAnalytics,
     admin_policies: hiAdminPolicies,
-    admin_settings: hiAdminSettings
+    admin_settings: hiAdminSettings,
+    admin_promocodes: hiAdminPromocodes
   },
 
 };
@@ -109,7 +113,7 @@ i18n
     resources,
     lng: 'en',
     fallbackLng: 'en',
-    ns: ['common', 'admin_login', 'admin_dashboard', 'admin_orders', 'admin_sidebar', 'admin_products', 'admin_categories', 'admin_customers', 'admin_staff', 'admin_stock', 'admin_delivery', 'admin_vendors', 'admin_locations', 'admin_offers', 'admin_campaigns', 'admin_notifications', 'admin_support', 'admin_reports', 'admin_analytics', 'admin_policies', 'admin_settings'],
+    ns: ['common', 'admin_login', 'admin_dashboard', 'admin_orders', 'admin_sidebar', 'admin_products', 'admin_categories', 'admin_customers', 'admin_staff', 'admin_stock', 'admin_delivery', 'admin_vendors', 'admin_locations', 'admin_offers', 'admin_campaigns', 'admin_notifications', 'admin_support', 'admin_reports', 'admin_analytics', 'admin_policies', 'admin_settings', 'admin_promocodes'],
     defaultNS: 'common',
     interpolation: {
       escapeValue: false,

@@ -22,6 +22,8 @@ import Earnings from '../pages/Earnings';
 import ShopProfile from '../pages/ShopProfile';
 import VendorRegister from '../pages/VendorRegister';
 import VendorLogin from '../pages/VendorLogin';
+import VendorForgotPassword from '../pages/VendorForgotPassword';
+import VendorResetPassword from '../pages/VendorResetPassword';
 import Analysis from '../pages/Analysis';
 import Notifications from '../pages/Notifications';
 import StockManagement from '../pages/StockManagement';
@@ -70,6 +72,8 @@ const VendorRoutes = () => {
                 {/* Default Route: Login */}
                 <Route path="/" element={<VendorLogin />} />
                 <Route path="login" element={<VendorLogin />} />
+                <Route path="forgot-password" element={<VendorForgotPassword />} />
+                <Route path="reset-password/:token" element={<VendorResetPassword />} />
                 <Route path="register" element={<VendorRegister />} />
 
                 {/* Protected Routes */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, Mail, Phone, Edit, Trash2, Shield, Eye, CheckCircle, Calendar, MapPin, X, Loader2, ShieldCheck, UserCheck } from 'lucide-react';
+import { Search, UserPlus, Mail, Phone, Edit, Trash2, Shield, Eye, CheckCircle, Calendar, MapPin, X, Loader2, ShieldCheck, UserCheck, Check } from 'lucide-react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';

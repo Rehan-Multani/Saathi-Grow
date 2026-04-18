@@ -56,7 +56,9 @@ const VendorHeader = () => {
                         <p className="text-sm font-bold text-gray-900 leading-none mb-1">{vendor?.storeName || 'Vendor'}</p>
                         <p className="text-xs text-gray-500 font-medium">{vendor?.ownerName || 'Managing Account'}</p>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden cursor-pointer hover:border-[#0c831f] transition-all active:scale-95"
+                        onClick={() => navigate('/vendor/profile')}
+                    >
                         {vendor?.logo ? (
                             <img src={vendor.logo} alt="Profile" className="w-full h-full object-cover" />
                         ) : (

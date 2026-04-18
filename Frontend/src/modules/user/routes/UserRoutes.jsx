@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Standard Imports for Order Flow (to prevent lazy loading white screen issues)
 import OrdersPage from '../pages/profile/OrdersPage';
 import OrderDetailsPage from '../pages/profile/OrderDetailsPage';
+import TaggedOrdersPage from '../pages/profile/TaggedOrdersPage';
 import CancelOrderPage from '../pages/profile/CancelOrderPage';
 import ReturnOrderPage from '../pages/profile/ReturnOrderPage';
 import RaiseComplaintPage from '../pages/profile/RaiseComplaintPage';
@@ -75,7 +76,7 @@ const LoadingFallback = () => (
                 </svg>
             </div>
             <div className="flex flex-col items-center">
-                <span className="text-[18px] font-black tracking-[0.45em] text-[#CCFF00] uppercase">SATHIGRO</span>
+                <span className="text-[18px] font-black tracking-[0.45em] text-[#CCFF00] uppercase">SAATHIGRO</span>
                 <div className="w-24 h-[4.5px] bg-[#f2f4f7] mt-5 rounded-full overflow-hidden relative">
                     <motion.div 
                         className="absolute inset-0 bg-[#CCFF00]"
@@ -308,6 +309,7 @@ const UserRoutes = () => {
 
                         {/* Orders */}
                         <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+                        <Route path="/orders/tagged/:tag" element={<ProtectedRoute><TaggedOrdersPage /></ProtectedRoute>} />
                         <Route path="/orders/:id" element={<ProtectedRoute><OrderDetailsPage /></ProtectedRoute>} />
                         <Route path="/orders/:id/tracking" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
                         <Route path="/orders/:id/cancel" element={<ProtectedRoute><CancelOrderPage /></ProtectedRoute>} />

@@ -164,26 +164,158 @@ const AllOrders = () => {
     };
 
     const handleUpdateStatus = async (orderId, currentStatus) => {
-        const options = {
-            pending: t('status.pending'),
-            confirmed: t('status.confirmed'),
-            preparing: t('status.preparing'),
-            ready_for_pickup: t('filters.status.ready_for_pickup'),
-            out_for_delivery: t('status.out_for_delivery'),
-            delivered: t('status.delivered'),
-            cancelled: t('status.cancelled')
-        };
+        const statusOptions = [
+            { value: 'pending', label: t('status.pending'), icon: '⏳', color: '#f59e0b', bgColor: '#fef3c7' },
+            { value: 'confirmed', label: t('status.confirmed'), icon: '✅', color: '#10b981', bgColor: '#d1fae5' },
+            { value: 'preparing', label: t('status.preparing'), icon: '👨‍🍳', color: '#3b82f6', bgColor: '#dbeafe' },
+            { value: 'ready_for_pickup', label: t('filters.status.ready_for_pickup'), icon: '📦', color: '#8b5cf6', bgColor: '#ede9fe' },
+            { value: 'out_for_delivery', label: t('status.out_for_delivery'), icon: '🚚', color: '#6366f1', bgColor: '#e0e7ff' },
+            { value: 'delivered', label: t('status.delivered'), icon: '🎉', color: '#059669', bgColor: '#d1fae5' },
+            { value: 'cancelled', label: t('status.cancelled'), icon: '❌', color: '#ef4444', bgColor: '#fee2e2' }
+        ];
+
+        const optionsHtml = statusOptions.map(opt => 
+            `<div class="status-option ${opt.value === currentStatus ? 'status-option-active' : ''}" data-value="${opt.value}" style="border-color: ${opt.color}20; background: ${opt.value === currentStatus ? opt.bgColor : 'white'};">
+                <span class="status-icon" style="background: ${opt.bgColor}; color: ${opt.color};">${opt.icon}</span>
+                <span class="status-label" style="color: ${opt.value === currentStatus ? opt.color : '#334155'};">${opt.label}</span>
+                ${opt.value === currentStatus ? '<span class="status-check" style="color: ' + opt.color + ';">✓</span>' : ''}
+            </div>`
+        ).join('');
 
         const { value: status } = await Swal.fire({
-            title: t('actions.update_status_title'),
-            input: 'select',
-            inputOptions: options,
-            inputPlaceholder: t('actions.update_status_placeholder'),
+            title: '<div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Update Order Status</div>',
+            html: `
+                <div style="margin-bottom: 16px;">
+                    <p style="color: #64748b; font-size: 14px; margin: 0;">Select the new status for this order</p>
+                </div>
+                <div class="status-options-container">
+                    ${optionsHtml}
+                </div>
+                <style>
+                    .status-options-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                        margin-top: 20px;
+                    }
+                    .status-option {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 14px 16px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        background: white;
+                    }
+                    .status-option:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                        border-color: #3b82f6 !important;
+                    }
+                    .status-option-active {
+                        border-width: 2px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    }
+                    .status-icon {
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 20px;
+                        flex-shrink: 0;
+                    }
+                    .status-label {
+                        flex: 1;
+                        font-weight: 600;
+                        font-size: 15px;
+                        text-align: left;
+                    }
+                    .status-check {
+                        font-size: 20px;
+                        font-weight: bold;
+                    }
+                    .swal2-popup {
+                        border-radius: 20px;
+                        padding: 32px;
+                        width: 480px;
+                    }
+                    .swal2-actions {
+                        gap: 12px;
+                        margin-top: 24px;
+                    }
+                    .swal2-confirm {
+                        background: #0f172a !important;
+                        border-radius: 10px !important;
+                        padding: 12px 32px !important;
+                        font-weight: 600 !important;
+                        font-size: 15px !important;
+                    }
+                    .swal2-cancel {
+                        background: white !important;
+                        border: 2px solid #e2e8f0 !important;
+                        color: #64748b !important;
+                        border-radius: 10px !important;
+                        padding: 12px 32px !important;
+                        font-weight: 600 !important;
+                        font-size: 15px !important;
+                    }
+                    .swal2-cancel:hover {
+                        background: #f8fafc !important;
+                    }
+                </style>
+            `,
             showCancelButton: true,
-            inputValue: currentStatus,
+            confirmButtonText: 'Update Status',
+            cancelButtonText: 'Cancel',
+            width: '500px',
+            didOpen: () => {
+                const options = document.querySelectorAll('.status-option');
+                let selectedValue = currentStatus;
+                
+                options.forEach(option => {
+                    option.addEventListener('click', function() {
+                        options.forEach(opt => {
+                            opt.classList.remove('status-option-active');
+                            opt.style.background = 'white';
+                            const check = opt.querySelector('.status-check');
+                            if (check) check.remove();
+                        });
+                        
+                        this.classList.add('status-option-active');
+                        selectedValue = this.getAttribute('data-value');
+                        
+                        const statusOpt = statusOptions.find(s => s.value === selectedValue);
+                        if (statusOpt) {
+                            this.style.background = statusOpt.bgColor;
+                            this.style.borderColor = statusOpt.color;
+                            const label = this.querySelector('.status-label');
+                            if (label) label.style.color = statusOpt.color;
+                            
+                            const checkmark = document.createElement('span');
+                            checkmark.className = 'status-check';
+                            checkmark.textContent = '✓';
+                            checkmark.style.color = statusOpt.color;
+                            this.appendChild(checkmark);
+                        }
+                    });
+                });
+                
+                Swal.getConfirmButton().addEventListener('click', () => {
+                    Swal.close();
+                    Swal.fire({ didClose: () => { Swal.fire({ icon: 'success', title: 'Status Updated!', timer: 1500, showConfirmButton: false }); } });
+                });
+            },
+            preConfirm: () => {
+                const activeOption = document.querySelector('.status-option-active');
+                return activeOption ? activeOption.getAttribute('data-value') : currentStatus;
+            }
         });
 
-        if (status) {
+        if (status && status !== currentStatus) {
             try {
                 await updateOrderStatus(orderId, status);
                 toast.success(t('actions.update_success'));
@@ -218,8 +350,8 @@ const AllOrders = () => {
                 </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm flex flex-col lg:flex-row items-center gap-4">
-                <div className="w-full lg:flex-1 relative">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-full flex-1 relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                         type="text"
@@ -230,7 +362,7 @@ const AllOrders = () => {
                     />
                 </div>
 
-                <div className="flex items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-3 flex-shrink-0">
                     <div className="relative">
                         <button
                             onClick={() => setShowFilterMenu(!showFilterMenu)}

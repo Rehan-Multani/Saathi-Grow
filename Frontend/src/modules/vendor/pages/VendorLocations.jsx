@@ -147,10 +147,10 @@ const VendorLocations = () => {
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-green-400 transition-all">
+          <Search size={14} className="text-gray-400 shrink-0" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search locations..."
-            className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-400 transition-all" />
+            className="flex-1 bg-transparent text-sm outline-none" />
         </div>
 
         {/* List */}

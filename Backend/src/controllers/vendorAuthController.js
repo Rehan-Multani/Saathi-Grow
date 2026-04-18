@@ -1,6 +1,8 @@
 import Vendor from '../models/Vendor.js';
 import generateToken from '../utils/generateToken.js';
 import { cloudinary } from '../config/cloudinary.js';
+import crypto from 'crypto';
+import { sendResetPasswordEmail } from '../services/emailService.js';
 
 // @desc    Vendor Login
 // @route   POST /api/vendors/login
@@ -183,6 +185,60 @@ export const deleteBankAccount = async (req, res) => {
       }
     });
     res.json({ success: true, message: 'Bank account removed' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Vendor Forgot Password
+// @route   POST /api/vendors/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const vendor = await Vendor.findOne({ email });
+    if (!vendor) return res.status(404).json({ message: 'No vendor account found with this email' });
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    vendor.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    vendor.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await vendor.save({ validateBeforeSave: false });
+
+    const resetUrl = `${process.env.VENDOR_URL || 'http://localhost:5173'}/vendor/reset-password/${resetToken}`;
+    const sent = await sendResetPasswordEmail(vendor.email, vendor.ownerName, resetUrl);
+
+    if (sent) {
+      res.json({ message: 'Password reset link sent to your email' });
+    } else {
+      vendor.resetPasswordToken = undefined;
+      vendor.resetPasswordExpires = undefined;
+      await vendor.save({ validateBeforeSave: false });
+      res.status(500).json({ message: 'Failed to send email. Try again.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Vendor Reset Password
+// @route   POST /api/vendors/reset-password/:token
+// @access  Public
+export const resetPassword = async (req, res) => {
+  try {
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const vendor = await Vendor.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!vendor) return res.status(400).json({ message: 'Invalid or expired reset token' });
+
+    vendor.password = req.body.password;
+    vendor.resetPasswordToken = undefined;
+    vendor.resetPasswordExpires = undefined;
+    await vendor.save();
+
+    res.json({ message: 'Password reset successful. You can now login.' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

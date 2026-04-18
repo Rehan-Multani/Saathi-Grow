@@ -318,7 +318,7 @@ const LiveTracking = () => {
                         <div className="flex items-center justify-between gap-4 mb-5 flex-shrink-0">
                             <div className="flex-1">
                                 <p className="text-[#00c982] font-black text-[9px] uppercase tracking-[0.2em] mb-1">
-                                    PHASE: {run.status.replace('_', ' ')}
+                                    PHASE: {run.status.replace(/_/g, ' ')}
                                 </p>
                                 <h2 className="text-xl font-black text-white tracking-tight leading-none capitalize">
                                     {run.status === 'assigned' ? 'New Batch' : run.status === 'in_progress' ? 'On Mission' : 'Finishing'}
@@ -350,7 +350,7 @@ const LiveTracking = () => {
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-black text-[13px] text-zinc-200 tracking-tight">₹{stop.order?.totalAmount}</p>
-                                                <p className="text-[7.5px] font-black uppercase tracking-wider text-emerald-500 mt-0.5">{stop.status.replace('_', ' ')}</p>
+                                                <p className="text-[7.5px] font-black uppercase tracking-wider text-emerald-500 mt-0.5">{stop.status.replace(/_/g, ' ')}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-2 text-zinc-400 mb-4 bg-black/30 p-2.5 rounded-xl">
@@ -360,17 +360,17 @@ const LiveTracking = () => {
                                         {isActive && run.status === 'in_progress' && (
                                             <div className="flex gap-2">
                                                 {isReturn ? (
-                                                    <div className="flex-1 flex gap-2">
-                                                        <input type="text" maxLength={4} placeholder="OTP" className="w-16 h-10 bg-black border border-white/5 rounded-xl text-center font-black text-xs tracking-widest" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
-                                                        <button onClick={() => handleAction('stop', stop.order._id, 'picked_up', otpInput)} disabled={!otpInput} className="flex-1 h-10 bg-emerald-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-30">Verify & Collect</button>
+                                                    <div className="flex-1 flex flex-col gap-2">
+                                                        <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-black border border-white/10 rounded-xl text-center font-black text-sm tracking-[0.3em] text-white placeholder:text-zinc-600 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
+                                                        <button onClick={() => handleAction('stop', stop.order._id, 'picked_up', otpInput)} disabled={!otpInput} className="w-full h-11 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-30 transition-all">Verify & Collect</button>
                                                     </div>
                                                 ) : (
                                                     stop.status === 'pending' ? (
                                                             <button onClick={() => handleAction('stop', stop.order._id, 'out_for_delivery')} className="flex-1 h-10 bg-emerald-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95">Go to Customer</button>
                                                     ) : (
-                                                            <div className="flex-1 flex gap-2">
-                                                                <input type="text" maxLength={4} placeholder="CODE" className="w-16 h-10 bg-black border border-white/5 rounded-xl text-center font-black text-xs tracking-widest" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
-                                                                <button onClick={() => handleAction('stop', stop.order._id, 'delivered', otpInput)} disabled={!otpInput} className="flex-1 h-10 bg-white text-zinc-950 rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95 disabled:opacity-30">Verify & Deliver</button>
+                                                            <div className="flex-1 flex flex-col gap-2">
+                                                                <input type="text" maxLength={4} placeholder="Enter OTP Code" className="w-full h-11 bg-black border border-white/10 rounded-xl text-center font-black text-sm tracking-[0.3em] text-white placeholder:text-zinc-600 placeholder:tracking-normal placeholder:text-xs" value={otpInput} onChange={e => setOtpInput(e.target.value)} />
+                                                                <button onClick={() => handleAction('stop', stop.order._id, 'delivered', otpInput)} disabled={!otpInput} className="w-full h-11 bg-white text-zinc-950 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 disabled:opacity-30 transition-all">Verify & Deliver</button>
                                                             </div>
                                                     )
                                                 )}

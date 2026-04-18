@@ -171,3 +171,34 @@ export const fetchDeliverySlots = async () => {
   if (!response.ok) throw new Error(data.message || 'Failed to fetch delivery slots');
   return data;
 };
+
+// ─── TAG API ──────────────────────────────────────────────────────────────────
+
+export const setOrderTag = async (token, orderId, tag) => {
+  const { data } = await axios.put(`${API_URL}/${orderId}/tag`, { tag }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return data;
+};
+
+export const removeOrderTag = async (token, orderId) => {
+  const { data } = await axios.delete(`${API_URL}/${orderId}/tag`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return data;
+};
+
+export const getUserTags = async (token) => {
+  const { data } = await axios.get(`${API_URL}/tags`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return data;
+};
+
+export const getOrdersByTag = async (token, tag, page = 1) => {
+  const { data } = await axios.get(`${API_URL}/by-tag/${encodeURIComponent(tag)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { page, limit: 20 }
+  });
+  return data;
+};

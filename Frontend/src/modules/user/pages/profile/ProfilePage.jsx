@@ -1,9 +1,10 @@
 import React, {useRef , useState, useEffect}from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { toast } from 'react-toastify';
+import { getUserTags } from '../../api/orderApi';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -14,13 +15,20 @@ const ProfilePage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
     const fileInputRef = React.useRef(null);
+    const [userTags, setUserTags] = useState([]);
+    const { token } = auth;
 
     React.useEffect(() => {
-        // Fetch fresh profile data once on mount
         if (typeof refreshProfile === 'function') {
             refreshProfile();
         }
-    }, []); // Empty deps: run only once when the page mounts
+    }, []);
+
+    React.useEffect(() => {
+        if (token) {
+            getUserTags(token).then(setUserTags).catch(() => {});
+        }
+    }, [token]);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -38,6 +46,12 @@ const ProfilePage = () => {
     const sections = [
         { icon: ShoppingBag, label: "My Orders", subtitle: "Track and manage your orders", path: "/orders" },
         { icon: MessageCircle, label: "My Complaints", subtitle: "Check status of your grievances", path: "/my-complaints" },
+        ...userTags.map(t => ({
+            icon: Tag,
+            label: `${t.tagName.charAt(0).toUpperCase() + t.tagName.slice(1)} (${t.orderCount})`,
+            subtitle: `${t.orderCount} tagged order${t.orderCount > 1 ? 's' : ''}`,
+            path: `/orders/tagged/${encodeURIComponent(t.tagName)}`
+        })),
         { icon: MapPin, label: "Saved Addresses", subtitle: "Manage your delivery locations", path: "/saved-addresses" },
         { icon: Heart, label: "My Wishlist", subtitle: "Your favorite items", path: "/wishlist" },
         { icon: CreditCard, label: "sathiGro Wallet", subtitle: `₹${Number(user?.walletBalance || 0).toFixed(2)} Balance available`, path: "/wallet" },

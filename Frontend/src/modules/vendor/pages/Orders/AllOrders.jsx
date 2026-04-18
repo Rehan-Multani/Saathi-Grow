@@ -57,12 +57,12 @@ const AllOrders = () => {
                     <h1 className="text-lg lg:text-xl font-bold text-gray-900 tracking-tight">Order Management</h1>
                     <p className="text-xs text-gray-500 font-medium">Track and process all shop orders</p>
                 </div>
-                <div className="relative flex-1 max-w-md w-full sm:w-auto">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <div className="flex items-center gap-2 flex-1 max-w-md w-full sm:w-auto border border-gray-200 rounded-lg px-3 py-2 focus-within:border-[#0c831f] bg-white">
+                    <Search className="text-gray-400 shrink-0" size={15} />
                     <input
                         type="text"
                         placeholder="Search order ID or customer name..."
-                        className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:border-[#0c831f] focus:outline-none text-xs"
+                        className="flex-1 bg-transparent focus:outline-none text-xs"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -127,7 +127,6 @@ const AllOrders = () => {
                                 </th>
                                 <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-right">Amount</th>
                                 <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">View</th>
-                                <th className="px-4 py-3 lg:py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -184,26 +183,6 @@ const AllOrders = () => {
                                             >
                                                 <Eye size={14} />
                                             </button>
-                                        </td>
-                                        <td className="px-4 py-3 lg:py-3">
-                                            {action ? (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        updateOrderStatus(order._id, action.next);
-                                                    }}
-                                                    className={`h-7 px-3 w-full max-w-[120px] mx-auto ${action.color} text-white text-[10px] font-bold uppercase tracking-widest rounded-md shadow-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-1.5`}
-                                                >
-                                                    <action.icon size={12} /> {action.label}
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    className="w-7 h-7 mx-auto flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-                                                >
-                                                    <MoreVertical size={16} />
-                                                </button>
-                                            )}
                                         </td>
                                     </tr>
                                 );

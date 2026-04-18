@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, Save, Upload, X, Sparkles, Plus, Camera, Search, ArrowLeft, Package, Trash2, Check } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { RefreshCw, Save, Upload, X, Sparkles, Plus, Camera, Search, ArrowLeft, Package, Trash2, Check, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
@@ -15,6 +15,43 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+
+// Custom dropdown that always opens downward
+const DownDropdown = ({ value, onChange, options, placeholder, disabled }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    useEffect(() => {
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+    const selected = options.find(o => o.value === value);
+    return (
+        <div ref={ref} className="relative">
+            <button type="button" disabled={disabled}
+                onClick={() => !disabled && setOpen(p => !p)}
+                className={`form-input-simple w-full flex items-center justify-between text-left ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${!selected ? 'text-slate-400' : 'text-slate-800'}`}>
+                <span className="truncate">{selected ? selected.label : placeholder}</span>
+                <ChevronDown size={16} className={`shrink-0 ml-2 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+            {open && (
+                <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                    <li onClick={() => { onChange(''); setOpen(false); }}
+                        className="px-4 py-2.5 text-sm text-slate-400 hover:bg-slate-50 cursor-pointer">
+                        {placeholder}
+                    </li>
+                    {options.map(o => (
+                        <li key={o.value} onClick={() => { onChange(o.value); setOpen(false); }}
+                            className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between ${value === o.value ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700'}`}>
+                            {o.label}
+                            {value === o.value && <Check size={14} />}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+};
 
 const AddProduct = () => {
     const { t } = useTranslation('admin_products');
@@ -274,24 +311,32 @@ const AddProduct = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.category')}</label>
-                                    <select name="category" value={formData.category} onChange={handleChange} required className="form-input-simple">
-                                        <option value="">Select Category</option>
-                                        {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
-                                    </select>
+                                    <DownDropdown
+                                        value={formData.category}
+                                        onChange={val => handleChange({ target: { name: 'category', value: val } })}
+                                        options={categories.map(c => ({ value: c.name, label: c.name }))}
+                                        placeholder="Select Category"
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.sub_category')}</label>
-                                    <select name="subCategory" value={formData.subCategory} onChange={handleChange} className="form-input-simple" disabled={!formData.category}>
-                                        <option value="">Select {t('fields.sub_category')}</option>
-                                        {filteredSubCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}
-                                    </select>
+                                    <DownDropdown
+                                        value={formData.subCategory}
+                                        onChange={val => handleChange({ target: { name: 'subCategory', value: val } })}
+                                        options={filteredSubCategories.map(sc => ({ value: sc.name, label: sc.name }))}
+                                        placeholder={`Select ${t('fields.sub_category')}`}
+                                        disabled={!formData.category}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.brand')}</label>
-                                    <select name="brandName" value={formData.brandName} onChange={handleChange} required className="form-input-simple" disabled={!formData.category}>
-                                        <option value="">Select Brand</option>
-                                        {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
-                                    </select>
+                                    <DownDropdown
+                                        value={formData.brandName}
+                                        onChange={val => handleChange({ target: { name: 'brandName', value: val } })}
+                                        options={filteredBrands.map(b => ({ value: b.name, label: b.name }))}
+                                        placeholder="Select Brand"
+                                        disabled={!formData.category}
+                                    />
                                 </div>
                             </div>
 

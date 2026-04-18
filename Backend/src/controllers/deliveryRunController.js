@@ -190,7 +190,12 @@ export const createDeliveryRun = async (req, res) => {
       }
     }
 
-    const orderedStops = waypointOrderArray.map((originalIndex, seqIndex) => {
+    // If waypointOrderArray is empty or mismatched (e.g. single order), fall back to default sequence
+    const safeWaypointOrder = (waypointOrderArray && waypointOrderArray.length === orders.length)
+      ? waypointOrderArray
+      : orders.map((_, i) => i);
+
+    const orderedStops = safeWaypointOrder.map((originalIndex, seqIndex) => {
       const orderDoc = orders[originalIndex];
       return {
         order: orderDoc._id,

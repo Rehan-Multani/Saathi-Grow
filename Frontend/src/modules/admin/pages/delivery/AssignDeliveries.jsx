@@ -19,7 +19,8 @@ import {
     MoreHorizontal,
     User,
     ArrowRight,
-    Store
+    Store,
+    Phone
 } from 'lucide-react';
 import {
     getOrdersBySlot,

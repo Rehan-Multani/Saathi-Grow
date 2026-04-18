@@ -29,3 +29,11 @@ export const updateDeliveryProfile = async (token, formData) => {
   });
   return data;
 };
+
+export const changeDeliveryPassword = async (token, currentPassword, newPassword) => {
+  const { data } = await axios.put(`${API_URL}/delivery/auth/change-password`,
+    { currentPassword, newPassword },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return data;
+};

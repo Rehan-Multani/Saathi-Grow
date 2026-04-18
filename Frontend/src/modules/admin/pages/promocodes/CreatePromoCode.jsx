@@ -155,11 +155,11 @@ const CreatePromoCode = () => {
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.discount_value')}</label>
-                                <div className="relative group">
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm focus-within:border-blue-500 transition-all disabled:bg-slate-50">
                                     {formData.discountType === 'Percentage' ? (
-                                        <Percent className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                        <Percent className="text-slate-300 shrink-0" size={15} />
                                     ) : (
-                                        <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                        <IndianRupee className="text-slate-300 shrink-0" size={15} />
                                     )}
                                     <input
                                         type="number"
@@ -170,36 +170,36 @@ const CreatePromoCode = () => {
                                         onFocus={(e) => { if (formData.discountValue === 0 || formData.discountValue === "0") setFormData(prev => ({ ...prev, discountValue: "" })) }}
                                         onBlur={(e) => { if (formData.discountValue === "" || formData.discountValue === null) setFormData(prev => ({ ...prev, discountValue: "0" })) }}
                                         onChange={handleChange}
-                                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm disabled:bg-slate-50 disabled:text-slate-400"
+                                        className="flex-1 bg-transparent outline-none text-sm font-bold text-slate-700 disabled:text-slate-400"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.min_order')}</label>
-                                <div className="relative group">
-                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm focus-within:border-blue-500 transition-all">
+                                    <IndianRupee className="text-slate-300 shrink-0" size={15} />
                                     <input
                                         type="number"
                                         name="minOrderValue"
                                         value={formData.minOrderValue}
                                         onChange={handleChange}
-                                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
+                                        className="flex-1 bg-transparent outline-none text-sm font-bold text-slate-700"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.max_discount')}</label>
-                                <div className="relative group">
-                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm focus-within:border-blue-500 transition-all">
+                                    <IndianRupee className="text-slate-300 shrink-0" size={15} />
                                     <input
                                         type="number"
                                         name="maxDiscountAmount"
                                         disabled={formData.discountType !== 'Percentage'}
                                         value={formData.maxDiscountAmount}
                                         onChange={handleChange}
-                                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm disabled:bg-slate-50 disabled:text-slate-400"
+                                        className="flex-1 bg-transparent outline-none text-sm font-bold text-slate-700 disabled:text-slate-400"
                                     />
                                 </div>
                             </div>

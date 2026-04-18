@@ -167,7 +167,7 @@ const Dashboard = () => {
                                 <span>Add Product</span>
                                 <Plus size={16} />
                             </button>
-                            <button onClick={() => navigate('/vendor/pos')} className="w-full flex items-center justify-between px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-bold transition-colors shadow-sm">
+                            <button onClick={() => navigate('/vendor/pos-billing')} className="w-full flex items-center justify-between px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-bold transition-colors shadow-sm">
                                 <span>POS Billing</span>
                                 <Monitor size={16} />
                             </button>
