@@ -14,10 +14,14 @@ import {
   getInventoryStats,
   bulkAdjustInventory,
   getBranchWiseStock,
-  getLowStockAlerts
+  getLowStockAlerts,
+  bulkUploadProducts
 } from '../controllers/productController.js';
 import { protectAdmin, restrictTo, requirePermission, optionalProtectAdmin, optionalProtectStoreManager } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
+import multer from 'multer';
+
+const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const router = express.Router();
 
@@ -32,6 +36,7 @@ router.get('/inventory/low-stock', protectAdmin, requirePermission('VIEW_PRODUCT
 router.post('/inventory/bulk-adjust', protectAdmin, requirePermission('MANAGE_INVENTORY'), bulkAdjustInventory);
 router.post('/ai-suggestions', protectAdmin, requirePermission('VIEW_PRODUCTS'), getAISuggestions);
 router.get('/inventory-logs', protectAdmin, requirePermission('MANAGE_INVENTORY'), getAllInventoryLogs);
+router.post('/bulk-upload', protectAdmin, requirePermission('MANAGE_PRODUCTS'), csvUpload.single('file'), bulkUploadProducts);
 
 // Public/General Routes
 router.get('/', optionalProtectStoreManager, getProducts);

@@ -85,6 +85,7 @@ export const getActiveCampaignSections = async (req, res) => {
       accentColor: 1,
       isActive: 1,
       bannerImage: 1,
+      products: 1
     })
       .populate('products.productId', 'name image basePrice mrp unitType unitValue category status isSaathiGrow')
       .sort('-createdAt')

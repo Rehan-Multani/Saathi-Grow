@@ -106,6 +106,7 @@ const AddProduct = () => {
     const [brands, setBrands] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
     const [branches, setBranches] = useState([]);
+    const [vendors, setVendors] = useState([]);
     const [availableLocations, setAvailableLocations] = useState([]);
 
     // Form State
@@ -148,16 +149,39 @@ const AddProduct = () => {
         const fetchData = async () => {
             if (!adminUser?.token) return;
             try {
-                const [categoriesData, subCategoriesData, brandsData, branchesData] = await Promise.all([
-                    getCategories(adminUser.token), getSubCategories(adminUser.token),
-                    getBrands(adminUser.token), getBranches(adminUser.token)
+                const [categoriesData, subCategoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
+                    getCategories(adminUser.token), 
+                    getSubCategories(adminUser.token),
+                    getBrands(adminUser.token), 
+                    getBranches(adminUser.token),
+                    getVendors(adminUser.token)
                 ]);
-                setCategories(categoriesData.filter(c => c.status === 'Active'));
-                setSubCategories(subCategoriesData.filter(sc => sc.status === 'Active'));
-                setBrands(brandsData.filter(b => b.status === 'Active'));
-                setBranches(branchesData.filter(b => b.isActive));
+
+                // Robust extraction logic to handle various response structures
+                const extractData = (payload, key) => {
+                    if (Array.isArray(payload)) return payload;
+                    if (payload && typeof payload === 'object') {
+                        if (Array.isArray(payload[key])) return payload[key];
+                        if (Array.isArray(payload.data)) return payload.data;
+                        if (payload.data && Array.isArray(payload.data[key])) return payload.data[key];
+                    }
+                    return [];
+                };
+
+                const cats = extractData(categoriesData, 'categories');
+                const subCats = extractData(subCategoriesData, 'subcategories');
+                const brs = extractData(brandsData, 'brands');
+                const locs = extractData(branchesData, 'branches');
+                const vends = extractData(vendorsData, 'vendors');
+
+                setCategories(cats.filter(c => c.status === 'Active' || !c.status));
+                setSubCategories(subCats.filter(sc => sc.status === 'Active' || !sc.status));
+                setBrands(brs.filter(b => b.status === 'Active' || !b.status));
+                setBranches(locs.filter(b => b.isActive || b.status === 'Active' || b.isActive === undefined));
+                setVendors(vends.filter(v => v.status === 'Active' || v.isActive));
             } catch (error) {
-                // toast.error(t('messages.load_failed'));
+                console.error('Failed to fetch master data:', error);
+                toast.error(t('messages.load_failed') || 'Failed to load master data');
             } finally {
                 setInitialLoading(false);
             }
@@ -351,7 +375,7 @@ const AddProduct = () => {
                                 <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder={t('fields.name_placeholder')} className="form-input-simple" />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-black">{t('fields.category')}</label>
                                     <DownDropdown
@@ -379,6 +403,15 @@ const AddProduct = () => {
                                         options={filteredBrands.map(b => ({ value: b.name, label: b.name }))}
                                         placeholder="Select Brand"
                                         disabled={!formData.category}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Vendor (Optional)</label>
+                                    <DownDropdown
+                                        value={formData.vendor}
+                                        onChange={val => handleChange({ target: { name: 'vendor', value: val } })}
+                                        options={vendors.map(v => ({ value: v._id, label: v.storeName || v.name }))}
+                                        placeholder="Select Vendor"
                                     />
                                 </div>
                             </div>

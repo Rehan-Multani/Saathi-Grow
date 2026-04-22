@@ -67,6 +67,10 @@ const offerDealSchema = new mongoose.Schema({
     type: String,
     enum: ['None', 'Confetti', 'Sparkles', 'Bubbles', 'Snow'],
     default: 'None'
+  },
+  displayOrder: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

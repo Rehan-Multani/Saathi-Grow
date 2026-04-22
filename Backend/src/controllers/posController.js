@@ -6,7 +6,7 @@ import Branch from '../models/Branch.js';
 import Admin from '../models/Admin.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
-import { computeBillDetails, decrementStock } from './orderController.js';
+import { computeBillDetails, decrementStock, enrichItemsWithLocations } from './orderController.js';
 import { sendInvoiceEmail } from '../services/emailService.js';
 
 /**
@@ -48,14 +48,18 @@ export const createPOSOrder = async (req, res) => {
       store = await Vendor.findById(storeId);
     }
 
+    // Enrich items with physicalLocation for picking
+    const enrichedItems = await enrichItemsWithLocations(items);
+
     const order = new Order({
       orderId: 'POS-' + Date.now().toString(),
-      items: items.map(item => ({
+      items: enrichedItems.map(item => ({
         product: item.product,
         name: item.name,
         quantity: item.quantity,
         price: item.price,
-        image: item.image
+        image: item.image,
+        physicalLocation: item.physicalLocation
       })),
       subTotal: bill.subTotal,
       taxAmount: bill.taxAmount,

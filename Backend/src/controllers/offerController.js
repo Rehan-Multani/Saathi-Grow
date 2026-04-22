@@ -13,7 +13,7 @@ export const getOfferDeals = async (req, res) => {
     // If Admin (no req.vendor), query remains empty to see ALL offers
     const offers = await OfferDeal.find(query)
       .populate('products.productId', 'name image basePrice mrp sku')
-      .sort('-createdAt');
+      .sort({ displayOrder: 1, createdAt: -1 });
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -35,7 +35,7 @@ export const getOfferDealById = async (req, res) => {
 // @desc    Create a new offer deal
 export const createOfferDeal = async (req, res) => {
   try {
-    const { title, subtitle, description, bgColor, textColor, accentColor, products, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
+    const { title, subtitle, description, bgColor, textColor, accentColor, products, expiryDate, displayLocation, displayOrder, discountPercentage, animationType, backgroundEffect } = req.body;
 
     let parsedProducts = products;
     if (typeof products === 'string') {
@@ -72,6 +72,7 @@ export const createOfferDeal = async (req, res) => {
       products: parsedProducts,
       expiryDate,
       displayLocation,
+      displayOrder: displayOrder !== undefined ? Number(displayOrder) : 0,
       discountPercentage: discountPercentage || 0,
       animationType: animationType || 'Default',
       backgroundEffect: backgroundEffect || 'None',
@@ -112,7 +113,7 @@ export const updateOfferDeal = async (req, res) => {
       return res.status(403).json({ message: 'Admin can only delete vendor deals, not edit them' });
     }
 
-    const { title, subtitle, description, bgColor, textColor, accentColor, products, isActive, expiryDate, displayLocation, discountPercentage, animationType, backgroundEffect } = req.body;
+    const { title, subtitle, description, bgColor, textColor, accentColor, products, isActive, expiryDate, displayLocation, displayOrder, discountPercentage, animationType, backgroundEffect } = req.body;
 
     offer.title = title || offer.title;
     offer.subtitle = subtitle !== undefined ? subtitle : offer.subtitle;
@@ -143,6 +144,7 @@ export const updateOfferDeal = async (req, res) => {
     }
     
     offer.displayLocation = displayLocation || offer.displayLocation;
+    offer.displayOrder = displayOrder !== undefined ? Number(displayOrder) : offer.displayOrder;
     offer.discountPercentage = discountPercentage !== undefined ? discountPercentage : offer.discountPercentage;
     offer.animationType = animationType !== undefined ? animationType : offer.animationType;
     offer.backgroundEffect = backgroundEffect !== undefined ? backgroundEffect : offer.backgroundEffect;
@@ -209,7 +211,7 @@ export const getActiveOfferDeals = async (req, res) => {
         } 
       },
       { $addFields: { totalProducts: { $size: "$products" } } },
-      { $sort: { createdAt: -1 } },
+      { $sort: { displayOrder: 1, createdAt: -1 } },
       {
         $project: {
           title: 1, subtitle: 1, description: 1, bgColor: 1, textColor: 1, accentColor: 1,

@@ -115,7 +115,18 @@ export const createProduct = async (req, res) => {
       isVeg,
       variants,
       unitValue,
-      isSaathiGrow
+      isSaathiGrow,
+      // --- New Inventory fields ---
+      reorderThreshold,
+      maxCapacityPerSku,
+      isStockAutoSync,
+      weightCategory,
+      isFragile,
+      temperatureType,
+      pickPriority,
+      pickingZone,
+      variantGroupId,
+      pickSequence
     } = req.body;
 
     const productExists = await Product.findOne({ sku });
@@ -194,6 +205,19 @@ export const createProduct = async (req, res) => {
       isSaathiGrow: isSaathiGrow === 'true' || isSaathiGrow === true,
       stock: vendor ? normalizedVendorStock : 0,
       lowStockThreshold: vendor ? normalizedVendorThreshold : 10,
+      
+      // --- New Fields ---
+      reorderThreshold: Number(reorderThreshold) || 10,
+      maxCapacityPerSku: Number(maxCapacityPerSku) || 0,
+      isStockAutoSync: isStockAutoSync === 'true' || isStockAutoSync === true,
+      weightCategory: weightCategory || 'Light',
+      isFragile: isFragile === 'true' || isFragile === true,
+      temperatureType: temperatureType || 'Normal',
+      pickPriority: Number(pickPriority) || 0,
+      pickingZone: pickingZone || 'Other',
+      variantGroupId: variantGroupId || '',
+      pickSequence: Number(pickSequence) || 0,
+
       createdBy: req.admin._id
     });
 
@@ -655,8 +679,8 @@ export const searchProductsWithAI = async (req, res) => {
         }
       },
       // Higher threshold: items must reach at least 50 points to be included.
-      // This requires at least a direct name match, original tag match, or AI keyword name match.
-      { $match: { relevanceScore: { $gte: 50 } } },
+      // If isAI is true, we relax this to 20 to show related items.
+      { $match: { relevanceScore: { $gte: req.query.isAI === 'true' ? 20 : 50 } } },
       {
         $facet: {
           metadata: [{ $count: 'total' }],
@@ -947,6 +971,18 @@ export const updateProduct = async (req, res) => {
           : (req.body.specificBranches || []).filter(Boolean);
       }
       product.sku = req.body.sku || product.sku;
+
+      // Update new inventory fields
+      if (req.body.reorderThreshold !== undefined) product.reorderThreshold = Number(req.body.reorderThreshold);
+      if (req.body.maxCapacityPerSku !== undefined) product.maxCapacityPerSku = Number(req.body.maxCapacityPerSku);
+      if (req.body.isStockAutoSync !== undefined) product.isStockAutoSync = req.body.isStockAutoSync === 'true' || req.body.isStockAutoSync === true;
+      if (req.body.weightCategory !== undefined) product.weightCategory = req.body.weightCategory;
+      if (req.body.isFragile !== undefined) product.isFragile = req.body.isFragile === 'true' || req.body.isFragile === true;
+      if (req.body.temperatureType !== undefined) product.temperatureType = req.body.temperatureType;
+      if (req.body.pickPriority !== undefined) product.pickPriority = Number(req.body.pickPriority);
+      if (req.body.pickingZone !== undefined) product.pickingZone = req.body.pickingZone;
+      if (req.body.variantGroupId !== undefined) product.variantGroupId = req.body.variantGroupId;
+      if (req.body.pickSequence !== undefined) product.pickSequence = Number(req.body.pickSequence);
 
       // Handle Branch Stock Updates
       if (req.body.branchStocks) {
@@ -1983,6 +2019,136 @@ export const getLowStockAlerts = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── Helper: Parse CSV Buffer ─────────────────────────────────────────────────
+const parseCsvBuffer = (buffer) => {
+  const text = buffer.toString('utf-8');
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+
+  return lines.slice(1).map(line => {
+    // Basic CSV parse — handles quoted fields with commas inside
+    const values = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQuotes = !inQuotes; }
+      else if (ch === ',' && !inQuotes) { values.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    values.push(cur.trim());
+
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (values[i] || '').replace(/^"|"$/g, '').trim(); });
+    return obj;
+  }).filter(r => r.name); // Skip empty rows
+};
+
+// @desc   Bulk upload products from CSV
+// @route  POST /api/admin/products/bulk-upload
+// @access Private (Admin only)
+export const bulkUploadProducts = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No CSV file uploaded' });
+    }
+
+    const rows = parseCsvBuffer(req.file.buffer);
+
+    if (rows.length === 0) {
+      return res.status(400).json({ message: 'CSV is empty or has no valid rows' });
+    }
+
+    let created = 0, updated = 0, skipped = 0;
+    const errors = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowNum = i + 2; // 1-indexed, +1 for header
+
+      try {
+        // Validate required fields
+        if (!row.name || !row.category || !row.basePrice || !row.mrp) {
+          errors.push(`Row ${rowNum}: Missing required fields (name, category, basePrice, mrp)`);
+          skipped++;
+          continue;
+        }
+
+        const sku = row.sku || `BULK-${row.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+        const productData = {
+          name: row.name,
+          category: row.category,
+          subCategory: row.subCategory || '',
+          brandName: row.brandName || '',
+          basePrice: Number(row.basePrice) || 0,
+          mrp: Number(row.mrp) || Number(row.basePrice) || 0,
+          unitType: row.unitType || 'pcs',
+          unitValue: Number(row.unitValue) || 1,
+          description: row.description || `${row.name} - Quality product`,
+          tags: row.tags ? row.tags.split('|').map(t => t.trim()).filter(Boolean) : [],
+          sku,
+          stock: Number(row.stock) || 0,
+          status: row.status || 'Draft',
+          isVeg: row.isVeg === 'false' ? false : true,
+          branchStocks: [],
+          isAllBranches: false,
+          createdBy: req.admin._id,
+        };
+
+        // Try to find existing product by SKU
+        const existing = await Product.findOne({ sku });
+
+        if (existing) {
+          await Product.findByIdAndUpdate(existing._id, {
+            $set: {
+              name: productData.name,
+              basePrice: productData.basePrice,
+              mrp: productData.mrp,
+              description: productData.description,
+              tags: productData.tags,
+              unitType: productData.unitType,
+              unitValue: productData.unitValue,
+              stock: productData.stock,
+              status: productData.status,
+            }
+          });
+          updated++;
+        } else {
+          // Check if product with same name exists
+          const nameExists = await Product.findOne({ name: new RegExp(`^${row.name.trim()}$`, 'i'), sku: { $ne: sku } });
+          if (nameExists) {
+            errors.push(`Row ${rowNum}: Product "${row.name}" already exists with different SKU`);
+            skipped++;
+            continue;
+          }
+
+          const qrCodeDataUrl = await QRCode.toDataURL(sku, { margin: 1 }).catch(() => '');
+          await Product.create({ ...productData, qrCode: qrCodeDataUrl });
+          created++;
+        }
+      } catch (rowErr) {
+        errors.push(`Row ${rowNum}: ${rowErr.message}`);
+        skipped++;
+      }
+    }
+
+    res.json({
+      message: 'Bulk upload completed',
+      created,
+      updated,
+      skipped,
+      total: rows.length,
+      errors: errors.slice(0, 20) // Return first 20 errors max
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

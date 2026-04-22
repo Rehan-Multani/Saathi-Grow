@@ -39,8 +39,21 @@ const AllCategories = () => {
         setLoading(true);
         try {
             const data = await getCategories(adminUser.token);
-            setCategories(data);
+            
+            // Robust extraction logic to handle various response structures
+            const extractData = (payload, key) => {
+                if (Array.isArray(payload)) return payload;
+                if (payload && typeof payload === 'object') {
+                    if (Array.isArray(payload[key])) return payload[key];
+                    if (Array.isArray(payload.data)) return payload.data;
+                    if (payload.data && Array.isArray(payload.data[key])) return payload.data[key];
+                }
+                return [];
+            };
+
+            setCategories(extractData(data, 'categories'));
         } catch (error) {
+            console.error('Failed to fetch categories:', error);
             // toast.error(t('messages.load_failed'));
         } finally {
             setLoading(false);

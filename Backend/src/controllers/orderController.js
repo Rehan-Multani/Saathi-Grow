@@ -26,7 +26,7 @@ import { sendSystemNotificationEmail } from '../services/emailService.js';
  * Enrich order items with physicalLocation from the product document.
  * This ensures receivers/pickers can locate products in the warehouse/store.
  */
-const enrichItemsWithLocations = async (items) => {
+export const enrichItemsWithLocations = async (items) => {
   return Promise.all(items.map(async (item) => {
     try {
       const productId = item.product?._id || item.product;
@@ -143,9 +143,9 @@ const validateStockAvailability = async (items, storeId, storeType) => {
     if (remaining < threshold) {
       const maxAllowed = Math.max(0, availableStock - threshold);
       if (maxAllowed <= 0) {
-        throw new Error(`${product.name} is currently non-orderable as it has reached its safety stock limit.`);
+        throw new Error(`${product.name} is currently out of stock.`);
       } else {
-        throw new Error(`Only ${maxAllowed} units of ${product.name} can be ordered to maintain safety stock.`);
+        throw new Error(`Only ${maxAllowed} units of ${product.name} are currently available.`);
       }
     }
   }
@@ -958,10 +958,13 @@ export const createWalletOrder = async (req, res) => {
       return res.status(400).json({ message: 'Insufficient wallet balance' });
     }
 
+    // Enrich items with physicalLocation for picking
+    const enrichedWalletItems = await enrichItemsWithLocations(orderData.items);
+
     const order = new Order({
       orderId: 'SG-' + Date.now().toString(),
       user: req.user._id,
-      items: orderData.items,
+      items: enrichedWalletItems,
       shippingAddress: orderData.shippingAddress,
       paymentMethod: 'wallet',
       paymentStatus: 'paid',
@@ -1229,7 +1232,10 @@ export const calculateBill = async (req, res) => {
 export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod deliveryOTP returnRequest')
+      .select('orderId status items totalAmount createdAt paymentStatus cancellation paymentMethod deliveryOTP returnRequest branchId vendor')
+      .populate('items.product', 'name images basePrice stock branchStocks lowStockThreshold')
+      .populate('branchId', 'name')
+      .populate('vendor', 'storeName')
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -1250,14 +1256,14 @@ export const getOrderById = async (req, res) => {
     if (mongoose.Types.ObjectId.isValid(id)) {
       order = await Order.findById(id)
         .populate('user', 'name email phone')
-        .populate('items.product', 'name category image unitValue unitType')
+        .populate('items.product', 'name category image unitValue unitType branchStocks stock lowStockThreshold')
         .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
         .populate('branchId', 'name address location')
         .populate('vendor', 'storeName address location');
     } else {
       order = await Order.findOne({ orderId: id })
         .populate('user', 'name email phone')
-        .populate('items.product', 'name category image unitValue unitType')
+        .populate('items.product', 'name category image unitValue unitType branchStocks stock lowStockThreshold')
         .populate('deliveryPartnerId', 'name phone profileImage vehicleType vehicleNumber')
         .populate('branchId', 'name address location')
         .populate('vendor', 'storeName address location');
@@ -2138,7 +2144,9 @@ export const getOrdersByTag = async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('items.product', 'name images basePrice stock')
+        .populate('items.product', 'name images basePrice stock branchStocks lowStockThreshold')
+        .populate('branchId', 'name')
+        .populate('vendor', 'storeName')
         .lean(),
       Order.countDocuments(query)
     ]);

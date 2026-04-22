@@ -134,12 +134,26 @@ const AllProducts = () => {
                 getCategories(adminUser.token, { status: 'Active' }),
                 getBrands(adminUser.token)
             ]);
-            setProducts(productsData.products || []);
-            setTotalPages(productsData.pages || 1);
-            setTotalProducts(productsData.total || 0);
-            setCategories(categoriesData);
-            setBrands(brandsData);
+
+            // Robust extraction logic to handle various response structures
+            const extractData = (payload, key) => {
+                if (Array.isArray(payload)) return payload;
+                if (payload && typeof payload === 'object') {
+                    if (Array.isArray(payload[key])) return payload[key];
+                    if (Array.isArray(payload.data)) return payload.data;
+                    if (payload.data && Array.isArray(payload.data[key])) return payload.data[key];
+                }
+                return [];
+            };
+
+            setProducts(productsData?.products || productsData?.data?.products || productsData || []);
+            setTotalPages(productsData?.pages || productsData?.data?.pages || 1);
+            setTotalProducts(productsData?.total || productsData?.data?.total || 0);
+            
+            setCategories(extractData(categoriesData, 'categories'));
+            setBrands(extractData(brandsData, 'brands'));
         } catch (error) {
+            console.error('Failed to fetch products or master data:', error);
             // toast.error(t('messages.load_failed'));
         } finally {
             setLoading(false);

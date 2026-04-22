@@ -125,6 +125,36 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // --- Inventory Intelligence ---
+  reorderThreshold: { type: Number, default: 10 },
+  maxCapacityPerSku: { type: Number, default: 0 },
+  isStockAutoSync: { type: Boolean, default: false },
+
+  // --- Physical Handling ---
+  weightCategory: { 
+    type: String, 
+    enum: ['Light', 'Medium', 'Heavy'], 
+    default: 'Light' 
+  },
+  isFragile: { type: Boolean, default: false },
+  temperatureType: { 
+    type: String, 
+    enum: ['Normal', 'Cold', 'Frozen'], 
+    default: 'Normal' 
+  },
+
+  // --- Picking Optimization ---
+  pickPriority: { type: Number, default: 0 }, // 0: Normal, 1: High/Fast-moving
+  pickingZone: { 
+    type: String, 
+    enum: ['Food', 'Non-food', 'Mixed Restricted', 'Other'], 
+    default: 'Other' 
+  },
+
+  // --- Variant Handling ---
+  variantGroupId: { type: String, default: '' },
+  pickSequence: { type: Number, default: 0 }, // Order within variant group
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin'
