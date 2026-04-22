@@ -1,5 +1,24 @@
 @import "tailwindcss";
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+
+/* Global Modern E-Commerce Typography Reset */
+@layer base {
+  html, body, .font-sans, p, span, div, a, button {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply !font-bold !tracking-tight text-gray-900 dark:text-white;
+  }
+
+  body {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+}
 
 /* Standard Saathi-Grow Design System (Pure Tailwind) */
 
@@ -40,6 +59,31 @@ body {
 }
 
 /* Modern SaaS Components */
+
+@layer components {
+  /* Premium Typography Classes */
+  .heading-primary {
+    @apply !font-black !tracking-tight !text-gray-900 dark:!text-white;
+  }
+  .heading-secondary {
+    @apply !font-bold !tracking-tight !text-gray-800 dark:!text-gray-100;
+  }
+  .subheading {
+    @apply !font-semibold !tracking-wide !text-gray-800 dark:!text-gray-200;
+  }
+  .text-primary {
+    @apply !font-medium !text-gray-900 dark:!text-gray-100;
+  }
+  .text-secondary {
+    @apply !font-medium !text-gray-600 dark:!text-gray-400;
+  }
+  .price-tag {
+    @apply !font-black !tracking-tight !text-gray-900 dark:!text-gray-100;
+  }
+  .label-tag {
+    @apply !font-black uppercase !tracking-widest !text-[#0c831f] !text-[10px];
+  }
+}
 
 /* Layout & Containers */
 .container-fluid {
@@ -169,3 +213,7 @@ input:focus, select:focus, textarea:focus {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* SweetAlert2 Select Overflow Fix */
+.swal2-select { max-width: 100% !important; box-sizing: border-box !important; margin: 1em auto !important; }
+.swal2-popup { overflow-x: hidden !important; }

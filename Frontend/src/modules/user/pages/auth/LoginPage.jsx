@@ -108,7 +108,7 @@ const LoginPage = () => {
                         <form onSubmit={handleSendOTP} className="space-y-4">
                             <div>
                                 <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1.5 px-1">Phone Number</label>
-                                <div className="relative">
+                                <div className="relative bg-gray-50/50 dark:bg-white/5 focus-within:ring-1 focus-within:ring-[#0c831f] focus-within:border-[#0c831f] rounded-xl border border-transparent">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <span className="text-gray-400 dark:text-gray-500 font-black text-xs">+91</span>
                                     </div>
@@ -117,7 +117,8 @@ const LoginPage = () => {
                                         maxLength="10"
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                                        className="block w-full pl-11 pr-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl focus:ring-1 focus:ring-[#0c831f] focus:border-[#0c831f] outline-none transition-all bg-gray-50/50 dark:bg-white/5 text-gray-900 dark:text-white text-xs font-bold placeholder:text-gray-400"
+                                        className="block w-full pl-11 pr-3 py-2.5 border border-gray-100 dark:border-gray-800 rounded-xl outline-none transition-all text-gray-900 dark:text-white text-xs font-bold placeholder:text-gray-400"
+                                        style={{ backgroundColor: 'transparent', boxShadow: 'none' }}
                                         placeholder="98765 43210"
                                         required
                                         disabled={loading}

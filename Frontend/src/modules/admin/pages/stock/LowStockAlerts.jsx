@@ -59,7 +59,7 @@ const LowStockAlerts = () => {
                 setPagination(response.pagination);
             }
         } catch (error) {
-            toast.error(t('alerts.error_load'));
+            // toast.error(t('alerts.error_load'));
         } finally {
             setLoading(false);
         }

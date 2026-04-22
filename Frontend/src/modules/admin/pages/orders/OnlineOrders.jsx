@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Search, Eye, Filter, Clock, CreditCard, Store, Zap,
-    ChevronLeft, ChevronRight, IndianRupee, Calendar, Edit3
+    ChevronLeft, ChevronRight, IndianRupee, Calendar, Pencil, Trash2
 } from 'lucide-react';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, updateOrderStatus } from '../../api/orderApi';
@@ -425,8 +425,8 @@ const OnlineOrders = () => {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex justify-center gap-2">
-                                                <button onClick={() => handleUpdateStatus(order._id, order.status)} className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors"><Edit3 size={16} /></button>
                                                 <button onClick={() => handleShowDetails(order)} className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
+                                                <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>

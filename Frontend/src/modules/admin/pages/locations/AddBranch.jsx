@@ -103,7 +103,7 @@ const AddBranch = () => {
             toast.success(t('messages.update_success'));
             navigate('/admin/locations/branches');
         } catch (error) {
-            toast.error(error.message || t('messages.fetch_error'));
+            // toast.error(error.message || t('messages.fetch_error'));
         } finally {
             setLoading(false);
         }

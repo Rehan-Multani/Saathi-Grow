@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Download, Package, User, MapPin, CreditCard, Clock, X, Truck, Zap, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAvailablePartners, assignOrder, autoAssignOrder } from '../../api/adminDeliveryApi';
-import { getOrderDetails } from '../../api/orderApi';
+import { getOrderDetails, updateOrderStatus } from '../../api/orderApi';
 import { useAdminAuth } from '../../../modules/admin/context/AdminAuthContext';
 import { useStoreManagerAuth } from '../../../modules/store-manager/context/StoreManagerAuthContext';
 import { useStaffAuth } from '../../../modules/staff/context/StaffAuthContext';
@@ -15,6 +15,17 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
     const [selectedPartner, setSelectedPartner] = useState('');
     const [detailedOrderState, setDetailedOrderState] = useState(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
+    const [updatingStatus, setUpdatingStatus] = useState(false);
+
+    const statusOptions = [
+        { value: 'pending', label: 'Pending' },
+        { value: 'confirmed', label: 'Confirmed' },
+        { value: 'preparing', label: 'Preparing' },
+        { value: 'ready_for_pickup', label: 'Ready for Pickup' },
+        { value: 'out_for_delivery', label: 'Out for Delivery' },
+        { value: 'delivered', label: 'Delivered' },
+        { value: 'cancelled', label: 'Cancelled' }
+    ];
     
     const adminAuth = useAdminAuth?.();
     const managerAuth = useStoreManagerAuth?.();
@@ -86,6 +97,24 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
         }
     };
 
+    const handleStatusUpdate = async (newStatus) => {
+        if (newStatus === displayOrder.status) return;
+        
+        setUpdatingStatus(true);
+        try {
+            await updateOrderStatus(displayOrder._id, newStatus);
+            toast.success(t('actions.update_success'));
+            
+            // Refresh details locally or through parent
+            fetchFullOrderDetails();
+            if (onOrderUpdate) onOrderUpdate();
+        } catch (error) {
+            toast.error(error.response?.data?.message || t('common:error_occurred'));
+        } finally {
+            setUpdatingStatus(false);
+        }
+    };
+
     if (!show || !order) return null;
 
     const displayId = displayOrder.orderId || displayOrder._id;
@@ -104,6 +133,9 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
             default: return 'bg-slate-50 text-slate-600 border-slate-100';
         }
     };
+
+    const displayStore = displayOrder.branchId?.name || displayOrder.vendor?.storeName || displayOrder.vendor?.name || 'Main Warehouse';
+    const storeType = displayOrder.branchId ? 'Branch' : (displayOrder.vendor ? 'Vendor' : 'Internal');
 
     return (
         <div className="fixed inset-0 z-[1060] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
@@ -132,17 +164,35 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Customer</p>
-                                    <p className="font-bold text-slate-900 text-sm">{displayCustomer}</p>
-                                    <p className="text-xs text-slate-500 mt-1">{displayOrder.user?.phone || displayOrder.posCustomer?.phone || 'N/A'}</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                <div className="p-4 bg-blue-50/50 rounded-lg border border-blue-100">
+                                    <p className="text-[10px] font-bold text-blue-400 uppercase mb-2">Store / Branch</p>
+                                    <p className="font-bold text-blue-900 text-[11px] leading-tight">{displayStore}</p>
+                                    <span className="inline-block mt-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[9px] font-bold tracking-wider">{storeType}</span>
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Shipping Address</p>
-                                    <p className="text-xs text-slate-700 leading-relaxed">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Customer</p>
+                                    <p className="font-bold text-slate-900 text-[11px] whitespace-nowrap overflow-hidden text-ellipsis">{displayCustomer}</p>
+                                    <p className="text-[10px] text-slate-500 mt-1">{displayOrder.user?.phone || displayOrder.posCustomer?.phone || 'N/A'}</p>
+                                </div>
+                                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Address</p>
+                                    <p className="text-[10px] text-slate-700 leading-relaxed font-semibold line-clamp-2">
                                         {displayOrder.shippingAddress?.address || 'Direct Transaction'}
                                     </p>
+                                </div>
+                                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Status</p>
+                                    <select 
+                                        className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-blue-500 transition-all cursor-pointer"
+                                        value={displayOrder.status}
+                                        onChange={(e) => handleStatusUpdate(e.target.value)}
+                                        disabled={updatingStatus}
+                                    >
+                                        {statusOptions.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
@@ -188,6 +238,7 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                     <thead className="bg-slate-50 text-slate-400 font-bold uppercase border-b border-slate-100">
                                         <tr>
                                             <th className="px-4 py-2">Item</th>
+                                            <th className="px-4 py-2 text-center">Location</th>
                                             <th className="px-4 py-2 text-center">Qty</th>
                                             <th className="px-4 py-2 text-right">Total</th>
                                         </tr>
@@ -198,19 +249,23 @@ const OrderDetailsModal = ({ show, onHide, order, onOrderUpdate }) => {
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center gap-2">
                                                         <img src={item.image || 'https://placehold.co/40'} className="w-8 h-8 rounded border border-slate-100 object-cover" />
-                                                        <div>
-                                                            <div className="font-bold text-slate-700 truncate max-w-[150px]">{item.name}</div>
-                                                            {item.physicalLocation && (
-                                                                <div className="flex items-center gap-1 mt-0.5">
-                                                                    <MapPin size={10} className="text-amber-500" />
-                                                                    <span className="text-[10px] font-bold text-amber-600">{item.physicalLocation}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                        <div className="font-bold text-slate-700 truncate max-w-[150px]">{item.name}</div>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-center">{item.quantity}</td>
-                                                <td className="px-4 py-3 text-right font-bold">₹{item.price * item.quantity}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase">{displayStore.split(' ')[0]}</span>
+                                                        {item.physicalLocation ? (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-[10px] font-black border border-amber-100">
+                                                                <MapPin size={10} /> {item.physicalLocation}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[9px] text-slate-300 font-bold tracking-tighter">SHELF N/A</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 text-center font-bold text-slate-900">{item.quantity}</td>
+                                                <td className="px-4 py-3 text-right font-bold text-slate-900">₹{item.price * item.quantity}</td>
                                             </tr>
                                         ))}
                                     </tbody>

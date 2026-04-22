@@ -206,7 +206,7 @@ const ManageCategoryPage = () => {
           });
         }
       } catch (error) {
-        toast.error(error.message || t('messages.load_failed'));
+        // toast.error(error.message || t('messages.load_failed'));
       } finally {
         setLoading(false);
       }
@@ -229,7 +229,7 @@ const ManageCategoryPage = () => {
         });
         setSubCategories(Array.isArray(data) ? data : []);
       } catch (error) {
-        toast.error(t('loading_failed'));
+        // toast.error(t('loading_failed'));
       }
     };
 
@@ -422,7 +422,7 @@ const ManageCategoryPage = () => {
         }
       }));
     } catch (error) {
-      toast.error('Failed to load image');
+      // toast.error('Failed to load image');
     }
   };
 
@@ -486,7 +486,7 @@ const ManageCategoryPage = () => {
         imageFile: file
       });
     } catch (error) {
-      toast.error('Failed to load image');
+      // toast.error('Failed to load image');
     }
   };
 
@@ -518,7 +518,7 @@ const ManageCategoryPage = () => {
         }
       }));
     } catch (error) {
-      toast.error('Failed to load image');
+      // toast.error('Failed to load image');
     }
   };
 
@@ -545,7 +545,7 @@ const ManageCategoryPage = () => {
         [fileNameField]: file.name
       });
     } catch (error) {
-      toast.error('Failed to load image');
+      // toast.error('Failed to load image');
     }
   };
 

@@ -87,7 +87,7 @@ const LowestPricesSection = ({
                     <div className="bg-gradient-to-r from-[#0c831f] to-[#0a6b19] p-1.5 md:p-2 rounded-lg md:rounded-xl">
                         <TrendingDown size={16} className="md:w-6 md:h-6 text-white" strokeWidth={2.5} />
                     </div>
-                    <h2 className="text-[13px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">
+                    <h2 className="text-[13px] md:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
                         {sectionTitle}
                     </h2>
                 </div>
@@ -96,7 +96,7 @@ const LowestPricesSection = ({
                         onClick={() => navigate(`/campaign/${campaignId}`)}
                         className="flex items-center gap-1 group/seeall"
                     >
-                        <span className="text-[10px] md:text-xs font-black uppercase tracking-wider text-[#0c831f] dark:text-[#f7cb15] transition-colors">See all</span>
+                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-[#0c831f] dark:text-[#f7cb15] transition-colors">See all</span>
                         <div className="p-1 rounded-full bg-green-50 dark:bg-white/5 transition-all group-hover/seeall:translate-x-1">
                             <ArrowRight size={14} className="text-[#0c831f] dark:text-[#f7cb15]" />
                         </div>
@@ -143,7 +143,7 @@ const LowestPricesSection = ({
                             <div key={product._id || product.id} className="flex-shrink-0 w-[128px] sm:w-[170px] md:w-[calc(25%-12px)] lg:w-[calc(20%-16px)] xl:w-[calc(16.666667%-16.666667px)] relative md:snap-start">
                                 {/* Discount Badge ₹ only show if there's a real discount */}
                                 {product.discountPercentage > 0 && (
-                                    <div className="absolute top-1 right-1 z-40 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-black shadow-lg">
+                                    <div className="absolute top-1 right-1 z-40 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[8px] md:text-[10px] font-bold shadow-lg">
                                         {product.discountPercentage}% OFF
                                     </div>
                                 )}

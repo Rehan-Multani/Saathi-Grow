@@ -74,7 +74,7 @@ const InventoryReports = () => {
                 setTotalItems(res.pagination?.total || 0);
             }
         } catch (error) {
-            toast.error('Failed to load inventory data');
+            // toast.error('Failed to load inventory data');
         } finally {
             setLoading(false);
         }
@@ -142,7 +142,7 @@ const InventoryReports = () => {
                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                     <button 
                         onClick={() => setStockStatus(stockStatus === 'Out of Stock' ? '' : 'Out of Stock')}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all border shadow-sm flex items-center gap-2 ${stockStatus === 'Out of Stock' ? 'bg-rose-600 text-white border-rose-600 shadow-rose-100' : 'bg-white text-rose-600 border-rose-100 shadow-slate-100'}`}
+                        className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all border shadow-sm flex items-center gap-2 mr-2 ${stockStatus === 'Out of Stock' ? 'bg-rose-600 text-white border-rose-600 shadow-rose-100' : 'bg-white text-rose-600 border-rose-100 shadow-slate-100'}`}
                     >
                         <X size={14} /> {t('inventory.low_stock_alerts')} ({summary.outOfStockCount || 0})
                     </button>
@@ -150,7 +150,7 @@ const InventoryReports = () => {
                     <button
                         onClick={handleExport}
                         disabled={exporting}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50 whitespace-nowrap"
                     >
                         {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                         <span>{t('sales.download')}</span>
@@ -283,7 +283,7 @@ const InventoryReports = () => {
                                             <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{item.sku}</div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-100 uppercase">
+                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold border border-blue-100 uppercase whitespace-nowrap">
                                                 {item.vendor}
                                             </span>
                                         </td>
@@ -308,7 +308,7 @@ const InventoryReports = () => {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5 text-right">
-                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border whitespace-nowrap ${
                                                 item.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                                 item.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-600 border-rose-100'
                                             }`}>

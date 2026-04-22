@@ -343,6 +343,22 @@ const OrderDetailsPage = () => {
                     <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
                         <p className="text-[10px] font-black text-gray-400 tracking-[0.2em] px-4 pt-4 pb-2 uppercase">Need help with this order?</p>
                         <div className="divide-y divide-gray-50 dark:divide-white/5">
+                            <button
+                                onClick={() => navigate(`/orders/${order.id}/reorder`)}
+                                className="w-full py-4 px-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-[#0c831f] border border-green-100 dark:border-green-500/10 flex-shrink-0">
+                                        <RefreshCw size={15} />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="text-[12px] font-black text-gray-800 dark:text-gray-100">Reorder these items</div>
+                                        <p className="text-[10px] text-gray-400 font-medium">Quickly repeat this order with custom quantities</p>
+                                    </div>
+                                </div>
+                                <ChevronRight size={14} className="text-gray-300 group-hover:text-[#0c831f] transition-all flex-shrink-0" />
+                            </button>
+
                             <button onClick={() => navigate(`/orders/${order.id}/complaint`)} className="w-full py-4 px-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-100 dark:border-orange-500/10 flex-shrink-0">

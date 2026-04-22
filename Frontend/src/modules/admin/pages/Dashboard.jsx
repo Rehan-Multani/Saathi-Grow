@@ -66,11 +66,11 @@ const Dashboard = () => {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <h1 className="text-2xl font-bold text-slate-900">{t('operational_command_center')}</h1>
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <h1 className="text-sm font-bold tracking-tight text-slate-900 uppercase tracking-[0.05em]">{t('operational_command_center')}</h1>
                         <PageInfoTooltip data={pageInfoData.dashboard} />
                     </div>
-                    <p className="text-slate-500 text-sm">{t('monitoring_global_operations')}</p>
+                    <p className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider">{t('monitoring_global_operations')}</p>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 text-slate-600 text-sm font-medium">
                     <Calendar size={16} />

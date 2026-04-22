@@ -44,7 +44,7 @@ const CategorySectionRenderer = ({ categorySlug, section, theme }) => {
       <section className="category-landing-section">
         <button
           onClick={() => navigate(section.ctaLink || `/category/${encodeURIComponent(categorySlug)}/products`)}
-          className="category-landing-cta flex w-full items-center justify-center gap-2.5 rounded-[20px] border border-[#dceadf] bg-white px-4 py-3 text-[14px] font-black text-[#0c831f] shadow-sm dark:border-white/10 dark:bg-[#111111] sm:rounded-[24px] sm:px-5 sm:py-4 sm:text-base"
+          className="category-landing-cta flex w-full items-center justify-center gap-2.5 rounded-[20px] border border-[#dceadf] bg-white px-4 py-3 text-[14px] font-bold text-[#0c831f] shadow-sm dark:border-white/10 dark:bg-[#111111] sm:rounded-[24px] sm:px-5 sm:py-4 sm:text-base"
           style={{ color: theme?.accent }}
         >
           <span>{section.ctaLabel || 'View more products'}</span>

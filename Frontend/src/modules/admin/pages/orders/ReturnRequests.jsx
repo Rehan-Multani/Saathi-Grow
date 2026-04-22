@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Search, Eye, RotateCcw, Package,
     ChevronLeft, ChevronRight, Filter,
-    Truck, MapPin, Store, Check, Layers, X, Clock
+    Truck, MapPin, Store, Check, Layers, X, Clock, Pencil, Trash2
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
@@ -262,7 +262,10 @@ const ReturnRequests = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-slate-900">₹{r.totalAmount?.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-center">
-                                            <button onClick={() => setSelectedRequest(r)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
+                                            <div className="flex justify-center gap-2">
+                                                <button onClick={() => setSelectedRequest(r)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
+                                                <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

@@ -31,7 +31,7 @@ const SupportTickets = () => {
                 setComplaints(response.complaints);
             }
         } catch (error) {
-            toast.error(t('tickets.load_failed'));
+            // toast.error(t('tickets.load_failed'));
         } finally {
             setIsLoading(false);
         }

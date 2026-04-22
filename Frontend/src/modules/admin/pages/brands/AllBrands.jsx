@@ -39,7 +39,7 @@ const AllBrands = () => {
             const data = await getBrands(adminUser.token);
             setBrands(data);
         } catch (error) {
-            toast.error(t('loading_failed'));
+            // toast.error(t('loading_failed'));
         } finally {
             setLoading(false);
         }

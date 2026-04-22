@@ -56,7 +56,7 @@ const BranchStock = () => {
                 setPagination(response.pagination);
             }
         } catch (error) {
-            toast.error(t('branch.error_load', { defaultValue: 'Failed to load branch stock' }));
+            // toast.error(t('branch.error_load', { defaultValue: 'Failed to load branch stock' }));
         } finally {
             setLoading(false);
         }
@@ -196,7 +196,7 @@ const BranchStock = () => {
                                             <span className={`text-xs font-bold ${item.stock <= item.lowStockThreshold ? 'text-rose-600' : 'text-slate-900'}`}>
                                                 {item.stock} <span className="text-[8px] opacity-40">{t('branch.table.units')}</span>
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border mt-1 ${getStatusStyle(item.status)}`}>
+                                            <span className={`inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded-lg text-[10px] font-bold border mt-1 ${getStatusStyle(item.status)}`}>
                                                 {item.status}
                                             </span>
                                         </div>

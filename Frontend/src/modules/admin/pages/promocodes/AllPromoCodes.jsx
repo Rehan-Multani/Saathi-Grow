@@ -33,12 +33,12 @@ const AllPromoCodes = () => {
             const result = await getPromoCodes(adminUser.token);
             setPromos(result.data || []);
         } catch (error) {
-            toast.error(t('messages.fetch_error'));
+            console.warn('Promo Codes fetch error:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [adminUser?.token, t]);
+    }, [adminUser?.token]);
 
     useEffect(() => {
         fetchPromos();
@@ -85,7 +85,7 @@ const AllPromoCodes = () => {
                 showConfirmButton: false
             });
         } catch (error) {
-            toast.error(error.message || t('messages.fetch_error'));
+            // toast.error(error.message || t('messages.fetch_error'));
         }
     };
 
@@ -148,10 +148,10 @@ const AllPromoCodes = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold tracking-tight">{t('title')}</h1>
+                        <h1 className="text-sm font-bold tracking-tight text-slate-900 uppercase tracking-[0.05em]">{t('title')}</h1>
                         <PageInfoTooltip data={pageInfoData.allPromoCodes} />
                     </div>
-                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('subtitle')}</p>
+                    <p className="text-slate-500 text-[11px] mt-0.5 font-semibold uppercase tracking-wider">{t('subtitle')}</p>
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">

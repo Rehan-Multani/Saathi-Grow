@@ -29,7 +29,7 @@ const VendorEarningDetail = () => {
                     setData(res);
                 }
             } catch (error) {
-                toast.error('Failed to load payout details');
+                // toast.error('Failed to load payout details');
             } finally {
                 setLoading(false);
             }

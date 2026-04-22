@@ -28,7 +28,7 @@ const StockAdjustments = () => {
                     setLogs(data);
                 }
             } catch (error) {
-                toast.error(t('adjustments.error_load', { defaultValue: 'Failed to load stock history' }));
+                // toast.error(t('adjustments.error_load', { defaultValue: 'Failed to load stock history' }));
             } finally {
                 setLoading(false);
             }

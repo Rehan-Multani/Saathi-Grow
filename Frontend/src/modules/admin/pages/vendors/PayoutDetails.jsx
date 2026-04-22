@@ -53,7 +53,7 @@ const PayoutDetails = () => {
                     fetchHistory(data.vendor._id);
                 }
             } catch (error) {
-                toast.error('Failed to load details');
+                // toast.error('Failed to load details');
                 navigate('/admin/vendors/payouts');
             } finally {
                 setLoading(false);

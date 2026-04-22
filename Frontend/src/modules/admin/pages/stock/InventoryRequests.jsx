@@ -21,7 +21,7 @@ const InventoryRequests = () => {
             const data = await getInventoryRequests(token);
             setRequests(data);
         } catch (error) {
-            toast.error(t('requests.error_load', { defaultValue: 'Failed to fetch inventory requests' }));
+            // toast.error(t('requests.error_load', { defaultValue: 'Failed to fetch inventory requests' }));
         } finally {
             setLoading(false);
         }

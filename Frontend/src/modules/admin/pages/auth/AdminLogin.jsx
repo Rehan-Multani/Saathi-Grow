@@ -78,12 +78,13 @@ const AdminLogin = () => {
                     {/* Email */}
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-widest">{t('email')}</label>
-                        <div className="flex items-center gap-3 bg-gray-100 rounded-2xl px-4 py-3.5">
+                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                             <Mail size={18} className="text-gray-400 shrink-0" />
                             <input
                                 type="email"
                                 required
-                                className="bg-transparent flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none"
+                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full"
+                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: 0 }}
                                 placeholder="admin@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -94,12 +95,13 @@ const AdminLogin = () => {
                     {/* Password */}
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-widest">{t('password')}</label>
-                        <div className="flex items-center gap-3 bg-gray-100 rounded-2xl px-4 py-3.5">
+                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                             <Lock size={18} className="text-gray-400 shrink-0" />
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 required
-                                className="bg-transparent flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none"
+                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full"
+                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: 0 }}
                                 placeholder="••••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -107,7 +109,7 @@ const AdminLogin = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="text-gray-400 hover:text-blue-600 transition-colors bg-transparent border-none p-0"
+                                className="text-gray-400 hover:text-blue-600 transition-colors bg-transparent border-none p-0 focus:outline-none focus:ring-0"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>

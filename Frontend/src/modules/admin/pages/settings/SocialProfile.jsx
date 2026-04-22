@@ -43,7 +43,7 @@ const SocialProfile = () => {
                 supportEmail: data.supportEmail || ''
             });
         } catch (error) {
-            toast.error('Failed to load social profiles.');
+            // toast.error('Failed to load social profiles.');
         } finally {
             setIsLoading(false);
         }

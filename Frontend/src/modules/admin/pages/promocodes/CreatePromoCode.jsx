@@ -78,7 +78,7 @@ const CreatePromoCode = () => {
             toast.success(t('messages.create_success'));
             navigate('/admin/promocodes');
         } catch (error) {
-            toast.error(error.message || t('messages.fetch_error'));
+            // toast.error(error.message || t('messages.fetch_error'));
         } finally {
             setLoading(false);
         }

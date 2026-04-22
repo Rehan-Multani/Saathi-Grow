@@ -44,7 +44,7 @@ const SalesReports = () => {
                 setData(res);
             }
         } catch (error) {
-            toast.error(error.message || 'Failed to load report data');
+            // toast.error(error.message || 'Failed to load report data');
         } finally {
             setLoading(false);
         }
@@ -104,7 +104,7 @@ const SalesReports = () => {
                     <select 
                         value={period}
                         onChange={handlePeriodChange}
-                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm appearance-none cursor-pointer pr-10"
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm appearance-none cursor-pointer pr-10 mr-2"
                     >
                         <option value="last_30_days">Last 30 Days</option>
                         <option value="this_month">This Month</option>
@@ -115,7 +115,7 @@ const SalesReports = () => {
                     <button
                         onClick={handleExport}
                         disabled={exporting}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50 whitespace-nowrap"
                     >
                         {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                         <span>{t('sales.download')}</span>
@@ -238,7 +238,7 @@ const SalesReports = () => {
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex justify-center">
-                                                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-100 shadow-sm ${
+                                                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-100 shadow-sm whitespace-nowrap ${
                                                     order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 shadow-emerald-100/50' : 
                                                     order.status === 'Refunded' || order.status === 'Cancelled' ? 'bg-rose-50 text-rose-600 shadow-rose-100/50' : 
                                                     'bg-blue-50 text-blue-600 shadow-blue-100/50'

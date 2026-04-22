@@ -26,7 +26,7 @@ const StoreSelector = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[2200] flex justify-end md:justify-center items-end md:items-start md:pt-[100px] px-0 md:px-4 pointer-events-none font-sans">
+    <div className="fixed inset-0 z-[2200] flex justify-center items-start pt-[6vh] px-4 pointer-events-none font-sans">
       {/* Darkened Overlay */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto transition-opacity"
@@ -34,7 +34,7 @@ const StoreSelector = ({ isOpen, onClose }) => {
       />
 
       {/* Modal Box */}
-      <div className="bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] md:bg-none md:bg-white dark:from-[#141414] dark:to-[#141414] md:dark:bg-black w-full md:w-auto md:max-w-[550px] relative z-10 overflow-hidden animate-in slide-in-from-bottom duration-300 pointer-events-auto rounded-t-[24px] md:rounded-xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-xl border-t border-gray-100 dark:border-white/10 p-5 md:p-6 h-auto max-h-[85vh] flex flex-col pb-8 md:pb-6">
+      <div className="bg-gradient-to-br from-[#f0faf1] to-[#ffffff] dark:from-[#111111] dark:to-[#080808] w-full max-w-[500px] relative z-10 overflow-hidden animate-in slide-in-from-top-3 fade-in duration-300 pointer-events-auto rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.25)] border border-white/50 dark:border-white/5 p-5 md:p-6 h-auto max-h-[82vh] flex flex-col">
         <div className="flex items-center justify-between mb-6 shrink-0">
           <div>
             <h2 className="text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Select Store</h2>

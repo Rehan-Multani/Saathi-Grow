@@ -29,7 +29,7 @@ const AdminNotifications = () => {
                 setTotalItems(res.pagination?.total || 0);
             }
         } catch (error) {
-            toast.error(t('admin_inbox.fetch_error', { defaultValue: 'Connection Error' }));
+            // toast.error(t('admin_inbox.fetch_error', { defaultValue: 'Connection Error' }));
         } finally {
             setLoading(false);
         }

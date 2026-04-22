@@ -42,7 +42,7 @@
     "total_stock": "Total Stock",
     "saathi_premium": "Saathi Premium",
     "sub_category": "Sub-Category",
-    "physical_location": "Physical Shelf Info",
+    "physical_location": "Shelf Location",
     "direct_vendor": "Direct Vendor Supply?",
     "allocate_branches": "Allocate to Branches",
     "registry_sku": "Registry SKU Identifier",

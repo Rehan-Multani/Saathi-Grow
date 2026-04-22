@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'reac
 import { useShop } from '../../context/ShopContext';
 import { fetchProducts, fetchBrands, fetchSubCategories } from '../../api/shopApi';
 import ProductCard from '../../components/product/ProductCard';
-import { ChevronRight, Filter, ArrowLeft, Search, X, SlidersHorizontal, Leaf, Info, TrendingUp } from 'lucide-react';
+import { ChevronRight, Filter, ArrowLeft, Search, X, SlidersHorizontal, Leaf, Info, TrendingUp, Apple, Cookie, ShoppingBag } from 'lucide-react';
 import { ProductCardSkeleton } from '../../components/common/Skeleton';
 import { useStore } from '../../context/StoreContext';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
@@ -166,59 +166,118 @@ const CategoryPage = () => {
     }, [loadCategoryProducts]);
 
     if (isMainListView) {
+        // Grouping logic for categories
+        const categoryGroups = [
+            {
+                name: 'Food',
+                icon: <Apple size={18} className="text-green-600" />,
+                keywords: ['fruit', 'vegetable', 'dairy', 'egg', 'bread', 'meat', 'fish', 'atta', 'rice', 'dal', 'staples', 'grains', 'masala', 'spices', 'oil', 'ghee', 'organic', 'frozen', 'chicken']
+            },
+            {
+                name: 'Snacks & Beverages',
+                icon: <Cookie size={18} className="text-orange-500" />,
+                keywords: ['snack', 'bakery', 'beverage', 'drink', 'juice', 'instant', 'chocolate', 'sweet', 'tooth', 'munchie', 'pan', 'sauce', 'spread', 'tea', 'coffee', 'noodles', 'biscuit']
+            },
+            {
+                name: 'Essentials',
+                icon: <ShoppingBag size={18} className="text-blue-500" />,
+                keywords: ['baby', 'clean', 'personal', 'beauty', 'grooming', 'pet', 'pharma', 'wellness', 'oral', 'fashion', 'home', 'office', 'care']
+            }
+        ];
+
+        const groupedCategories = categoryGroups.map(group => ({
+            ...group,
+            items: categories.filter(cat => {
+                const name = cat.name?.toLowerCase() || '';
+                return group.keywords.some(keyword => name.includes(keyword));
+            })
+        }));
+
+        // Catch-all for uncategorized
+        const categorizedIds = new Set(groupedCategories.flatMap(g => g.items.map(item => item._id || item.id)));
+        const otherItems = categories.filter(cat => !categorizedIds.has(cat._id || cat.id));
+        if (otherItems.length > 0) {
+            groupedCategories.push({
+                name: 'Miscellaneous',
+                icon: <ChevronRight size={18} />,
+                items: otherItems
+            });
+        }
+
         return (
-            <div className="category-products-page category-products-index min-h-screen bg-gradient-to-br from-[#f6fbf7] to-[#e8f5e9] md:bg-none md:bg-white dark:bg-none dark:bg-black p-4 pt-6 pb-24">
+            <div className="category-products-page category-products-index min-h-screen bg-[#fcfcfc] dark:bg-black p-4 pt-6 pb-24">
                 <SEO title="All Categories" description="Browse through all categories of fresh products and groceries available on Saathi-Grow." />
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-6xl mx-auto">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-8">
                         <button
                             onClick={() => navigate('/')}
-                            className="p-2 bg-gray-50 dark:bg-[#141414] rounded-full shadow-sm hidden md:flex"
+                            className="p-2 sm:p-2.5 bg-white dark:bg-[#141414] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-gray-800 dark:text-gray-200"
                         >
-                            <ArrowLeft size={16} />
+                            <ArrowLeft size={18} strokeWidth={2.5} />
                         </button>
-                        <h1 className="text-sm md:text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Categories</h1>
                     </div>
 
-                    {/* Highly rounded categories grid */}
                     {isLoading ? (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 sm:gap-6 px-1">
-                            {Array.from({ length: 12 }).map((_, i) => (
-                                <div key={i} className="w-full aspect-square bg-gray-100 dark:bg-white/5 rounded-2xl sm:rounded-[32px] animate-pulse" />
+                        <div className="space-y-10">
+                            {[1, 2, 3].map(i => (
+                                <div key={i}>
+                                    <div className="h-6 w-32 bg-gray-100 dark:bg-white/5 rounded-md mb-6 animate-pulse" />
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6 px-1">
+                                        {Array.from({ length: 4 }).map((_, j) => (
+                                            <div key={j} className="w-full h-36 sm:h-48 bg-gray-100 dark:bg-white/5 rounded-[24px] sm:rounded-[32px] animate-pulse" />
+                                        ))}
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-6 px-1">
-                            {categories.map((cat) => {
-                                return (
-                                    <Link
-                                        key={cat._id || cat.id}
-                                        to={`/category/${encodeURIComponent(cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-'))}`}
-                                        className="flex flex-col group w-full h-[110px] sm:h-[155px] transition-all duration-300 active:scale-95 rounded-2xl sm:rounded-[32px] overflow-hidden border border-gray-100/50 dark:border-white/5 shadow-sm"
-                                        style={{ 
-                                            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : (cat.bgColor || categoryColors[cat.slug] || '#f8f9fa') 
-                                        }}
-                                    >
-                                        <span className="text-[10px] sm:text-[13px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight pt-2 sm:pt-4 px-1 capitalize group-hover:text-[#0c831f] transition-colors">
-                                            {cat.name?.toLowerCase() || 'Category'}
-                                        </span>
-                                        <div className="flex-1 w-full p-2 flex items-center justify-center">
-                                            <img
-                                                src={cat.image || categoryPlaceholder}
-                                                alt={cat.name}
-                                                className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-md"
-                                                onError={(e) => {
-                                                    if (e.target.src !== categoryPlaceholder) {
-                                                        e.target.src = categoryPlaceholder;
-                                                        e.target.classList.add('opacity-80');
-                                                    }
-                                                }}
-                                            />
+                        <div className="space-y-10 sm:space-y-12">
+                            {groupedCategories.filter(g => g.items.length > 0).map((group) => (
+                                <section key={group.name} className="category-group">
+                                    <div className="flex items-center gap-2 mb-3 sm:mb-4 px-1">
+                                        <div className="p-1.5 bg-gray-100 dark:bg-white/10 rounded-lg">
+                                            {group.icon}
                                         </div>
-                                    </Link>
-                                );
-                            })}
+                                        <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 tracking-tight">{group.name}</h2>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6 sm:gap-8 px-1">
+                                        {group.items.map((cat) => {
+                                            const catSlug = cat.slug || cat.name?.toLowerCase().replace(/\s+/g, '-');
+                                            return (
+                                                <Link
+                                                    key={cat._id || cat.id}
+                                                    to={`/category/${encodeURIComponent(catSlug)}`}
+                                                    className="flex flex-col group w-full bg-white dark:bg-[#0A0A0A] transition-all duration-300 active:scale-95 rounded-[20px] sm:rounded-[28px] overflow-hidden border border-gray-100 dark:border-white/5 shadow-[0_2px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:border-gray-200 dark:hover:border-white/10"
+                                                >
+                                                    <div className="relative flex-1 w-full pt-2 px-2 flex items-center justify-center">
+                                                        <img
+                                                            src={cat.image || categoryPlaceholder}
+                                                            alt={cat.name}
+                                                            className="h-16 sm:h-24 w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                                                            onError={(e) => {
+                                                                if (e.target.src !== categoryPlaceholder) {
+                                                                    e.target.src = categoryPlaceholder;
+                                                                }
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="pb-3 px-2 text-center">
+                                                        <span className="text-[10px] sm:text-[12px] font-bold text-gray-900 dark:text-gray-100 leading-tight tracking-tight capitalize block truncate px-0.5">
+                                                            {cat.name?.toLowerCase() || 'Category'}
+                                                        </span>
+                                                        <span className="text-[8px] font-semibold text-gray-300 dark:text-gray-600 mt-0.5 block uppercase tracking-wider">
+                                                           Explore
+                                                        </span>
+                                                    </div>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            ))}
                         </div>
                     )}
                 </div>

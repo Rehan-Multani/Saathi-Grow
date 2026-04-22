@@ -53,7 +53,7 @@ const VendorEarnings = () => {
                 setData(res);
             }
         } catch (error) {
-            toast.error('Failed to load records');
+            // toast.error('Failed to load records');
         } finally {
             setLoading(false);
             setRefreshing(false);

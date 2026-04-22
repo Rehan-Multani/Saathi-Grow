@@ -131,7 +131,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         {/* Title */}
         <Link to={`/product/${productId}`} className="z-10">
           <div
-            className="font-extrabold text-gray-800 dark:text-zinc-100 text-[8.5px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[20px] sm:min-h-[32px] transition-colors tracking-tight"
+            className="font-bold text-gray-800 dark:text-zinc-100 text-[8.5px] sm:text-[15px] leading-tight mb-0.5 line-clamp-2 min-h-[20px] sm:min-h-[32px] transition-colors tracking-tight"
             style={{ color: 'inherit' }}
             onMouseEnter={(e) => e.target.style.color = customTheme ? customTheme.themeColor : '#0c831f'}
             onMouseLeave={(e) => e.target.style.color = ''}
@@ -141,7 +141,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         </Link>
 
         {/* Weight */}
-        <div className="text-gray-400 dark:text-zinc-500 text-[7.5px] sm:text-[10px] mb-1.5 font-bold uppercase tracking-widest">{product.weight}</div>
+        <div className="text-gray-400 dark:text-zinc-500 text-[7.5px] sm:text-[10px] mb-1.5 font-medium uppercase tracking-widest">{product.weight}</div>
 
         {/* Bottom Row: Price & Action */}
         <div className={`flex items-center justify-between mt-auto z-10 ${isLowestPrice ? 'gap-1' : ''}`}>
@@ -149,7 +149,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-gray-400 dark:text-zinc-600 line-through text-[9px] font-medium leading-none">₹{product.originalPrice}</span>
             )}
-            <span className="text-[12px] sm:text-[18px] font-black text-gray-900 dark:text-white tracking-tighter leading-tight">₹{product.price}</span>
+            <span className="text-[12px] sm:text-[18px] font-bold text-gray-900 dark:text-white tracking-tighter leading-tight">₹{product.price}</span>
           </div>
 
           {quantity > 0 ? (
@@ -167,7 +167,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
               >
                 <Minus className={`${isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3'} sm:w-4 sm:h-4`} strokeWidth={3} />
               </button>
-              <span className={`${(isLowestPrice || isValentine || isSaathiSignature) ? 'text-[7px]' : isCompact ? 'text-[9px]' : 'text-[11px]'} sm:text-[14px] font-black w-4 sm:w-7 text-center select-none leading-none`}>
+              <span className={`${(isLowestPrice || isValentine || isSaathiSignature) ? 'text-[7px]' : isCompact ? 'text-[9px]' : 'text-[11px]'} sm:text-[14px] font-bold w-4 sm:w-7 text-center select-none leading-none`}>
                 {quantity}
               </span>
               <button
@@ -182,7 +182,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
             <button
               onClick={handleAddToCart}
               disabled={isBtnDisabled}
-              className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[5px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[8px]') : (isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]')} py-1 text-white border border-transparent transition-all sm:text-[11px] font-black !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : 'active:scale-95'}`}
+              className={`${(isLargeButton || isLowestPrice || isValentine || isSaathiSignature) ? ((isValentine || isSaathiSignature) ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[4px]' : isLowestPrice ? 'px-3 sm:px-3 h-[24px] sm:h-[30px] text-[5px]' : 'px-4 sm:px-4 h-[28px] sm:h-[34px] text-[8px]') : (isCompact ? 'px-2 sm:px-3 h-[18px] sm:h-[30px] text-[7px]' : 'px-3 sm:px-4 h-[22px] sm:h-[34px] text-[8px]')} py-1 text-white border border-transparent transition-all sm:text-[11px] font-bold !rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center ${isBtnDisabled ? 'bg-gray-400 cursor-not-allowed' : 'active:scale-95'}`}
               style={!isBtnDisabled ? { backgroundColor: isDarkMode ? '#0c831f' : (customTheme ? customTheme.themeColor : '#0c831f') } : {}}
             >
               ADD

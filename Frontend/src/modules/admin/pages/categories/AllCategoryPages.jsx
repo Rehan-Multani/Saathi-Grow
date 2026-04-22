@@ -24,7 +24,7 @@ const AllCategoryPages = () => {
       const data = await getCategoryPages(adminUser.token);
       setPages(Array.isArray(data) ? data : []);
     } catch (error) {
-      toast.error(error.message || t('messages.load_failed'));
+      // toast.error(error.message || t('messages.load_failed'));
     } finally {
       setLoading(false);
     }

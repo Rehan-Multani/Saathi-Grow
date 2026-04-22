@@ -55,7 +55,7 @@ const POSBilling = ({ storeId, storeType = 'branch', onExit }) => {
       const data = await searchProductsPOS(query);
       setProducts(data.products || []);
     } catch (error) {
-      toast.error(t('orders.pos.alerts.load_products_failed'));
+      // toast.error(t('orders.pos.alerts.load_products_failed'));
     } finally {
       setLoading(false);
     }

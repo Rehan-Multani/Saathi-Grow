@@ -125,7 +125,7 @@ const AssignDeliveries = () => {
             const drivers = await getAvailablePartners();
             setAvailableDrivers(drivers);
         } catch (error) {
-            toast.error("Failed to load available riders");
+            // toast.error("Failed to load available riders");
         } finally {
             setLoadingDrivers(false);
         }

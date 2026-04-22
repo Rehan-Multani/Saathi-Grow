@@ -57,7 +57,7 @@ const DemandAnalytics = () => {
             setData(res.data);
             setAnalytics(res.analytics);
         } catch (error) {
-            toast.error("Failed to load demand data");
+            // toast.error("Failed to load demand data");
         } finally {
             setLoading(false);
         }

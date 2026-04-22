@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit, Trash2, QrCode, Filter, Store, Package, Sparkles, ChevronLeft, ChevronRight, History } from 'lucide-react';
+import { Search, Plus, Upload, Edit, Trash2, QrCode, Filter, Store, Package, Sparkles, ChevronLeft, ChevronRight, History, X, Download, FileText } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import ProductEditModal from '../../../../common/components/products/ProductEditModal';
 import RestockModal from '../../../../common/components/products/RestockModal';
@@ -28,7 +28,7 @@ const ProductStatusBadge = ({ status }) => {
     const translatedStatus = t(`status.${statusKey}`, { defaultValue: status });
 
     return (
-        <span className={`px-3 py-1 rounded-full text-[11px] font-semibold border ${variants[status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+        <span className={`inline-flex items-center whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-semibold border ${variants[status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
             {translatedStatus}
         </span>
     );
@@ -60,6 +60,56 @@ const AllProducts = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [bulkFile, setBulkFile] = useState(null);
+    const [bulkLoading, setBulkLoading] = useState(false);
+
+    const downloadCsvTemplate = () => {
+        const headers = [
+            'name', 'category', 'subCategory', 'brandName', 'basePrice', 'mrp',
+            'unitType', 'unitValue', 'description', 'tags', 'sku', 'stock', 'status'
+        ];
+        const example = [
+            'Amul Butter 100g', 'Dairy Bread & Eggs', '', 'Amul', '52', '55',
+            'g', '100', 'Fresh Amul butter 100g pack', 'dairy,butter,amul', 'DAI-AMU-XXXXX', '50', 'Active'
+        ];
+        const csvContent = [headers.join(','), example.join(',')].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'saathigrow_bulk_product_template.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleBulkUpload = async () => {
+        if (!bulkFile) return toast.warning('Please select a CSV file first');
+        setBulkLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', bulkFile);
+            const axios = (await import('axios')).default;
+            const { API_BASE_URL } = await import('../../../../config/apiConfig');
+            const { data } = await axios.post(
+                `${API_BASE_URL}/products/bulk-upload`,
+                formData,
+                { headers: { Authorization: `Bearer ${adminUser.token}`, 'Content-Type': 'multipart/form-data' } }
+            );
+            const msg = `✅ ${data.created || 0} created, ${data.updated || 0} updated${data.skipped > 0 ? `, ${data.skipped} skipped` : ''}`;
+            toast.success(msg, { autoClose: 5000 });
+            if (data.errors?.length > 0) {
+                data.errors.forEach(e => toast.warning(e, { autoClose: 8000 }));
+            }
+            setShowBulkModal(false);
+            setBulkFile(null);
+            fetchData();
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'Bulk upload failed. Check your CSV format.');
+        } finally {
+            setBulkLoading(false);
+        }
+    };
 
     const updateParams = useCallback((newParams) => {
         setSearchParams(prev => {
@@ -90,7 +140,7 @@ const AllProducts = () => {
             setCategories(categoriesData);
             setBrands(brandsData);
         } catch (error) {
-            toast.error(t('messages.load_failed'));
+            // toast.error(t('messages.load_failed'));
         } finally {
             setLoading(false);
         }
@@ -146,10 +196,10 @@ const AllProducts = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
                         <div className="flex items-center gap-2">
-                             <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+                             <h1 className="text-sm font-bold tracking-tight text-slate-900 uppercase tracking-[0.05em]">{t('title')}</h1>
                              <PageInfoTooltip data={pageInfoData.allProducts} />
                         </div>
-                        <p className="text-slate-500 text-sm mt-1">{t('meta.sku_count', { count: totalProducts })}</p>
+                        <p className="text-slate-500 text-[11px] mt-0.5 font-semibold uppercase tracking-wider">{t('meta.sku_count', { count: totalProducts })}</p>
                     </div>
 
                     <div className="flex flex-wrap gap-3 w-full md:w-auto">
@@ -201,9 +251,17 @@ const AllProducts = () => {
                             )}
                         </div>
                         {adminUser?.role === 'Admin' && (
-                            <Link to="/admin/products/add" className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-100">
-                                <Plus size={20} /> {t('add_product')}
-                            </Link>
+                            <>
+                                <button
+                                    onClick={() => setShowBulkModal(true)}
+                                    className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
+                                >
+                                    <Upload size={18} /> Bulk Upload
+                                </button>
+                                <Link to="/admin/products/add" className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-100">
+                                    <Plus size={20} /> {t('add_product')}
+                                </Link>
+                            </>
                         )}
                     </div>
                 </div>
@@ -304,6 +362,101 @@ const AllProducts = () => {
 
             <ProductEditModal show={showEditModal} onHide={() => setShowEditModal(false)} product={selectedProduct} onSave={handleSave} />
             <RestockModal show={showRestockModal} onHide={() => setShowRestockModal(false)} product={selectedProduct} onRestockSuccess={fetchData} />
+
+            {/* Bulk Upload Modal */}
+            {showBulkModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 flex flex-col max-h-[88vh]">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                                    <FileText size={20} />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-bold text-slate-900">Bulk Product Upload</h2>
+                                    <p className="text-xs text-slate-400 font-medium">Upload a CSV file to add multiple products at once</p>
+                                </div>
+                            </div>
+                            <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body - scrollable */}
+                        <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                            {/* Step 1: Download Template */}
+                            <div className="p-4 bg-blue-50 rounded-2xl flex items-center gap-4">
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-slate-800">Step 1: Download Template</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">Fill in this CSV file with your products</p>
+                                </div>
+                                <button
+                                    onClick={downloadCsvTemplate}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-50 transition-all shadow-sm"
+                                >
+                                    <Download size={14} /> Download CSV
+                                </button>
+                            </div>
+
+                            {/* Required Columns Info */}
+                            <div className="bg-slate-50 rounded-2xl p-4">
+                                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Required CSV Columns</p>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                    {['name*', 'category*', 'basePrice*', 'mrp*', 'unitType', 'unitValue', 'brandName', 'description', 'tags', 'sku', 'stock', 'status'].map(col => (
+                                        <span key={col} className={`text-[10px] px-2 py-1 rounded-lg font-bold text-center ${col.includes('*') ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                                            {col}
+                                        </span>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] text-rose-500 font-semibold mt-2">* Required fields</p>
+                            </div>
+
+                            {/* Step 2: Upload File */}
+                            <div>
+                                <p className="text-sm font-bold text-slate-800 mb-2">Step 2: Upload Your CSV</p>
+                                <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${bulkFile ? 'border-green-400 bg-green-50' : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50'}`}>
+                                    <div className="flex flex-col items-center gap-2">
+                                        {bulkFile ? (
+                                            <>
+                                                <FileText size={24} className="text-green-500" />
+                                                <p className="text-sm font-bold text-green-700">{bulkFile.name}</p>
+                                                <p className="text-xs text-slate-400">Click to change file</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={24} className="text-slate-400" />
+                                                <p className="text-sm font-bold text-slate-600">Click to select CSV file</p>
+                                                <p className="text-xs text-slate-400">Only .csv files supported</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept=".csv"
+                                        className="hidden"
+                                        onChange={(e) => setBulkFile(e.target.files[0] || null)}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="flex gap-3 p-6 border-t border-slate-100">
+                            <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all">
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleBulkUpload}
+                                disabled={!bulkFile || bulkLoading}
+                                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-blue-100"
+                            >
+                                {bulkLoading ? <><span className="saathi-spinner !w-4 !h-4 !border-2"></span> Uploading...</> : <><Upload size={16} /> Upload Products</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             <style dangerouslySetInnerHTML={{ __html: `
                 .saathi-spinner {

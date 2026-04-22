@@ -37,7 +37,12 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [formData, setFormData] = useState({
         name: '', brandName: '', category: '', subCategory: '', basePrice: 0, mrp: 0,
         isVeg: true, sku: '', status: 'Active', physicalLocation: '', unitType: 'pcs',
-        unitValue: 1, description: '', tags: [], isSaathiGrow: false, stock: 0, lowStockThreshold: 10
+        unitValue: 1, description: '', tags: [], isSaathiGrow: false, stock: 0, lowStockThreshold: 10,
+        // --- New Fields ---
+        reorderThreshold: 10, maxCapacityPerSku: 0, isStockAutoSync: false,
+        weightCategory: 'Light', isFragile: false, temperatureType: 'Normal',
+        pickPriority: 0, pickingZone: 'Other',
+        variantGroupId: '', pickSequence: 0
     });
 
     const [imagePreview, setImagePreview] = useState(null);
@@ -72,7 +77,18 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                 unitValue: product.unitValue || 1, description: product.description || '',
                 tags: Array.isArray(product.tags) ? product.tags : (product.tags ? product.tags.split(',') : []),
                 isSaathiGrow: product.isSaathiGrow || false,
-                stock: product.stock || 0, lowStockThreshold: product.lowStockThreshold || 10
+                stock: product.stock || 0, lowStockThreshold: product.lowStockThreshold || 10,
+                // --- New Fields ---
+                reorderThreshold: product.reorderThreshold || 10,
+                maxCapacityPerSku: product.maxCapacityPerSku || 0,
+                isStockAutoSync: product.isStockAutoSync || false,
+                weightCategory: product.weightCategory || 'Light',
+                isFragile: product.isFragile || false,
+                temperatureType: product.temperatureType || 'Normal',
+                pickPriority: product.pickPriority || 0,
+                pickingZone: product.pickingZone || 'Other',
+                variantGroupId: product.variantGroupId || '',
+                pickSequence: product.pickSequence || 0
             });
             const activeStocks = (product.branchStocks || []).map(bs => {
                 const bid = bs.branchId?._id || bs.branchId;
@@ -303,6 +319,105 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                 </div>
                             )}
 
+                            {/* Section 4: Inventory Intelligence */}
+                            <div className="space-y-6 pt-6 border-t border-slate-50">
+                                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <span className="w-1 h-4 bg-blue-500 rounded-full"></span>
+                                    Inventory Intelligence
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Reorder Threshold</label>
+                                        <input type="number" name="reorderThreshold" value={formData.reorderThreshold} onChange={handleChange} className="form-input-simple" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Max Capacity per SKU</label>
+                                        <input type="number" name="maxCapacityPerSku" value={formData.maxCapacityPerSku} onChange={handleChange} className="form-input-simple" />
+                                    </div>
+                                    <div className="md:col-span-2 flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                        <input type="checkbox" id="editStockAutoSync" checked={formData.isStockAutoSync} onChange={(e) => setFormData(p => ({...p, isStockAutoSync: e.target.checked}))} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
+                                        <label htmlFor="editStockAutoSync" className="text-xs font-semibold text-slate-700 cursor-pointer">Auto-sync current stock per shelf</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 5: Physical Handling */}
+                            <div className="space-y-6 pt-6 border-t border-slate-50">
+                                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <span className="w-1 h-4 bg-orange-400 rounded-full"></span>
+                                    Physical Handling
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Weight Category</label>
+                                        <select name="weightCategory" value={formData.weightCategory} onChange={handleChange} className="form-input-simple">
+                                            <option value="Light">Light</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="Heavy">Heavy</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Temperature Type</label>
+                                        <select name="temperatureType" value={formData.temperatureType} onChange={handleChange} className="form-input-simple">
+                                            <option value="Normal">Normal</option>
+                                            <option value="Cold">Cold</option>
+                                            <option value="Frozen">Frozen</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Is Fragile?</label>
+                                        <div className="flex gap-2">
+                                            <button type="button" onClick={() => setFormData(p => ({...p, isFragile: true}))} className={`flex-1 py-2 rounded-lg text-[10px] font-bold border transition-all ${formData.isFragile ? 'bg-orange-50 border-orange-500 text-orange-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>Yes</button>
+                                            <button type="button" onClick={() => setFormData(p => ({...p, isFragile: false}))} className={`flex-1 py-2 rounded-lg text-[10px] font-bold border transition-all ${!formData.isFragile ? 'bg-slate-100 border-slate-300 text-slate-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>No</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 6: Picking Optimization */}
+                            <div className="space-y-6 pt-6 border-t border-slate-50">
+                                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <span className="w-1 h-4 bg-indigo-500 rounded-full"></span>
+                                    Picking Optimization
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Pick Priority</label>
+                                        <select name="pickPriority" value={formData.pickPriority} onChange={handleChange} className="form-input-simple">
+                                            <option value={0}>Normal (Default)</option>
+                                            <option value={1}>High (Fast-moving)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Storage Zone</label>
+                                        <select name="pickingZone" value={formData.pickingZone} onChange={handleChange} className="form-input-simple">
+                                            <option value="Other">Other / Default</option>
+                                            <option value="Food">Food Zone</option>
+                                            <option value="Non-food">Non-food Zone</option>
+                                            <option value="Mixed Restricted">Mixed Restricted</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 7: Variant Handling */}
+                            <div className="space-y-6 pt-6 border-t border-slate-50">
+                                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <span className="w-1 h-4 bg-rose-400 rounded-full"></span>
+                                    Variant Handling
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Variant Group ID</label>
+                                        <input type="text" name="variantGroupId" value={formData.variantGroupId} onChange={handleChange} className="form-input-simple" placeholder="E.g. COCO-OIL-01" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Pick Sequence</label>
+                                        <input type="number" name="pickSequence" value={formData.pickSequence} onChange={handleChange} className="form-input-simple" />
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Content */}
                             <div className="space-y-4 pt-6 border-t border-slate-50">
                                 <div className="flex justify-between items-center">
@@ -321,7 +436,14 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                 {tag} <X size={12} className="cursor-pointer hover:text-red-500" onClick={() => setFormData(p => ({...p, tags: p.tags.filter(t => t !== tag)}))} />
                                             </span>
                                         ))}
-                                        <input type="text" placeholder="Add..." value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} className="bg-transparent border-none outline-none text-xs flex-1 min-w-[100px]" />
+                                        <input 
+                                            type="text" 
+                                            placeholder="Add..." 
+                                            value={tagInput} 
+                                            onChange={e => setTagInput(e.target.value)} 
+                                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} 
+                                            className="!bg-transparent !border-none !outline-none !shadow-none !ring-0 focus:!ring-0 text-xs flex-1 min-w-[100px] py-1" 
+                                        />
                                     </div>
                                 </div>
                             </div>

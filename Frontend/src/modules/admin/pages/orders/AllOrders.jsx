@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Eye, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight, Zap, CreditCard, Calendar, Truck, Edit3, Trash2 } from 'lucide-react';
+import { Search, Eye, Printer, Filter, Download, Store, Upload, Clock, ChevronLeft, ChevronRight, Zap, CreditCard, Calendar, Truck, Edit3, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
-import { getAllOrdersAdmin, deleteOrder, updateOrderStatus } from '../../api/orderApi';
+import { getAllOrdersAdmin, deleteOrder, updateOrderStatus, getOrderDetails } from '../../api/orderApi';
 import { getDeliverySlots } from '../../api/deliverySlotApi';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import Swal from 'sweetalert2';
@@ -37,6 +37,109 @@ const AllOrders = () => {
     const [showFilterMenu, setShowFilterMenu] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const { adminUser } = useAdminAuth();
+
+    const generateAndPrintReceipt = (order) => {
+        const items = order.items || order.orderItems || [];
+        const itemsHtml = items.length > 0 ? items.map(item => {
+            const name = item.product?.name || item.name || 'Item';
+            const qty = item.quantity || 1;
+            const unitPrice = item.price || item.basePrice || item.product?.basePrice || 0;
+            const total = unitPrice * qty;
+            return `
+                <tr>
+                    <td style="padding:5px 0;font-size:12px;border-bottom:1px dotted #ddd;vertical-align:top;">${name}</td>
+                    <td style="padding:5px 4px;font-size:12px;text-align:center;border-bottom:1px dotted #ddd;vertical-align:top;">${qty}</td>
+                    <td style="padding:5px 0;font-size:12px;text-align:right;border-bottom:1px dotted #ddd;white-space:nowrap;vertical-align:top;">₹${total.toLocaleString('en-IN')}</td>
+                </tr>
+            `;
+        }).join('') : '<tr><td colspan="3" style="text-align:center;font-size:11px;padding:8px;">No items found</td></tr>';
+
+        const receiptHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt - #${order.orderId || order._id?.slice(-8).toUpperCase()}</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Courier New', monospace; width: 300px; margin: 0 auto; padding: 16px; font-size: 13px; color: #000; }
+                    .center { text-align: center; }
+                    .bold { font-weight: bold; }
+                    .divider { border-top: 1px dashed #000; margin: 8px 0; }
+                    .divider-solid { border-top: 2px solid #000; margin: 8px 0; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th { font-size: 11px; text-align: left; border-bottom: 1px dashed #000; padding: 4px 0; }
+                    th:nth-child(2) { text-align: center; }
+                    th:nth-child(3) { text-align: right; }
+                    .total-row td { font-weight: bold; font-size: 14px; padding-top: 8px; }
+                    .store-name { font-size: 22px; font-weight: 900; letter-spacing: 2px; }
+                    .tag { font-size: 10px; color: #444; margin-top: 2px; }
+                    @media print { @page { margin: 0; size: 80mm auto; } body { width: 100%; } }
+                </style>
+            </head>
+            <body>
+                <div class="center" style="margin-bottom:12px;">
+                    <div class="store-name">SaathiGrow</div>
+                    <div class="tag">Your Everyday Grocery Partner</div>
+                    <div class="tag">Indore, Madhya Pradesh</div>
+                    <div class="tag">support@saathigrow.com</div>
+                </div>
+                <div class="divider-solid"></div>
+                <div style="margin:8px 0;">
+                    <div class="bold" style="font-size:13px;">ORDER #${order.orderId || order._id?.slice(-8).toUpperCase()}</div>
+                    <div class="tag">Date: ${new Date(order.createdAt).toLocaleString('en-IN')}</div>
+                    <div class="tag">Customer: ${order.user?.name || order.posCustomer?.name || 'Guest'}</div>
+                    ${order.user?.phone || order.posCustomer?.phone ? `<div class="tag">Phone: ${order.user?.phone || order.posCustomer?.phone}</div>` : ''}
+                    ${order.deliveryAddress?.street ? `<div class="tag">Address: ${order.deliveryAddress.street}, ${order.deliveryAddress.city || ''}</div>` : ''}
+                </div>
+                <div class="divider"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ITEM</th>
+                            <th style="text-align:center;">QTY</th>
+                            <th style="text-align:right;">AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <div class="divider"></div>
+                <table>
+                    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
+                    ${(order.deliveryFee > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;">₹${order.deliveryFee?.toLocaleString('en-IN')}</td></tr>` : '<tr><td style="font-size:12px;padding:2px 0;">Delivery Fee</td><td style="text-align:right;font-size:12px;color:green;">FREE</td></tr>'}
+                    ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
+                    <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.totalAmount?.toLocaleString('en-IN')}</td></tr>
+                </table>
+                <div class="divider"></div>
+                <div style="font-size:12px;margin:6px 0;">
+                    <div>Payment: <span class="bold">${(order.paymentMethod || 'N/A').toUpperCase()}</span></div>
+                    <div>Status: <span class="bold" style="color:${order.paymentStatus === 'paid' ? 'green' : 'orange'}">${(order.paymentStatus || 'Pending').toUpperCase()}</span></div>
+                </div>
+                <div class="divider-solid"></div>
+                <div class="center" style="margin-top:12px;">
+                    <div style="font-size:11px;">Thank you for shopping with SaathiGrow!</div>
+                    <div style="font-size:10px;color:#555;margin-top:4px;">Visit us again • www.saathigrow.com</div>
+                    <div style="font-size:10px;color:#888;margin-top:10px;">*** This is a computer generated receipt ***</div>
+                </div>
+            </body>
+            </html>
+        `;
+        const win = window.open('', '_blank', 'width=420,height=750');
+        win.document.write(receiptHtml);
+        win.document.close();
+        win.focus();
+        setTimeout(() => { win.print(); win.close(); }, 500);
+    };
+
+    const handlePrintReceipt = async (order) => {
+        toast.info('Preparing receipt...', { autoClose: 1500 });
+        try {
+            const fullOrder = await getOrderDetails(order._id);
+            generateAndPrintReceipt(fullOrder);
+        } catch (err) {
+            // Fallback: use whatever data we have
+            generateAndPrintReceipt(order);
+        }
+    };
 
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -381,6 +484,16 @@ const AllOrders = () => {
                                     )}
                                 </div>
                                 <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-slate-400 uppercase">From Date</label>
+                                            <input type="date" className="filter-select-simple w-full text-xs" value={startDate} onChange={handleFilterChange(setStartDate)} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-slate-400 uppercase">To Date</label>
+                                            <input type="date" className="filter-select-simple w-full text-xs" value={endDate} onChange={handleFilterChange(setEndDate)} />
+                                        </div>
+                                    </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-bold text-slate-400 uppercase">{t('filters.status.label')}</label>
                                         <select className="filter-select-simple" value={statusFilter} onChange={handleFilterChange(setStatusFilter)}>
@@ -479,10 +592,9 @@ const AllOrders = () => {
                                             <span className="text-sm font-bold text-slate-900">₹{order.totalAmount?.toLocaleString()}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex justify-center gap-2">
-                                                <button onClick={() => handleUpdateStatus(order._id, order.status)} className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors"><Edit3 size={16} /></button>
-                                                <button onClick={() => handleShowDetails(order)} className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
-                                                <button onClick={() => handleDeleteOrder(order._id)} className="p-2 hover:bg-red-50 hover:text-red-600 rounded-lg text-slate-400 transition-colors"><Trash2 size={16} /></button>
+                                            <div className="flex justify-center gap-1">
+                                                <button onClick={() => handleShowDetails(order)} title="View Details" className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-lg text-slate-400 transition-colors"><Eye size={16} /></button>
+                                                <button onClick={() => handlePrintReceipt(order)} title="Print Receipt" className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors"><Printer size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>

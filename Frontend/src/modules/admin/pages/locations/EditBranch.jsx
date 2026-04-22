@@ -59,7 +59,7 @@ const EditBranch = () => {
                     setLogoPreview(data.logo);
                 }
             } catch (error) {
-                toast.error(t('messages.fetch_error'));
+                // toast.error(t('messages.fetch_error'));
                 navigate('/admin/locations/branches');
             } finally {
                 setFetching(false);

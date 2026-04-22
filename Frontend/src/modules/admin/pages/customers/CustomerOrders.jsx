@@ -58,7 +58,7 @@ const CustomerOrders = () => {
                 setPagination({ total: 0, totalPages: 1 });
             }
         } catch (error) {
-            toast.error('Failed to load orders');
+            // toast.error('Failed to load orders');
         } finally {
             setLoading(false);
         }

@@ -39,7 +39,7 @@ const VendorProducts = () => {
             setProducts(Array.isArray(pData) ? pData : (pData.products || []));
             setVendors(Array.isArray(vData) ? vData : (vData.vendors || []));
         } catch (error) {
-            toast.error('Failed to load product data');
+            // toast.error('Failed to load product data');
         } finally {
             setLoading(false);
             setRefreshing(false);

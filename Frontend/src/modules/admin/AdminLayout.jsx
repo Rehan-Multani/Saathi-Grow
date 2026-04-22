@@ -123,9 +123,9 @@ const AdminLayout = () => {
                                 <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                                     {(adminUser?.name?.charAt(0) || 'A').toUpperCase()}
                                 </div>
-                                <div className="text-left hidden md:block">
-                                    <p className="text-xs font-bold text-slate-900 leading-none">{adminUser?.name || 'Admin'}</p>
-                                    <p className="text-[10px] text-slate-400 font-medium">{adminUser?.role || 'Manager'}</p>
+                                <div className="text-left hidden md:block leading-tight">
+                                    <p className="text-sm font-bold text-slate-900">{adminUser?.name || 'Admin'}</p>
+                                    <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{adminUser?.role || 'Manager'}</p>
                                 </div>
                                 <ChevronDown size={12} className={`text-slate-400 hidden md:block ${showProfileMenu ? 'rotate-180 transition-transform' : 'transition-transform'}`} />
                             </button>

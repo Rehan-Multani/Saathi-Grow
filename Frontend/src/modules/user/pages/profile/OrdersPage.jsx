@@ -50,7 +50,37 @@ const OrdersPage = () => {
                         status: displayStatus,
                         date: formattedDate,
                         amount: '₹' + o.totalAmount.toFixed(2),
-                        items: o.items.map(item => item.name).join(', '),
+                        items: o.items.map((item, idx) => {
+                            const product = item.product;
+                            if (!product || typeof product !== 'object') return item.name;
+
+                            let availableStock = 0;
+                            let threshold = product.lowStockThreshold || 0;
+                            
+                            const branchId = o.branchId?._id || o.branchId;
+                            const vendorId = o.vendor?._id || o.vendor;
+
+                            if (branchId) {
+                                const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === branchId.toString());
+                                availableStock = branchStock ? branchStock.stock : 0;
+                                threshold = branchStock ? (branchStock.lowStockThreshold || 0) : threshold;
+                            } else {
+                                availableStock = product.stock || 0;
+                            }
+
+                            const isOut = availableStock <= threshold;
+
+                            if (isOut) {
+                                return (
+                                    <span key={`${o._id}-${idx}`}>
+                                        {item.name} <span className="text-red-600 font-bold ml-1">(Out of Stock)</span>
+                                    </span>
+                                );
+                            }
+                            return item.name;
+                        }).reduce((acc, curr, i) => {
+                             return i === 0 ? [curr] : [...acc, ', ', curr];
+                        }, []),
                         color: colorClass,
                         deliveryOTP: o.deliveryOTP,
                         returnRequest: o.returnRequest

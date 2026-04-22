@@ -94,10 +94,18 @@ export const fetchOfferProducts = async (id, params = {}) => {
   return data;
 };
 export const searchProducts = async (query = '', page = 1, storeParams = {}, signal = null) => {
-  const params = new URLSearchParams({ q: query, page, ...storeParams }).toString();
-  const response = await fetch(`${API_BASE_URL}/admin/products/search/ai?${params}`, { signal });
+  const params = new URLSearchParams({ search: query, page, status: 'Active', ...storeParams }).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/products?${params}`, { signal });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || 'Failed to search products');
+  return data;
+};
+
+export const searchProductsWithAI = async (query = '', page = 1, storeParams = {}, signal = null) => {
+  const params = new URLSearchParams({ q: query, page, isAI: 'true', ...storeParams }).toString();
+  const response = await fetch(`${API_BASE_URL}/admin/products/search/ai?${params}`, { signal });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed AI search');
   return data;
 };
 

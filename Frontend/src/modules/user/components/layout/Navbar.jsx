@@ -65,34 +65,34 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
 
   const renderLocation = () => {
     if (location.label) return location.label;
-    
+
     const addr = location.address;
     const city = location.city;
-    
+
     if (addr && typeof addr === 'string') {
-        const street = addr.split(',')[0];
-        // If street is just the city name, don't repeat it
-        if (city && street.toLowerCase() === city.toLowerCase()) {
-            return city;
-        }
-        if (city) return `${street}, ${city}`;
-        return street;
+      const street = addr.split(',')[0];
+      // If street is just the city name, don't repeat it
+      if (city && street.toLowerCase() === city.toLowerCase()) {
+        return city;
+      }
+      if (city) return `${street}, ${city}`;
+      return street;
     }
-    
+
     return city || 'Select Location';
   };
 
   return (
-    <div className="z-50 transition-colors duration-300 font-sans">
+    <div className="z-50 transition-colors duration-300" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
 
       {/* MOBILE LAYOUT (App Native Experience) */}
       <div className="md:hidden w-full relative z-[100] glass-header">
         {/* Row 1: Brand & Actions (Collapsible) */}
-        <div 
+        <div
           className={`px-4 flex items-center justify-between relative transition-all duration-300 ease-in-out ${isScrolled ? 'h-0 opacity-0 pointer-events-none' : 'h-[52px] pt-3 pb-1'}`}
-          style={{ 
+          style={{
             background: (!isDarkMode && customTheme) ? customTheme.bgColor : undefined,
-            backgroundColor: isDarkMode ? '#000' : (customTheme?.bgColor || '#fff') 
+            backgroundColor: isDarkMode ? '#000' : (customTheme?.bgColor || '#fff')
           }}
         >
           <Link to="/" className="active:scale-95 transition-transform">
@@ -115,8 +115,8 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
           </Link>
         </div>
 
-        {/* Row 1.5/2: Location & Store Cluster (Collapsible) */}
-        <div 
+        {/* Row 1.5/2: Location (Collapsible) */}
+        <div
           className={`px-4 flex items-center justify-between gap-4 transition-all duration-300 ease-in-out ${isScrolled ? 'h-0 opacity-0 py-0 pointer-events-none' : 'h-[36px] py-1 border-t border-black/5'}`}
           style={{ backgroundColor: isDarkMode ? '#000' : (customTheme?.bgColor || '#fff') }}
         >
@@ -126,40 +126,25 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
             className={`flex-1 flex flex-col items-start cursor-pointer transition-all ${isStoreOutOfRange ? 'bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded-lg border border-red-100' : ''}`}
           >
             <div className="flex items-center gap-1 max-w-full">
-              <span className={`text-[11px] font-semibold tracking-tight truncate ${isStoreOutOfRange ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+              <span className={`text-[13px] font-medium tracking-tight truncate ${isStoreOutOfRange ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
                 {renderLocation()}
               </span>
               <ChevronDown size={11} strokeWidth={3} className={isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'} />
             </div>
           </div>
-
-          <div className="h-5 w-[0.5px] bg-gray-300 dark:bg-white/20" />
-
-          {/* Store Pillar */}
-          <div
-            onClick={() => setIsStoreSelectorOpen(true)}
-            className="flex-1 flex flex-col items-end cursor-pointer"
-          >
-            <div className="flex items-center gap-1 justify-end w-full">
-              <span className="text-[11px] font-semibold tracking-tight truncate text-right text-gray-900 dark:text-white">
-                {activeStore ? activeStore.name : 'Select Store'}
-              </span>
-              <ChevronDown size={11} strokeWidth={3} className="text-[#0c831f]" />
-            </div>
-          </div>
         </div>
 
         {/* Row 3: Search Bar (Always fixed via Parent) */}
-        <div 
+        <div
           className={`pb-3 transition-all duration-300 ${isScrolled ? 'px-2 pt-2' : 'px-4 pt-1'} ${isDarkMode ? 'bg-black' : 'bg-white/80'} backdrop-blur-md border-b border-black/5 shadow-sm`}
           style={{ backgroundColor: isDarkMode ? '#000' : (customTheme?.bgColor ? `${customTheme.bgColor}cc` : '#ffffffcc') }}
         >
-          <div 
+          <div
             onClick={() => setIsSearchOverlayOpen(true)}
             className={`flex items-center gap-3 px-4 py-2 bg-[#f3f9f4] dark:bg-[#151515] border border-black/5 rounded-xl shadow-inner active:scale-[0.98] transition-all`}
           >
             <Search className="text-[#0c831f]" size={18} strokeWidth={2.5} />
-            <span className="text-[13px] font-medium text-gray-500 flex-1 truncate">
+            <span className="text-[14px] font-medium text-gray-500 flex-1 truncate" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
               Search "dal", "milk" or "bread"...
             </span>
             <Mic className="text-[#0c831f]" size={18} strokeWidth={2} />
@@ -181,21 +166,13 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
                   style={isDarkMode ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
               </Link>
-              <div className={`flex items-center gap-4 px-3 py-1.5 rounded-xl border transition-all ${isStoreOutOfRange ? 'bg-red-50 border-red-200' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}>
-                <div onClick={openLocationModal} className="flex flex-col items-start leading-none cursor-pointer pr-4 border-r border-gray-200 dark:border-white/10 h-10 justify-center">
-                  <span className={`text-[10px] uppercase font-bold tracking-wider flex items-center gap-1 ${isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'}`}>
+              <div className={`flex items-center gap-4 px-4 py-1.5 rounded-xl border transition-all ${isStoreOutOfRange ? 'bg-red-50 border-red-200' : 'bg-gray-50 dark:bg-white/5 border-transparent'}`}>
+                <div onClick={openLocationModal} className="flex flex-col items-start leading-none cursor-pointer h-10 justify-center">
+                  <span className={`text-[10px] uppercase font-black tracking-widest flex items-center gap-1 ${isStoreOutOfRange ? 'text-red-500' : 'text-[#0c831f]'}`}>
                     Delivery at <ChevronDown size={10} strokeWidth={3} />
                   </span>
-                  <span className={`text-[13px] font-semibold text-gray-800 dark:text-white`}>
+                  <span className={`text-[14px] font-medium text-gray-800 dark:text-white`}>
                     {renderLocation()}
-                  </span>
-                </div>
-                <div onClick={() => setIsStoreSelectorOpen(true)} className="flex flex-col items-start leading-none cursor-pointer h-10 justify-center pl-1">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">
-                    Store <ChevronDown size={10} strokeWidth={3} className="inline" />
-                  </span>
-                  <span className="text-[13px] font-semibold text-gray-800 dark:text-white">
-                    {activeStore?.name || 'Select Store'}
                   </span>
                 </div>
               </div>
@@ -203,9 +180,9 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
 
             {/* Center Desktop */}
             <div className="flex-1 max-w-xl relative mx-8 group">
-              <div 
+              <div
                 onClick={() => setIsSearchOverlayOpen(true)}
-                className="w-full pl-11 pr-10 py-2.5 bg-gray-100 dark:bg-[#1c1c1c] rounded-full text-sm font-medium text-gray-400 shadow-inner cursor-pointer"
+                className="w-full pl-11 pr-10 py-2.5 bg-gray-100 dark:bg-[#1c1c1c] rounded-full font-medium text-gray-400 shadow-inner cursor-pointer" style={{ fontSize: '14px', fontFamily: "'Inter', system-ui, sans-serif" }}
               >
                 Search categories...
               </div>
@@ -228,10 +205,10 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen, customTheme }) => {
                   <div className="w-8 h-8 rounded-full bg-[#f0fff4] flex items-center justify-center text-[#0c831f]">
                     {user.photoURL ? <img src={user.photoURL} alt="" className="w-full h-full rounded-full" /> : <User size={16} />}
                   </div>
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{user.name?.split(' ')[0]}</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-200" style={{ fontSize: '14px' }}>{user.name?.split(' ')[0]}</span>
                 </Link>
               ) : (
-                <Link to="/login" className="px-4 py-2 bg-gray-900 text-white text-xs font-black uppercase tracking-wider rounded-xl">Login</Link>
+                <Link to="/login" className="px-4 py-2 bg-gray-900 text-white font-black uppercase tracking-widest rounded-xl" style={{ fontSize: '11px' }}>Login</Link>
               )}
               <div className="relative flex items-center justify-center">
                 <button onClick={() => protectAction(toggleCart)} className="flex items-center justify-center w-[38px] h-[38px] bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-[#0c831f] rounded-full hover:bg-[#0c831f] hover:text-white transition-all">

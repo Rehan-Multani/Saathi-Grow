@@ -1,26 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Package, ChevronRight, Tag, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Package, ChevronRight, Tag, RotateCcw, Plus, Minus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { getOrdersByTag } from '../../api/orderApi';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const getStatusStyle = (status) => {
-    const s = (status || '').toLowerCase();
-    if (s === 'pending') return { color: 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-white/5', label: 'Placed' };
-    if (['confirmed', 'preparing'].includes(s)) return { color: 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-500/10', label: s === 'preparing' ? 'Preparing' : 'Confirmed' };
-    if (s === 'ready_for_pickup') return { color: 'text-orange-600 bg-orange-50', label: 'Ready for Pickup' };
-    if (['out_for_delivery', 'shipped'].includes(s)) return { color: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10', label: 'Out for Delivery' };
-    if (s === 'delivered') return { color: 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-500/10', label: 'Delivered' };
-    if (s === 'cancelled') return { color: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10', label: 'Cancelled' };
-    if (s === 'returned') return { color: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10', label: 'Returned' };
-    if (s.includes('return')) return { color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10', label: 'Return Processing' };
-    return { color: 'text-gray-600 bg-gray-50', label: status };
-};
+
 
 const TaggedOrdersPage = () => {
     const { tag } = useParams();
     const navigate = useNavigate();
     const { token } = useAuth();
+    const { addToCart, setIsCartOpen } = useCart();
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const displayTag = decodeURIComponent(tag);
@@ -34,6 +26,8 @@ const TaggedOrdersPage = () => {
             .catch(() => {})
             .finally(() => setIsLoading(false));
     }, [token, displayTag]);
+
+
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-[#e8f5e9] to-[#ffffff] dark:from-[#141414] dark:to-[#141414] md:bg-white md:dark:bg-black md:bg-none transition-colors duration-300 pb-20 md:p-8 md:pb-8">
@@ -73,10 +67,44 @@ const TaggedOrdersPage = () => {
                     ) : (
                         <div className="divide-y divide-gray-200 dark:divide-white/5 md:divide-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-6 bg-transparent">
                             {orders.map(order => {
-                                const d = new Date(order.createdAt);
-                                const date = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                                const { color, label } = getStatusStyle(order.status);
-                                const itemNames = order.items?.map(i => i.name).join(', ') || '';
+                                 const d = new Date(order.createdAt);
+                                 const date = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                                 
+                                 const itemNames = order.items?.map((i, idx) => {
+                                     const product = i.product;
+                                     // If we don't have current product data, we can't determine stock
+                                     if (!product || typeof product !== 'object') return i.name;
+                                     
+                                     let availableStock = 0;
+                                     let threshold = product.lowStockThreshold || 0;
+                                     
+                                     const branchId = order.branchId?._id || order.branchId;
+                                     const vendorId = order.vendor?._id || order.vendor;
+                                     
+                                     if (branchId) {
+                                         const branchStock = product.branchStocks?.find(bs => (bs.branchId?._id || bs.branchId)?.toString() === branchId.toString());
+                                         availableStock = branchStock ? branchStock.stock : 0;
+                                         threshold = branchStock ? (branchStock.lowStockThreshold || 0) : threshold;
+                                     } else {
+                                         availableStock = product.stock || 0;
+                                     }
+                                     
+                                     // Check if item is definitively out of stock
+                                     const isOut = availableStock <= threshold;
+                                     
+                                     if (isOut) {
+                                         return (
+                                            <span key={`${order._id}-${idx}`}>
+                                                {i.name} <span className="text-red-600 font-bold ml-1">(Out of Stock)</span>
+                                            </span>
+                                         );
+                                     }
+                                     return i.name;
+                                 });
+
+                                 const renderedItemNames = itemNames ? itemNames.reduce((acc, curr, i) => {
+                                     return i === 0 ? [curr] : [...acc, ', ', curr];
+                                 }, []) : '';
 
                                 return (
                                     <div
@@ -101,10 +129,16 @@ const TaggedOrdersPage = () => {
                                                     <div className="!text-[10px] md:!text-xs text-gray-400 font-bold uppercase tracking-wider">{date}</div>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-end gap-1.5">
-                                                <div className={`px-2.5 py-1 md:px-3 md:py-1.5 rounded-full md:rounded-lg !text-[8px] md:!text-[10px] font-black uppercase tracking-widest border border-current bg-opacity-10 ${color}`}>
-                                                    {label}
-                                                </div>
+                                            <div className="flex flex-col items-end gap-1.5 relative">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/orders/${order._id}/reorder`);
+                                                    }}
+                                                    className="flex items-center gap-1 px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-green-600 to-[#0c831f] text-white rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-widest active:scale-95 hover:scale-105 transition-all shadow-md shadow-green-600/20"
+                                                >
+                                                    <RotateCcw size={12} strokeWidth={3} /> Reorder
+                                                </button>
                                             </div>
                                         </div>
 
@@ -114,7 +148,7 @@ const TaggedOrdersPage = () => {
                                             className="flex justify-between items-end md:items-center md:mt-auto mb-3"
                                         >
                                             <div className="md:flex-1 md:pr-4">
-                                                <div className="!text-[11px] md:!text-sm font-medium text-gray-600 dark:text-gray-300 line-clamp-1 mt-1">{itemNames}</div>
+                                                <div className="!text-[11px] md:!text-sm font-medium text-gray-600 dark:text-gray-300 line-clamp-1 mt-1">{renderedItemNames}</div>
                                             </div>
                                             <div className="text-right md:flex flex-col items-end">
                                                 <div className="!text-[14px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹{order.totalAmount?.toFixed(2)}</div>
@@ -124,25 +158,6 @@ const TaggedOrdersPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Reorder buttons per item */}
-                                        {order.items?.length > 0 && (
-                                            <div className="border-t border-gray-100 dark:border-white/5 pt-3 space-y-2">
-                                                {order.items.map((item, idx) => {
-                                                    const productId = item.product?._id || item.product;
-                                                    return productId ? (
-                                                        <div key={idx} className="flex items-center justify-between gap-2">
-                                                            <span className="text-[10px] text-gray-500 font-medium truncate flex-1">{item.name}</span>
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); navigate(`/product/${productId}`); }}
-                                                                className="flex items-center gap-1 px-2.5 py-1 bg-[#0c831f] text-white rounded-lg text-[9px] font-black uppercase tracking-wide active:scale-95 transition-all flex-shrink-0 shadow-sm"
-                                                            >
-                                                                <RotateCcw size={9} /> Reorder
-                                                            </button>
-                                                        </div>
-                                                    ) : null;
-                                                })}
-                                            </div>
-                                        )}
                                     </div>
                                 );
                             })}

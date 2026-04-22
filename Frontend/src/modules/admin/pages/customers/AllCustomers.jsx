@@ -72,7 +72,7 @@ const AllCustomers = () => {
             setCustomers(Array.isArray(customerList) ? customerList : []);
             setPagination(paginationData || { total: 0, totalPages: 1, page, limit: 10 });
         } catch (error) {
-            toast.error(t('all.errors.fetch_failed'));
+            // toast.error(t('all.errors.fetch_failed'));
         } finally {
             setLoading(false);
         }
@@ -100,7 +100,7 @@ const AllCustomers = () => {
             setSelectedCustomer(fullProfile);
             setShowDetailsModal(true);
         } catch (error) {
-            toast.error(t('all.errors.fetch_profile'));
+            // toast.error(t('all.errors.fetch_profile'));
         }
     };
 

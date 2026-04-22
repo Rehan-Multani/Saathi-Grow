@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Filter, Store, ChevronLeft, ChevronRight, Calendar, Edit3, Trash2 } from 'lucide-react';
+import { Search, Eye, Filter, Store, ChevronLeft, ChevronRight, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import OrderDetailsModal from '../../../../common/components/orders/OrderDetailsModal';
 import { getAllOrdersAdmin, deleteOrder, updateOrderStatus } from '../../api/orderApi';
@@ -235,9 +235,8 @@ const POSHistory = () => {
                                         <td className="px-6 py-4 text-right font-bold text-slate-900">₹{order.totalAmount?.toLocaleString()}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex justify-center gap-2">
-                                                <button onClick={() => handleUpdateStatus(order._id, order.status)} className="p-2 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-blue-600 transition-colors"><Edit3 size={16} /></button>
                                                 <button onClick={() => handleShowDetails(order)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors"><Eye size={16} /></button>
-                                                <button onClick={() => handleDeleteOrder(order._id)} className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
+                                                <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>

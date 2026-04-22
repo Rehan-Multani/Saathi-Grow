@@ -113,9 +113,9 @@ export const adminSidebarMenu = [
         ],
     },
     {
-        title: 'Offers & Sliders',
+        title: 'Banners',
         key: 'offers_sliders',
-        icon: 'Percent',
+        icon: 'Image',
         permission: null,
         submenu: [
             { title: 'Banner Deals', key: 'banner_deals', path: '/admin/offers/deals' },

@@ -20,7 +20,7 @@ const CategorySubcategoryGrid = ({ categorySlug, section, accentColor = '#0c831f
     <section className="category-landing-section space-y-2.5 sm:space-y-3">
       {section.title && (
         <div className="category-landing-section-head flex items-center justify-between gap-3">
-          <h2 className="category-landing-heading text-[18px] font-black uppercase tracking-tight text-gray-900 dark:text-white sm:text-[22px]">
+          <h2 className="category-landing-heading text-[18px] font-bold uppercase tracking-tight text-gray-900 dark:text-white sm:text-[22px]">
             {section.title}
           </h2>
           {section.ctaLink && (

@@ -35,7 +35,7 @@ const VendorReports = () => {
                 setTotalVendors(res.pagination?.total || 0);
             }
         } catch (error) {
-            toast.error('Failed to load reports');
+            // toast.error('Failed to load reports');
         } finally {
             setLoading(false);
         }
@@ -95,7 +95,7 @@ const VendorReports = () => {
                         <input
                             type="text"
                             placeholder="Search vendor or owner..."
-                            className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all shadow-sm"
+                            className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 transition-all shadow-sm mr-2"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -103,7 +103,7 @@ const VendorReports = () => {
                     <button
                         onClick={handleExport}
                         disabled={exporting}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50 whitespace-nowrap"
                     >
                         {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                         <span>{t('common.export')}</span>
@@ -185,7 +185,7 @@ const VendorReports = () => {
                                             <div className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">{vendor.orderCount} Orders</div>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
+                                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight border whitespace-nowrap ${
                                                 vendor.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                                 vendor.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-500 border-rose-100'
                                             }`}>

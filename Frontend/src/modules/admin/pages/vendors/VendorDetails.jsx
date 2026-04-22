@@ -30,7 +30,7 @@ const VendorDetails = () => {
             const data = await getVendorDetails(adminUser.token, id);
             setVendor(data);
         } catch (error) {
-            toast.error('Failed to load vendor details');
+            // toast.error('Failed to load vendor details');
             navigate('/admin/vendors');
         } finally {
             setLoading(false);

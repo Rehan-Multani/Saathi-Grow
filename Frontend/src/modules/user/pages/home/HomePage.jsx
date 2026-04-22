@@ -235,66 +235,72 @@ const HomePage = ({ }) => {
             />
 
             {/* Premium Offers Carousel */}
-            {!isSearching && !loading && activeOffers.length > 0 && (
-                <motion.div 
-                    variants={sectionVariants}
-                    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative"
-                >
-                    <div className="relative overflow-hidden sm:rounded-2xl">
-                        <div
-                            onPointerDown={handlePointerDown}
-                            onPointerMove={handlePointerMove}
-                            onPointerUp={handlePointerUp}
-                            onPointerLeave={handlePointerUp}
-                            className={`flex cursor-grab active:cursor-grabbing ${isTransitioning && isCarousel ? 'transition-transform duration-700 ease-in-out' : ''}`}
-                            style={{
-                                transform: isCarousel ? `translateX(-${offerIndex * (100 / itemsToShow)}%)` : 'none',
-                                gap: itemsToShow === 1 ? '0px' : '12px',
-                                touchAction: 'pan-y'
-                            }}
-                        >
-                            {(isCarousel ? [...activeOffers, ...activeOffers, ...activeOffers] : activeOffers).map((offer, idx) => (
-                                <div
-                                    key={`${offer._id || offer.id}-${idx}`}
-                                    className="flex-shrink-0"
-                                    style={{
-                                        width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(12 * (itemsToShow - 1)) / itemsToShow}px)`
-                                    }}
-                                >
+            {!isSearching && (
+                loading ? (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10">
+                        <BannerSkeleton />
+                    </div>
+                ) : activeOffers.length > 0 ? (
+                    <motion.div 
+                        variants={sectionVariants}
+                        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 mt-4 md:mt-8 mb-6 md:mb-10 group/offers relative"
+                    >
+                        <div className="relative overflow-hidden sm:rounded-2xl">
+                            <div
+                                onPointerDown={handlePointerDown}
+                                onPointerMove={handlePointerMove}
+                                onPointerUp={handlePointerUp}
+                                onPointerLeave={handlePointerUp}
+                                className={`flex cursor-grab active:cursor-grabbing ${isTransitioning && isCarousel ? 'transition-transform duration-700 ease-in-out' : ''}`}
+                                style={{
+                                    transform: isCarousel ? `translateX(-${offerIndex * (100 / itemsToShow)}%)` : 'none',
+                                    gap: itemsToShow === 1 ? '0px' : '12px',
+                                    touchAction: 'pan-y'
+                                }}
+                            >
+                                {(isCarousel ? [...activeOffers, ...activeOffers, ...activeOffers] : activeOffers).map((offer, idx) => (
                                     <div
-                                        onClick={() => navigate(`/offer/${offer._id || offer.id}`)}
-                                        className="relative cursor-pointer transition-all duration-500 mx-0 border-none group/banner block z-10 hover:shadow-2xl"
-                                        role="button"
-                                        tabIndex={0}
+                                        key={`${offer._id || offer.id}-${idx}`}
+                                        className="flex-shrink-0"
+                                        style={{
+                                            width: itemsToShow === 1 ? '100%' : `calc(${100 / itemsToShow}% - ${(12 * (itemsToShow - 1)) / itemsToShow}px)`
+                                        }}
                                     >
-                                        <div className={`overflow-hidden rounded-lg sm:rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/10 pointer-events-none bg-gray-50 dark:bg-gray-900 transition-all duration-300 ${itemsToShow === 1 ? 'aspect-[16/8.5] sm:aspect-[24/9]' : 'aspect-[16/8.5] md:aspect-[21/10]'}`}>
-                                            <img
-                                                src={offer.bannerImage || offer.image}
-                                                alt={offer.title || "Special Offer"}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover/banner:scale-[1.03]"
-                                                loading="lazy"
-                                            />
+                                        <div
+                                            onClick={() => navigate(`/offer/${offer._id || offer.id}`)}
+                                            className="relative cursor-pointer transition-all duration-500 mx-0 border-none group/banner block z-10 hover:shadow-2xl"
+                                            role="button"
+                                            tabIndex={0}
+                                        >
+                                            <div className={`overflow-hidden rounded-lg sm:rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/10 pointer-events-none bg-gray-50 dark:bg-gray-900 transition-all duration-300 ${itemsToShow === 1 ? 'aspect-[16/8.5] sm:aspect-[24/9]' : 'aspect-[16/8.5] md:aspect-[21/10]'}`}>
+                                                <img
+                                                    src={offer.bannerImage || offer.image}
+                                                    alt={offer.title || "Special Offer"}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/banner:scale-[1.03]"
+                                                    loading="lazy"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
 
-                    {isCarousel && (
-                        <div className="flex justify-center gap-2.5 mt-4">
-                            {activeOffers.map((_, idx) => (
-                                <div
-                                    key={idx}
-                                    className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer hover:scale-110 ${(offerIndex % activeOffers.length) === idx
-                                        ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
-                                        : 'w-4 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
-                                        }`}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </motion.div>
+                        {isCarousel && (
+                            <div className="flex justify-center gap-2.5 mt-4">
+                                {activeOffers.map((_, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer hover:scale-110 ${(offerIndex % activeOffers.length) === idx
+                                            ? 'w-10 bg-[#0c831f] shadow-[0_0_8px_rgba(12,131,31,0.2)]'
+                                            : 'w-4 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </motion.div>
+                ) : null
             )}
 
             {/* Categories */}
@@ -304,11 +310,11 @@ const HomePage = ({ }) => {
                     className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-10 mb-6 md:mb-10"
                 >
                     <div className="flex items-center justify-between mb-2 md:mb-6">
-                        <h2 className="text-[13px] md:text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
+                        <h2 className="text-[13px] md:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Shop by Category</h2>
                         {!isSearching && (
                             <Link
                                 to="/category"
-                                className="flex items-center gap-1 text-[#0c831f] text-[10px] md:text-sm font-black tracking-widest hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
+                                className="flex items-center gap-1 text-[#0c831f] text-[10px] md:text-sm font-bold tracking-widest hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
                             >
                                 See all
                                 <ArrowRight size={16} strokeWidth={2.5} />
@@ -342,7 +348,7 @@ const HomePage = ({ }) => {
                                                 }}
                                             >
                                                 {/* Title Inside Card at Top */}
-                                                <span className="text-[9px] sm:text-[13px] font-black text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight pt-2 sm:pt-4 px-1 capitalize group-hover:text-[#0c831f] transition-colors">
+                                                <span className="text-[9px] sm:text-[13px] font-bold text-center text-gray-900 dark:text-gray-100 leading-tight tracking-tight pt-2 sm:pt-4 px-1 capitalize group-hover:text-[#0c831f] transition-colors">
                                                     {cat.name?.toLowerCase()}
                                                 </span>
 
@@ -567,13 +573,13 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     return (
         <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10">
             <div className="flex items-center justify-between mb-2 md:mb-6">
-                <h2 className="text-[11px] md:text-base font-black text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
+                <h2 className="text-[11px] md:text-base font-bold text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
                 </h2>
                 <div className="flex items-center gap-3 lg:gap-5">
                     <Link
                         to={`/category/${encodeURIComponent(category.slug || category.name?.toLowerCase().replace(/\s+/g, '-'))}`}
-                        className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-black tracking-wider hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
+                        className="flex items-center gap-1 text-[var(--saathi-green)] text-[10px] md:text-sm font-bold tracking-wider hover:opacity-80 transition-all border-b-2 border-transparent hover:border-[#0c831f]"
                     >
                         See all
                         <ArrowRight size={16} strokeWidth={2.5} />
@@ -619,7 +625,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
                                     <TrendingDown size={32} className="text-[var(--saathi-green)]" />
                                 </div>
                                 <div className="flex flex-col items-center gap-1 relative z-10">
-                                    <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white">Load More</span>
+                                    <span className="text-[10px] sm:text-[13px] font-bold uppercase tracking-[0.15em] text-gray-900 dark:text-white">Load More</span>
                                     <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Next Batch</span>
                                 </div>
                             </button>
@@ -760,7 +766,7 @@ const OccasionSection = ({
         <div ref={observerRef} className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 mb-6 md:mb-10 rounded-xl relative transition-all duration-300 ${className || ''}`} style={{ backgroundColor: isDarkMode ? '' : bgColor }}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex flex-col">
-                    <h2 className="text-lg md:text-xl font-black tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>
+                    <h2 className="text-lg md:text-xl font-bold tracking-tight" style={{ color: isDarkMode ? 'var(--text-primary)' : themeColor }}>
                         {title}
                     </h2>
                     <p className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'opacity-70'}`} style={{ color: isDarkMode ? '' : themeColor }}>{subtitle}</p>
@@ -770,7 +776,7 @@ const OccasionSection = ({
                         onClick={() => navigate(`/campaign/${campaignId}`)}
                         className="flex items-center gap-1 group/seeall"
                     >
-                        <span className="text-[10px] md:text-xs font-black uppercase tracking-wider transition-colors" style={{ color: isDarkMode ? 'var(--saathi-yellow)' : themeColor }}>See all</span>
+                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors" style={{ color: isDarkMode ? 'var(--saathi-yellow)' : themeColor }}>See all</span>
                         <div className="p-1 rounded-full transition-all group-hover/seeall:translate-x-1" style={{ backgroundColor: isDarkMode ? '' : `${themeColor}10` }}>
                             <ArrowRight size={14} style={{ color: isDarkMode ? 'var(--saathi-yellow)' : themeColor }} />
                         </div>
@@ -782,7 +788,7 @@ const OccasionSection = ({
                 <div className="mb-4 md:mb-6">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm" style={{ backgroundColor: `${themeColor}10`, borderColor: `${themeColor}30` }}>
                         <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: themeColor }} />
-                        <span className="text-[9px] md:text-xs font-black tracking-wide uppercase" style={{ color: themeColor }}>{badgeText}</span>
+                        <span className="text-[9px] md:text-xs font-bold tracking-wide uppercase" style={{ color: themeColor }}>{badgeText}</span>
                     </div>
                 </div>
             )}

@@ -70,8 +70,8 @@ const FlyerProductCard = ({ product, badgeText }) => {
 
             {/* Discount Badge - Flyer Style (Leaf Shape) */}
             <div className="absolute -top-1 -left-1 w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-[#0c831f] to-[#085a15] rounded-tl-2xl rounded-br-2xl rounded-tr-sm rounded-bl-sm flex flex-col items-center justify-center text-white font-bold leading-tight border-2 border-white dark:border-black shadow-xl z-20 rotate-[-5deg] group-hover:rotate-0 transition-all duration-500">
-                <span className="text-[5.5px] md:text-[9px] uppercase font-black tracking-tighter opacity-90">{badgeText.split(' ')[0]}</span>
-                <span className="text-[7.5px] md:text-[12px] font-black tracking-tighter">
+                <span className="text-[5.5px] md:text-[9px] uppercase font-bold tracking-tighter opacity-90">{badgeText.split(' ')[0]}</span>
+                <span className="text-[7.5px] md:text-[12px] font-bold tracking-tighter">
                     {badgeText.split(' ').length > 2 ? badgeText.split(' ').slice(1, 3).join(' ') : badgeText.split(' ').slice(1).join(' ')}
                 </span>
             </div>
@@ -92,7 +92,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
 
                 {/* Sale Percentage Tag (Matched to Home Reference) */}
                 {computedDiscount > 0 && (
-                    <div className="absolute top-1 right-1 bg-gradient-to-r from-red-600 to-red-500 text-white text-[6.5px] md:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg border border-white/20 z-20 transform hover:scale-110 transition-transform">
+                    <div className="absolute top-1 right-1 bg-gradient-to-r from-red-600 to-red-500 text-white text-[6.5px] md:text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-white/20 z-20 transform hover:scale-110 transition-transform">
                         {computedDiscount}% OFF
                     </div>
                 )}
@@ -115,7 +115,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                             <span className="text-gray-400 dark:text-gray-500 line-through text-[8px] leading-[1] mb-0.5">₹{product.originalPrice}</span>
                         )}
                         <div className="flex items-baseline">
-                            <span className="text-[12px] sm:text-[16px] font-black text-gray-900 dark:text-[#f8fafc] leading-none">₹{product.price}</span>
+                            <span className="text-[12px] sm:text-[16px] font-bold text-gray-900 dark:text-[#f8fafc] leading-none">₹{product.price}</span>
                         </div>
                     </div>
 
@@ -130,7 +130,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                             >
                                 <Minus size={12} sm:size={16} strokeWidth={2.5} />
                             </button>
-                            <span className="text-[10px] sm:text-[15px] font-black w-4 sm:w-7 text-center select-none leading-none">
+                            <span className="text-[10px] sm:text-[15px] font-bold w-4 sm:w-7 text-center select-none leading-none">
                                 {quantity}
                             </span>
                             <button
@@ -145,7 +145,7 @@ const FlyerProductCard = ({ product, badgeText }) => {
                         <button
                             onClick={() => !isBtnDisabled && addToCart(product)}
                             disabled={isBtnDisabled}
-                            className={`px-3 sm:px-4 py-0.5 border border-transparent active:scale-95 transition-all text-[9px] sm:text-[13px] font-black !rounded-full uppercase tracking-wider shadow-sm h-[24px] sm:h-[38px] flex items-center justify-center ${isBtnDisabled ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-70' : 'bg-[#0c831f] text-white hover:bg-[#0a6b19]'}`}
+                            className={`px-3 sm:px-4 py-0.5 border border-transparent active:scale-95 transition-all text-[9px] sm:text-[13px] font-bold !rounded-full uppercase tracking-wider shadow-sm h-[24px] sm:h-[38px] flex items-center justify-center ${isBtnDisabled ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-70' : 'bg-[#0c831f] text-white hover:bg-[#0a6b19]'}`}
                             aria-label="Add to cart"
                         >
                             ADD
@@ -265,10 +265,8 @@ const OfferPage = () => {
             />
             <style>
                 {`
-                    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
-                    
-                    .font-jakarta {
-                        font-family: 'Plus Jakarta Sans', sans-serif;
+                    .font-inter {
+                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
                     }
 
                     @keyframes fadeInUp {
@@ -312,7 +310,7 @@ const OfferPage = () => {
             </style>
 
             {/* Desktop-only rebuilt layout */}
-            <div className="hidden md:block min-h-screen bg-[#fcfcfc] dark:bg-black font-jakarta pb-24 transition-colors duration-500">
+            <div className="hidden md:block min-h-screen bg-[#fcfcfc] dark:bg-black font-inter pb-24 transition-colors duration-500">
                 {/* Desktop Header - Matched to Reference */}
                 <div className="sticky top-0 z-[60] px-12 pt-8 pointer-events-none">
                     <div className="max-w-7xl mx-auto flex items-center justify-between bg-white/95 dark:bg-[#111]/95 backdrop-blur-md border border-gray-100 dark:border-white/5 px-10 py-5 rounded-[2.5rem] shadow-[0_12px_45px_-10px_rgba(0,0,0,0.06)] pointer-events-auto">

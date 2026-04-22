@@ -44,7 +44,7 @@ const BillingSettings = () => {
             const data = await settingApi.getAdminSettings(token);
             setSettings(prev => ({ ...prev, ...data }));
         } catch (error) {
-            toast.error('Failed to load billing configuration.');
+            // toast.error('Failed to load billing configuration.');
         } finally {
             setIsLoading(false);
         }

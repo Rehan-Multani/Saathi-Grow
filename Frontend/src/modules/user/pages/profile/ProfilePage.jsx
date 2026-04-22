@@ -79,7 +79,7 @@ const ProfilePage = () => {
                     >
                         <ArrowLeft size={16} className="md:w-6 md:h-6" />
                     </button>
-                    <h1 className="!text-[16px] md:!text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">My Profile</h1>
+                    <h1 className="!text-[16px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">My Profile</h1>
                 </div>
 
                 <div className="md:grid md:grid-cols-3 md:gap-4">
@@ -113,18 +113,18 @@ const ProfilePage = () => {
                                     <Camera size={14} className="md:w-5 md:h-5" />
                                 </button>
                             </div>
-                            <h2 className="!text-[20px] md:!text-xl font-black text-gray-900 dark:text-gray-100">{user?.name || "Saathi Member"}</h2>
-                            <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-0.5 md:mt-0.5">{user?.email || (user?.phone ? `+91 ${user.phone}` : "member@sathiGro.com")}</p>
+                            <h2 className="!text-[20px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100">{user?.name || "Saathi Member"}</h2>
+                            <p className="!text-[12px] md:!text-xs text-gray-400 font-bold tracking-widest mt-1.5 md:mt-2">{user?.email || (user?.phone ? `+91 ${user.phone}` : "member@sathiGro.com")}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 py-2 md:py-3 border-y border-gray-100 dark:border-white/5 max-w-lg mx-auto md:max-w-none md:mx-0 bg-transparent md:bg-transparent">
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">{user?.totalOrders || 0}</p>
-                                <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Orders</p>
+                                <p className="!text-[16px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100">{user?.totalOrders || 0}</p>
+                                <p className="!text-[9px] md:!text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Orders</p>
                             </div>
                             <div className="text-center">
-                                <p className="!text-[16px] md:!text-xl font-black text-gray-900 dark:text-gray-100">₹{Number(user?.walletBalance || 0).toFixed(2)}</p>
-                                <p className="!text-[9px] md:!text-[10px] text-gray-400 font-bold uppercase tracking-widest">Savings</p>
+                                <p className="!text-[16px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100">₹{Number(user?.walletBalance || 0).toFixed(2)}</p>
+                                <p className="!text-[9px] md:!text-[10px] text-gray-400 font-semibold uppercase tracking-widest">Savings</p>
                             </div>
                         </div>
                     </div>
@@ -144,7 +144,7 @@ const ProfilePage = () => {
                                                 <item.icon size={18} className="md:w-4.5 md:h-4.5" />
                                             </div>
                                             <div className="text-left leading-tight">
-                                                <h4 className="!text-[13px] md:!text-base font-black text-gray-800 dark:text-gray-100 leading-none mb-0 md:mb-0.5">{item.label}</h4>
+                                                <h4 className="!text-[14px] font-semibold text-gray-800 dark:text-gray-100 leading-none mb-1 md:mb-1.5">{item.label}</h4>
                                                 <p className="!text-[10px] md:!text-[11px] text-gray-400 font-medium">{item.subtitle}</p>
                                             </div>
                                         </div>
@@ -156,23 +156,23 @@ const ProfilePage = () => {
                             <h3 className="!text-[10px] md:!text-[9px] font-bold text-gray-400 px-6 py-3 md:px-2 md:mt-1 md:mb-0.5 tracking-widest uppercase bg-transparent md:bg-transparent border-t md:border-t-0 border-gray-100 dark:border-white/5">App Preferences</h3>
                             <div className="divide-y divide-gray-100 dark:divide-white/5 bg-transparent md:bg-white md:dark:bg-black md:rounded-2xl md:border border-gray-50 dark:md:border-white/5 overflow-hidden">
                                 {/* Theme Toggle */}
-                                <div className="py-3 px-6 md:py-2 md:px-6 flex items-center justify-between group">
+                                <button 
+                                    onClick={toggleTheme}
+                                    className="w-full py-3 px-6 md:py-1.5 md:px-4 flex items-center justify-between hover:bg-[#e8f5e9] md:hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
+                                >
                                     <div className="flex items-center gap-4 md:gap-6">
                                         <div className="w-9 h-9 md:w-9 md:h-9 bg-purple-50 dark:bg-purple-500/10 md:border border-gray-100 dark:border-white/10 rounded-full md:rounded-lg flex items-center justify-center md:shadow-sm">
                                             {isDarkMode ? <Moon size={18} className="text-purple-600 md:w-4.5 md:h-4.5" /> : <Sun size={18} className="text-orange-500 md:w-4.5 md:h-4.5" />}
                                         </div>
                                         <div className="text-left leading-tight">
-                                            <h4 className="!text-[13px] md:!text-base font-black text-gray-800 dark:text-gray-100 leading-none mb-0 md:mb-0.5">Dark Mode</h4>
+                                            <h4 className="!text-[14px] font-semibold text-gray-800 dark:text-gray-100 leading-none mb-0 md:mb-0.5">Dark Mode</h4>
                                             <p className="!text-[10px] md:!text-[11px] text-gray-400 font-medium">Toggle app appearance</p>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={toggleTheme}
-                                        className={`app-toggle-switch ${isDarkMode ? 'active' : ''}`}
-                                    >
-                                        <div className="app-toggle-thumb" />
-                                    </button>
-                                </div>
+                                    <div className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 ${isDarkMode ? 'bg-purple-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                                        <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    </div>
+                                </button>
 
 
                             </div>
@@ -187,7 +187,7 @@ const ProfilePage = () => {
                                         <LogOut size={18} className="md:w-4.5 md:h-4.5" />
                                     </div>
                                     <div className="text-left">
-                                        <h4 className="!text-[13px] md:!text-lg font-black text-red-600 dark:text-red-400 leading-none mb-1 md:mb-1.5">Log Out</h4>
+                                        <h4 className="!text-[14px] font-semibold text-red-600 dark:text-red-400 leading-none mb-1 md:mb-1.5">Log Out</h4>
                                         <p className="!text-[10px] md:!text-sm text-red-400/70 font-medium">Sign out of your account</p>
                                     </div>
                                 </div>

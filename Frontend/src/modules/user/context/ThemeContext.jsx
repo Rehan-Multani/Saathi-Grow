@@ -16,10 +16,13 @@ export const ThemeProvider = ({ children }) => {
     });
 
     useEffect(() => {
+        const root = document.documentElement;
         if (isDarkMode) {
             localStorage.setItem('theme', 'dark');
+            root.classList.add('dark');
         } else {
             localStorage.setItem('theme', 'light');
+            root.classList.remove('dark');
         }
     }, [isDarkMode]);
 

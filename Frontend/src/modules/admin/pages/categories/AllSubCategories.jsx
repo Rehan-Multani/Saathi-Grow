@@ -41,7 +41,7 @@ const AllSubCategories = () => {
             const data = await getSubCategories(adminUser.token);
             setSubCategories(data);
         } catch (error) {
-            toast.error(t('loading_failed'));
+            // toast.error(t('loading_failed'));
         } finally {
             setLoading(false);
         }
@@ -98,10 +98,10 @@ const AllSubCategories = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold tracking-tight">{t('subcategories.title')}</h1>
+                        <h1 className="text-sm font-bold tracking-tight text-slate-900 uppercase tracking-[0.05em]">{t('subcategories.title')}</h1>
                         <PageInfoTooltip data={pageInfoData.allSubCategories} />
                     </div>
-                    <p className="text-slate-500 text-xs mt-1 font-medium">{t('subcategories.subtitle')}</p>
+                    <p className="text-slate-500 text-[11px] mt-0.5 font-semibold uppercase tracking-wider">{t('subcategories.subtitle')}</p>
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">

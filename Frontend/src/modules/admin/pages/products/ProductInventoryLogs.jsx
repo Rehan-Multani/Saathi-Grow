@@ -32,9 +32,10 @@ const ProductInventoryLogs = () => {
         try {
             const data = await getProductById(adminUser.token, id);
             setProduct(data);
-        } catch (error) { toast.error(t('messages.load_failed')); }
+        } catch (error) {
+            // toast.error(t('messages.load_failed')); 
+        }
     }, [adminUser.token, id, t]);
-
     const fetchLogs = useCallback(async () => {
         setLoading(true);
         try {
@@ -44,8 +45,9 @@ const ProductInventoryLogs = () => {
                 setTotalLogs(data.total);
                 setTotalPages(data.pages);
             } else { setLogs(Array.isArray(data) ? data : []); }
-        } catch (error) { toast.error(t('messages.load_failed')); }
-        finally { setLoading(false); }
+        } catch (error) {
+            // toast.error(t('messages.load_failed')); 
+        } finally { setLoading(false); }
     }, [adminUser.token, id, page, t]);
 
     useEffect(() => {

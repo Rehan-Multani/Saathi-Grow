@@ -25,7 +25,7 @@ const VendorPayouts = () => {
             const data = await getVendorPayouts(adminUser.token);
             setPayouts(Array.isArray(data) ? data : (data.payouts || []));
         } catch (error) {
-            toast.error('Failed to load payouts');
+            // toast.error('Failed to load payouts');
         } finally {
             setLoading(false);
             setRefreshing(false);

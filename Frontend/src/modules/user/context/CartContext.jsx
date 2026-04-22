@@ -102,7 +102,7 @@ export const CartProvider = ({ children }) => {
 
 
 
-    const addToCart = (product) => {
+    const addToCart = (product, quantityToAdd = 1) => {
         // Enforce Store-First logic: Only add if deliverable from the ACTIVE store
         if (product.isDeliverable === false) {
             toast.error("Not deliverable from this store", { toastId: 'not-deliverable' });
@@ -135,10 +135,10 @@ export const CartProvider = ({ children }) => {
             const existing = prevCart.find((item) => item.id === prodId);
             if (existing) {
                 return prevCart.map((item) =>
-                    item.id === prodId ? { ...item, quantity: item.quantity + 1 } : item
+                    item.id === prodId ? { ...item, quantity: item.quantity + quantityToAdd } : item
                 );
             }
-            return [...prevCart, { ...product, id: prodId, price: priceToUse, quantity: 1 }];
+            return [...prevCart, { ...product, id: prodId, price: priceToUse, quantity: quantityToAdd }];
         });
     };
 

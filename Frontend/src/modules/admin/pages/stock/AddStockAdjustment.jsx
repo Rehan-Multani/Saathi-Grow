@@ -72,7 +72,7 @@ const AddStockAdjustment = () => {
                     }
                 }
             } catch (error) {
-                toast.error(t('add_adjustment.alerts.error_load'));
+                // toast.error(t('add_adjustment.alerts.error_load'));
             } finally {
                 setInitialLoading(false);
             }

@@ -31,7 +31,7 @@ const LegalManagement = () => {
             const data = await fetchAllLegalPages();
             setPages(data);
         } catch (error) {
-            toast.error(error.message || 'Failed to load legal pages');
+            // toast.error(error.message || 'Failed to load legal pages');
         } finally {
             setLoading(false);
         }

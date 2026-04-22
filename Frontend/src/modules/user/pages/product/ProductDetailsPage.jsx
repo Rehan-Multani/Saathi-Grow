@@ -225,20 +225,21 @@ const ProductDetailsPage = () => {
     // Check if product is disabled based on stock/delivery
     const isOutOfStock = (product?.availableStock ?? 999) <= 0;
     const isLowStock = (product?.availableStock ?? 999) <= (product?.lowStockThreshold ?? 0);
-    const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange || isStoreInactive || isOutOfStock || isLowStock;
+    // Allow ordering even if low stock (only block if completely out)
+    const isBtnDisabled = product?.isDeliverable === false || isStoreOutOfRange || isStoreInactive || isOutOfStock;
     const availabilityTone = isStoreInactive
         ? 'border-red-500 text-red-500'
         : isStoreOutOfRange
             ? 'border-orange-500 text-orange-500'
             : (product?.isDeliverable !== false
-                ? (isLowStock ? 'border-orange-500 text-orange-500' : 'border-gray-600 text-[#0c831f] dark:text-[#10b981]')
+                ? (isOutOfStock ? 'border-red-500 text-red-500' : (isLowStock ? 'border-orange-500 text-orange-500' : 'border-gray-600 text-[#0c831f] dark:text-[#10b981]'))
                 : (product?.inStore ? 'border-red-500 text-red-500' : 'border-orange-500 text-orange-500'));
     const availabilityLabel = isStoreInactive
         ? 'Store Closed'
         : isStoreOutOfRange
             ? 'Out of Zone'
             : (product?.isDeliverable !== false
-                ? (isLowStock ? 'Low Stock' : 'In Stock')
+                ? (isOutOfStock ? 'Out of Stock' : (isLowStock ? 'Low Stock' : 'In Stock'))
                 : (product?.inStore ? 'Out of Stock' : 'Out of Zone'));
     const disabledButtonLabel = isStoreInactive
         ? 'Store Closed'
@@ -293,7 +294,7 @@ const ProductDetailsPage = () => {
 
                     {/* Left: Image Section */}
                     <div className="flex flex-col gap-6">
-                        <div className="relative aspect-square bg-white dark:bg-[#111] rounded-[32px] overflow-hidden flex items-center justify-center group shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#0c831f]/10 dark:border-white/5 p-4 md:p-12 max-w-[260px] md:max-w-[400px] mx-auto w-full transition-all duration-500 hover:shadow-xl">
+                        <div className="relative z-10 w-full max-w-[260px] h-[260px] md:max-w-[400px] md:h-[400px] bg-white dark:bg-[#111] rounded-[32px] overflow-hidden flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#0c831f]/10 dark:border-white/5 p-4 md:p-12 mx-auto transition-all duration-500 hover:shadow-xl shrink-0 group">
                             <img
                                 src={selectedImage || categoryPlaceholder}
                                 alt={product.name}
@@ -309,12 +310,12 @@ const ProductDetailsPage = () => {
                         </div>
 
                         {/* Thumbnails */}
-                        <div className="flex gap-4 overflow-x-auto pb-2 justify-center">
+                        <div className="relative z-20 flex gap-4 overflow-x-auto py-3 px-2 justify-center mt-2 shrink-0">
                             {productImages.map((img, i) => (
                                 <div
                                     key={i}
                                     onClick={() => setSelectedImage(img)}
-                                    className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl border flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm ${selectedImage === img
+                                    className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm ${selectedImage === img
                                         ? 'border-[#0c831f] bg-[#fdfdfd] dark:bg-[#0c831f]/10 shadow-md scale-105 ring-1 ring-[#0c831f]/20'
                                         : 'border-[#0c831f]/30 dark:border-white/10 hover:border-[#0c831f] bg-white dark:bg-[#222]'
                                         }`}

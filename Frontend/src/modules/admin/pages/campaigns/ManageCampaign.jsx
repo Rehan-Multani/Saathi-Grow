@@ -56,7 +56,7 @@ const ManageCampaign = () => {
                     })));
                 }
             } catch (error) {
-                toast.error(t('messages.fetch_error'));
+                // toast.error(t('messages.fetch_error'));
             } finally {
                 setFetching(false);
             }

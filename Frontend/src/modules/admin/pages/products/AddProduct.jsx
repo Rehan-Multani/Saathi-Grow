@@ -35,7 +35,7 @@ const DownDropdown = ({ value, onChange, options, placeholder, disabled }) => {
                 <ChevronDown size={16} className={`shrink-0 ml-2 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
-                <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                     <li onClick={() => { onChange(''); setOpen(false); }}
                         className="px-4 py-2.5 text-sm text-slate-400 hover:bg-slate-50 cursor-pointer">
                         {placeholder}
@@ -47,6 +47,44 @@ const DownDropdown = ({ value, onChange, options, placeholder, disabled }) => {
                             {value === o.value && <Check size={14} />}
                         </li>
                     ))}
+                </ul>
+            )}
+        </div>
+    );
+};
+
+const MultiBranchDropdown = ({ branches, selectedIds, onToggle, placeholder }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    useEffect(() => {
+        const handler = (e) => { 
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false); 
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+    return (
+        <div ref={ref} className="relative">
+            <button type="button" onClick={() => setOpen(p => !p)} className="form-input-simple w-full flex items-center justify-between text-left cursor-pointer text-sm bg-white">
+                <span className="truncate text-slate-800 font-semibold" style={{ fontSize: '13px' }}>
+                    {selectedIds.length > 0 ? `${selectedIds.length} branches selected` : placeholder}
+                </span>
+                <ChevronDown size={16} className={`shrink-0 ml-2 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+            {open && (
+                <ul className="absolute z-[60] top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto pt-1 pb-1 outline-none scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                    {branches.length === 0 && <li className="px-4 py-3 text-sm text-slate-400 text-center">No branches available</li>}
+                    {branches.map(b => {
+                        const isSelected = selectedIds.includes(b._id);
+                        return (
+                            <li key={b._id} onClick={(e) => { e.stopPropagation(); onToggle(b); }} className="px-4 py-3 text-sm cursor-pointer hover:bg-slate-50 flex items-center gap-3">
+                                <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'border-slate-300 bg-white'}`}>
+                                    {isSelected && <Check size={12} strokeWidth={4} />}
+                                </div>
+                                <span className={isSelected ? 'font-semibold text-slate-800' : 'text-slate-600'}>{b.name}</span>
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
         </div>
@@ -75,7 +113,12 @@ const AddProduct = () => {
         name: '', category: '', subCategory: '', brandName: '', basePrice: '', mrp: '',
         isVeg: true, unitType: 'pcs', unitValue: 1, physicalLocation: '', description: '',
         isAllBranches: true, specificBranches: [], sku: '', tags: [], status: 'Active',
-        vendor: '', isSaathiGrow: false, stock: '', lowStockThreshold: 10
+        vendor: '', isSaathiGrow: false, stock: '', lowStockThreshold: 10,
+        // --- Added fields ---
+        reorderThreshold: 10, maxCapacityPerSku: 0, isStockAutoSync: false,
+        weightCategory: 'Light', isFragile: false, temperatureType: 'Normal',
+        pickPriority: 0, pickingZone: 'Other',
+        variantGroupId: '', pickSequence: 0
     });
 
     const [branchStocks, setBranchStocks] = useState([]);
@@ -114,7 +157,7 @@ const AddProduct = () => {
                 setBrands(brandsData.filter(b => b.status === 'Active'));
                 setBranches(branchesData.filter(b => b.isActive));
             } catch (error) {
-                toast.error(t('messages.load_failed'));
+                // toast.error(t('messages.load_failed'));
             } finally {
                 setInitialLoading(false);
             }
@@ -277,10 +320,10 @@ const AddProduct = () => {
                         </button>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-2xl font-bold text-slate-900">{t('add_product')}</h1>
+                                <h1 className="text-2xl font-bold text-black">{t('add_product')}</h1>
                                 <PageInfoTooltip data={pageInfoData.addProduct} />
                             </div>
-                            <p className="text-slate-500 text-sm mt-1">{t('subtitle')}</p>
+                            <p className="text-slate-700 text-sm mt-1">{t('subtitle')}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -298,19 +341,19 @@ const AddProduct = () => {
                     <div className="lg:col-span-2 space-y-8">
                         {/* Section 1: Core Information */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
-                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
                                 <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
                                 {t('form.basic_info')}
                             </h3>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">{t('fields.name')}</label>
+                                <label className="text-sm font-semibold text-black">{t('fields.name')}</label>
                                 <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder={t('fields.name_placeholder')} className="form-input-simple" />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">{t('fields.category')}</label>
+                                    <label className="text-sm font-semibold text-black">{t('fields.category')}</label>
                                     <DownDropdown
                                         value={formData.category}
                                         onChange={val => handleChange({ target: { name: 'category', value: val } })}
@@ -363,14 +406,21 @@ const AddProduct = () => {
                                             {tag} <X size={14} className="cursor-pointer text-slate-400 hover:text-red-500" onClick={() => setFormData(p => ({...p, tags: p.tags.filter(t => t !== tag)}))} />
                                         </span>
                                     ))}
-                                    <input type="text" placeholder="Add custom tag..." value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} className="bg-transparent border-none outline-none text-xs flex-1 min-w-[150px]" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Add custom tag..." 
+                                        value={tagInput} 
+                                        onChange={e => setTagInput(e.target.value)} 
+                                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} 
+                                        className="!bg-transparent !border-none !outline-none !shadow-none !ring-0 focus:!ring-0 text-xs flex-1 min-w-[150px] py-1" 
+                                    />
                                 </div>
                             </div>
                         </div>
 
                         {/* Section 2: Pricing & Measurements */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
-                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
                                 <span className="w-1 h-6 bg-emerald-500 rounded-full"></span>
                                 {t('form.pricing_stock')}
                             </h3>
@@ -427,27 +477,21 @@ const AddProduct = () => {
 
                         {/* Section 3: Distribution Allocation */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
-                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
                                 <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
                                 Branch Access
                             </h3>
 
                             <div className="space-y-4">
-                                {/* Direct Vendor Supply selection removed as Admin only manages Branch stock */}
-
                                 <div className="space-y-4 pt-4">
                                     <div className="space-y-4 pt-4 border-t border-slate-50">
                                         <label className="text-sm font-semibold text-slate-700 block">{t('fields.allocate_branches')}</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {branches.map(b => {
-                                                const isSelected = branchStocks.some(bs => bs.branchId === b._id);
-                                                return (
-                                                    <button key={b._id} type="button" onClick={() => handleBranchToggle(b)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}>
-                                                        {b.name}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                        <MultiBranchDropdown 
+                                            branches={branches} 
+                                            selectedIds={branchStocks.map(bs => bs.branchId)}
+                                            onToggle={handleBranchToggle}
+                                            placeholder="Click to select branches"
+                                        />
 
                                         {branchStocks.length > 0 && (
                                             <div className="space-y-3 mt-6">
@@ -469,6 +513,105 @@ const AddProduct = () => {
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 4: Inventory Intelligence */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
+                                Inventory Intelligence
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Reorder Threshold</label>
+                                    <input type="number" name="reorderThreshold" value={formData.reorderThreshold} onChange={handleChange} className="form-input-simple" placeholder="E.g. 10" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Max Capacity per SKU</label>
+                                    <input type="number" name="maxCapacityPerSku" value={formData.maxCapacityPerSku} onChange={handleChange} className="form-input-simple" placeholder="E.g. 100" />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <input type="checkbox" id="stockAutoSync" checked={formData.isStockAutoSync} onChange={(e) => setFormData(p => ({...p, isStockAutoSync: e.target.checked}))} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
+                                <label htmlFor="stockAutoSync" className="text-sm font-medium text-slate-700 cursor-pointer">Auto-sync current stock per shelf</label>
+                            </div>
+                        </div>
+
+                        {/* Section 5: Physical Handling */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                                <span className="w-1 h-6 bg-orange-400 rounded-full"></span>
+                                Physical Handling
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Weight Category</label>
+                                    <select name="weightCategory" value={formData.weightCategory} onChange={handleChange} className="form-input-simple">
+                                        <option value="Light">Light</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="Heavy">Heavy</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Temperature Type</label>
+                                    <select name="temperatureType" value={formData.temperatureType} onChange={handleChange} className="form-input-simple">
+                                        <option value="Normal">Normal</option>
+                                        <option value="Cold">Cold</option>
+                                        <option value="Frozen">Frozen</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2 flex flex-col justify-center">
+                                    <label className="text-sm font-semibold text-slate-700 mb-2">Is Fragile?</label>
+                                    <div className="flex gap-2">
+                                        <button type="button" onClick={() => setFormData(p => ({...p, isFragile: true}))} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${formData.isFragile ? 'bg-orange-50 border-orange-500 text-orange-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>Yes</button>
+                                        <button type="button" onClick={() => setFormData(p => ({...p, isFragile: false}))} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${!formData.isFragile ? 'bg-slate-100 border-slate-300 text-slate-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>No</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 6: Picking Optimization */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                                <span className="w-1 h-6 bg-indigo-500 rounded-full"></span>
+                                Picking Optimization
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Pick Priority</label>
+                                    <select name="pickPriority" value={formData.pickPriority} onChange={handleChange} className="form-input-simple">
+                                        <option value={0}>Normal (Default)</option>
+                                        <option value={1}>High (Fast-moving)</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Storage Zone</label>
+                                    <select name="pickingZone" value={formData.pickingZone} onChange={handleChange} className="form-input-simple">
+                                        <option value="Other">Other / Default</option>
+                                        <option value="Food">Food Zone</option>
+                                        <option value="Non-food">Non-food Zone</option>
+                                        <option value="Mixed Restricted">Mixed Restricted</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 7: Variant Handling */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                                <span className="w-1 h-6 bg-rose-400 rounded-full"></span>
+                                Variant Handling
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Variant Group ID</label>
+                                    <input type="text" name="variantGroupId" value={formData.variantGroupId} onChange={handleChange} className="form-input-simple" placeholder="E.g. COCO-OIL-01" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700">Pick Sequence (Order)</label>
+                                    <input type="number" name="pickSequence" value={formData.pickSequence} onChange={handleChange} className="form-input-simple" placeholder="E.g. 1 (First), 2, 3..." />
                                 </div>
                             </div>
                         </div>
@@ -552,9 +695,18 @@ const AddProduct = () => {
                 .form-input-simple { 
                     width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; 
                     padding: 0.75rem 1rem; outline: none; transition: all 0.2s; font-size: 14px;
+                    color-scheme: light;
                 }
                 .form-input-simple:focus { border-color: #3b82f6; background-color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
                 .saathi-spinner { width: 40px; height: 40px; border: 4px solid #f8fafc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+                
+                /* Spin buttons fix */
+                input[type="number"]::-webkit-inner-spin-button, 
+                input[type="number"]::-webkit-outer-spin-button {
+                    opacity: 1;
+                    background: transparent;
+                }
+                
                 @keyframes spin { to { transform: rotate(360deg); } }
             `}} />
         </div>

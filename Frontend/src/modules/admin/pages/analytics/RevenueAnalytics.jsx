@@ -32,7 +32,7 @@ const RevenueAnalytics = () => {
                 setData(res);
             }
         } catch (error) {
-            toast.error(t('revenue.load_error', { defaultValue: 'Failed to load income data' }));
+            // toast.error(t('revenue.load_error', { defaultValue: 'Failed to load income data' }));
         } finally {
             setLoading(false);
         }
@@ -54,7 +54,7 @@ const RevenueAnalytics = () => {
         return (
             <div className="flex flex-col items-center justify-center min-vh-100 gap-4">
                 <Loader2 size={40} className="text-blue-600 animate-spin" />
-                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Collecting Business Data...</p>
+                <p className="text-slate-400 text-[11px] font-medium uppercase tracking-widest">Collecting Business Data...</p>
             </div>
         );
     }
@@ -74,14 +74,14 @@ const RevenueAnalytics = () => {
                         <h1 className="text-xl font-bold tracking-tight text-slate-900">{t('revenue.title')}</h1>
                         <PageInfoTooltip data={pageInfoData.revenueAnalytics} />
                     </div>
-                    <p className="text-slate-500 text-xs mt-1 font-bold opacity-70 uppercase tracking-tight">{t('revenue.subtitle')}</p>
+                    <p className="text-slate-500 text-xs mt-1 font-medium opacity-70 uppercase tracking-tight">{t('revenue.subtitle')}</p>
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <select 
                         value={period}
                         onChange={(e) => setPeriod(e.target.value)}
-                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-bold text-slate-700 shadow-sm appearance-none cursor-pointer pr-10 min-w-[160px]"
+                        className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs font-medium text-slate-700 shadow-sm appearance-none cursor-pointer pr-10 min-w-[160px]"
                     >
                         <option value="this_week">{t('revenue.period.week', { defaultValue: 'This Week' })}</option>
                         <option value="this_month">{t('revenue.period.month', { defaultValue: 'This Month' })}</option>
@@ -90,7 +90,7 @@ const RevenueAnalytics = () => {
                     </select>
 
                     <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98] whitespace-nowrap"
                     >
                         <Download size={16} />
                         <span>{t('sales.download', { ns: 'admin_reports' })}</span>
@@ -110,8 +110,8 @@ const RevenueAnalytics = () => {
                 <div className="bg-blue-600 p-6 rounded-[2rem] text-white shadow-xl shadow-blue-100 flex flex-col justify-between min-h-[140px] relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
                     <div className="relative z-10">
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{t('revenue.stats.gross')}</p>
-                        <h3 className="text-2xl font-black mt-1 tracking-tight">{formatCurrency(summary.totalNetSales)}</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t('revenue.stats.gross')}</p>
+                        <h3 className="text-2xl font-bold mt-1 tracking-tight">{formatCurrency(summary.totalNetSales)}</h3>
                     </div>
                     <div className="relative z-10 flex items-center gap-1 text-[10px] font-bold mt-4">
                         {summary.salesGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
@@ -124,8 +124,8 @@ const RevenueAnalytics = () => {
                         <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4">
                             <CreditCard size={20} />
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Refunded Money</p>
-                        <h3 className="text-xl font-black text-slate-800 mt-1">{formatCurrency(summary.totalRefunds)}</h3>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Refunded Money</p>
+                        <h3 className="text-xl font-bold text-slate-800 mt-1">{formatCurrency(summary.totalRefunds)}</h3>
                     </div>
                 </div>
 
@@ -134,8 +134,8 @@ const RevenueAnalytics = () => {
                         <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
                             <Wallet size={20} />
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('finance.earnings.paid')}</p>
-                        <h3 className="text-xl font-black text-slate-800 mt-1">{formatCurrency(summary.vendorPayouts)}</h3>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{t('finance.earnings.paid')}</p>
+                        <h3 className="text-xl font-bold text-slate-800 mt-1">{formatCurrency(summary.vendorPayouts)}</h3>
                     </div>
                 </div>
 
@@ -144,8 +144,8 @@ const RevenueAnalytics = () => {
                         <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
                             <IndianRupee size={20} />
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('revenue.stats.net')}</p>
-                        <h3 className="text-xl font-black text-emerald-600 mt-1">{formatCurrency(summary.netProfit)}</h3>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{t('revenue.stats.net')}</p>
+                        <h3 className="text-xl font-bold text-emerald-600 mt-1">{formatCurrency(summary.netProfit)}</h3>
                     </div>
                     <div className={`flex items-center gap-1 text-[10px] font-bold mt-2 ${summary.profitGrowth >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {summary.profitGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
@@ -158,8 +158,8 @@ const RevenueAnalytics = () => {
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-8">
                 <div className="px-10 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/10">
                     <div>
-                        <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">{t('revenue.title')} Progress</h5>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Performance tracking for current period</p>
+                        <h5 className="text-[11px] font-bold text-slate-800 uppercase tracking-widest">{t('revenue.title')} Progress</h5>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase mt-0.5">Performance tracking for current period</p>
                     </div>
                     <div className="flex items-center gap-2">
                          <div className="w-3 h-3 bg-blue-600 rounded-full" />

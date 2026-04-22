@@ -37,7 +37,7 @@ const AllVendors = () => {
             const data = await getVendors(adminUser.token);
             setVendors(Array.isArray(data) ? data : (data.vendors || []));
         } catch (error) {
-            toast.error('Failed to load vendors');
+            // toast.error('Failed to load vendors');
         } finally {
             setLoading(false);
             setRefreshing(false);

@@ -34,7 +34,7 @@ const AddSubCategory = () => {
                 const data = await getCategories(adminUser.token);
                 setCategories(data.filter(c => c.status === 'Active'));
             } catch (error) {
-                toast.error(t('loading_failed'));
+                // toast.error(t('loading_failed'));
             } finally {
                 setCategoriesLoading(false);
             }
