@@ -180,17 +180,17 @@ import { protect, protectAdmin, protectVendor, protectDeliveryPartner } from './
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userProfileRoutes);
 
-app.use('/api/admin/users', userRoutes);
-app.use('/api/admin/branches', branchRoutes);
-app.use('/api/admin/vendors', vendorRoutes);
-app.use('/api/admin/locations', physicalLocationRoutes);
-app.use('/api/vendors', vendorPortalRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/admin/brands', brandRoutes);
-app.use('/api/admin/categories', categoryRoutes);
-app.use('/api/admin/category-pages', adminCategoryPageRoutes);
 app.use('/api/admin/subcategories', subCategoryRoutes);
 app.use('/api/admin/products', productRoutes);
+app.use('/api/admin/categories', categoryRoutes);
+app.use('/api/admin/category-pages', adminCategoryPageRoutes);
+app.use('/api/admin/brands', brandRoutes);
+app.use('/api/admin/vendors', vendorRoutes);
+app.use('/api/admin/branches', branchRoutes);
+app.use('/api/admin/users', userRoutes);
+app.use('/api/admin/locations', physicalLocationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/vendors', vendorPortalRoutes);
 app.use('/api/admin/campaigns', campaignRoutes);
 app.use('/api/admin/offer-deals', offerRoutes);
 app.use('/api/admin/delivery', adminDeliveryRoutes);
@@ -256,6 +256,9 @@ initCronJobs();
 
 httpServer.listen(PORT, () => {
   console.log(`📡 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log('✅ Subcategories route registered at: /api/admin/subcategories');
 });
+
+app.get('/api/test-sub', (req, res) => res.json({ message: "Subcategory API is reachable" }));
 
 export { app, io };
