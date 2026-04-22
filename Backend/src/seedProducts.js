@@ -139,6 +139,41 @@ const seedData = async () => {
         }
         console.log(`${createdCategories.length} Categories synced.`);
 
+        // 3.5 Seed Subcategories
+        console.log('Seeding Subcategories...');
+        const subCategoriesData = [
+            { name: 'Fresh Fruits', categorySlug: 'fruit-and-vegetables' },
+            { name: 'Fresh Vegetables', categorySlug: 'fruit-and-vegetables' },
+            { name: 'Milk & Cream', categorySlug: 'dairy-egg-frozen' },
+            { name: 'Eggs', categorySlug: 'dairy-egg-frozen' },
+            { name: 'Cheese & Butter', categorySlug: 'dairy-egg-frozen' },
+            { name: 'Biscuits & Cookies', categorySlug: 'snacks-bakery' },
+            { name: 'Chips & Crisps', categorySlug: 'snacks-bakery' },
+            { name: 'Soft Drinks', categorySlug: 'food-beverage' },
+            { name: 'Tea & Coffee', categorySlug: 'food-beverage' },
+            { name: 'Atta & Flours', categorySlug: 'staples-and-grains' },
+            { name: 'Rice & Rice Products', categorySlug: 'staples-and-grains' },
+            { name: 'Dals & Pulses', categorySlug: 'staples-and-grains' }
+        ];
+
+        const SubCategory = (await import('./models/SubCategory.js')).default;
+        for (const sub of subCategoriesData) {
+            const parent = createdCategories.find(c => c.slug === sub.categorySlug);
+            if (parent) {
+                const existingSub = await SubCategory.findOne({ name: sub.name, category: parent._id });
+                if (!existingSub) {
+                    await SubCategory.create({
+                        name: sub.name,
+                        category: parent._id,
+                        categoryName: parent.name,
+                        status: 'Active',
+                        createdBy: admin._id
+                    });
+                }
+            }
+        }
+        console.log('Subcategories seeded.');
+
         // 4. Seed Products
         console.log('Seeding Products...');
         const productsToInsert = [];

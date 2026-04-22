@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/apiConfig';
 
-const API_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/admin/subcategories`;
+const API_URL = `${API_BASE_URL}/admin/subcategories`;
 
 export const getSubCategories = async (token, params = {}) => {
   const { categoryId, categoryName, status } = params;
