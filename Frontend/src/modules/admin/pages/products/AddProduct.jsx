@@ -10,7 +10,7 @@ import { getBrands } from '../../api/brandApi';
 import { getBranches } from '../../api/branchApi';
 import { getVendors } from '../../api/vendorApi';
 import { createProduct, getAISuggestions } from '../../api/productApi';
-import { getAvailableAdminLocations } from '../../api/physicalLocationApi';
+import { getAvailableAdminLocations, createAdminLocation } from '../../api/physicalLocationApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
@@ -108,6 +108,9 @@ const AddProduct = () => {
     const [branches, setBranches] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [availableLocations, setAvailableLocations] = useState([]);
+    const [showNewShelf, setShowNewShelf] = useState(false);
+    const [newShelf, setNewShelf] = useState({ label: '', description: '' });
+    const [shelfCreating, setShelfCreating] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -243,6 +246,28 @@ const AddProduct = () => {
     const handleBranchStockChange = useCallback((branchId, field, value) => {
         setBranchStocks(prev => prev.map(bs => bs.branchId === branchId ? { ...bs, [field]: value === '' ? '' : Number(value) } : bs));
     }, []);
+
+    const handleCreateShelf = async () => {
+        if (!newShelf.label.trim()) return toast.warning('Shelf label is required');
+        const branchId = formData.specificBranches[0];
+        setShelfCreating(true);
+        try {
+            const created = await createAdminLocation(adminUser.token, {
+                label: newShelf.label.trim(),
+                description: newShelf.description.trim(),
+                branchId
+            });
+            setAvailableLocations(prev => [...prev, created]);
+            setFormData(p => ({ ...p, physicalLocation: created.label }));
+            setNewShelf({ label: '', description: '' });
+            setShowNewShelf(false);
+            toast.success(`Shelf "${created.label}" created`);
+        } catch (err) {
+            toast.error(err.message || 'Failed to create shelf');
+        } finally {
+            setShelfCreating(false);
+        }
+    };
 
     const handleImageChange = useCallback((e) => {
         const file = e.target.files[0];
@@ -469,7 +494,7 @@ const AddProduct = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-50 pt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-50 pt-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.unit_type')}</label>
                                     <select name="unitType" value={formData.unitType} onChange={handleChange} className="form-input-simple">
@@ -486,26 +511,97 @@ const AddProduct = () => {
                                     <label className="text-sm font-semibold text-slate-700">{t('fields.unit_value')}</label>
                                     <input type="number" name="unitValue" value={formData.unitValue} onChange={handleChange} step="0.01" className="form-input-simple" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">{t('fields.physical_location')}</label>
-                                    {availableLocations.length > 0 ? (
-                                        <select name="physicalLocation" value={formData.physicalLocation} onChange={handleChange} className="form-input-simple">
-                                            <option value="">— Not Assigned —</option>
-                                            {availableLocations.map(loc => (
-                                                <option key={loc._id} value={loc.label}>{loc.label}{loc.description ? ` (${loc.description})` : ''}</option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <input type="text" name="physicalLocation" value={formData.physicalLocation} onChange={handleChange}
-                                            placeholder={formData.specificBranches.length === 0 ? 'Select a branch first' : 'No locations set up — type manually'}
-                                            className="form-input-simple"
-                                            disabled={formData.specificBranches.length === 0} />
-                                    )}
-                                    {formData.specificBranches.length === 0 && (
-                                        <p className="text-[10px] text-slate-400">Allocate at least one branch to see location options.</p>
-                                    )}
-                                </div>
                             </div>
+                        </div>
+
+                        {/* Shelf Location Section */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                                    <span className="w-1 h-6 bg-teal-500 rounded-full"></span>
+                                    Shelf Location
+                                </h3>
+                                {formData.specificBranches.length > 0 && !showNewShelf && (
+                                    <button type="button" onClick={() => setShowNewShelf(true)}
+                                        className="flex items-center gap-1.5 text-xs font-bold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-all">
+                                        <Plus size={14} /> New Shelf
+                                    </button>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">{t('fields.physical_location')}</label>
+                                {formData.specificBranches.length === 0 ? (
+                                    <div className="form-input-simple text-slate-400 cursor-not-allowed select-none">
+                                        Select a branch first
+                                    </div>
+                                ) : availableLocations.length > 0 ? (
+                                    <DownDropdown
+                                        value={formData.physicalLocation}
+                                        onChange={val => setFormData(p => ({ ...p, physicalLocation: val }))}
+                                        options={availableLocations.map(loc => ({
+                                            value: loc.label,
+                                            label: loc.label + (loc.description ? ` — ${loc.description}` : '')
+                                        }))}
+                                        placeholder="— Select Shelf —"
+                                    />
+                                ) : (
+                                    <input
+                                        type="text"
+                                        name="physicalLocation"
+                                        value={formData.physicalLocation}
+                                        onChange={handleChange}
+                                        placeholder="No shelves set up — type manually"
+                                        className="form-input-simple"
+                                    />
+                                )}
+                                {formData.specificBranches.length === 0 ? (
+                                    <p className="text-[11px] text-slate-400">Allocate at least one branch to see location options.</p>
+                                ) : availableLocations.length > 0 ? (
+                                    <p className="text-[11px] text-teal-600 font-medium">{availableLocations.length} shelf location{availableLocations.length !== 1 ? 's' : ''} available</p>
+                                ) : (
+                                    <p className="text-[11px] text-slate-400">No shelves found for selected branch — you can type a custom location.</p>
+                                )}
+                            </div>
+
+                            {/* Inline New Shelf Form */}
+                            {showNewShelf && (
+                                <div className="border border-teal-200 bg-teal-50/50 rounded-2xl p-4 space-y-3">
+                                    <p className="text-xs font-bold text-teal-700 uppercase tracking-wide">Create New Shelf</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-600">Label <span className="text-rose-400">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={newShelf.label}
+                                                onChange={e => setNewShelf(p => ({ ...p, label: e.target.value }))}
+                                                placeholder="e.g. A1, Row-3, Cold-Zone"
+                                                className="form-input-simple"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-600">Description (optional)</label>
+                                            <input
+                                                type="text"
+                                                value={newShelf.description}
+                                                onChange={e => setNewShelf(p => ({ ...p, description: e.target.value }))}
+                                                placeholder="e.g. Top shelf near entrance"
+                                                className="form-input-simple"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 justify-end">
+                                        <button type="button" onClick={() => { setShowNewShelf(false); setNewShelf({ label: '', description: '' }); }}
+                                            className="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition-all">
+                                            Cancel
+                                        </button>
+                                        <button type="button" onClick={handleCreateShelf} disabled={shelfCreating}
+                                            className="px-4 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-60">
+                                            {shelfCreating ? <RefreshCw size={13} className="animate-spin" /> : <Check size={13} />}
+                                            Save Shelf
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Section 3: Distribution Allocation */}

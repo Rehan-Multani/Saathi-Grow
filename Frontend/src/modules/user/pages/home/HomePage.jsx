@@ -573,7 +573,7 @@ const ProductRow = ({ category, loading: globalLoading }) => {
     return (
         <div ref={observerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-8 border-b border-gray-50 dark:border-white/5 last:border-0 mb-6 md:mb-10">
             <div className="flex items-center justify-between mb-2 md:mb-6">
-                <h2 className="text-[11px] md:text-base font-bold text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
+                <h2 className="text-[15px] md:text-xl font-bold text-[#1e293b] dark:text-gray-300 tracking-tight capitalize">
                     {category.name}
                 </h2>
                 <div className="flex items-center gap-3 lg:gap-5">

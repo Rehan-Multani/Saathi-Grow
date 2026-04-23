@@ -22,8 +22,9 @@ export const createCampaign = async (token, campaignData) => {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
-    body: campaignData, // FormData
+    body: JSON.stringify(campaignData),
   });
 
   const data = await response.json();
@@ -38,8 +39,9 @@ export const updateCampaign = async (token, id, campaignData) => {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
-    body: campaignData, // FormData
+    body: JSON.stringify(campaignData),
   });
 
   const data = await response.json();

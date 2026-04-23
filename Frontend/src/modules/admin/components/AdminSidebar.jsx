@@ -59,7 +59,7 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                         <Icons.ShieldCheck size={20} className="text-white" />
                     </div>
                     <div className="logo-text">
-                        <span className="main">Saathi<span className="text-blue-500">Grow</span></span>
+                        <span className="main">Saathi<span className="text-blue-500">Gro</span></span>
                         <span className="sub">Administrative Portal</span>
                     </div>
                 </div>

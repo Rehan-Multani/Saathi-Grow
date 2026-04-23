@@ -124,14 +124,14 @@ const CreatePromoCode = () => {
                                         value={formData.code}
                                         onChange={handleChange}
                                         placeholder="e.g. SAVE20"
-                                        className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-bold text-slate-700 uppercase tracking-wider"
+                                        className="w-full pl-11 pr-4 h-[46px] bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-bold text-slate-700 uppercase tracking-wider"
                                     />
                                 </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={generateCode}
-                                className="h-[42px] px-6 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95 shadow-sm"
+                                className="h-[46px] px-6 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95 shadow-sm"
                             >
                                 <Sparkles size={14} className="text-blue-500" />
                                 {t('form.generate')}
@@ -145,7 +145,7 @@ const CreatePromoCode = () => {
                                     name="discountType" 
                                     value={formData.discountType} 
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[right_1rem_center] bg-no-repeat uppercase font-bold"
+                                    className="w-full px-4 h-[46px] bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[right_1rem_center] bg-no-repeat uppercase font-bold"
                                 >
                                     <option value="Percentage">Percentage (%)</option>
                                     <option value="Fixed">Fixed Amount (₹)</option>
@@ -155,11 +155,11 @@ const CreatePromoCode = () => {
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.discount_value')}</label>
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm focus-within:border-blue-500 transition-all disabled:bg-slate-50">
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 h-[46px] shadow-sm focus-within:border-blue-500 transition-all">
                                     {formData.discountType === 'Percentage' ? (
-                                        <Percent className="text-slate-300 shrink-0" size={15} />
+                                        <Percent className="text-slate-400 shrink-0" size={16} />
                                     ) : (
-                                        <IndianRupee className="text-slate-300 shrink-0" size={15} />
+                                        <IndianRupee className="text-slate-400 shrink-0" size={16} />
                                     )}
                                     <input
                                         type="number"
@@ -167,39 +167,46 @@ const CreatePromoCode = () => {
                                         required={formData.discountType !== 'FreeShipping'}
                                         disabled={formData.discountType === 'FreeShipping'}
                                         value={formData.discountValue}
-                                        onFocus={(e) => { if (formData.discountValue === 0 || formData.discountValue === "0") setFormData(prev => ({ ...prev, discountValue: "" })) }}
-                                        onBlur={(e) => { if (formData.discountValue === "" || formData.discountValue === null) setFormData(prev => ({ ...prev, discountValue: "0" })) }}
+                                        onFocus={() => { if (formData.discountValue === 0 || formData.discountValue === "0") setFormData(prev => ({ ...prev, discountValue: "" })) }}
+                                        onBlur={() => { if (formData.discountValue === "" || formData.discountValue === null) setFormData(prev => ({ ...prev, discountValue: "0" })) }}
                                         onChange={handleChange}
-                                        className="flex-1 bg-transparent outline-none text-sm font-bold text-slate-700 disabled:text-slate-400"
+                                        style={{ borderRadius: 0, border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
+                                        className="flex-1 text-sm font-bold text-slate-700 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none focus:outline-none"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.min_order')}</label>
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm focus-within:border-blue-500 transition-all">
-                                    <IndianRupee className="text-slate-300 shrink-0" size={15} />
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 h-[46px] shadow-sm focus-within:border-blue-500 transition-all">
+                                    <IndianRupee className="text-slate-400 shrink-0" size={16} />
                                     <input
                                         type="number"
                                         name="minOrderValue"
                                         value={formData.minOrderValue}
+                                        onFocus={() => { if (formData.minOrderValue === 0 || formData.minOrderValue === "0") setFormData(prev => ({ ...prev, minOrderValue: "" })) }}
+                                        onBlur={() => { if (formData.minOrderValue === "") setFormData(prev => ({ ...prev, minOrderValue: "0" })) }}
                                         onChange={handleChange}
-                                        className="flex-1 bg-transparent outline-none text-sm font-bold text-slate-700"
+                                        style={{ borderRadius: 0, border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
+                                        className="flex-1 text-sm font-bold text-slate-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none focus:outline-none"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.max_discount')}</label>
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm focus-within:border-blue-500 transition-all">
-                                    <IndianRupee className="text-slate-300 shrink-0" size={15} />
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 h-[46px] shadow-sm focus-within:border-blue-500 transition-all">
+                                    <IndianRupee className="text-slate-400 shrink-0" size={16} />
                                     <input
                                         type="number"
                                         name="maxDiscountAmount"
                                         disabled={formData.discountType !== 'Percentage'}
                                         value={formData.maxDiscountAmount}
+                                        onFocus={() => { if (formData.maxDiscountAmount === 0 || formData.maxDiscountAmount === "0") setFormData(prev => ({ ...prev, maxDiscountAmount: "" })) }}
+                                        onBlur={() => { if (formData.maxDiscountAmount === "") setFormData(prev => ({ ...prev, maxDiscountAmount: "0" })) }}
                                         onChange={handleChange}
-                                        className="flex-1 bg-transparent outline-none text-sm font-bold text-slate-700 disabled:text-slate-400"
+                                        style={{ borderRadius: 0, border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
+                                        className="flex-1 text-sm font-bold text-slate-700 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none focus:outline-none"
                                     />
                                 </div>
                             </div>

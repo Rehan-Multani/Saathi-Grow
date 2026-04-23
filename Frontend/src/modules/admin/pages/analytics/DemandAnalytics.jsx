@@ -31,7 +31,7 @@ import PageInfoTooltip from '../../../../common/components/modals/PageInfoToolti
 import { pageInfoData } from '../../../../common/data/pageInfoData';
 
 const COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe'];
-const GOOGLE_MAPS_LIBRARIES = ['places', 'visualization'];
+const GOOGLE_MAPS_LIBRARIES = ['places', 'visualization', 'maps'];
 
 const DemandAnalytics = () => {
     const { t } = useTranslation('admin_analytics');

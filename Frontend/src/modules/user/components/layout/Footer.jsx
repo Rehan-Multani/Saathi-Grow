@@ -44,7 +44,7 @@ const Footer = ({ customTheme }) => {
 
           {/* Most Wanted Category Section */}
           <div className="flex flex-col items-start text-left">
-            <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Categories</h3>
+            <h3 className="text-[9px] sm:text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Categories</h3>
             <ul className="space-y-2 sm:space-y-3 p-0 list-none">
               {categories && categories.length > 0 ? (
                 categories.map((cat) => (
@@ -70,7 +70,7 @@ const Footer = ({ customTheme }) => {
 
           {/* Essential Links Section */}
           <div className="flex flex-col items-start text-left">
-            <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Resources</h3>
+            <h3 className="text-[9px] sm:text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Resources</h3>
             <ul className="space-y-2 sm:space-y-3 p-0 list-none">
               <li><Link to="/help" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Help Center</Link></li>
               <li><Link to="/help" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Contact</Link></li>
@@ -86,8 +86,9 @@ const Footer = ({ customTheme }) => {
 
           {/* Social & App Section */}
           <div className="flex flex-col items-start text-left">
-            <h3 className="text-[5.5px] sm:text-[11px] font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Connect</h3>
-            <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-8">
+            <h3 className="text-[9px] sm:text-sm font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-5">Connect</h3>
+            {(settings?.facebookUrl || settings?.twitterUrl || settings?.instagramUrl || settings?.linkedinUrl) && (
+            <div className="flex gap-2 sm:gap-4 mb-2 sm:mb-3">
               {settings?.facebookUrl && (
                 <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-[#0c831f] hover:bg-[#0c831f] hover:text-white transition-all">
                   <Facebook size={12} className="sm:w-4 sm:h-4" />
@@ -109,7 +110,8 @@ const Footer = ({ customTheme }) => {
                 </a>
               )}
             </div>
-            <div className="mt-4 flex flex-col gap-1">
+            )}
+            <div className="flex flex-col gap-1">
               {settings?.supportPhone && (
                 <a href={`tel:${settings.supportPhone}`} className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-xs transition-colors flex items-center gap-1">
                   <span className="font-bold opacity-60">P:</span> {settings.supportPhone}

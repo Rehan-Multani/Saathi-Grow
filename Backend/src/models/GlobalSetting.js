@@ -20,9 +20,9 @@ const globalSettingSchema = new mongoose.Schema({
   autoInvoicingEnabled: { type: Boolean, default: true },
 
   // Support & Social Settings
-  supportPhone: { type: String, default: '+91 911 110 5005' },
-  whatsappNumber: { type: String, default: '919111105005' },
-  supportEmail: { type: String, default: 'support@sathigro.com' },
+  supportPhone: { type: String, default: '+91 9636410100' },
+  whatsappNumber: { type: String, default: '919636410100' },
+  supportEmail: { type: String, default: 'support@saathigro.in' },
   facebookUrl: { type: String, default: '' },
   instagramUrl: { type: String, default: '' },
   twitterUrl: { type: String, default: '' },

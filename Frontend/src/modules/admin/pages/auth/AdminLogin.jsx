@@ -78,13 +78,13 @@ const AdminLogin = () => {
                     {/* Email */}
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-widest">{t('email')}</label>
-                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                             <Mail size={18} className="text-gray-400 shrink-0" />
                             <input
                                 type="email"
                                 required
-                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full"
-                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: 0 }}
+                                className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full py-3.5"
+                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: '14px 0', fontSize: '14px', lineHeight: '24px', height: '52px' }}
                                 placeholder="admin@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -95,13 +95,13 @@ const AdminLogin = () => {
                     {/* Password */}
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700 uppercase tracking-widest">{t('password')}</label>
-                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                             <Lock size={18} className="text-gray-400 shrink-0" />
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 required
                                 className="flex-1 text-sm font-semibold text-gray-800 placeholder:text-gray-400 w-full"
-                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: 0 }}
+                                style={{ backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none', padding: '14px 0', fontSize: '14px', lineHeight: '24px', height: '52px' }}
                                 placeholder="••••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
