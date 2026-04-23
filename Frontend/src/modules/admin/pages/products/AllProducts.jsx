@@ -92,7 +92,7 @@ const AllProducts = () => {
             const axios = (await import('axios')).default;
             const { API_BASE_URL } = await import('../../../../config/apiConfig');
             const { data } = await axios.post(
-                `${API_BASE_URL}/products/bulk-upload`,
+                `${API_BASE_URL}/admin/products/bulk-upload`,
                 formData,
                 { headers: { Authorization: `Bearer ${adminUser.token}`, 'Content-Type': 'multipart/form-data' } }
             );

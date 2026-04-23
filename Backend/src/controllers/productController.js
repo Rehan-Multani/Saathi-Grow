@@ -2088,7 +2088,11 @@ export const bulkUploadProducts = async (req, res) => {
           brandName: row.brandName || '',
           basePrice: Number(row.basePrice) || 0,
           mrp: Number(row.mrp) || Number(row.basePrice) || 0,
-          unitType: row.unitType || 'pcs',
+          unitType: (() => {
+            const raw = (row.unitType || 'pcs').toLowerCase().trim();
+            const map = { 'g': 'gm', 'gram': 'gm', 'grams': 'gm', 'litre': 'ltr', 'liter': 'ltr', 'liters': 'ltr', 'litres': 'ltr', 'piece': 'pcs', 'pieces': 'pcs', 'packet': 'pkt', 'packets': 'pkt' };
+            return map[raw] || raw;
+          })(),
           unitValue: Number(row.unitValue) || 1,
           description: row.description || `${row.name} - Quality product`,
           tags: row.tags ? row.tags.split('|').map(t => t.trim()).filter(Boolean) : [],
