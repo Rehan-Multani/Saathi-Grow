@@ -76,7 +76,7 @@ const Footer = ({ customTheme }) => {
               <li><Link to="/help" className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">Contact</Link></li>
               {policies.map(p => (
                 <li key={p._id}>
-                  <Link to={`/legal/${p.slug}`} className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors uppercase tracking-tight">
+                  <Link to={`/legal/${p.slug}`} className="text-gray-500 dark:text-gray-400 hover:text-[#0c831f] text-[7.5px] sm:text-sm transition-colors">
                     {p.title}
                   </Link>
                 </li>

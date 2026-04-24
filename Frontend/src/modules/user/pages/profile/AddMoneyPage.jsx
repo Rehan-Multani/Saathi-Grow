@@ -75,7 +75,17 @@ const AddMoneyPage = () => {
                 prefill: {
                     name: user.name,
                     email: user.email,
-                    contact: user.phone
+                    contact: user.phone,
+                    method: selectedOption === 'upi' ? 'upi' : 'card'
+                },
+                config: {
+                    display: {
+                        blocks: selectedOption === 'upi'
+                            ? { upi: { name: 'UPI', instruments: [{ method: 'upi' }] } }
+                            : { card: { name: 'Card', instruments: [{ method: 'card' }] } },
+                        sequence: selectedOption === 'upi' ? ['block.upi'] : ['block.card'],
+                        preferences: { show_default_blocks: false }
+                    }
                 },
                 theme: { color: "#0c831f" }
             };
