@@ -1,5 +1,5 @@
 import React, {useRef , useState, useEffect}from 'react';
-import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, ArrowLeft, ChevronRight, ShoppingBag, CreditCard, LogOut, Shield, Moon, Sun, Bell, HelpCircle, Heart, MessageCircle, Tag, BellRing } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -29,6 +29,26 @@ const ProfilePage = () => {
             getUserTags(token).then(setUserTags).catch(() => {});
         }
     }, [token]);
+
+    const sendTestNotification = async () => {
+        if (Notification.permission === 'default') {
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') {
+                toast.warn('Please allow notifications first');
+                return;
+            }
+        }
+        if (Notification.permission === 'denied') {
+            toast.error('Notifications are blocked. Enable them in browser settings.');
+            return;
+        }
+        new Notification('SaathiGro 🛒', {
+            body: 'Push notifications are working correctly!',
+            icon: '/favicon.png',
+            badge: '/favicon.png',
+        });
+        toast.success('Test notification sent!');
+    };
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -79,8 +99,26 @@ const ProfilePage = () => {
                     >
                         <ArrowLeft size={16} className="md:w-6 md:h-6" />
                     </button>
-                    <h1 className="!text-[16px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest">My Profile</h1>
+                    <h1 className="!text-[16px] md:!text-[18px] font-bold text-gray-900 dark:text-gray-100 uppercase tracking-widest flex-1">My Profile</h1>
+                    <button
+                        onClick={sendTestNotification}
+                        title="Send test notification"
+                        className="flex items-center gap-1.5 bg-[#556b2f] hover:bg-[#0a6b19] text-white text-[11px] font-semibold px-3 py-1.5 rounded-full shadow transition-colors active:scale-95"
+                    >
+                        <BellRing size={13} />
+                        Test Notification
+                    </button>
                 </div>
+
+                {/* Mobile top-right test notification button */}
+                <button
+                    onClick={sendTestNotification}
+                    title="Send test notification"
+                    className="fixed top-4 right-4 z-50 md:hidden flex items-center gap-1.5 bg-[#556b2f] text-white text-[11px] font-semibold px-3 py-2 rounded-full shadow-lg active:scale-95 transition-transform"
+                >
+                    <BellRing size={14} />
+                    Test
+                </button>
 
                 <div className="md:grid md:grid-cols-3 md:gap-4">
                     {/* Profile Section - Integrated */}
