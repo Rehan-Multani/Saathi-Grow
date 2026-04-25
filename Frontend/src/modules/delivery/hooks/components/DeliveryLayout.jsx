@@ -83,7 +83,7 @@ const DeliveryLayout = ({ children }) => {
             <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 z-40 md:hidden shadow-sm">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-slate-200">S</div>
-                    <span className="font-black text-[13px] tracking-tighter text-slate-900 uppercase">SAATHI<span className="text-emerald-500">GROW</span></span>
+                    <span className="font-black text-[13px] tracking-tighter text-slate-900 uppercase">SAATHI<span className="text-emerald-500">GRO</span></span>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
@@ -155,7 +155,7 @@ const DeliveryLayout = ({ children }) => {
                 <div className="p-8">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-lg shadow-xl shadow-slate-200">S</div>
-                        <span className="font-black text-xl tracking-tighter text-slate-900">SAATHI<span className="text-emerald-500">GROW</span></span>
+                        <span className="font-black text-xl tracking-tighter text-slate-900">SAATHI<span className="text-emerald-500">GRO</span></span>
                     </div>
                 </div>
 
