@@ -1,8 +1,55 @@
 import DeliveryPartner from '../models/DeliveryPartner.js';
-import Wallet from '../models/Wallet.js';
 import generateToken from '../utils/generateToken.js';
 import smsService from '../utils/smsService.js';
 import { cloudinary } from '../config/cloudinary.js';
+
+// @desc    Register a new Delivery Partner (self-signup, pending admin approval)
+// @route   POST /api/delivery/auth/register
+// @access  Public
+export const registerPartner = async (req, res) => {
+  try {
+    const { name, phone, email, vehicleType, vehicleNumber } = req.body;
+
+    if (!name || !phone) {
+      return res.status(400).json({ message: 'Name and phone are required' });
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      return res.status(400).json({ message: 'Enter a valid 10-digit phone number' });
+    }
+
+    const existing = await DeliveryPartner.findOne({ phone });
+    if (existing) {
+      return res.status(409).json({ message: 'An account with this phone number already exists' });
+    }
+
+    const partner = await DeliveryPartner.create({
+      name: name.trim(),
+      phone,
+      email: email?.trim().toLowerCase() || undefined,
+      vehicleType: vehicleType || 'Bike',
+      vehicleNumber: vehicleNumber?.trim().toUpperCase() || undefined,
+      authStatus: 'Unverified',
+      dutyStatus: 'Offline',
+      assignmentStatus: 'Free',
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Registration submitted! Your account is under review. You will be notified once approved.',
+      partner: {
+        _id: partner._id,
+        name: partner.name,
+        phone: partner.phone,
+        uniqueId: partner.uniqueId,
+        authStatus: partner.authStatus,
+      },
+    });
+  } catch (error) {
+    console.error('Register Partner Error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+};
 
 // @desc    Request OTP for Delivery Partner Login
 // @route   POST /api/delivery/auth/request-otp

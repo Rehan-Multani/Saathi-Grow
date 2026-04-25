@@ -11,6 +11,7 @@ const Profile = lazy(() => import('../pages/ProfileSettings'));
 const Tracking = lazy(() => import('../pages/LiveTracking'));
 const RunDetail = lazy(() => import('../pages/RunDetail'));
 const Login = lazy(() => import('../pages/DeliveryLogin'));
+const Signup = lazy(() => import('../pages/DeliverySignup'));
 const Legal = lazy(() => import('../pages/LegalDocuments'));
 import useDeliveryStore from '../store/deliveryStore';
 import FirebaseNotificationHandler from '../../../common/components/FirebaseNotificationHandler';
@@ -38,6 +39,7 @@ const DeliveryRoutes = () => {
                 <Suspense fallback={<Loading />}>
                     <Routes>
                         <Route path="/login" element={token ? <Navigate to="/delivery/dashboard" replace /> : <Login />} />
+                        <Route path="/signup" element={token ? <Navigate to="/delivery/dashboard" replace /> : <Signup />} />
 
                         <Route path="/*" element={
                             <DeliveryGuard>

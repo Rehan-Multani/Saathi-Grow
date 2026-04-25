@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  registerPartner,
   requestOTP,
   verifyOTP,
   getProfile,
@@ -15,6 +16,7 @@ import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
+router.post('/register', registerPartner);
 router.post('/request-otp', validateDeliveryOtpRequestPayload, requestOTP);
 router.post('/verify-otp', validateDeliveryOtpVerifyPayload, verifyOTP);
 

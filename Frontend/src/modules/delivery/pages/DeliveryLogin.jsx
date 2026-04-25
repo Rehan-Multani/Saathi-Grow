@@ -200,6 +200,18 @@ const DeliveryLogin = () => {
           <ShieldCheck size={16} />
           <span className="text-[10px] uppercase font-bold tracking-widest">Secure Rider Access Only</span>
         </div>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-500 font-medium">
+            New rider?{' '}
+            <button
+              onClick={() => navigate('/delivery/signup')}
+              className="text-[#028A0F] font-black hover:underline"
+            >
+              Apply to join
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

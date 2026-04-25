@@ -8,6 +8,11 @@ export const requestOTP = async (phone) => {
   return data;
 };
 
+export const registerDeliveryPartner = async (formData) => {
+  const { data } = await axios.post(`${API_URL}/delivery/auth/register`, formData);
+  return data;
+};
+
 export const verifyOTP = async (phone, otp) => {
   const { data } = await axios.post(`${API_URL}/delivery/auth/verify-otp`, { phone, otp });
   return data;
