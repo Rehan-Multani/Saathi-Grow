@@ -250,11 +250,11 @@ export const getInventoryReports = async (req, res) => {
     }
 
     if (targetedBranchId) {
-      // If a branch is targeted, we only care about SaathiGrow products or 
+      // If a branch is targeted, we only care about Saathigro products or 
       // products that specifically have a stock entry for this branch.
       query.$or = [
         { 'branchStocks.branchId': targetedBranchId },
-        { isSaathiGrow: true }
+        { isSaathigro: true }
       ];
     }
 
@@ -286,7 +286,7 @@ export const getInventoryReports = async (req, res) => {
           currentStock = p.stock || 0;
           threshold = p.lowStockThreshold || 10;
         } else {
-          // SaathiGrow product: Aggregate all branches
+          // Saathigro product: Aggregate all branches
           currentStock = p.branchStocks?.reduce((sum, bs) => sum + (bs.stock || 0), 0) || 0;
           threshold = p.branchStocks?.reduce((sum, bs) => sum + (bs.lowStockThreshold || 0), 0) || (p.lowStockThreshold || 10);
         }
@@ -301,7 +301,7 @@ export const getInventoryReports = async (req, res) => {
         sku: p.sku,
         name: p.name,
         category: p.category,
-        vendor: p.vendor?.storeName || (p.isSaathiGrow ? 'SaathiGrow' : p.brandName || 'Internal'),
+        vendor: p.vendor?.storeName || (p.isSaathigro ? 'Saathigro' : p.brandName || 'Internal'),
         stock: currentStock,
         unitType: p.unitType || 'pcs',
         reorderLevel: threshold,
@@ -367,7 +367,7 @@ export const exportInventoryReport = async (req, res) => {
     if (targetedBranchId) {
       query.$or = [
         { 'branchStocks.branchId': targetedBranchId },
-        { isSaathiGrow: true }
+        { isSaathigro: true }
       ];
     }
 
@@ -401,7 +401,7 @@ export const exportInventoryReport = async (req, res) => {
         sku: p.sku,
         name: p.name,
         category: p.category,
-        vendor: p.vendor?.storeName || (p.isSaathiGrow ? 'SaathiGrow' : p.brandName || 'Internal'),
+        vendor: p.vendor?.storeName || (p.isSaathigro ? 'Saathigro' : p.brandName || 'Internal'),
         stock: `${currentStock} ${p.unitType || 'pcs'}`,
         reorderLevel: threshold,
         status: stockStatus

@@ -37,7 +37,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [formData, setFormData] = useState({
         name: '', brandName: '', category: '', subCategory: '', basePrice: 0, mrp: 0,
         isVeg: true, sku: '', status: 'Active', physicalLocation: '', unitType: 'pcs',
-        unitValue: 1, description: '', tags: [], isSaathiGrow: false, stock: 0, lowStockThreshold: 10,
+        unitValue: 1, description: '', tags: [], isSaathigro: false, stock: 0, lowStockThreshold: 10,
         // --- New Fields ---
         reorderThreshold: 10, maxCapacityPerSku: 0, isStockAutoSync: false,
         weightCategory: 'Light', isFragile: false, temperatureType: 'Normal',
@@ -76,7 +76,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                 physicalLocation: product.physicalLocation || '', unitType: product.unitType || 'pcs',
                 unitValue: product.unitValue || 1, description: product.description || '',
                 tags: Array.isArray(product.tags) ? product.tags : (product.tags ? product.tags.split(',') : []),
-                isSaathiGrow: product.isSaathiGrow || false,
+                isSaathigro: product.isSaathigro || false,
                 stock: product.stock || 0, lowStockThreshold: product.lowStockThreshold || 10,
                 // --- New Fields ---
                 reorderThreshold: product.reorderThreshold || 10,
@@ -472,15 +472,15 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                 </div>
 
                                 <div 
-                                    className={`p-4 rounded-2xl border flex items-center gap-4 cursor-pointer transition-all ${formData.isSaathiGrow ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-slate-50 border-slate-100 opacity-60 grayscale'}`}
-                                    onClick={() => setFormData(p => ({...p, isSaathiGrow: !p.isSaathiGrow}))}
+                                    className={`p-4 rounded-2xl border flex items-center gap-4 cursor-pointer transition-all ${formData.isSaathigro ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-slate-50 border-slate-100 opacity-60 grayscale'}`}
+                                    onClick={() => setFormData(p => ({...p, isSaathigro: !p.isSaathigro}))}
                                 >
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.isSaathiGrow ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-400'}`}><Sparkles size={18} /></div>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.isSaathigro ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-400'}`}><Sparkles size={18} /></div>
                                     <div className="flex-1">
                                         <span className="text-xs font-bold text-slate-900 block leading-none">{t('fields.saathi_premium')}</span>
                                         <span className="text-[9px] text-slate-400 font-medium mt-1 inline-block">Extra visibility</span>
                                     </div>
-                                    {formData.isSaathiGrow && <Check size={18} className="text-blue-600" />}
+                                    {formData.isSaathigro && <Check size={18} className="text-blue-600" />}
                                 </div>
                             </div>
                         </div>

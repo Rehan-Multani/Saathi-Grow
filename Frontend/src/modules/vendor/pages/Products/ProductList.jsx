@@ -201,7 +201,7 @@ const ProductList = () => {
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs text-gray-500 font-medium">{typeof product.category === 'object' ? product.category.name : product.category}</span>
                                                     <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded font-mono font-medium">{product.sku}</span>
-                                                    {product.isSaathiGrow && <Sparkles size={12} className="text-yellow-500" />}
+                                                    {product.isSaathigro && <Sparkles size={12} className="text-yellow-500" />}
                                                 </div>
                                             </div>
                                         </div>

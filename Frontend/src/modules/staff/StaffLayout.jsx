@@ -204,7 +204,7 @@ const StaffLayout = () => {
                 </main>
                 
                 <footer className="px-8 py-6 border-t border-slate-100 bg-white/50 backdrop-blur-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">© 2026 saathigrow • staff ecosystem</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">© 2026 Saathigro • staff ecosystem</p>
                     <div className="flex items-center gap-4">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">System Secure & Online</p>

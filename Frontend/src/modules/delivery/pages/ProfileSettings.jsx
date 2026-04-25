@@ -392,7 +392,7 @@ const ProfileSettings = () => {
                             <Phone size={20} className="text-blue-600 mb-2" />
                             <span className="text-[10px] font-black uppercase text-blue-700">Call HQ</span>
                         </a>
-                        <a href="mailto:support@saathigrow.com" className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 group active:scale-95 transition-all">
+                        <a href="mailto:support@Saathigro.com" className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 group active:scale-95 transition-all">
                             <Mail size={20} className="text-slate-600 dark:text-zinc-400 mb-2" />
                             <span className="text-[10px] font-black uppercase text-slate-700 dark:text-zinc-300">Email</span>
                         </a>

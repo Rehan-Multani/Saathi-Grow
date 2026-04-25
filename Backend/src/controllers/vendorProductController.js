@@ -79,7 +79,7 @@ export const addVendorProduct = async (req, res) => {
       stock,
       lowStockThreshold,
       variants,
-      isSaathiGrow,
+      isSaathigro,
       status
     } = req.body;
 
@@ -122,7 +122,7 @@ export const addVendorProduct = async (req, res) => {
       lowStockThreshold: Number(lowStockThreshold) || 10,
       variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
       tags: typeof tags === 'string' ? tags.split(',') : (tags || []),
-      isSaathiGrow: isSaathiGrow === 'true' || isSaathiGrow === true,
+      isSaathigro: isSaathigro === 'true' || isSaathigro === true,
       createdByVendor: req.vendor._id
     });
 
@@ -184,7 +184,7 @@ export const updateVendorProduct = async (req, res) => {
       product.unitValue = req.body.unitValue !== undefined ? Number(req.body.unitValue) : product.unitValue;
       product.physicalLocation = req.body.physicalLocation || product.physicalLocation;
       product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
-      product.isSaathiGrow = req.body.isSaathiGrow !== undefined ? (req.body.isSaathiGrow === 'true' || req.body.isSaathiGrow === true) : product.isSaathiGrow;
+      product.isSaathigro = req.body.isSaathigro !== undefined ? (req.body.isSaathigro === 'true' || req.body.isSaathigro === true) : product.isSaathigro;
 
       if (req.body.tags) {
         product.tags = typeof req.body.tags === 'string' ? req.body.tags.split(',') : req.body.tags;

@@ -74,7 +74,7 @@ const StoreManagerLogin = () => {
                                 type="email"
                                 required
                                 className="block w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all text-sm"
-                                placeholder="name@branch.saathigrow.com"
+                                placeholder="name@branch.Saathigro.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />

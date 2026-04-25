@@ -78,10 +78,10 @@ const AllOrders = () => {
             </head>
             <body>
                 <div class="center" style="margin-bottom:12px;">
-                    <div class="store-name">SaathiGrow</div>
+                    <div class="store-name">Saathigro</div>
                     <div class="tag">Your Everyday Grocery Partner</div>
                     <div class="tag">Indore, Madhya Pradesh</div>
-                    <div class="tag">support@saathigrow.com</div>
+                    <div class="tag">support@Saathigro.com</div>
                 </div>
                 <div class="divider-solid"></div>
                 <div style="margin:8px 0;">
@@ -116,8 +116,8 @@ const AllOrders = () => {
                 </div>
                 <div class="divider-solid"></div>
                 <div class="center" style="margin-top:12px;">
-                    <div style="font-size:11px;">Thank you for shopping with SaathiGrow!</div>
-                    <div style="font-size:10px;color:#555;margin-top:4px;">Visit us again • www.saathigrow.com</div>
+                    <div style="font-size:11px;">Thank you for shopping with Saathigro!</div>
+                    <div style="font-size:10px;color:#555;margin-top:4px;">Visit us again • www.Saathigro.com</div>
                     <div style="font-size:10px;color:#888;margin-top:10px;">*** This is a computer generated receipt ***</div>
                 </div>
             </body>

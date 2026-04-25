@@ -117,7 +117,7 @@ const AddProduct = () => {
         name: '', category: '', subCategory: '', brandName: '', basePrice: '', mrp: '',
         isVeg: true, unitType: 'pcs', unitValue: 1, physicalLocation: '', description: '',
         isAllBranches: true, specificBranches: [], sku: '', tags: [], status: 'Active',
-        vendor: '', isSaathiGrow: false, stock: '', lowStockThreshold: 10,
+        vendor: '', isSaathigro: false, stock: '', lowStockThreshold: 10,
         // --- Added fields ---
         reorderThreshold: 10, maxCapacityPerSku: 0, isStockAutoSync: false,
         weightCategory: 'Light', isFragile: false, temperatureType: 'Normal',
@@ -801,17 +801,17 @@ const AddProduct = () => {
                             </div>
 
                             <div 
-                                className={`p-4 rounded-2xl border flex items-center gap-4 cursor-pointer transition-all ${formData.isSaathiGrow ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-slate-50 border-slate-100 grayscale opacity-60'}`}
-                                onClick={() => setFormData(p => ({...p, isSaathiGrow: !p.isSaathiGrow}))}
+                                className={`p-4 rounded-2xl border flex items-center gap-4 cursor-pointer transition-all ${formData.isSaathigro ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-slate-50 border-slate-100 grayscale opacity-60'}`}
+                                onClick={() => setFormData(p => ({...p, isSaathigro: !p.isSaathigro}))}
                             >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.isSaathiGrow ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-400'}`}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.isSaathigro ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-400'}`}>
                                     <Sparkles size={20} />
                                 </div>
                                 <div className="flex-1">
                                     <span className="text-sm font-bold text-slate-900 block">Premium Listing</span>
                                     <span className="text-[10px] text-slate-500 font-medium">Extra marketing visibility</span>
                                 </div>
-                                {formData.isSaathiGrow && <Check size={18} className="text-blue-600" />}
+                                {formData.isSaathigro && <Check size={18} className="text-blue-600" />}
                             </div>
                         </div>
                     </div>

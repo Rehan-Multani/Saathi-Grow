@@ -283,7 +283,7 @@ const ManagerProducts = () => {
                                                         <div className="text-[13px] font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase truncate max-w-[180px]">{p.name}</div>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <span className="text-[9px] font-black text-slate-400 font-mono tracking-wider bg-slate-100 px-2 py-0.5 rounded uppercase">{p.sku?.slice(-10)}</span>
-                                                            {p.isSaathiGrow && <span className="bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-amber-100 flex items-center gap-1"><Sparkles size={10} /> Premium</span>}
+                                                            {p.isSaathigro && <span className="bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-amber-100 flex items-center gap-1"><Sparkles size={10} /> Premium</span>}
                                                         </div>
                                                     </div>
                                                 </div>

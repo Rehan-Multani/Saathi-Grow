@@ -115,7 +115,7 @@ export const createProduct = async (req, res) => {
       isVeg,
       variants,
       unitValue,
-      isSaathiGrow,
+      isSaathigro,
       // --- New Inventory fields ---
       reorderThreshold,
       maxCapacityPerSku,
@@ -202,7 +202,7 @@ export const createProduct = async (req, res) => {
       mrp: Number(mrp) || Number(basePrice),
       isVeg: isVeg === 'true' || isVeg === true,
       variants: typeof variants === 'string' ? JSON.parse(variants) : (variants || []),
-      isSaathiGrow: isSaathiGrow === 'true' || isSaathiGrow === true,
+      isSaathigro: isSaathigro === 'true' || isSaathigro === true,
       stock: vendor ? normalizedVendorStock : 0,
       lowStockThreshold: vendor ? normalizedVendorThreshold : 10,
       
@@ -472,7 +472,7 @@ export const getProducts = async (req, res) => {
     const total = await Product.countDocuments(query);
 
     // Build Sort Object: Prioritize Saathi Grow, then apply user sort
-    let sortObj = { isSaathiGrow: -1 };
+    let sortObj = { isSaathigro: -1 };
     if (sort) {
       if (typeof sort === 'string') {
         const parts = sort.split(' ');
@@ -673,7 +673,7 @@ export const searchProductsWithAI = async (req, res) => {
               // Matches in description (Lowest Weight)
               { $cond: [{ $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: partialRegex } }, 20, 0] },
               { $cond: [secondaryRegex ? { $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: secondaryRegex } } : false, 10, 0] },
-              { $cond: ['$isSaathiGrow', 5, 0] }
+              { $cond: ['$isSaathigro', 5, 0] }
             ]
           }
         }
@@ -685,7 +685,7 @@ export const searchProductsWithAI = async (req, res) => {
         $facet: {
           metadata: [{ $count: 'total' }],
           data: [
-            { $sort: { relevanceScore: -1, isSaathiGrow: -1, createdAt: -1 } },
+            { $sort: { relevanceScore: -1, isSaathigro: -1, createdAt: -1 } },
             { $skip: skip },
             { $limit: limit }
           ]
@@ -935,7 +935,7 @@ export const updateProduct = async (req, res) => {
 
       product.mrp = req.body.mrp !== undefined ? Number(req.body.mrp) : product.mrp;
       product.isVeg = req.body.isVeg !== undefined ? (req.body.isVeg === 'true' || req.body.isVeg === true) : product.isVeg;
-      product.isSaathiGrow = req.body.isSaathiGrow !== undefined ? (req.body.isSaathiGrow === 'true' || req.body.isSaathiGrow === true) : product.isSaathiGrow;
+      product.isSaathigro = req.body.isSaathigro !== undefined ? (req.body.isSaathigro === 'true' || req.body.isSaathigro === true) : product.isSaathigro;
       if (req.body.stock !== undefined) {
         const parsedStock = Number(req.body.stock);
         if (Number.isFinite(parsedStock)) {

@@ -309,7 +309,7 @@ const fetchSectionProducts = async (section, categoryName, storeContext) => {
 
     products = await Product.find(query)
       .select('name image basePrice mrp category subCategory brandName unitType unitValue status isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount')
-      .sort({ isSaathiGrow: -1, createdAt: -1 })
+      .sort({ isSaathigro: -1, createdAt: -1 })
       .lean();
 
     products = orderByIds(products, section.productIds);
@@ -329,7 +329,7 @@ const fetchSectionProducts = async (section, categoryName, storeContext) => {
 
     products = await Product.find(query)
       .select('name image basePrice mrp category subCategory brandName unitType unitValue status isVeg sku branchStocks vendor stock lowStockThreshold averageRating ratingCount')
-      .sort({ isSaathiGrow: -1, createdAt: -1 })
+      .sort({ isSaathigro: -1, createdAt: -1 })
       .limit(section.maxProducts || 10)
       .lean();
   }

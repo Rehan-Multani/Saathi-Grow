@@ -111,7 +111,7 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Vendor'
   },
-  isSaathiGrow: {
+  isSaathigro: {
     type: Boolean,
     default: false
   },
@@ -186,7 +186,7 @@ productSchema.index(
 );
 
 // Compound Indexes for Performance (Phase 1 Optimization)
-productSchema.index({ category: 1, status: 1, isSaathiGrow: -1, createdAt: -1 });
+productSchema.index({ category: 1, status: 1, isSaathigro: -1, createdAt: -1 });
 productSchema.index({ vendor: 1, status: 1 });
 productSchema.index({ 'branchStocks.branchId': 1, status: 1 });
 

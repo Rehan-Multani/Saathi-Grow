@@ -78,7 +78,7 @@ const AllProducts = () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'saathigrow_bulk_product_template.csv';
+        a.download = 'Saathigro_bulk_product_template.csv';
         a.click();
         URL.revokeObjectURL(url);
     };

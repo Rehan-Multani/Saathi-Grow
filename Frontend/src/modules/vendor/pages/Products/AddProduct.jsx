@@ -42,7 +42,7 @@ const AddProduct = () => {
         stock: 0,
         lowStockThreshold: 10,
         status: 'Active',
-        isSaathiGrow: false
+        isSaathigro: false
     });
 
     const [imagePreview, setImagePreview] = useState(null);

@@ -87,7 +87,7 @@ export const getActiveCampaignSections = async (req, res) => {
       bannerImage: 1,
       products: 1
     })
-      .populate('products.productId', 'name image basePrice mrp unitType unitValue category status isSaathiGrow')
+      .populate('products.productId', 'name image basePrice mrp unitType unitValue category status isSaathigro')
       .sort('-createdAt')
       .lean();
 

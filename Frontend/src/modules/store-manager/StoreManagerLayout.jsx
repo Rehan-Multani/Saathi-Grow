@@ -128,7 +128,7 @@ const StoreManagerLayout = () => {
                                     <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden">
                                         <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 mb-1">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current Account</p>
-                                            <p className="text-xs font-bold text-slate-900 truncate">{managerUser?.email || 'manager@saathigrow.com'}</p>
+                                            <p className="text-xs font-bold text-slate-900 truncate">{managerUser?.email || 'manager@Saathigro.com'}</p>
                                         </div>
                                         <div className="p-1 space-y-0.5">
                                             <button

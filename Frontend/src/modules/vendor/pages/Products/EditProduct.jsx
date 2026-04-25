@@ -44,7 +44,7 @@ const EditProduct = () => {
         stock: 0,
         lowStockThreshold: 10,
         status: '',
-        isSaathiGrow: false,
+        isSaathigro: false,
         variants: []
     });
 
@@ -76,7 +76,7 @@ const EditProduct = () => {
                 stock: product.stock || 0,
                 lowStockThreshold: product.lowStockThreshold || 10,
                 status: product.status || '',
-                isSaathiGrow: product.isSaathiGrow || false,
+                isSaathigro: product.isSaathigro || false,
                 variants: product.variants || []
             });
             setImagePreview(product.image);

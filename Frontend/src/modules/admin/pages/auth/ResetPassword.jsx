@@ -71,7 +71,7 @@ const ResetPassword = () => {
                 
                 <div className="flex flex-col items-center mb-10 text-center">
                     <div className="w-24 h-24 mb-6 transition-transform hover:scale-105 duration-500">
-                        <img src={logo} alt="SaathiGrow Logo" className="w-full h-full object-contain" />
+                        <img src={logo} alt="Saathigro Logo" className="w-full h-full object-contain" />
                     </div>
 
                     {!success ? (
@@ -154,7 +154,7 @@ const ResetPassword = () => {
                     )}
 
                     <p className="mt-12 text-center text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em] leading-none">
-                        &copy; 2026 SAATHIGROW • Security Hub
+                        &copy; 2026 Saathigro • Security Hub
                     </p>
                 </div>
             </div>

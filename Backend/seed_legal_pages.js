@@ -55,7 +55,7 @@ SaathiGro is not liable for accidents, injuries, or damages occurring during del
 8. AMENDMENTS
 These terms may be updated periodically. Continued use of the platform constitutes acceptance of the revised terms.
 
-For queries, contact: support@saathigrow.com`
+For queries, contact: support@Saathigro.com`
     },
     {
       title: 'Privacy Policy',
@@ -101,7 +101,7 @@ You have the right to:
 - Opt out of non-essential communications
 
 7. CONTACT US
-For privacy-related queries: privacy@saathigrow.com
+For privacy-related queries: privacy@Saathigro.com
 SaathiGro Operations, Indore, Madhya Pradesh, India`
     }
   ];

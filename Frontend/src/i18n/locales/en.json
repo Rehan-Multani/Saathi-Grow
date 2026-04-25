@@ -1772,7 +1772,7 @@
             "onboarded_on": "Onboarded On",
             "phone_number": "Phone Number",
             "total_orders": "Total Orders",
-            "status_msg": "This vendor account is currently {{status}} in the SaathiGrow network.",
+            "status_msg": "This vendor account is currently {{status}} in the Saathigro network.",
             "close": "Close",
             "refresh_stats": "Refresh Stats"
           },

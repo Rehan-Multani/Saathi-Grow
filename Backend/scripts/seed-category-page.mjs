@@ -121,7 +121,7 @@ const seedCategoryPage = async () => {
       status: { $in: ['Active', 'Low Stock', 'Out of Stock'] }
     })
       .select('_id name image basePrice mrp brandName subCategory')
-      .sort({ isSaathiGrow: -1, createdAt: -1 })
+      .sort({ isSaathigro: -1, createdAt: -1 })
       .lean()
   ]);
 

@@ -101,7 +101,7 @@ export const pageInfoData = {
             'Monitor stock levels with "Low Stock" and "Out of Stock" alerts',
             'Track product performance and pricing across branches',
             'Generate and download QR codes for easy item scanning',
-            'Manage dietary preferences (Veg/Non-Veg) and SaathiGrow priority labels',
+            'Manage dietary preferences (Veg/Non-Veg) and Saathigro priority labels',
         ],
         workflow: [
             'Use the search bar and category filters to find specific items.',

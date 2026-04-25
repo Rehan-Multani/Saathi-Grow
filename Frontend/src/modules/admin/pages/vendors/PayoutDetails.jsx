@@ -459,7 +459,7 @@ const PayoutDetails = () => {
                                 <HelpCircle size={20} className="text-slate-400 mb-4" />
                                 <h5 className="text-sm font-bold tracking-tight mb-1">{t('payout_report.sidebar.help_title')}</h5>
                                 <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">{t('payout_report.sidebar.help_text')}</p>
-                                <button onClick={() => window.open('mailto:support@saathigrow.com')} className="w-full mt-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all active:scale-95 border-none shadow-lg shadow-slate-200">{t('payout_report.sidebar.contact_btn')}</button>
+                                <button onClick={() => window.open('mailto:support@Saathigro.com')} className="w-full mt-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all active:scale-95 border-none shadow-lg shadow-slate-200">{t('payout_report.sidebar.contact_btn')}</button>
                             </div>
                         </div>
                     </div>

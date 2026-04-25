@@ -230,7 +230,7 @@ const StaffProducts = () => {
                                                     <div className="text-sm font-black text-slate-900 mb-1.5 uppercase italic leading-none font-black text-left">{p.name}</div>
                                                     <div className="flex items-center gap-2 font-black leading-none text-left">
                                                         <span className="text-[9px] font-black text-slate-400 font-mono tracking-widest bg-slate-50 px-2 py-1 rounded-lg italic font-black">#{p.sku}</span>
-                                                        {p.isSaathiGrow && <span className="bg-blue-600 text-white text-[7px] font-black rounded-lg px-2 py-1 uppercase tracking-widest shadow-lg shadow-blue-500/20 italic"><Sparkles size={8} className="inline mr-1" /> Premium</span>}
+                                                        {p.isSaathigro && <span className="bg-blue-600 text-white text-[7px] font-black rounded-lg px-2 py-1 uppercase tracking-widest shadow-lg shadow-blue-500/20 italic"><Sparkles size={8} className="inline mr-1" /> Premium</span>}
                                                     </div>
                                                 </div>
                                             </div>

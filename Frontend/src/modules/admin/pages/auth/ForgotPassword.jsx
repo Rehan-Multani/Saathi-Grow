@@ -58,7 +58,7 @@ const ForgotPassword = () => {
                 
                 <div className="flex flex-col items-center mb-10 text-center">
                     <div className="w-24 h-24 mb-6 transition-transform hover:scale-105 duration-500">
-                        <img src={logo} alt="SaathiGrow Logo" className="w-full h-full object-contain" />
+                        <img src={logo} alt="Saathigro Logo" className="w-full h-full object-contain" />
                     </div>
 
                     {!submitted ? (
@@ -79,7 +79,7 @@ const ForgotPassword = () => {
                                             type="email"
                                             required
                                             className="block w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-50 transition-all font-sans italic"
-                                            placeholder="manager@saathigrow.com"
+                                            placeholder="manager@Saathigro.com"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                         />
@@ -126,7 +126,7 @@ const ForgotPassword = () => {
                     </div>
 
                     <p className="mt-12 text-center text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em] leading-none">
-                        &copy; 2026 SAATHIGROW • Security Hub
+                        &copy; 2026 Saathigro • Security Hub
                     </p>
                 </div>
             </div>

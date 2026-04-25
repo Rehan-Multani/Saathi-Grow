@@ -56,7 +56,7 @@ const AppSettings = () => {
                                 <label className="text-xs font-medium ml-1">{t('app_settings.name')}</label>
                                 <input
                                     type="text"
-                                    defaultValue="SaathiGrow"
+                                    defaultValue="Saathigro"
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
                                 />
                             </div>
@@ -74,7 +74,7 @@ const AppSettings = () => {
                                     <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" />
                                     <input
                                         type="email"
-                                        defaultValue="support@saathigrow.com"
+                                        defaultValue="support@Saathigro.com"
                                         className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
                                     />
                                 </div>

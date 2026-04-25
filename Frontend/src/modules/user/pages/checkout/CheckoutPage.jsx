@@ -266,7 +266,7 @@ const CheckoutPage = () => {
                     key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                     amount: rpPayload.amount,
                     currency: rpPayload.currency,
-                    name: "SaathiGrow Rapid",
+                    name: "Saathigro Rapid",
                     description: "Your Lightning Fast Grocery Checkout",
                     order_id: rpPayload.razorpayOrderId,
                     handler: async function (response) {
@@ -285,7 +285,7 @@ const CheckoutPage = () => {
                     },
                     prefill: {
                         name: user?.name || "Shopper",
-                        email: user?.email || "payment@saathigrow.com",
+                        email: user?.email || "payment@Saathigro.com",
                         contact: user?.phone || "9999999999"
                     },
                     theme: {
