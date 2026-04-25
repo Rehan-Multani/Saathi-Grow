@@ -21,6 +21,7 @@ import PromoCode from '../models/PromoCode.js';
 import PromoUsage from '../models/PromoUsage.js';
 import { sendPushNotification, notifyByBranchAndPermission } from '../services/notificationService.js';
 import { sendSystemNotificationEmail } from '../services/emailService.js';
+import { buildRouteCacheKey, getCachedRoute, setCachedRoute } from '../services/routeCacheService.js';
 
 /**
  * Enrich order items with physicalLocation from the product document.
@@ -1281,59 +1282,94 @@ export const getOrderById = async (req, res) => {
 
 // @desc    Get Route Directions via Google Maps for order tracking (User/Rider)
 // @route   GET /api/orders/:id/route
-// @access  Private
+// @access  Private (Customer - own orders only)
 export const getOrderRoute = async (req, res) => {
   try {
-    const { origin: clientOrigin } = req.query;
+    const { lat, lng, origin: legacyOrigin } = req.query;
     const id = req.params.id;
-    const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { orderId: id };
+
+    // Ownership check: customer can only fetch route for their own order
+    const query = mongoose.Types.ObjectId.isValid(id)
+      ? { _id: id, user: req.user._id }
+      : { orderId: id, user: req.user._id };
+
     const order = await Order.findOne(query)
       .populate('deliveryPartnerId', 'currentLocation')
       .populate('branchId', 'address.location')
       .populate('vendor', 'address.location');
 
-    if (!order) return res.status(404).json({ message: 'Order strictly not found' });
+    if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    // Destination is ship address coordinates
+    // Block route fetch for terminal statuses
+    if (['delivered', 'cancelled', 'returned'].includes(order.status)) {
+      return res.status(400).json({ message: 'Tracking not available for this order status' });
+    }
+
+    // Destination from shipping address (GeoJSON: [lng, lat])
     const destCoords = order.shippingAddress?.location?.coordinates;
     if (!destCoords || destCoords.length !== 2) {
       return res.status(400).json({ message: 'Target destination missing for this order' });
     }
-    const destination = `${destCoords[1]},${destCoords[0]}`;
+    const [destLng, destLat] = destCoords;
+    const destination = `${destLat},${destLng}`;
 
     // Origin priority:
-    // 1. Client provided 'origin' (via query param)
-    // 2. Rider's current location from DB
-    // 3. Fallback to store/branch location
-    let originStr = "";
+    // 1. lat/lng query params (preferred - sent by frontend throttle logic)
+    // 2. Legacy 'origin' string param
+    // 3. Rider DB location
+    // 4. Store/branch fallback
+    let originStr = '';
+    let originLat = null;
+    let originLng = null;
 
-    if (clientOrigin) {
-      originStr = clientOrigin;
+    if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
+      originLat = parseFloat(lat);
+      originLng = parseFloat(lng);
+      originStr = `${originLat},${originLng}`;
+    } else if (legacyOrigin) {
+      originStr = legacyOrigin;
+      const parts = legacyOrigin.split(',');
+      if (parts.length === 2) { originLat = parseFloat(parts[0]); originLng = parseFloat(parts[1]); }
     } else if (order.deliveryPartnerId?.currentLocation?.coordinates) {
       const riderLoc = order.deliveryPartnerId.currentLocation.coordinates;
-      originStr = `${riderLoc[1]},${riderLoc[0]}`;
+      originLat = riderLoc[1]; originLng = riderLoc[0];
+      originStr = `${originLat},${originLng}`;
     } else {
-      // Fallback to store if rider not assigned or location missing
-      // Fix: Branch/Vendor location is nested under .address
       const storeLoc = order.branchId?.address?.location?.coordinates || order.vendor?.address?.location?.coordinates;
-      if (storeLoc) originStr = `${storeLoc[1]},${storeLoc[0]}`;
+      if (storeLoc) { originLat = storeLoc[1]; originLng = storeLoc[0]; originStr = `${originLat},${originLng}`; }
     }
 
     if (!originStr) return res.status(400).json({ message: 'Rider or Store location not detected' });
 
+    // Cache check - skip Directions API if we have a fresh cached response
+    if (originLat !== null && originLng !== null) {
+      const cacheKey = buildRouteCacheKey(order._id, originLat, originLng, destLat, destLng);
+      const cached = getCachedRoute(cacheKey);
+      if (cached) {
+        console.log(`[ROUTE-CACHE] HIT for order ${order._id}`);
+        return res.json({ routes: cached });
+      }
+    }
+
     const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API;
     if (!apiKey) return res.status(500).json({ message: 'Maps logic restricted on server currently' });
 
-    console.log(`ðŸ—ºï¸ Order Route Request: Origin ${originStr}, Destination ${destination}`);
+    console.log(`[ROUTE] Fetching from Google: Origin ${originStr} -> ${destination}`);
     const mapUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destination}&key=${apiKey}`;
     const response = await axios.get(mapUrl);
 
-    if (response.data.status !== "OK") {
-      console.error('âŒ Google Maps Order Route Error:', response.data.status, response.data.error_message);
-      return res.status(400).json({ message: response.data.error_message || "Maps engine responded with error" });
+    if (response.data.status !== 'OK') {
+      console.error('[ROUTE] Google Maps error:', response.data.status, response.data.error_message);
+      return res.status(400).json({ message: response.data.error_message || 'Maps engine responded with error' });
     }
 
-    console.log(`âœ… Order Route fetched successfully`);
+    // Cache the result for 90 seconds
+    if (originLat !== null && originLng !== null) {
+      const cacheKey = buildRouteCacheKey(order._id, originLat, originLng, destLat, destLng);
+      setCachedRoute(cacheKey, response.data.routes);
+      console.log(`[ROUTE-CACHE] SET for order ${order._id}`);
+    }
+
     res.json({ routes: response.data.routes });
   } catch (error) {
     console.error('getOrderRoute issue:', error);

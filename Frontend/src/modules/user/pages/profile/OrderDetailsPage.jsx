@@ -248,7 +248,7 @@ const OrderDetailsPage = () => {
                         </div>
                     )}
 
-                    {rawOrder?.deliveryPartnerId && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(order.status) && (
+                    {rawOrder?.deliveryPartnerId && (rawOrder?.deliveryRunId || rawOrder?.deliveryPartnerId) && !['delivered', 'cancelled', 'returned', 'return_requested', 'return_pickup_scheduled', 'return_pickup_out'].includes(order.status) && (
                         <div
                             role="button"
                             onClick={() => navigate(`/orders/${order.id}/tracking`)}
@@ -257,8 +257,7 @@ const OrderDetailsPage = () => {
                             <NavIcon size={14} />
                             Track Delivery
                         </div>
-                    )}
-                </div>
+                    )}                </div>
 
                 {/* Secure Return PIN Display - Always Full Width */}
                 {rawOrder?.returnRequest?.isRequested &&
