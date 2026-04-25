@@ -71,17 +71,52 @@ export const sendPushNotification = async (recipientId, recipientModel, notifica
 
     if (tokens.length === 0) return false;
 
-    const messages = tokens.map(token => ({
-      notification: {
-        title: notification.title,
-        body: notification.body
-      },
-      data: {
-        ...data,
-        click_action: 'FLUTTER_NOTIFICATION_CLICK'
-      },
-      token: token
-    }));
+    const messages = tokens.map(token => {
+      console.log('Sending notification to token:', token);
+      const message = {
+        token,
+        notification: {
+          title: notification.title,
+          body: notification.body,
+        },
+        data: {
+          ...Object.fromEntries(
+            Object.entries(data).map(([k, v]) => [k, String(v)])
+          ),
+          click_action: 'FLUTTER_NOTIFICATION_CLICK',
+        },
+        // ✅ Web push config (Windows Notification Center + browser)
+        webpush: {
+          notification: {
+            title: notification.title,
+            body: notification.body,
+            icon: '/favicon.png',
+            badge: '/favicon.png',
+          },
+          fcmOptions: {
+            link: process.env.CLIENT_URL || 'https://saathi-grow-8oyg.vercel.app',
+          },
+        },
+        // ✅ Android config
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          },
+        },
+        // ✅ iOS config
+        apns: {
+          payload: {
+            aps: {
+              sound: 'default',
+            },
+          },
+        },
+      };
+      console.log('Payload:', JSON.stringify(message, null, 2));
+      return message;
+    });
 
     // sendEach is the replacement for sendAll in firebase-admin 12.x
     const response = await firebaseAdmin.messaging().sendEach(messages);

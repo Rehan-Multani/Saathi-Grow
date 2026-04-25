@@ -1,8 +1,8 @@
 // public/firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js');
+// ✅ Updated to firebase-compat 10.x for consistency + safe fallback handling
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// These values are hardcoded for SaathiGro. In production, these should match the Firebase project.
 const firebaseConfig = {
   apiKey: "AIzaSyC75GkUogpq7NA2JYKmnFcBPvhtqSNdWqI",
   authDomain: "saathigro-ea378.firebaseapp.com",
@@ -18,13 +18,20 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/vite.svg', // Update with actual icon
-    data: payload.data
+  console.log('[SW] Background message received:', payload);
+
+  // ✅ Safe fallbacks — handles both notification + data-only payloads
+  const title =
+    payload.notification?.title ||
+    payload.data?.title ||
+    'SaathiGro';
+
+  const options = {
+    body: payload.notification?.body || payload.data?.body || '',
+    icon: '/favicon.png',
+    badge: '/favicon.png',
+    data: payload.data || {},
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(title, options);
 });

@@ -30,9 +30,20 @@ try {
 export const generateToken = async () => {
   if (!messaging) return null;
   try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.log('Notification permission denied');
+      return null;
+    }
+
+    // ✅ Explicitly register service worker so token is tied to it
+    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
     const currentToken = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+      vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration: registration, // ✅ CRITICAL: links token to SW
     });
+
     if (currentToken) {
       return currentToken;
     } else {
@@ -40,7 +51,7 @@ export const generateToken = async () => {
       return null;
     }
   } catch (err) {
-    console.log('An error occurred while retrieving token. ', err);
+    console.error('An error occurred while retrieving token:', err);
     return null;
   }
 };
@@ -49,6 +60,24 @@ export const onMessageListener = (callback) => {
   if (!messaging) return;
   return onMessage(messaging, (payload) => {
     callback(payload);
+  });
+};
+
+// ✅ Show native Notification in foreground (Firebase suppresses these by default)
+export const setupForegroundNotification = () => {
+  if (!messaging) return;
+  onMessage(messaging, (payload) => {
+    console.log('Foreground message received:', payload);
+    if (Notification.permission === 'granted') {
+      new Notification(
+        payload.notification?.title || payload.data?.title || 'New Notification',
+        {
+          body: payload.notification?.body || payload.data?.body || '',
+          icon: '/favicon.png',
+          data: payload.data,
+        }
+      );
+    }
   });
 };
 

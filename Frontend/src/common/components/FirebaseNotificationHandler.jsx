@@ -55,10 +55,12 @@ const FirebaseNotificationHandler = ({ token, role, isApp = false }) => {
     // 4. Set up Foreground message listener
     const unsubscribe = onMessageListener((payload) => {
       console.log('Foreground Message received: ', payload);
+      const title = payload.notification?.title || payload.data?.title || 'New Notification';
+      const body = payload.notification?.body || payload.data?.body || '';
       toast.info(
         <div className="flex flex-col gap-1">
-          <strong className="font-bold text-sm">{payload.notification.title}</strong>
-          <span className="text-xs opacity-90">{payload.notification.body}</span>
+          <strong className="font-bold text-sm">{title}</strong>
+          <span className="text-xs opacity-90">{body}</span>
         </div>,
         {
           position: "top-right",
