@@ -42,7 +42,7 @@ const AllPromoCodes = () => {
 
     useEffect(() => {
         fetchPromos();
-    }, [fetchPromos]);
+    }, [adminUser?.token]); // Only fetch when token actually changes
 
     const filtered = promos.filter(p =>
         p.code.toLowerCase().includes(searchTerm.toLowerCase())

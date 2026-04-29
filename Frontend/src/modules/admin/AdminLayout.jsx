@@ -11,13 +11,12 @@ import { API_BASE_URL } from '../../config/apiConfig';
 
 const AdminLayout = () => {
     const { t, i18n: i18nInstance } = useTranslation(['admin_sidebar', 'common']);
-    const { adminLogout, adminUser } = useAdminAuth();
+    const { adminLogout, adminUser, unreadCount, refreshUnreadCount } = useAdminAuth();
     const adminToken = adminUser?.token;
     const navigate = useNavigate();
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(0);
     const location = useLocation();
 
     const handleLogout = () => {
@@ -30,25 +29,11 @@ const AdminLayout = () => {
         setShowLanguageMenu(false);
     };
 
-    const fetchUnreadCount = async () => {
-        try {
-            if (!adminToken) return;
-            const res = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
-                headers: { Authorization: `Bearer ${adminToken}` }
-            });
-            if (res.data.success || res.status === 200) {
-                setUnreadCount(res.data.count || 0);
-            }
-        } catch (error) {
-            console.error('Error fetching unread count:', error);
-        }
-    };
-
     useEffect(() => {
-        fetchUnreadCount();
-        const interval = setInterval(fetchUnreadCount, 30000);
-        return () => clearInterval(interval);
-    }, [adminToken]);
+        if (adminToken) {
+            refreshUnreadCount();
+        }
+    }, [adminToken, location.pathname, refreshUnreadCount]);
 
 
     return (

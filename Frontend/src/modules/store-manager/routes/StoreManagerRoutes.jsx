@@ -11,6 +11,7 @@ import StaffManagement from '../StaffManagement';
 import { StoreManagerAuthProvider, useStoreManagerAuth } from '../context/StoreManagerAuthContext';
 import StoreManagerLogin from '../pages/auth/StoreManagerLogin';
 import ManagerProducts from '../pages/ManagerProducts';
+import AddProduct from '../pages/AddProduct';
 import ManagerProfile from '../pages/ManagerProfile';
 import ManagerSupportTickets from '../ManagerSupportTickets';
 import LegalPolicies from '../pages/LegalPolicies';
@@ -23,13 +24,16 @@ const AllCustomers = lazy(() => import('../ManagerCustomers'));
 
 import ManagerForgotPassword from '../pages/auth/ManagerForgotPassword';
 import ManagerResetPassword from '../pages/auth/ManagerResetPassword';
+import ManagerVyaparReport from '../pages/reports/ManagerVyaparReport';
 
 const ProtectedStoreManagerRoute = () => {
     const { managerUser } = useStoreManagerAuth();
     if (!managerUser) {
         return <Navigate to="/store-manager/login" replace />;
     }
-    if (managerUser.role !== 'Branch Manager') {
+    // Allow Branch Manager and any staff role that has been authenticated via this portal
+    const allowedRoles = ['Branch Manager', 'Staff', 'Admin', 'Store Manager'];
+    if (!allowedRoles.includes(managerUser.role)) {
         return <Navigate to="/store-manager/login" replace />;
     }
     return <Outlet />;
@@ -60,7 +64,9 @@ const StoreManagerRoutes = () => {
                             <Route path="staff" element={<StaffManagement />} />
                             <Route path="returns" element={<ReturnsApproval />} />
                             <Route path="products" element={<ManagerProducts />} />
+                            <Route path="products/add" element={<AddProduct />} />
                             <Route path="reports" element={<ReportsAnalytics />} />
+                            <Route path="reports/vyapar" element={<ManagerVyaparReport />} />
                             {/* New Functional Modules */}
                             <Route path="delivery/partners" element={<DeliveryPartners />} />
                             <Route path="delivery/assign" element={<AssignDeliveries />} />
@@ -69,10 +75,14 @@ const StoreManagerRoutes = () => {
                             <Route path="profile" element={<ManagerProfile />} />
                             <Route path="support" element={<ManagerSupportTickets />} />
                             <Route path="policies" element={<LegalPolicies />} />
+                            <Route path="notifications" element={<ManagerSupportTickets />} />
+                            <Route path="settings" element={<ManagerProfile />} />
+                            {/* Catch-all inside protected routes */}
+                            <Route path="*" element={<Navigate to="/store-manager/dashboard" replace />} />
                         </Route>
                     </Route>
-                    {/* Catch all for store manager - redirect to dashboard */}
-                    <Route path="*" element={<Navigate to="dashboard" replace />} />
+                    {/* Catch all outside protected - redirect to login */}
+                    <Route path="*" element={<Navigate to="/store-manager/login" replace />} />
                 </Routes>
             </Suspense>
         </StoreManagerAuthProvider>

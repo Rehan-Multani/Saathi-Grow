@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Ticket, Calendar, Percent, IndianRupee, ArrowLeft, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { Save, Ticket, Calendar, Percent, IndianRupee, ArrowLeft, Loader2, Sparkles, AlertCircle, Gift, Image, Zap, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createPromoCode } from '../../api/promoCodeApi';
@@ -25,8 +25,14 @@ const CreatePromoCode = () => {
         validUntil: '',
         status: 'Active',
         isActive: true,
-        description: ''
+        description: '',
+        isAutoApply: false,
+        giftTitle: '',
+        giftDescription: '',
+        giftImage: null
     });
+
+    const [imagePreview, setImagePreview] = useState(null);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -39,6 +45,18 @@ const CreatePromoCode = () => {
     const generateCode = () => {
         const randomCode = 'SG' + Math.floor(1000 + Math.random() * 9000);
         setFormData({ ...formData, code: randomCode });
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData({ ...formData, giftImage: file });
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -64,21 +82,36 @@ const CreatePromoCode = () => {
                 return;
             }
 
-            const dataToSave = {
-                ...formData,
-                discountValue: formData.discountType === 'FreeShipping' ? 0 : parseFloat(formData.discountValue || 0),
-                minOrderValue: parseFloat(formData.minOrderValue || 0),
-                maxDiscountAmount: parseFloat(formData.maxDiscountAmount || 0),
-                usageLimitTotal: parseInt(formData.usageLimitTotal || 0),
-                usageLimitPerUser: parseInt(formData.usageLimitPerUser || 1),
-                isActive: formData.status === 'Active'
-            };
+            const data = new FormData();
+            data.append('code', formData.code.toUpperCase());
+            data.append('discountType', formData.discountType);
+            data.append('discountValue', formData.discountType === 'FreeShipping' || formData.discountType === 'FreeGift' ? 0 : parseFloat(formData.discountValue || 0));
+            data.append('minOrderValue', parseFloat(formData.minOrderValue || 0));
+            data.append('maxDiscountAmount', parseFloat(formData.maxDiscountAmount || 0));
+            data.append('usageLimitTotal', parseInt(formData.usageLimitTotal || 0));
+            data.append('usageLimitPerUser', parseInt(formData.usageLimitPerUser || 1));
+            data.append('validFrom', formData.validFrom);
+            data.append('validUntil', formData.validUntil);
+            data.append('isActive', formData.status === 'Active');
+            data.append('description', formData.description);
+            data.append('isAutoApply', formData.isAutoApply);
 
-            await createPromoCode(adminUser.token, dataToSave);
+            if (formData.discountType === 'FreeGift') {
+                data.append('freeGift', JSON.stringify({
+                    title: formData.giftTitle,
+                    description: formData.giftDescription
+                }));
+                if (formData.giftImage) {
+                    data.append('giftImage', formData.giftImage);
+                }
+            }
+
+            await createPromoCode(adminUser.token, data);
             toast.success(t('messages.create_success'));
             navigate('/admin/promocodes');
         } catch (error) {
-            // toast.error(error.message || t('messages.fetch_error'));
+            const errorMessage = typeof error === 'string' ? error : (error.message || error.error || t('messages.fetch_error'));
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -150,31 +183,33 @@ const CreatePromoCode = () => {
                                     <option value="Percentage">Percentage (%)</option>
                                     <option value="Fixed">Fixed Amount (₹)</option>
                                     <option value="FreeShipping">Free Shipping</option>
+                                    <option value="FreeGift">Free Gift 🎁</option>
                                 </select>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.discount_value')}</label>
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 h-[46px] shadow-sm focus-within:border-blue-500 transition-all">
-                                    {formData.discountType === 'Percentage' ? (
-                                        <Percent className="text-slate-400 shrink-0" size={16} />
-                                    ) : (
-                                        <IndianRupee className="text-slate-400 shrink-0" size={16} />
-                                    )}
-                                    <input
-                                        type="number"
-                                        name="discountValue"
-                                        required={formData.discountType !== 'FreeShipping'}
-                                        disabled={formData.discountType === 'FreeShipping'}
-                                        value={formData.discountValue}
-                                        onFocus={() => { if (formData.discountValue === 0 || formData.discountValue === "0") setFormData(prev => ({ ...prev, discountValue: "" })) }}
-                                        onBlur={() => { if (formData.discountValue === "" || formData.discountValue === null) setFormData(prev => ({ ...prev, discountValue: "0" })) }}
-                                        onChange={handleChange}
-                                        style={{ borderRadius: 0, border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
-                                        className="flex-1 text-sm font-bold text-slate-700 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none focus:outline-none"
-                                    />
+                            {formData.discountType !== 'FreeShipping' && formData.discountType !== 'FreeGift' && (
+                                <div className="space-y-1.5 animate-in fade-in duration-300">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.discount_value')}</label>
+                                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 h-[46px] shadow-sm focus-within:border-blue-500 transition-all">
+                                        {formData.discountType === 'Percentage' ? (
+                                            <Percent className="text-slate-400 shrink-0" size={16} />
+                                        ) : (
+                                            <IndianRupee className="text-slate-400 shrink-0" size={16} />
+                                        )}
+                                        <input
+                                            type="number"
+                                            name="discountValue"
+                                            required
+                                            value={formData.discountValue}
+                                            onFocus={() => { if (formData.discountValue === 0 || formData.discountValue === "0") setFormData(prev => ({ ...prev, discountValue: "" })) }}
+                                            onBlur={() => { if (formData.discountValue === "" || formData.discountValue === null) setFormData(prev => ({ ...prev, discountValue: "0" })) }}
+                                            onChange={handleChange}
+                                            style={{ borderRadius: 0, border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
+                                            className="flex-1 text-sm font-bold text-slate-700 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none focus:outline-none"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.min_order')}</label>
@@ -193,24 +228,93 @@ const CreatePromoCode = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.max_discount')}</label>
-                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 h-[46px] shadow-sm focus-within:border-blue-500 transition-all">
-                                    <IndianRupee className="text-slate-400 shrink-0" size={16} />
-                                    <input
-                                        type="number"
-                                        name="maxDiscountAmount"
-                                        disabled={formData.discountType !== 'Percentage'}
-                                        value={formData.maxDiscountAmount}
-                                        onFocus={() => { if (formData.maxDiscountAmount === 0 || formData.maxDiscountAmount === "0") setFormData(prev => ({ ...prev, maxDiscountAmount: "" })) }}
-                                        onBlur={() => { if (formData.maxDiscountAmount === "") setFormData(prev => ({ ...prev, maxDiscountAmount: "0" })) }}
-                                        onChange={handleChange}
-                                        style={{ borderRadius: 0, border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
-                                        className="flex-1 text-sm font-bold text-slate-700 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none focus:outline-none"
-                                    />
+                            {formData.discountType === 'Percentage' && (
+                                <div className="space-y-1.5 animate-in fade-in duration-300">
+                                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.max_discount')}</label>
+                                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 h-[46px] shadow-sm focus-within:border-blue-500 transition-all">
+                                        <IndianRupee className="text-slate-400 shrink-0" size={16} />
+                                        <input
+                                            type="number"
+                                            name="maxDiscountAmount"
+                                            value={formData.maxDiscountAmount}
+                                            onFocus={() => { if (formData.maxDiscountAmount === 0 || formData.maxDiscountAmount === "0") setFormData(prev => ({ ...prev, maxDiscountAmount: "" })) }}
+                                            onBlur={() => { if (formData.maxDiscountAmount === "") setFormData(prev => ({ ...prev, maxDiscountAmount: "0" })) }}
+                                            onChange={handleChange}
+                                            style={{ borderRadius: 0, border: 'none', background: 'transparent', boxShadow: 'none', padding: 0 }}
+                                            className="flex-1 text-sm font-bold text-slate-700 disabled:text-slate-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none outline-none focus:outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {formData.discountType === 'FreeGift' && (
+                            <div className="mt-8 p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100 space-y-6 animate-in slide-in-from-top duration-300">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Gift className="text-emerald-600" size={20} />
+                                    <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-tight">Design Free Gift</h3>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest ml-1">Gift Title</label>
+                                            <input
+                                                type="text"
+                                                name="giftTitle"
+                                                required
+                                                value={formData.giftTitle}
+                                                onChange={handleChange}
+                                                placeholder="e.g. Premium Chocolate Box"
+                                                className="w-full px-4 py-3 bg-white border border-emerald-200 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm font-bold text-slate-700"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest ml-1">Description</label>
+                                            <textarea
+                                                name="giftDescription"
+                                                rows={2}
+                                                value={formData.giftDescription}
+                                                onChange={handleChange}
+                                                placeholder="Briefly describe the gift..."
+                                                className="w-full px-4 py-3 bg-white border border-emerald-200 rounded-2xl outline-none focus:border-emerald-500 transition-all text-sm font-medium text-slate-600"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest ml-1">Gift Image</label>
+                                        <div 
+                                            className={`relative h-[146px] rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2 cursor-pointer overflow-hidden ${imagePreview ? 'border-emerald-500' : 'border-emerald-200 hover:border-emerald-400 bg-white'}`}
+                                            onClick={() => document.getElementById('giftImageInput').click()}
+                                        >
+                                            {imagePreview ? (
+                                                <>
+                                                    <img src={imagePreview} className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <Image className="text-white" size={24} />
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                                                        <Plus size={20} />
+                                                    </div>
+                                                    <span className="text-[10px] font-bold text-emerald-600 uppercase">Upload Image</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <input
+                                            id="giftImageInput"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageChange}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Section 2: Limits & Dates */}
@@ -296,6 +400,27 @@ const CreatePromoCode = () => {
                                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.checked ? 'Active' : 'Inactive' }))}
                                 />
                                 <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 shadow-inner"></div>
+                            </label>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                             <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${formData.isAutoApply ? 'bg-blue-600' : 'bg-slate-400'}`}>
+                                    <Zap className="text-white" size={20} />
+                                </div>
+                                <div>
+                                    <div className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">Auto Apply</div>
+                                    <div className="text-[10px] text-slate-500 font-bold uppercase">{formData.isAutoApply ? 'ON' : 'OFF'}</div>
+                                </div>
+                             </div>
+                             <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={formData.isAutoApply}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, isAutoApply: e.target.checked }))}
+                                />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
                             </label>
                         </div>
                     </div>

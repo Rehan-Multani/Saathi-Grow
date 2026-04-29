@@ -18,7 +18,8 @@ import {
     Wallet,
     Loader2,
     Calendar,
-    Ticket
+    Ticket,
+    Gift
 } from 'lucide-react';
 
 import { useLocation as useGlobalLocation } from '../../context/LocationContext';
@@ -61,6 +62,7 @@ const CheckoutPage = () => {
     const [appliedPromo, setAppliedPromo] = useState(null);
     const [isValidatingPromo, setIsValidatingPromo] = useState(false);
     const [availablePromos, setAvailablePromos] = useState([]);
+    const [upsellingPromos, setUpsellingPromos] = useState([]);
     const [loadingPromos, setLoadingPromos] = useState(false);
 
     const navigate = useNavigate();
@@ -136,19 +138,24 @@ const CheckoutPage = () => {
     }, [cart, token, appliedPromo]);
 
     useEffect(() => {
-        const fetchApplicablePromos = async () => {
+        const fetchPromos = async () => {
             if (!token || cartTotal <= 0) return;
             setLoadingPromos(true);
             try {
-                const result = await orderApi.getApplicablePromos(token, cartTotal);
-                setAvailablePromos(result.data || []);
+                // Fetch applicable and upselling in parallel
+                const [applicableRes, upsellingRes] = await Promise.all([
+                    orderApi.getApplicablePromos(token, cartTotal),
+                    orderApi.getUpsellingPromos(token, cartTotal)
+                ]);
+                setAvailablePromos(applicableRes.data || []);
+                setUpsellingPromos(upsellingRes.data || []);
             } catch (err) {
                 console.error("Failed to fetch promos", err);
             } finally {
                 setLoadingPromos(false);
             }
         };
-        fetchApplicablePromos();
+        fetchPromos();
     }, [cartTotal, token]);
 
     const handleApplyPromo = async () => {
@@ -517,6 +524,39 @@ const CheckoutPage = () => {
                         <h3 className="!text-[10px] font-black text-gray-400 tracking-widest uppercase">Promo Code</h3>
                     </div>
                     
+                    {/* Upselling Banners */}
+                    {upsellingPromos.length > 0 && (
+                        <div className="mb-6 px-1 space-y-3 animate-in fade-in zoom-in duration-500">
+                            {upsellingPromos.map((promo) => {
+                                const diff = promo.minOrderValue - cartTotal;
+                                return (
+                                    <div 
+                                        key={promo._id} 
+                                        onClick={() => navigate('/')}
+                                        className="cursor-pointer bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-500/5 dark:to-emerald-500/5 border border-green-100 dark:border-green-500/20 p-4 rounded-3xl flex items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-white dark:bg-green-500/20 rounded-2xl flex items-center justify-center text-[#0c831f] shadow-sm shrink-0">
+                                                {promo.discountType === 'FreeGift' ? <Gift size={24} strokeWidth={2.5} /> : <Sparkles size={24} strokeWidth={2.5} />}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-[11px] font-black text-[#0c831f] uppercase tracking-wider mb-1">
+                                                    {promo.discountType === 'FreeGift' ? '🎁 Claim Your Free Gift!' : '✨ Unlock Special Savings!'}
+                                                </h4>
+                                                <p className="text-[10px] text-gray-500 font-bold leading-tight">
+                                                    Add <span className="text-[#0c831f] text-sm font-black">₹{diff}</span> more to get {promo.discountType === 'FreeGift' ? (promo.freeGift?.title || 'a Free Gift') : promo.description || 'this offer'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="w-8 h-8 bg-white dark:bg-green-500/20 rounded-full flex items-center justify-center text-[#0c831f] shadow-sm shrink-0">
+                                            <ArrowRight size={16} strokeWidth={3} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     {!appliedPromo ? (
                         <>
                             <div className="flex gap-2 px-1">
@@ -553,17 +593,16 @@ const CheckoutPage = () => {
                                         ))}
                                     </div>
                                 </div>
-                            ) : availablePromos.length > 0 && (
+                            ) : (availablePromos.length > 0 || upsellingPromos.length > 0) && (
                                 <div className="mt-4 px-1">
                                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Available Offers</p>
                                     <div className="flex flex-col gap-2">
+                                        {/* Applicable Promos */}
                                         {availablePromos.map((promo) => (
                                             <div 
                                                 key={promo._id}
                                                 onClick={() => {
                                                     setPromoInput(promo.code);
-                                                    // Auto apply if clicked? Let's just set the input for now or auto-apply
-                                                    // Better to auto-apply for UX
                                                     const autoApply = async () => {
                                                         setIsValidatingPromo(true);
                                                         try {
@@ -592,6 +631,28 @@ const CheckoutPage = () => {
                                                 </div>
                                                 <div className="text-[#0c831f] text-[9px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
                                                     Apply Code
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {/* Upselling / Locked Promos */}
+                                        {upsellingPromos.map((promo) => (
+                                            <div 
+                                                key={promo._id}
+                                                onClick={() => navigate('/')}
+                                                className="group cursor-pointer bg-gray-50/50 dark:bg-white/5 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between opacity-70 grayscale-[0.5] hover:grayscale-0 transition-all"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center text-gray-400">
+                                                        <Lock size={12} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-tight">{promo.code}</h4>
+                                                        <p className="text-[9px] text-gray-400 font-bold">Add ₹{promo.minOrderValue - cartTotal} more to unlock</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-gray-400 text-[8px] font-black uppercase tracking-tighter">
+                                                    Locked
                                                 </div>
                                             </div>
                                         ))}
@@ -661,6 +722,16 @@ const CheckoutPage = () => {
                             <div className="flex justify-between items-center text-[#0c831f] animate-in slide-in-from-left duration-300">
                                 <span className="text-[11px] font-bold capitalize">Promo Discount</span>
                                 <span className="text-[11px] font-black">−₹{billDetails?.discountAmount}</span>
+                            </div>
+                        )}
+
+                        {billDetails?.freeGift && (
+                            <div className="flex justify-between items-center text-[#0c831f] animate-in slide-in-from-left duration-300">
+                                <div className="flex flex-col">
+                                    <span className="text-[11px] font-bold capitalize">Free Gift Reward</span>
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">{billDetails.freeGift.title}</span>
+                                </div>
+                                <span className="text-[11px] font-black uppercase">Free</span>
                             </div>
                         )}
 

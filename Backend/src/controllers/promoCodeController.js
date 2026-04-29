@@ -8,7 +8,17 @@ import { notifyAllUsers } from '../services/notificationService.js';
 // @access  Admin
 export const createPromoCode = async (req, res) => {
     try {
-        const { code, discountValue, validFrom, validUntil, minOrderValue, usageLimitTotal, usageLimitPerUser } = req.body;
+        const { code, discountValue, validFrom, validUntil, minOrderValue, usageLimitTotal, usageLimitPerUser, isAutoApply } = req.body;
+
+        // Parse freeGift if it exists (might be a string from FormData)
+        let freeGift = req.body.freeGift;
+        if (typeof freeGift === 'string') {
+            try {
+                freeGift = JSON.parse(freeGift);
+            } catch (e) {
+                console.error("Error parsing freeGift JSON", e);
+            }
+        }
 
         // Basic Validations
         if (!code || !validFrom || !validUntil) {
@@ -38,18 +48,30 @@ export const createPromoCode = async (req, res) => {
             return res.status(400).json({ success: false, message: 'A promo code with this name already exists' });
         }
 
+        // Handle Image Upload for Free Gift
+        if (req.file && freeGift) {
+            freeGift.image = req.file.path;
+        }
+
         const promoCode = new PromoCode({
             ...req.body,
-            code: code.toUpperCase()
+            freeGift,
+            code: code.toUpperCase(),
+            isAutoApply: isAutoApply === 'true' || isAutoApply === true
         });
         await promoCode.save();
         res.status(201).json({ success: true, data: promoCode });
 
         // Notify All Users about new Promo Code
         if (promoCode.isActive) {
+            let bodyText = `Use this code to get ${promoCode.discountType === 'Percentage' ? promoCode.discountValue + '%' : '₹' + promoCode.discountValue} off on orders above ₹${promoCode.minOrderValue}!`;
+            if (promoCode.discountType === 'FreeGift') {
+                bodyText = `Get a Free Gift: "${promoCode.freeGift?.title}" on orders above ₹${promoCode.minOrderValue}!`;
+            }
+            
             notifyAllUsers({
                 title: `🎟️ New Promo: ${promoCode.code}`,
-                body: `Use this code to get ${promoCode.discountType === 'Percentage' ? promoCode.discountValue + '%' : '₹' + promoCode.discountValue} off on orders above ₹${promoCode.minOrderValue}!`
+                body: bodyText
             }, { promoCode: promoCode.code, type: 'promo' });
         }
     } catch (error) {
@@ -108,6 +130,47 @@ export const getApplicablePromoCodes = async (req, res) => {
     }
 };
 
+// @desc    Get promo codes for upselling (greed factor)
+// @route   POST /api/promocodes/upselling
+// @access  Private
+export const getUpsellingPromoCodes = async (req, res) => {
+    try {
+        const { subTotal } = req.body;
+        const amountToCheck = subTotal || 0;
+        const userId = req.user._id;
+        const now = new Date();
+
+        // Fetch active and within date range promocodes where minOrderValue > subTotal
+        // We can limit this to promos within a certain range (e.g., +1000) or just get all and filter
+        const promoCodes = await PromoCode.find({
+            isActive: true,
+            validFrom: { $lte: now },
+            validUntil: { $gte: now },
+            minOrderValue: { $gt: amountToCheck }
+        }).sort({ minOrderValue: 1 });
+
+        // Filter out codes that have reached global limit
+        let candidates = promoCodes.filter(promo => {
+            if (promo.usageLimitTotal > 0 && promo.usedCount >= promo.usageLimitTotal) return false;
+            return true;
+        });
+
+        // Filter out codes that user has already reached their personal limit
+        const userUsages = await PromoUsage.find({ user: userId, promoCode: { $in: candidates.map(p => p._id) } });
+
+        candidates = candidates.filter(promo => {
+            const usage = userUsages.find(u => u.promoCode.toString() === promo._id.toString());
+            if (usage && usage.usageCount >= promo.usageLimitPerUser) return false;
+            return true;
+        });
+
+        // We only want to return the "closest" one or a few
+        res.status(200).json({ success: true, count: candidates.length, data: candidates.slice(0, 3) });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // @desc    Get single promo code
 // @route   GET /api/promocodes/:id
 // @access  Admin
@@ -123,12 +186,26 @@ export const getPromoCodeById = async (req, res) => {
     }
 };
 
-// @desc    Update promo code
-// @route   PUT /api/promocodes/:id
-// @access  Admin
 export const updatePromoCode = async (req, res) => {
     try {
-        const promoCode = await PromoCode.findByIdAndUpdate(req.params.id, req.body, {
+        let updateData = { ...req.body };
+
+        // Parse freeGift if it exists (might be a string from FormData)
+        if (typeof updateData.freeGift === 'string') {
+            try {
+                updateData.freeGift = JSON.parse(updateData.freeGift);
+            } catch (e) {}
+        }
+
+        if (req.file && updateData.freeGift) {
+            updateData.freeGift.image = req.file.path;
+        }
+
+        if (updateData.isAutoApply !== undefined) {
+            updateData.isAutoApply = updateData.isAutoApply === 'true' || updateData.isAutoApply === true;
+        }
+
+        const promoCode = await PromoCode.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
         });

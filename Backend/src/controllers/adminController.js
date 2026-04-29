@@ -396,6 +396,10 @@ export const updateAdminProfile = async (req, res) => {
         admin.password = req.body.password;
       }
 
+      if (req.body.settlementPin) {
+        admin.settlementPin = req.body.settlementPin;
+      }
+
       // Handle file upload from Multer/Cloudinary
       if (req.file && req.file.path) {
         admin.profileImage = req.file.path;

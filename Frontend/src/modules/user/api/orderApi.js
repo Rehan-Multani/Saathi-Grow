@@ -68,6 +68,20 @@ export const getApplicablePromos = async (token, totalAmount) => {
   return data;
 };
 
+export const getUpsellingPromos = async (token, subTotal) => {
+  const response = await fetch(`${API_BASE_URL}/promocodes/upselling`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ subTotal })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Failed to fetch upselling offers');
+  return data;
+};
+
 export const verifyRazorpayPayment = async (token, paymentPayload) => {
   const response = await fetch(`${API_URL}/verify`, {
     method: 'POST',

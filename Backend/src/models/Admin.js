@@ -57,7 +57,12 @@ const adminSchema = new mongoose.Schema({
     }
   },
   resetPasswordToken: String,
-  resetPasswordExpires: Date
+  resetPasswordExpires: Date,
+  settlementPin: {
+    type: String,
+    default: '1234', // Default PIN for cash collection
+    select: false
+  }
 }, {
   timestamps: true
 });

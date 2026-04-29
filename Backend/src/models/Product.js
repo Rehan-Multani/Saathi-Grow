@@ -20,6 +20,15 @@ const productSchema = new mongoose.Schema({
     type: Number,
     min: 0
   },
+  purchasePrice: {
+    type: Number,
+    min: 0
+  },
+  hsnCode: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   isVeg: {
     type: Boolean,
     default: true

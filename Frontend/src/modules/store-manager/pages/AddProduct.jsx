@@ -2,19 +2,19 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { RefreshCw, Save, Upload, X, Sparkles, Plus, Camera, Search, ArrowLeft, Package, Trash2, Check, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import ImageCropperModal from '../../../../common/components/ImageCropperModal';
-import { useAdminAuth } from '../../context/AdminAuthContext';
-import { getCategories } from '../../api/categoryApi';
-import { getSubCategories } from '../../api/subcategoryApi';
-import { getBrands } from '../../api/brandApi';
-import { getBranches } from '../../api/branchApi';
-import { getVendors } from '../../api/vendorApi';
-import { createProduct, getAISuggestions } from '../../api/productApi';
-import { getAvailableAdminLocations, createAdminLocation } from '../../api/physicalLocationApi';
+import ImageCropperModal from '../../../common/components/ImageCropperModal';
+import { useStoreManagerAuth } from '../context/StoreManagerAuthContext';
+import { getCategories } from '../../admin/api/categoryApi';
+import { getSubCategories } from '../../admin/api/subcategoryApi';
+import { getBrands } from '../../admin/api/brandApi';
+import { getBranches } from '../../admin/api/branchApi';
+import { getVendors } from '../../admin/api/vendorApi';
+import { createProduct, getAISuggestions } from '../../admin/api/productApi';
+import { getAvailableAdminLocations, createAdminLocation } from '../../admin/api/physicalLocationApi';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
-import { pageInfoData } from '../../../../common/data/pageInfoData';
+import PageInfoTooltip from '../../../common/components/modals/PageInfoTooltip';
+import { pageInfoData } from '../../../common/data/pageInfoData';
 
 // Custom dropdown that always opens downward
 const DownDropdown = ({ value, onChange, options, placeholder, disabled }) => {
@@ -94,7 +94,7 @@ const MultiBranchDropdown = ({ branches, selectedIds, onToggle, placeholder }) =
 const AddProduct = () => {
     const { t } = useTranslation('admin_products');
     const navigate = useNavigate();
-    const { adminUser } = useAdminAuth();
+    const { managerUser: adminUser } = useStoreManagerAuth();
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);
     const [aiLoading, setAiLoading] = useState({ description: false, tags: false });
@@ -152,13 +152,16 @@ const AddProduct = () => {
         const fetchData = async () => {
             if (!adminUser?.token) return;
             try {
-                const [categoriesData, subCategoriesData, brandsData, branchesData, vendorsData] = await Promise.all([
-                    getCategories(adminUser.token), 
-                    getSubCategories(adminUser.token),
-                    getBrands(adminUser.token), 
-                    getBranches(adminUser.token),
-                    getVendors(adminUser.token)
-                ]);
+                
+                const safeFetch = async (apiCall) => {
+                    try { return await apiCall; } catch (e) { console.error(e); return []; }
+                };
+                const categoriesData = await safeFetch(getCategories(adminUser.token));
+                const subCategoriesData = await safeFetch(getSubCategories(adminUser.token));
+                const brandsData = await safeFetch(getBrands(adminUser.token));
+                const branchesData = await safeFetch(getBranches(adminUser.token));
+                const vendorsData = await safeFetch(getVendors(adminUser.token));
+
 
                 // Robust extraction logic to handle various response structures
                 const extractData = (payload, key) => {
@@ -352,7 +355,7 @@ const AddProduct = () => {
             
             await createProduct(adminUser.token, data);
             toast.success(t('messages.save_success'));
-            navigate('/admin/products');
+            navigate('/store-manager/products');
         } catch (error) { toast.error(error.message); }
         finally { setLoading(false); }
     };
@@ -364,7 +367,7 @@ const AddProduct = () => {
             <div className="max-w-6xl mx-auto">
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/admin/products')} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all">
+                        <button onClick={() => navigate('/store-manager/products')} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all">
                             <ArrowLeft size={20} />
                         </button>
                         <div>
@@ -376,7 +379,7 @@ const AddProduct = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button onClick={() => navigate('/admin/products')} className="px-6 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+                        <button onClick={() => navigate('/store-manager/products')} className="px-6 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
                             {t('form.cancel')}
                         </button>
                         <button onClick={handleSubmit} disabled={loading} className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-2">
@@ -851,5 +854,10 @@ const AddProduct = () => {
 };
 
 export default AddProduct;
+
+
+
+
+
 
 

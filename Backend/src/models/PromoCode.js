@@ -10,8 +10,17 @@ const promoCodeSchema = new mongoose.Schema({
     },
     discountType: {
         type: String,
-        enum: ['Percentage', 'Fixed', 'FreeShipping'],
+        enum: ['Percentage', 'Fixed', 'FreeShipping', 'FreeGift'],
         required: [true, 'Discount type is required']
+    },
+    freeGift: {
+        title: { type: String, trim: true },
+        image: { type: String },
+        description: { type: String, trim: true }
+    },
+    isAutoApply: {
+        type: Boolean,
+        default: false
     },
     discountValue: {
         type: Number,

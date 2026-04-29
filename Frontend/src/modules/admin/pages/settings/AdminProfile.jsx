@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, User, Mail, Phone, Lock, Camera, Loader2, Settings2 } from 'lucide-react';
+import { Save, User, Mail, Phone, Lock, Camera, Loader2, Settings2, Smartphone } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,8 @@ const AdminProfile = () => {
         phone: '',
         role: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        settlementPin: ''
     });
 
     const [imagePreview, setImagePreview] = useState(null);
@@ -131,6 +132,27 @@ const AdminProfile = () => {
         }
     };
 
+    const handleUpdateSettlementPin = async (e) => {
+        e.preventDefault();
+        if (!formData.settlementPin) {
+            return toast.error('Please enter a PIN');
+        }
+        if (!/^\d{4,6}$/.test(formData.settlementPin)) {
+            return toast.error('PIN must be 4-6 digits');
+        }
+
+        setLoading(true);
+        try {
+            await adminUpdateProfile({ settlementPin: formData.settlementPin });
+            toast.success('Settlement PIN updated successfully!');
+            setFormData(prev => ({ ...prev, settlementPin: '' }));
+        } catch (error) {
+            toast.error(error.message || 'Failed to update PIN');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="container-fluid py-6 bg-slate-50/30 min-h-screen px-4 md:px-6 max-w-7xl mx-auto font-sans text-slate-800">
             {/* Page Header */}
@@ -229,6 +251,42 @@ const AdminProfile = () => {
 
                                     {loading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
                                     <span>{t('admin_profile.update_password')}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {/* Settlement Security Card */}
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="border-b border-slate-100 px-6 py-4 flex items-center gap-2">
+                            <Smartphone size={18} className="text-slate-500" />
+                            <h3 className="text-base font-semibold text-slate-700">Settlement Security</h3>
+                        </div>
+                        <div className="p-6">
+                            <form onSubmit={handleUpdateSettlementPin} className="space-y-4">
+                                <div className="space-y-1.5 focus-within:text-blue-600 text-slate-500 transition-colors">
+                                    <label className="text-xs font-medium ml-1">Cash Collection PIN</label>
+                                    <div className="relative">
+                                        <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="password"
+                                            name="settlementPin"
+                                            value={formData.settlementPin}
+                                            onChange={handleChange}
+                                            placeholder="4-6 Digit PIN"
+                                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                                            maxLength={6}
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 ml-1">This PIN will be required to verify cash collection from riders.</p>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading || !formData.settlementPin}
+                                    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all transform active:scale-95 ${loading || !formData.settlementPin ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20'}`}
+                                >
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                    <span>Update PIN</span>
                                 </button>
                             </form>
                         </div>

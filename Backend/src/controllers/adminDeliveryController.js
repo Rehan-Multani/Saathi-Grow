@@ -6,6 +6,7 @@ import Branch from '../models/Branch.js';
 import OrderDelivery from '../models/OrderDelivery.js';
 import DeliveryRun from '../models/DeliveryRun.js';
 import CashCollection from '../models/CashCollection.js';
+import Admin from '../models/Admin.js';
 import { sendPushNotification } from '../services/notificationService.js';
 import { sendWelcomeEmail, sendSystemNotificationEmail } from '../services/emailService.js';
 
@@ -709,6 +710,17 @@ export const getCashSettlementList = async (req, res) => {
 export const settleRiderCash = async (req, res) => {
   const session = await mongoose.startSession();
   try {
+    const { pin } = req.body;
+    
+    if (!pin) {
+      return res.status(400).json({ message: 'Settlement PIN is required' });
+    }
+
+    const admin = await Admin.findById(req.admin._id).select('+settlementPin');
+    if (admin.settlementPin !== pin) {
+      return res.status(401).json({ message: 'Invalid settlement PIN' });
+    }
+
     let payload = null;
 
     await session.withTransaction(async () => {

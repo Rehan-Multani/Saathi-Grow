@@ -4,6 +4,7 @@ import { Search, Plus, Edit, Trash2, QrCode, Upload, Download, Filter, PackagePl
 import { QRCodeSVG } from 'qrcode.react';
 import ProductEditModal from '../../../common/components/products/ProductEditModal';
 import RestockModal from '../../../common/components/products/RestockModal';
+import AddProductModal from '../components/AddProductModal';
 import { useStoreManagerAuth } from '../context/StoreManagerAuthContext';
 import { getProducts, deleteProduct, updateProduct } from '../../../common/api/productApi';
 import { getCategories } from '../../../common/api/categoryApi';
@@ -38,6 +39,7 @@ const ManagerProducts = () => {
 
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRestockModal, setShowRestockModal] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
     const updateParams = useCallback((newParams) => {
@@ -168,12 +170,12 @@ const ManagerProducts = () => {
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                    <Link
-                        to="/store-manager/products/add"
+                    <button
+                        onClick={() => navigate('/store-manager/products/add')}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2.5 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-black transition-all shadow-xl shadow-slate-200 active:scale-95 group"
                     >
                         <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Add Product
-                    </Link>
+                    </button>
                 </div>
             </div>
 
@@ -432,6 +434,12 @@ const ManagerProducts = () => {
                 onHide={() => setShowRestockModal(false)}
                 product={selectedProduct}
                 onRestockSuccess={fetchData}
+            />
+
+            <AddProductModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSave={() => { setShowAddModal(false); fetchData(); }}
             />
 
             <style dangerouslySetInnerHTML={{ __html: `

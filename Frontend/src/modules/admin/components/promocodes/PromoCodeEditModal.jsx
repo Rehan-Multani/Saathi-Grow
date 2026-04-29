@@ -60,7 +60,7 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
         try {
             await onSave({
                 ...formData,
-                discountValue: formData.discountType === 'FreeShipping' ? 0 : parseFloat(formData.discountValue),
+                discountValue: (formData.discountType === 'FreeShipping' || formData.discountType === 'FreeGift') ? 0 : parseFloat(formData.discountValue),
                 minOrderValue: parseFloat(formData.minOrderValue),
                 maxDiscountAmount: parseFloat(formData.maxDiscountAmount),
                 usageLimitTotal: parseInt(formData.usageLimitTotal),
@@ -68,6 +68,8 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
             });
             setLoading(false);
         } catch (error) {
+            const errorMessage = typeof error === 'string' ? error : (error.message || error.error || t('messages.fetch_error'));
+            toast.error(errorMessage);
             setLoading(false);
         }
     };
@@ -125,28 +127,30 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                                 <option value="Percentage">Percentage (%)</option>
                                 <option value="Fixed">Fixed Amount (₹)</option>
                                 <option value="FreeShipping">Free Shipping</option>
+                                <option value="FreeGift">Free Gift 🎁</option>
                             </select>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.discount_value')}</label>
-                            <div className="relative group">
-                                {formData.discountType === 'Percentage' ? (
-                                    <Percent className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={14} />
-                                ) : (
-                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={14} />
-                                )}
-                                <input
-                                    type="number"
-                                    name="discountValue"
-                                    required={formData.discountType !== 'FreeShipping'}
-                                    disabled={formData.discountType === 'FreeShipping'}
-                                    value={formData.discountValue}
-                                    onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
-                                />
+                        {formData.discountType !== 'FreeShipping' && formData.discountType !== 'FreeGift' && (
+                            <div className="space-y-1.5 animate-in fade-in duration-300">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1">{t('form.discount_value')}</label>
+                                <div className="relative group">
+                                    {formData.discountType === 'Percentage' ? (
+                                        <Percent className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={14} />
+                                    ) : (
+                                        <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={14} />
+                                    )}
+                                    <input
+                                        type="number"
+                                        name="discountValue"
+                                        required
+                                        value={formData.discountValue}
+                                        onChange={handleChange}
+                                        className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -163,20 +167,21 @@ const PromoCodeEditModal = ({ show, onHide, promoCode, onSave }) => {
                                 />
                             </div>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1 font-sans">{t('form.max_discount')}</label>
-                            <div className="relative group">
-                                <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={14} />
-                                <input
-                                    type="number"
-                                    name="maxDiscountAmount"
-                                    value={formData.maxDiscountAmount}
-                                    disabled={formData.discountType !== 'Percentage'}
-                                    onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm disabled:opacity-50"
-                                />
+                        {formData.discountType === 'Percentage' && (
+                            <div className="space-y-1.5 animate-in fade-in duration-300">
+                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-tight ml-1 font-sans">{t('form.max_discount')}</label>
+                                <div className="relative group">
+                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={14} />
+                                    <input
+                                        type="number"
+                                        name="maxDiscountAmount"
+                                        value={formData.maxDiscountAmount}
+                                        onChange={handleChange}
+                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-xs font-bold text-slate-700 shadow-sm disabled:opacity-50"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">

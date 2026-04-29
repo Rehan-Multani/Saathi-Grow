@@ -212,11 +212,11 @@ export const getCashSettlementList = async (params = {}) => {
   return data;
 };
 
-export const settleRiderCash = async (partnerId) => {
+export const settleRiderCash = async (partnerId, pin) => {
   const auth = getAuthDetails();
   if (!auth) throw new Error('Not Authenticated');
 
-  const { data } = await axios.post(`${API_URL}/settle-cash/${partnerId}`, {}, {
+  const { data } = await axios.post(`${API_URL}/settle-cash/${partnerId}`, { pin }, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;

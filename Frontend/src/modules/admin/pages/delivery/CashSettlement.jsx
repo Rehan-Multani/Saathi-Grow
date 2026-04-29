@@ -33,42 +33,78 @@ const CashSettlement = () => {
 
     const handleSettle = async (partner) => {
         const result = await Swal.fire({
-            title: 'Verify Cash Collection',
+            title: '<span class="text-xl font-black text-slate-800 tracking-tight uppercase">Handover Verification</span>',
             html: `
-                <div class="text-left space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 mt-4">
-                    <div class="flex justify-between border-b pb-2 border-slate-200">
-                        <span class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Collector Node</span>
-                        <span class="text-slate-900 font-bold text-xs">${partner.name}</span>
+                <div class="text-left space-y-3 p-5 bg-slate-50/50 rounded-[1.5rem] border border-slate-100 mt-4 font-sans">
+                    <div class="flex justify-between items-center border-b pb-2.5 border-slate-200/60">
+                        <span class="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Collector Node</span>
+                        <span class="text-slate-800 font-extrabold text-xs uppercase tracking-tight">${partner.name}</span>
                     </div>
-                    <div class="flex justify-between pt-1">
-                        <span class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Amount to Handover</span>
-                        <span class="text-blue-600 font-black text-lg tracking-tight">₹${partner.cashInHand}</span>
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Handover Amount</span>
+                        <span class="text-emerald-600 font-black text-xl tracking-tighter">₹${partner.cashInHand}</span>
                     </div>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-6 font-bold uppercase tracking-widest leading-relaxed">* confirm you have received the exact amount mentioned above.</p>
+                
+                <div class="mt-8 text-center font-sans px-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 block">Enter Admin PIN</label>
+                    <div class="relative max-w-[180px] mx-auto">
+                        <input type="password" id="settlementPin" 
+                            class="swal2-input !m-0 !w-full !text-center !text-2xl !font-black !tracking-[0.5em] !py-4 !bg-white !border-2 !border-slate-200 !rounded-[1.25rem] !outline-none focus:!border-emerald-500 focus:!ring-4 focus:!ring-emerald-500/10 !transition-all shadow-sm" 
+                            placeholder="••••" maxlength="6" autofocus>
+                    </div>
+                </div>
+
+                <div class="mt-8 py-3 px-4 bg-amber-50 rounded-2xl border border-amber-100/50 flex items-start gap-3">
+                    <div class="mt-0.5 shrink-0">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <p class="text-[10px] text-amber-700 font-bold text-left leading-relaxed">Confirm physical cash receipt before proceeding. This action is irreversible.</p>
+                </div>
             `,
-            icon: 'info',
             showCancelButton: true,
-            confirmButtonColor: '#10b981',
+            confirmButtonColor: '#059669',
             cancelButtonColor: '#94a3b8',
             confirmButtonText: 'Collected',
-            cancelButtonText: 'Cancel'
+            cancelButtonText: 'Cancel',
+            padding: '2.5rem',
+            customClass: {
+                popup: 'rounded-[2.5rem] border-none shadow-2xl',
+                confirmButton: 'rounded-2xl px-8 py-3 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 m-2',
+                cancelButton: 'rounded-2xl px-8 py-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 m-2'
+            },
+            preConfirm: () => {
+                const pin = Swal.getPopup().querySelector('#settlementPin').value;
+                if (!pin) {
+                    Swal.showValidationMessage('Please enter the settlement PIN');
+                }
+                return { pin };
+            }
         });
 
         if (result.isConfirmed) {
             try {
-                await api.settleRiderCash(partner._id);
+                const { pin } = result.value;
+                await api.settleRiderCash(partner._id, pin);
                 Swal.fire({
                     title: 'Collection Verified',
+                    text: `₹${partner.cashInHand} added to settlement history`,
                     icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
+                    timer: 2000,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'rounded-[2rem]'
+                    }
                 });
                 fetchSettlementData();
             } catch (error) {
                 Swal.fire({
-                    title: 'Failed to settle',
-                    icon: 'error'
+                    title: 'Verification Failed',
+                    text: error.response?.data?.message || 'Invalid PIN or server error',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'rounded-[2rem]'
+                    }
                 });
             }
         }

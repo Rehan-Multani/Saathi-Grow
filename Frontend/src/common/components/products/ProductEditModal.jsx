@@ -35,7 +35,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
     const [availableLocations, setAvailableLocations] = useState([]);
 
     const [formData, setFormData] = useState({
-        name: '', brandName: '', category: '', subCategory: '', basePrice: 0, mrp: 0,
+        name: '', brandName: '', category: '', subCategory: '', basePrice: 0, mrp: 0, purchasePrice: 0, hsnCode: '',
         isVeg: true, sku: '', status: 'Active', physicalLocation: '', unitType: 'pcs',
         unitValue: 1, description: '', tags: [], isSaathigro: false, stock: 0, lowStockThreshold: 10,
         // --- New Fields ---
@@ -71,6 +71,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
             setFormData({
                 name: product.name || '', brandName: product.brandName || '', category: product.category || '',
                 subCategory: product.subCategory || '', basePrice: product.basePrice || 0, mrp: product.mrp || 0,
+                purchasePrice: product.purchasePrice || '', hsnCode: product.hsnCode || '',
                 isVeg: product.isVeg !== undefined ? product.isVeg : true,
                 sku: product.sku || '', status: product.status || 'Active',
                 physicalLocation: product.physicalLocation || '', unitType: product.unitType || 'pcs',
@@ -136,7 +137,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : (['basePrice', 'mrp', 'unitValue', 'stock', 'lowStockThreshold'].includes(name) ? (value === '' ? '' : Number(value)) : value)
+            [name]: type === 'checkbox' ? checked : (['basePrice', 'mrp', 'purchasePrice', 'unitValue', 'stock', 'lowStockThreshold'].includes(name) ? (value === '' ? '' : Number(value)) : value)
         }));
     };
 
@@ -219,13 +220,13 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                             {/* Core Info */}
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">{t('fields.name')}</label>
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.name')}<span className="text-red-500 ml-1">*</span></label>
                                     <input type="text" name="name" value={formData.name} onChange={handleChange} required className="form-input-simple" />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700">{t('fields.category')}</label>
+                                        <label className="text-sm font-semibold text-slate-700">{t('fields.category')}<span className="text-red-500 ml-1">*</span></label>
                                         <select name="category" value={formData.category} onChange={handleChange} required className="form-input-simple">
                                             <option value="">Select {t('fields.category')}</option>
                                             {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
@@ -239,7 +240,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700">{t('fields.brand')}</label>
+                                        <label className="text-sm font-semibold text-slate-700">{t('fields.brand')}<span className="text-red-500 ml-1">*</span></label>
                                         <select name="brandName" value={formData.brandName} onChange={handleChange} required className="form-input-simple pr-10" disabled={!formData.category}>
                                             <option value="">Select {t('fields.brand')}</option>
                                             {filteredBrands.map(b => <option key={b._id} value={b.name}>{b.name}</option>)}
@@ -249,12 +250,20 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700">{t('fields.base_price')}</label>
-                                        <input type="number" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="form-input-simple font-bold" />
+                                        <label className="text-sm font-semibold text-slate-700">{t('fields.base_price')}<span className="text-red-500 ml-1">*</span></label>
+                                        <input type="number" onWheel={(e) => e.target.blur()} name="basePrice" value={formData.basePrice} onChange={handleChange} required className="form-input-simple font-bold" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700">{t('fields.mrp')}</label>
-                                        <input type="number" name="mrp" value={formData.mrp} onChange={handleChange} required className="form-input-simple font-bold text-slate-400" />
+                                        <label className="text-sm font-semibold text-slate-700">{t('fields.mrp')}<span className="text-red-500 ml-1">*</span></label>
+                                        <input type="number" onWheel={(e) => e.target.blur()} name="mrp" value={formData.mrp} onChange={handleChange} required className="form-input-simple font-bold text-slate-400" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700">Purchase Price</label>
+                                        <input type="number" onWheel={(e) => e.target.blur()} name="purchasePrice" value={formData.purchasePrice} onChange={handleChange} className="form-input-simple font-bold text-slate-400" placeholder="Optional" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700">HSN Code</label>
+                                        <input type="text" name="hsnCode" value={formData.hsnCode} onChange={handleChange} className="form-input-simple font-bold text-slate-400" placeholder="Optional" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">{t('fields.unit_type')}</label>
@@ -264,7 +273,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700">{t('fields.unit_value')}</label>
-                                        <input type="number" name="unitValue" value={formData.unitValue} onChange={handleChange} step="0.01" className="form-input-simple" />
+                                        <input type="number" onWheel={(e) => e.target.blur()} name="unitValue" value={formData.unitValue} onChange={handleChange} step="0.01" className="form-input-simple" />
                                     </div>
                                     {!isVendorProduct && (
                                         <div className="space-y-2 col-span-2 lg:col-span-4">
@@ -306,11 +315,11 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div className="space-y-1">
                                                         <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock Qty</label>
-                                                        <input type="number" value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs outline-none focus:border-blue-500 font-bold text-slate-800 shadow-sm" placeholder="0" />
+                                                        <input type="number" onWheel={(e) => e.target.blur()} value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs outline-none focus:border-blue-500 font-bold text-slate-800 shadow-sm" placeholder="0" />
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</label>
-                                                        <input type="number" value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs outline-none focus:border-red-500 font-bold text-red-500 shadow-sm" placeholder="10" />
+                                                        <input type="number" onWheel={(e) => e.target.blur()} value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs outline-none focus:border-red-500 font-bold text-red-500 shadow-sm" placeholder="10" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -328,11 +337,11 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Reorder Threshold</label>
-                                        <input type="number" name="reorderThreshold" value={formData.reorderThreshold} onChange={handleChange} className="form-input-simple" />
+                                        <input type="number" onWheel={(e) => e.target.blur()} name="reorderThreshold" value={formData.reorderThreshold} onChange={handleChange} className="form-input-simple" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Max Capacity per SKU</label>
-                                        <input type="number" name="maxCapacityPerSku" value={formData.maxCapacityPerSku} onChange={handleChange} className="form-input-simple" />
+                                        <input type="number" onWheel={(e) => e.target.blur()} name="maxCapacityPerSku" value={formData.maxCapacityPerSku} onChange={handleChange} className="form-input-simple" />
                                     </div>
                                     <div className="md:col-span-2 flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
                                         <input type="checkbox" id="editStockAutoSync" checked={formData.isStockAutoSync} onChange={(e) => setFormData(p => ({...p, isStockAutoSync: e.target.checked}))} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
@@ -413,7 +422,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 text-[11px] uppercase tracking-wider">Pick Sequence</label>
-                                        <input type="number" name="pickSequence" value={formData.pickSequence} onChange={handleChange} className="form-input-simple" />
+                                        <input type="number" onWheel={(e) => e.target.blur()} name="pickSequence" value={formData.pickSequence} onChange={handleChange} className="form-input-simple" />
                                     </div>
                                 </div>
                             </div>
@@ -421,7 +430,7 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
                             {/* Content */}
                             <div className="space-y-4 pt-6 border-t border-slate-50">
                                 <div className="flex justify-between items-center">
-                                    <label className="text-sm font-semibold text-slate-700">{t('fields.description')}</label>
+                                    <label className="text-sm font-semibold text-slate-700">{t('fields.description')}<span className="text-red-500 ml-1">*</span></label>
                                     <button type="button" onClick={() => handleAISuggestion('description')} disabled={aiLoading.description} className="text-xs font-bold text-blue-600 flex items-center gap-1">
                                         {aiLoading.description ? '...' : <><Sparkles size={14} /> {t('form.ai_write')}</>}
                                     </button>
@@ -511,3 +520,5 @@ const ProductEditModal = ({ show, onHide, product, onSave }) => {
 };
 
 export default ProductEditModal;
+
+

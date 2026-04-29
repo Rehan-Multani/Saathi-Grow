@@ -61,19 +61,23 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         damping: 20,
         opacity: { duration: 0.4 }
       }}
-      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111]"
+      className="rounded-lg sm:rounded-xl p-2 sm:p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] md:shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-200/60 dark:border-white/10 hover:shadow-lg active:shadow-md transition-all duration-500 flex flex-col gap-1 sm:gap-3 h-auto md:h-full group relative overflow-hidden mb-1 md:ring-0 md:!bg-white dark:md:!bg-[#111111] will-change-transform"
       style={{
         background: isDarkMode ? '#111111' : (customTheme?.bgColor || '#ffffff'),
         borderColor: customTheme ? `${customTheme.themeColor}30` : undefined,
-        '--theme-color': customTheme ? customTheme.themeColor : '#0c831f'
+        '--theme-color': customTheme ? customTheme.themeColor : '#0c831f',
+        transform: 'translateZ(0)', // Force GPU acceleration for Safari
+        WebkitTransform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
       }}
     >
 
 
 
-      {/* Pulsing Border Highlight - Mobile Only */}
+      {/* Pulsing Border Highlight - Mobile Only - DISABLED on Safari */}
       <div
-        className="absolute inset-0 rounded-lg sm:rounded-xl border-[1.5px] md:border-transparent animate-pulse md:animate-none pointer-events-none z-30"
+        className="absolute inset-0 rounded-lg sm:rounded-xl border-[1.5px] md:border-transparent pointer-events-none z-30 safari-no-animate"
         style={{ borderColor: customTheme ? `${customTheme.themeColor}20` : '#0c831f20' }}
       />
       <div className="absolute top-0 left-0 bg-[#0c831f] text-white text-[7.5px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-br-lg z-30 shadow-sm flex items-center gap-0.5">
@@ -115,6 +119,7 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
             src={product.image || categoryPlaceholder}
             alt={product.name}
             className={`w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 ${imgPadding || 'p-2'}`}
+            style={{ willChange: 'transform', transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }}
             onError={(e) => {
               if (e.target.src !== categoryPlaceholder) {
                 e.target.src = categoryPlaceholder;
@@ -195,6 +200,12 @@ const ProductCard = memo(({ product, isCompact = false, customTheme, imgPadding,
         @keyframes shine-sweep-fast {
           0% { left: -100%; }
           100% { left: 200%; }
+        }
+        /* Safari flicker fix: disable pulse animation on Safari */
+        @supports (-webkit-hyphens: none) {
+          .safari-no-animate {
+            animation: none !important;
+          }
         }
       `}</style>
     </motion.div >

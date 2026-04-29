@@ -46,9 +46,12 @@ export const managerSidebarMenu = [
   },
   {
     title: 'Reports & Analytics',
-    path: '/store-manager/reports',
     icon: 'BarChart3',
-    permission: null
+    permission: null,
+    submenu: [
+      { title: 'General Reports', path: '/store-manager/reports', permission: null },
+      { title: 'Vyapar Report', path: '/store-manager/reports/vyapar', permission: null },
+    ],
   },
   {
     title: 'Support Tickets',

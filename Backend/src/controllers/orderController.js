@@ -186,8 +186,33 @@ export const computeBillDetails = async (items, options = {}) => {
   let appliedPromo = null;
 
   // Promo Calculation
-  if (promoId) {
-    const promo = await PromoCode.findById(promoId);
+  let targetPromoId = promoId;
+
+  // If no promoId provided, look for Auto-Apply promos
+  if (!targetPromoId && userId) {
+      const now = new Date();
+      const autoPromos = await PromoCode.find({
+          isActive: true,
+          isAutoApply: true,
+          validFrom: { $lte: now },
+          validUntil: { $gte: now },
+          minOrderValue: { $lte: subTotal }
+      }).sort({ discountValue: -1 }); // Sort by best discount (naive, but common)
+
+      if (autoPromos.length > 0) {
+          // Find the first one user is eligible for
+          for (const ap of autoPromos) {
+              const usage = await PromoUsage.findOne({ user: userId, promoCode: ap._id });
+              if (!usage || usage.usageCount < ap.usageLimitPerUser) {
+                  targetPromoId = ap._id;
+                  break;
+              }
+          }
+      }
+  }
+
+  if (targetPromoId) {
+    const promo = await PromoCode.findById(targetPromoId);
     if (promo && promo.isActive) {
       const now = new Date();
       if (now >= promo.validFrom && now <= promo.validUntil) {
@@ -235,7 +260,9 @@ export const computeBillDetails = async (items, options = {}) => {
     platformCommission: parseFloat(platformCommission.toFixed(2)),
     vendorPayoutAmount: parseFloat(vendorPayoutAmount.toFixed(2)),
     promoId: appliedPromo?._id || null,
-    promoCode: appliedPromo?.code || null
+    promoCode: appliedPromo?.code || null,
+    freeGift: (appliedPromo?.discountType === 'FreeGift') ? appliedPromo.freeGift : null,
+    discountType: appliedPromo?.discountType || null
   };
 };
 

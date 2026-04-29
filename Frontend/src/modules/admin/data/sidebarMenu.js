@@ -161,6 +161,7 @@ export const adminSidebarMenu = [
             { title: 'Sales Reports', key: 'sales_reports', path: '/admin/reports/sales' },
             { title: 'Inventory Reports', key: 'inventory_reports', path: '/admin/reports/inventory' },
             { title: 'Vendor Reports', key: 'vendor_reports', path: '/admin/reports/vendors' },
+            { title: 'Vyapar Report', key: 'vyapar_reports', path: '/admin/reports/vyapar' },
         ],
     },
     {

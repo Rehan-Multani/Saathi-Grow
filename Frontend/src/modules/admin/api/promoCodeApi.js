@@ -66,3 +66,13 @@ export const getApplicablePromos = async (token, subTotal) => {
         throw error.response?.data || error.message;
     }
 };
+export const getUpsellingPromos = async (token, subTotal) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/promocodes/upselling`, { subTotal }, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

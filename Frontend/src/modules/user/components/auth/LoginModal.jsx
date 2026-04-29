@@ -135,7 +135,7 @@ const LoginModal = () => {
                             </div>
                             <button
                                 type="submit" disabled={loading}
-                                className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl shadow-lg shadow-green-200 text-sm font-black text-white bg-[var(--saathi-green)] hover:bg-green-700 transition-all active:scale-[0.98] disabled:opacity-50"
+                                className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl shadow-lg shadow-[var(--saathi-green)]/20 text-sm font-black text-white bg-[var(--saathi-green)] hover:bg-[var(--saathi-green-hover)] transition-all active:scale-[0.98] disabled:opacity-50"
                             >
                                 {loading ? <Loader2 className="animate-spin mr-2" size={18} /> : <ArrowRight size={18} className="mr-2" />}
                                 Send OTP
@@ -158,7 +158,7 @@ const LoginModal = () => {
                             </div>
                             <button
                                 type="submit" disabled={loading || otp.length !== 6}
-                                className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl shadow-lg shadow-green-200 text-sm font-black text-white bg-[var(--saathi-green)] hover:bg-green-700 transition-all active:scale-[0.98] disabled:opacity-50"
+                                className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl shadow-lg shadow-[var(--saathi-green)]/20 text-sm font-black text-white bg-[var(--saathi-green)] hover:bg-[var(--saathi-green-hover)] transition-all active:scale-[0.98] disabled:opacity-50"
                             >
                                 {loading && <Loader2 className="animate-spin mr-2" size={18} />}
                                 Verify & Proceed

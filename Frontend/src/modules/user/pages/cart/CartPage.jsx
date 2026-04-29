@@ -1,9 +1,11 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { Minus, Plus, ArrowRight } from 'lucide-react';
+import { Minus, Plus, ArrowRight, Gift, Sparkles, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ASSET_URLS } from '../../../../constants/assetUrls';
+import { getUpsellingPromos } from '../../api/orderApi';
+import { toast } from 'react-toastify';
 const categoryPlaceholder = ASSET_URLS.placeholder;
 
 const CartPage = () => {
@@ -12,7 +14,27 @@ const CartPage = () => {
   const navigate = useNavigate();
   const deliveryFee = 15;
   const handlingFee = 5;
+  const [upsellingPromos, setUpsellingPromos] = React.useState([]);
+  const [loadingPromos, setLoadingPromos] = React.useState(false);
+
   const finalTotal = cartTotal + deliveryFee + handlingFee;
+
+  React.useEffect(() => {
+    const fetchUpselling = async () => {
+      if (!user || cartTotal <= 0) return;
+      setLoadingPromos(true);
+      try {
+        const result = await getUpsellingPromos(user.token, cartTotal);
+        setUpsellingPromos(result.data || []);
+      } catch (err) {
+        console.error("Upselling fetch failed", err);
+      } finally {
+        setLoadingPromos(false);
+      }
+    };
+    fetchUpselling();
+  }, [cartTotal, user]);
+
   const handleProceed = () => {
     protectAction(() => {
       navigate('/checkout');
@@ -43,6 +65,36 @@ const CartPage = () => {
       <div className="max-w-3xl mx-auto px-4 py-8 md:max-w-6xl md:grid md:grid-cols-3 md:gap-6">
         <div className="md:col-span-2">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">My Cart <span className="text-gray-400 dark:text-gray-500 text-lg font-normal">({cart.length} items)</span></h1>
+
+          {/* Upselling Banners */}
+          {!loadingPromos && upsellingPromos.length > 0 && (
+            <div className="space-y-3 mb-6 animate-in slide-in-from-left duration-500">
+              {upsellingPromos.map((promo) => {
+                const diff = promo.minOrderValue - cartTotal;
+                if (diff <= 0) return null;
+                return (
+                  <div key={promo._id} className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/30 p-4 rounded-2xl flex items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white dark:bg-emerald-800/30 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm shrink-0">
+                        {promo.discountType === 'FreeGift' ? <Gift size={20} /> : <Sparkles size={20} />}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-tight leading-none mb-1">
+                          {promo.discountType === 'FreeGift' ? '🎁 Free Gift Awaits!' : '🎉 Special Offer unlocked!'}
+                        </h4>
+                        <p className="text-[11px] text-emerald-700/80 dark:text-emerald-300/80 font-bold leading-tight">
+                          Add <span className="text-emerald-900 dark:text-emerald-100 text-sm font-black">₹{diff}</span> more to get {promo.discountType === 'FreeGift' ? (promo.freeGift?.title || 'a Free Gift') : promo.description || 'this offer'}!
+                        </p>
+                      </div>
+                    </div>
+                    <Link to="/" className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-emerald-800/20 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800/30 hover:bg-emerald-50 transition-colors">
+                      Shop More
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="bg-transparent md:bg-white dark:bg-transparent dark:md:bg-gray-800 rounded-none md:rounded-2xl shadow-none md:shadow-sm border-none md:border border-gray-100 dark:border-gray-700 overflow-visible md:overflow-hidden mb-6 md:mb-0">
             <div className="divide-y divide-gray-100 dark:divide-gray-700">

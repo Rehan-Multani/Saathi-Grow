@@ -46,11 +46,20 @@ const StoreManagerLayout = () => {
         if (path.includes('dashboard')) return 'Overview';
         if (path.includes('inventory')) return 'Inventory';
         if (path.includes('returns')) return 'Returns';
-        if (path.includes('reports')) return 'Reports';
+        if (path.includes('reports')) return 'Reports & Analytics';
         if (path.includes('orders')) return 'Orders';
-        if (path.includes('staff')) return 'Staff';
-        if (path.includes('support')) return 'Support';
+        if (path.includes('staff')) return 'Staff Management';
+        if (path.includes('support')) return 'Support Tickets';
+        if (path.includes('notifications')) return 'Notifications';
         if (path.includes('pos')) return 'Billing (POS)';
+        if (path.includes('products')) return 'Products';
+        if (path.includes('customers')) return 'Customers';
+        if (path.includes('delivery/partners')) return 'Delivery Partners';
+        if (path.includes('delivery/assign')) return 'Assign Deliveries';
+        if (path.includes('delivery/tracking')) return 'Delivery Tracking';
+        if (path.includes('profile')) return 'Branch Profile';
+        if (path.includes('policies')) return 'Legal & Policies';
+        if (path.includes('settings')) return 'Settings';
         return 'Manager Dashboard';
     };
 
