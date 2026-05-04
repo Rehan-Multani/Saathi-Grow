@@ -301,14 +301,88 @@ export const getUnassignedOrders = async (req, res) => {
 // @access  Private (Admin)
 export const getAvailablePartners = async (req, res) => {
   try {
+    const { orderIds } = req.query; // comma-separated order IDs for location-based sorting
+
     const partners = await DeliveryPartner.find({
       authStatus: 'Active',
-      // Allowing admin to assign orders to riders even if they haven't explicitly started their 'Online' shift
       assignmentStatus: 'Free'
     })
       .select('name phone uniqueId vehicleType vehicleNumber profileImage authStatus dutyStatus assignmentStatus currentLocation activeOrder createdAt')
-      .sort({ createdAt: -1 })
       .lean();
+
+    // If orderIds provided, sort partners by proximity to the delivery area
+    if (orderIds) {
+      const ids = orderIds.split(',').filter(Boolean);
+      if (ids.length > 0) {
+        try {
+          // Fetch the orders to get delivery coordinates/city
+          const orders = await Order.find({ _id: { $in: ids } })
+            .select('shippingAddress')
+            .lean();
+
+          // Collect all valid coordinates from order shipping addresses
+          const orderCoords = orders
+            .map(o => o.shippingAddress?.location?.coordinates)
+            .filter(c => c && c.length === 2 && (c[0] !== 0 || c[1] !== 0));
+
+          // Collect delivery cities for fallback text matching
+          const orderCities = [...new Set(
+            orders
+              .map(o => o.shippingAddress?.city?.toLowerCase().trim())
+              .filter(Boolean)
+          )];
+
+          if (orderCoords.length > 0) {
+            // Calculate centroid of all order delivery locations
+            const centroidLng = orderCoords.reduce((sum, c) => sum + c[0], 0) / orderCoords.length;
+            const centroidLat = orderCoords.reduce((sum, c) => sum + c[1], 0) / orderCoords.length;
+
+            // Haversine distance in km
+            const haversine = (lat1, lon1, lat2, lon2) => {
+              const R = 6371;
+              const dLat = (lat2 - lat1) * Math.PI / 180;
+              const dLon = (lon2 - lon1) * Math.PI / 180;
+              const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) ** 2;
+              return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            };
+
+            // Annotate each partner with distance and sort
+            const annotated = partners.map(p => {
+              const [pLng, pLat] = p.currentLocation?.coordinates || [0, 0];
+              const hasLocation = pLng !== 0 || pLat !== 0;
+              const distanceKm = hasLocation
+                ? haversine(centroidLat, centroidLng, pLat, pLng)
+                : null;
+              return { ...p, distanceKm };
+            });
+
+            // Sort: partners with known location first (by distance), then unknown location
+            annotated.sort((a, b) => {
+              if (a.distanceKm !== null && b.distanceKm !== null) return a.distanceKm - b.distanceKm;
+              if (a.distanceKm !== null) return -1;
+              if (b.distanceKm !== null) return 1;
+              return 0;
+            });
+
+            return res.json(annotated);
+          } else if (orderCities.length > 0) {
+            // Fallback: city-based text match — partners whose last known city matches go first
+            // (DeliveryPartner doesn't store city text, so we just return all sorted by Online status)
+            const sorted = [...partners].sort((a, b) => {
+              const aOnline = a.dutyStatus === 'Online' ? 0 : 1;
+              const bOnline = b.dutyStatus === 'Online' ? 0 : 1;
+              return aOnline - bOnline;
+            });
+            return res.json(sorted);
+          }
+        } catch (err) {
+          console.error('[getAvailablePartners] Location sort error:', err.message);
+          // Fall through to default response
+        }
+      }
+    }
 
     res.json(partners);
   } catch (error) {

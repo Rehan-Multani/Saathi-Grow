@@ -522,6 +522,48 @@ const AddProduct = () => {
                             </div>
                         </div>
 
+                        {/* Section 3: Distribution Allocation */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                                <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
+                                Branch Access
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div className="space-y-4 pt-4">
+                                    <div className="space-y-4 pt-4 border-t border-slate-50">
+                                        <label className="text-sm font-semibold text-slate-700 block">{t('fields.allocate_branches')}</label>
+                                        <MultiBranchDropdown 
+                                            branches={branches} 
+                                            selectedIds={branchStocks.map(bs => bs.branchId)}
+                                            onToggle={handleBranchToggle}
+                                            placeholder="Click to select branches"
+                                        />
+
+                                        {branchStocks.length > 0 && (
+                                            <div className="space-y-3 mt-6">
+                                                {branchStocks.map(bs => (
+                                                    <div key={bs.branchId} className="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
+                                                        <div className="flex-1 font-bold text-xs text-slate-700 uppercase tracking-tight">{bs.name}</div>
+                                                        <div className="flex gap-4">
+                                                            <div className="space-y-1">
+                                                                 <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock</span>
+                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                 <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</span>
+                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none text-rose-500" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Shelf Location Section */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-4 shadow-sm">
                             <div className="flex items-center justify-between">
@@ -610,48 +652,6 @@ const AddProduct = () => {
                                     </div>
                                 </div>
                             )}
-                        </div>
-
-                        {/* Section 3: Distribution Allocation */}
-                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
-                            <h3 className="text-lg font-bold text-black flex items-center gap-2">
-                                <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
-                                Branch Access
-                            </h3>
-
-                            <div className="space-y-4">
-                                <div className="space-y-4 pt-4">
-                                    <div className="space-y-4 pt-4 border-t border-slate-50">
-                                        <label className="text-sm font-semibold text-slate-700 block">{t('fields.allocate_branches')}</label>
-                                        <MultiBranchDropdown 
-                                            branches={branches} 
-                                            selectedIds={branchStocks.map(bs => bs.branchId)}
-                                            onToggle={handleBranchToggle}
-                                            placeholder="Click to select branches"
-                                        />
-
-                                        {branchStocks.length > 0 && (
-                                            <div className="space-y-3 mt-6">
-                                                {branchStocks.map(bs => (
-                                                    <div key={bs.branchId} className="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
-                                                        <div className="flex-1 font-bold text-xs text-slate-700 uppercase tracking-tight">{bs.name}</div>
-                                                        <div className="flex gap-4">
-                                                            <div className="space-y-1">
-                                                                 <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Stock</span>
-                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.stock} onChange={e => handleBranchStockChange(bs.branchId, 'stock', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none" />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                 <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">Alert Limit</span>
-                                                                 <input type="number" onWheel={(e) => e.target.blur()} value={bs.lowStockThreshold} onChange={e => handleBranchStockChange(bs.branchId, 'lowStockThreshold', e.target.value)} className="w-24 bg-white border border-slate-200 rounded-lg py-1.5 px-3 text-sm outline-none text-rose-500" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         {/* Section 4: Inventory Intelligence */}

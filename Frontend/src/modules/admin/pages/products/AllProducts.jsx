@@ -291,6 +291,7 @@ const AllProducts = () => {
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.category')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.price')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.stock')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">Location</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">{t('table.status')}</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">{t('table.actions')}</th>
                             </tr>
@@ -298,7 +299,7 @@ const AllProducts = () => {
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="py-20 text-center">
+                                    <td colSpan="7" className="py-20 text-center">
                                         <div className="saathi-spinner mx-auto mb-4"></div>
                                         <p className="text-slate-400 text-sm">{t('meta.syncing')}</p>
                                     </td>
@@ -328,6 +329,15 @@ const AllProducts = () => {
                                             <span className={`text-xs font-bold ${getTotalStock(p) <= 10 ? 'text-red-600' : 'text-slate-600'}`}>{getTotalStock(p)}</span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
+                                            {p.physicalLocation ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-violet-50 text-violet-700 border border-violet-100 rounded-lg text-[10px] font-semibold uppercase tracking-wide">
+                                                    <Store size={11} /> {p.physicalLocation}
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] text-slate-300 font-medium">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
                                             <ProductStatusBadge status={p.status} />
                                         </td>
                                         <td className="px-6 py-4">
@@ -353,7 +363,7 @@ const AllProducts = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="py-20 text-center">
+                                    <td colSpan="7" className="py-20 text-center">
                                         <p className="text-slate-400 text-sm font-medium">{t('meta.no_products')}</p>
                                     </td>
                                 </tr>

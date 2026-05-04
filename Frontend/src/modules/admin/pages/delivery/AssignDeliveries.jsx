@@ -122,7 +122,7 @@ const AssignDeliveries = () => {
         setShowAssignModal(true);
         setLoadingDrivers(true);
         try {
-            const drivers = await getAvailablePartners();
+            const drivers = await getAvailablePartners(selectedOrders);
             setAvailableDrivers(drivers);
         } catch (error) {
             // toast.error("Failed to load available riders");
@@ -513,7 +513,7 @@ const AssignDeliveries = () => {
                                 ) : availableDrivers.length === 0 ? (
                                     <div className="p-10 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 flex flex-col items-center gap-3">
                                         <AlertCircle size={32} className="text-slate-200" />
-                                        <p className="text-[10px] font-bold text-slate-400 max-w-[200px] uppercase">No available riders found online</p>
+                                        <p className="text-[10px] font-bold text-slate-400 max-w-[200px] uppercase">No free riders available in this area</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -539,10 +539,23 @@ const AssignDeliveries = () => {
                                                             <div className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
                                                                 <Phone size={10} /> {driver.phone}
                                                             </div>
+                                                            {driver.distanceKm != null && (
+                                                                <>
+                                                                    <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                                                    <div className="text-[9px] font-bold text-emerald-600 flex items-center gap-1">
+                                                                        <MapPin size={10} /> {driver.distanceKm < 1 ? `${Math.round(driver.distanceKm * 1000)}m` : `${driver.distanceKm.toFixed(1)}km`}
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <ArrowRight size={16} className="text-slate-200 group-hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${driver.dutyStatus === 'Online' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                                        {driver.dutyStatus}
+                                                    </span>
+                                                    <ArrowRight size={16} className="text-slate-200 group-hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

@@ -253,6 +253,7 @@ const ManagerProducts = () => {
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Price</th>
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Stock</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Location</th>
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Status</th>
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
                             </tr>
@@ -261,7 +262,7 @@ const ManagerProducts = () => {
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan="6" className="px-8 py-6">
+                                        <td colSpan="7" className="px-8 py-6">
                                             <div className="h-16 bg-slate-50 rounded-2xl w-full"></div>
                                         </td>
                                     </tr>
@@ -313,6 +314,15 @@ const ManagerProducts = () => {
                                                     <span className="text-lg leading-none">{stock}</span>
                                                     <span className="text-[7px] uppercase tracking-tighter">Stock</span>
                                                 </div>
+                                            </td>
+                                            <td className="px-8 py-5 text-center">
+                                                {p.physicalLocation ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-50 text-violet-700 border border-violet-100 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                                                        <Store size={11} /> {p.physicalLocation}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[10px] text-slate-300 font-bold">—</span>
+                                                )}
                                             </td>
                                             <td className="px-8 py-5 text-center">
                                                 <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border ${p.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
@@ -383,7 +393,7 @@ const ManagerProducts = () => {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="py-24 text-center">
+                                    <td colSpan="7" className="py-24 text-center">
                                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 text-slate-200">
                                             <Package size={24} />
                                         </div>

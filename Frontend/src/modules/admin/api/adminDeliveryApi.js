@@ -107,11 +107,12 @@ export const getUnassignedOrders = async () => {
   return data;
 };
 
-export const getAvailablePartners = async () => {
+export const getAvailablePartners = async (orderIds = []) => {
   const auth = getAuthDetails();
   if (!auth) return [];
 
-  const { data } = await axios.get(`${API_URL}/available`, {
+  const params = orderIds.length > 0 ? `?orderIds=${orderIds.join(',')}` : '';
+  const { data } = await axios.get(`${API_URL}/available${params}`, {
     headers: { Authorization: `Bearer ${auth.token}` }
   });
   return data;

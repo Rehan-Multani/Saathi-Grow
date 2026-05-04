@@ -16,6 +16,7 @@ import Swal from 'sweetalert2';
 import { useVendor } from '../contexts/VendorContext';
 import { createPOSOrder, searchProductsPOS } from '../../../common/api/posApi';
 import { getPublicSettings } from '../../../common/api/settingApi';
+import { getOrderDetails } from '../../../common/api/orderApi';
 
 const VendorPOS = () => {
   const { vendor } = useVendor();
@@ -99,6 +100,102 @@ const VendorPOS = () => {
   const taxAmount = (subTotal * taxRate) / 100;
   const totalAmount = subTotal + taxAmount;
 
+  const generateAndPrintReceipt = (order) => {
+    const items = order.items || order.orderItems || [];
+    const itemsHtml = items.length > 0 ? items.map(item => {
+      const name = item.product?.name || item.name || 'Item';
+      const qty = item.quantity || 1;
+      const unitPrice = item.price || item.basePrice || item.product?.basePrice || 0;
+      const total = unitPrice * qty;
+      return `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;border-bottom:1px dotted #ddd;vertical-align:top;">${name}</td>
+          <td style="padding:5px 4px;font-size:12px;text-align:center;border-bottom:1px dotted #ddd;vertical-align:top;">${qty}</td>
+          <td style="padding:5px 0;font-size:12px;text-align:right;border-bottom:1px dotted #ddd;white-space:nowrap;vertical-align:top;">₹${total.toLocaleString('en-IN')}</td>
+        </tr>`;
+    }).join('') : '<tr><td colspan="3" style="text-align:center;font-size:11px;padding:8px;">No items found</td></tr>';
+
+    const receiptHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Receipt - #${order.orderId || order._id?.slice(-8).toUpperCase()}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Courier New', monospace; width: 300px; margin: 0 auto; padding: 16px; font-size: 13px; color: #000; }
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+    .divider { border-top: 1px dashed #000; margin: 8px 0; }
+    .divider-solid { border-top: 2px solid #000; margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 11px; text-align: left; border-bottom: 1px dashed #000; padding: 4px 0; }
+    th:nth-child(2) { text-align: center; }
+    th:nth-child(3) { text-align: right; }
+    .total-row td { font-weight: bold; font-size: 14px; padding-top: 8px; }
+    .store-name { font-size: 22px; font-weight: 900; letter-spacing: 2px; }
+    .tag { font-size: 10px; color: #444; margin-top: 2px; }
+    @media print { @page { margin: 0; size: 80mm auto; } body { width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="center" style="margin-bottom:12px;">
+    <div class="store-name">Saathigro</div>
+    <div class="tag">Your Everyday Grocery Partner</div>
+    <div class="tag">Indore, Madhya Pradesh</div>
+    <div class="tag">support@Saathigro.com</div>
+  </div>
+  <div class="divider-solid"></div>
+  <div style="margin:8px 0;">
+    <div class="bold" style="font-size:13px;">POS ORDER #${order.orderId || order._id?.slice(-8).toUpperCase()}</div>
+    <div class="tag">Date: ${new Date(order.createdAt).toLocaleString('en-IN')}</div>
+    <div class="tag">Customer: ${order.posCustomer?.name || order.user?.name || 'Guest'}</div>
+    ${order.posCustomer?.phone || order.user?.phone ? `<div class="tag">Phone: ${order.posCustomer?.phone || order.user?.phone}</div>` : ''}
+  </div>
+  <div class="divider"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>ITEM</th>
+        <th style="text-align:center;">QTY</th>
+        <th style="text-align:right;">AMOUNT</th>
+      </tr>
+    </thead>
+    <tbody>${itemsHtml}</tbody>
+  </table>
+  <div class="divider"></div>
+  <table>
+    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
+    ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
+    <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.totalAmount?.toLocaleString('en-IN')}</td></tr>
+  </table>
+  <div class="divider"></div>
+  <div style="font-size:12px;margin:6px 0;">
+    <div>Payment: <span class="bold">${(order.paymentMethod || 'Cash').toUpperCase()}</span></div>
+    <div>Status: <span class="bold" style="color:${order.paymentStatus === 'paid' ? 'green' : 'orange'}">${(order.paymentStatus || 'Paid').toUpperCase()}</span></div>
+  </div>
+  <div class="divider-solid"></div>
+  <div class="center" style="margin-top:12px;">
+    <div style="font-size:11px;">Thank you for shopping with Saathigro!</div>
+    <div style="font-size:10px;color:#555;margin-top:4px;">Visit us again • www.Saathigro.com</div>
+    <div style="font-size:10px;color:#888;margin-top:10px;">*** This is a computer generated receipt ***</div>
+  </div>
+</body>
+</html>`;
+    const win = window.open('', '_blank', 'width=420,height=750');
+    win.document.write(receiptHtml);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 500);
+  };
+
+  const handlePrintReceipt = async (order) => {
+    try {
+      const fullOrder = await getOrderDetails(order._id);
+      generateAndPrintReceipt(fullOrder);
+    } catch {
+      generateAndPrintReceipt(order);
+    }
+  };
+
   const handleCompleteOrder = async () => {
     if (cart.length === 0) return;
     const result = await Swal.fire({
@@ -114,9 +211,34 @@ const VendorPOS = () => {
 
     setIsProcessing(true);
     try {
-      await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, vendor?.token);
-      toast.success('Order placed successfully!');
-      setCart([]); setCustomerDetails({ name: '', email: '', phone: '' }); fetchProducts();
+      const created = await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, vendor?.token);
+      const placedOrder = created?.order || created;
+
+      setCart([]);
+      setCustomerDetails({ name: '', email: '', phone: '' });
+      fetchProducts();
+
+      // Success popup with print option
+      const { value: action } = await Swal.fire({
+        title: '<span style="color:#16a34a;font-size:20px;">✓ Order Placed!</span>',
+        html: `
+          <div style="color:#64748b;font-size:13px;margin-bottom:4px;">
+            Order <strong style="color:#1e293b">#${placedOrder?.orderId || placedOrder?._id?.slice(-8).toUpperCase() || ''}</strong> placed successfully.
+          </div>
+          <div style="font-size:22px;font-weight:900;color:#1e293b;margin:8px 0;">₹${totalAmount.toFixed(0)}</div>
+          <div style="color:#94a3b8;font-size:11px;">Would you like to print the bill?</div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#0c831f',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '<span style="display:flex;align-items:center;gap:6px;">🖨️ Print Bill</span>',
+        cancelButtonText: 'New Order',
+        customClass: { popup: 'rounded-3xl' },
+      });
+
+      if (action && placedOrder) {
+        handlePrintReceipt(placedOrder);
+      }
     } catch (error) {
       toast.error('Failed to place order');
     } finally { setIsProcessing(false); }

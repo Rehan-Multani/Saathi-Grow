@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
     User, Phone, MapPin, Truck, Calendar, Wallet, CheckCircle, 
-    XCircle, Clock, ArrowLeft, MoreHorizontal, Edit, 
-    ChevronRight, ExternalLink, Map as MapIcon, Package, 
+    XCircle, Clock, ArrowLeft, ArrowRight, MoreHorizontal, Edit, 
+    ChevronRight, ExternalLink, Map as MapIcon, Package, Info,
     Star, AlertTriangle, Smartphone, Mail, Shield, ShieldCheck, Activity, TrendingUp, RefreshCw, Loader2
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';

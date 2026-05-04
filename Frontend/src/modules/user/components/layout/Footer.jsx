@@ -137,7 +137,7 @@ const Footer = ({ customTheme }) => {
           </p>
           <div className="flex items-center gap-1 text-gray-400 dark:text-gray-500 text-[10px] md:text-xs font-medium">
             <span>Built with</span>
-            <span className="text-red-500">₹️</span>
+            <span className="text-red-500">❤️</span>
             <span>for sathiGro Users</span>
           </div>
         </div>

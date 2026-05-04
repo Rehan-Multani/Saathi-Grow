@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search, ShoppingCart, Trash2, Plus, Minus, User,
   Phone, Banknote, Printer, Package, ShieldCheck,
-  CreditCard, UserPlus, ArrowRight, Zap, X, ChevronRight
+  CreditCard, UserPlus, ArrowRight, Zap, X, ChevronRight,
+  History, Eye, ChevronLeft, Store, Calendar
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { useStoreManagerAuth } from '../context/StoreManagerAuthContext';
 import { createPOSOrder, searchProductsPOS } from '../../../common/api/posApi';
 import { getPublicSettings } from '../../../common/api/settingApi';
+import { getAllOrdersAdmin, getOrderDetails } from '../../../common/api/orderApi';
 
 const ManagerPOS = () => {
   const { managerUser } = useStoreManagerAuth();
@@ -22,6 +24,14 @@ const ManagerPOS = () => {
   const [settings, setSettings] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({ name: '', phone: '' });
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Tab & History state
+  const [activeTab, setActiveTab] = useState('billing'); // 'billing' | 'history'
+  const [historyOrders, setHistoryOrders] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPagination, setHistoryPagination] = useState({ total: 0, totalPages: 1 });
+  const [lastOrder, setLastOrder] = useState(null);
 
   useEffect(() => { fetchSettings(); }, []);
   useEffect(() => { if (storeId) fetchProducts(); }, [storeId]);
@@ -42,6 +52,117 @@ const ManagerPOS = () => {
       })));
     } catch { toast.error('Inventory fetch failed'); }
     finally { setLoading(false); }
+  };
+
+  const fetchHistory = useCallback(async (page = 1) => {
+    setHistoryLoading(true);
+    try {
+      const data = await getAllOrdersAdmin({ page, limit: 10, orderSource: 'pos' });
+      setHistoryOrders(data.orders || []);
+      setHistoryPagination(data.pagination || { total: 0, totalPages: 1 });
+    } catch { toast.error('Failed to load POS history'); }
+    finally { setHistoryLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'history') fetchHistory(historyPage);
+  }, [activeTab, historyPage, fetchHistory]);
+
+  const generateAndPrintReceipt = (order) => {
+    const items = order.items || order.orderItems || [];
+    const itemsHtml = items.length > 0 ? items.map(item => {
+      const name = item.product?.name || item.name || 'Item';
+      const qty = item.quantity || 1;
+      const unitPrice = item.price || item.basePrice || item.product?.basePrice || 0;
+      const total = unitPrice * qty;
+      return `
+        <tr>
+          <td style="padding:5px 0;font-size:12px;border-bottom:1px dotted #ddd;vertical-align:top;">${name}</td>
+          <td style="padding:5px 4px;font-size:12px;text-align:center;border-bottom:1px dotted #ddd;vertical-align:top;">${qty}</td>
+          <td style="padding:5px 0;font-size:12px;text-align:right;border-bottom:1px dotted #ddd;white-space:nowrap;vertical-align:top;">₹${total.toLocaleString('en-IN')}</td>
+        </tr>`;
+    }).join('') : '<tr><td colspan="3" style="text-align:center;font-size:11px;padding:8px;">No items found</td></tr>';
+
+    const receiptHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Receipt - #${order.orderId || order._id?.slice(-8).toUpperCase()}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Courier New', monospace; width: 300px; margin: 0 auto; padding: 16px; font-size: 13px; color: #000; }
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+    .divider { border-top: 1px dashed #000; margin: 8px 0; }
+    .divider-solid { border-top: 2px solid #000; margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 11px; text-align: left; border-bottom: 1px dashed #000; padding: 4px 0; }
+    th:nth-child(2) { text-align: center; }
+    th:nth-child(3) { text-align: right; }
+    .total-row td { font-weight: bold; font-size: 14px; padding-top: 8px; }
+    .store-name { font-size: 22px; font-weight: 900; letter-spacing: 2px; }
+    .tag { font-size: 10px; color: #444; margin-top: 2px; }
+    @media print { @page { margin: 0; size: 80mm auto; } body { width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="center" style="margin-bottom:12px;">
+    <div class="store-name">Saathigro</div>
+    <div class="tag">Your Everyday Grocery Partner</div>
+    <div class="tag">Indore, Madhya Pradesh</div>
+    <div class="tag">support@Saathigro.com</div>
+  </div>
+  <div class="divider-solid"></div>
+  <div style="margin:8px 0;">
+    <div class="bold" style="font-size:13px;">POS ORDER #${order.orderId || order._id?.slice(-8).toUpperCase()}</div>
+    <div class="tag">Date: ${new Date(order.createdAt).toLocaleString('en-IN')}</div>
+    <div class="tag">Customer: ${order.posCustomer?.name || order.user?.name || 'Guest'}</div>
+    ${order.posCustomer?.phone || order.user?.phone ? `<div class="tag">Phone: ${order.posCustomer?.phone || order.user?.phone}</div>` : ''}
+  </div>
+  <div class="divider"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>ITEM</th>
+        <th style="text-align:center;">QTY</th>
+        <th style="text-align:right;">AMOUNT</th>
+      </tr>
+    </thead>
+    <tbody>${itemsHtml}</tbody>
+  </table>
+  <div class="divider"></div>
+  <table>
+    <tr><td style="font-size:12px;padding:2px 0;">Subtotal</td><td style="text-align:right;font-size:12px;">₹${(order.subtotal || order.totalAmount)?.toLocaleString('en-IN')}</td></tr>
+    ${(order.discountAmount > 0) ? `<tr><td style="font-size:12px;padding:2px 0;">Discount</td><td style="text-align:right;font-size:12px;color:green;">-₹${order.discountAmount?.toLocaleString('en-IN')}</td></tr>` : ''}
+    <tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₹${order.totalAmount?.toLocaleString('en-IN')}</td></tr>
+  </table>
+  <div class="divider"></div>
+  <div style="font-size:12px;margin:6px 0;">
+    <div>Payment: <span class="bold">${(order.paymentMethod || 'Cash').toUpperCase()}</span></div>
+    <div>Status: <span class="bold" style="color:${order.paymentStatus === 'paid' ? 'green' : 'orange'}">${(order.paymentStatus || 'Paid').toUpperCase()}</span></div>
+  </div>
+  <div class="divider-solid"></div>
+  <div class="center" style="margin-top:12px;">
+    <div style="font-size:11px;">Thank you for shopping with Saathigro!</div>
+    <div style="font-size:10px;color:#555;margin-top:4px;">Visit us again • www.Saathigro.com</div>
+    <div style="font-size:10px;color:#888;margin-top:10px;">*** This is a computer generated receipt ***</div>
+  </div>
+</body>
+</html>`;
+    const win = window.open('', '_blank', 'width=420,height=750');
+    win.document.write(receiptHtml);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 500);
+  };
+
+  const handlePrintReceipt = async (order) => {
+    toast.info('Preparing receipt...', { autoClose: 1500 });
+    try {
+      const fullOrder = await getOrderDetails(order._id);
+      generateAndPrintReceipt(fullOrder);
+    } catch {
+      generateAndPrintReceipt(order);
+    }
   };
 
   const addToCart = (product) => {
@@ -69,6 +190,10 @@ const ManagerPOS = () => {
 
   const handleCompleteOrder = async () => {
     if (!cart.length) return;
+    if (customerDetails.phone && customerDetails.phone.length !== 10) {
+      toast.error('Mobile number must be exactly 10 digits');
+      return;
+    }
     const result = await Swal.fire({
       title: 'Confirm Payment',
       html: `<div style="font-size:14px;color:#64748b">Total: <strong style="font-size:22px;color:#1e293b">₹${totalAmount.toFixed(2)}</strong></div>`,
@@ -82,17 +207,145 @@ const ManagerPOS = () => {
     if (!result.isConfirmed) return;
     setIsProcessing(true);
     try {
-      await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, managerUser?.token);
-      Swal.fire({ title: 'Payment Successful!', icon: 'success', confirmButtonColor: '#2563eb', timer: 2000, showConfirmButton: false });
+      const created = await createPOSOrder({ items: cart, customerDetails, storeId, storeType }, managerUser?.token);
+      const placedOrder = created?.order || created;
+      setLastOrder(placedOrder);
       setCart([]);
       setCustomerDetails({ name: '', phone: '' });
       fetchProducts();
+
+      // Success popup with print option
+      const { value: action } = await Swal.fire({
+        title: '<span style="color:#16a34a;font-size:20px;">✓ Payment Successful!</span>',
+        html: `
+          <div style="color:#64748b;font-size:13px;margin-bottom:4px;">
+            Order <strong style="color:#1e293b">#${placedOrder?.orderId || placedOrder?._id?.slice(-8).toUpperCase() || ''}</strong> placed successfully.
+          </div>
+          <div style="font-size:22px;font-weight:900;color:#1e293b;margin:8px 0;">₹${totalAmount.toFixed(2)}</div>
+          <div style="color:#94a3b8;font-size:11px;">Would you like to print the bill?</div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '<span style="display:flex;align-items:center;gap:6px;">🖨️ Print Bill</span>',
+        cancelButtonText: 'New Order',
+        reverseButtons: false,
+        customClass: { popup: 'rounded-2xl' },
+      });
+
+      if (action) {
+        generateAndPrintReceipt(placedOrder);
+      }
     } catch { toast.error('Order failed'); }
     finally { setIsProcessing(false); }
   };
 
   return (
-    <div className="flex h-[calc(100vh-88px)] bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-xl">
+    <div className="flex flex-col h-[calc(100vh-88px)]">
+      {/* ── Tab Bar ──────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-1 px-4 pt-3 pb-0 bg-white border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab('billing')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl border-b-2 transition-all ${activeTab === 'billing' ? 'border-blue-600 text-blue-600 bg-blue-50/50' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <Zap size={13} /> POS Billing
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl border-b-2 transition-all ${activeTab === 'history' ? 'border-blue-600 text-blue-600 bg-blue-50/50' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <History size={13} /> POS History
+        </button>
+      </div>
+
+      {/* ── History Panel ─────────────────────────────────────────────── */}
+      {activeTab === 'history' && (
+        <div className="flex-1 overflow-y-auto bg-slate-50 p-6">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-slate-50 text-[11px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-100">
+                    <th className="px-5 py-4">Order ID</th>
+                    <th className="px-5 py-4">Customer</th>
+                    <th className="px-5 py-4">Date</th>
+                    <th className="px-5 py-4">Status</th>
+                    <th className="px-5 py-4 text-right">Amount</th>
+                    <th className="px-5 py-4 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {historyLoading ? (
+                    Array(5).fill(0).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td colSpan="6" className="px-5 py-4"><div className="h-8 bg-slate-50 rounded w-full" /></td>
+                      </tr>
+                    ))
+                  ) : historyOrders.length > 0 ? (
+                    historyOrders.map(order => (
+                      <tr key={order._id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-5 py-4">
+                          <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            #{order.orderId || order._id.slice(-8).toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="text-sm font-bold text-slate-900">{order.posCustomer?.name || order.user?.name || 'Guest'}</div>
+                          <div className="text-xs text-slate-400">{order.posCustomer?.phone || order.user?.phone || ''}</div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="text-sm text-slate-600 flex items-center gap-1.5">
+                            <Calendar size={13} className="text-slate-400" />
+                            {new Date(order.createdAt).toLocaleDateString('en-IN')}
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${order.status === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : order.status === 'cancelled' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                            {order.status.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right font-bold text-slate-900">₹{order.totalAmount?.toLocaleString('en-IN')}</td>
+                        <td className="px-5 py-4">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => handlePrintReceipt(order)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all active:scale-95"
+                              title="Print Bill"
+                            >
+                              <Printer size={13} /> Print Bill
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="px-5 py-20 text-center text-slate-300">
+                        <Store size={40} strokeWidth={1.5} className="mx-auto" />
+                        <p className="mt-3 text-sm font-bold text-slate-400">No POS orders found</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {!historyLoading && historyPagination.total > 0 && (
+              <div className="bg-slate-50/50 border-t border-slate-100 px-5 py-3 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400">{historyPagination.total} total orders</span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setHistoryPage(p => Math.max(1, p - 1))} disabled={historyPage === 1} className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 disabled:opacity-40 transition-colors"><ChevronLeft size={15} /></button>
+                  <span className="text-xs font-bold text-slate-600">{historyPage} / {historyPagination.totalPages}</span>
+                  <button onClick={() => setHistoryPage(p => Math.min(historyPagination.totalPages, p + 1))} disabled={historyPage === historyPagination.totalPages} className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 disabled:opacity-40 transition-colors"><ChevronRight size={15} /></button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Billing Panel ─────────────────────────────────────────────── */}
+      {activeTab === 'billing' && (
+    <div className="flex flex-1 bg-slate-100 overflow-hidden border border-slate-200 shadow-xl rounded-b-2xl">
 
       {/* ── LEFT: Product Catalog ─────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -114,7 +367,10 @@ const ManagerPOS = () => {
               </button>
             )}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl text-xs font-bold transition-all active:scale-95">
+          <button
+            onClick={() => lastOrder ? handlePrintReceipt(lastOrder) : toast.info('No recent order to print')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 text-slate-600 rounded-xl text-xs font-bold transition-all active:scale-95"
+          >
             <Printer size={15} /> Print Receipt
           </button>
         </div>
@@ -278,17 +534,21 @@ const ManagerPOS = () => {
                 type="text" placeholder="Customer name"
                 className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-8 pr-3 text-xs font-semibold text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 transition-all"
                 value={customerDetails.name}
-                onChange={e => setCustomerDetails({ ...customerDetails, name: e.target.value })}
+                onChange={e => setCustomerDetails({ ...customerDetails, name: e.target.value.replace(/[^a-zA-Z\u0900-\u097F\s]/g, '') })}
               />
             </div>
             <div className="relative">
               <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300" size={12} />
               <input
-                type="tel" placeholder="Mobile number"
-                className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-8 pr-3 text-xs font-semibold text-slate-800 placeholder:text-slate-300 focus:outline-none focus:border-blue-400 transition-all"
+                type="tel" placeholder="Mobile number (10 digits)"
+                maxLength={10}
+                className={`w-full bg-white border rounded-lg py-2 pl-8 pr-3 text-xs font-semibold text-slate-800 placeholder:text-slate-300 focus:outline-none transition-all ${customerDetails.phone && customerDetails.phone.length !== 10 ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
                 value={customerDetails.phone}
-                onChange={e => setCustomerDetails({ ...customerDetails, phone: e.target.value })}
+                onChange={e => setCustomerDetails({ ...customerDetails, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
               />
+              {customerDetails.phone && customerDetails.phone.length !== 10 && (
+                <p className="text-[10px] text-red-500 font-semibold mt-1 pl-1">{customerDetails.phone.length}/10 digits</p>
+              )}
             </div>
           </div>
 
@@ -336,6 +596,8 @@ const ManagerPOS = () => {
         .overflow-y-auto::-webkit-scrollbar { width: 3px; }
         .overflow-y-auto::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
       `}} />
+    </div>
+      )}
     </div>
   );
 };
