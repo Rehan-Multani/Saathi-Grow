@@ -49,6 +49,7 @@ const AssignDeliveries = () => {
     const [loadingDrivers, setLoadingDrivers] = useState(false);
     const [assigningLoading, setAssigningLoading] = useState(false);
     const [optimizeRoute, setOptimizeRoute] = useState(true);
+    const [locationSort, setLocationSort] = useState(false); // sort orders by city
 
     const fetchData = async (isRefresh = false) => {
         try {
@@ -212,6 +213,13 @@ const AssignDeliveries = () => {
                         </button>
                     </div>
                     <button
+                        onClick={() => setLocationSort(v => !v)}
+                        title="Sort by location"
+                        className={`p-2.5 border rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide ${locationSort ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-500'}`}
+                    >
+                        <MapPin size={15} /> Sort by Area
+                    </button>
+                    <button
                         onClick={() => fetchData(true)}
                         disabled={refreshing}
                         className={`p-2.5 bg-white border border-slate-200 rounded-xl transition-all shadow-sm active:scale-95 ${refreshing ? 'opacity-50' : 'hover:border-blue-500'}`}
@@ -280,58 +288,94 @@ const AssignDeliveries = () => {
                                             <th className="px-6 py-3 w-16 text-center">Select</th>
                                             <th className="px-4 py-3">{t('assign.table.order_id')}</th>
                                             <th className="px-4 py-3">{t('assign.table.customer')}</th>
-                                            <th className="px-4 py-3">{t('assign.table.address')}</th>
+                                            <th className="px-4 py-3">{t('assign.table.address')}{locationSort && <span className="ml-1 text-blue-500">↑</span>}</th>
                                             <th className="px-6 py-3 text-right">{t('assign.table.amount')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 text-xs font-medium">
-                                        {group.data.orders.map(order => {
-                                            const isSelected = selectedOrders.includes(order._id);
-                                            const isDisabled = currentSlotContext && currentSlotContext !== group.id && selectedOrders.length > 0;
-                                            
-                                            return (
-                                                <tr 
-                                                    key={order._id} 
-                                                    className={`hover:bg-slate-50/50 transition-colors cursor-pointer ${isSelected ? 'bg-blue-50/30' : ''} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
-                                                    onClick={() => !isDisabled && handleSelectOrder(order._id, group.id)}
-                                                >
-                                                    <td className="px-6 py-4 text-center">
-                                                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mx-auto transition-all ${
-                                                            isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white'
-                                                        }`}>
-                                                            {isSelected && <CheckCircle size={12} strokeWidth={3} />}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <div className="flex flex-col gap-1">
-                                                            <span className="text-xs font-bold text-slate-900">#{order.orderId}</span>
-                                                            <span className={`w-fit px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-tight ${
-                                                                order.paymentMethod === 'online' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                        {(() => {
+                                            const sortedOrders = locationSort
+                                                ? [...group.data.orders].sort((a, b) => {
+                                                    const cityA = (a.shippingAddress?.city || '').toLowerCase().trim();
+                                                    const cityB = (b.shippingAddress?.city || '').toLowerCase().trim();
+                                                    if (cityA !== cityB) return cityA.localeCompare(cityB);
+                                                    const streetA = (a.shippingAddress?.street || '').toLowerCase().trim();
+                                                    const streetB = (b.shippingAddress?.street || '').toLowerCase().trim();
+                                                    return streetA.localeCompare(streetB);
+                                                })
+                                                : group.data.orders;
+
+                                            const rows = [];
+                                            let lastCity = null;
+
+                                            sortedOrders.forEach((order, idx) => {
+                                                const city = order.shippingAddress?.city?.trim() || 'Unknown Area';
+                                                const isSelected = selectedOrders.includes(order._id);
+                                                const isDisabled = currentSlotContext && currentSlotContext !== group.id && selectedOrders.length > 0;
+
+                                                // City group header divider row
+                                                if (locationSort && city !== lastCity) {
+                                                    lastCity = city;
+                                                    const cityCount = sortedOrders.filter(o => (o.shippingAddress?.city?.trim() || 'Unknown Area') === city).length;
+                                                    rows.push(
+                                                        <tr key={`city-header-${city}-${idx}`} className="bg-slate-50 border-y border-slate-200">
+                                                            <td colSpan="5" className="px-4 py-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <MapPin size={12} className="text-blue-500 shrink-0" />
+                                                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{city}</span>
+                                                                    <span className="text-[9px] font-bold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded-full">{cityCount} order{cityCount !== 1 ? 's' : ''}</span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }
+
+                                                rows.push(
+                                                    <tr
+                                                        key={order._id}
+                                                        className={`hover:bg-slate-50/50 transition-colors cursor-pointer ${isSelected ? 'bg-blue-50/30' : ''} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                                        onClick={() => !isDisabled && handleSelectOrder(order._id, group.id)}
+                                                    >
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center mx-auto transition-all ${
+                                                                isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white'
                                                             }`}>
-                                                                {order.paymentMethod === 'online' ? 'PAID' : 'CASH'}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-bold text-slate-700">{order.user?.name || 'Customer'}</span>
-                                                            <span className="text-[10px] text-slate-400">{order.user?.phone}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <div className="flex items-start gap-1.5 max-w-[280px]">
-                                                            <MapPin size={12} className="text-slate-300 mt-0.5 shrink-0" />
-                                                            <span className="text-[10px] text-slate-500 line-clamp-2 leading-relaxed">
-                                                                {order.shippingAddress?.street}, {order.shippingAddress?.city}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <span className="text-xs font-bold text-slate-900 tracking-tight">₹{order.totalAmount}</span>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                                                {isSelected && <CheckCircle size={12} strokeWidth={3} />}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-4">
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-xs font-bold text-slate-900">#{order.orderId}</span>
+                                                                <span className={`w-fit px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-tight ${
+                                                                    order.paymentMethod === 'online' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                                                }`}>
+                                                                    {order.paymentMethod === 'online' ? 'PAID' : 'CASH'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-4">
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-slate-700">{order.user?.name || 'Customer'}</span>
+                                                                <span className="text-[10px] text-slate-400">{order.user?.phone}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-4">
+                                                            <div className="flex items-start gap-1.5 max-w-[280px]">
+                                                                <MapPin size={12} className="text-slate-300 mt-0.5 shrink-0" />
+                                                                <span className="text-[10px] text-slate-500 line-clamp-2 leading-relaxed">
+                                                                    {order.shippingAddress?.street}, {order.shippingAddress?.city}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <span className="text-xs font-bold text-slate-900 tracking-tight">₹{order.totalAmount}</span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            });
+
+                                            return rows;
+                                        })()}
                                     </tbody>
                                 </table>
                             </div>
@@ -503,61 +547,93 @@ const AssignDeliveries = () => {
                             </button>
 
                             <div className="space-y-4">
-                                <h6 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Select Rider</h6>
+                                <div className="flex items-center justify-between px-1">
+                                    <h6 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                                        Select Rider
+                                        {availableDrivers.length > 0 && (
+                                            <span className="ml-2 text-blue-500 normal-case font-bold">
+                                                — {availableDrivers.filter(d => d.distanceKm != null).length > 0
+                                                    ? `${availableDrivers.length} nearby`
+                                                    : `${availableDrivers.length} available`}
+                                            </span>
+                                        )}
+                                    </h6>
+                                    {availableDrivers.some(d => d.distanceKm != null) && (
+                                        <span className="text-[9px] font-bold text-blue-500 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                            <MapPin size={9} /> Within 20km
+                                        </span>
+                                    )}
+                                </div>
                                 
                                 {loadingDrivers ? (
                                     <div className="flex flex-col items-center justify-center py-10 opacity-30">
                                         <Loader2 size={32} className="animate-spin text-blue-500" />
-                                        <p className="text-[10px] font-bold uppercase mt-3 tracking-widest">Searching fleet...</p>
+                                        <p className="text-[10px] font-bold uppercase mt-3 tracking-widest">Searching nearby fleet...</p>
                                     </div>
                                 ) : availableDrivers.length === 0 ? (
-                                    <div className="p-10 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 flex flex-col items-center gap-3">
-                                        <AlertCircle size={32} className="text-slate-200" />
-                                        <p className="text-[10px] font-bold text-slate-400 max-w-[200px] uppercase">No free riders available in this area</p>
+                                    <div className="p-8 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 flex flex-col items-center gap-3">
+                                        <AlertCircle size={28} className="text-slate-300" />
+                                        <div>
+                                            <p className="text-[11px] font-bold text-slate-500 uppercase">No riders in this area</p>
+                                            <p className="text-[10px] text-slate-400 mt-1">No free riders found within 20km of the delivery location</p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {availableDrivers.map(driver => (
-                                            <div
-                                                key={driver._id}
-                                                className="group p-4 bg-white border border-slate-100 rounded-2xl hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer flex items-center justify-between"
-                                                onClick={() => !assigningLoading && handleConfirmAssignment(driver._id)}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors overflow-hidden">
-                                                        {driver.profileImage ? (
-                                                            <img src={driver.profileImage} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <span className="text-sm font-bold text-slate-300 italic">{driver.name.charAt(0)}</span>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-xs font-bold text-slate-800 block leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{driver.name}</span>
-                                                        <div className="flex items-center gap-2 mt-1.5">
-                                                            <span className="text-[9px] font-bold text-slate-400 uppercase">{driver.vehicleType}</span>
-                                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
-                                                            <div className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
-                                                                <Phone size={10} /> {driver.phone}
+                                        {availableDrivers.map((driver, idx) => {
+                                            // Show a divider before the first no-GPS rider
+                                            const prevHasGps = idx > 0 && availableDrivers[idx - 1].distanceKm != null;
+                                            const showDivider = prevHasGps && driver.distanceKm === null;
+                                            return (
+                                                <React.Fragment key={driver._id}>
+                                                    {showDivider && (
+                                                        <div className="flex items-center gap-2 py-1">
+                                                            <div className="flex-1 h-px bg-slate-100"></div>
+                                                            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest whitespace-nowrap">Location unknown</span>
+                                                            <div className="flex-1 h-px bg-slate-100"></div>
+                                                        </div>
+                                                    )}
+                                                    <div
+                                                        className="group p-4 bg-white border border-slate-100 rounded-2xl hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer flex items-center justify-between"
+                                                        onClick={() => !assigningLoading && handleConfirmAssignment(driver._id)}
+                                                    >
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors overflow-hidden">
+                                                                {driver.profileImage ? (
+                                                                    <img src={driver.profileImage} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <span className="text-sm font-bold text-slate-300 italic">{driver.name.charAt(0)}</span>
+                                                                )}
                                                             </div>
-                                                            {driver.distanceKm != null && (
-                                                                <>
+                                                            <div>
+                                                                <span className="text-xs font-bold text-slate-800 block leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{driver.name}</span>
+                                                                <div className="flex items-center gap-2 mt-1.5">
+                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase">{driver.vehicleType}</span>
                                                                     <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
-                                                                    <div className="text-[9px] font-bold text-emerald-600 flex items-center gap-1">
-                                                                        <MapPin size={10} /> {driver.distanceKm < 1 ? `${Math.round(driver.distanceKm * 1000)}m` : `${driver.distanceKm.toFixed(1)}km`}
+                                                                    <div className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
+                                                                        <Phone size={10} /> {driver.phone}
                                                                     </div>
-                                                                </>
-                                                            )}
+                                                                    {driver.distanceKm != null && (
+                                                                        <>
+                                                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                                                            <div className="text-[9px] font-bold text-emerald-600 flex items-center gap-1">
+                                                                                <MapPin size={10} /> {driver.distanceKm < 1 ? `${Math.round(driver.distanceKm * 1000)}m` : `${driver.distanceKm.toFixed(1)}km`}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${driver.dutyStatus === 'Online' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                                                {driver.dutyStatus}
+                                                            </span>
+                                                            <ArrowRight size={16} className="text-slate-200 group-hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${driver.dutyStatus === 'Online' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-                                                        {driver.dutyStatus}
-                                                    </span>
-                                                    <ArrowRight size={16} className="text-slate-200 group-hover:text-blue-500 transition-all opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
-                                                </div>
-                                            </div>
-                                        ))}
+                                                </React.Fragment>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

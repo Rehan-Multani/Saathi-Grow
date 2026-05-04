@@ -348,7 +348,9 @@ export const getAvailablePartners = async (req, res) => {
               return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             };
 
-            // Annotate each partner with distance and sort
+            const RADIUS_KM = 20; // Only show partners within 20km of delivery area
+
+            // Annotate each partner with distance
             const annotated = partners.map(p => {
               const [pLng, pLat] = p.currentLocation?.coordinates || [0, 0];
               const hasLocation = pLng !== 0 || pLat !== 0;
@@ -358,15 +360,20 @@ export const getAvailablePartners = async (req, res) => {
               return { ...p, distanceKm };
             });
 
-            // Sort: partners with known location first (by distance), then unknown location
-            annotated.sort((a, b) => {
+            // Filter: keep partners within radius OR partners with no GPS (can't determine location)
+            const filtered = annotated.filter(p =>
+              p.distanceKm === null || p.distanceKm <= RADIUS_KM
+            );
+
+            // Sort: GPS partners nearest first, then no-GPS partners at the end
+            filtered.sort((a, b) => {
               if (a.distanceKm !== null && b.distanceKm !== null) return a.distanceKm - b.distanceKm;
               if (a.distanceKm !== null) return -1;
               if (b.distanceKm !== null) return 1;
               return 0;
             });
 
-            return res.json(annotated);
+            return res.json(filtered);
           } else if (orderCities.length > 0) {
             // Fallback: city-based text match — partners whose last known city matches go first
             // (DeliveryPartner doesn't store city text, so we just return all sorted by Online status)
