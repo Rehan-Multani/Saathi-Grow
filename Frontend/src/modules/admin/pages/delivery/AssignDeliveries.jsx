@@ -8,7 +8,7 @@ import {
     Truck, 
     AlertCircle, 
     X, 
-    Package, 
+    Package,
     CheckCircle, 
     Layers, 
     TrendingUp,

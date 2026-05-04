@@ -10,6 +10,7 @@ import { generateProductDescription, generateProductTags, analyzeSearchQuery } f
 import QRCode from 'qrcode';
 import { sendPushNotification } from '../services/notificationService.js';
 import { syncLocationAssignment } from './physicalLocationController.js';
+import PhysicalLocation from '../models/PhysicalLocation.js';
 
 // Helper to determine status based on total stock
 const determineProductStatus = (branchStocks, vendorStock = null, vendorThreshold = null) => {
@@ -253,6 +254,21 @@ export const createProduct = async (req, res) => {
     if (physicalLocation) {
       // For admin products, scope to first branch if multiple
       const firstBranchId = parsedBranchStocks?.[0]?.branchId || null;
+
+      // ── Conflict check: shelf already occupied by another product? ──
+      const locationFilter = { label: physicalLocation.trim(), isActive: true };
+      if (firstBranchId) locationFilter.branchId = firstBranchId;
+      else if (vendor) locationFilter.vendorId = vendor;
+
+      const occupiedLoc = await PhysicalLocation.findOne(locationFilter).populate('assignedProduct', 'name sku');
+      if (occupiedLoc && occupiedLoc.assignedProduct) {
+        // Rollback: delete the just-created product
+        await product.deleteOne();
+        return res.status(409).json({
+          message: `Shelf "${physicalLocation}" is already occupied by "${occupiedLoc.assignedProduct.name}" (${occupiedLoc.assignedProduct.sku}). Please choose a different shelf.`
+        });
+      }
+
       await syncLocationAssignment({
         newLabel: physicalLocation,
         productId: product._id.toString(),
@@ -1090,6 +1106,26 @@ export const updateProduct = async (req, res) => {
       const updatedProduct = await product.save();
 
       // Sync physical location assignment
+      // ── Conflict check: shelf already occupied by a DIFFERENT product? ──
+      if (updatedProduct.physicalLocation) {
+        const locFilter = { label: updatedProduct.physicalLocation.trim(), isActive: true };
+        const branchIdForLoc = updatedProduct.branchStocks?.[0]?.branchId?.toString() || null;
+        const vendorIdForLoc = updatedProduct.vendor ? updatedProduct.vendor.toString() : null;
+        if (branchIdForLoc) locFilter.branchId = branchIdForLoc;
+        else if (vendorIdForLoc) locFilter.vendorId = vendorIdForLoc;
+
+        const occupiedLoc = await PhysicalLocation.findOne(locFilter).populate('assignedProduct', 'name sku _id');
+        if (
+          occupiedLoc &&
+          occupiedLoc.assignedProduct &&
+          occupiedLoc.assignedProduct._id.toString() !== updatedProduct._id.toString()
+        ) {
+          return res.status(409).json({
+            message: `Shelf "${updatedProduct.physicalLocation}" is already occupied by "${occupiedLoc.assignedProduct.name}" (${occupiedLoc.assignedProduct.sku}). Please choose a different shelf.`
+          });
+        }
+      }
+
       await syncLocationAssignment({
         newLabel: updatedProduct.physicalLocation || null,
         productId: updatedProduct._id.toString(),
@@ -2079,7 +2115,7 @@ export const bulkUploadProducts = async (req, res) => {
           continue;
         }
 
-        const sku = row.sku || `BULK-${row.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+        const sku = row.sku || `SAATHI-${row.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X')}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
         const productData = {
           name: row.name,

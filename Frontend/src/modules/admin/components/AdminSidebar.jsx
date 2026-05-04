@@ -123,6 +123,27 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                 </div>
 
                 <div className="sidebar-footer">
+                    {/* Portal Quick Links */}
+                    <div className="portal-links">
+                        <p className="portal-links-title">Portal Links</p>
+                        <div className="portal-links-grid">
+                            <a href="http://saathigro.in/store-manager/login" target="_blank" rel="noopener noreferrer" className="portal-link-btn">
+                                <Icons.Store size={13} />
+                                <span>Store Manager</span>
+                                <Icons.ExternalLink size={10} className="ml-auto opacity-50" />
+                            </a>
+                            <a href="http://saathigro.in/staff/login" target="_blank" rel="noopener noreferrer" className="portal-link-btn">
+                                <Icons.Users size={13} />
+                                <span>Staff</span>
+                                <Icons.ExternalLink size={10} className="ml-auto opacity-50" />
+                            </a>
+                            <a href="http://saathigro.in/vendor/login" target="_blank" rel="noopener noreferrer" className="portal-link-btn">
+                                <Icons.ShoppingBag size={13} />
+                                <span>Vendor</span>
+                                <Icons.ExternalLink size={10} className="ml-auto opacity-50" />
+                            </a>
+                        </div>
+                    </div>
                     <button onClick={handleLogout} className="logout-btn">
                         <Icons.LogOut size={18} />
                         <span>Sign Out</span>
@@ -164,6 +185,11 @@ const AdminSidebar = ({ showMobile, onClose }) => {
                     .submenu-item.active::before { content: ''; position: absolute; left: 40px; top: 18px; width: 4px; height: 4px; background: #2563eb; border-radius: 50%; }
                     
                     .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.05); }
+                    .portal-links { margin-bottom: 10px; }
+                    .portal-links-title { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; padding: 0 4px; }
+                    .portal-links-grid { display: flex; flex-direction: column; gap: 4px; }
+                    .portal-link-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; color: #64748b; font-size: 12px; font-weight: 500; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); transition: all 0.2s; text-decoration: none; }
+                    .portal-link-btn:hover { background: rgba(37,99,235,0.12); color: #93c5fd; border-color: rgba(37,99,235,0.25); }
                     .logout-btn { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; color: #94a3b8; font-size: 14px; font-weight: 500; transition: all 0.2s text-color; border: 1px solid transparent; }
                     .logout-btn:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
                     

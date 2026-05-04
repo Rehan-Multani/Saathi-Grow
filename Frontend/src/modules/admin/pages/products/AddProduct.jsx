@@ -205,10 +205,10 @@ const AddProduct = () => {
 
     // SKU Helpers
     const generateSKU = useCallback(() => {
-        const prefix = formData.category ? formData.category.substring(0, 3).toUpperCase() : 'PROD';
+        const prefix = formData.category ? formData.category.substring(0, 3).toUpperCase() : 'PRD';
         const namePart = formData.name ? formData.name.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, 'X') : 'XXX';
         const uid = Math.random().toString(36).substring(2, 7).toUpperCase();
-        return `${prefix}-${namePart}-${uid}`;
+        return `SAATHI-${prefix}-${namePart}-${uid}`;
     }, [formData.category, formData.name]);
 
     const handleRefreshSKU = useCallback(() => {
@@ -564,96 +564,6 @@ const AddProduct = () => {
                             </div>
                         </div>
 
-                        {/* Shelf Location Section */}
-                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-4 shadow-sm">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-bold text-black flex items-center gap-2">
-                                    <span className="w-1 h-6 bg-teal-500 rounded-full"></span>
-                                    Shelf Location
-                                </h3>
-                                {formData.specificBranches.length > 0 && !showNewShelf && (
-                                    <button type="button" onClick={() => setShowNewShelf(true)}
-                                        className="flex items-center gap-1.5 text-xs font-bold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-all">
-                                        <Plus size={14} /> New Shelf
-                                    </button>
-                                )}
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">{t('fields.physical_location')}</label>
-                                {formData.specificBranches.length === 0 ? (
-                                    <div className="form-input-simple text-slate-400 cursor-not-allowed select-none">
-                                        Select a branch first
-                                    </div>
-                                ) : availableLocations.length > 0 ? (
-                                    <DownDropdown
-                                        value={formData.physicalLocation}
-                                        onChange={val => setFormData(p => ({ ...p, physicalLocation: val }))}
-                                        options={availableLocations.map(loc => ({
-                                            value: loc.label,
-                                            label: loc.label + (loc.description ? ` — ${loc.description}` : '')
-                                        }))}
-                                        placeholder="— Select Shelf —"
-                                    />
-                                ) : (
-                                    <input
-                                        type="text"
-                                        name="physicalLocation"
-                                        value={formData.physicalLocation}
-                                        onChange={handleChange}
-                                        placeholder="No shelves set up — type manually"
-                                        className="form-input-simple"
-                                    />
-                                )}
-                                {formData.specificBranches.length === 0 ? (
-                                    <p className="text-[11px] text-slate-400">Allocate at least one branch to see location options.</p>
-                                ) : availableLocations.length > 0 ? (
-                                    <p className="text-[11px] text-teal-600 font-medium">{availableLocations.length} shelf location{availableLocations.length !== 1 ? 's' : ''} available</p>
-                                ) : (
-                                    <p className="text-[11px] text-slate-400">No shelves found for selected branch — you can type a custom location.</p>
-                                )}
-                            </div>
-
-                            {/* Inline New Shelf Form */}
-                            {showNewShelf && (
-                                <div className="border border-teal-200 bg-teal-50/50 rounded-2xl p-4 space-y-3">
-                                    <p className="text-xs font-bold text-teal-700 uppercase tracking-wide">Create New Shelf</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-600">Label <span className="text-rose-400">*</span></label>
-                                            <input
-                                                type="text"
-                                                value={newShelf.label}
-                                                onChange={e => setNewShelf(p => ({ ...p, label: e.target.value }))}
-                                                placeholder="e.g. A1, Row-3, Cold-Zone"
-                                                className="form-input-simple"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-slate-600">Description (optional)</label>
-                                            <input
-                                                type="text"
-                                                value={newShelf.description}
-                                                onChange={e => setNewShelf(p => ({ ...p, description: e.target.value }))}
-                                                placeholder="e.g. Top shelf near entrance"
-                                                className="form-input-simple"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2 justify-end">
-                                        <button type="button" onClick={() => { setShowNewShelf(false); setNewShelf({ label: '', description: '' }); }}
-                                            className="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition-all">
-                                            Cancel
-                                        </button>
-                                        <button type="button" onClick={handleCreateShelf} disabled={shelfCreating}
-                                            className="px-4 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-60">
-                                            {shelfCreating ? <RefreshCw size={13} className="animate-spin" /> : <Check size={13} />}
-                                            Save Shelf
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
                         {/* Section 4: Inventory Intelligence */}
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-6 shadow-sm">
                             <h3 className="text-lg font-bold text-black flex items-center gap-2">
@@ -751,6 +661,96 @@ const AddProduct = () => {
                                     <input type="number" onWheel={(e) => e.target.blur()} name="pickSequence" value={formData.pickSequence} onChange={handleChange} className="form-input-simple" placeholder="E.g. 1 (First), 2, 3..." />
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Shelf Location Section */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 space-y-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                                    <span className="w-1 h-6 bg-teal-500 rounded-full"></span>
+                                    Shelf Location
+                                </h3>
+                                {formData.specificBranches.length > 0 && !showNewShelf && (
+                                    <button type="button" onClick={() => setShowNewShelf(true)}
+                                        className="flex items-center gap-1.5 text-xs font-bold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-all">
+                                        <Plus size={14} /> New Shelf
+                                    </button>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">{t('fields.physical_location')}</label>
+                                {formData.specificBranches.length === 0 ? (
+                                    <div className="form-input-simple text-slate-400 cursor-not-allowed select-none">
+                                        Select a branch first
+                                    </div>
+                                ) : availableLocations.length > 0 ? (
+                                    <DownDropdown
+                                        value={formData.physicalLocation}
+                                        onChange={val => setFormData(p => ({ ...p, physicalLocation: val }))}
+                                        options={availableLocations.map(loc => ({
+                                            value: loc.label,
+                                            label: loc.label + (loc.description ? ` — ${loc.description}` : '')
+                                        }))}
+                                        placeholder="— Select Shelf —"
+                                    />
+                                ) : (
+                                    <input
+                                        type="text"
+                                        name="physicalLocation"
+                                        value={formData.physicalLocation}
+                                        onChange={handleChange}
+                                        placeholder="No shelves set up — type manually"
+                                        className="form-input-simple"
+                                    />
+                                )}
+                                {formData.specificBranches.length === 0 ? (
+                                    <p className="text-[11px] text-slate-400">Allocate at least one branch to see location options.</p>
+                                ) : availableLocations.length > 0 ? (
+                                    <p className="text-[11px] text-teal-600 font-medium">{availableLocations.length} shelf location{availableLocations.length !== 1 ? 's' : ''} available</p>
+                                ) : (
+                                    <p className="text-[11px] text-slate-400">No shelves found for selected branch — you can type a custom location.</p>
+                                )}
+                            </div>
+
+                            {/* Inline New Shelf Form */}
+                            {showNewShelf && (
+                                <div className="border border-teal-200 bg-teal-50/50 rounded-2xl p-4 space-y-3">
+                                    <p className="text-xs font-bold text-teal-700 uppercase tracking-wide">Create New Shelf</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-600">Label <span className="text-rose-400">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={newShelf.label}
+                                                onChange={e => setNewShelf(p => ({ ...p, label: e.target.value }))}
+                                                placeholder="e.g. A1, Row-3, Cold-Zone"
+                                                className="form-input-simple"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-slate-600">Description (optional)</label>
+                                            <input
+                                                type="text"
+                                                value={newShelf.description}
+                                                onChange={e => setNewShelf(p => ({ ...p, description: e.target.value }))}
+                                                placeholder="e.g. Top shelf near entrance"
+                                                className="form-input-simple"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 justify-end">
+                                        <button type="button" onClick={() => { setShowNewShelf(false); setNewShelf({ label: '', description: '' }); }}
+                                            className="px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 rounded-lg transition-all">
+                                            Cancel
+                                        </button>
+                                        <button type="button" onClick={handleCreateShelf} disabled={shelfCreating}
+                                            className="px-4 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-60">
+                                            {shelfCreating ? <RefreshCw size={13} className="animate-spin" /> : <Check size={13} />}
+                                            Save Shelf
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

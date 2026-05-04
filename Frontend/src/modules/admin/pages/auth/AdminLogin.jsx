@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mail, Lock, Loader2, ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, Eye, EyeOff, ShieldCheck, ChevronDown, Store, Users, ShoppingBag, ExternalLink } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
 const AdminLogin = () => {
@@ -12,6 +12,7 @@ const AdminLogin = () => {
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [showPortals, setShowPortals] = useState(false);
     const { adminLogin } = useAdminAuth();
     const navigate = useNavigate();
 
@@ -148,7 +149,41 @@ const AdminLogin = () => {
                     </button>
                 </form>
 
-                <p className="text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest mt-8">
+                {/* Portal Links Accordion */}
+                <div className="mt-6 border border-gray-100 rounded-2xl overflow-hidden">
+                    <button
+                        type="button"
+                        onClick={() => setShowPortals(v => !v)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Other Portals</span>
+                        <ChevronDown size={15} className={`text-gray-400 transition-transform duration-300 ${showPortals ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    <div className={`overflow-hidden transition-all duration-300 ${showPortals ? 'max-h-48' : 'max-h-0'}`}>
+                        <div className="p-3 space-y-2 bg-white">
+                            {[
+                                { label: 'Store Manager', icon: <Store size={14} />, url: 'http://saathigro.in/store-manager/login', color: 'text-purple-600 bg-purple-50 border-purple-100' },
+                                { label: 'Staff Portal', icon: <Users size={14} />, url: 'http://saathigro.in/staff/login', color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+                                { label: 'Vendor Portal', icon: <ShoppingBag size={14} />, url: 'http://saathigro.in/vendor/login', color: 'text-orange-600 bg-orange-50 border-orange-100' },
+                            ].map(({ label, icon, url, color }) => (
+                                <a
+                                    key={label}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all hover:shadow-sm ${color}`}
+                                >
+                                    {icon}
+                                    <span>{label}</span>
+                                    <ExternalLink size={11} className="ml-auto opacity-50" />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <p className="text-center text-[10px] font-bold text-gray-300 uppercase tracking-widest mt-6">
                     &copy; 2026 SATHIGRO. ALL RIGHTS RESERVED.
                 </p>
             </div>
