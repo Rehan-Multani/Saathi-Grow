@@ -65,6 +65,8 @@
   },
   "messages": {
     "fetch_error": "Could not load branches",
+    "create_success": "Branch created successfully",
+    "create_error": "Could not create branch",
     "update_success": "Branch updated successfully",
     "update_error": "Could not update branch",
     "delete_confirm_title": "Delete Branch?",

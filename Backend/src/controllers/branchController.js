@@ -1,6 +1,7 @@
 import Branch from '../models/Branch.js';
 import Admin from '../models/Admin.js';
 import { geocodeAddress } from '../services/locationService.js';
+import { sendPushNotification } from '../services/notificationService.js';
 
 // @desc    Create new branch
 // @route   POST /api/admin/branches
@@ -65,7 +66,7 @@ export const getBranches = async (req, res) => {
     const pageNumber = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limitNumber = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const search = (req.query.search || '').trim();
-    const query = {};
+    const query = { isActive: { $ne: false } }; // Only active branches by default
 
     if (search) {
       query.$or = [
@@ -223,10 +224,25 @@ export const deleteBranch = async (req, res) => {
   try {
     const branch = await Branch.findById(req.params.id);
     if (branch) {
-      // Unlink admins
-      await Admin.updateMany({ branchId: branch._id }, { branchId: null });
+      // Identify affected managers and staff
+      const affectedStaff = await Admin.find({ branchId: branch._id });
+
+      // Deactivate them and set branch to null so they don't get "Global Access"
+      await Admin.updateMany(
+        { branchId: branch._id }, 
+        { branchId: null, isActive: false }
+      );
+
+      // Notify each staff member about the branch removal
+      for (const staff of affectedStaff) {
+        await sendPushNotification(staff._id, 'Admin', {
+          title: 'Account Deactivated',
+          body: `Your assigned branch '${branch.name}' was deleted by the Admin. Please contact support for reassignment.`
+        }, { type: 'account_deactivation', action: 'LOGOUT' });
+      }
+
       await branch.deleteOne();
-      res.json({ message: 'Branch removed' });
+      res.json({ message: `Branch '${branch.name}' removed. ${affectedStaff.length} staff members have been deactivated.` });
     } else {
       res.status(404).json({ message: 'Branch not found' });
     }

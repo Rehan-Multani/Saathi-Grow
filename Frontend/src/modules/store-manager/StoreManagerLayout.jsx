@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import StoreManagerSidebar from './components/StoreManagerSidebar';
 import { Menu, Bell, User, Settings, LogOut, ChevronDown, Monitor, Clock, ShieldCheck, Activity } from 'lucide-react';
@@ -6,6 +6,7 @@ import { useStoreManagerAuth } from './context/StoreManagerAuthContext';
 import FirebaseNotificationHandler from '../../common/components/FirebaseNotificationHandler';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/apiConfig';
+import Swal from 'sweetalert2';
 
 const StoreManagerLayout = () => {
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -36,10 +37,33 @@ const StoreManagerLayout = () => {
         return () => clearInterval(interval);
     }, [managerToken]);
 
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
         managerLogout();
         navigate('/store-manager/login');
-    };
+    }, [managerLogout, navigate]);
+
+    useEffect(() => {
+        const interceptor = axios.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                const message = error.response?.data?.message;
+                if (error.response?.status === 403 && message === 'This branch has been deleted. Please contact admin.') {
+                    Swal.fire({
+                        title: 'Branch Deleted',
+                        text: 'This branch has been deleted. Please contact admin.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#3b82f6',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        handleLogout();
+                    });
+                }
+                return Promise.reject(error);
+            }
+        );
+        return () => axios.interceptors.response.eject(interceptor);
+    }, [handleLogout]);
 
     const getPageTitle = () => {
         const path = location.pathname;

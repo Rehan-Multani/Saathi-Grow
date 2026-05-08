@@ -5,7 +5,8 @@ import {
     ArrowUpRight, ArrowDownRight, Package,
     DollarSign, AlertTriangle, Download,
     Leaf, Apple, Milk, Croissant, ChevronRight,
-    Loader2, ShoppingBag, BarChart3, TrendingDown
+    Loader2, ShoppingBag, BarChart3, TrendingDown,
+    AlertCircle
 } from 'lucide-react';
 import SummaryCards from './components/SummaryCards';
 import { useStoreManagerAuth } from './context/StoreManagerAuthContext';

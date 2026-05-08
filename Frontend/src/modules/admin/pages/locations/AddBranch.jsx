@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import GoogleMapsInput from '../../../../common/components/forms/GoogleMapsInput';
 import PageInfoTooltip from '../../../../common/components/modals/PageInfoTooltip';
 import { pageInfoData } from '../../../../common/data/pageInfoData';
+import Swal from 'sweetalert2';
 
 const AddBranch = () => {
     const { t } = useTranslation('admin_locations');
@@ -55,7 +56,13 @@ const AddBranch = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        const val = type === 'checkbox' ? checked : value;
+        let val = type === 'checkbox' ? checked : value;
+
+        // Strict 10-digit numeric validation for phone
+        if (name === 'phone') {
+            val = value.replace(/\D/g, '').slice(0, 10);
+        }
+
         if (name.includes('.')) {
             const [parent, child] = name.split('.');
             setFormData(prev => ({
@@ -100,10 +107,15 @@ const AddBranch = () => {
             }
 
             await createBranch(adminUser.token, data);
-            toast.success(t('messages.update_success'));
+            Swal.fire({
+                title: t('messages.create_success'),
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
             navigate('/admin/locations/branches');
         } catch (error) {
-            // toast.error(error.message || t('messages.fetch_error'));
+            toast.error(error.response?.data?.message || t('messages.create_error'));
         } finally {
             setLoading(false);
         }
@@ -170,7 +182,8 @@ const AddBranch = () => {
                                     <input
                                         type="tel"
                                         name="phone"
-                                        placeholder="Phone Number"
+                                        maxLength={10}
+                                        placeholder="Phone Number (10 digits)"
                                         className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition-all text-sm font-bold text-slate-700 shadow-sm"
                                         value={formData.phone}
                                         onChange={handleChange}

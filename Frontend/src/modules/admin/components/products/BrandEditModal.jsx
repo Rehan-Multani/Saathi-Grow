@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Save, Camera, X, Globe, FileText, Check, RefreshCw, Upload, Search } from 'lucide-react';
+import { Save, Camera, X, Globe, FileText, Check, RefreshCw, Upload, Search, Package } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ImageCropperModal from '../../../../common/components/ImageCropperModal';
 import { getCategories } from '../../api/categoryApi';
@@ -171,14 +171,14 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('form.name_label')}</label>
                                     <div className="relative group">
                                         <FileText className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-                                        <input type="text" name="name" value={formData.name} onChange={handleChange} required className="brand-input pl-11 font-bold text-slate-800" placeholder={t('form.name_placeholder')} />
+                                        <input type="text" name="name" value={formData.name} onChange={handleChange} required className="brand-input with-icon font-bold text-slate-800" placeholder={t('form.name_placeholder')} />
                                     </div>
                                 </div>
                                 <div className="space-y-2.5">
                                     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('brands.table.category')}</label>
                                     <div className="relative group">
                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-                                        <select name="category" value={formData.category} onChange={handleChange} required className="brand-input pl-11 font-bold appearance-none">
+                                        <select name="category" value={formData.category} onChange={handleChange} required className="brand-input with-icon font-bold appearance-none">
                                             <option value="">{t('subcategories.form.parent_placeholder')}</option>
                                             {categories.map(cat => <option key={cat._id} value={cat.name}>{cat.name}</option>)}
                                         </select>
@@ -191,7 +191,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('brands.form.website_label')}</label>
                                 <div className="relative group">
                                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={16} />
-                                    <input type="url" name="website" value={formData.website} onChange={handleChange} className="brand-input pl-11 font-medium text-blue-600" placeholder={t('brands.form.website_placeholder')} />
+                                    <input type="url" name="website" value={formData.website} onChange={handleChange} className="brand-input with-icon font-medium text-blue-600" placeholder={t('brands.form.website_placeholder')} />
                                 </div>
                             </div>
 
@@ -243,6 +243,7 @@ const BrandEditModal = ({ show, onHide, brand, onSave }) => {
                     width: 100%; background: #f8fafc; border: 1.5px solid #f1f5f9; border-radius: 1.15rem; 
                     padding: 0.85rem 1.25rem; outline: none; transition: all 0.25s; font-size: 14px;
                 }
+                .with-icon { padding-left: 3rem !important; }
                 .brand-input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.05); }
                 .animate-spin-slow { animation: spin 4s linear infinite; }
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }

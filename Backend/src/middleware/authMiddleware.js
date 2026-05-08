@@ -73,7 +73,12 @@ export const protectAdmin = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.admin = await Admin.findById(decoded.id);
       if (!req.admin) return res.status(401).json({ message: 'Admin access denied' });
-      if (req.admin.isActive === false) return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+      if (req.admin.isActive === false) {
+        // Only Super Admins (no branchId and 'Admin' role) get the English message
+        const isSuperAdmin = req.admin.role === 'Admin' && !req.admin.branchId;
+        const msg = isSuperAdmin ? 'Account is inactive. Please contact support.' : 'This branch has been deleted. Please contact admin.';
+        return res.status(403).json({ message: msg });
+      }
       next();
     } catch (error) {
       res.status(401).json({ message: 'Session expired, please login again' });
@@ -161,7 +166,10 @@ export const protectStoreManager = async (req, res, next) => {
       const admin = await Admin.findById(decoded.id);
       if (admin) {
         if (admin.isActive === false) {
-          return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+          // Only Super Admins (no branchId and 'Admin' role) get the English message
+          const isSuperAdmin = admin.role === 'Admin' && !admin.branchId;
+          const msg = isSuperAdmin ? 'Account is inactive. Please contact support.' : 'This branch has been deleted. Please contact admin.';
+          return res.status(403).json({ message: msg });
         }
         req.admin = admin;
         req.user = admin;

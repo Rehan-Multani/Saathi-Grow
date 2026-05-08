@@ -13,7 +13,10 @@ export const adminLogin = async (req, res) => {
 
   if (admin && (await admin.comparePassword(password, admin.password))) {
     if (!admin.isActive) {
-      return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+      // Only Super Admins (no branchId and 'Admin' role) get the English message
+      const isSuperAdmin = admin.role === 'Admin' && !admin.branchId;
+      const msg = isSuperAdmin ? 'Account is inactive. Please contact support.' : 'This branch has been deleted. Please contact admin.';
+      return res.status(403).json({ message: msg });
     }
 
     res.json({
@@ -279,14 +282,18 @@ export const updateAdmin = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to edit Admin accounts' });
     }
 
-    // Allowed permissions for non-Super Admin roles
+    // Allowed permissions for staff/managers
     const ALLOWED_PERMISSIONS = [
+      'VIEW_DASHBOARD',
       'VIEW_ORDERS',
       'MANAGE_ORDERS',
       'MANAGE_REFUNDS_RETURNS',
       'VIEW_PRODUCTS',
+      'MANAGE_PRODUCTS',
       'MANAGE_INVENTORY',
       'VIEW_CUSTOMERS',
+      'VIEW_REPORTS',
+      'MANAGE_STAFF',
       'MANAGE_POS_BILLING'
     ];
 
@@ -318,13 +325,19 @@ export const updateAdmin = async (req, res) => {
       admin.permissions = req.body.permissions.filter(p => ALLOWED_PERMISSIONS.includes(p));
     }
 
-    if (req.body.branchId === '' || req.body.branchId === null) {
-      if (admin.role !== 'Admin') {
-         return res.status(400).json({ message: 'Branch assignment is required' });
+    // Branch ID validation and casting
+    if (req.body.branchId !== undefined) {
+      const willBeActive = req.body.isActive ?? admin.isActive;
+      if ((req.body.branchId === '' || req.body.branchId === null) && willBeActive) {
+        if (admin.role !== 'Admin') {
+          return res.status(400).json({ message: 'Branch assignment is required to activate a manager/staff account.' });
+        }
+        admin.branchId = null;
+      } else {
+        admin.branchId = req.body.branchId || null;
       }
     }
 
-    admin.branchId = req.body.branchId !== undefined ? req.body.branchId : admin.branchId;
     admin.isActive = req.body.isActive ?? admin.isActive;
 
     if (req.body.password) {
